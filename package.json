@@ -1,0 +1,13 @@
+{
+  "name": "com.smitepackage",
+  "version": "1.2.0",
+  "displayName": "Smite Package",
+  "description": "Um pacote de recursos reutilizaveis para futuros projetos",
+  "unity": "2021.3",
+  "documentationUrl": "https://example.com/",
+  "author": {
+    "name": "Gabriel Torres",
+    "email": "gabrielctorres38@gmail.com",
+    "url": "https://github.com/gabrielctorres"
+  }
+}

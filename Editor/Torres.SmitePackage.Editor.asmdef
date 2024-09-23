@@ -1,0 +1,16 @@
+{
+    "name": "Torres.SmitePackage.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:55a1d812162a2d345a2730deb5803845"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
