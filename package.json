@@ -1,6 +1,6 @@
 {
   "name": "com.smitepackage",
-  "version": "1.2.1",
+  "version": "1.2.0",
   "displayName": "Smite Package",
   "description": "Um pacote de recursos reutilizaveis para futuros projetos",
   "unity": "2021.3",
