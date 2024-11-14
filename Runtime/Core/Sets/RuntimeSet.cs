@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SmitePackage.Core.Sets
+namespace SmitePackage.Core.RuntimeSets
 {
     public abstract class RuntimeSet<T> : ScriptableObject
     {

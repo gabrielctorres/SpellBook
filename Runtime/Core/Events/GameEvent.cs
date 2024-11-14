@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace SmitePackage.Core.Events
 {
-    [CreateAssetMenu(fileName = "New Event", menuName = "ScriptbleObjects/Core/GameEvent", order = 0)]
+    [CreateAssetMenu(fileName = "New Event", menuName = "SmitePackage/Core/GameEvent", order = 0)]
     public class GameEvent : ScriptableObject
     {
         private List<GameEventListner> listners = new List<GameEventListner>();

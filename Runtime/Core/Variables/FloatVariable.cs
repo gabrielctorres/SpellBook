@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace SmitePackage.Core.Variables
 {
-    [CreateAssetMenu(fileName = "FloatVariable", menuName = "ScriptableObjects/Variables/Float", order = 0)]
+    [CreateAssetMenu(fileName = "FloatVariable", menuName = "SmitePackage/Variables/Float", order = 0)]
     public class FloatVariable : ScriptableObject
     {
         public float Value;
