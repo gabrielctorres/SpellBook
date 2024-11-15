@@ -1,6 +1,6 @@
 using UnityEngine.Events;
 
-namespace SmitePackage.Core.NewEventSystem
+namespace SpellBook.Core.NewEventSystem
 
 {
     [System.Serializable] public class UnityStringEvent : UnityEvent<string> { }

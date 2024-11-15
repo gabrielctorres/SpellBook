@@ -1,11 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
-using SmitePackage.Core.Events;
+using SpellBook.Core.Events;
 using UnityEngine;
 using UnityEngine.Events;
 
 
-namespace SmitePackage.Core.NewEventSystem
+namespace SpellBook.Core.NewEventSystem
 {
     public abstract class BaseGameEventListener<T, E, UER> : MonoBehaviour, IGameEventListener<T> where E : BaseGameEvent<T> where UER : UnityEvent<T>
     {

@@ -1,5 +1,5 @@
 
-namespace SmitePackage.Core.NewEventSystem
+namespace SpellBook.Core.NewEventSystem
 {
     public interface IGameEventListener<T>
     {

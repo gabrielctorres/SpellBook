@@ -1,9 +1,9 @@
 
 using UnityEditor;
 using UnityEngine;
-using SmitePackage.Core.Variables;
+using SpellBook.Core.Variables;
 
-namespace SmitePackage.Editor.Variables
+namespace SpellBook.Editor.Variables
 {
 
     [CustomPropertyDrawer(typeof(FloatReference))]

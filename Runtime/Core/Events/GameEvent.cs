@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SmitePackage.Core.Events
+namespace SpellBook.Core.Events
 {
     [CreateAssetMenu(fileName = "New Event", menuName = "SmitePackage/Core/GameEvent", order = 0)]
     public class GameEvent : ScriptableObject

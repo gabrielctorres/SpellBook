@@ -1,4 +1,4 @@
-namespace SmitePackage.Core.NewEventSystem
+namespace SpellBook.Core.NewEventSystem
 {
     [System.Serializable] public struct Void { }
 }

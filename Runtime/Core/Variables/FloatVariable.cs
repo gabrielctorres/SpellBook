@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SmitePackage.Core.Variables
+namespace SpellBook.Core.Variables
 {
     [CreateAssetMenu(fileName = "FloatVariable", menuName = "SmitePackage/Variables/Float", order = 0)]
     public class FloatVariable : ScriptableObject

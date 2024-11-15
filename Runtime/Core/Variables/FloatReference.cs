@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SmitePackage.Core.Variables
+namespace SpellBook.Core.Variables
 {
     [System.Serializable]
     public class FloatReference

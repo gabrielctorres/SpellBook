@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace SmitePackage.Core.Events
+namespace SpellBook.Core.Events
 {
     [System.Serializable]
     public class CustomGameEvent : UnityEvent<Component, object> { }

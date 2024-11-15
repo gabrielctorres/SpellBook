@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace SmitePackage.Core.NewEventSystem
+namespace SpellBook.Core.NewEventSystem
 {
     public class StringListener : BaseGameEventListener<string, StringEvent, UnityStringEvent> { }
 }

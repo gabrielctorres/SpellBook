@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SmitePackage.Core.NewEventSystem
+namespace SpellBook.Core.NewEventSystem
 {
     public abstract class BaseGameEvent<T> : ScriptableObject
-    {       
+    {
         private readonly List<IGameEventListener<T>> listeners = new List<IGameEventListener<T>>();
         public void Raise(T item)
         {
