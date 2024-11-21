@@ -1,6 +1,6 @@
 {
-    "name": "Rook.SpellBook",
-    "rootNamespace": "",
+    "name": "SpellBook.Core",
+    "rootNamespace": "SpellBook",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],

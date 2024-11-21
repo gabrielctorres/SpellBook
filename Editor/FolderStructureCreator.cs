@@ -2,16 +2,18 @@ using UnityEditor;
 using UnityEngine;
 using System.IO;
 
-public class FolderStructureCreator : EditorWindow
+namespace SpellBook.Editor
 {
-    [MenuItem("Tools/Create Default Project Folders")]
-    public static void CreateProjectFolders()
+    public class FolderStructureCreator : UnityEditor.EditorWindow
     {
+        [MenuItem("Tools/Create Default Project Folders")]
+        public static void CreateProjectFolders()
+        {
 
-        string rootFolder = "Assets/_Project";
+            string rootFolder = "Assets/_Project";
 
 
-        string[] folders = {
+            string[] folders = {
             $"{rootFolder}/Resources",
             $"{rootFolder}/Resources/Prefab",
             $"{rootFolder}/Resources/Art",
@@ -24,21 +26,23 @@ public class FolderStructureCreator : EditorWindow
         };
 
 
-        foreach (string folder in folders)
-        {
-            if (!Directory.Exists(folder))
+            foreach (string folder in folders)
             {
-                Directory.CreateDirectory(folder);
-                Debug.Log($"Pasta criada: {folder}");
+                if (!Directory.Exists(folder))
+                {
+                    Directory.CreateDirectory(folder);
+                    Debug.Log($"Pasta criada: {folder}");
+                }
+                else
+                {
+                    Debug.Log($"Pasta já existe: {folder}");
+                }
             }
-            else
-            {
-                Debug.Log($"Pasta já existe: {folder}");
-            }
+
+
+            AssetDatabase.Refresh();
+            Debug.Log("Estrutura de pastas criada ou atualizada com sucesso!");
         }
-
-
-        AssetDatabase.Refresh();
-        Debug.Log("Estrutura de pastas criada ou atualizada com sucesso!");
     }
 }
+

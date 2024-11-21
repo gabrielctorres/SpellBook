@@ -1,10 +1,12 @@
 {
-    "name": "Torres.SmitePackage.Editor",
-    "rootNamespace": "",
+    "name": "SpellBook.Editor",
+    "rootNamespace": "SpellBook",
     "references": [
-        "GUID:55a1d812162a2d345a2730deb5803845"
+        "GUID:7834e8f3d0902ad45bfb6fab58f7b919"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
