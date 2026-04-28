@@ -13,15 +13,30 @@ namespace SpellBook.GAS.Targeting
         public override IEnumerable<AbilitySystemComponent> GetTargets(Transform source, Vector3 targetPosition)
         {
             var results = new List<AbilitySystemComponent>();
-            var colliders = Physics.OverlapSphere(targetPosition, radius, targetLayer);
 
-            foreach (var col in colliders)
+            if (physicsMode == PhysicsMode.Physics3D)
             {
-                if (col.TryGetComponent<AbilitySystemComponent>(out var asc))
+                var colliders = Physics.OverlapSphere(targetPosition, radius, targetLayer);
+                foreach (var col in colliders)
                 {
-                    results.Add(asc);
+                    if (col.TryGetComponent<AbilitySystemComponent>(out var asc))
+                    {
+                        results.Add(asc);
+                    }
                 }
             }
+            else
+            {
+                var colliders = Physics2D.OverlapCircleAll(targetPosition, radius, targetLayer);
+                foreach (var col in colliders)
+                {
+                    if (col.TryGetComponent<AbilitySystemComponent>(out var asc))
+                    {
+                        results.Add(asc);
+                    }
+                }
+            }
+            
             return results;
         }
     }
