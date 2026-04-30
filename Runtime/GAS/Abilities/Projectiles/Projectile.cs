@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,7 +9,8 @@ using SpellBook.Systems.Pooling;
 namespace SpellBook.GAS.Abilities.Projectiles
 {
     /// <summary>
-    /// Projétil que utiliza o sistema de ComponentPooler para performance.
+    /// Projétil universal (2D/3D) inspirado no TopDown Engine.
+    /// Utiliza o sistema de ComponentPooler para performance.
     /// </summary>
     public class Projectile : MonoBehaviour, IPoolable
     {
@@ -34,6 +36,12 @@ namespace SpellBook.GAS.Abilities.Projectiles
         /// set this to true if your projectile's model (or sprite) is facing right, false otherwise
         public bool ProjectileIsFacingRight = true;
 
+        [Header("Spawn")]
+        /// the initial delay during which the projectile can't be destroyed or cause damage
+        public float InitialInvulnerabilityDuration = 0f;
+        /// should the projectile damage its owner?
+        public bool DamageOwner = false;
+
         [Header("Lifetime")]
         public float Lifetime = 5f;
         
@@ -47,18 +55,21 @@ namespace SpellBook.GAS.Abilities.Projectiles
         [HideInInspector] public AbilitySystemComponent Source;
         
         // Referência ao Pool local que o criou para retornar corretamente
-        private ComponentPooler _originPool;
+        protected ComponentPooler _originPool;
 
         protected Vector3 _movement;
         protected float _initialSpeed;
         protected SpriteRenderer _spriteRenderer;
         protected Rigidbody _rigidBody;
         protected Rigidbody2D _rigidBody2D;
+        protected Collider _collider;
+        protected Collider2D _collider2D;
         protected bool _facingRightInitially;
         protected bool _initialFlipX;
         protected Vector3 _initialLocalScale;
         protected bool _shouldMove = true;
         protected bool _spawnerIsFacingRight;
+        protected bool _isInvulnerable = false;
 
         protected virtual void Awake()
         {
@@ -67,6 +78,8 @@ namespace SpellBook.GAS.Abilities.Projectiles
             _spriteRenderer = GetComponent<SpriteRenderer>();
             _rigidBody = GetComponent<Rigidbody>();
             _rigidBody2D = GetComponent<Rigidbody2D>();
+            _collider = GetComponent<Collider>();
+            _collider2D = GetComponent<Collider2D>();
             
             if (_spriteRenderer != null) { _initialFlipX = _spriteRenderer.flipX; }
             _initialLocalScale = transform.localScale;
@@ -79,10 +92,14 @@ namespace SpellBook.GAS.Abilities.Projectiles
             OnHitActions = onHitActions;
         }
 
-        private void OnEnable()
+        protected virtual void OnEnable()
         {
             Initialization();
-            StartCoroutine(AutoReturnToPool(Lifetime));
+            if (Lifetime > 0) StartCoroutine(AutoReturnToPool(Lifetime));
+            if (InitialInvulnerabilityDuration > 0)
+            {
+                StartCoroutine(InitialInvulnerability());
+            }
         }
 
         protected virtual void Initialization()
@@ -92,6 +109,17 @@ namespace SpellBook.GAS.Abilities.Projectiles
             if (_spriteRenderer != null) { _spriteRenderer.flipX = _initialFlipX; }
             transform.localScale = _initialLocalScale;
             _shouldMove = true;
+            _isInvulnerable = false;
+
+            if (_collider != null) _collider.enabled = true;
+            if (_collider2D != null) _collider2D.enabled = true;
+        }
+
+        protected virtual IEnumerator InitialInvulnerability()
+        {
+            _isInvulnerable = true;
+            yield return new WaitForSeconds(InitialInvulnerabilityDuration);
+            _isInvulnerable = false;
         }
 
         private IEnumerator AutoReturnToPool(float delay)
@@ -100,7 +128,7 @@ namespace SpellBook.GAS.Abilities.Projectiles
             ReturnToPool();
         }
 
-        private void Update()
+        protected virtual void FixedUpdate()
         {
             if (_shouldMove)
             {
@@ -112,13 +140,7 @@ namespace SpellBook.GAS.Abilities.Projectiles
         {
             if (IsHoming && Target != null)
             {
-                Vector3 homingDir = (Target.position - transform.position).normalized;
-                if (homingDir != Vector3.zero)
-                {
-                    Quaternion targetRotation = Quaternion.LookRotation(homingDir);
-                    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, HomingTurnSpeed * Time.deltaTime);
-                    Direction = transform.forward;
-                }
+                HandleHoming();
             }
 
             _movement = Direction * Speed * Time.deltaTime;
@@ -127,17 +149,47 @@ namespace SpellBook.GAS.Abilities.Projectiles
             {
                 _rigidBody.MovePosition(this.transform.position + _movement);
             }
-            else if (_rigidBody2D != null)
+            if (_rigidBody2D != null)
             {
                 _rigidBody2D.MovePosition((Vector2)this.transform.position + (Vector2)_movement);
             }
-            else
+            if (_rigidBody == null && _rigidBody2D == null)
             {
                 transform.Translate(_movement, Space.World);
             }
 
             // We apply the acceleration to increase the speed
             Speed += Acceleration * Time.deltaTime;
+        }
+
+        protected virtual void HandleHoming()
+        {
+            Vector3 targetDir = (Target.position - transform.position).normalized;
+            if (targetDir == Vector3.zero) return;
+
+            // Detecta se estamos operando em 2D ou 3D
+            bool is2D = _rigidBody2D != null || (_spriteRenderer != null && _rigidBody == null);
+
+            if (is2D)
+            {
+                float angle = Mathf.Atan2(targetDir.y, targetDir.x) * Mathf.Rad2Deg;
+                Quaternion targetRotation = Quaternion.Euler(0, 0, angle);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, HomingTurnSpeed * Time.deltaTime);
+                
+                // Em 2D, a direção de movimento é tipicamente o 'right' ou 'up' do transform após a rotação
+                switch (MovementVector)
+                {
+                    case MovementVectors.Right: Direction = transform.right; break;
+                    case MovementVectors.Up: Direction = transform.up; break;
+                    case MovementVectors.Forward: Direction = transform.forward; break;
+                }
+            }
+            else
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(targetDir);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, HomingTurnSpeed * Time.deltaTime);
+                Direction = transform.forward;
+            }
         }
 
         /// <summary>
@@ -165,13 +217,13 @@ namespace SpellBook.GAS.Abilities.Projectiles
                 switch (MovementVector)
                 {
                     case MovementVectors.Forward:
-                        transform.forward = newDirection;
+                        transform.forward = Direction;
                         break;
                     case MovementVectors.Right:
-                        transform.right = newDirection;
+                        transform.right = Direction;
                         break;
                     case MovementVectors.Up:
-                        transform.up = newDirection;
+                        transform.up = Direction;
                         break;
                 }
             }
@@ -190,20 +242,57 @@ namespace SpellBook.GAS.Abilities.Projectiles
             {
                 this.transform.localScale = Vector3.Scale(this.transform.localScale, FlipValue);
             }
-            ProjectileIsFacingRight = !ProjectileIsFacingRight;
+            // Nota: Não invertemos ProjectileIsFacingRight aqui para manter compatibilidade com o padrão de chamada única no spawn
         }
 
-        private void OnTriggerEnter(Collider other)
+        public virtual void ReturnToPool()
         {
-            if (other.TryGetComponent<AbilitySystemComponent>(out var hitASC))
+            if (!gameObject.activeInHierarchy) return;
+            
+            _shouldMove = false;
+            if (_collider != null) _collider.enabled = false;
+            if (_collider2D != null) _collider2D.enabled = false;
+
+            StopAllCoroutines();
+            if (_originPool != null)
             {
-                if (hitASC == Source) return;
+                _originPool.ReturnToPool(this.gameObject);
             }
+            else
+            {
+                Destroy(gameObject);
+            }
+        }
+
+        // IPoolable Implementation
+        public virtual void OnSpawnFromPool() { }
+
+        public virtual void OnReturnToPool()
+        {
+            StopAllCoroutines();
+        }
+
+        protected virtual void OnTriggerEnter(Collider other)
+        {
+            HandleCollision(other.gameObject);
+        }
+
+        protected virtual void OnTriggerEnter2D(Collider2D other)
+        {
+            HandleCollision(other.gameObject);
+        }
+
+        protected virtual void HandleCollision(GameObject other)
+        {
+            if (_isInvulnerable) return;
+
+            AbilitySystemComponent hitASC = other.GetComponent<AbilitySystemComponent>();
+            if (hitASC != null && hitASC == Source && !DamageOwner) return;
 
             HandleImpact(transform.position, hitASC);
         }
 
-        private void HandleImpact(Vector3 impactPoint, AbilitySystemComponent hitTarget)
+        protected virtual void HandleImpact(Vector3 impactPoint, AbilitySystemComponent hitTarget)
         {
             if (OnHitActions != null && OnHitActions.Count > 0 && Source != null)
             {
@@ -214,31 +303,6 @@ namespace SpellBook.GAS.Abilities.Projectiles
             }
 
             ReturnToPool();
-        }
-
-        public void ReturnToPool()
-        {
-            StopAllCoroutines();
-            if (_originPool != null)
-            {
-                _originPool.ReturnToPool(this.gameObject);
-            }
-            else
-            {
-                Destroy(gameObject); // Fallback
-            }
-        }
-
-        // IPoolable Implementation
-        public void OnSpawnFromPool()
-        {
-            // Resetar estados aqui se necessário (ex: Velocity = Vector3.zero)
-        }
-
-        public void OnReturnToPool()
-        {
-            // Limpar trilhas, desativar som, etc.
-            StopAllCoroutines();
         }
 
         private IEnumerator ExecuteImpactPipeline(AbilityContext context)
