@@ -11,7 +11,7 @@ namespace SpellBook.GAS.Effects
         public string Message = "Effect Triggered!";
         public Color LogColor = Color.white;
 
-        public override void Execute(AbilitySystemComponent source, AbilitySystemComponent target)
+        public override void Execute(AbilitySystemComponent source, AbilitySystemComponent target, ActiveEffectInstance instance = null)
         {
             Debug.Log($"<color=#{ColorUtility.ToHtmlStringRGB(LogColor)}>[EffectAction]</color> {Message} (Source: {source.name}, Target: {target.name})");
         }
@@ -25,9 +25,9 @@ namespace SpellBook.GAS.Effects
         public string AttachPointName = "Chest";
         public bool ParentToTarget = true;
         public Vector3 Offset = Vector3.zero;
-        public bool DestroyOnRemoval = false; // This would require tracking, which simple actions don't do easily yet.
+        public bool DestroyOnRemoval = true;
 
-        public override void Execute(AbilitySystemComponent source, AbilitySystemComponent target)
+        public override void Execute(AbilitySystemComponent source, AbilitySystemComponent target, ActiveEffectInstance instance = null)
         {
             if (Prefab == null) return;
 
@@ -39,19 +39,37 @@ namespace SpellBook.GAS.Effects
                 if (found != null) parent = found;
             }
 
-            GameObject instance = GameObject.Instantiate(Prefab, parent.position + Offset, parent.rotation);
+            GameObject vfxInstance = GameObject.Instantiate(Prefab, parent.position + Offset, parent.rotation);
             if (ParentToTarget)
             {
-                instance.transform.SetParent(parent);
+                vfxInstance.transform.SetParent(parent);
             }
             
-            if (!DestroyOnRemoval)
+            if (DestroyOnRemoval && instance != null)
+            {
+                instance.AddActionData(this, vfxInstance);
+            }
+            else
             {
                 // If it's a particle system, it might destroy itself, or we give it a life
-                var ps = instance.GetComponent<ParticleSystem>();
+                var ps = vfxInstance.GetComponent<ParticleSystem>();
                 if (ps != null)
                 {
-                    GameObject.Destroy(instance, ps.main.duration + ps.main.startLifetime.constantMax);
+                    GameObject.Destroy(vfxInstance, ps.main.duration + ps.main.startLifetime.constantMax);
+                }
+            }
+        }
+
+        public override void Cleanup(AbilitySystemComponent source, AbilitySystemComponent target, ActiveEffectInstance instance)
+        {
+            if (DestroyOnRemoval && instance != null)
+            {
+                if (instance.TryGetActionData<GameObject>(this, out var vfxInstances))
+                {
+                    foreach (var vfx in vfxInstances)
+                    {
+                        if (vfx != null) GameObject.Destroy(vfx);
+                    }
                 }
             }
         }

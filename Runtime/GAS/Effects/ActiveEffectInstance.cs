@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using SpellBook.GAS.Core;
 
@@ -14,6 +15,7 @@ namespace SpellBook.GAS.Effects
         public AbilitySystemComponent Source { get; private set; }
 
         private float _timeSinceLastTick;
+        private readonly Dictionary<EffectAction, List<object>> _actionData = new Dictionary<EffectAction, List<object>>();
 
         public event Action<ActiveEffectInstance> OnEffectExpired;
         public event Action<ActiveEffectInstance> OnTick;
@@ -35,8 +37,25 @@ namespace SpellBook.GAS.Effects
             // Trigger Application Actions
             if (Effect.OnApplication != null)
             {
-                foreach (var action in Effect.OnApplication) action?.Execute(Source, Target);
+                foreach (var action in Effect.OnApplication) action?.Execute(Source, Target, this);
             }
+        }
+
+        public void AddActionData(EffectAction action, object data)
+        {
+            if (!_actionData.ContainsKey(action)) _actionData[action] = new List<object>();
+            _actionData[action].Add(data);
+        }
+
+        public bool TryGetActionData<T>(EffectAction action, out List<T> data)
+        {
+            if (_actionData.TryGetValue(action, out var list))
+            {
+                data = list.ConvertAll(x => (T)x);
+                return true;
+            }
+            data = null;
+            return false;
         }
 
         public void AddStack()
@@ -76,7 +95,7 @@ namespace SpellBook.GAS.Effects
                     // Trigger Periodic Actions
                     if (Effect.OnTickActions != null)
                     {
-                        foreach (var action in Effect.OnTickActions) action?.Execute(Source, Target);
+                        foreach (var action in Effect.OnTickActions) action?.Execute(Source, Target, this);
                     }
                 }
             }
@@ -84,10 +103,21 @@ namespace SpellBook.GAS.Effects
 
         public void Cleanup()
         {
+            // Cleanup state for all actions that were executed
+            if (Effect.OnApplication != null)
+            {
+                foreach (var action in Effect.OnApplication) action?.Cleanup(Source, Target, this);
+            }
+
+            if (Effect.OnTickActions != null)
+            {
+                foreach (var action in Effect.OnTickActions) action?.Cleanup(Source, Target, this);
+            }
+
             // Trigger Removal Actions
             if (Effect.OnRemoval != null)
             {
-                foreach (var action in Effect.OnRemoval) action?.Execute(Source, Target);
+                foreach (var action in Effect.OnRemoval) action?.Execute(Source, Target, this);
             }
         }
     }
