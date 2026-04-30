@@ -53,6 +53,10 @@ namespace SpellBook.GAS.Abilities.Actions
                     var pooler = PoolManager.Instance.GetPooler(ProjectilePrefab);
                     projScript.Setup(pooler, context.Source, OnHitActions);
 
+                    // Determina se o spawner está virado para a direita (baseado no forward do transform)
+                    bool spawnerFacingRight = context.Source.transform.right.x > 0;
+                    projScript.SetDirection(finalRotation * Vector3.forward, finalRotation, spawnerFacingRight);
+
                     if (HomeInOnTargets && context.Targets.Count > 0)
                     {
                         int targetIndex = i % context.Targets.Count;
