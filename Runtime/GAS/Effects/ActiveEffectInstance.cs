@@ -21,12 +21,15 @@ namespace SpellBook.GAS.Effects
         public event Action<ActiveEffectInstance> OnTick;
 
         public ActiveEffectInstance(GameplayEffect effect, AbilitySystemComponent source, AbilitySystemComponent target)
+            : this(effect, effect.Duration, source, target) { }
+
+        public ActiveEffectInstance(GameplayEffect effect, float duration, AbilitySystemComponent source, AbilitySystemComponent target)
         {
             Effect = effect;
             Source = source;
             Target = target;
             StartTime = Time.time;
-            TimeRemaining = effect.Duration;
+            TimeRemaining = duration;
             _timeSinceLastTick = 0;
 
             Initialize();

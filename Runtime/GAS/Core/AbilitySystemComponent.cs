@@ -40,6 +40,11 @@ namespace SpellBook.GAS.Core
                 StartCoroutine(ability.Activate(this, targetPos));
             }
         }
+
+        public float GetAttributeValue(AttributeDefinition def)
+        {
+            return attributeSet != null ? attributeSet.GetValue(def) : 0f;
+        }
         #endregion
 
         #region Tag Management
@@ -84,6 +89,11 @@ namespace SpellBook.GAS.Core
         #region Gameplay Effects
         public ActiveEffectInstance ApplyEffect(GameplayEffect effect, AbilitySystemComponent source = null)
         {
+            return ApplyEffect(effect, effect.Duration, source);
+        }
+
+        public ActiveEffectInstance ApplyEffect(GameplayEffect effect, float durationOverride, AbilitySystemComponent source = null)
+        {
             if (source == null) source = this;
 
             if (effect.ApplicationRequirements.Count > 0 && !HasAllTags(effect.ApplicationRequirements)) return null;
@@ -104,7 +114,7 @@ namespace SpellBook.GAS.Core
                     return existing;
                 }
 
-                return ApplyDurationEffect(effect, source);
+                return ApplyDurationEffect(effect, durationOverride, source);
             }
         }
 
@@ -160,9 +170,9 @@ namespace SpellBook.GAS.Core
             }
         }
 
-        private ActiveEffectInstance ApplyDurationEffect(GameplayEffect effect, AbilitySystemComponent source)
+        private ActiveEffectInstance ApplyDurationEffect(GameplayEffect effect, float duration, AbilitySystemComponent source)
         {
-            var instance = new ActiveEffectInstance(effect, source, this);
+            var instance = new ActiveEffectInstance(effect, duration, source, this);
             _activeEffects.Add(instance);
 
             foreach (var tag in effect.GrantedTags) AddTag(tag);

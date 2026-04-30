@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Tags;
+using SpellBook.GAS.Attributes;
 using Sirenix.OdinInspector;
 
 namespace SpellBook.GAS.Abilities
 {
     [CreateAssetMenu(fileName = "GA_NewAbility", menuName = "GAS/Gameplay Ability")]
-    public class GameplayAbility : ScriptableObject
+    public class GameplayAbility : ScriptableObject, ICooldownModifier
     {
         [TabGroup("AbilityConfig", "Identity")]
         [PreviewField(60, ObjectFieldAlignment.Left)]
@@ -30,6 +31,10 @@ namespace SpellBook.GAS.Abilities
         public SpellBook.GAS.Effects.GameplayEffect CooldownEffect;
 
         [TabGroup("AbilityConfig", "Activation")]
+        [BoxGroup("AbilityConfig/Activation/Cooldown")]
+        public AttributeDefinition _cooldownReductionAttribute;
+
+        [TabGroup("AbilityConfig", "Activation")]
         [Title("Tags Requirements")]
         public List<GameplayTag> BlockedTags;
         public List<GameplayTag> RequiredTags;
@@ -39,6 +44,8 @@ namespace SpellBook.GAS.Abilities
         [ListDrawerSettings(ShowIndexLabels = true, Expanded = true)]
         [Searchable]
         public List<AbilityAction> Actions = new List<AbilityAction>();
+
+        public AttributeDefinition CooldownReductionAttribute => _cooldownReductionAttribute;
 
         public bool CanActivate(AbilitySystemComponent source)
         {
@@ -64,7 +71,18 @@ namespace SpellBook.GAS.Abilities
             // Apply Cooldown at start of activation
             if (CooldownEffect != null)
             {
-                source.ApplyEffect(CooldownEffect);
+                float finalDuration = CooldownEffect.Duration;
+                
+                if (CooldownReductionAttribute != null)
+                {
+                    float reduction = source.GetAttributeValue(CooldownReductionAttribute);
+                    finalDuration = Mathf.Max(0.1f, finalDuration - reduction);
+                }
+
+                // Clona o efeito ou utiliza uma lógica de aplicação temporária se necessário
+                // Aqui assumimos que ApplyEffect pode aceitar uma duração customizada ou 
+                // o sistema de Efeito suporta override.
+                source.ApplyEffect(CooldownEffect, finalDuration);
             }
 
             // Dispara evento para UI DEPOIS de aplicar o efeito, para que a UI leia o tempo correto
