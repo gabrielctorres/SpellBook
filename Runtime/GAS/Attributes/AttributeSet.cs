@@ -51,17 +51,22 @@ namespace SpellBook.GAS.Attributes
 
         public bool TryGetState(AttributeDefinition def, out AttributeState state)
         {
+            if (def == null)
+            {
+                state = null;
+                return false;
+            }
             return _attributeMap.TryGetValue(def, out state);
         }
 
         public float GetValue(AttributeDefinition def)
         {
-            return _attributeMap.TryGetValue(def, out var state) ? state.CurrentValue : 0f;
+            return (def != null && _attributeMap.TryGetValue(def, out var state)) ? state.CurrentValue : 0f;
         }
 
         public void AddModifier(AttributeDefinition def, AttributeModifier mod)
         {
-            if (_attributeMap.TryGetValue(def, out var state))
+            if (def != null && _attributeMap.TryGetValue(def, out var state))
             {
                 state.AddModifier(mod);
             }

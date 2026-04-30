@@ -75,13 +75,12 @@ namespace SpellBook.GAS.Abilities
                 
                 if (CooldownReductionAttribute != null)
                 {
-                    float reduction = source.GetAttributeValue(CooldownReductionAttribute);
-                    finalDuration = Mathf.Max(0.1f, finalDuration - reduction);
+                    float cdr = source.GetAttributeValue(CooldownReductionAttribute);
+                    // Abordagem de porcentagem: CDR 0.20 significa 20% de redução
+                    float multiplier = 1f - Mathf.Clamp01(cdr);
+                    finalDuration = Mathf.Max(0.1f, finalDuration * multiplier);
                 }
 
-                // Clona o efeito ou utiliza uma lógica de aplicação temporária se necessário
-                // Aqui assumimos que ApplyEffect pode aceitar uma duração customizada ou 
-                // o sistema de Efeito suporta override.
                 source.ApplyEffect(CooldownEffect, finalDuration);
             }
 
