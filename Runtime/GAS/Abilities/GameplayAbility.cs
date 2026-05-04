@@ -14,19 +14,18 @@ namespace SpellBook.GAS.Abilities
         [TabGroup("AbilityConfig", "Identity")]
         [PreviewField(60, ObjectFieldAlignment.Left)]
         [HideLabel]
-        [HorizontalGroup("AbilityConfig/Identity/Horizontal")]
+        [HorizontalGroup("AbilityConfig/Identity/Main")]
         public Sprite Icon;
 
         [TabGroup("AbilityConfig", "Identity")]
-        [VerticalGroup("AbilityConfig/Identity/Horizontal/Right")]
+        [VerticalGroup("AbilityConfig/Identity/Main/Info")]
         public string DisplayName;
 
         [TabGroup("AbilityConfig", "Identity")]
-        [VerticalGroup("AbilityConfig/Identity/Horizontal/Right")]
+        [VerticalGroup("AbilityConfig/Identity/Main/Info")]
         public GameplayTag AbilityTag;
 
         [TabGroup("AbilityConfig", "Identity")]
-        [VerticalGroup("AbilityConfig/Identity/Horizontal/Right")]
         public AbilityDescription Description;
 
         [TabGroup("AbilityConfig", "Activation")]
@@ -45,7 +44,7 @@ namespace SpellBook.GAS.Abilities
 
         [TabGroup("AbilityConfig", "Execution")]
         [SerializeReference]
-        [ListDrawerSettings(ShowIndexLabels = true, Expanded = true)]
+        [ListDrawerSettings(ShowIndexLabels = true, ShowFoldout = true)]
         [Searchable]
         public List<AbilityAction> Actions = new List<AbilityAction>();
 
@@ -55,7 +54,7 @@ namespace SpellBook.GAS.Abilities
         {
             if (source.HasAnyTag(BlockedTags)) return false;
             if (RequiredTags.Count > 0 && !source.HasAllTags(RequiredTags)) return false;
-            
+
             // Check Cooldown
             if (CooldownEffect != null)
             {
@@ -76,7 +75,7 @@ namespace SpellBook.GAS.Abilities
             if (CooldownEffect != null)
             {
                 float finalDuration = CooldownEffect.Duration;
-                
+
                 if (CooldownReductionAttribute != null)
                 {
                     float cdr = source.GetAttributeValue(CooldownReductionAttribute);

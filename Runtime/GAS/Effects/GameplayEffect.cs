@@ -57,18 +57,18 @@ namespace SpellBook.GAS.Effects
 
         [TabGroup("EffectConfig", "Actions")]
         [SerializeReference]
-        [ListDrawerSettings(Expanded = true)]
+        [ListDrawerSettings(ShowFoldout = true)]
         public List<EffectAction> OnApplication = new List<EffectAction>();
 
         [TabGroup("EffectConfig", "Actions")]
         [SerializeReference]
-        [ListDrawerSettings(Expanded = true)]
+        [ListDrawerSettings(ShowFoldout = true)]
         [ShowIf("@Period > 0")]
         public List<EffectAction> OnTickActions = new List<EffectAction>();
 
         [TabGroup("EffectConfig", "Actions")]
         [SerializeReference]
-        [ListDrawerSettings(Expanded = true)]
+        [ListDrawerSettings(ShowFoldout = true)]
         public List<EffectAction> OnRemoval = new List<EffectAction>();
 
         [TabGroup("EffectConfig", "Tags & Stacking")]
