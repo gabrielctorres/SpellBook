@@ -66,7 +66,11 @@ namespace SpellBook.GAS.Abilities
 
             return true;
         }
-
+        public string GetDescription(AbilitySystemComponent source = null)
+        {
+            if (Description == null) return string.Empty;
+            return Description.GetFullDescription(this, source);
+        }
         public IEnumerator Activate(AbilitySystemComponent source, Vector3 targetPosition)
         {
             if (!CanActivate(source)) yield break;
