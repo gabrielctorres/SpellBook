@@ -25,6 +25,10 @@ namespace SpellBook.GAS.Abilities
         [VerticalGroup("AbilityConfig/Identity/Horizontal/Right")]
         public GameplayTag AbilityTag;
 
+        [TabGroup("AbilityConfig", "Identity")]
+        [VerticalGroup("AbilityConfig/Identity/Horizontal/Right")]
+        public AbilityDescription Description;
+
         [TabGroup("AbilityConfig", "Activation")]
         [BoxGroup("AbilityConfig/Activation/Cooldown")]
         [InlineEditor]
