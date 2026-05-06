@@ -1,6 +1,6 @@
 {
   "name": "com.spellbook",
-  "version": "1.3.0",
+  "version": "1.3.5",
   "displayName": "Spell Book",
   "description": "Um pacote de recursos reutilizaveis para futuros projetos",
   "unity": "2021.3",

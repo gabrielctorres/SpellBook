@@ -1,7 +1,9 @@
 {
     "name": "SpellBook.Core",
     "rootNamespace": "SpellBook",
-    "references": [],
+    "references": [
+        "UnityEngine"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
