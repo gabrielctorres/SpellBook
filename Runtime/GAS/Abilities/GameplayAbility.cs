@@ -1,15 +1,19 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Tags;
 using SpellBook.GAS.Attributes;
+using SpellBook.GAS.Effects;
 using Sirenix.OdinInspector;
 
 namespace SpellBook.GAS.Abilities
 {
+    /// <summary>
+    /// Dados de uma habilidade. A execução é feita pelo AbilitySystemComponent (TryActivateAbility).
+    /// </summary>
     [CreateAssetMenu(fileName = "GA_NewAbility", menuName = "GAS/Gameplay Ability")]
-    public class GameplayAbility : ScriptableObject, ICooldownModifier
+    public class GameplayAbility : ScriptableObject
     {
         [TabGroup("AbilityConfig", "Identity")]
         [PreviewField(60, ObjectFieldAlignment.Left)]
@@ -31,16 +35,42 @@ namespace SpellBook.GAS.Abilities
         [TabGroup("AbilityConfig", "Activation")]
         [BoxGroup("AbilityConfig/Activation/Cooldown")]
         [InlineEditor]
-        public SpellBook.GAS.Effects.GameplayEffect CooldownEffect;
+        public GameplayEffect CooldownEffect;
 
         [TabGroup("AbilityConfig", "Activation")]
         [BoxGroup("AbilityConfig/Activation/Cooldown")]
-        public AttributeDefinition _cooldownReductionAttribute;
+        [FormerlySerializedAs("_cooldownReductionAttribute")]
+        public AttributeDefinition CooldownReductionAttribute;
 
         [TabGroup("AbilityConfig", "Activation")]
-        [Title("Tags Requirements")]
+        [BoxGroup("AbilityConfig/Activation/Cost")]
+        [InfoBox("Efeito Instant aplicado ao ativar (ex: Mana Add -20). A ativação falha se o atributo ficaria abaixo do MinValue.", InfoMessageType.None)]
+        [InlineEditor]
+        public GameplayEffect CostEffect;
+
+        [TabGroup("AbilityConfig", "Tags")]
+        [Tooltip("Não ativa se o dono tiver alguma destas tags.")]
         public List<GameplayTag> BlockedTags;
+
+        [TabGroup("AbilityConfig", "Tags")]
+        [Tooltip("Só ativa se o dono tiver todas estas tags.")]
         public List<GameplayTag> RequiredTags;
+
+        [TabGroup("AbilityConfig", "Tags")]
+        [Tooltip("Tags concedidas ao dono enquanto a habilidade está ativa (ex: State.Casting).")]
+        public List<GameplayTag> ActivationOwnedTags;
+
+        [TabGroup("AbilityConfig", "Tags")]
+        [Tooltip("Ao ativar, cancela habilidades ativas cujo AbilityTag corresponda a uma destas.")]
+        public List<GameplayTag> CancelAbilitiesWithTag;
+
+        [TabGroup("AbilityConfig", "Tags")]
+        [Tooltip("Enquanto ativa, impede a ativação de habilidades cujo AbilityTag corresponda a uma destas.")]
+        public List<GameplayTag> BlockAbilitiesWithTag;
+
+        [TabGroup("AbilityConfig", "Tags")]
+        [Tooltip("Cancela esta habilidade se o dono receber uma destas tags durante a execução (ex: State.Stunned).")]
+        public List<GameplayTag> CancelledByTags;
 
         [TabGroup("AbilityConfig", "Execution")]
         [SerializeReference]
@@ -48,61 +78,37 @@ namespace SpellBook.GAS.Abilities
         [Searchable]
         public List<AbilityAction> Actions = new List<AbilityAction>();
 
-        public AttributeDefinition CooldownReductionAttribute => _cooldownReductionAttribute;
-
-        public bool CanActivate(AbilitySystemComponent source)
+        /// <summary>
+        /// Verifica se a habilidade pode ser ativada pelo ASC, informando o motivo em caso de falha.
+        /// </summary>
+        public bool CanActivate(AbilitySystemComponent asc, out AbilityActivationResult reason)
         {
-            if (source.HasAnyTag(BlockedTags)) return false;
-            if (!source.HasAllTags(RequiredTags)) return false;
-
-            // Check Cooldown
-            if (CooldownEffect != null && CooldownEffect.GrantedTags != null)
-            {
-                foreach (var tag in CooldownEffect.GrantedTags)
-                {
-                    if (source.HasTag(tag)) return false;
-                }
-            }
-
-            return true;
+            reason = asc != null ? asc.GetActivationResult(this) : AbilityActivationResult.InvalidAbility;
+            return reason == AbilityActivationResult.Success;
         }
+
+        public bool CanActivate(AbilitySystemComponent asc) => CanActivate(asc, out _);
+
+        /// <summary>
+        /// Duração do cooldown já considerando o atributo de redução (CDR 0.20 = 20% de redução).
+        /// </summary>
+        public float GetCooldownDuration(AbilitySystemComponent asc)
+        {
+            if (CooldownEffect == null) return 0f;
+
+            float duration = CooldownEffect.Duration;
+            if (CooldownReductionAttribute != null && asc != null)
+            {
+                float cdr = asc.GetAttributeValue(CooldownReductionAttribute);
+                duration = Mathf.Max(0.1f, duration * (1f - Mathf.Clamp01(cdr)));
+            }
+            return duration;
+        }
+
         public string GetDescription(AbilitySystemComponent source = null)
         {
             if (Description == null) return string.Empty;
             return Description.GetFullDescription(this, source);
         }
-        public IEnumerator Activate(AbilitySystemComponent source, Vector3 targetPosition)
-        {
-            if (!CanActivate(source)) yield break;
-
-            // Apply Cooldown at start of activation
-            if (CooldownEffect != null)
-            {
-                float finalDuration = CooldownEffect.Duration;
-
-                if (CooldownReductionAttribute != null)
-                {
-                    float cdr = source.GetAttributeValue(CooldownReductionAttribute);
-                    // Abordagem de porcentagem: CDR 0.20 significa 20% de redução
-                    float multiplier = 1f - Mathf.Clamp01(cdr);
-                    finalDuration = Mathf.Max(0.1f, finalDuration * multiplier);
-                }
-
-                source.ApplyEffect(CooldownEffect, finalDuration);
-            }
-
-            // Dispara evento para UI DEPOIS de aplicar o efeito, para que a UI leia o tempo correto
-            SpellBook.Events.EventManager.Trigger(new SpellBook.Events.AbilityActivatedEvent(this, source));
-
-            var context = new AbilityContext(source, targetPosition);
-
-            foreach (var action in Actions)
-            {
-                if (action == null) continue;
-                yield return action.Execute(context);
-            }
-        }
     }
 }
-
-

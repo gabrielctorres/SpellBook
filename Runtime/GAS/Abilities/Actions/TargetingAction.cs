@@ -8,33 +8,41 @@ namespace SpellBook.GAS.Abilities.Actions
     [Serializable]
     public class TargetingAction : AbilityAction
     {
+        public enum TargetMode { Replace, Append }
+
         public TargetingStrategy Strategy;
 
         [Tooltip("De onde a busca deve partir? Caster ou Location (ponto de impacto)?")]
         public AbilityTargetSource Origin = AbilityTargetSource.Location;
 
+        [Tooltip("Replace substitui os alvos atuais; Append adiciona aos existentes.")]
+        public TargetMode Mode = TargetMode.Replace;
+
         public override IEnumerator Execute(AbilityContext context)
         {
-            if (Strategy == null) yield break;
+            if (Strategy == null || context.Source == null) yield break;
 
             Vector3 originPos = context.TargetPosition;
+            var currentTargets = context.GetValidTargets();
 
             if (Origin == AbilityTargetSource.Caster)
             {
                 originPos = context.Source.transform.position;
             }
-            else if (Origin == AbilityTargetSource.Target && context.Targets.Count > 0)
+            else if (Origin == AbilityTargetSource.Target && currentTargets.Count > 0)
             {
-                originPos = context.Targets[0].transform.position;
+                originPos = currentTargets[0].transform.position;
             }
 
-            var found = Strategy.GetTargets(context.Source.transform, originPos);
+            var found = Strategy.GetTargets(context.Source, originPos);
 
-            context.Targets.Clear();
-            context.Targets.AddRange(found);
+            if (Mode == TargetMode.Replace) currentTargets.Clear();
+            foreach (var target in found)
+            {
+                if (!currentTargets.Contains(target)) currentTargets.Add(target);
+            }
 
             yield return null;
         }
     }
 }
-

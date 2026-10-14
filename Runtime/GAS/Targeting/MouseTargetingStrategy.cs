@@ -6,7 +6,7 @@ namespace SpellBook.GAS.Targeting
 {
     /// <summary>
     /// Estratégia de busca de alvos baseada na posição do mouse.
-    /// Útil para habilidades de alvo único (Single Target).
+    /// Útil para habilidades de alvo único (Single Target): retorna o alvo válido mais próximo da origem.
     /// </summary>
     [CreateAssetMenu(fileName = "Mouse Targeting", menuName = "GAS/Targeting/Mouse")]
     public class MouseTargetingStrategy : TargetingStrategy
@@ -14,28 +14,18 @@ namespace SpellBook.GAS.Targeting
         [SerializeField] private float radius = 0.5f;
         [SerializeField] private LayerMask targetLayer;
 
-        public override IEnumerable<AbilitySystemComponent> GetTargets(Transform source, Vector3 targetPosition)
+        public override IEnumerable<AbilitySystemComponent> GetTargets(AbilitySystemComponent source, Vector3 origin)
         {
+            // A origem aqui é a posição do mouse enviada pelo Handler
             var results = new List<AbilitySystemComponent>();
-            
-            // O targetPosition aqui é a posição do mouse enviada pelo Handler
-            var colliders = Physics.OverlapSphere(targetPosition, radius, targetLayer);
+            OverlapCircle(source, origin, radius, targetLayer, results);
 
-            foreach (var col in colliders)
+            if (results.Count > 1)
             {
-                if (col.TryGetComponent<AbilitySystemComponent>(out var asc))
-                {
-                    // Evita que o jogador selecione a si mesmo
-                    if (asc.transform == source) continue;
-
-                    results.Add(asc);
-                    
-                    // Encontramos o alvo principal, podemos parar a busca
-                    break; 
-                }
+                SortByDistance(results, origin);
+                results.RemoveRange(1, results.Count - 1);
             }
             return results;
         }
     }
 }
-

@@ -14,13 +14,18 @@ namespace SpellBook.GAS.Abilities.Actions
 
         public override IEnumerator Execute(AbilityContext context)
         {
-            if (ApplyToSource && context.Source != null)
+            if (Effects == null || context.Source == null) yield break;
+
+            if (ApplyToSource)
             {
                 foreach (var effect in Effects) context.Source.ApplyEffect(effect, context.Source);
             }
 
-            foreach (var target in context.Targets)
+            // Cópia: aplicar um efeito pode disparar ações que alteram a lista de alvos
+            var targets = context.GetValidTargets().ToArray();
+            foreach (var target in targets)
             {
+                if (target == null) continue;
                 foreach (var effect in Effects) target.ApplyEffect(effect, context.Source);
             }
 
@@ -28,4 +33,3 @@ namespace SpellBook.GAS.Abilities.Actions
         }
     }
 }
-

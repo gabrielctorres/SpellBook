@@ -85,11 +85,21 @@ namespace SpellBook.GAS.Abilities.Projectiles
             _initialLocalScale = transform.localScale;
         }
 
+        // Contexto da habilidade que disparou o projétil (habilidade e nível são herdados no impacto)
+        protected AbilityContext _parentContext;
+
         public void Setup(ComponentPooler pool, AbilitySystemComponent source, List<AbilityAction> onHitActions)
         {
             _originPool = pool;
             Source = source;
             OnHitActions = onHitActions;
+            _parentContext = null;
+        }
+
+        public void Setup(ComponentPooler pool, AbilityContext parentContext, List<AbilityAction> onHitActions)
+        {
+            Setup(pool, parentContext?.Source, onHitActions);
+            _parentContext = parentContext;
         }
 
         protected virtual void OnEnable()
@@ -296,22 +306,19 @@ namespace SpellBook.GAS.Abilities.Projectiles
         {
             if (OnHitActions != null && OnHitActions.Count > 0 && Source != null)
             {
-                var impactContext = new AbilityContext(Source, impactPoint);
+                var impactContext = _parentContext != null
+                    ? _parentContext.CreateDerived(impactPoint)
+                    : new AbilityContext(Source, impactPoint);
                 if (hitTarget != null) impactContext.Targets.Add(hitTarget);
 
-                Source.StartCoroutine(ExecuteImpactPipeline(impactContext));
+                // Roda no ASC do conjurador, pois o projétil volta ao pool logo abaixo
+                if (Source.isActiveAndEnabled)
+                {
+                    Source.StartCoroutine(AbilityAction.RunSequence(OnHitActions, impactContext));
+                }
             }
 
             ReturnToPool();
-        }
-
-        private IEnumerator ExecuteImpactPipeline(AbilityContext context)
-        {
-            foreach (var action in OnHitActions)
-            {
-                if (action == null) continue;
-                yield return action.Execute(context);
-            }
         }
     }
 }

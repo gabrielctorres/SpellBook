@@ -12,17 +12,41 @@ namespace SpellBook.GAS.Core
     public class AbilitySystemComponent : MonoBehaviour
     {
         [SerializeField] private AttributeSet attributeSet;
+        [Tooltip("Habilidades concedidas automaticamente no Awake.")]
+        [SerializeField] private List<GameplayAbility> startingAbilities = new List<GameplayAbility>();
 
         // Contagem de referência: várias fontes podem conceder a mesma tag
         private readonly Dictionary<GameplayTagDefinition, int> _activeTags = new Dictionary<GameplayTagDefinition, int>();
         private readonly List<ActiveEffectInstance> _activeEffects = new List<ActiveEffectInstance>();
+        private readonly List<AbilitySpec> _abilities = new List<AbilitySpec>();
 
         public event Action<GameplayTag, bool> OnTagChanged;
+        public event Action<AbilitySpec> OnAbilityActivated;
+        public event Action<AbilitySpec, bool> OnAbilityEnded; // spec, cancelled
+        public event Action<GameplayAbility, AbilityActivationResult> OnAbilityFailed;
+
         public AttributeSet AttributeSet => attributeSet;
+        public IReadOnlyList<AbilitySpec> Abilities => _abilities;
 
         private void Awake()
         {
             if (attributeSet == null) attributeSet = GetComponent<AttributeSet>();
+
+            if (startingAbilities != null)
+            {
+                foreach (var ability in startingAbilities) GiveAbility(ability);
+            }
+        }
+
+        private void OnEnable()
+        {
+            OnTagChanged += HandleTagChangedForCancellation;
+        }
+
+        private void OnDisable()
+        {
+            OnTagChanged -= HandleTagChangedForCancellation;
+            CancelAllAbilities();
         }
 
         private void Update()
@@ -33,18 +57,275 @@ namespace SpellBook.GAS.Core
             }
         }
 
-        #region Ability Activation
-        public void TryActivateAbility(GameplayAbility ability, Vector3 targetPos)
-        {
-            if (ability.CanActivate(this))
-            {
-                StartCoroutine(ability.Activate(this, targetPos));
-            }
-        }
-
         public float GetAttributeValue(AttributeDefinition def)
         {
             return attributeSet != null ? attributeSet.GetValue(def) : 0f;
+        }
+
+        #region Ability Management
+        /// <summary>
+        /// Concede uma habilidade ao ASC. Se já concedida, retorna o spec existente.
+        /// </summary>
+        public AbilitySpec GiveAbility(GameplayAbility ability, int level = 1)
+        {
+            if (ability == null) return null;
+
+            var existing = FindSpec(ability);
+            if (existing != null) return existing;
+
+            var spec = new AbilitySpec(ability, level);
+            _abilities.Add(spec);
+            return spec;
+        }
+
+        /// <summary>
+        /// Remove uma habilidade concedida, cancelando-a se estiver ativa.
+        /// </summary>
+        public void RemoveAbility(GameplayAbility ability)
+        {
+            var spec = FindSpec(ability);
+            if (spec == null) return;
+
+            CancelAbility(spec);
+            _abilities.Remove(spec);
+        }
+
+        public AbilitySpec FindSpec(GameplayAbility ability)
+        {
+            if (ability == null) return null;
+            for (int i = 0; i < _abilities.Count; i++)
+            {
+                if (_abilities[i].Ability == ability) return _abilities[i];
+            }
+            return null;
+        }
+
+        public bool IsAbilityActive(GameplayAbility ability)
+        {
+            var spec = FindSpec(ability);
+            return spec != null && spec.IsActive;
+        }
+        #endregion
+
+        #region Ability Activation
+        public AbilityActivationResult GetActivationResult(GameplayAbility ability)
+        {
+            if (ability == null) return AbilityActivationResult.InvalidAbility;
+
+            var spec = FindSpec(ability);
+            if (spec == null) return AbilityActivationResult.NotGranted;
+            if (spec.IsActive) return AbilityActivationResult.AlreadyActive;
+
+            if (HasAnyTag(ability.BlockedTags)) return AbilityActivationResult.BlockedByTags;
+            if (!HasAllTags(ability.RequiredTags)) return AbilityActivationResult.MissingRequiredTags;
+            if (IsBlockedByActiveAbility(ability)) return AbilityActivationResult.BlockedByActiveAbility;
+            if (IsOnCooldown(ability.CooldownEffect)) return AbilityActivationResult.OnCooldown;
+            if (!CanAffordCost(ability.CostEffect)) return AbilityActivationResult.CannotAffordCost;
+
+            return AbilityActivationResult.Success;
+        }
+
+        public AbilityActivationResult TryActivateAbility(GameplayAbility ability, Vector3 targetPos)
+        {
+            var result = GetActivationResult(ability);
+            if (result != AbilityActivationResult.Success)
+            {
+                OnAbilityFailed?.Invoke(ability, result);
+                return result;
+            }
+
+            ActivateSpec(FindSpec(ability), targetPos);
+            return result;
+        }
+
+        public AbilityActivationResult TryActivateAbility(AbilitySpec spec, Vector3 targetPos)
+        {
+            if (spec == null || !_abilities.Contains(spec))
+            {
+                var result = spec == null ? AbilityActivationResult.InvalidAbility : AbilityActivationResult.NotGranted;
+                OnAbilityFailed?.Invoke(spec?.Ability, result);
+                return result;
+            }
+            return TryActivateAbility(spec.Ability, targetPos);
+        }
+
+        public bool IsOnCooldown(GameplayEffect cooldownEffect)
+        {
+            if (cooldownEffect == null) return false;
+            if (HasAnyTag(cooldownEffect.GrantedTags)) return true;
+            return GetCooldownTimeRemaining(cooldownEffect) > 0f;
+        }
+
+        /// <summary>
+        /// Verifica se os modifiers Add negativos do custo deixariam algum atributo abaixo do MinValue.
+        /// </summary>
+        public bool CanAffordCost(GameplayEffect costEffect)
+        {
+            if (costEffect == null || costEffect.Modifiers == null) return true;
+
+            foreach (var mod in costEffect.Modifiers)
+            {
+                if (mod.Attribute == null || mod.Operation != ModifierOperation.Add) continue;
+
+                float value = mod.ValueSource.GetValue(this, this);
+                if (value >= 0f) continue;
+
+                if (attributeSet == null || !attributeSet.TryGetState(mod.Attribute, out var state)) return false;
+                if (state.CurrentValue + value < mod.Attribute.MinValue) return false;
+            }
+            return true;
+        }
+
+        private bool IsBlockedByActiveAbility(GameplayAbility ability)
+        {
+            if (!ability.AbilityTag.IsValid) return false;
+
+            foreach (var spec in _abilities)
+            {
+                if (!spec.IsActive || spec.Ability.BlockAbilitiesWithTag == null) continue;
+                foreach (var tag in spec.Ability.BlockAbilitiesWithTag)
+                {
+                    if (ability.AbilityTag.Matches(tag)) return true;
+                }
+            }
+            return false;
+        }
+
+        private void ActivateSpec(AbilitySpec spec, Vector3 targetPos)
+        {
+            var ability = spec.Ability;
+
+            // Commit: cooldown e custo
+            if (ability.CooldownEffect != null) ApplyEffect(ability.CooldownEffect, ability.GetCooldownDuration(this));
+            if (ability.CostEffect != null) ApplyEffect(ability.CostEffect);
+
+            CancelAbilitiesWithTags(ability.CancelAbilitiesWithTag, spec);
+
+            var context = new AbilityContext(this, targetPos)
+            {
+                Ability = ability,
+                Spec = spec,
+                Level = spec.Level
+            };
+
+            spec.IsActive = true;
+            spec.ActiveContext = context;
+            AddTags(ability.ActivationOwnedTags);
+
+            // Dispara eventos DEPOIS de aplicar o cooldown, para que a UI leia o tempo correto
+            OnAbilityActivated?.Invoke(spec);
+            SpellBook.Events.EventManager.Trigger(new SpellBook.Events.AbilityActivatedEvent(ability, this));
+
+            // A tag concedida acima pode ter cancelado a própria habilidade
+            if (!spec.IsActive || spec.ActiveContext != context) return;
+
+            var routine = StartCoroutine(RunAbility(spec, context));
+            // Se a habilidade terminou de forma síncrona, não guarda a rotina
+            if (spec.IsActive && spec.ActiveContext == context) spec.Routine = routine;
+        }
+
+        private IEnumerator RunAbility(AbilitySpec spec, AbilityContext context)
+        {
+            yield return AbilityAction.RunSequence(spec.Ability.Actions, context);
+            if (spec.IsActive && spec.ActiveContext == context) EndAbility(spec, false);
+        }
+        #endregion
+
+        #region Ability Cancellation
+        /// <summary>
+        /// Interrompe a habilidade, chamando OnCancel nas ações em execução.
+        /// </summary>
+        public void CancelAbility(AbilitySpec spec)
+        {
+            if (spec == null || !spec.IsActive) return;
+
+            var context = spec.ActiveContext;
+            context.IsCancelled = true;
+
+            if (spec.Routine != null) StopCoroutine(spec.Routine);
+            foreach (var child in spec.ChildRoutines)
+            {
+                if (child != null) StopCoroutine(child);
+            }
+
+            // Ordem reversa: as ações mais internas restauram estado primeiro
+            var running = context.RunningActions.ToArray();
+            context.RunningActions.Clear();
+            for (int i = running.Length - 1; i >= 0; i--)
+            {
+                try { running[i].OnCancel(context); }
+                catch (Exception e) { Debug.LogException(e, this); }
+            }
+
+            EndAbility(spec, true);
+        }
+
+        public void CancelAbility(GameplayAbility ability) => CancelAbility(FindSpec(ability));
+
+        /// <summary>
+        /// Cancela habilidades ativas cujo AbilityTag corresponda a alguma das tags.
+        /// </summary>
+        public void CancelAbilitiesWithTags(IEnumerable<GameplayTag> tags, AbilitySpec ignore = null)
+        {
+            if (tags == null) return;
+
+            for (int i = _abilities.Count - 1; i >= 0; i--)
+            {
+                if (i >= _abilities.Count) continue;
+                var spec = _abilities[i];
+                if (spec == ignore || !spec.IsActive || !spec.Ability.AbilityTag.IsValid) continue;
+
+                foreach (var tag in tags)
+                {
+                    if (spec.Ability.AbilityTag.Matches(tag))
+                    {
+                        CancelAbility(spec);
+                        break;
+                    }
+                }
+            }
+        }
+
+        public void CancelAllAbilities()
+        {
+            for (int i = _abilities.Count - 1; i >= 0; i--)
+            {
+                if (i < _abilities.Count) CancelAbility(_abilities[i]);
+            }
+        }
+
+        private void EndAbility(AbilitySpec spec, bool cancelled)
+        {
+            if (!spec.IsActive) return;
+
+            spec.IsActive = false;
+            spec.Routine = null;
+            spec.ChildRoutines.Clear();
+            spec.ActiveContext = null;
+
+            RemoveTags(spec.Ability.ActivationOwnedTags);
+            OnAbilityEnded?.Invoke(spec, cancelled);
+        }
+
+        private void HandleTagChangedForCancellation(GameplayTag tag, bool added)
+        {
+            if (!added) return;
+
+            for (int i = _abilities.Count - 1; i >= 0; i--)
+            {
+                if (i >= _abilities.Count) continue;
+                var spec = _abilities[i];
+                if (!spec.IsActive || spec.Ability.CancelledByTags == null) continue;
+
+                foreach (var cancelTag in spec.Ability.CancelledByTags)
+                {
+                    if (tag.Matches(cancelTag))
+                    {
+                        CancelAbility(spec);
+                        break;
+                    }
+                }
+            }
         }
         #endregion
 
@@ -73,6 +354,18 @@ namespace SpellBook.GAS.Core
             {
                 _activeTags[def] = count - 1;
             }
+        }
+
+        public void AddTags(IEnumerable<GameplayTag> tags)
+        {
+            if (tags == null) return;
+            foreach (var tag in tags) AddTag(tag);
+        }
+
+        public void RemoveTags(IEnumerable<GameplayTag> tags)
+        {
+            if (tags == null) return;
+            foreach (var tag in tags) RemoveTag(tag);
         }
 
         public bool HasTag(GameplayTag tag)
@@ -183,10 +476,7 @@ namespace SpellBook.GAS.Core
             var instance = new ActiveEffectInstance(effect, duration, source, this);
             _activeEffects.Add(instance);
 
-            if (effect.GrantedTags != null)
-            {
-                foreach (var tag in effect.GrantedTags) AddTag(tag);
-            }
+            AddTags(effect.GrantedTags);
 
             if (effect.Modifiers != null)
             {
@@ -259,10 +549,7 @@ namespace SpellBook.GAS.Core
             instance.OnTick -= HandleEffectTick;
             _activeEffects.Remove(instance);
 
-            if (instance.Effect.GrantedTags != null)
-            {
-                foreach (var tag in instance.Effect.GrantedTags) RemoveTag(tag);
-            }
+            RemoveTags(instance.Effect.GrantedTags);
 
             if (instance.Effect.Modifiers != null)
             {

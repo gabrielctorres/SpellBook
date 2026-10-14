@@ -19,16 +19,17 @@ namespace SpellBook.GAS.Abilities.Actions
         {
             Vector3 spawnPos = context.TargetPosition;
             Transform parent = null;
+            var targets = context.GetValidTargets();
 
-            if (TargetSource == AbilityTargetSource.Caster)
+            if (TargetSource == AbilityTargetSource.Caster && context.Source != null)
             {
                 spawnPos = context.Source.transform.position;
                 if (AttachToTransform) parent = context.Source.transform;
             }
-            else if (TargetSource == AbilityTargetSource.Target && context.Targets.Count > 0)
+            else if (TargetSource == AbilityTargetSource.Target && targets.Count > 0)
             {
-                spawnPos = context.Targets[0].transform.position;
-                if (AttachToTransform) parent = context.Targets[0].transform;
+                spawnPos = targets[0].transform.position;
+                if (AttachToTransform) parent = targets[0].transform;
             }
 
             if (VFX_Prefab)

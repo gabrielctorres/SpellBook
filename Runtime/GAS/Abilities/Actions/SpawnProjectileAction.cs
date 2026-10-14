@@ -35,7 +35,7 @@ namespace SpellBook.GAS.Abilities.Actions
 
         public override IEnumerator Execute(AbilityContext context)
         {
-            if (ProjectilePrefab == null) yield break;
+            if (ProjectilePrefab == null || context.Source == null) yield break;
 
             Vector3 forward = (SpawnMode == ProjectileSpawnMode.ThreeDimensional) ? context.Source.transform.forward : context.Source.transform.right;
             Vector3 up = Vector3.up;
@@ -53,6 +53,9 @@ namespace SpellBook.GAS.Abilities.Actions
 
             for (int i = 0; i < ProjectileCount; i++)
             {
+                // Rajada interrompida se a habilidade for cancelada durante o DelayBetweenShots
+                if (context.IsCancelled || context.Source == null) yield break;
+
                 float currentAngle = (ProjectileCount > 1) ? startAngle + (angleStep * i) : 0f;
                 
                 Quaternion finalRotation;
@@ -78,16 +81,17 @@ namespace SpellBook.GAS.Abilities.Actions
                 {
                     // Busca o pooler específico para este projétil para que ele saiba onde voltar
                     var pooler = PoolManager.Instance.GetPooler(ProjectilePrefab);
-                    projScript.Setup(pooler, context.Source, OnHitActions);
+                    projScript.Setup(pooler, context, OnHitActions);
 
                     // Determina se o spawner está virado para a direita (baseado no forward do transform)
                     bool spawnerFacingRight = context.Source.transform.right.x > 0;
                     projScript.SetDirection(finalDirection, finalRotation, spawnerFacingRight);
 
-                    if (HomeInOnTargets && context.Targets.Count > 0)
+                    var targets = context.GetValidTargets();
+                    if (HomeInOnTargets && targets.Count > 0)
                     {
-                        int targetIndex = i % context.Targets.Count;
-                        projScript.Target = context.Targets[targetIndex].transform;
+                        int targetIndex = i % targets.Count;
+                        projScript.Target = targets[targetIndex].transform;
                         projScript.IsHoming = true;
                         projScript.HomingTurnSpeed = HomingTurnSpeed;
                     }
