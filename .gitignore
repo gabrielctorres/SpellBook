@@ -1,0 +1,30 @@
+# Projeto Unity host local (não faz parte do pacote)
+/Assets/
+/Library/
+/Logs/
+/Packages/
+/ProjectSettings/
+/UserSettings/
+/Temp/
+/obj/
+/Build/
+/Builds/
+/MemoryCaptures/
+/Recordings/
+
+# Arquivos gerados por IDEs
+.vs/
+.vscode/
+.idea/
+*.csproj
+*.sln
+*.slnx
+*.user
+*.suo
+*.pidb
+*.booproj
+*.userprefs
+
+# Sistema operacional
+.DS_Store
+Thumbs.db

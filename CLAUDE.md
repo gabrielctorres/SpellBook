@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 SpellBook is a **Unity UPM package** (`com.spellbook`, see `package.json`) of reusable tools, installed in other projects via Package Manager → "Add package from git URL" → `https://github.com/gabrielctorres/SpellBook.git`. The package root is the repo root: only `package.json`, `README.md`, `Runtime/` and `Editor/` (plus their `.meta` files) are tracked.
 
-The `Assets/`, `Packages/`, `ProjectSettings/`, `Library/`, `Logs/`, `UserSettings/` folders are a local Unity 6 (6000.3.5f2) host project that is **untracked** and not part of the package — do not commit them (there is no `.gitignore`, so stage files explicitly rather than with `git add -A`). `Assets/antigo.md` and the `.asset` files there are unrelated scratch work.
+The `Assets/`, `Packages/`, `ProjectSettings/`, `Library/`, `Logs/`, `UserSettings/` folders are a local Unity 6 (6000.3.5f2) host project that is **untracked** and not part of the package — do not commit them (they are listed in `.gitignore`; still review `git status` before committing). `Assets/antigo.md` and the `.asset` files there are unrelated scratch work.
 
 Code comments, log messages and commit messages are in Portuguese.
 
