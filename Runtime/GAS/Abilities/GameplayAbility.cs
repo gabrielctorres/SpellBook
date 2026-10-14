@@ -53,10 +53,10 @@ namespace SpellBook.GAS.Abilities
         public bool CanActivate(AbilitySystemComponent source)
         {
             if (source.HasAnyTag(BlockedTags)) return false;
-            if (RequiredTags.Count > 0 && !source.HasAllTags(RequiredTags)) return false;
+            if (!source.HasAllTags(RequiredTags)) return false;
 
             // Check Cooldown
-            if (CooldownEffect != null)
+            if (CooldownEffect != null && CooldownEffect.GrantedTags != null)
             {
                 foreach (var tag in CooldownEffect.GrantedTags)
                 {

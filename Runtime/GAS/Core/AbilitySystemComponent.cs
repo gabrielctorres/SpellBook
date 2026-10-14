@@ -13,7 +13,8 @@ namespace SpellBook.GAS.Core
     {
         [SerializeField] private AttributeSet attributeSet;
 
-        private readonly HashSet<GameplayTagDefinition> _activeTags = new HashSet<GameplayTagDefinition>();
+        // Contagem de referência: várias fontes podem conceder a mesma tag
+        private readonly Dictionary<GameplayTagDefinition, int> _activeTags = new Dictionary<GameplayTagDefinition, int>();
         private readonly List<ActiveEffectInstance> _activeEffects = new List<ActiveEffectInstance>();
 
         public event Action<GameplayTag, bool> OnTagChanged;
@@ -52,21 +53,33 @@ namespace SpellBook.GAS.Core
         {
             if (!tag.IsValid) return;
             var def = tag.GetDefinition();
-            if (_activeTags.Add(def)) OnTagChanged?.Invoke(tag, true);
+            _activeTags.TryGetValue(def, out int count);
+            _activeTags[def] = count + 1;
+            if (count == 0) OnTagChanged?.Invoke(tag, true);
         }
 
         public void RemoveTag(GameplayTag tag)
         {
             if (!tag.IsValid) return;
             var def = tag.GetDefinition();
-            if (_activeTags.Remove(def)) OnTagChanged?.Invoke(tag, false);
+            if (!_activeTags.TryGetValue(def, out int count)) return;
+
+            if (count <= 1)
+            {
+                _activeTags.Remove(def);
+                OnTagChanged?.Invoke(tag, false);
+            }
+            else
+            {
+                _activeTags[def] = count - 1;
+            }
         }
 
         public bool HasTag(GameplayTag tag)
         {
             if (!tag.IsValid) return false;
             var defToCheck = tag.GetDefinition();
-            foreach (var activeDef in _activeTags)
+            foreach (var activeDef in _activeTags.Keys)
             {
                 if (activeDef.Matches(defToCheck)) return true;
             }
@@ -75,12 +88,14 @@ namespace SpellBook.GAS.Core
 
         public bool HasAllTags(IEnumerable<GameplayTag> tags)
         {
+            if (tags == null) return true;
             foreach (var tag in tags) if (!HasTag(tag)) return false;
             return true;
         }
 
         public bool HasAnyTag(IEnumerable<GameplayTag> tags)
         {
+            if (tags == null) return false;
             foreach (var tag in tags) if (HasTag(tag)) return true;
             return false;
         }
@@ -94,10 +109,11 @@ namespace SpellBook.GAS.Core
 
         public ActiveEffectInstance ApplyEffect(GameplayEffect effect, float durationOverride, AbilitySystemComponent source = null)
         {
+            if (effect == null) return null;
             if (source == null) source = this;
 
-            if (effect.ApplicationRequirements.Count > 0 && !HasAllTags(effect.ApplicationRequirements)) return null;
-            if (effect.ApplicationImmunityTags.Count > 0 && HasAnyTag(effect.ApplicationImmunityTags)) return null;
+            if (!HasAllTags(effect.ApplicationRequirements)) return null;
+            if (HasAnyTag(effect.ApplicationImmunityTags)) return null;
 
             if (effect.DurationPolicy == EffectDurationPolicy.Instant)
             {
@@ -129,7 +145,7 @@ namespace SpellBook.GAS.Core
                 {
                     maxTime = Mathf.Max(maxTime, instance.TimeRemaining);
                 }
-                else
+                else if (cooldownEffect.GrantedTags != null && instance.Effect.GrantedTags != null)
                 {
                     // Check if any of the tags match
                     foreach (var tag in cooldownEffect.GrantedTags)
@@ -159,15 +175,7 @@ namespace SpellBook.GAS.Core
                 foreach (var action in effect.OnApplication) action?.Execute(source, this);
             }
 
-            foreach (var mod in effect.Modifiers)
-            {
-                if (attributeSet.TryGetState(mod.Attribute, out var state))
-                {
-                    float value = mod.ValueSource.GetValue(source, this);
-                    if (mod.Operation == ModifierOperation.Add)
-                        state.SetBaseValue(state.BaseValue + value);
-                }
-            }
+            ApplyModifiersToBase(effect, effect.Modifiers, source);
         }
 
         private ActiveEffectInstance ApplyDurationEffect(GameplayEffect effect, float duration, AbilitySystemComponent source)
@@ -175,12 +183,19 @@ namespace SpellBook.GAS.Core
             var instance = new ActiveEffectInstance(effect, duration, source, this);
             _activeEffects.Add(instance);
 
-            foreach (var tag in effect.GrantedTags) AddTag(tag);
-
-            foreach (var mod in effect.Modifiers)
+            if (effect.GrantedTags != null)
             {
-                float value = mod.ValueSource.GetValue(source, this);
-                attributeSet.AddModifier(mod.Attribute, new AttributeModifier(value, mod.Operation, instance));
+                foreach (var tag in effect.GrantedTags) AddTag(tag);
+            }
+
+            if (effect.Modifiers != null)
+            {
+                foreach (var mod in effect.Modifiers)
+                {
+                    if (!IsModifierValid(effect, mod)) continue;
+                    float value = mod.ValueSource.GetValue(source, this);
+                    attributeSet.AddModifier(mod.Attribute, new AttributeModifier(value, mod.Operation, instance));
+                }
             }
 
             if (effect.Period > 0)
@@ -197,16 +212,44 @@ namespace SpellBook.GAS.Core
 
         private void HandleEffectTick(ActiveEffectInstance instance)
         {
-            foreach (var mod in instance.Effect.PeriodicModifiers)
+            // Periodic modifiers act as instant changes to the base value
+            ApplyModifiersToBase(instance.Effect, instance.Effect.PeriodicModifiers, instance.Source);
+        }
+
+        /// <summary>
+        /// Aplica modifiers diretamente no valor base (efeitos Instant e ticks periódicos).
+        /// Add: base + v | Multiply: base * (1 + v) | Override: v
+        /// </summary>
+        private void ApplyModifiersToBase(GameplayEffect effect, List<AttributeEffectModifier> modifiers, AbilitySystemComponent source)
+        {
+            if (modifiers == null || attributeSet == null) return;
+
+            foreach (var mod in modifiers)
             {
-                if (attributeSet.TryGetState(mod.Attribute, out var state))
+                if (!IsModifierValid(effect, mod)) continue;
+                if (!attributeSet.TryGetState(mod.Attribute, out var state)) continue;
+
+                float value = mod.ValueSource.GetValue(source, this);
+                switch (mod.Operation)
                 {
-                    float value = mod.ValueSource.GetValue(instance.Source, this);
-                    // Periodic modifiers act as instant changes to the base value
-                    if (mod.Operation == ModifierOperation.Add)
+                    case ModifierOperation.Add:
                         state.SetBaseValue(state.BaseValue + value);
+                        break;
+                    case ModifierOperation.Multiply:
+                        state.SetBaseValue(state.BaseValue * (1f + value));
+                        break;
+                    case ModifierOperation.Override:
+                        state.SetBaseValue(value);
+                        break;
                 }
             }
+        }
+
+        private static bool IsModifierValid(GameplayEffect effect, AttributeEffectModifier mod)
+        {
+            if (mod.Attribute != null) return true;
+            Debug.LogWarning($"[GAS] Modifier sem atributo ignorado no efeito '{(effect != null ? effect.name : "null")}'.", effect);
+            return false;
         }
 
         public void RemoveEffect(ActiveEffectInstance instance)
@@ -216,13 +259,19 @@ namespace SpellBook.GAS.Core
             instance.OnTick -= HandleEffectTick;
             _activeEffects.Remove(instance);
 
-            foreach (var tag in instance.Effect.GrantedTags) RemoveTag(tag);
-
-            foreach (var mod in instance.Effect.Modifiers)
+            if (instance.Effect.GrantedTags != null)
             {
-                if (attributeSet.TryGetState(mod.Attribute, out var state))
+                foreach (var tag in instance.Effect.GrantedTags) RemoveTag(tag);
+            }
+
+            if (instance.Effect.Modifiers != null)
+            {
+                foreach (var mod in instance.Effect.Modifiers)
                 {
-                    state.RemoveModifiersFromSource(instance);
+                    if (attributeSet.TryGetState(mod.Attribute, out var state))
+                    {
+                        state.RemoveModifiersFromSource(instance);
+                    }
                 }
             }
         }

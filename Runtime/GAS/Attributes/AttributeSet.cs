@@ -19,12 +19,14 @@ namespace SpellBook.GAS.Attributes
             new Dictionary<AttributeDefinition, AttributeState>();
 
         private AbilitySystemComponent _owner;
+        private HashSet<AttributeDefinition> _warnedMissing;
 
         private void Awake()
         {
             _owner = GetComponent<AbilitySystemComponent>();
 
             // 1. Create all states
+            if (startingAttributes == null) startingAttributes = new List<InitialAttribute>();
             foreach (var attr in startingAttributes)
             {
                 if (attr.Definition != null)
@@ -61,7 +63,19 @@ namespace SpellBook.GAS.Attributes
 
         public float GetValue(AttributeDefinition def)
         {
-            return (def != null && _attributeMap.TryGetValue(def, out var state)) ? state.CurrentValue : 0f;
+            if (def == null) return 0f;
+            if (_attributeMap.TryGetValue(def, out var state)) return state.CurrentValue;
+
+            WarnMissing(def);
+            return 0f;
+        }
+
+        // Avisa uma única vez por atributo para não poluir o Console em leituras por frame
+        private void WarnMissing(AttributeDefinition def)
+        {
+            if (_warnedMissing == null) _warnedMissing = new HashSet<AttributeDefinition>();
+            if (!_warnedMissing.Add(def)) return;
+            Debug.LogWarning($"[GAS] Atributo '{def.name}' não está em startingAttributes de '{name}'. Retornando 0.", this);
         }
 
         public void AddModifier(AttributeDefinition def, AttributeModifier mod)
@@ -74,7 +88,7 @@ namespace SpellBook.GAS.Attributes
 
         public void RemoveModifier(AttributeDefinition def, AttributeModifier mod)
         {
-            if (_attributeMap.TryGetValue(def, out var state))
+            if (def != null && _attributeMap.TryGetValue(def, out var state))
             {
                 state.RemoveModifier(mod);
             }
