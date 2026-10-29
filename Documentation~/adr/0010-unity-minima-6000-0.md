@@ -37,6 +37,14 @@ O `package.json` declara `"unity": "2021.3"`, mas o pacote nunca foi verificado 
 - **Sem `unityRelease`** (decisão técnica): o pacote promete qualquer patch da 6000.0. Motivo: o CI testa um patch só, e travar o patch mínimo sem um bug conhecido que o justifique só restringe quem instala. Se um bug de patch aparecer, entra `unityRelease` por emenda.
 - O host de testes (0004) fixa a 6000.0 em `HostProject~/ProjectSettings/ProjectVersion.txt`, para que o desenvolvimento local aconteça na versão mínima.
 
+## Emenda (2026-10-29): editor próprio em UI Toolkit, pela 0026
+
+Esta emenda vale quando a 0026 for aceita.
+
+- O editor próprio do pacote (seletor de tipo, drawers, Inspectors e janelas) é escrito em UI Toolkit (I46) e segue o item 3 da Decisão: só usa APIs que existem na 6000.0.
+- As APIs-base são `PropertyDrawer.CreatePropertyGUI`, `Editor.CreateInspectorGUI`, `EditorWindow.CreateGUI`, `TypeCache` e `SerializationUtility` (tipos ausentes de `[SerializeReference]`). O primeiro ticket que usa cada uma confirma no red que ela existe e se comporta como esperado na 6000.0.
+- O CI na 6000.0 e na última 6000.x continua sendo a prova de compatibilidade, e agora roda sem o Odin.
+
 ## Em aberto
 
 Nada.

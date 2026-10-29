@@ -82,6 +82,36 @@ As decisões I.5 e I.6 do usuário definem os módulos da 3.0: Events, Time, Poo
 - **Pooling mantido** (decisão técnica): `PoolManager`, `ComponentPooler`, `PoolConfiguration`, `PoolableObject` e `IPoolable` mudam de pasta e de namespace (`SpellBook.Systems.Pooling` → `SpellBook.Pooling`) sem reescrita. O `PooledSpawnerAsset` usa o `ComponentPooler` internamente e cria os pools sob demanda, sem `PoolManager.Instance`. O `PoolManager` continua como componente opcional de pré-aquecimento. Motivo: o código funciona; reescrever não traz comportamento novo à 0-M.
 - **`Math.cs`** (decisão I31): a classe estática `MathTools` vai para `Runtime/Core/MathTools.cs`, namespace `SpellBook.Core`; o `MonoBehaviour` `Math` é apagado.
 
+## Emenda (2026-10-29): sem Odin, pela 0026
+
+Esta emenda vale quando a 0026 for aceita.
+
+- **`SpellBook.Core`:** referencia só a Unity. Sai "atributos do Odin" da tabela. O Core ganha:
+  - os atributos de Inspector (`Runtime/Core/Inspector/`, namespace `SpellBook.Core.Inspector`: `TypePicker`, `TypeCategory`, `ShowIf`);
+  - os tipos de validação (`Runtime/Core/Validation/`, namespace `SpellBook.Core.Validation`: `IValidatable`, `ValidationResult`, `ValidationMessage`, `ValidationSeverity`).
+- **Asmdefs auxiliares:**
+  - `SpellBook.Core.Editor` referencia só o Core. Ganha o catálogo, o popup e o drawer do seletor de tipo, o drawer do `ShowIf` e o Inspector base `SpellBookEditor` (validação no topo). Nasce no ticket 0M-41, não no 0M-38.
+  - `SpellBook.Events.Editor` referencia Core, Time, Events e `Core.Editor`. Ganha os Inspectors do canal e do emissor e o drawer de `EventEmission`. Nasce no ticket 0M-45, não no 0M-34.
+  - **Novos** (decisão I48, um `[CustomEditor]` por tipo):
+    - `SpellBook.Time.Editor` (`Editor/Time/`): Core, Time, `Core.Editor`;
+    - `SpellBook.Tags.Editor` (`Editor/Tags/`): Core, Tags, `Core.Editor`;
+    - `SpellBook.Pooling.Editor` (`Editor/Pooling/`): Core, Pooling, `Core.Editor`;
+    - `SpellBook.GAS.Editor` (`Editor/GAS/`): Core, Tags, Time, GAS, `Core.Editor`.
+
+    Cada um contém só os Inspectors dos tipos do módulo.
+  - **Regra:**
+    - um `.Editor` de módulo pode referenciar o `SpellBook.Core.Editor`, o próprio runtime e as dependências dele;
+    - um `.Editor` nunca referencia o `.Editor` de outro módulo;
+    - o `Core.Editor` referencia só o Core.
+  - Sai "Odin Editor" das referências de todos.
+  - **`SpellBook.Setup.Editor` não existe** e sai da tabela.
+- **Referências pré-compiladas:**
+  - todo asmdef do pacote usa `overrideReferences: true`;
+  - runtime e Editor usam `precompiledReferences: []`;
+  - testes e `SpellBook.Testing` usam só `nunit.framework.dll`.
+
+  O teste de asmdefs do item 5 cobra isso.
+
 ## Em aberto
 
 - Aprovar `com.unity.ugui` como dependência declarada no `package.json` (dependência nova; só no épico de UI).
