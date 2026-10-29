@@ -1,6 +1,10 @@
 # 📖 SpellBook - Unity Tools
 Uma coleção mágica de ferramentas reutilizáveis para seus projetos Unity. Assim como um SpellBook ajuda um mago a canalizar seus feitiços mais poderosos com facilidade, o SpellBook - Unity Tools oferece recursos para simplificar e aprimorar o desenvolvimento no Unity, poupando tempo e esforço em projetos futuros.
 
+## ✅ Requisitos
+ - Unity 6000.0 ou mais nova.
+ - Nenhuma dependência de terceiros.
+
 ## 🛠️ Instalação
 Siga os passos abaixo para adicionar o SpellBook - Unity Tools ao seu projeto:
 
@@ -12,7 +16,7 @@ Siga os passos abaixo para adicionar o SpellBook - Unity Tools ao seu projeto:
  -  Clique em Adicionar e aguarde o Unity instalar o pacote.
 
 ## 📖 Como usar?
-*documentação em desenvolvimento*
+Veja o manual em https://gabrielctorres.github.io/SpellBook/
 
 ## 📬 Feedback e Contribuição
 Tem sugestões, encontrou um bug, ou quer contribuir com novos feitiços?  

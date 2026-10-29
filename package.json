@@ -3,8 +3,8 @@
   "version": "2.0.0",
   "displayName": "Spell Book",
   "description": "Um pacote de recursos reutilizaveis para futuros projetos",
-  "unity": "2021.3",
-  "documentationUrl": "https://example.com/",
+  "unity": "6000.0",
+  "documentationUrl": "https://gabrielctorres.github.io/SpellBook/",
   "author": {
     "name": "Gabriel Torres",
     "email": "gabrielctorres38@gmail.com",
