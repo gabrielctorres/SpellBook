@@ -12,6 +12,15 @@
 /MemoryCaptures/
 /Recordings/
 
+# Projeto host de testes (HostProject~/): só Packages/ e ProjectVersion.txt são versionados
+/HostProject~/Library/
+/HostProject~/Logs/
+/HostProject~/Temp/
+/HostProject~/UserSettings/
+/HostProject~/obj/
+/HostProject~/ProjectSettings/*
+!/HostProject~/ProjectSettings/ProjectVersion.txt
+
 # Arquivos gerados por IDEs
 .vs/
 .vscode/
