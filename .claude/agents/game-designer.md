@@ -2,7 +2,7 @@
 name: game-designer
 description: "Proposes, in its answer and without writing files, mechanical and systems design — core loops, progression, combat, economy, player-facing rules. Mechanics-level questions."
 tools: Read, Glob, Grep, WebSearch
-model: inherit
+model: sonnet
 maxTurns: 20
 disallowedTools: Bash
 ---

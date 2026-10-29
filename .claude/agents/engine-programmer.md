@@ -2,7 +2,7 @@
 name: engine-programmer
 description: "Core engine systems — rendering pipeline, physics, memory, resource loading, scene management, performance-critical framework code."
 tools: Read, Glob, Grep
-model: inherit
+model: sonnet
 maxTurns: 20
 ---
 

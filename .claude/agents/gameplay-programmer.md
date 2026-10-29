@@ -2,7 +2,7 @@
 name: gameplay-programmer
 description: "Implements designed mechanics as code — player systems, combat, interactive features, gameplay system code."
 tools: Read, Glob, Grep
-model: inherit
+model: sonnet
 maxTurns: 20
 ---
 

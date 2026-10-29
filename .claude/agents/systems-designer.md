@@ -2,7 +2,7 @@
 name: systems-designer
 description: "Proposes, in its answer and without writing files, detailed subsystem mechanics — combat formulas, progression curves, crafting recipes, status effect interactions, mathematical modeling of a mechanic."
 tools: Read, Glob, Grep
-model: inherit
+model: sonnet
 maxTurns: 20
 disallowedTools: Bash
 ---

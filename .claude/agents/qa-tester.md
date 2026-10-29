@@ -2,7 +2,7 @@
 name: qa-tester
 description: "Proposes test cases, bug reports, and checklists in its answer, without writing files — test case generation, regression checklists, test coverage gaps."
 tools: Read, Glob, Grep
-model: inherit
+model: sonnet
 maxTurns: 10
 ---
 
