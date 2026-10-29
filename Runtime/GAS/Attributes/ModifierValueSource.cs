@@ -16,13 +16,10 @@ namespace SpellBook.GAS.Attributes
 
         public SourceType Type;
 
-        [Sirenix.OdinInspector.ShowIf("Type", SourceType.Constant)]
         public float ConstantValue;
 
-        [Sirenix.OdinInspector.ShowIf("Type", SourceType.Attribute)]
         public AttributeDefinition Attribute;
 
-        [Sirenix.OdinInspector.ShowIf("Type", SourceType.Formula)]
         public Formula Formula;
 
         public float GetValue(AbilitySystemComponent source, AbilitySystemComponent target)

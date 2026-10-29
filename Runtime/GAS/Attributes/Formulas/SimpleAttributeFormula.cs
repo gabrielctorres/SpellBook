@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using SpellBook.GAS.Core;
-using Sirenix.OdinInspector;
 
 namespace SpellBook.GAS.Attributes
 {
@@ -12,18 +11,10 @@ namespace SpellBook.GAS.Attributes
         [Serializable]
         public struct AttributeComponent
         {
-            [HorizontalGroup("Row")]
-            [HideLabel]
-            [Required]
             public AttributeDefinition Attribute;
 
-            [HorizontalGroup("Row", 0.2f)]
-            [HideLabel]
             public float Multiplier;
             
-            [HorizontalGroup("Row", 0.2f)]
-            [HideLabel]
-            [EnumPaging]
             public TargetSource Source;
         }
 
@@ -33,12 +24,9 @@ namespace SpellBook.GAS.Attributes
             Target
         }
 
-        [BoxGroup("Calculation")]
-        [LabelWidth(100)]
+        [Header("Calculation")]
         [SerializeField] private float baseValue;
 
-        [BoxGroup("Calculation")]
-        [TableList(AlwaysExpanded = true)]
         [SerializeField] private List<AttributeComponent> attributes;
 
         public override float Calculate(AbilitySystemComponent source, AbilitySystemComponent target)

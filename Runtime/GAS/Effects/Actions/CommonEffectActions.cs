@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using SpellBook.GAS.Core;
-using Sirenix.OdinInspector;
 
 namespace SpellBook.GAS.Effects
 {
@@ -20,7 +19,6 @@ namespace SpellBook.GAS.Effects
     [Serializable]
     public class SpawnVFXEffectAction : EffectAction
     {
-        [Required]
         public GameObject Prefab;
         public string AttachPointName = "Chest";
         public bool ParentToTarget = true;
