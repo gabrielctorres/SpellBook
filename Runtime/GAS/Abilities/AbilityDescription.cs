@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
-using Sirenix.OdinInspector;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Attributes;
 
@@ -17,7 +16,6 @@ namespace SpellBook.GAS.Abilities
     [Serializable]
     public class TextElement : DescriptionElement
     {
-        [HideLabel]
         public string Text;
         public override string GetText(GameplayAbility ability, AbilitySystemComponent source) => Text ?? string.Empty;
     }
@@ -48,20 +46,18 @@ namespace SpellBook.GAS.Abilities
         [Serializable]
         public struct TagMapping
         {
-            [HorizontalGroup("TagData")] public string Tag;
+            public string Tag;
             
-            [HorizontalGroup("TagData")] 
             public AttributeDefinition Attribute;
             
-            [HorizontalGroup("TagData")] public string TextReplacement;
+            public string TextReplacement;
             
-            [FoldoutGroup("Format")] public string Format;
-            [FoldoutGroup("Format")] public string Placeholder;
-            [FoldoutGroup("Format")] public bool UseColor;
-            [FoldoutGroup("Format"), ShowIf("UseColor")] public Color Color;
+            public string Format;
+            public string Placeholder;
+            public bool UseColor;
+            public Color Color;
         }
 
-        [TableList]
         public List<TagMapping> Mappings = new List<TagMapping>();
 
         public override string GetText(GameplayAbility ability, AbilitySystemComponent source)
@@ -94,7 +90,7 @@ namespace SpellBook.GAS.Abilities
     [Serializable]
     public class AbilityDescription
     {
-        [SerializeReference, ListDrawerSettings(ShowIndexLabels = true, AddCopiesLastElement = true)]
+        [SerializeReference]
         public List<DescriptionElement> Elements = new List<DescriptionElement>();
 
         public string GetFullDescription(GameplayAbility ability, AbilitySystemComponent source)

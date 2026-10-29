@@ -5,7 +5,6 @@ using SpellBook.GAS.Core;
 using SpellBook.GAS.Tags;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Effects;
-using Sirenix.OdinInspector;
 
 namespace SpellBook.GAS.Abilities
 {
@@ -15,67 +14,45 @@ namespace SpellBook.GAS.Abilities
     [CreateAssetMenu(fileName = "GA_NewAbility", menuName = "GAS/Gameplay Ability")]
     public class GameplayAbility : ScriptableObject
     {
-        [TabGroup("AbilityConfig", "Identity")]
-        [PreviewField(60, ObjectFieldAlignment.Left)]
-        [HideLabel]
-        [HorizontalGroup("AbilityConfig/Identity/Main")]
+        [Header("Identidade")]
         public Sprite Icon;
 
-        [TabGroup("AbilityConfig", "Identity")]
-        [VerticalGroup("AbilityConfig/Identity/Main/Info")]
         public string DisplayName;
 
-        [TabGroup("AbilityConfig", "Identity")]
-        [VerticalGroup("AbilityConfig/Identity/Main/Info")]
         public GameplayTag AbilityTag;
 
-        [TabGroup("AbilityConfig", "Identity")]
         public AbilityDescription Description;
 
-        [TabGroup("AbilityConfig", "Activation")]
-        [BoxGroup("AbilityConfig/Activation/Cooldown")]
-        [InlineEditor]
+        [Header("Ativação")]
         public GameplayEffect CooldownEffect;
 
-        [TabGroup("AbilityConfig", "Activation")]
-        [BoxGroup("AbilityConfig/Activation/Cooldown")]
         [FormerlySerializedAs("_cooldownReductionAttribute")]
         public AttributeDefinition CooldownReductionAttribute;
 
-        [TabGroup("AbilityConfig", "Activation")]
-        [BoxGroup("AbilityConfig/Activation/Cost")]
-        [InfoBox("Efeito Instant aplicado ao ativar (ex: Mana Add -20). A ativação falha se o atributo ficaria abaixo do MinValue.", InfoMessageType.None)]
-        [InlineEditor]
+        [Tooltip("Efeito Instant aplicado ao ativar (ex: Mana Add -20). A ativação falha se o atributo ficaria abaixo do MinValue.")]
         public GameplayEffect CostEffect;
 
-        [TabGroup("AbilityConfig", "Tags")]
+        [Header("Tags")]
         [Tooltip("Não ativa se o dono tiver alguma destas tags.")]
         public List<GameplayTag> BlockedTags;
 
-        [TabGroup("AbilityConfig", "Tags")]
         [Tooltip("Só ativa se o dono tiver todas estas tags.")]
         public List<GameplayTag> RequiredTags;
 
-        [TabGroup("AbilityConfig", "Tags")]
         [Tooltip("Tags concedidas ao dono enquanto a habilidade está ativa (ex: State.Casting).")]
         public List<GameplayTag> ActivationOwnedTags;
 
-        [TabGroup("AbilityConfig", "Tags")]
         [Tooltip("Ao ativar, cancela habilidades ativas cujo AbilityTag corresponda a uma destas.")]
         public List<GameplayTag> CancelAbilitiesWithTag;
 
-        [TabGroup("AbilityConfig", "Tags")]
         [Tooltip("Enquanto ativa, impede a ativação de habilidades cujo AbilityTag corresponda a uma destas.")]
         public List<GameplayTag> BlockAbilitiesWithTag;
 
-        [TabGroup("AbilityConfig", "Tags")]
         [Tooltip("Cancela esta habilidade se o dono receber uma destas tags durante a execução (ex: State.Stunned).")]
         public List<GameplayTag> CancelledByTags;
 
-        [TabGroup("AbilityConfig", "Execution")]
+        [Header("Execução")]
         [SerializeReference]
-        [ListDrawerSettings(ShowIndexLabels = true, ShowFoldout = true)]
-        [Searchable]
         public List<AbilityAction> Actions = new List<AbilityAction>();
 
         /// <summary>
