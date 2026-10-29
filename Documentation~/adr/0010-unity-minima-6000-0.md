@@ -35,7 +35,7 @@ O `package.json` declara `"unity": "2021.3"`, mas o pacote nunca foi verificado 
 - **Matriz do CI** (decisão I30): a suíte EditMode e PlayMode roda, com GameCI, na **6000.0** (último patch LTS disponível no GameCI na data do ticket de CI) e na **última 6000.x** disponível no GameCI. As duas versões ficam fixadas no workflow (string exata, por exemplo `6000.0.NNfN`) e são atualizadas por ticket próprio, nunca por `latest`, para o CI ser reprodutível.
 - **Release só com as duas versões verdes.** O host local pode usar outra 6000.x; o que vale como prova de compatibilidade é o CI.
 - **Sem `unityRelease`** (decisão técnica): o pacote promete qualquer patch da 6000.0. Motivo: o CI testa um patch só, e travar o patch mínimo sem um bug conhecido que o justifique só restringe quem instala. Se um bug de patch aparecer, entra `unityRelease` por emenda.
-- O host de testes (0004) fixa a 6000.0 em `HostProject~/ProjectSettings/ProjectVersion.txt`, para que o desenvolvimento local aconteça na versão mínima.
+- O host de testes (0004) fixa em `HostProject~/ProjectSettings/ProjectVersion.txt` a versão indicada na Spec (hoje 6000.3.13f1, desvio D5 da `spec/modularizacao.md`) e volta à 6000.0 quando ela estiver instalada; a prova da 6000.0 é o CI. (Emendado em 2026-10-29; ver a emenda do host abaixo.)
 
 ## Emenda (2026-10-29): editor próprio em UI Toolkit, pela 0026
 
@@ -44,6 +44,10 @@ Esta emenda vale quando a 0026 for aceita.
 - O editor próprio do pacote (seletor de tipo, drawers, Inspectors e janelas) é escrito em UI Toolkit (I46) e segue o item 3 da Decisão: só usa APIs que existem na 6000.0.
 - As APIs-base são `PropertyDrawer.CreatePropertyGUI`, `Editor.CreateInspectorGUI`, `EditorWindow.CreateGUI`, `TypeCache` e `SerializationUtility` (tipos ausentes de `[SerializeReference]`). O primeiro ticket que usa cada uma confirma no red que ela existe e se comporta como esperado na 6000.0.
 - O CI na 6000.0 e na última 6000.x continua sendo a prova de compatibilidade, e agora roda sem o Odin.
+
+## Emenda (2026-10-29): host local fora da 6000.0
+
+Decisão do usuário: a 6000.0 não está instalada na máquina, então o host usa a 6000.3.13f1 (D5 da Spec). O texto da consequência sobre o host (seção "Decisões incorporadas") foi trocado. Onde esta ADR pede que um red confirme algo "na 6000.0", o red confirma no host, e a confirmação na 6000.0 vem do job 6000.0 do CI. O mínimo declarado (`"unity": "6000.0"`) e a matriz do CI não mudam.
 
 ## Em aberto
 
