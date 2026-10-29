@@ -48,6 +48,7 @@ Legenda:
 ### 1.2 Projeto host
 
 - A raiz do repositório é **ao mesmo tempo** a pasta do pacote (`package.json` na raiz) e um projeto Unity (`Assets/`, `Library/`, `Packages/`, `ProjectSettings/`, todos no `.gitignore`), versão 6000.3.5f2 (`ProjectSettings/ProjectVersion.txt`).
+  - Atualização (2026-10-29, decisão do usuário no 0M-06): o host antigo foi movido, sem ser apagado, para `C:/Users/gabri/MeusProjetos/SpellBook-host-antigo/`. A raiz agora só tem os arquivos do pacote (ADR 0004, emenda do host antigo).
 - `Packages/manifest.json` da raiz não referencia `com.spellbook`, não tem `testables` nem `com.unity.test-framework`. O host não tem o Odin (`Assets/Plugins/` não existe). Hoje nenhum código do pacote é compilado pelo host.
 
 ### 1.3 Tempo
@@ -122,6 +123,7 @@ Legenda:
 ### Desvios
 
 - **D1. Host de testes em `HostProject~/`, não na raiz** (PRD R41, CA55). **Resolvido pela decisão I41**, que substitui a I32. Motivo técnico na ADR 0004: um `file:` apontando para a raiz faria a Unity importar `Assets/`, `Library/` e `ProjectSettings/` do próprio host como conteúdo do pacote. O host usa `HostProject~/Packages/manifest.json` com o pacote por `file:` e em `testables`, **sem Odin** (0026). Leitura do CA55 com a I41 e a I45: "`HostProject~/Packages/manifest.json`" e "`.gitignore` contém os artefatos do host", sem nenhuma entrada do Sirenix (o Criativo ajusta o PRD).
+  - **Raiz sem projeto Unity** (decisão do usuário, 2026-10-29): o mesmo motivo vale para o host antigo que estava na raiz. Ele foi movido para fora do repositório, e a raiz não pode ter `Assets/`, `Library/`, `Packages/` nem `ProjectSettings/` (risco 34).
   - **Caminho relativo** (confirmado em 2026-10-29 como valor esperado; o PRD deve escrever `file:../..`): a I41 escreve `file:../`. A Unity resolve caminhos relativos do `manifest.json` a partir da pasta `Packages/` do projeto, não da raiz dele. Por isso a raiz do repositório, vista de `HostProject~/Packages/`, é `file:../..`. O 0M-06 confirma o caminho no red: o Package Manager precisa mostrar `com.spellbook` como pacote local. Se `file:../` resolver, fica `file:../`.
 - **D2. Nome do canal sem payload** (PRD R12). `EventChannel` é a base abstrata não genérica (descrição, `logRaises`, tipo do payload, ouvintes vivos) e o canal sem payload concreto é `VoidEventChannel : EventChannel<Void>` com `Raise()`. Motivo: um `EventChannel` concreto e um `EventChannel<T>` com o mesmo nome confundem o seletor, o menu Create e o filtro por tipo, e o debugger precisa de uma base comum. O menu continua "Void Channel" (C2 e CA12 inalterados).
 - **D3. Alocação do `ASC.Tick` com efeito periódico** (PRD N2). **Aceito pela decisão I44** até o B-002. `AttributeState.Recalculate` usa LINQ (`AttributeState.cs:69-82`) e roda a cada tick periódico (`ApplyModifiersToBase` → `SetBaseValue`). A correção é do B-002 (fora da 0-M). O teste de N2 da 0-M mede o `Tick` em regime com efeitos de duração **sem** tick periódico naquele quadro.
@@ -591,6 +593,7 @@ O CA41 foi **cancelado** (não existe cenário sem Odin).
 | 30 | Repetição | Custo do seletor e da validação no Inspector | `TypePickerCatalog`, `SpellBookEditor` | Candidatos em cache por tipo base (o `TypeCache` já é indexado); validação só ao montar o Inspector e em `TrackSerializedObjectValue`, nunca por repaint | N5; revisão do Examinador |
 | 32 | Dados externos | **Inspector do usuário concorre com o do pacote.** Um `[CustomEditor]` do usuário para um tipo do SpellBook (ou de terceiros, com `editorForChildClasses`) pode ser o escolhido pela Unity, e a validação no topo some | Tipos do pacote | O manual (página Inspector, 0M-50) manda herdar de `SpellBookEditor`; a janela do validador continua mostrando as mensagens | Página Inspector |
 | 33 | Dados externos | **Bind do UI Toolkit em teste.** `CreateInspectorGUI` fora de um painel não liga os campos (`Bind`), e o teste não deve depender disso | `SpellBookEditorTests`, `EventsInspectorTests` | Os testes conferem só a estrutura (contêiner, `HelpBox`, botões) e as funções puras (`CollectMessages`, `SetChannel`); o comportamento ligado fica nos cenários no host | 0M-48, 0M-45 |
+| 34 | Dados externos | **Projeto Unity na raiz do pacote.** A raiz do repositório é a pasta do pacote; um `Assets/`, `Library/`, `Packages/` ou `ProjectSettings/` ali, mesmo ignorado pelo git, entra como conteúdo do `com.spellbook` (assemblies duplicados, `.meta` gravados, importação lenta) | Raiz do repositório, `HostProject~/` | Host antigo movido para fora (ADR 0004, emenda de 2026-10-29); único host em `HostProject~/` | Critério do 0M-06: as quatro pastas não existem na raiz quando o host abre |
 | 31 | Dados externos | Ambiguidade de nome (`ShowIf`, `TypeCategory`) com outros pacotes no código do usuário | Projetos do usuário | Namespace `SpellBook.Core.Inspector` (só quem escreve `using` dele vê os nomes); o manual mostra o alias | Página Inspector |
 
 ---
@@ -738,7 +741,7 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Objetivo: nenhum arquivo gerado pelo host entra no git.
 - Arquivos: `.gitignore` (acrescenta `HostProject~/Library/`, `Logs/`, `Temp/`, `UserSettings/`, `obj/`, `HostProject~/ProjectSettings/*` com exceção `!HostProject~/ProjectSettings/ProjectVersion.txt`). Nenhuma entrada cita `Sirenix`.
 - Depende de: 0M-02. Liberado pela decisão I41 (host em `HostProject~/`).
-- Host antigo na raiz: `/Assets/`, `/Packages/` e `/ProjectSettings/` já estão no `.gitignore` (commit c19b627), então não há arquivo versionado para mover ou apagar. As entradas da raiz continuam no `.gitignore`, e a cópia local do usuário não é tocada (`CLAUDE.md`: preservar o working tree). Critério extra: `git ls-files Assets Packages ProjectSettings` não lista nada.
+- Host antigo na raiz: `/Assets/`, `/Packages/` e `/ProjectSettings/` já estão no `.gitignore` (commit c19b627), então não há arquivo versionado para mover ou apagar. As entradas da raiz continuam no `.gitignore`. A cópia local do usuário já foi movida por ele para fora do repositório (`SpellBook-host-antigo/`, emenda de 2026-10-29 da ADR 0004), e nenhum ticket a toca. Critério extra: `git ls-files Assets Packages ProjectSettings` não lista nada.
 - CAs: CA55 (parte: `.gitignore` do host).
 - Testes: critério verificável: `git check-ignore` devolve ignorado para `HostProject~/Library/x` e `HostProject~/ProjectSettings/EditorSettings.asset`, e não ignorado para `HostProject~/Packages/manifest.json` e `HostProject~/ProjectSettings/ProjectVersion.txt`; `.gitignore` não contém `Sirenix`.
 - Manual: nenhuma. Tamanho: ~15 linhas, 1 arquivo.
@@ -746,19 +749,20 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 ### 0M-06 — `chore(host): criar projeto host de testes com o pacote em testables`
 - Objetivo: um projeto Unity 6000.3.13f1 (D5) que compila o pacote por `file:` e lista os testes dele.
 - **Alterado (revisão sem Odin):** o host não tem o Odin. O critério muda, porque o pacote ainda tem os 8 arquivos com `Sirenix` e não compila nesse host até o 0M-44.
-- Arquivos: `HostProject~/Packages/manifest.json` (`com.spellbook` por `file:` apontando para a raiz do repositório, `com.unity.test-framework` fixado, `testables: ["com.spellbook"]`, módulos mínimos da Unity), `HostProject~/ProjectSettings/ProjectVersion.txt` (6000.3.13f1, D5), `Documentation~/README.md` (seção "Projeto host": abrir e criar a trava; nenhuma instrução de Odin).
+- Arquivos: `HostProject~/Packages/manifest.json` (`com.spellbook` por `file:` apontando para a raiz do repositório, `com.unity.test-framework` fixado, `testables: ["com.spellbook"]`, módulos mínimos da Unity), `HostProject~/ProjectSettings/ProjectVersion.txt` (6000.3.13f1, D5), `HostProject~/Assets/.gitkeep` (vazio; a Unity não abre projeto sem `Assets/` — "Couldn't set project path" — e o git não versiona pasta vazia; arquivo oculto, a Unity não gera `.meta`), `Documentation~/README.md` (seção "Projeto host": abrir e criar a trava; nenhuma instrução de Odin).
 - Caminho do `file:` (decisão I41 escreve `file:../`): a Unity resolve o relativo a partir de `HostProject~/Packages/`, então o valor esperado é `file:../..`. O red do ticket é o Package Manager não mostrar `com.spellbook` com o caminho errado; fica o valor que resolver para a raiz (ver D1).
 - Depende de: 0M-05. Liberado pela decisão I41.
 - CAs: CA55.
 - Testes: sem teste de código (ainda não há asmdef de teste). Critérios:
+  - antes de abrir o host, a raiz do repositório não contém `Assets/`, `Library/`, `Packages/` nem `ProjectSettings/` (risco 34). Se contiver, o ticket para e avisa o Controlador; a Fábrica não move nem apaga;
   - com a trava, a Unity abre o host (em batchmode, ou ignorando o Safe Mode);
   - o Package Manager mostra `com.spellbook` como local;
-  - os **únicos** erros de compilação são `CS0246`/`CS0234` com `Sirenix` nos 8 arquivos da seção 1.1. A lista exata vai na descrição do PR e é o red do 0M-44;
+  - os **únicos** erros de compilação são de símbolos do Odin (`CS0246`/`CS0234`/`CS0103`: tipos e namespace `Sirenix`, e enums e constantes do Odin como `ObjectFieldAlignment`) nos 8 arquivos da seção 1.1. Na 6000.3.13f1 saem 813: `CS0246` nos 8 e 15 `CS0103` em `GameplayAbility`, `AttributeDefinition`, `ExpressionFormula` e `GameplayEffect`. A lista exata vai na descrição do PR e é o red do 0M-44;
   - `ProjectVersion.txt` com `m_EditorVersion: 6000.3.13f1`.
 
   **Inferido:** I-g. **Desvio:** D5.
 - Manual: nenhuma (documento interno).
-- Tamanho: ~40 linhas, 3 arquivos.
+- Tamanho: ~40 linhas, 4 arquivos.
 
 ### 0M-44 — `refactor(gas)!: remover o Odin dos 8 arquivos do runtime` (novo)
 - **Novo (revisão sem Odin, I45).** Vem logo depois do 0M-06, porque nenhum teste roda enquanto o Core não compilar no host sem Odin.
@@ -785,7 +789,7 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Depende de: 0M-06.
 - CAs: CA5 (S, com o texto novo: host **sem** Odin).
 - Testes: **red de compilação**, a única exceção da 0-M (0004, emenda). Ainda não há asmdef de teste, e com erro de compilação a Unity não recarrega o domínio.
-  - Red: a lista de erros `Sirenix` registrada no PR do 0M-06.
+  - Red: a lista de erros de símbolos do Odin (`CS0246`/`CS0234`/`CS0103`) registrada no PR do 0M-06.
   - Green, todos estes:
     - o host compila sem erro e sem aviso vindo do SpellBook;
     - busca textual: nenhum arquivo de `Runtime/` e `Editor/` contém `Sirenix` (a guarda automática vem no 0M-07);
