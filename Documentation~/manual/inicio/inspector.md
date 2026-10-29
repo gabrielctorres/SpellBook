@@ -1,8 +1,8 @@
 # Inspector {#inspector}
 
 O Inspector do SpellBook é feito em UI Toolkit, que já vem com a Unity. Esta página explica o
-seletor de tipo, como renomear tipos sem perder dados e o que acontece em Inspectors que não
-são UI Toolkit.
+seletor de tipo, como renomear tipos sem perder dados, como esconder campos com `[ShowIf]` e o
+que acontece em Inspectors que não são UI Toolkit.
 
 ## Seletor de tipo {#seletor-de-tipo}
 
@@ -97,11 +97,66 @@ Preencha só o que mudou: `sourceNamespace` para mudança de namespace, `sourceA
 mudança de assembly e `sourceClassName` para mudança de nome. Os dados são atualizados na
 próxima vez que o asset for salvo. Mantenha o atributo enquanto existirem assets antigos.
 
+## Mostrar campos por condição {#showif}
+
+`[ShowIf]` mostra um campo só quando um campo **irmão** tem um valor. O irmão é outro campo
+serializado do mesmo objeto ou da mesma struct, do tipo `bool` ou `enum`, e a comparação é por
+igualdade:
+
+```csharp
+using SpellBook.Core.Inspector;
+using UnityEngine;
+
+public class MinhaConfig : ScriptableObject
+{
+    public enum Modo { Fixo, Aleatorio }
+
+    public Modo modo;
+
+    [ShowIf(nameof(modo), Modo.Fixo)]
+    public float valor;
+
+    public bool usarCor;
+
+    [ShowIf(nameof(usarCor), true)]
+    public Color cor;
+}
+```
+
+Quando o irmão muda, o campo aparece ou some na hora. Dentro de uma lista de structs, cada
+elemento usa o irmão do próprio elemento.
+
+Limites:
+
+- **Sem expressão.** O irmão é só o nome de um campo. Propriedades, métodos e expressões como
+  `Period > 0` não são aceitos.
+- **Não esconde listas.** Em um campo de lista, a Unity aplica o atributo a cada elemento, e não à
+  lista inteira.
+- **Irmão inválido.** Se o irmão não existe, não é `bool` nem `enum`, ou o valor não combina com o
+  tipo dele, o campo fica sempre visível e o Console mostra um aviso uma vez.
+- **Um drawer por campo.** `[ShowIf]` não combina com `[TypePicker]` no mesmo campo (veja abaixo).
+
+O valor guardado no asset não muda: um campo escondido mantém o valor que tinha.
+
+Se o nome `ShowIf` colidir com o de outro pacote, use um alias, como em `[TypeCategory]`:
+
+```csharp
+using SB = SpellBook.Core.Inspector;
+
+public class MinhaConfigComAlias : UnityEngine.ScriptableObject
+{
+    public bool usarCor;
+
+    [SB.ShowIf(nameof(usarCor), true)]
+    public UnityEngine.Color cor;
+}
+```
+
 ## Limite de um drawer por campo {#um-drawer-por-campo}
 
 A Unity usa um único drawer por campo. Um campo com `[TypePicker]` já tem o drawer do
-seletor, então não combine esse atributo com outro atributo de drawer no mesmo campo: só um
-deles vale, e o outro é ignorado.
+seletor, então não combine esse atributo com outro atributo de drawer no mesmo campo, como
+`[ShowIf]`: só um deles vale, e o outro é ignorado.
 
 `[TypePicker]` vale só para campos `[SerializeReference]`, simples ou em lista.
 

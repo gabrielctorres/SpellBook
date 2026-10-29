@@ -28,6 +28,7 @@ namespace SpellBook.GAS.Effects
         [Header("Duration")]
         public EffectDurationPolicy DurationPolicy;
         
+        [ShowIf(nameof(DurationPolicy), EffectDurationPolicy.HasDuration)]
         public float Duration;
 
         [Header("Periodic")]

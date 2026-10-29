@@ -56,6 +56,7 @@ namespace SpellBook.GAS.Abilities
             public string Format;
             public string Placeholder;
             public bool UseColor;
+            [ShowIf(nameof(UseColor), true)]
             public Color Color;
         }
 
