@@ -1,8 +1,9 @@
 # Inspector {#inspector}
 
 O Inspector do SpellBook é feito em UI Toolkit, que já vem com a Unity. Esta página explica o
-seletor de tipo, como renomear tipos sem perder dados, a validação no topo do Inspector, como
-esconder campos com `[ShowIf]` e o que acontece em Inspectors que não são UI Toolkit.
+seletor de tipo, como renomear tipos sem perder dados, o aviso de tipo não encontrado, a
+validação no topo do Inspector, como esconder campos com `[ShowIf]` e o
+que acontece em Inspectors que não são UI Toolkit.
 
 ## Seletor de tipo {#seletor-de-tipo}
 
@@ -97,6 +98,27 @@ Preencha só o que mudou: `sourceNamespace` para mudança de namespace, `sourceA
 mudança de assembly e `sourceClassName` para mudança de nome. Os dados são atualizados na
 próxima vez que o asset for salvo. Mantenha o atributo enquanto existirem assets antigos.
 
+## Tipo não encontrado {#tipo-nao-encontrado}
+
+Se o tipo de um campo `[SerializeReference]` some (a classe foi apagada, renomeada sem
+`[MovedFrom]` ou mudou de assembly), a Unity guarda os dados da referência no asset, mas o campo
+aparece como **(Nenhum)**. A Unity não informa qual campo perdeu o tipo, então o aviso não fica
+no campo: fica no **topo do Inspector** do objeto, um erro por tipo ausente:
+
+> Tipo não encontrado: `<assembly>` `<namespace.Classe>`. Restaure o tipo para recuperar os
+> dados, ou limpe a referência.
+
+- **Restaurar o tipo** (voltar a classe com o mesmo nome, namespace e assembly, ou marcar a
+  classe nova com [`[MovedFrom]`](#movedfrom)) recupera os dados.
+- **Limpar referência**, o botão do aviso, apaga os dados guardados. Ele pede confirmação, e o
+  SpellBook nunca limpa sozinho. Trate a limpeza como definitiva.
+- Antes de escolher outro tipo num campo que aparece como **(Nenhum)** por causa desse aviso,
+  restaure o tipo ou limpe a referência.
+
+O aviso aparece nos Inspectors que herdam de `SpellBookEditor` (veja
+[Validação no Inspector](#validacao-no-inspector)). Um tipo seu com um Inspector que não herda
+dele não mostra o aviso.
+
 ## Mostrar campos por condição {#showif}
 
 `[ShowIf]` mostra um campo só quando um campo **irmão** tem um valor. O irmão é outro campo
@@ -163,12 +185,13 @@ seletor, então não combine esse atributo com outro atributo de drawer no mesmo
 ## Validação no Inspector {#validacao-no-inspector}
 
 Um tipo que implementa `IValidatable` (`SpellBook.Core.Validation`) mostra as mensagens de
-validação no **topo do Inspector**, um aviso ou erro por mensagem. Quando não há mensagem, nada
-aparece.
+validação no **topo do Inspector**, um aviso ou erro por mensagem, logo abaixo dos avisos de
+[tipo não encontrado](#tipo-nao-encontrado). Quando não há mensagem, nada aparece.
 
 As mensagens são recalculadas ao abrir o Inspector e sempre que um valor do objeto muda. O botão
-**Revalidar** recalcula na hora. Com vários objetos selecionados, cada mensagem começa com o nome
-do objeto. Se o `Validate` lançar uma exceção, ela aparece como um erro com o tipo da exceção.
+**Revalidar** recalcula na hora, incluindo os avisos de tipo não encontrado. Com vários objetos
+selecionados, cada mensagem começa com o nome do objeto. Se o `Validate` lançar uma exceção, ela
+aparece como um erro com o tipo da exceção.
 
 Isso vale para os Inspectors que herdam de `SpellBookEditor` (`SpellBook.Core.Editor`). Para usar
 no seu tipo, crie um editor de uma linha numa pasta `Editor`:
