@@ -28,3 +28,7 @@
 # Sistema operacional
 .DS_Store
 Thumbs.db
+
+# Time de agentes (lock local do Unity Editor)
+.claude/editor.lock
+.claude/settings.local.json
