@@ -1,8 +1,8 @@
 # Inspector {#inspector}
 
 O Inspector do SpellBook é feito em UI Toolkit, que já vem com a Unity. Esta página explica o
-seletor de tipo, como renomear tipos sem perder dados, como esconder campos com `[ShowIf]` e o
-que acontece em Inspectors que não são UI Toolkit.
+seletor de tipo, como renomear tipos sem perder dados, a validação no topo do Inspector, como
+esconder campos com `[ShowIf]` e o que acontece em Inspectors que não são UI Toolkit.
 
 ## Seletor de tipo {#seletor-de-tipo}
 
@@ -159,6 +159,30 @@ seletor, então não combine esse atributo com outro atributo de drawer no mesmo
 `[ShowIf]`: só um deles vale, e o outro é ignorado.
 
 `[TypePicker]` vale só para campos `[SerializeReference]`, simples ou em lista.
+
+## Validação no Inspector {#validacao-no-inspector}
+
+Um tipo que implementa `IValidatable` (`SpellBook.Core.Validation`) mostra as mensagens de
+validação no **topo do Inspector**, um aviso ou erro por mensagem. Quando não há mensagem, nada
+aparece.
+
+As mensagens são recalculadas ao abrir o Inspector e sempre que um valor do objeto muda. O botão
+**Revalidar** recalcula na hora. Com vários objetos selecionados, cada mensagem começa com o nome
+do objeto. Se o `Validate` lançar uma exceção, ela aparece como um erro com o tipo da exceção.
+
+Isso vale para os Inspectors que herdam de `SpellBookEditor` (`SpellBook.Core.Editor`). Para usar
+no seu tipo, crie um editor de uma linha numa pasta `Editor`:
+
+```csharp
+using SpellBook.Core.Editor;
+using UnityEditor;
+
+[CustomEditor(typeof(MinhaConfig))]
+public sealed class MinhaConfigEditor : SpellBookEditor { }
+```
+
+Para pôr botões ou outros elementos, sobrescreva `BuildBeforeDefault` (antes dos campos) ou
+`BuildAfterDefault` (depois dos campos), que recebem o elemento raiz do Inspector.
 
 ## Inspectors IMGUI e de terceiros {#imgui-e-terceiros}
 
