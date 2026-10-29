@@ -72,6 +72,23 @@ Decisões do usuário: I28 (reações prontas), I36 (padrões do Controlador), I
 - **Registro limpo** (técnica): cada `EventBus<T>` fechado e cada canal se registram num registro não genérico do módulo; `SubsystemRegistration` limpa os ouvintes de todos (CA19). O registro em si não é apagado, só os ouvintes.
 - **Seletores filtrados** (técnica): o filtro "só canais do payload desta resposta" (CA21) e "só canais do mesmo tipo" na RaiseChannel (CA58) ficam num drawer do `SpellBook.Events.Editor`, porque o runtime não pode referenciar `UnityEditor` (R3). A lógica do filtro é uma função pública e testável do Editor.
 
+## Emenda (2026-10-29): Inspector do Events sem Odin, pela 0026
+
+Esta emenda vale quando a 0026 for aceita. A Decisão não muda; muda só como o Inspector a entrega.
+
+- **Botão Raise no Play** (itens 2 e 4): é desenhado pelos Inspectors UI Toolkit `EventChannelEditor` e `EventEmitterEditor`, em `SpellBook.Events.Editor`, e não por atributo. Os dois herdam do `SpellBookEditor` (0026, item 3a) e sobrescrevem `BuildAfterDefault`. O Inspector do canal também mostra os ouvintes vivos e o último payload.
+- **Canal dentro da emissão** aceito pela decisão I50.
+- **Reações** (item 3): a lista `[SerializeReference] List<Reaction>` usa `[TypePicker]`, e cada reação pronta tem `[TypeCategory]`.
+- **Escape recolhido:** o `UnityEvent<T>` de escape fica dentro de uma classe serializável aninhada, que o Inspector nativo mostra como foldout fechado. Não precisa de atributo.
+- **Emissor:**
+  - o canal fica **dentro** da `EventEmission` (`EventEmission<T>` já guarda canal e payload), e o `EventEmitter` e a `RaiseEventAction` guardam só o campo `[SerializeReference] EventEmission`;
+  - o drawer de `EventEmission`, em `SpellBook.Events.Editor`, mostra um campo de canal. Quando o tipo de payload do canal escolhido muda, ele recria a instância por `EventEmission.CreateFor(canal)`.
+
+  Isso substitui o `[OnValueChanged]` do Odin e serve também à `RaiseEventAction`, que não é `UnityEngine.Object` e não tem `OnValidate`.
+- **Seletores filtrados:** o drawer de canal é em UI Toolkit. A descrição do canal aparece num `HelpBox` ao lado do seletor.
+- **Event Debugger e Find references:** são janelas e botões em UI Toolkit (`EditorWindow.CreateGUI`), não `OdinEditorWindow`.
+- **Validação:** `EventListener`, `EventEmitter`, `EventResponse` e `Reaction` implementam `IValidatable` (0026).
+
 ## Em aberto
 
 Nada.

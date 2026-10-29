@@ -54,6 +54,19 @@ O projeto host local na raiz do repositório (pastas `Assets/`, `Packages/`, `Pr
 - **Testes de ciclo de vida** (decisão técnica): em EditMode, `AddComponent` não chama `Awake`/`OnEnable`. Por isso testes que dependem de `Awake`, `OnEnable`, `OnDisable` ou `Update` (ASC, `EventListener`, `Projectile`) ficam no asmdef `PlayMode`; o código de produção não ganha inicialização preguiçosa só para caber em EditMode.
 - **Testes de guarda:** testes estruturais que verificam uma regra já cumprida (por exemplo, nenhum runtime referencia `UnityEditor`) não têm red natural. A Spec os marca como "guarda"; o red é mostrado uma vez apontando o teste para um alvo que viola a regra (por exemplo, um asmdef temporário), sem commitar esse alvo.
 
+## Emenda (2026-10-29): sem Odin, pela 0026
+
+Esta emenda vale quando a 0026 for aceita. As decisões I45 a I47 do usuário substituem a 0011.
+
+- **Host e CI:** o host de testes (`HostProject~/`) e o CI **não** têm o Odin. Deixam de valer:
+  - a frase "ter o Odin instalado (0011)" nas Consequências;
+  - o item "o Odin é importado localmente em `HostProject~/Assets/Plugins/Sirenix`";
+  - o item "Odin no host e no CI".
+
+  Nada do Odin vai para o `.gitignore`, e o CI não baixa nada privado.
+- **Red de compilação:** a remoção do Odin (ticket 0M-44) acontece enquanto o host ainda não compila o pacote. Nesse caso, o red do ticket é a lista de erros de compilação `Sirenix` registrada no ticket anterior (0M-06), e o green é o host compilando sem erro do SpellBook. É o único ticket da 0-M com red de compilação. O teste de estrutura `NoOdinTests` vem no ticket seguinte (0M-07) como guarda.
+- **Validadores** (item 6 da Decisão): os validadores são os da interface `IValidatable` (0026), não o `ISelfValidator`.
+
 ## Em aberto
 
 Nada.

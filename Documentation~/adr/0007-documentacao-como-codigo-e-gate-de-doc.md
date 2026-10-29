@@ -47,6 +47,14 @@ O SpellBook entrega sistemas e ferramentas para dev e designer. Sem página, um 
 - **Escopo do `[HelpURL]`** (decisão técnica): todo tipo **público, concreto (não abstrato)** que deriva de `MonoBehaviour` ou `ScriptableObject` nos assemblies **de runtime** do SpellBook. Janelas e tipos de Editor ficam fora, porque o usuário não os adiciona a objetos.
 - **Gerador do catálogo** (decisão técnica): fica para a Fase 9 (B-019). Até lá, ações, reações e condições escolhidas por `[SerializeReference]` exigem seção numa página do manual (por exemplo, as reações prontas da 0-M ficam na página Eventos, com uma âncora por reação).
 
+## Emenda (2026-10-29): sem Odin, pela 0026
+
+Esta emenda vale quando a 0026 for aceita.
+
+- **Item 4 (Validadores):** os validadores implementam `SpellBook.Core.Validation.IValidatable` (0026, item 6), não o `ISelfValidator` do Odin. O menu e o teste EditMode continuam como estão.
+- **Item 5 (Catálogo):** o metadado de categoria e resumo é o `[TypeCategory("Caminho", Summary = "...")]` do Core (0026, item 4), que vale para ações, reações e condições. O nome `[ActionCategory]` não é criado.
+- **URL base no Setup:** o `SpellBook.Setup.Editor` não existe mais (0026). Por isso deixa de valer o trecho que diz que ele lê o `documentationUrl` do `package.json`. A constante `DocUrls.Base` continua sendo a única fonte da URL dentro do código.
+
 ## Em aberto
 
 Nada.

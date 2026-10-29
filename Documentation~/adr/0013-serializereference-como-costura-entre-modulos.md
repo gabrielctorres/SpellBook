@@ -49,6 +49,17 @@ Com a divisão em módulos (0012), o GAS não pode conhecer Cues, Pooling ou Tea
   - o red do ticket 0M-32 inclui um teste que serializa e desserializa (`EditorJsonUtility`) um `EventEmitter` com `EventEmission<float>` e com `EventEmission<struct de teste>`. **Se falhar**, o plano B é uma classe concreta por tipo (`FloatEventEmission : EventEmission<float>`), o que faz o payload próprio exigir **três** classes de uma linha em vez de duas (desvio do R14 do PRD, que volta ao usuário).
 - **Reações sem genérico na lista** (0016): a lista de reações é `List<Reaction>` com tipos concretos não genéricos; o payload chega por um método genérico (`Execute<T>`), não pelo tipo da instância.
 
+## Emenda (2026-10-29): seletor próprio, pela 0026
+
+Esta emenda vale quando a 0026 for aceita.
+
+- **"Seletor do Odin"** (no Contexto e nas Decisões incorporadas) passa a ser o **seletor de tipo do SpellBook**: o atributo `[TypePicker]` no campo `[SerializeReference]` e o drawer em `SpellBook.Core.Editor` (0026, item 4). O filtro dele aplica as regras do item 4 da Decisão, por construção: só tipos concretos, não genéricos, `[Serializable]`, com construtor sem parâmetros e fora de `UnityEngine.Object`. Por isso continua proibido oferecer genérico no seletor.
+- **Metadados do item 4:** são o `[TypeCategory("Caminho", Summary = "...")]` no tipo concreto.
+- **"Cada entrada é uma instância própria"** é garantida também pelo drawer: um elemento de lista duplicado com o mesmo `managedReferenceId` vira uma cópia.
+- **Tipo removido ou renomeado:** as Consequências continuam valendo. O drawer mostra "Tipo não encontrado" sem apagar os dados, e o validador do projeto acusa erro (0026).
+- **"Usar serialização do Odin"** (O que os agentes não podem fazer): continua proibido, agora porque nenhum arquivo do pacote pode citar o Odin (0026).
+- **Campos criados por código** (`EventEmission`): não usam `[TypePicker]`. São mantidos pelo drawer do tipo no Editor do módulo, que recria a instância quando o canal escolhido muda de tipo de payload (0016, emenda).
+
 ## Em aberto
 
 - `Formula` e `TargetingStrategy`, hoje `ScriptableObject`, migram para `[SerializeReference]` pelo critério do item 5? Isso se decide nas Specs das fases correspondentes.

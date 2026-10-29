@@ -1,6 +1,6 @@
 # 0011 — Odin obrigatório: só atributos no runtime, serialização nativa
 
-Status: Aceita (gate 2026-10-29)
+Status: Substituída por 0026
 Data: 2026-10-29
 
 ## Contexto

@@ -27,7 +27,7 @@ Formato de cada ADR: Status, Data, Contexto, Decisão, Motivo, Consequências, O
 |---|---|---|---|
 | [0009](0009-versao-3-0-com-quebras-livres.md) | Versão 3.0 com quebras livres | Aceita | 2026-10-29 |
 | [0010](0010-unity-minima-6000-0.md) | Unity mínima 6000.0 | Aceita | 2026-10-29 |
-| [0011](0011-odin-obrigatorio-so-atributos-no-runtime.md) | Odin obrigatório: só atributos no runtime, serialização nativa | Aceita | 2026-10-29 |
+| [0011](0011-odin-obrigatorio-so-atributos-no-runtime.md) | Odin obrigatório: só atributos no runtime, serialização nativa | Substituída por [0026](0026-spellbook-sem-odin-editor-proprio-em-ui-toolkit.md) | 2026-10-29 |
 | [0012](0012-mapa-de-modulos-e-asmdefs.md) | Mapa de módulos e asmdefs sem ciclos | Aceita | 2026-10-29 |
 | [0013](0013-serializereference-como-costura-entre-modulos.md) | `[SerializeReference]` como costura entre módulos | Aceita | 2026-10-29 |
 | [0014](0014-tempo-injetavel-itimesource.md) | Tempo injetável (`ITimeSource`) | Aceita | 2026-10-29 |
@@ -42,3 +42,4 @@ Formato de cada ADR: Status, Data, Contexto, Decisão, Motivo, Consequências, O
 | [0023](0023-texto-estruturado-e-itextprovider.md) | Texto estruturado + `ITextProvider` | Aceita como direção | 2026-10-29 |
 | [0024](0024-pipeline-generico-de-dano.md) | Pipeline genérico de dano | Aceita como direção | 2026-10-29 |
 | [0025](0025-documentacao-em-mkdocs-ou-zensical-no-github-pages.md) | Documentação em MkDocs Material ou Zensical, publicada no GitHub Pages | Aceita | 2026-10-29 |
+| [0026](0026-spellbook-sem-odin-editor-proprio-em-ui-toolkit.md) | SpellBook sem Odin: editor próprio em UI Toolkit (substitui a 0011) | Aceita | 2026-10-29 |

@@ -45,9 +45,16 @@ As opções avaliadas no plano (H.8): MkDocs com o tema Material, docs-as-code n
 - **GitHub Action** (ticket 0M-09): roda num push na `main` que altere `Documentation~/manual/**`, `Documentation~/mkdocs.yml` ou `Documentation~/requirements-docs.txt`, e também por `workflow_dispatch`. Gera com `--strict` (link quebrado falha o build) e publica pelas actions oficiais do Pages (`actions/upload-pages-artifact` e `actions/deploy-pages`), com permissões mínimas (`pages: write`, `id-token: write`, `contents: read`).
 - **Odin no CI** (decisão I33): o workflow de testes (não o de doc) baixa o Odin de um local privado por secret do repositório; a URL e a credencial ficam só em secrets (CA56). **Bloqueado pela licença do Odin** (PRD P21, com o usuário): o ticket de CI (0M-11) só entra em implementação depois da resposta. O workflow de doc não depende do Odin e não fica bloqueado.
 
+## Emenda (2026-10-29): CI sem Odin, pela 0026
+
+Esta emenda vale quando a 0026 for aceita.
+
+- **"Odin no CI"** (Decisões incorporadas) deixa de valer. O workflow de testes não baixa o Odin e não usa nenhum secret do Odin. O ticket 0M-11 deixa de estar bloqueado.
+- A PRD P21 perde o objeto. O item dela em "Em aberto" fica resolvido pela decisão I45.
+
 ## Em aberto
 
-- PRD P21: a licença do Odin permite baixá-lo de um local privado no CI de um repositório público? Se não, qual o plano B (por exemplo, runner self-hosted com o Odin instalado)?
+- ~~PRD P21: a licença do Odin permite baixá-lo de um local privado no CI de um repositório público? Se não, qual o plano B (por exemplo, runner self-hosted com o Odin instalado)?~~ Resolvida pela decisão I45 (emenda acima, 0026).
 
 ## Relacionadas
 

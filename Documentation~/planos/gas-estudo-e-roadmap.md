@@ -679,6 +679,12 @@ Regras: Design System do Inspector (abas Identity/Values/Activation/Events/Descr
 | 42 | Remoções | Arquivos apagados por inteiro, sem substituto no ticket, **não contam** no limite de 10 arquivos nem no de linhas |
 | 43 | 2.x | **Congela**: não há branch `release/2.x` |
 | 44 | Alocação (D3) | Aceita que o `ASC.Tick` com efeito periódico aloque até o B-002 tirar o LINQ do `Recalculate` |
+| 45 | Odin (substitui 3, 25 e 33) | **O SpellBook não depende mais do Odin**, a partir da 0-M. O Inspector usa editor próprio: seletor de tipo para `[SerializeReference]` e atributos próprios, criados só quando o sistema precisar. A validação usa interface própria. A serialização continua nativa |
+| 46 | Tecnologia do editor | **UI Toolkit** para drawers e janelas |
+| 47 | Compatibilidade com Odin | **Nenhuma:** o Odin fica fora do escopo do pacote, sem adaptador e sem cenário de teste |
+| 48 | Inspector sem exceções IMGUI | Um **`SpellBookEditor : Editor` próprio** com `CreateInspectorGUI` (UI Toolkit) monta o Inspector padrão (`InspectorElement.FillDefaultInspector`), um **HelpBox de validação no topo** e pontos de extensão para os botões de cada módulo. Cada tipo do SpellBook ganha um `[CustomEditor]` de uma linha que herda dele. **O seletor de tipo é um popup próprio em UI Toolkit**, sem `AdvancedDropdown` e sem `finishedDefaultHeaderGUI`. As mensagens aparecem no Inspector e na janela do validador (P22) |
+| 49 | Inspector do GAS (P23) | Ficam aceitas as perdas (abas, edição inline, tabelas, ShowIf por expressão, prévia de fórmula) até os épicos do GAS. Nenhum dado se perde |
+| 50 | Emissor | Aceito: o canal fica dentro da `EventEmission`, uma peça "canal + payload" reutilizada no `EventEmitter` e na `RaiseEventAction` |
 | 36 | Padrões aplicados pelo Controlador (o usuário pode corrigir) | `try/catch` por ouvinte só em desenvolvimento (`DEVELOPMENT_BUILD`/Editor); canais Void, Int, Float, Bool, String, Vector3 e GameObject (sem `Component`); o Find references varre assets e cenas abertas, não cenas fechadas |
 
 ## Arquivos citados
