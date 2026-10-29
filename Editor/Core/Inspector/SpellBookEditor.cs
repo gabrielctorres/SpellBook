@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using SpellBook.Core.Editor.Inspector;
 using SpellBook.Core.Validation;
+using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
@@ -114,7 +116,33 @@ namespace SpellBook.Core.Editor
         private void RefreshTopNotices()
         {
             _topNotices.Clear();
+            foreach (Object target in targets)
+            {
+                foreach (MissingTypeEntry entry in MissingReferenceTypes.Get(target))
+                {
+                    var box = new HelpBox(WithName(target, MissingReferenceTypes.FormatMessage(entry)), HelpBoxMessageType.Error);
+                    box.Add(new Button(() => ConfirmAndClear(target, entry)) { text = "Limpar referência" });
+                    _topNotices.Add(box);
+                }
+            }
+
             Show(_topNotices, _topNotices.childCount > 0);
+        }
+
+        /// <summary>Limpa a referência só depois da confirmação; nada no pacote limpa sozinho (ADR 0026, item 4).</summary>
+        private void ConfirmAndClear(Object target, MissingTypeEntry entry)
+        {
+            bool confirmed = EditorUtility.DisplayDialog("Limpar referência",
+                $"Apagar os dados guardados de {entry.FullTypeName} em {target.name}? Restaurar o tipo depois não recupera esses dados.",
+                "Limpar", "Cancelar");
+            if (!confirmed)
+            {
+                return;
+            }
+
+            MissingReferenceTypes.Clear(target, entry.ReferenceId);
+            serializedObject.Update();
+            RefreshTopNotices();
         }
 
         private string WithName(Object context, string message)
