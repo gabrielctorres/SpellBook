@@ -2,7 +2,7 @@
 name: writer
 description: "Drafts, in its answer and without writing files, player-facing text — dialogue, lore entries, item and ability descriptions, environmental text."
 tools: Read, Glob, Grep
-model: inherit
+model: sonnet
 maxTurns: 20
 disallowedTools: Bash
 ---
