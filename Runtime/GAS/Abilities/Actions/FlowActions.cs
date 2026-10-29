@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using SpellBook.Core.Inspector;
 using UnityEngine;
 using SpellBook.GAS.Tags;
 
@@ -16,6 +17,7 @@ namespace SpellBook.GAS.Abilities.Actions
         [Min(0)] public float Interval = 0f;
 
         [SerializeReference]
+        [TypePicker]
         public List<AbilityAction> Actions = new List<AbilityAction>();
 
         public override IEnumerator Execute(AbilityContext context)
@@ -37,6 +39,7 @@ namespace SpellBook.GAS.Abilities.Actions
     public class ParallelAction : AbilityAction
     {
         [SerializeReference]
+        [TypePicker]
         public List<AbilityAction> Actions = new List<AbilityAction>();
 
         public override IEnumerator Execute(AbilityContext context)
@@ -84,9 +87,11 @@ namespace SpellBook.GAS.Abilities.Actions
         public List<GameplayTag> Tags = new List<GameplayTag>();
 
         [SerializeReference]
+        [TypePicker]
         public List<AbilityAction> Then = new List<AbilityAction>();
 
         [SerializeReference]
+        [TypePicker]
         public List<AbilityAction> Else = new List<AbilityAction>();
 
         public override IEnumerator Execute(AbilityContext context)
