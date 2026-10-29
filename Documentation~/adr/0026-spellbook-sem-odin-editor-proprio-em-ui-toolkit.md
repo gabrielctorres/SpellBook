@@ -317,6 +317,16 @@ Ele falha se encontrar `Sirenix` ou `ODIN_INSPECTOR`. O `AsmdefRulesTests` cobra
 - Validar no Inspector (cor, aviso visual) em vez de `IValidatable`, ou escrever no console dentro de `Validate`.
 - Desligar ou pular o `NoOdinTests` para um ticket passar.
 
+## Emenda (2026-10-29): tipo ausente relatado por objeto, D6 da Spec
+
+Decisão do usuário (D6 da `spec/modularizacao.md`), achado no red do 0M-41. Esta emenda substitui o trecho "Drawer" do item 4 sobre tipo ausente.
+
+- A Unity deixa o campo com tipo ausente com `managedReferenceId = -2`, igual a um campo nulo, e nenhuma API pública liga o campo ao `referenceId` do tipo ausente.
+- Por isso o aviso não fica no drawer. O `SpellBookEditor` mostra no topo do Inspector um `HelpBox` de erro por tipo ausente do objeto, "Tipo não encontrado: `<assembly>` `<namespace.Classe>`", com o botão "Limpar referência" (com confirmação), que age pelo `referenceId`.
+- **Nunca limpa sozinho.** O campo aparece como "(Nenhum)". Restaurar o tipo recupera os dados.
+- Um tipo do usuário sem `SpellBookEditor` só vê o erro no validador do projeto (item 4, validador; CA64).
+- O tipo ausente é implementado no 0M-48, não no 0M-41.
+
 ## Em aberto
 
 - Nada além da aceitação desta ADR. As três questões da versão anterior foram respondidas pelas decisões I48 (popup e Inspector base em UI Toolkit, sem IMGUI), I49 (perdas aceitas) e I50 (canal dentro da `EventEmission`).

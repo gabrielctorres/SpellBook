@@ -8,12 +8,12 @@ ADRs: 0001, 0002, 0003, 0004, 0005, 0006 (Adiada), 0007, 0008, 0009, 0010, 0011 
 > **Revisão sem Odin (2026-10-29).** O usuário decidiu que o SpellBook não depende do Odin (I45), que drawers e janelas são em UI Toolkit (I46) e que não há compatibilidade com o Odin (I47). A ADR 0026 substitui a 0011. A revisão:
 > - remove o Odin dos 8 arquivos atuais logo depois do host (0M-44);
 > - cria a infraestrutura de testes com a guarda "nenhum Sirenix" (0M-07);
-> - cria o seletor de tipo para `[SerializeReference]` (catálogo no 0M-41, popup UI Toolkit no 0M-47, drawer no 0M-42), o `[ShowIf]` (0M-46), a interface de validação (0M-43), o Inspector base `SpellBookEditor` com validação no topo (0M-48), os Inspectors do Events (0M-45) e um `[CustomEditor]` de uma linha por tipo (0M-49, 0M-50);
+> - cria o seletor de tipo para `[SerializeReference]` (catálogo no 0M-41, popup UI Toolkit no 0M-47, drawer no 0M-42), o `[ShowIf]` (0M-46), a interface de validação (0M-43), o Inspector base `SpellBookEditor` com validação e tipo ausente no topo (0M-48; tipo ausente relatado por objeto, D6), os Inspectors do Events (0M-45) e um `[CustomEditor]` de uma linha por tipo (0M-49, 0M-50);
 > - desbloqueia o CI (0M-11).
 >
 > **Segunda rodada (2026-10-29, decisões I48 a I50):** nenhuma exceção IMGUI. Saem o `AdvancedDropdown` e o gancho `Editor.finishedDefaultHeaderGUI`, e entram o popup próprio e o `SpellBookEditor`. As perdas no Inspector do GAS foram aceitas (I49) e o canal dentro da `EventEmission` também (I50).
 >
-> Os ids 0M-01 a 0M-40 não mudam (issues #2 a #41). Os tickets novos são 0M-41 a 0M-50. A coluna "Mudança" da seção 8 mostra o que mudou em cada ticket. O PRD está sendo ajustado em paralelo pelo Criativo; os CAs novos CA63 a CA66 foram aceitos no PRD.
+> Os ids 0M-01 a 0M-40 não mudam (issues #2 a #41). Os tickets novos são 0M-41 a 0M-50. Os ids 0M-51 (plano de divisão do 0M-07) e 0M-52 (divisão do 0M-41) não são usados: as duas divisões foram descartadas e os dois tickets têm exceção de tamanho aprovada. A coluna "Mudança" da seção 8 mostra o que mudou em cada ticket. O PRD está sendo ajustado em paralelo pelo Criativo; os CAs novos CA63 a CA66 foram aceitos no PRD.
 
 Legenda:
 - **Desvio:** o código obriga a fugir do PRD ou de uma decisão do usuário. Precisa de aprovação no gate.
@@ -132,6 +132,17 @@ Legenda:
   - Risco: código que usa API ou comportamento que só existe a partir da 6000.1 passa no host. Os reds que dizem "confirma na 6000.0" (riscos 16, 25, 27 e 28; 0M-32, 0M-41, 0M-42, 0M-46, 0M-47, 0M-48) passam a confirmar na versão do host, e só o job 6000.0 do CI prova a 6000.0. Por isso o 0M-11 vem logo depois do 0M-07 (seção 8); antes dele, nenhum ticket depende de API da 6000.0.
   - Cobertura: o CI (0M-11) roda a suíte na 6000.0 com a versão explícita da matriz; o Examinador barra API nova sem a guarda de versão do item 3 da 0010; release só com as duas versões verdes (0010). O cenário CA5 é verificado no host 6000.3.13f1, e a compilação na 6000.0 fica com o CA57. A ADR 0010 foi emendada e o CA5 do PRD foi ajustado pelo Criativo (2026-10-29).
   - Quando a 6000.0 for instalada: um ticket `chore(host)` troca o `ProjectVersion.txt` para o patch da 6000.0 usado no CI (I-j), revê o `com.unity.test-framework` (I-g) e roda a suíte inteira no host. Com ela verde, este desvio sai e o I-j volta a valer para o host.
+- **D6. Tipo ausente relatado por objeto, não por campo** (ADR 0026, item 4, "Drawer: num campo com tipo ausente"). Proposto pelo Arquiteto em 2026-10-29 e **aprovado pelo usuário em 2026-10-29**. Achado da Fábrica no red do 0M-41, com log de diagnóstico na 6000.3.13f1:
+  - quando o tipo de uma referência `[SerializeReference]` some, o campo fica com `managedReferenceId = -2` (`ManagedReferenceUtility.RefIdNull`, o mesmo valor de um campo nulo) e `managedReferenceFullTypename` vazio;
+  - `SerializationUtility.GetManagedReferencesWithMissingTypes(obj)` devolve o tipo ausente com outro `referenceId` (no log, `3572287566287470595: SpellBook.Core.Tests.Inspector.PickRemovido`);
+  - nenhuma API pública liga o campo ao `referenceId` do tipo ausente.
+
+  Por isso o `TryGetMissingType(SerializedProperty)` não é viável e o drawer não sabe que o campo dele perdeu o tipo: o campo aparece como "(Nenhum)". Das três saídas da Fábrica, a Spec adota a **(A)**:
+  - **(A) adotada:** relatar por objeto. `MissingReferenceTypes.Get(UnityEngine.Object)` lista os tipos ausentes; o `SpellBookEditor` mostra um `HelpBox` de erro por tipo ausente no topo do Inspector, cada um com o botão "Limpar referência" pelo `referenceId` (seção 4.10, 0M-48). Usa só API pública que já existe e que a Fábrica viu funcionar.
+  - (B) recusada: tratar todo campo com `-2` num objeto com tipo ausente como "possível tipo ausente" acusa campos que estão nulos de propósito e não diz qual campo é quando o objeto tem mais de um. O aviso perde a confiança do designer.
+  - (C) recusada: ler o YAML do asset é frágil (formato interno da Unity) e não funciona para objeto só em memória nem para objeto de cena não salva.
+
+  O que muda em relação à 0026: o aviso sai do drawer e vai para o topo do Inspector do objeto; a mensagem, o botão e a regra "nunca limpa sozinho" continuam. O R45 do PRD continua atendido ("o Inspector mostra um erro com o assembly e a classe que faltam e um botão para limpar a referência"), e o CA64 (validador) não muda. Limite aceito: um tipo do usuário cujo Inspector não herda de `SpellBookEditor` só vê o tipo ausente no validador do projeto (R33, CA64); o manual explica isso (0M-48). Precisa de uma **emenda datada na ADR 0026, item 4**, escrita pelo Arquiteto depois da aprovação (texto proposto na seção 9).
 
 ### Inferidos (validar no uso)
 
@@ -393,7 +404,7 @@ namespace SpellBook.Time
   - cobre cada alvo e, nos `GameObject`, cada componente que implementa `IValidatable`;
   - para cada um, cria um `ValidationResult(alvo)`, chama `Validate` e junta as mensagens;
   - uma exceção dentro de `Validate` vira um erro com o tipo e a mensagem da exceção, e a varredura continua;
-  - alvos com `SerializationUtility.HasManagedReferencesWithMissingTypes` recebem um erro por referência ausente, com o assembly e a classe (CA64).
+  - cada alvo (e cada componente, nos `GameObject`) recebe um erro por entrada de `MissingReferenceTypes.Get(alvo)`, com o texto de `MissingReferenceTypes.FormatMessage` (assembly e classe, CA64). É a mesma função e o mesmo texto do topo do Inspector (0M-48, seção 4.10, D6). O validador nunca chama `Clear`.
 - `ProjectValidator.CollectProjectTargets()`: assets de `ScriptableObject` e prefabs do projeto (`AssetDatabase.FindAssets`), mais os objetos das cenas abertas.
 - Regra de `[HelpURL]` (R35, último item): função `HelpUrlRule.FindViolations(IEnumerable<Assembly>)`, usada pelo teste CA36 e pela janela.
 - O menu `SpellBook/Validar projeto` abre a `ValidationWindow` (UI Toolkit, `EditorWindow.CreateGUI`, `ListView`) com a lista. Clicar num item seleciona o objeto e faz ping nele (CA34).
@@ -403,20 +414,20 @@ namespace SpellBook.Time
 
 O Setup sem Odin foi **cancelado**: não existe `SpellBook.Setup.Editor` nem `OdinMissingNotice`.
 
-**Seletor de tipo** (0M-41, em `Editor/Core/Inspector/`):
-- **`TypePickerCatalog`** (estático, sem UI, testável):
+**Seletor de tipo** (0M-41, em `Editor/Core/Inspector/`, namespace `SpellBook.Core.Editor.Inspector`; os atributos ficam em `SpellBook.Core.Inspector`):
+- **`TypePickerCatalog`** (estático, sem UI, testável; não trata tipo ausente, ver "Tipo ausente" abaixo e D6):
   - `IReadOnlyList<TypePickerEntry> GetCandidates(Type baseType)`: aplica o filtro da 0026, item 4 (concreto, não genérico, `[Serializable]`, construtor sem parâmetros, fora de `UnityEngine.Object`), usa `TypeCache.GetTypesDerivedFrom` e guarda o resultado em cache por tipo base;
   - `TypePickerEntry { Type Type; string DisplayName; string CategoryPath; string Summary }`;
   - `IEnumerable<TypePickerEntry> Filter(IEnumerable<TypePickerEntry>, string query)`: busca sem diferenciar maiúsculas e minúsculas por nome exibido, nome do tipo e caminho;
   - `Type ResolveFieldBaseType(SerializedProperty)`: lê `managedReferenceFieldTypename`;
   - `void Assign(SerializedProperty, Type typeOrNull)`: instância nova ou nulo, com Undo;
-  - `bool EnsureUniqueInArray(SerializedProperty element)`: troca por cópia o elemento cujo `managedReferenceId` já aparece antes na mesma lista; devolve `true` se trocou;
-  - `bool TryGetMissingType(SerializedProperty, out string assembly, out string fullName)`, por `SerializationUtility.GetManagedReferencesWithMissingTypes(target)` e `managedReferenceId`.
+  - `bool EnsureUniqueInArray(SerializedProperty element)`: troca por cópia o elemento cujo `managedReferenceId` já aparece antes na mesma lista; devolve `true` se trocou.
+  - ~~`bool TryGetMissingType(SerializedProperty, ...)`~~: **removido** (D6). A Unity não liga o campo ao tipo ausente.
 - **`TypePickerDrawer`** (`[CustomPropertyDrawer(typeof(TypePickerAttribute))]`, `CreatePropertyGUI`):
   - linha de cabeçalho com o rótulo e um botão com o nome do tipo atual (ou "(Nenhum)"); o botão abre o `TypePickerPopup` (0M-47);
   - abaixo, um `PropertyField` por filho da instância. Isso não é recursivo, porque cada `PropertyField` é de um filho, não da própria propriedade;
   - `TrackPropertyValue` reconstrói os filhos quando o tipo muda;
-  - tipo ausente: `HelpBox` de erro "Tipo não encontrado: `<assembly>` `<namespace.Classe>`" + botão "Limpar referência" (`SerializationUtility.ClearManagedReferenceWithMissingType`). Nunca limpa sozinho;
+  - tipo ausente: o drawer **não** trata (D6). O campo cujo tipo sumiu tem `managedReferenceId = -2`, como um campo nulo, e aparece como "(Nenhum)"; o aviso fica no topo do Inspector (ver "Tipo ausente" abaixo);
   - ao ligar, chama `EnsureUniqueInArray`;
   - `OnGUI` (IMGUI) desenha só o `HelpBox` "Este campo precisa do Inspector em UI Toolkit".
 
@@ -443,12 +454,22 @@ O Setup sem Odin foi **cancelado**: não existe `SpellBook.Setup.Editor` nem `Od
 
 **Inspector base** (0M-48, I48), em `Editor/Core/Inspector/SpellBookEditor.cs` (API na 0026, item 3a):
 - `CreateInspectorGUI` monta:
+  - o contêiner de tipo ausente (classe USS `spellbook-missing-types`), escondido quando nenhum alvo tem tipo ausente. Tem um `HelpBox` de erro por entrada de `MissingReferenceTypes.Get(alvo)`, com o texto de `FormatMessage` (e o nome do objeto quando há mais de um alvo), e um botão "Limpar referência" em cada um (ver "Tipo ausente" abaixo);
   - o contêiner de validação (classe USS `spellbook-validation`), com um `HelpBox` por mensagem e um botão "Revalidar" (I-p);
   - `BuildBeforeDefault`;
   - `InspectorElement.FillDefaultInspector(root, serializedObject, this)`;
   - `BuildAfterDefault`.
 - `RefreshValidation()` cria um `ValidationResult` por alvo em `targets`, chama `Validate` quando o alvo é `IValidatable` e reconstrói os `HelpBox`. Uma exceção vira um `HelpBox` de erro com o tipo da exceção, como no `ProjectValidator`.
-- O recálculo é chamado no build e em `root.TrackSerializedObjectValue(serializedObject, _ => RefreshValidation())`.
+- O recálculo é chamado no build e em `root.TrackSerializedObjectValue(serializedObject, _ => RefreshValidation())`. O contêiner de tipo ausente é reconstruído no build, no "Revalidar" e depois de cada "Limpar referência".
+
+**Tipo ausente** (0M-48, D6), em `Editor/Core/Inspector/MissingReferenceTypes.cs`, namespace `SpellBook.Core.Editor.Inspector`. Relata por **objeto**, porque a Unity não liga o campo ao tipo ausente (o campo fica com `managedReferenceId = -2`, igual a nulo):
+- `readonly struct MissingTypeEntry { long ReferenceId; string AssemblyName; string FullTypeName; }`. `FullTypeName` é `namespace.Classe`, ou só `Classe` quando o namespace é vazio;
+- `static IReadOnlyList<MissingTypeEntry> Get(UnityEngine.Object target)`: lista vazia para alvo nulo ou sem tipo ausente (`SerializationUtility.HasManagedReferencesWithMissingTypes` antes, por custo); senão, uma entrada por item de `SerializationUtility.GetManagedReferencesWithMissingTypes(target)`, na ordem devolvida pela Unity;
+- `static bool Clear(UnityEngine.Object target, long referenceId)`: chama `SerializationUtility.ClearManagedReferenceWithMissingType(target, referenceId)`, marca o alvo como sujo (`EditorUtility.SetDirty`) e devolve o resultado da Unity. Só é chamada pelo botão; nada no pacote chama sozinho;
+- `static string FormatMessage(MissingTypeEntry)`: "Tipo não encontrado: `<assembly>` `<namespace.Classe>`. Restaure o tipo para recuperar os dados, ou limpe a referência.";
+- o botão "Limpar referência" do `SpellBookEditor` pede confirmação (`EditorUtility.DisplayDialog`), porque a limpeza apaga os dados guardados e a Spec não promete Undo para ela. O cenário do host do 0M-48 registra se o Undo da Unity recupera os dados; o manual descreve o que for observado;
+- o drawer não mostra nada (o campo aparece como "(Nenhum)"). O manual orienta a restaurar o tipo ou limpar a referência antes de escolher outro tipo nesse campo. O efeito de escolher um tipo num campo nessa situação, sem limpar antes, é verificado no cenário do host do 0M-48 (risco 28);
+- um tipo do usuário cujo Inspector não herda de `SpellBookEditor` não vê o aviso no Inspector, só no validador do projeto (0M-38, CA64). O manual explica (0M-48).
 - Função testável: `static IReadOnlyList<ValidationMessage> SpellBookEditor.CollectMessages(IEnumerable<UnityEngine.Object> targets)`.
 - **Um editor por tipo** (0M-49, 0M-50):
   - um arquivo por módulo (`CoreEditors.cs`, `TimeEditors.cs`, `TagsEditors.cs`, `PoolingEditors.cs`, `GasEditors.cs`, `EventsEditors.cs`), com classes `[CustomEditor(typeof(X))] sealed class XEditor : SpellBookEditor { }`;
@@ -460,7 +481,10 @@ O Setup sem Odin foi **cancelado**: não existe `SpellBook.Setup.Editor` nem `Od
 
 ### 4.11 Documentação
 
-- `Documentation~/mkdocs.yml`: `site_url: https://gabrielctorres.github.io/SpellBook/`, `docs_dir: manual`, `use_directory_urls: true`, tema Material (ou Zensical, escolha no 0M-08), `markdown_extensions: [attr_list, admonition, toc]`, sem `nav:` (I-e). Build com `--strict`.
+- `Documentation~/mkdocs.yml`: `site_url: https://gabrielctorres.github.io/SpellBook/`, `docs_dir: manual`, `use_directory_urls: true`, tema Material, `markdown_extensions: [attr_list, admonition, toc, fenced_code]`, sem `nav:` (I-e). Build com `--strict`.
+  - **Ferramenta (decidida no 0M-08, ADR 0025 item 2):** MkDocs 1.6.1 com Material 9.8.0, travados com `==` em `Documentation~/requirements-docs.txt`. O Zensical está na 0.0.73, pré-1.0, então não atende "estável" da 0025 e fica de fora. A 0025 **não precisa de emenda**: o item 2 já manda cair no MkDocs com Material em versão travada e registrar a escolha na Spec, que é este parágrafo. Uma troca futura para o Zensical aí sim exige emenda (consequências da 0025).
+  - **Extensões (decidido no 0M-08):** `fenced_code` entra. Sem ela, os blocos cercados com três crases não renderizam, e o manual tem muito C#. É extensão do próprio Python-Markdown, que o MkDocs já instala, então não há dependência nova nem plugin (a 0025 só barra plugin). Não entram `pymdownx.superfences` nem `pymdownx.highlight` (vêm do `pymdown-extensions`, dependência transitiva do Material, fora do `requirements-docs.txt`): colorir o C# fica para quando alguém pedir, com ticket próprio e o `pymdown-extensions` travado.
+  - **Verificação local disponível (aprovada pelo usuário, 2026-10-29):** venv fora do repositório em `C:/Users/gabri/MeusProjetos/SpellBook-venv-docs/`, com `pip install -r Documentation~/requirements-docs.txt`. Todo ticket de docs roda `mkdocs build --strict -f Documentation~/mkdocs.yml -d <pasta fora do repositório>`. O `-d` evita deixar `Documentation~/site/` na árvore antes de o `.gitignore` cobri-lo (0M-09). O venv nunca entra no repositório.
 - Páginas da 0-M (todas com conteúdo real, decisão I26):
 
 | Página | Arquivo | Criada em | Ampliada em |
@@ -468,7 +492,7 @@ O Setup sem Odin foi **cancelado**: não existe `SpellBook.Setup.Editor` nem `Od
 | O que é | `manual/index.md` | 0M-08 | 0M-40 |
 | Instalação | `manual/inicio/instalacao.md` | 0M-08 (com a seção Compatibilidade, D5) | — |
 | Conceitos (mapa de módulos, três usos de evento, seletor de tipo e `[ShowIf]`) | `manual/inicio/conceitos.md` | 0M-12 | 0M-24, 0M-26, 0M-40 |
-| Inspector do SpellBook (seletor de tipo, tipo ausente, `[MovedFrom]` para tipos do usuário, `[ShowIf]`, ambiguidade com outros pacotes) | `manual/inicio/inspector.md` | 0M-42 | 0M-46, 0M-48 (validação no topo, botão Revalidar), 0M-50 (como herdar de `SpellBookEditor` nos tipos do usuário) |
+| Inspector do SpellBook (seletor de tipo, tipo ausente, `[MovedFrom]` para tipos do usuário, `[ShowIf]`, ambiguidade com outros pacotes) | `manual/inicio/inspector.md` | 0M-42 | 0M-46, 0M-48 (validação e tipo ausente no topo, botão Revalidar), 0M-50 (como herdar de `SpellBookEditor` nos tipos do usuário) |
 | Migração 2.x → 3.0 | `manual/regras/migracao-2-para-3.md` | 0M-12 (já com a linha "o pacote não depende mais do Odin; perdas no Inspector do GAS", do 0M-44) | 0M-15, 0M-16, 0M-19, 0M-21, 0M-23, 0M-25 |
 | GAS | `manual/modulos/gas.md` | 0M-10 | 0M-12, 0M-19, 0M-21, 0M-22, 0M-37, 0M-39 |
 | Tags | `manual/modulos/tags.md` | 0M-16 | — |
@@ -487,14 +511,15 @@ Cada teste diz por que falha antes (red). Nomes de arquivo relativos a `Tests/`.
 | Teste | Arquivo | CA | Por que falha antes |
 |---|---|---|---|
 | ~~Todo asmdef, exceto Setup, tem `ODIN_INSPECTOR`~~ | — | ~~CA53~~ | **Cancelado** (0026); substituído pela linha seguinte |
-| Nenhum `.asmdef` (em `references`, `precompiledReferences`, `defineConstraints`, `versionDefines`) e nenhum `.cs`/`.asmdef`/`.asmref`/`.uxml`/`.uss` de `Runtime/`, `Editor/`, `Tests/`, nem o `package.json`, contém `Sirenix` ou `ODIN_INSPECTOR` | `Core/EditMode/Structure/NoOdinTests.cs` | CA65 (substitui CA53) | Guarda (o 0M-44 já tirou o Odin); red mostrado com um `.cs` temporário contendo `using Sirenix.OdinInspector;`, sem commit |
+| Nenhum `.asmdef` (em `references`, `precompiledReferences`, `defineConstraints`, `versionDefines`) e nenhum `.cs`/`.asmdef`/`.asmref`/`.uxml`/`.uss` de `Runtime/`, `Editor/`, `Tests/`, nem o `package.json`, contém `Sirenix` ou `ODIN_INSPECTOR` no **início de um identificador** (regra de busca no 0M-07: borda de identificador só à esquerda, sensível a maiúsculas; pega `using Sirenix.*`, `Sirenix.OdinInspector.dll`, `ODIN_INSPECTOR` e `ODIN_INSPECTOR_3_1`, e não pega o nome de teste `...MentionsSirenix`) | `Core/EditMode/Structure/NoOdinTests.cs` | CA65 (substitui CA53) | Guarda (o 0M-44 já tirou o Odin); red mostrado com um `.cs` temporário contendo `using Sirenix.OdinInspector;`, sem commit |
 | Todo asmdef do pacote tem `overrideReferences: true`; runtime e Editor com `precompiledReferences: []`; testes só com `nunit.framework.dll` | `Core/EditMode/Structure/AsmdefRulesTests.cs` | CA65 (parte), 0026 | `Runtime/SpellBook.Core.asmdef` e `Editor/SpellBook.Editor.asmdef` têm `overrideReferences: false` |
 | Infra não referencia `SpellBook.GAS*`; GAS não referencia Events/Pooling; Bridges não referencia Pooling; Events só Core/Time | idem | CA2 | Guarda no 0M-07 (um assembly só); cada ticket que cria módulo acrescenta a asserção de existência do módulo, que falha antes de o asmdef existir |
 | Runtime não referencia `UnityEditor` | `Core/EditMode/Structure/RuntimeReferencesTests.cs` | CA3 (sem as partes do Odin) | Guarda |
 | Seletor: candidatos de um tipo base de teste = só os concretos, não genéricos, `[Serializable]`, com construtor sem parâmetros, fora de `UnityEngine.Object`, inclusive de outro assembly; categoria e resumo vêm do `[TypeCategory]`; sem atributo vai para a raiz; busca por nome e categoria | `Core/EditMode/Inspector/TypePickerCatalogTests.cs` | CA63 | `TypePickerCatalog` não existe |
 | Seletor: `Assign` cria instância do tipo escolhido e `null` limpa; elemento de lista com `managedReferenceId` repetido vira cópia independente | idem | CA63, 0013 | Idem |
 | `TypePickerTree`: hierarquia por categoria, "(Nenhum)" primeiro, categorias antes de tipos, `Parent` volta um nível, `Search` plana com o caminho | `Core/EditMode/Inspector/TypePickerTreeTests.cs` | CA63 | `TypePickerTree` não existe |
-| `SpellBookEditor`: alvo `IValidatable` inválido gera `HelpBox` de erro no topo; válido, nenhum; alvo não `IValidatable`, contêiner escondido; `BuildAfterDefault` aparece depois dos campos; exceção no `Validate` vira erro | `Core/EditMode/Inspector/SpellBookEditorTests.cs` | R32 | `SpellBookEditor` não existe |
+| `SpellBookEditor`: alvo `IValidatable` inválido gera `HelpBox` de erro no topo; válido, nenhum; alvo não `IValidatable`, contêiner escondido; `BuildAfterDefault` aparece depois dos campos; exceção no `Validate` vira erro; alvo com tipo ausente tem um `HelpBox` com "Limpar referência" antes da validação | `Core/EditMode/Inspector/SpellBookEditorTests.cs` | R32, R45 | `SpellBookEditor` não existe |
+| Tipo ausente por objeto (D6): asset em YAML com referência a classe inexistente → `MissingReferenceTypes.Get` devolve uma entrada com assembly e classe; os dados continuam depois de reimportar; somem só depois de `Clear`; objeto sem tipo ausente → lista vazia | `Core/EditMode/Inspector/MissingReferenceTypesTests.cs` | R45 (CA64 é do validador) | `MissingReferenceTypes` não existe |
 | Todo MB/SO público concreto de runtime tem Inspector derivado de `SpellBookEditor` (Core, Time, Tags, Pooling no 0M-49; GAS, Events, GAS.Bridges no 0M-50) | `Core/EditMode/Inspector/SpellBookEditorCoverageTests.cs` | R32 (I48) | Não há `[CustomEditor]` para esses tipos |
 | `ShowIfRule`: irmão enum igual → visível, diferente → oculto; irmão bool; irmão inexistente → visível | `Core/EditMode/Inspector/ShowIfRuleTests.cs` | (0026) | `ShowIfRule` não existe |
 | GAS: todo campo `[SerializeReference]` de `Runtime/GAS` tem `[TypePicker]` | `Core/EditMode/Inspector/TypePickerUsageTests.cs` | CA63 | Os 10 campos do GAS não têm o atributo |
@@ -588,12 +613,13 @@ O CA41 foi **cancelado** (não existe cenário sem Odin).
 | 25 | Dados externos | **Compatibilidade do UI Toolkit, parte 1: recursão.** Um drawer que devolve `new PropertyField(property)` da própria propriedade cai de novo no mesmo drawer | `ShowIfDrawer` | Duas formas, (a) e (b), decididas no red do 0M-46 (4.10). O `TypePickerDrawer` só cria `PropertyField` de filhos | Cenário no host do 0M-42 e do 0M-46 (o Inspector abre sem estouro de pilha) |
 | 26 | Dados externos | **Compatibilidade do UI Toolkit, parte 2: Inspector IMGUI.** Um Inspector IMGUI do usuário, ou um Inspector de terceiros (o Odin, por exemplo), desenha campos do SpellBook sem os drawers UI Toolkit | Drawers do Core e do Events | O `OnGUI` dos drawers mostra só o `HelpBox` de uma linha "precisa do Inspector em UI Toolkit" (único `OnGUI` permitido, 0026 item 3); sem suporte a outros Inspectors (I47); o manual explica na página Inspector | Página Inspector (0M-42) |
 | 27 | Dados externos | **Compatibilidade do UI Toolkit, parte 3: APIs na 6000.0.** `CreatePropertyGUI`, `TrackPropertyValue`, `TrackSerializedObjectValue`, `CreateInspectorGUI`, `InspectorElement.FillDefaultInspector`, `EditorWindow.ShowAsDropDown`, `CreateGUI`, `ToolbarSearchField`, `ListView`, `TypeCache` e `SerializationUtility.*MissingTypes` precisam existir e se comportar igual na 6000.0 e na última 6000.x (0010, emenda) | 0M-41, 0M-47, 0M-42, 0M-46, 0M-48, 0M-38, 0M-45 | O red de cada ticket confirma a API no host (6000.3.13f1, D5); a 6000.0 e a última 6000.x são confirmadas pelo CI | CI (0M-11) |
-| 28 | Dados externos | **Tipo serializado não encontrado.** Um tipo `[SerializeReference]` removido ou renomeado (do pacote na 3.0, de uma ponte ou do usuário) deixa a referência com "tipo ausente"; um clique errado ou uma limpeza automática apagaria os dados | Assets com `[SerializeReference]` | Drawer mostra o erro e só limpa por botão (0026, item 4); validador acusa erro (CA64); tipos do pacote renomeados na 3.0 vão para a tabela de migração (seção 7); depois da `3.0.0`, `[MovedFrom]`; o manual ensina `[MovedFrom]` ao usuário | 0M-41 (red confirma que a Unity guarda os dados do tipo ausente na 6000.0), 0M-38 (CA64) |
+| 28 | Dados externos | **Tipo serializado não encontrado.** Um tipo `[SerializeReference]` removido ou renomeado (do pacote na 3.0, de uma ponte ou do usuário) deixa a referência com "tipo ausente"; um clique errado ou uma limpeza automática apagaria os dados | Assets com `[SerializeReference]` | **Por objeto, não por campo (D6):** a Unity deixa o campo com `managedReferenceId = -2`, igual a nulo, e não liga o campo ao tipo ausente (medido pela Fábrica na 6000.3.13f1, 2026-10-29). O topo do Inspector (`SpellBookEditor`) mostra um erro por tipo ausente e só limpa por botão com confirmação (0026, item 4, com a emenda da D6); validador acusa erro com o mesmo texto (CA64); tipos do pacote renomeados na 3.0 vão para a tabela de migração (seção 7); depois da `3.0.0`, `[MovedFrom]`; o manual ensina `[MovedFrom]` ao usuário e avisa que o campo aparece como "(Nenhum)". Limite: tipo do usuário sem `SpellBookEditor` só vê o erro no validador. Em aberto até o cenário do host do 0M-48: o que acontece com os dados ausentes se o designer escolher um tipo no campo "(Nenhum)" sem limpar antes, e se o Undo recupera uma limpeza | 0M-48 (`MissingReferenceTypesTests`: a Unity guarda os dados do tipo ausente até o `Clear`, no host; a 6000.0 pelo CI, D5), 0M-38 (CA64) |
 | 29 | Repetição | **Referência compartilhada.** Duplicar um elemento de lista `[SerializeReference]` no Inspector deixa dois elementos com o mesmo `managedReferenceId`; editar um muda o outro (proibido pela 0013) | Listas com `[TypePicker]` | `EnsureUniqueInArray` no bind do drawer | `TypePickerCatalogTests` (0M-41) |
 | 30 | Repetição | Custo do seletor e da validação no Inspector | `TypePickerCatalog`, `SpellBookEditor` | Candidatos em cache por tipo base (o `TypeCache` já é indexado); validação só ao montar o Inspector e em `TrackSerializedObjectValue`, nunca por repaint | N5; revisão do Examinador |
 | 32 | Dados externos | **Inspector do usuário concorre com o do pacote.** Um `[CustomEditor]` do usuário para um tipo do SpellBook (ou de terceiros, com `editorForChildClasses`) pode ser o escolhido pela Unity, e a validação no topo some | Tipos do pacote | O manual (página Inspector, 0M-50) manda herdar de `SpellBookEditor`; a janela do validador continua mostrando as mensagens | Página Inspector |
 | 33 | Dados externos | **Bind do UI Toolkit em teste.** `CreateInspectorGUI` fora de um painel não liga os campos (`Bind`), e o teste não deve depender disso | `SpellBookEditorTests`, `EventsInspectorTests` | Os testes conferem só a estrutura (contêiner, `HelpBox`, botões) e as funções puras (`CollectMessages`, `SetChannel`); o comportamento ligado fica nos cenários no host | 0M-48, 0M-45 |
 | 34 | Dados externos | **Projeto Unity na raiz do pacote.** A raiz do repositório é a pasta do pacote; um `Assets/`, `Library/`, `Packages/` ou `ProjectSettings/` ali, mesmo ignorado pelo git, entra como conteúdo do `com.spellbook` (assemblies duplicados, `.meta` gravados, importação lenta) | Raiz do repositório, `HostProject~/` | Host antigo movido para fora (ADR 0004, emenda de 2026-10-29); único host em `HostProject~/` | Critério do 0M-06: as quatro pastas não existem na raiz quando o host abre |
+| 35 | Dados externos | **Caminhos relativos no batchmode** (B-025, medido no 0M-07 rodando da raiz com `-projectPath HostProject~`). O `-logFile` relativo resolve a partir da pasta de onde o comando roda: o log foi para `Temp/` na raiz do pacote, a Unity importou e gerou `.meta` e erro (mesma causa do risco 34). O `-testResults` relativo resolve a partir do projeto: foi para `HostProject~/Temp/`, que a Unity apaga ao fechar, e o relatório se perdeu | `/implementar`, `unity-test-reader`, `unity-console-reader`, toda chamada local da Unity em batchmode | Caminhos **absolutos** dentro de `HostProject~/Logs/` (o `~` impede a importação, e a pasta já está no `.gitignore`): `-testResults "$PWD/HostProject~/Logs/TestResults-<Plataforma>.xml"` (`EditMode` ou `PlayMode`) e `-logFile "$PWD/HostProject~/Logs/unity-tests.log"`, com o comando rodando da raiz do repositório. Nenhum caminho relativo e nada em `Temp/`. A pasta é criada antes da chamada se não existir. O CI (0M-11) usa os caminhos do GameCI e fica fora desta regra | Depois da rodada: o XML e o log existem em `HostProject~/Logs/`; não existe `Temp/` na raiz do pacote; `git status` sem arquivo novo fora do `HostProject~/`. A atualização da skill e dos dois agentes é um ticket rápido à parte (B-025) |
 | 31 | Dados externos | Ambiguidade de nome (`ShowIf`, `TypeCategory`) com outros pacotes no código do usuário | Projetos do usuário | Namespace `SpellBook.Core.Inspector` (só quem escreve `using` dele vê os nomes); o manual mostra o alias | Página Inspector |
 
 ---
@@ -627,7 +653,16 @@ O DevOps leva esta lista ao CHANGELOG no release, com a tabela da página "Migra
 
 Ordem por dependência. **WIP 1**: um ticket com Unity em implementação por vez (exceção para tickets sem Editor logo abaixo). Nenhum ticket está bloqueado depois da revisão sem Odin. "Linhas" é a estimativa de código, sem páginas e fixtures (ADR 0003). Todos os tickets de código usam a trava (0005) e terminam com a suíte inteira verde no host. A exceção é o 0M-44, que termina com o host compilando, porque ainda não existe suíte.
 
-**Paralelo sem Editor** (emenda da 0003, 2026-10-29): o WIP 1 vale para os tickets que usam a Unity e a trava. Um ticket de docs, processo ou CI, sem trava, pode rodar em paralelo, na própria branch e numa cópia de trabalho própria (0006 adiada), desde que não toque arquivo do outro ticket. Par marcado nesta Spec: **0M-11 em paralelo com o 0M-41** (o 0M-11 só cria `.github/workflows/tests.yml`). Outros pares só valem se forem marcados aqui.
+**Paralelo sem Editor** (emenda da 0003, 2026-10-29): o WIP 1 vale para os tickets que usam a Unity e a trava. Um ticket de docs, processo ou CI, sem trava, pode rodar em paralelo, na própria branch e numa cópia de trabalho própria (0006 adiada), desde que não toque arquivo do outro ticket. Pares marcados nesta Spec (revisão de 2026-10-29). Outros pares só valem se forem marcados aqui.
+
+- **0M-11 em paralelo com o 0M-41.** O 0M-11 só cria `.github/workflows/tests.yml`.
+- **0M-08 em paralelo com o 0M-42, o 0M-46, o 0M-43 ou o 0M-48** (decisão do usuário de 2026-10-29; o 0M-08 entra logo depois do 0M-47). Nenhum desses tickets toca os arquivos do 0M-08. O 0M-08 usa a Unity e a trava só no passo de `DocUrls.cs`, `DocUrlsTests.cs` e `package.json`, que roda na vez da trava, sem coincidir com a suíte do outro ticket. O resto (`mkdocs.yml`, páginas, `README.md`) não usa a Unity. As partes que precisam da Unity são `Runtime/Core/DocUrls.cs` e `Tests/Core/EditMode/DocUrlsTests.cs`, porque compilam no pacote e rodam na suíte com a trava, e o campo `unity` do `package.json`, que o host resolve e que o `Package_DeclaresUnity6000_0` testa. O resto (`mkdocs.yml`, `requirements-docs.txt`, `index.md`, `instalacao.md` e `README.md`) não precisa da Unity, mas fica no mesmo ticket.
+- **0M-09 em paralelo com o 0M-42, o 0M-46, o 0M-43, o 0M-48 ou o 0M-12**, depois do merge do 0M-08. O 0M-09 só cria `.github/workflows/docs.yml`, e nenhum desses tickets toca `.github/`. O passo do usuário (ligar o Pages) não usa a Unity.
+- **0M-10 em paralelo com o 0M-42, o 0M-46, o 0M-43 ou o 0M-48**, depois do merge do 0M-08. O 0M-10 apaga `Runtime/GAS/GAS_Documentation.md` e o `.meta` dele sem o Editor e cria `Documentation~/manual/modulos/gas.md`. O 0M-42 e o 0M-46 mexem em outros arquivos de `Runtime/GAS/` e em `manual/inicio/inspector.md`, mas nenhum desses arquivos é do 0M-10. **O 0M-10 nunca roda junto com o 0M-12**: o 0M-12 depende dele e edita o `gas.md` que o 0M-10 cria, então o 0M-10 precisa estar no `main` antes de o 0M-12 começar.
+- **0M-09 em paralelo com o 0M-10.** Os dois não usam a Unity e não têm arquivo em comum.
+- Um par cai se um dos tickets precisar de um arquivo fora da lista dele. O caso provável é a navegação do `mkdocs.yml`. Nesse caso, quem roda em paralelo volta para a fila.
+
+Na ordem atual, o 0M-08 vem logo depois do 0M-47 (decisão do usuário, 2026-10-29; ele depende só do 0M-07 e nenhuma dependência muda). Depois do merge do 0M-08, o 0M-09 e o 0M-10 ficam livres e rodam em paralelo com a trilha do Inspector (0M-42, 0M-46, 0M-43, 0M-48). Regra fixa: **o 0M-10 nunca roda junto com o 0M-12**; o 0M-09 pode rodar com o 0M-12.
 
 ### Resumo
 
@@ -644,12 +679,12 @@ Mudança: **igual** (sem mudança), **alterado** (escopo, arquivos, dependência
 | 0M-44 | `refactor(gas)!: remover o Odin dos 8 arquivos do runtime` | 0M-06 | CA5 | **novo** | I45: o pacote precisa compilar no host sem Odin antes de qualquer teste |
 | 0M-07 | `test(core): asmdef de testes do Core e regras de estrutura sem Odin` | 0M-44 | CA65, CA3, CA2 (guarda) | alterado | Era "desligar sem Odin e avisar" (Setup, `defineConstraints`), que a I47 elimina. Fica a infraestrutura de teste e entra a guarda "nenhum Sirenix" + `overrideReferences` |
 | 0M-11 | `ci(test): rodar as suítes na 6000.0 e na última 6000.x com GameCI` | 0M-07 | CA56, CA57, N1 | alterado | Desbloqueado (P21 sem objeto); sem secret nem script do Odin; sem passo de importação extra. Adiantado para logo depois do 0M-07 (D5); a seção "Compatibilidade" do manual passou para o 0M-08 |
-| 0M-41 | `feat(core): catálogo do seletor de tipo e atributos TypePicker/TypeCategory` | 0M-07 | CA63 (parte) | **novo** | I45: parte lógica do seletor que substitui o do Odin (filtro, categorias, busca, tipo ausente, referência compartilhada); renomeia o asmdef do Editor para `Core.Editor` |
+| 0M-41 | `feat(core): catálogo do seletor de tipo e atributos TypePicker/TypeCategory` | 0M-07 | CA63 (parte) | **novo** | I45: parte lógica do seletor que substitui o do Odin (filtro, categorias, busca, referência compartilhada); renomeia o asmdef do Editor para `Core.Editor`. Exceção de tamanho (~440 linhas) aprovada em 2026-10-29. O tipo ausente saiu para o 0M-48 (D6, aprovado em 2026-10-29) |
 | 0M-47 | `feat(core): popup de seleção de tipo em UI Toolkit` | 0M-41 | CA63 (parte: busca e categorias) | **novo** (2ª rodada) | I48: substitui o `AdvancedDropdown`; o popup próprio não cabia no 0M-42 |
-| 0M-42 | `feat(core): drawer do seletor de tipo e uso no GAS` | 0M-47 | CA63 | **novo** | I45/I46: drawer UI Toolkit do seletor; devolve ao GAS a escolha de tipo nos 10 campos `[SerializeReference]`. 2ª rodada: abre o popup do 0M-47 |
+| 0M-42 | `feat(core): drawer do seletor de tipo e uso no GAS` | 0M-47, 0M-41 | CA63 | **novo** | I45/I46: drawer UI Toolkit do seletor; devolve ao GAS a escolha de tipo nos 10 campos `[SerializeReference]`. 2ª rodada: abre o popup do 0M-47 |
 | 0M-46 | `feat(core): atributo [ShowIf] e uso no GAS` | 0M-42 | — | **novo** | I45: único atributo de layout da lista inicial; devolve ao GAS o `ShowIf` por campo irmão |
 | 0M-43 | `feat(core): interface de validação IValidatable` | 0M-07 | R32 (parte) | **novo** | I45: substitui `ISelfValidator`; precisa existir antes do primeiro validador (0M-23) |
-| 0M-48 | `feat(core): Inspector base SpellBookEditor com validação no topo` | 0M-43, 0M-41 | R32, CA66 | **novo** (2ª rodada) | I48: substitui o gancho IMGUI; base dos Inspectors com botão e dos editors de uma linha |
+| 0M-48 | `feat(core): Inspector base SpellBookEditor com validação no topo` | 0M-43, 0M-41 | R32, R45 (Inspector), CA66 | **novo** (2ª rodada) | I48: substitui o gancho IMGUI; base dos Inspectors com botão e dos editors de uma linha. D6: recebe o tipo ausente por objeto (vinha do 0M-41) e confirma o risco 28 |
 | 0M-08 | `docs(manual): criar o manual, DocUrls, Instalação e declarar Unity 6000.0` | 0M-07 | CA4 (parte), CA37 (parte), CA42 | alterado | Cria a página Instalação (vinha do 0M-07) sem Odin; README sem Odin |
 | 0M-09 | `ci(manual): publicar o manual no GitHub Pages` | 0M-08 | CA39 | igual | — |
 | 0M-10 | `docs(gas): mover GAS_Documentation.md para o manual` | 0M-08 | CA40 | igual | — |
@@ -680,13 +715,13 @@ Mudança: **igual** (sem mudança), **alterado** (escopo, arquivos, dependência
 | 0M-35 | `feat(events): Event Debugger` | 0M-34 | CA23 | alterado | `EditorWindow.CreateGUI` (UI Toolkit), não `OdinEditorWindow` |
 | 0M-36 | `feat(events): Find references de canal` | 0M-35 | CA24 | alterado | Botão do debugger e menu de contexto em UI Toolkit; papel "emite" lido da `EventEmission` (canal dentro dela) |
 | 0M-37 | `feat(gas-bridges): RaiseEventAction` | 0M-32, 0M-22, 0M-43 | CA52, CA61, CA35 (parte), CA2 | alterado | `IValidatable` em `AbilityAction` e `GameplayAbility`; emissão com canal dentro (drawer do 0M-45) |
-| 0M-38 | `feat(core): validar projeto por menu e por teste` | 0M-37, 0M-33 | CA34, CA35, R32, R33, R34, CA64 | alterado | `IValidatable`; janela UI Toolkit; erro de tipo ausente; o rename do asmdef sai (foi para o 0M-41). 2ª rodada: sai o gancho do Inspector (as mensagens no Inspector vêm do `SpellBookEditor`) |
+| 0M-38 | `feat(core): validar projeto por menu e por teste` | 0M-37, 0M-33, 0M-48 | CA34, CA35, R32, R33, R34, CA64 | alterado | `IValidatable`; janela UI Toolkit; erro de tipo ausente; o rename do asmdef sai (foi para o 0M-41). 2ª rodada: sai o gancho do Inspector (as mensagens no Inspector vêm do `SpellBookEditor`). D6: o erro de tipo ausente usa `MissingReferenceTypes` do 0M-48 |
 | 0M-39 | `docs(gas): HelpURL nos tipos restantes e teste de HelpURL` | 0M-38 | CA36, CA37 | igual | — |
 | 0M-49 | `feat(editor): Inspectors de uma linha para Core, Time, Tags e Pooling` | 0M-39, 0M-48 | R32 | **novo** (2ª rodada) | I48: todo tipo do pacote usa o `SpellBookEditor`; cria `Time.Editor`, `Tags.Editor` e `Pooling.Editor` |
 | 0M-50 | `feat(editor): Inspectors de uma linha para GAS e Events e cobertura completa` | 0M-49 | R32 | **novo** (2ª rodada) | I48: completa a cobertura; cria `GAS.Editor` |
 | 0M-40 | `refactor(core)!: Core em Runtime/Core e verificação final da estrutura` | 0M-50 | CA1, CA32, CA54, CA6, N4 | alterado | Lista final de asmdefs sem `Setup.Editor` e com `Core.Editor`, `Events.Editor`, `Time.Editor`, `Tags.Editor`, `Pooling.Editor` e `GAS.Editor`; depende do 0M-50 |
 
-Ordem de execução linear: 01 → 02 → 03 → 04 → 05 → 06 → **44** → 07 → 11 → **41** → **47** → **42** → **46** → **43** → **48** → 08 → 09 → 10 → 12 → 13 → … → 31 → 32 → **45** → 33 → 34 → 35 → 36 → 37 → 38 → 39 → **49** → **50** → 40.
+Ordem de execução linear: 01 → 02 → 03 → 04 → 05 → 06 → **44** → 07 → 11 → **41** → **47** → 08 → **42** → **46** → **43** → **48** → 09 → 10 → 12 → 13 → … → 31 → 32 → **45** → 33 → 34 → 35 → 36 → 37 → 38 → 39 → **49** → **50** → 40.
 
 Os ids novos não seguem a ordem de execução (0M-47 vem antes do 0M-42), porque o 0M-42 já tinha sido divulgado na primeira rodada.
 
@@ -694,6 +729,7 @@ Por que essa ordem no começo:
 - o Core só compila no host sem Odin depois do 0M-44, e nenhum teste roda antes disso (com erro de compilação, a Unity não recarrega o domínio). Por isso o 0M-44 é o primeiro ticket depois do host;
 - a guarda "nenhum Sirenix" vem logo depois, no 0M-07, junto com o primeiro asmdef de teste;
 - o CI (0M-11) vem logo depois do 0M-07, primeiro ticket com teste: o host está na 6000.3.13f1 (D5), e só o job 6000.0 do CI prova a versão mínima para os tickets com risco de API (0M-41, 0M-47, 0M-42, 0M-46, 0M-48);
+- o manual (0M-08) vem logo depois do 0M-47, por decisão do usuário de 2026-10-29. Ele depende só do 0M-07 e nenhuma dependência muda. Assim, o 0M-09 e o 0M-10 (que dependem dele) ficam livres durante a trilha do Inspector e podem rodar em paralelo com ela (seção "Paralelo sem Editor");
 - o seletor (0M-41, 0M-42) e o `[ShowIf]` (0M-46) entram antes de qualquer ticket que crie ou mexa em `[SerializeReference]`, e antes do 0M-12 mover o GAS de assembly;
 - a validação (0M-43) entra antes do primeiro validador (0M-23);
 - o `SpellBookEditor` (0M-48) entra logo depois, para os Inspectors do Events (0M-45) herdarem dele;
@@ -813,9 +849,19 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Testes:
   - Red: `AsmdefRules_AllOverrideReferences_PrecompiledInAllowList` falha (os dois asmdefs têm `overrideReferences: false`).
   - Guardas: `NoOdin_NoAsmdefReferencesSirenixOrOdinSymbol` e `NoOdin_NoSourceOrPackageFileMentionsSirenix`. O red é mostrado com um `.cs` temporário com `using Sirenix.OdinInspector;` e com um asmdef temporário com `ODIN_INSPECTOR`, sem commit.
+  - **Regra de busca do CA65 (decidida em 2026-10-29, achado da Fábrica):** os nomes dos testes acima contêm `Sirenix`, e uma busca por substring faria a guarda falhar no próprio arquivo. A regra aceita é a da Fábrica, com um ajuste:
+    - cada termo (`Sirenix`, `ODIN_INSPECTOR`) só conta no **início de um identificador**: `(?<![A-Za-z0-9_])` antes do termo, sem borda à direita, sensível a maiúsculas. Sem a borda à direita, a busca pega também `ODIN_INSPECTOR_3`, `ODIN_INSPECTOR_3_1` e um eventual `SirenixX`, que a borda dos dois lados deixaria passar;
+    - o `NoOdinTests.cs` monta os dois termos por partes (por exemplo `"Sire" + "nix"`), para que nenhum literal do arquivo case com a regra;
+    - os testes **não** são renomeados (o nome continua dizendo o que guardam) e o arquivo de teste **não** é excluído da busca;
+    - a regra fica numa função pura do `NoOdinTests` (ou do `PackageFiles`), coberta por um teste de casos: casa `using Sirenix.OdinInspector;`, `Sirenix.Serialization.dll`, `"Assets/Plugins/Sirenix/"`, `#if ODIN_INSPECTOR` e `ODIN_INSPECTOR_3_1`; não casa `NoOdin_NoSourceOrPackageFileMentionsSirenix` nem `NoOdin_NoAsmdefReferencesSirenixOrOdinSymbol`.
   - Guardas: CA2 e CA3.
+- Testes no batchmode: os caminhos de `-testResults` e `-logFile` seguem o risco 35. Um `Temp/` (com `.meta`) que uma rodada anterior tenha deixado na raiz do pacote é apagado, não entra no commit, e a Fábrica confirma que a raiz fica sem ele depois da rodada.
 - Manual: nenhuma (sem mudança visível ao usuário).
-- Tamanho: ~220 linhas, 7 arquivos.
+- Tamanho: ~250 linhas (mais ~30 do teste de casos da regra de busca), 7 arquivos.
+  - **Tamanho real e decisão (2026-10-29, achado do Examinador, ADR 0003 item 4):** o diff tem **440 linhas** e 7 arquivos (`PackageFiles.cs` 150, `AsmdefRulesTests.cs` 140, `NoOdinTests.cs` 87, `RuntimeReferencesTests.cs` 36, asmdef de testes 23, os dois asmdefs alterados 4). O Arquiteto aceitou o excesso só neste ticket, e o **usuário aprovou a exceção em 2026-10-29**. O limite de ~400 da 0003 não muda para os outros.
+    - Motivo: o excesso é de cerca de 10% e todo ele é código de teste. Vem do que esta Spec pediu e a estimativa não contou: as regras por tipo de asmdef da seção 3, o teste de varredura e o teste de casos da regra de busca. O ticket entrega um comportamento só (as guardas de estrutura sobre a mesma leitura de asmdefs), com 16/16 testes verdes.
+    - Dividir não ajuda a revisão. Seria preciso tirar do diff as regras por tipo e o `RuntimeReferencesTests` (~110 linhas) e reabrir o `AsmdefRulesTests.cs` e o `PackageFiles.cs` num ticket novo. Isso custa mais um ciclo com Unity em WIP 1 e reescreve código que já cumpre a Spec.
+    - **Plano de divisão descartado (0M-51 não existe):** o usuário aprovou a exceção em 2026-10-29, então o 0M-07 segue inteiro e não se cria o 0M-51. O texto abaixo fica só como registro do plano que não foi usado: o 0M-07 mantém o asmdef de testes, os dois asmdefs, o `PackageFiles.cs` sem o `AsmdefKind`, o `NoOdinTests.cs`, o teste de varredura e `AsmdefRules_AllOverrideReferences_PrecompiledInAllowList` (com a lista permitida do asmdef de testes lida pelo caminho em `Tests/`), mais `AsmdefRules_ModuleReferences_FollowDependencyMap`. Os testes `AsmdefRules_RuntimeAsmdefs_*`, `AsmdefRules_EditorAsmdefs_*` e `AsmdefRules_TestAsmdefs_*`, o `AsmdefKind` e o `RuntimeReferencesTests.cs` (CA3) vão para o **0M-51** (`test(core): regras por tipo de asmdef e runtime sem UnityEditor`), que depende do 0M-07, vem antes do 0M-11 e mede ~120 linhas em 3 arquivos.
 
 ### 0M-11 — `ci(test): rodar as suítes na 6000.0 e na última 6000.x com GameCI`
 - **Alterado (revisão sem Odin):** **desbloqueado**, porque a P21 perdeu o objeto (I45). Saem o script e os secrets do Odin e o passo de importação extra.
@@ -837,28 +883,36 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 
 ### 0M-41 — `feat(core): catálogo do seletor de tipo e atributos TypePicker/TypeCategory` (novo)
 - **Novo (revisão sem Odin, I45).** É a parte lógica do seletor, sem UI. O drawer vem no 0M-42.
-- Objetivo: decidir, por função pura e testada, quais tipos o seletor oferece para um campo `[SerializeReference]`, como agrupá-los e como tratar tipo ausente e referência compartilhada (0026, item 4; seção 4.10).
+- Objetivo: decidir, por função pura e testada, quais tipos o seletor oferece para um campo `[SerializeReference]`, como agrupá-los e como tratar referência compartilhada (0026, item 4; seção 4.10; risco 29). O tipo ausente saiu deste ticket e foi para o 0M-48 (D6).
 - Arquivos:
   - `Runtime/Core/Inspector/TypePickerAttribute.cs`;
   - `Runtime/Core/Inspector/TypeCategoryAttribute.cs`;
   - `Editor/SpellBook.Editor.asmdef` → `Editor/Core/SpellBook.Core.Editor.asmdef` (renomeado e movido com o `.meta`, GUID mantido; o rename saiu do 0M-38);
   - `Editor/FolderStructureCreator.cs` → `Editor/Core/FolderStructureCreator.cs` (movido com o `.meta`);
-  - `Editor/Core/Inspector/TypePickerCatalog.cs`;
-  - `Tests/Core/EditMode/SpellBook.Core.Tests.EditMode.asmdef` (+`SpellBook.Core.Editor`);
-  - `Tests/Core/EditMode/Inspector/TypePickerCatalogTests.cs`, com os tipos de teste no mesmo arquivo: base abstrata, concreto, concreto com `[TypeCategory]`, genérico, abstrato, sem `[Serializable]`, sem construtor sem parâmetros e um `ScriptableObject`.
+  - `Editor/Core/Inspector/TypePickerCatalog.cs` (namespace `SpellBook.Core.Editor.Inspector`), sem `TryGetMissingType` (D6);
+  - `Tests/Core/EditMode/SpellBook.Core.Tests.EditMode.asmdef` (+`SpellBook.Core`, +`SpellBook.Core.Editor`);
+  - `Tests/Core/EditMode/Inspector/TypePickerCatalogTests.cs`, com os tipos de teste no mesmo arquivo: base abstrata, concreto, concreto com `[TypeCategory]`, genérico, abstrato, sem `[Serializable]` e sem construtor sem parâmetros. Sem pasta temporária: todos os testes deste ticket usam objetos em memória;
+  - `Tests/Core/EditMode/Inspector/PickHolder.cs`: o `ScriptableObject` de teste, num arquivo com o nome da classe. Fica neste ticket porque o `Assign` e o `EnsureUnique` usam ele, e o 0M-48 reaproveita ele no asset em disco do tipo ausente.
 - Depende de: 0M-07.
-- CAs: CA63 (T, parte: filtro, categorias e busca).
+- CAs: CA63 (T, parte: filtro, categorias e busca). O tipo ausente no Inspector é do 0M-48 (R45, D6), e o erro do validador continua no 0M-38 (CA64).
 - Testes red (o tipo `TypePickerCatalog` não existe):
+  - ~~`MissingType_IsReported_DataKeptUntilClear`~~: **saiu** (D6). O `TryGetMissingType` por campo não é viável (a Unity deixa o campo com `managedReferenceId = -2` e não o liga ao tipo ausente). O teste volta no 0M-48 como `MissingReferenceTypesTests`, por objeto. A Fábrica tira deste ticket o teste, o `TryGetMissingType`, a escrita do YAML e a pasta temporária;
   - `Candidates_ExcludeAbstractGenericUnityObjectNonSerializableAndNoDefaultCtor`;
   - `Candidates_IncludeConcreteBaseItself`;
   - `Category_FromTypeCategory_RootWhenMissing`;
   - `Summary_FromTypeCategory`;
   - `Filter_ByDisplayNameTypeNameAndCategory_CaseInsensitive`;
   - `Assign_CreatesInstanceOfChosenType_NullClears` (SO de teste em memória + `SerializedObject`);
-  - `EnsureUnique_SharedReferenceInList_BecomesIndependentCopy` (a mesma instância posta duas vezes na lista por código; depois da chamada, mudar um elemento não muda o outro);
-  - `MissingType_IsReported_DataKeptUntilClear`. Um `.asset` em YAML com uma referência a uma classe inexistente é escrito em `Assets/__SpellBookTestTemp` (risco 23). O teste confirma que a 6000.0 guarda os dados (risco 28), que `TryGetMissingType` devolve o assembly e a classe, e que os dados só somem depois de `ClearManagedReferenceWithMissingType`.
+  - `EnsureUnique_SharedReferenceInList_BecomesIndependentCopy` (a mesma instância posta duas vezes na lista por código; depois da chamada, mudar um elemento não muda o outro).
 - Manual: nenhuma página neste ticket (nenhum campo usa o seletor ainda). A página **Inspector** nasce no 0M-42 com o drawer.
-- Tamanho: ~380 linhas (atributos ~30, catálogo ~150, testes ~200), 7 arquivos.
+- Critério de pronto: os testes do catálogo passam no host e nos dois jobs do CI; `TypePickerCatalog` não tem API de tipo ausente.
+- Tamanho: **~390 linhas** estimadas depois da D6 (a Fábrica mediu 463 linhas físicas em 6 arquivos com o tipo ausente; saem ~70: `TryGetMissingType` ~20, o teste com o YAML ~40, a pasta temporária no `SetUp`/`TearDown` ~10), 8 arquivos na lista do ticket (os 2 movidos com `.meta` não somam linhas). A Fábrica confirma a medição. A **exceção de ~440 linhas aprovada em 2026-10-29, só para este ticket**, continua cobrindo o ticket se a medição passar de 400; nenhuma exceção nova é pedida. O limite de ~400 da 0003 não muda para os outros.
+- **Decisões da implementação (2026-10-29, achados da Fábrica):**
+  - **`PickHolder` em arquivo próprio.** A Unity só liga um `ScriptableObject` salvo em disco ao script quando o arquivo tem o nome da classe. Com o `PickHolder` dentro do `TypePickerCatalogTests.cs`, o `LoadAssetAtPath<PickHolder>` devolve `null` depois do reimport, e o risco 28 fica sem verificação. Aceita a proposta da Fábrica: o `PickHolder` vai para `Tests/Core/EditMode/Inspector/PickHolder.cs` já neste ticket. Os outros tipos de teste continuam no arquivo de testes, porque não são `UnityEngine.Object`.
+  - **Tamanho: exceção aprovada.** A Fábrica mediu ~430 linhas em 7 arquivos, e o `PickHolder.cs` leva o total a ~440. Não há corte que preserve a cobertura (só sobrariam os comentários XML da API pública, usados pelo drawer e pelo popup, e juntar testes violaria "um comportamento por teste"). A divisão proposta (ticket 0M-52 só com o tipo ausente) foi **desfeita**: o usuário decidiu em 2026-10-29 não dividir e aceitar a exceção de ~440 linhas só para o 0M-41. O 0M-52 não existe. (A frase "o tipo ausente fica neste ticket" foi substituída pela D6 abaixo.)
+  - **Tipo ausente por objeto e fora do ticket (D6, 2026-10-29, aguarda aprovação do usuário).** No red, a Fábrica mediu na 6000.3.13f1 que o campo com tipo ausente fica com `managedReferenceId = -2` e `managedReferenceFullTypename` vazio, que `GetManagedReferencesWithMissingTypes` devolve o tipo com outro `referenceId`, e que nenhuma API pública liga os dois; o teste `MissingType_IsReported_DataKeptUntilClear` falhou (23/24). A Spec adota o relato por objeto (alternativa A da Fábrica; B e C recusadas, ver D6). Como quem mostra o aviso é o topo do Inspector, a API (`MissingReferenceTypes`) e o teste vão para o 0M-48, que já desenha esse topo, e não para um ticket novo. Se o usuário preferir manter o tipo ausente no 0M-41, o ticket recebe `MissingReferenceTypes.cs` (API da 4.10), `MissingReferenceTypesTests.cs` e a pasta temporária de volta, fica com ~470 linhas em 10 arquivos e precisa de uma **exceção nova** (a aprovada é de ~440).
+  - **Asmdef de testes** referencia `SpellBook.Core`, além de `SpellBook.Core.Editor`. Os tipos de teste usam `[TypeCategory]`, e com `overrideReferences: true` a referência precisa ser explícita.
+  - **Namespace** do catálogo e do `TypePickerEntry`: `SpellBook.Core.Editor.Inspector`, espelhando o `SpellBook.Core.Inspector` dos atributos. Os testes ficam em `SpellBook.Core.Tests.Inspector`.
 
 ### 0M-47 — `feat(core): popup de seleção de tipo em UI Toolkit` (novo, 2ª rodada)
 - **Novo (I48).** Substitui o `AdvancedDropdown`. Saiu do 0M-42, porque o drawer, o popup e o uso no GAS juntos dariam ~540 linhas.
@@ -878,17 +932,17 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 
   A janela não tem teste automatizado (risco 33); ela é verificada no cenário do host do 0M-42. O red confirma `ShowAsDropDown`, `ToolbarSearchField` e `ListView` na 6000.0 (risco 27).
 - Manual: nenhuma página neste ticket (o popup só aparece pelo drawer do 0M-42, que traz a página).
-- Tamanho: ~320 linhas (modelo ~100, janela ~140, testes ~80), 3 arquivos.
+- Tamanho: ~500 linhas (`TypePickerTree` 163, `TypePickerPopup` 223, testes 108), 3 arquivos. **Exceção de tamanho aprovada pelo usuário em 2026-10-29, só neste ticket** (a estimativa anterior, ~320, ficou curta depois do red). Nenhum outro ticket herda a exceção.
 
 ### 0M-42 — `feat(core): drawer do seletor de tipo e uso no GAS` (novo)
 - **Novo (revisão sem Odin, I45/I46).** Na 2ª rodada (I48), o botão abre o `TypePickerPopup` do 0M-47 em vez do `AdvancedDropdown`. Depois de tirar a lista do ticket, o tamanho continua dentro do limite.
-- Objetivo: os campos `[SerializeReference]` voltam a ser editáveis pelo Inspector: escolher, trocar, limpar e ver tipo ausente.
+- Objetivo: os campos `[SerializeReference]` voltam a ser editáveis pelo Inspector: escolher, trocar e limpar. O tipo ausente não aparece no drawer (D6): vem no topo do Inspector, no 0M-48.
 - Arquivos:
   - `Editor/Core/Inspector/TypePickerDrawer.cs` (UI Toolkit, seção 4.10; abre o `TypePickerPopup`);
   - `Tests/Core/EditMode/Inspector/TypePickerUsageTests.cs`;
   - `Runtime/GAS/Abilities/GameplayAbility.cs`, `Runtime/GAS/Effects/GameplayEffect.cs`, `Runtime/GAS/Abilities/AbilityDescription.cs`, `Runtime/GAS/Abilities/Actions/FlowActions.cs` e `Runtime/GAS/Abilities/Actions/SpawnProjectileAction.cs` (`[TypePicker]` nos 10 campos da seção 1.1);
   - `Documentation~/manual/inicio/inspector.md`.
-- Depende de: 0M-47.
+- Depende de: 0M-47, 0M-41 (catálogo: `ResolveFieldBaseType`, `Assign`, `EnsureUniqueInArray`).
 - CAs: CA63.
 - Testes:
   - Red: `EverySerializeReferenceFieldInRuntime_HasTypePicker_ExceptEventEmission` falha. O teste percorre por reflexão os assemblies `SpellBook.*` carregados que não são de teste, sem referência de compilação ao GAS. Os 10 campos do GAS não têm o atributo. A regra vale para o pacote inteiro daqui em diante.
@@ -897,11 +951,10 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
   - No cenário do host entram também: o popup abre ancorado no botão, a busca filtra, a navegação por categoria funciona e o teclado segue I-o.
 - Manual: **Inspector** (conteúdo real):
   - o seletor, o popup, a busca e as categorias;
-  - "Tipo não encontrado" e como recuperar;
-  - `[MovedFrom]` para tipos próprios;
+  - `[MovedFrom]` para tipos próprios (renomear sem perder dados). A seção "Tipo não encontrado" vem no 0M-48 (D6);
   - limite de um drawer por campo;
   - Inspectors IMGUI e de terceiros (risco 26).
-- Tamanho: ~220 linhas (drawer ~150, teste ~50, GAS ~20), 8 arquivos.
+- Tamanho: ~200 linhas (drawer ~130 sem o `HelpBox` de tipo ausente, teste ~50, GAS ~20), 8 arquivos.
 
 ### 0M-46 — `feat(core): atributo [ShowIf] e uso no GAS` (novo)
 - **Novo (revisão sem Odin, I45).** É o único atributo de layout da lista inicial da 0026.
@@ -946,14 +999,27 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 
 ### 0M-48 — `feat(core): Inspector base SpellBookEditor com validação no topo` (novo, 2ª rodada)
 - **Novo (I48).** Substitui o gancho IMGUI `Editor.finishedDefaultHeaderGUI`, que estava previsto no 0M-38.
-- Objetivo: um Inspector base em UI Toolkit que mostra o Inspector padrão, as mensagens de `IValidatable` no topo e pontos de extensão para os botões dos módulos (0026, item 3a; seção 4.10).
+- Objetivo: um Inspector base em UI Toolkit que mostra o Inspector padrão, os tipos `[SerializeReference]` ausentes e as mensagens de `IValidatable` no topo, e pontos de extensão para os botões dos módulos (0026, item 3a e item 4 com a emenda da D6; seção 4.10).
+- **D6 (2026-10-29, aprovada pelo usuário em 2026-10-29):** recebe do 0M-41 o tipo ausente, agora relatado por objeto (`MissingReferenceTypes`), e a confirmação do risco 28.
 - Arquivos:
   - `Editor/Core/Inspector/SpellBookEditor.cs`;
+  - `Editor/Core/Inspector/MissingReferenceTypes.cs` (`MissingTypeEntry`, `Get`, `Clear`, `FormatMessage`; seção 4.10, "Tipo ausente");
   - `Tests/Core/EditMode/Inspector/SpellBookEditorTests.cs`. No mesmo arquivo ficam um SO de teste `IValidatable` com o editor de uma linha dele, um SO não validável e um editor de teste que sobrescreve `BuildAfterDefault`;
-  - `Documentation~/manual/inicio/inspector.md` (seção **Validação no Inspector**).
-- Depende de: 0M-43, 0M-41.
-- CAs: R32 (o texto novo do PRD), CA66 (S: mensagem no topo do Inspector igual à da janela).
-- Testes red (o tipo `SpellBookEditor` não existe):
+  - `Tests/Core/EditMode/Inspector/MissingReferenceTypesTests.cs` (com a pasta temporária `Assets/__SpellBookTestTemp` e a limpeza no `TearDown`, risco 23; usa o `PickHolder` do 0M-41 para o asset em disco);
+  - `Documentation~/manual/inicio/inspector.md` (seções **Validação no Inspector** e **Tipo não encontrado**).
+- Depende de: 0M-43, 0M-41 (`PickHolder` e o asmdef de testes com `Core.Editor`).
+- CAs: R32 (o texto novo do PRD), R45 (parte do Inspector: erro com assembly e classe, botão para limpar, nunca limpa sozinho), CA66 (S: mensagem no topo do Inspector igual à da janela).
+- Testes red de tipo ausente (o tipo `MissingReferenceTypes` não existe), em `MissingReferenceTypesTests`, com o asset em YAML gravado na pasta temporária, apontando para uma classe que não existe:
+  - `Get_AssetWithMissingType_ReturnsAssemblyAndFullName` (uma entrada, com o assembly e o `namespace.Classe` do YAML);
+  - `Get_AfterReimport_DataStillThere` (a Unity guarda os dados do tipo ausente: depois de `ImportAsset` com `ForceUpdate`, `Get` ainda devolve a entrada e o arquivo ainda tem os dados; risco 28);
+  - `Clear_RemovesOnlyThatReference_AndReturnsTrue` (depois de `Clear` e de salvar, `Get` fica vazio e o arquivo não tem mais a classe);
+  - `Get_ObjectWithoutMissingType_ReturnsEmpty` (o `PickHolder` em memória, e alvo nulo);
+  - `FormatMessage_HasAssemblyAndFullName_NamespaceOptional`.
+
+  Esses testes confirmam na versão do host (6000.3.13f1) o comportamento medido pela Fábrica; só o job 6000.0 do CI prova a 6000.0 (D5).
+- Testes red do Inspector (o tipo `SpellBookEditor` não existe):
+  - `CreateInspectorGUI_MissingType_HelpBoxWithClearButtonBeforeValidation` (o asset em disco do teste acima; confere a estrutura, sem bind, risco 33; o botão não é clicado no teste, porque abre o diálogo de confirmação);
+  - `CreateInspectorGUI_NoMissingType_MissingTypesContainerHidden`;
   - `CollectMessages_InvalidTarget_ReturnsError`;
   - `CollectMessages_ValidTarget_ReturnsNone`;
   - `CollectMessages_NonValidatable_ReturnsNone`;
@@ -962,9 +1028,11 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
   - `CreateInspectorGUI_NonValidatable_ContainerHidden`;
   - `CreateInspectorGUI_AfterDefaultExtensionIsLast`.
 
-  Os testes conferem a estrutura, sem bind (risco 33). Cenário no host: depois do 0M-49, um `PooledSpawnerAsset` com `initialSize` negativo mostra o erro no topo, e o erro some ao corrigir o valor.
-- Manual: Inspector, seção **Validação no Inspector** (onde aparece, botão Revalidar, como um Inspector próprio herda de `SpellBookEditor`).
-- Tamanho: ~250 linhas (editor ~110, testes ~140), 3 arquivos.
+  Os testes conferem a estrutura, sem bind (risco 33). Cenários no host:
+  - depois do 0M-49, um `PooledSpawnerAsset` com `initialSize` negativo mostra o erro no topo, e o erro some ao corrigir o valor;
+  - tipo ausente (risco 28), com scripts temporários no host, sem commit (como o red do 0M-07): um SO com um campo `[SerializeReference, TypePicker]`, o editor de uma linha dele (`: SpellBookEditor`) e uma classe de dados escolhida no campo. Apagar a classe de dados: o topo mostra "Tipo não encontrado" e o campo mostra "(Nenhum)"; voltar a classe recupera os dados; apagar de novo e usar "Limpar referência": pede confirmação e remove o aviso. O Examinador registra duas observações para o manual: se `Ctrl+Z` recupera a limpeza, e o que acontece com os dados ausentes se um tipo for escolhido no campo "(Nenhum)" sem limpar antes.
+- Manual: Inspector, seções **Validação no Inspector** (onde aparece, botão Revalidar, como um Inspector próprio herda de `SpellBookEditor`) e **Tipo não encontrado** (o aviso fica no topo do Inspector, não no campo, que aparece como "(Nenhum)"; restaurar o tipo recupera os dados; limpar apaga; o que o cenário observou sobre Undo e sobre escolher um tipo antes de limpar; tipo próprio sem `SpellBookEditor` só aparece no validador; link para `[MovedFrom]`).
+- Tamanho: ~370 linhas (editor ~130, `MissingReferenceTypes` ~40, testes do editor ~150, testes do tipo ausente ~50), 5 arquivos. Dentro do limite da 0003.
 
 ### 0M-08 — `docs(manual): criar o manual, DocUrls, Instalação e declarar Unity 6000.0`
 - **Alterado (revisão sem Odin):** passa a **criar** a página Instalação, que vinha do 0M-07, já sem Odin. O README perde o "Odin obrigatório".
@@ -973,20 +1041,21 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Depende de: 0M-07.
 - CAs: CA4 (parte: `unity` e `documentationUrl`), CA37 (parte: constante única com o valor certo), CA42 (E).
 - Testes red: `DocUrls_BaseMatchesSite` e `DocUrls_BaseMatchesPackageDocumentationUrl` falham (tipo não existe; `package.json` tem example.com); `Package_DeclaresUnity6000_0` falha (2021.3).
-- Decisão registrada no ticket: Zensical ou MkDocs Material (0025), com a versão travada.
+- Decisão registrada (seção 4.11): MkDocs 1.6.1 + Material 9.8.0 travados em `requirements-docs.txt` (Zensical 0.0.73 é pré-1.0; sem emenda na 0025). Extensões: `attr_list`, `admonition`, `toc` e `fenced_code`.
+- Achado da Fábrica fora do escopo deste ticket: o build gera `Documentation~/site/`, que não está no `.gitignore`. Fica com o 0M-09.
 - Manual:
   - **O que é**: o pacote, os módulos e para quem é;
   - **Instalação**, com conteúdo real: Unity 6000.0 ou mais nova; instalação por URL git; nenhuma dependência de terceiros; o Inspector do pacote é UI Toolkit (link para a página Inspector quando ela existir, 0M-42); seção **Compatibilidade** com as versões testadas no CI, copiadas da matriz do `tests.yml` (vinha do 0M-11, adiantado pelo D5). Tem âncoras `{#...}`. **Não cita o Odin** (a guarda `NoOdinTests` não lê o manual; o Examinador confere).
 
-  Verificação: `mkdocs build --strict` local passa.
+  Verificação: `mkdocs build --strict` local passa, pelo venv fora do repositório (seção 4.11), com `-d` fora da árvore.
 - Tamanho: ~70 linhas de código, 8 arquivos.
 
 ### 0M-09 — `ci(manual): publicar o manual no GitHub Pages`
-- Arquivos: `.github/workflows/docs.yml`.
+- Arquivos: `.github/workflows/docs.yml`, `.gitignore` (acrescenta `Documentation~/site/`, a saída do `mkdocs build`, que não deve ser commitada).
 - Depende de: 0M-08. **Passo do usuário:** ligar Pages com "Source: GitHub Actions" (risco 20).
 - CAs: CA39 (S), CA38 (S, só depois do 0M-29 para o `EventListener`).
 - Testes: critério: após o merge, a Action roda, `https://gabrielctorres.github.io/SpellBook/` abre sem login e não há nenhuma URL de `prd/`, `spec/`, `adr/`, `planos/`, `backlog`, `TIME`.
-- Manual: nenhuma página nova. Tamanho: ~50 linhas, 1 arquivo.
+- Manual: nenhuma página nova. Tamanho: ~50 linhas, 2 arquivos.
 
 ### 0M-10 — `docs(gas): mover GAS_Documentation.md para o manual`
 - Arquivos: `Runtime/GAS/GAS_Documentation.md` (apagado, com `.meta`), `Documentation~/manual/modulos/gas.md`.
@@ -1271,20 +1340,21 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
   - a janela é UI Toolkit;
   - entra o erro de tipo `[SerializeReference]` ausente (CA64, risco 28);
   - o rename do asmdef do Editor e a mudança do `FolderStructureCreator` saem, porque foram feitos no 0M-41;
-  - **2ª rodada (I48):** sai o `ValidationInspectorHook`. As mensagens no Inspector vêm do `SpellBookEditor` (0M-48). A janela e o Inspector usam as mesmas mensagens: o `ProjectValidator` e o `SpellBookEditor.CollectMessages` chamam o mesmo `IValidatable`.
+  - **2ª rodada (I48):** sai o `ValidationInspectorHook`. As mensagens no Inspector vêm do `SpellBookEditor` (0M-48). A janela e o Inspector usam as mesmas mensagens: o `ProjectValidator` e o `SpellBookEditor.CollectMessages` chamam o mesmo `IValidatable`;
+  - **D6 (2026-10-29, aprovada pelo usuário em 2026-10-29):** o erro de tipo ausente usa `MissingReferenceTypes.Get` e `FormatMessage` do 0M-48, por objeto, com o mesmo texto do topo do Inspector. O CA64 não muda: o validador já relatava por objeto.
 - Arquivos: `Editor/Core/ProjectValidator.cs`, `Editor/Core/ValidationWindow.cs`, `Tests/Core/EditMode/SpellBook.Core.Tests.EditMode.asmdef` (+Events, Pooling, GAS, GAS.Bridges), `Tests/Core/EditMode/ProjectValidationTests.cs`, `Documentation~/manual/ferramentas/validador.md`.
-- Depende de: 0M-37, 0M-33.
+- Depende de: 0M-37, 0M-33, 0M-48 (`MissingReferenceTypes`; o 0M-48 já vem antes na ordem linear).
 - CAs: CA35, R32, R33, R34, CA64, CA34 (S).
 - Testes red (falham, porque `ProjectValidator` não existe):
   - `Validator_ReportsEachR35Error` (um objeto em memória por regra);
   - `Validator_FixedObjects_NoErrors`;
   - `Validator_ExceptionInValidate_BecomesErrorAndContinues`;
-  - `Validator_MissingSerializeReferenceType_IsError_DataKept` (YAML na pasta temporária, risco 23);
+  - `Validator_MissingSerializeReferenceType_IsError_DataKept` (YAML na pasta temporária, risco 23; a mensagem é igual a `MissingReferenceTypes.FormatMessage` da entrada, e o arquivo ainda tem os dados depois da validação);
   - `Project_HasNoValidationErrors` (projeto do host).
 - Cenários no host:
   - CA34: um `EventListener` sem canal aparece na janela, e o clique seleciona o objeto;
   - R32: o mesmo erro aparece no topo do Inspector do `EventListener` e some ao ligar o canal. Isso só é verificável depois do 0M-50, que dá ao `EventListener` o editor de uma linha; o Examinador registra o cenário no 0M-50.
-- Manual: **Validador** (menu, como ler a janela e o Inspector, regras da 0-M, tipo ausente, o teste no CI, como implementar `IValidatable` num tipo próprio).
+- Manual: **Validador** (menu, como ler a janela e o Inspector, regras da 0-M, tipo ausente com link para a seção **Tipo não encontrado** da página Inspector, o teste no CI, como implementar `IValidatable` num tipo próprio).
 - Tamanho: ~280 linhas, 5 arquivos.
 
 ### 0M-39 — `docs(gas): HelpURL nos tipos restantes e teste de HelpURL`
@@ -1355,6 +1425,21 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
     - CA53 e CA41 cancelados; CA63 a CA65 novos;
     - R1 (regra dos `.Editor`) e R32 (validação no Inspector e na janela), com o texto do Arquiteto;
     - R28, R29, R40, R41 (`file:../..`), R42 e outros revistos.
+- Decididas pelo usuário em 2026-10-29 (0M-07):
+  - ~~exceção de tamanho do 0M-07 (440 linhas)~~: **aprovada**, só neste ticket; o plano do 0M-51 foi descartado;
+  - ~~regra de busca do CA65~~: **aprovada**. O CA65 fica como está no PRD, e a regra exata (termo só no início de identificador, sem borda à direita, termos montados por partes) mora na Spec, no 0M-07. Sem pendência.
+- Abertas pelo 0M-41 (2026-10-29), para o usuário:
+  - ~~divisão do 0M-41 com o ticket novo 0M-52~~: **recusada pelo usuário em 2026-10-29**. Vale a **exceção de tamanho de ~440 linhas só para o 0M-41**, como a do 0M-07; o 0M-52 foi desfeito e não pede issue;
+  - `PickHolder.cs` em arquivo próprio no 0M-41 (8 arquivos), a referência a `SpellBook.Core` no asmdef de testes e o namespace `SpellBook.Core.Editor.Inspector` foram registrados no ticket como decisões técnicas.
+- Abertas pelo red do 0M-41 (2026-10-29, achado da Fábrica sobre tipo ausente), para o usuário (gate parcial: só Spec e emenda da ADR 0026):
+  - ~~**D6, tipo ausente relatado por objeto**~~: **aprovada pelo usuário em 2026-10-29** (alternativa A da Fábrica; B e C recusadas, seção 3). O aviso sai do drawer e vai para o topo do Inspector do `SpellBookEditor`; o validador já era por objeto;
+  - ~~**mover o tipo ausente do 0M-41 para o 0M-48**~~: **aprovado pelo usuário em 2026-10-29** (sem ticket novo). O 0M-41 fica com ~390 linhas, coberto pela exceção de ~440 já aprovada; o 0M-48 vai de ~250 para ~370 linhas e de 3 para 5 arquivos, dentro da 0003. O 0M-38 passa a depender também do 0M-48 (já vem antes na ordem). Alternativa, se o usuário recusar: o tipo ausente por objeto fica no 0M-41, com ~470 linhas e 10 arquivos, e precisa de **exceção nova** de ~470;
+  - ~~**emenda da ADR 0026, item 4**~~: **aprovada pelo usuário em 2026-10-29 e escrita** na ADR 0026 (seção "Emenda (2026-10-29): tipo ausente relatado por objeto, D6 da Spec"). Texto proposto: "Emenda (2026-10-29, D6 da Spec de modularização): a Unity deixa o campo com tipo ausente com `managedReferenceId = -2`, igual a nulo, e nenhuma API pública liga o campo ao `referenceId` do tipo ausente. Por isso o aviso não fica no drawer: o `SpellBookEditor` mostra no topo do Inspector um `HelpBox` de erro por tipo ausente do objeto, 'Tipo não encontrado: `<assembly>` `<namespace.Classe>`', com o botão 'Limpar referência' (com confirmação) pelo `referenceId`. Nunca limpa sozinho. O campo aparece como '(Nenhum)'. Um tipo do usuário sem `SpellBookEditor` só vê o erro no validador.";
+  - **PRD:** nenhum CA muda. O CA63 não fala de tipo ausente, o CA64 é do validador (por objeto, igual), e o R45 ("O Inspector mostra um erro com o assembly e a classe que faltam e um botão para limpar a referência") continua atendido pelo topo do Inspector. Nada para o Criativo.
+  - Também corrigido: a ordem linear da seção 8 ainda citava o 0M-52, que foi desfeito.
+- Decididas pelo usuário em 2026-10-29 (0M-47):
+  - ~~exceção de tamanho do 0M-47 (~500 linhas: `TypePickerTree` 163, `TypePickerPopup` 223, testes 108)~~: **aprovada**, só neste ticket (registrada no 0M-47);
+  - ~~adiantar o 0M-08 para logo depois do 0M-47~~: **aprovado**. Ordem, "Por que essa ordem" e "Paralelo sem Editor" da seção 8 atualizados; nenhuma dependência muda.
 - Continua aberto o passo manual do usuário de ligar o Pages com "Source: GitHub Actions" (0M-09).
 - Abertas pelo D5 (host na 6000.3.13f1, decisão do usuário de 2026-10-29):
   - ~~emenda da ADR 0010~~: **resolvida**, aprovada pelo usuário em 2026-10-29 (consequência do host trocada e seção "Emenda: host local fora da 6000.0");
