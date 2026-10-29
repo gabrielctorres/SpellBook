@@ -1,0 +1,64 @@
+# Publica o manual (Documentation~/manual) no GitHub Pages (ADR 0025, ticket 0M-09).
+# Só a pasta manual/ vira site: prd/, spec/, adr/, planos/, backlog e TIME não são publicados.
+# Passo manual do dono do repositório: Settings > Pages > Source: GitHub Actions.
+name: docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "Documentation~/manual/**"
+      - "Documentation~/mkdocs.yml"
+      - "Documentation~/requirements-docs.txt"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+# Permissões mínimas do workflow; o job de publicação pede as do Pages.
+permissions:
+  contents: read
+
+# Uma publicação por vez; a mais nova substitui a pendente, sem cancelar a em curso.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: Documentation~/requirements-docs.txt
+
+      - name: Instalar MkDocs e Material (versões travadas)
+        run: pip install -r Documentation~/requirements-docs.txt
+
+      - name: Gerar o site (--strict falha em link quebrado)
+        run: mkdocs build --strict -f Documentation~/mkdocs.yml -d "${RUNNER_TEMP}/site"
+
+      - name: Enviar o artefato do Pages
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: ${{ runner.temp }}/site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publicar no GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
