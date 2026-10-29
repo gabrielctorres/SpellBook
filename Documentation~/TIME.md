@@ -7,55 +7,109 @@ Cada papel é um agente em `.claude/agents/` e pode rodar de dois jeitos:
 
 | Papel | Agente | Função | Não faz |
 |---|---|---|---|
-| Controlador | sessão principal (regras no `CLAUDE.md`) | Triagem, backlog, fila e WIP. Cria issues (`/issue`), abre e fecha terminais, leva dúvidas e gates ao usuário | Não lê código, não implementa, não commita |
-| Criativo | `criativo` | Cristaliza ideias, escreve PRD (`/prd-feature`), GDD e DS. Registra ajustes de playtest (`/ajustar`, seção 9 do PRD) | Código e Spec |
-| Arquiteto | `arquiteto` | Pesquisa o código (só lê), escreve a Spec com os tickets (≤ ~400 linhas cada) e as ADRs | Implementar |
-| Fábrica | `fabrica` | Implementa um ticket por vez (`/implementar`): testes red primeiro, depois o mínimo de código. Única que usa o Editor (editor-lock) | PRD, Spec, git |
-| Examinador | `examinador` | Revisa (`/revisao`: padrões, Spec, ADR, DS) e roda os testes. Veredito APROVADO com nota ≥ 80% e zero achados | Implementar |
-| DevOps | `devops` | Git: commit, versão, tag, PR contra a `main` (`/commit`), rebase e release. Sobe em modo manual | Código |
+| Controlador | sessão principal (regras no `CLAUDE.md`) | Triagem, backlog (`backlog.md`), fila e WIP. Cria issues (`/issue`), abre e fecha terminais, leva dúvidas e gates ao usuário | Não lê código, não implementa, não commita |
+| Criativo | `criativo` | Cristaliza ideias, escreve o PRD na visão de quem usa o pacote (`/prd-feature`), GDD e DS. Registra a validação de uso (`/ajustar`, seção 9 do PRD) | Código e Spec |
+| Arquiteto | `arquiteto` | Pesquisa o código (só lê), escreve a Spec com os tickets (≤ ~400 linhas e ≤ 10 arquivos cada) e as ADRs | Implementar |
+| Fábrica | `fabrica` | Implementa um ticket por vez (`/implementar`): testes red primeiro, depois o mínimo de código. Única que abre o Editor ou roda a Unity para implementar (editor-lock) | PRD, Spec, git |
+| Examinador | `examinador` | Revisa (`/revisao`: padrões, Spec, ADR, DS) e roda os testes em batchmode, sob a trava. Veredito APROVADO com nota ≥ 80% e zero achados | Implementar |
+| DevOps | `devops` | Git: branch, commit, versão, tag, PR contra a `main` (`/commit`), rebase e release. Sobe em modo manual | Código |
 | Prisma | `prisma` | Shaders e trilha de arte técnica | — |
 
 ## Fluxo
 
+O fluxo segue a ADR 0002. Toda ideia, bug ou pendência entra primeiro no backlog.
+
 ```
-ideia ─► /issue (Controlador)
-      ─► /prd-feature (Criativo)          Documentation~/prd/<feature>.md
-      ─► Spec + ADRs (Arquiteto)          Documentation~/specs/<feature>.md, Documentation~/adr/NNNN-*.md
-      ─► /implementar <ticket> (Fábrica)  red ─► green, um ticket por vez
-      ─► /revisao <ticket> (Examinador)   APROVADO ou REPROVADO com achados ─► volta para a Fábrica
-      ─► /commit (DevOps)                 Conventional Commits, CHANGELOG, versão, PR
-playtest ─► /ajustar (Criativo)           seção 9 do PRD ─► nova rodada no Arquiteto
+ideia ─► backlog.md (Controlador)          bruta ─► cristalizada ─► em pesquisa ─► Spec aprovada ─► em execução ─► feito
+      ─► /prd-feature (Criativo)           Documentation~/prd/<feature>.md
+      ─► Spec + ADRs (Arquiteto)           Documentation~/spec/<feature>.md, Documentation~/adr/NNNN-*.md
+      ─► gate único (usuário)              PRD + Spec + ADRs novas numa rodada (parcial permitido)
+      ─► /issue (Controlador)              uma issue por ticket aprovado, em gabrielctorres/SpellBook
+      ─► /implementar <ticket> (Fábrica)   red ─► green, um ticket por vez
+      ─► /revisao <ticket> (Examinador)    APROVADO ou REPROVADO com achados ─► volta para a Fábrica
+      ─► /commit (DevOps)                  branch, Conventional Commits, PR contra a main ─► merge pelo usuário
+validação de uso ─► /ajustar (Criativo)    seção 9 do PRD ─► nova rodada no Arquiteto
 ```
 
-**Gates com o usuário** (o Controlador sempre pergunta antes): aprovar PRD, aprovar Spec, aprovar ADR,
-criar issue, abrir PR, publicar tag/release.
+**Duas vias** (0002):
+- **Completa:** PRD → Spec (+ ADRs novas) → gate único → issues.
+- **Rápida:** um ticket só, sem PRD. A descrição do ticket (escopo, testes red, critério de pronto) vai direto na issue. A via rápida não cria ADR, não quebra API pública e não muda formato serializado; se precisar, vira via completa.
 
-**WIP:** no máximo um ticket em implementação. A Fábrica não pega o próximo ticket antes de o
-Examinador aprovar o atual.
+**Gates com o usuário** (o Controlador sempre pergunta antes):
+- aprovar PRD, Spec e ADRs novas, num **gate único**;
+- criar issue;
+- abrir PR;
+- publicar tag/release.
+
+**Gate parcial** (0002): o usuário pode aprovar só parte da rodada, por exemplo o PRD e alguns tickets.
+- Só vira issue o ticket aprovado cujas dependências (tickets e ADRs) também estejam aprovadas.
+- Uma ADR devolvida continua `Proposta`, e nenhum ticket que dependa dela vira issue.
+- O que foi devolvido volta ao Arquiteto (ou ao Criativo) e passa de novo pelo gate, só na parte alterada.
+
+**WIP:** no máximo um ticket com Unity em implementação ou revisão (0003). A Fábrica não pega o
+próximo ticket com Unity antes de o Examinador aprovar o atual. Tickets sem Editor (docs, processo,
+CI) podem rodar em paralelo, nas condições da emenda de 2026-10-29 da 0003 (ver "Ticket, branch e PR").
+
+## Ticket, branch e PR
+
+Um ticket = uma issue = uma branch = um PR (0003).
+
+- **Limites:** até ~400 linhas e até 10 arquivos por ticket. Se passar disso ou precisar de arquivo fora do escopo, a Fábrica para e devolve ao Controlador, que leva ao Arquiteto.
+- **Contagem** (0003):
+  - "linhas" são as adicionadas mais as removidas no diff de código (`.cs`, `.asmdef`, `.json`, `.yml` de CI, `package.json`);
+  - "arquivos" são os caminhos distintos no diff, e um arquivo movido conta uma vez;
+  - `.meta` não conta em nenhum dos dois limites;
+  - páginas de `Documentation~/manual/` e fixtures contam só nos 10 arquivos;
+  - **remoção pura** (I42): um arquivo apagado por inteiro, sem substituto no mesmo ticket, não conta em nenhum dos dois limites. Ele continua listado no PR.
+- **Paralelo sem Editor** (emenda de 2026-10-29 da 0003): um ticket que não abre a Unity nem pega a trava pode rodar em paralelo só se a Spec marcar o par e os dois não tocarem o mesmo arquivo. Ele usa a própria branch e uma cópia de trabalho própria, sem trocar a branch do checkout do ticket com Unity. Os detalhes estão na emenda e na seção 8 da Spec.
+- **Branch:** uma branch por ticket no mesmo checkout, `feat|fix|refactor/<feature>-<ticket>`, criada pelo DevOps a partir da `main`. Os worktrees por ticket estão adiados (0006 Adiada).
+- **Depois do APROVADO:** o DevOps cria a branch, commita com stage seletivo (`/commit`) e abre o PR contra a `main`, confirmando cada passo com o usuário. O merge é do usuário.
+- **Versões:** a linha 3.0 recebe todas as mudanças. A 2.x está congelada: não recebe correções e não tem branch `release/2.x` (0008, I43).
 
 ## Documentos
 
 ```
 Documentation~/
+  README.md        índice dos documentos e donos
   TIME.md          este arquivo
-  gdd/             Game Design Document (visão de jogo que motiva as features)
+  backlog.md       porta de entrada de toda ideia, bug ou pendência
+  gdd/             visão do pacote e dos sistemas
   ds/              Design System (padrões de API, nomes, UX do Inspector)
   prd/             um PRD por feature
-  specs/           uma Spec por feature, com os tickets
-  adr/             decisões de arquitetura (NNNN-titulo.md)
+  spec/            uma Spec por feature, com os tickets
+  adr/             decisões de arquitetura (NNNN-titulo.md, índice em adr/README.md)
+  manual/          manual público (GitHub Pages)
+  planos/          estudos de origem
 ```
 
 `Documentation~/` segue a convenção UPM: a Unity ignora a pasta, então ela não gera `.meta` nem
-entra no pacote importado.
+entra no pacote importado. Uma ADR aceita não é reescrita: ganha emenda datada ou é substituída.
+
+## Projeto host de testes
+
+O pacote é testado no projeto Unity em `HostProject~/` (0004, I41), dentro do repositório. A pasta
+termina em `~`, então a Unity não a importa como conteúdo do pacote. O
+`HostProject~/Packages/manifest.json` referencia o pacote por `file:` e o lista em `testables`. Os
+artefatos gerados do host (`Library/`, `Temp/` e afins) ficam no `.gitignore`.
 
 ## Editor-lock
 
-Só a Fábrica abre o Unity Editor ou roda o Unity em batchmode. Antes, ela cria
-`.claude/editor.lock` com o ticket e o horário. Ao terminar, mesmo se falhar, ela remove o arquivo.
-O Examinador roda os testes só quando não há lock. Se o lock existir, ele espera ou avisa o
-Controlador. O lock é local e está no `.gitignore`.
+A trava segue a ADR 0005.
+
+- Só a Fábrica abre o Unity Editor ou roda a Unity para implementar.
+- O Examinador roda a Unity em batchmode **só para testes**, também sob a trava. Ele cria e remove a trava; é a única exceção ao "não edita arquivos" dele.
+- Antes de usar a Unity, o papel verifica `.claude/editor.lock`. Se existir, para e avisa o Controlador. Senão, cria a trava com uma linha `papel; ticket; horário ISO-8601; caminho do host`.
+- Quem criou remove a trava ao terminar, mesmo se falhar. Ninguém apaga a trava de outro papel. Trava órfã só é removida pelo usuário, ou pelo Controlador com a confirmação do usuário.
+- Ticket sem Unity (docs, processo) não cria a trava.
+- A trava é local, fica na raiz do checkout e nunca é commitada.
 
 ## Issues
 
-As issues do SpellBook ficam em `gabrielctorres/PlaygroundRumble`, com título `[SpellBook] ...` e
-label `spellbook`. O código é corrigido aqui, de forma genérica e reutilizável entre jogos.
+As issues do SpellBook ficam em `gabrielctorres/SpellBook` (0002), criadas pelo Controlador com a
+skill `/issue`, sempre com `--repo gabrielctorres/SpellBook` e depois da confirmação do usuário.
+
+- **Título:** ticket da Spec como `<ticket>: <tipo>(<escopo>): <resumo>`; item avulso em Conventional Commits.
+- **Labels:** épico (`epic:<slug>`, ex. `epic:0-M`), tipo igual ao prefixo do Conventional Commit e `via:rapida` para a via rápida.
+- **Corpo:** links para a seção do PRD, o ticket da Spec, as ADRs e o DS.
+
+O código é corrigido aqui, de forma genérica e reutilizável entre jogos.
