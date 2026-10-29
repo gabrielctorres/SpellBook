@@ -1,5 +1,5 @@
 {
-    "name": "SpellBook.Editor",
+    "name": "SpellBook.Core.Editor",
     "rootNamespace": "SpellBook",
     "references": [
         "GUID:7834e8f3d0902ad45bfb6fab58f7b919"
