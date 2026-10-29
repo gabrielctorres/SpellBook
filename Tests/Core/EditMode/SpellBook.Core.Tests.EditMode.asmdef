@@ -2,6 +2,8 @@
     "name": "SpellBook.Core.Tests.EditMode",
     "rootNamespace": "SpellBook.Core.Tests",
     "references": [
+        "SpellBook.Core",
+        "SpellBook.Core.Editor",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
