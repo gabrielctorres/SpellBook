@@ -1,0 +1,81 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Unity ${{ matrix.unityVersion }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        # Versões explícitas (Spec 0M-11, I-j): a mínima suportada (6000.0) e a última 6000.x.
+        # Nunca "auto": leria o ProjectVersion.txt do host (6000.3.13f1, D5).
+        unityVersion:
+          - 6000.0.85f1
+          - 6000.6.7f1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Cache do Library
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: HostProject~/Library
+          key: Library-${{ matrix.unityVersion }}-${{ hashFiles('HostProject~/Packages/manifest.json', 'package.json', 'Runtime/**', 'Editor/**', 'Tests/**') }}
+          restore-keys: |
+            Library-${{ matrix.unityVersion }}-
+
+      - name: Rodar as suítes (EditMode e PlayMode)
+        id: tests
+        uses: game-ci/unity-test-runner@fa6ced25861c16ef56187828c43f76d00df43a23 # v4.3.2
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: ${{ matrix.unityVersion }}
+          projectPath: HostProject~
+          testMode: all
+          artifactsPath: artifacts/${{ matrix.unityVersion }}
+
+      - name: Falhar se nenhum teste rodou
+        if: always() && steps.tests.outcome != 'skipped'
+        shell: python
+        env:
+          RESULTS_DIR: artifacts/${{ matrix.unityVersion }}
+        run: |
+          import glob, os, sys
+          import xml.etree.ElementTree as ET
+
+          files = sorted(glob.glob(os.path.join(os.environ["RESULTS_DIR"], "*.xml")))
+          if not files:
+              sys.exit("Nenhum relatório de teste encontrado em " + os.environ["RESULTS_DIR"])
+          total = 0
+          for path in files:
+              count = int(ET.parse(path).getroot().get("total", "0"))
+              print(f"{path}: {count} teste(s)")
+              total += count
+          if total == 0:
+              sys.exit("Nenhum teste foi executado.")
+          print(f"Total: {total} teste(s)")
+
+      - name: Publicar resultados
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-results-${{ matrix.unityVersion }}
+          path: artifacts/${{ matrix.unityVersion }}
+          if-no-files-found: warn
