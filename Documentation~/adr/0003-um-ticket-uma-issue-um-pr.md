@@ -43,6 +43,16 @@ Diffs grandes são difíceis de revisar e escondem regressões. O Examinador dá
 
 - **Remoção pura** (decisão I42): um arquivo apagado por inteiro, sem substituto no mesmo ticket, não conta no limite de 10 arquivos nem no de ~400 linhas. Ele continua listado no PR e é revisado pela lista de caminhos. Um arquivo apagado que tem substituto no mesmo ticket (por exemplo, movido ou reescrito com outro nome) conta normalmente.
 
+## Emenda (2026-10-29): paralelo só para tickets sem Editor
+
+Decisão do usuário: "só tickets sem Editor" podem rodar em paralelo.
+
+- O WIP 1 (item 3 da Decisão) continua valendo para os tickets que usam a Unity. Eles pegam a trava (0005) e só um fica em implementação ou revisão por vez.
+- Tickets de docs, processo e CI, que não abrem a Unity e não pegam a trava, podem rodar em paralelo a um ticket com Unity e entre si. Cada um tem a própria issue, branch e PR, e a regra 1 ticket = 1 PR não muda.
+- Dois tickets em paralelo não podem tocar o mesmo arquivo. A Spec marca quais tickets podem andar em paralelo.
+- O item "Pegar um segundo ticket com outro em implementação ou em revisão" da lista de proibições vale entre tickets com Unity e, para os sem Editor, só quando os dois tocam o mesmo arquivo.
+- Como a 0006 (worktrees) está adiada, o ticket em paralelo não pode trocar a branch do checkout que o ticket com Unity está usando. Ele precisa de uma cópia de trabalho própria, ou espera.
+
 ## Em aberto
 
 Nada.

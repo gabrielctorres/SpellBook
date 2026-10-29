@@ -48,6 +48,7 @@ Legenda:
 ### 1.2 Projeto host
 
 - A raiz do repositório é **ao mesmo tempo** a pasta do pacote (`package.json` na raiz) e um projeto Unity (`Assets/`, `Library/`, `Packages/`, `ProjectSettings/`, todos no `.gitignore`), versão 6000.3.5f2 (`ProjectSettings/ProjectVersion.txt`).
+  - Atualização (2026-10-29, decisão do usuário no 0M-06): o host antigo foi movido, sem ser apagado, para `C:/Users/gabri/MeusProjetos/SpellBook-host-antigo/`. A raiz agora só tem os arquivos do pacote (ADR 0004, emenda do host antigo).
 - `Packages/manifest.json` da raiz não referencia `com.spellbook`, não tem `testables` nem `com.unity.test-framework`. O host não tem o Odin (`Assets/Plugins/` não existe). Hoje nenhum código do pacote é compilado pelo host.
 
 ### 1.3 Tempo
@@ -98,14 +99,14 @@ Legenda:
 |---|---|
 | 0001 | Spec em `spec/`; manual em `Documentation~/manual/`; `GAS_Documentation.md` sai do runtime (0M-10) |
 | 0002 | Tickets de processo pela via rápida (0M-01 a 0M-04) não criam ADR nem quebram API; issues em `gabrielctorres/SpellBook` com labels da 0002 |
-| 0003 | Todo ticket ≤ ~400 linhas de código e ≤ 10 arquivos (páginas e fixtures contam só nos arquivos; arquivos apagados por inteiro, sem substituto, não contam em nenhum dos dois, decisão I42); WIP 1 |
+| 0003 | Todo ticket ≤ ~400 linhas de código e ≤ 10 arquivos (páginas e fixtures contam só nos arquivos; arquivos apagados por inteiro, sem substituto, não contam em nenhum dos dois, decisão I42); WIP 1 para tickets com Unity; paralelo só sem Editor (emenda de 2026-10-29, seção 8) |
 | 0004 | Red antes do código; testes de guarda e de caracterização marcados; ciclo de vida em PlayMode; host em `HostProject~/` (decisão I41), sem Odin (emenda 0026); o 0M-44 é o único ticket com red de compilação |
 | 0005 | Fábrica e Examinador criam e removem `.claude/editor.lock` antes de usar a Unity no host |
 | 0006 | Adiada: uma branch por ticket no mesmo checkout |
 | 0007 | Cada ticket que cria componente ou SO público traz `[HelpURL]` e a seção do manual; constantes de página em `DocUrls` |
 | 0008 | Commits Conventional com escopo do módulo; o `version` (`3.0.0-pre.1`) e o CHANGELOG mudam só no release (DevOps); a 2.x está congelada, sem `release/2.x` (decisão I43) |
 | 0009 | Sem `[MovedFrom]`, `[Obsolete]` nem `[FormerlySerializedAs]`; quebras listadas na seção 7 |
-| 0010 | `"unity": "6000.0"`; CI na 6000.0 e na última 6000.x |
+| 0010 | `"unity": "6000.0"`; CI na 6000.0 e na última 6000.x. Desvio: host local na 6000.3.13f1, não na 6000.0 (D5) |
 | 0011 | Substituída pela 0026: nada dela vale (sem constraint, sem Setup, sem DLL do Odin) |
 | 0012 | Tabela de módulos com a emenda Events → Time; asmdefs auxiliares listados; emenda 0026 (Core sem Odin, `Core.Editor` no 0M-41, `Events.Editor` no 0M-45, `Time.Editor`/`Tags.Editor`/`Pooling.Editor` no 0M-49, `GAS.Editor` no 0M-50, `.Editor` de módulo pode referenciar `Core.Editor`, sem `Setup.Editor`, `overrideReferences: true`) |
 | 0013 | Reações não genéricas; `EventEmission<T>` genérica criada por código, verificada no 0M-32; seletor `[TypePicker]` com o filtro da 0013 (0M-41) |
@@ -122,10 +123,15 @@ Legenda:
 ### Desvios
 
 - **D1. Host de testes em `HostProject~/`, não na raiz** (PRD R41, CA55). **Resolvido pela decisão I41**, que substitui a I32. Motivo técnico na ADR 0004: um `file:` apontando para a raiz faria a Unity importar `Assets/`, `Library/` e `ProjectSettings/` do próprio host como conteúdo do pacote. O host usa `HostProject~/Packages/manifest.json` com o pacote por `file:` e em `testables`, **sem Odin** (0026). Leitura do CA55 com a I41 e a I45: "`HostProject~/Packages/manifest.json`" e "`.gitignore` contém os artefatos do host", sem nenhuma entrada do Sirenix (o Criativo ajusta o PRD).
+  - **Raiz sem projeto Unity** (decisão do usuário, 2026-10-29): o mesmo motivo vale para o host antigo que estava na raiz. Ele foi movido para fora do repositório, e a raiz não pode ter `Assets/`, `Library/`, `Packages/` nem `ProjectSettings/` (risco 34).
   - **Caminho relativo** (confirmado em 2026-10-29 como valor esperado; o PRD deve escrever `file:../..`): a I41 escreve `file:../`. A Unity resolve caminhos relativos do `manifest.json` a partir da pasta `Packages/` do projeto, não da raiz dele. Por isso a raiz do repositório, vista de `HostProject~/Packages/`, é `file:../..`. O 0M-06 confirma o caminho no red: o Package Manager precisa mostrar `com.spellbook` como pacote local. Se `file:../` resolver, fica `file:../`.
 - **D2. Nome do canal sem payload** (PRD R12). `EventChannel` é a base abstrata não genérica (descrição, `logRaises`, tipo do payload, ouvintes vivos) e o canal sem payload concreto é `VoidEventChannel : EventChannel<Void>` com `Raise()`. Motivo: um `EventChannel` concreto e um `EventChannel<T>` com o mesmo nome confundem o seletor, o menu Create e o filtro por tipo, e o debugger precisa de uma base comum. O menu continua "Void Channel" (C2 e CA12 inalterados).
 - **D3. Alocação do `ASC.Tick` com efeito periódico** (PRD N2). **Aceito pela decisão I44** até o B-002. `AttributeState.Recalculate` usa LINQ (`AttributeState.cs:69-82`) e roda a cada tick periódico (`ApplyModifiersToBase` → `SetBaseValue`). A correção é do B-002 (fora da 0-M). O teste de N2 da 0-M mede o `Tick` em regime com efeitos de duração **sem** tick periódico naquele quadro.
 - **D4. `RaiseEventAction` saiu do B-004** (PRD seção 6 antiga). Já reconciliado pelo Criativo (R25a, decisões I22 e I39); listado só para rastreio.
+- **D5. Host local na 6000.3.13f1, não na 6000.0** (ADR 0010, consequência "o host fixa a 6000.0"; I-j na parte do host). Decisão do usuário em 2026-10-29. Motivo: a 6000.0 não está instalada na máquina (instaladas: 6000.3.1f1, 6000.3.5f2, 6000.3.13f1, 6000.4.10f1). O `HostProject~/ProjectSettings/ProjectVersion.txt` fica com 6000.3.13f1 (0M-06). Não mudam o mínimo declarado (`"unity": "6000.0"`: 0M-08, CA4, CA42) nem a matriz do CI (0M-11: 6000.0 e última 6000.x).
+  - Risco: código que usa API ou comportamento que só existe a partir da 6000.1 passa no host. Os reds que dizem "confirma na 6000.0" (riscos 16, 25, 27 e 28; 0M-32, 0M-41, 0M-42, 0M-46, 0M-47, 0M-48) passam a confirmar na versão do host, e só o job 6000.0 do CI prova a 6000.0. Por isso o 0M-11 vem logo depois do 0M-07 (seção 8); antes dele, nenhum ticket depende de API da 6000.0.
+  - Cobertura: o CI (0M-11) roda a suíte na 6000.0 com a versão explícita da matriz; o Examinador barra API nova sem a guarda de versão do item 3 da 0010; release só com as duas versões verdes (0010). O cenário CA5 é verificado no host 6000.3.13f1, e a compilação na 6000.0 fica com o CA57. A ADR 0010 foi emendada e o CA5 do PRD foi ajustado pelo Criativo (2026-10-29).
+  - Quando a 6000.0 for instalada: um ticket `chore(host)` troca o `ProjectVersion.txt` para o patch da 6000.0 usado no CI (I-j), revê o `com.unity.test-framework` (I-g) e roda a suíte inteira no host. Com ela verde, este desvio sai e o I-j volta a valer para o host.
 
 ### Inferidos (validar no uso)
 
@@ -137,10 +143,10 @@ Legenda:
 | I-d | Histórico do Event Debugger: buffer circular de 256 disparos por sessão de Play | 0M-35 |
 | I-e | Navegação do site gerada da árvore de pastas (sem `nav:` explícito), para nenhum ticket precisar editar a configuração ao criar página | 0M-08 |
 | I-f | Âncoras de `[HelpURL]` explícitas com `attr_list` (`## EventListener {#eventlistener}`) | 0M-08, CA54 |
-| I-g | `com.unity.test-framework` na versão que acompanha a 6000.0 escolhida no host, fixada no manifest | 0M-06 |
+| I-g | `com.unity.test-framework` fixado no manifest numa versão que resolva no host (6000.3.13f1, D5) e na 6000.0 do CI: a que acompanha a 6000.0, se o host aceitar; senão, a do host, e o job 6000.0 do CI confirma | 0M-06, 0M-11 |
 | I-h | Menus de criação dos assets do GAS continuam `GAS/...` (R27 pede tags sem mudança de comportamento); padronizar para `SpellBook/...` fica para a Fase 9 | 0M-14 |
 | I-i | Uma espera pendente do Invoke com delay aloca uma entrada por disparo (fora do caminho sem alocação do N2) | 0M-31 |
-| I-j | Patch exato da 6000.0 e da última 6000.x no CI e no `ProjectVersion.txt` do host: o mais recente disponível no GameCI na data do ticket | 0M-06, 0M-11 |
+| I-j | Patch exato da 6000.0 e da última 6000.x no CI: o mais recente disponível no GameCI na data do ticket. Não vale para o `ProjectVersion.txt` do host enquanto durar o D5 | 0M-11 |
 | I-k | Categorias das reações prontas no seletor: `Objeto` (SetActive, Toggle de componente), `Eventos` (RaiseChannel), `Depuração` (Log), `Fluxo` (Invoke com delay) | 0M-30, 0M-31 |
 | I-l | Tipos sem `[TypeCategory]` aparecem na raiz da lista do seletor. As ações e os elementos de descrição do GAS ficam sem categoria na 0-M; as categorias deles entram nas fases do GAS | 0M-41, 0M-42 |
 | ~~I-m~~ | ~~Lista do seletor por `AdvancedDropdown`~~. **Resolvido pela I48:** popup próprio em UI Toolkit (0M-47) | — |
@@ -460,7 +466,7 @@ O Setup sem Odin foi **cancelado**: não existe `SpellBook.Setup.Editor` nem `Od
 | Página | Arquivo | Criada em | Ampliada em |
 |---|---|---|---|
 | O que é | `manual/index.md` | 0M-08 | 0M-40 |
-| Instalação | `manual/inicio/instalacao.md` | 0M-08 | 0M-11 |
+| Instalação | `manual/inicio/instalacao.md` | 0M-08 (com a seção Compatibilidade, D5) | — |
 | Conceitos (mapa de módulos, três usos de evento, seletor de tipo e `[ShowIf]`) | `manual/inicio/conceitos.md` | 0M-12 | 0M-24, 0M-26, 0M-40 |
 | Inspector do SpellBook (seletor de tipo, tipo ausente, `[MovedFrom]` para tipos do usuário, `[ShowIf]`, ambiguidade com outros pacotes) | `manual/inicio/inspector.md` | 0M-42 | 0M-46, 0M-48 (validação no topo, botão Revalidar), 0M-50 (como herdar de `SpellBookEditor` nos tipos do usuário) |
 | Migração 2.x → 3.0 | `manual/regras/migracao-2-para-3.md` | 0M-12 (já com a linha "o pacote não depende mais do Odin; perdas no Inspector do GAS", do 0M-44) | 0M-15, 0M-16, 0M-19, 0M-21, 0M-23, 0M-25 |
@@ -581,12 +587,13 @@ O CA41 foi **cancelado** (não existe cenário sem Odin).
 | 24 | Dados externos | ~~Setup lê `documentationUrl`~~. **Removido**: o Setup foi cancelado (0026) | — | — | — |
 | 25 | Dados externos | **Compatibilidade do UI Toolkit, parte 1: recursão.** Um drawer que devolve `new PropertyField(property)` da própria propriedade cai de novo no mesmo drawer | `ShowIfDrawer` | Duas formas, (a) e (b), decididas no red do 0M-46 (4.10). O `TypePickerDrawer` só cria `PropertyField` de filhos | Cenário no host do 0M-42 e do 0M-46 (o Inspector abre sem estouro de pilha) |
 | 26 | Dados externos | **Compatibilidade do UI Toolkit, parte 2: Inspector IMGUI.** Um Inspector IMGUI do usuário, ou um Inspector de terceiros (o Odin, por exemplo), desenha campos do SpellBook sem os drawers UI Toolkit | Drawers do Core e do Events | O `OnGUI` dos drawers mostra só o `HelpBox` de uma linha "precisa do Inspector em UI Toolkit" (único `OnGUI` permitido, 0026 item 3); sem suporte a outros Inspectors (I47); o manual explica na página Inspector | Página Inspector (0M-42) |
-| 27 | Dados externos | **Compatibilidade do UI Toolkit, parte 3: APIs na 6000.0.** `CreatePropertyGUI`, `TrackPropertyValue`, `TrackSerializedObjectValue`, `CreateInspectorGUI`, `InspectorElement.FillDefaultInspector`, `EditorWindow.ShowAsDropDown`, `CreateGUI`, `ToolbarSearchField`, `ListView`, `TypeCache` e `SerializationUtility.*MissingTypes` precisam existir e se comportar igual na 6000.0 e na última 6000.x (0010, emenda) | 0M-41, 0M-47, 0M-42, 0M-46, 0M-48, 0M-38, 0M-45 | O red de cada ticket confirma a API na 6000.0 do host; o CI roda nas duas versões | CI (0M-11) |
+| 27 | Dados externos | **Compatibilidade do UI Toolkit, parte 3: APIs na 6000.0.** `CreatePropertyGUI`, `TrackPropertyValue`, `TrackSerializedObjectValue`, `CreateInspectorGUI`, `InspectorElement.FillDefaultInspector`, `EditorWindow.ShowAsDropDown`, `CreateGUI`, `ToolbarSearchField`, `ListView`, `TypeCache` e `SerializationUtility.*MissingTypes` precisam existir e se comportar igual na 6000.0 e na última 6000.x (0010, emenda) | 0M-41, 0M-47, 0M-42, 0M-46, 0M-48, 0M-38, 0M-45 | O red de cada ticket confirma a API no host (6000.3.13f1, D5); a 6000.0 e a última 6000.x são confirmadas pelo CI | CI (0M-11) |
 | 28 | Dados externos | **Tipo serializado não encontrado.** Um tipo `[SerializeReference]` removido ou renomeado (do pacote na 3.0, de uma ponte ou do usuário) deixa a referência com "tipo ausente"; um clique errado ou uma limpeza automática apagaria os dados | Assets com `[SerializeReference]` | Drawer mostra o erro e só limpa por botão (0026, item 4); validador acusa erro (CA64); tipos do pacote renomeados na 3.0 vão para a tabela de migração (seção 7); depois da `3.0.0`, `[MovedFrom]`; o manual ensina `[MovedFrom]` ao usuário | 0M-41 (red confirma que a Unity guarda os dados do tipo ausente na 6000.0), 0M-38 (CA64) |
 | 29 | Repetição | **Referência compartilhada.** Duplicar um elemento de lista `[SerializeReference]` no Inspector deixa dois elementos com o mesmo `managedReferenceId`; editar um muda o outro (proibido pela 0013) | Listas com `[TypePicker]` | `EnsureUniqueInArray` no bind do drawer | `TypePickerCatalogTests` (0M-41) |
 | 30 | Repetição | Custo do seletor e da validação no Inspector | `TypePickerCatalog`, `SpellBookEditor` | Candidatos em cache por tipo base (o `TypeCache` já é indexado); validação só ao montar o Inspector e em `TrackSerializedObjectValue`, nunca por repaint | N5; revisão do Examinador |
 | 32 | Dados externos | **Inspector do usuário concorre com o do pacote.** Um `[CustomEditor]` do usuário para um tipo do SpellBook (ou de terceiros, com `editorForChildClasses`) pode ser o escolhido pela Unity, e a validação no topo some | Tipos do pacote | O manual (página Inspector, 0M-50) manda herdar de `SpellBookEditor`; a janela do validador continua mostrando as mensagens | Página Inspector |
 | 33 | Dados externos | **Bind do UI Toolkit em teste.** `CreateInspectorGUI` fora de um painel não liga os campos (`Bind`), e o teste não deve depender disso | `SpellBookEditorTests`, `EventsInspectorTests` | Os testes conferem só a estrutura (contêiner, `HelpBox`, botões) e as funções puras (`CollectMessages`, `SetChannel`); o comportamento ligado fica nos cenários no host | 0M-48, 0M-45 |
+| 34 | Dados externos | **Projeto Unity na raiz do pacote.** A raiz do repositório é a pasta do pacote; um `Assets/`, `Library/`, `Packages/` ou `ProjectSettings/` ali, mesmo ignorado pelo git, entra como conteúdo do `com.spellbook` (assemblies duplicados, `.meta` gravados, importação lenta) | Raiz do repositório, `HostProject~/` | Host antigo movido para fora (ADR 0004, emenda de 2026-10-29); único host em `HostProject~/` | Critério do 0M-06: as quatro pastas não existem na raiz quando o host abre |
 | 31 | Dados externos | Ambiguidade de nome (`ShowIf`, `TypeCategory`) com outros pacotes no código do usuário | Projetos do usuário | Namespace `SpellBook.Core.Inspector` (só quem escreve `using` dele vê os nomes); o manual mostra o alias | Página Inspector |
 
 ---
@@ -618,7 +625,9 @@ O DevOps leva esta lista ao CHANGELOG no release, com a tabela da página "Migra
 
 ## 8. Tickets
 
-Ordem por dependência. **WIP 1**: um ticket em implementação por vez. Nenhum ticket está bloqueado depois da revisão sem Odin. "Linhas" é a estimativa de código, sem páginas e fixtures (ADR 0003). Todos os tickets de código usam a trava (0005) e terminam com a suíte inteira verde no host. A exceção é o 0M-44, que termina com o host compilando, porque ainda não existe suíte.
+Ordem por dependência. **WIP 1**: um ticket com Unity em implementação por vez (exceção para tickets sem Editor logo abaixo). Nenhum ticket está bloqueado depois da revisão sem Odin. "Linhas" é a estimativa de código, sem páginas e fixtures (ADR 0003). Todos os tickets de código usam a trava (0005) e terminam com a suíte inteira verde no host. A exceção é o 0M-44, que termina com o host compilando, porque ainda não existe suíte.
+
+**Paralelo sem Editor** (emenda da 0003, 2026-10-29): o WIP 1 vale para os tickets que usam a Unity e a trava. Um ticket de docs, processo ou CI, sem trava, pode rodar em paralelo, na própria branch e numa cópia de trabalho própria (0006 adiada), desde que não toque arquivo do outro ticket. Par marcado nesta Spec: **0M-11 em paralelo com o 0M-41** (o 0M-11 só cria `.github/workflows/tests.yml`). Outros pares só valem se forem marcados aqui.
 
 ### Resumo
 
@@ -631,9 +640,10 @@ Mudança: **igual** (sem mudança), **alterado** (escopo, arquivos, dependência
 | 0M-03 | `chore(process): adaptar agentes de programação e QA ao TIME.md` | 0M-02 | (B-021) | igual | — |
 | 0M-04 | `chore(process): adaptar agentes de design, writer e Unity ao TIME.md` | 0M-02 | (B-021) | alterado | `unity-explorer.md:13` cita o Odin e `Assets/_Project` (contexto de jogo); o critério passa a cobrar a remoção |
 | 0M-05 | `chore(host): ignorar artefatos do host no git` | 0M-02 | CA55 (parte) | alterado | Sai o `.gitignore` do Sirenix (I45) |
-| 0M-06 | `chore(host): criar projeto host de testes com o pacote em testables` | 0M-05 | CA55 | alterado | Host sem Odin; o critério registra os erros `Sirenix` como red do 0M-44 |
+| 0M-06 | `chore(host): criar projeto host de testes com o pacote em testables` | 0M-05 | CA55 | alterado | Host sem Odin; o critério registra os erros `Sirenix` como red do 0M-44; host na 6000.3.13f1 (D5) |
 | 0M-44 | `refactor(gas)!: remover o Odin dos 8 arquivos do runtime` | 0M-06 | CA5 | **novo** | I45: o pacote precisa compilar no host sem Odin antes de qualquer teste |
 | 0M-07 | `test(core): asmdef de testes do Core e regras de estrutura sem Odin` | 0M-44 | CA65, CA3, CA2 (guarda) | alterado | Era "desligar sem Odin e avisar" (Setup, `defineConstraints`), que a I47 elimina. Fica a infraestrutura de teste e entra a guarda "nenhum Sirenix" + `overrideReferences` |
+| 0M-11 | `ci(test): rodar as suítes na 6000.0 e na última 6000.x com GameCI` | 0M-07 | CA56, CA57, N1 | alterado | Desbloqueado (P21 sem objeto); sem secret nem script do Odin; sem passo de importação extra. Adiantado para logo depois do 0M-07 (D5); a seção "Compatibilidade" do manual passou para o 0M-08 |
 | 0M-41 | `feat(core): catálogo do seletor de tipo e atributos TypePicker/TypeCategory` | 0M-07 | CA63 (parte) | **novo** | I45: parte lógica do seletor que substitui o do Odin (filtro, categorias, busca, tipo ausente, referência compartilhada); renomeia o asmdef do Editor para `Core.Editor` |
 | 0M-47 | `feat(core): popup de seleção de tipo em UI Toolkit` | 0M-41 | CA63 (parte: busca e categorias) | **novo** (2ª rodada) | I48: substitui o `AdvancedDropdown`; o popup próprio não cabia no 0M-42 |
 | 0M-42 | `feat(core): drawer do seletor de tipo e uso no GAS` | 0M-47 | CA63 | **novo** | I45/I46: drawer UI Toolkit do seletor; devolve ao GAS a escolha de tipo nos 10 campos `[SerializeReference]`. 2ª rodada: abre o popup do 0M-47 |
@@ -643,7 +653,6 @@ Mudança: **igual** (sem mudança), **alterado** (escopo, arquivos, dependência
 | 0M-08 | `docs(manual): criar o manual, DocUrls, Instalação e declarar Unity 6000.0` | 0M-07 | CA4 (parte), CA37 (parte), CA42 | alterado | Cria a página Instalação (vinha do 0M-07) sem Odin; README sem Odin |
 | 0M-09 | `ci(manual): publicar o manual no GitHub Pages` | 0M-08 | CA39 | igual | — |
 | 0M-10 | `docs(gas): mover GAS_Documentation.md para o manual` | 0M-08 | CA40 | igual | — |
-| 0M-11 | `ci(test): rodar as suítes na 6000.0 e na última 6000.x com GameCI` | 0M-07 | CA56, CA57, N1 | alterado | Desbloqueado (P21 sem objeto); sem secret nem script do Odin; sem passo de importação extra |
 | 0M-12 | `refactor(gas)!: separar o GAS no assembly SpellBook.GAS` | 0M-10 | CA1 (parte), CA2 (parte), R22 (parte) | alterado | Asmdef do GAS sem constraint e sem DLL do Odin (`overrideReferences: true`, `[]`); a Migração ganha a linha "sem Odin" |
 | 0M-13 | `test(gas): caracterizar tags do ASC e criar as factories` | 0M-12 | CA31 (parte), CA33 (parte) | igual | (asmdefs seguem a 4.1 revisada) |
 | 0M-14 | `refactor(tags)!: mover as tags para o assembly SpellBook.Tags` | 0M-13 | CA2 (parte), CA31 (parte) | igual | (idem) |
@@ -677,13 +686,14 @@ Mudança: **igual** (sem mudança), **alterado** (escopo, arquivos, dependência
 | 0M-50 | `feat(editor): Inspectors de uma linha para GAS e Events e cobertura completa` | 0M-49 | R32 | **novo** (2ª rodada) | I48: completa a cobertura; cria `GAS.Editor` |
 | 0M-40 | `refactor(core)!: Core em Runtime/Core e verificação final da estrutura` | 0M-50 | CA1, CA32, CA54, CA6, N4 | alterado | Lista final de asmdefs sem `Setup.Editor` e com `Core.Editor`, `Events.Editor`, `Time.Editor`, `Tags.Editor`, `Pooling.Editor` e `GAS.Editor`; depende do 0M-50 |
 
-Ordem de execução linear: 01 → 02 → 03 → 04 → 05 → 06 → **44** → 07 → **41** → **47** → **42** → **46** → **43** → **48** → 08 → 09 → 10 → 11 → 12 → 13 → … → 31 → 32 → **45** → 33 → 34 → 35 → 36 → 37 → 38 → 39 → **49** → **50** → 40.
+Ordem de execução linear: 01 → 02 → 03 → 04 → 05 → 06 → **44** → 07 → 11 → **41** → **47** → **42** → **46** → **43** → **48** → 08 → 09 → 10 → 12 → 13 → … → 31 → 32 → **45** → 33 → 34 → 35 → 36 → 37 → 38 → 39 → **49** → **50** → 40.
 
 Os ids novos não seguem a ordem de execução (0M-47 vem antes do 0M-42), porque o 0M-42 já tinha sido divulgado na primeira rodada.
 
 Por que essa ordem no começo:
 - o Core só compila no host sem Odin depois do 0M-44, e nenhum teste roda antes disso (com erro de compilação, a Unity não recarrega o domínio). Por isso o 0M-44 é o primeiro ticket depois do host;
 - a guarda "nenhum Sirenix" vem logo depois, no 0M-07, junto com o primeiro asmdef de teste;
+- o CI (0M-11) vem logo depois do 0M-07, primeiro ticket com teste: o host está na 6000.3.13f1 (D5), e só o job 6000.0 do CI prova a versão mínima para os tickets com risco de API (0M-41, 0M-47, 0M-42, 0M-46, 0M-48);
 - o seletor (0M-41, 0M-42) e o `[ShowIf]` (0M-46) entram antes de qualquer ticket que crie ou mexa em `[SerializeReference]`, e antes do 0M-12 mover o GAS de assembly;
 - a validação (0M-43) entra antes do primeiro validador (0M-23);
 - o `SpellBookEditor` (0M-48) entra logo depois, para os Inspectors do Events (0M-45) herdarem dele;
@@ -731,30 +741,32 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Objetivo: nenhum arquivo gerado pelo host entra no git.
 - Arquivos: `.gitignore` (acrescenta `HostProject~/Library/`, `Logs/`, `Temp/`, `UserSettings/`, `obj/`, `HostProject~/ProjectSettings/*` com exceção `!HostProject~/ProjectSettings/ProjectVersion.txt`). Nenhuma entrada cita `Sirenix`.
 - Depende de: 0M-02. Liberado pela decisão I41 (host em `HostProject~/`).
-- Host antigo na raiz: `/Assets/`, `/Packages/` e `/ProjectSettings/` já estão no `.gitignore` (commit c19b627), então não há arquivo versionado para mover ou apagar. As entradas da raiz continuam no `.gitignore`, e a cópia local do usuário não é tocada (`CLAUDE.md`: preservar o working tree). Critério extra: `git ls-files Assets Packages ProjectSettings` não lista nada.
+- Host antigo na raiz: `/Assets/`, `/Packages/` e `/ProjectSettings/` já estão no `.gitignore` (commit c19b627), então não há arquivo versionado para mover ou apagar. As entradas da raiz continuam no `.gitignore`. A cópia local do usuário já foi movida por ele para fora do repositório (`SpellBook-host-antigo/`, emenda de 2026-10-29 da ADR 0004), e nenhum ticket a toca. Critério extra: `git ls-files Assets Packages ProjectSettings` não lista nada.
 - CAs: CA55 (parte: `.gitignore` do host).
 - Testes: critério verificável: `git check-ignore` devolve ignorado para `HostProject~/Library/x` e `HostProject~/ProjectSettings/EditorSettings.asset`, e não ignorado para `HostProject~/Packages/manifest.json` e `HostProject~/ProjectSettings/ProjectVersion.txt`; `.gitignore` não contém `Sirenix`.
 - Manual: nenhuma. Tamanho: ~15 linhas, 1 arquivo.
 
 ### 0M-06 — `chore(host): criar projeto host de testes com o pacote em testables`
-- Objetivo: um projeto Unity 6000.0 que compila o pacote por `file:` e lista os testes dele.
+- Objetivo: um projeto Unity 6000.3.13f1 (D5) que compila o pacote por `file:` e lista os testes dele.
 - **Alterado (revisão sem Odin):** o host não tem o Odin. O critério muda, porque o pacote ainda tem os 8 arquivos com `Sirenix` e não compila nesse host até o 0M-44.
-- Arquivos: `HostProject~/Packages/manifest.json` (`com.spellbook` por `file:` apontando para a raiz do repositório, `com.unity.test-framework` fixado, `testables: ["com.spellbook"]`, módulos mínimos da Unity), `HostProject~/ProjectSettings/ProjectVersion.txt` (6000.0, I-j), `Documentation~/README.md` (seção "Projeto host": abrir e criar a trava; nenhuma instrução de Odin).
+- Arquivos: `HostProject~/Packages/manifest.json` (`com.spellbook` por `file:` apontando para a raiz do repositório, `com.unity.test-framework` fixado, `testables: ["com.spellbook"]`, módulos mínimos da Unity), `HostProject~/ProjectSettings/ProjectVersion.txt` (6000.3.13f1, D5), `HostProject~/Assets/.gitkeep` (vazio; a Unity não abre projeto sem `Assets/` — "Couldn't set project path" — e o git não versiona pasta vazia; arquivo oculto, a Unity não gera `.meta`), `Documentation~/README.md` (seção "Projeto host": abrir e criar a trava; nenhuma instrução de Odin).
 - Caminho do `file:` (decisão I41 escreve `file:../`): a Unity resolve o relativo a partir de `HostProject~/Packages/`, então o valor esperado é `file:../..`. O red do ticket é o Package Manager não mostrar `com.spellbook` com o caminho errado; fica o valor que resolver para a raiz (ver D1).
 - Depende de: 0M-05. Liberado pela decisão I41.
 - CAs: CA55.
 - Testes: sem teste de código (ainda não há asmdef de teste). Critérios:
+  - antes de abrir o host, a raiz do repositório não contém `Assets/`, `Library/`, `Packages/` nem `ProjectSettings/` (risco 34). Se contiver, o ticket para e avisa o Controlador; a Fábrica não move nem apaga;
   - com a trava, a Unity abre o host (em batchmode, ou ignorando o Safe Mode);
   - o Package Manager mostra `com.spellbook` como local;
-  - os **únicos** erros de compilação são `CS0246`/`CS0234` com `Sirenix` nos 8 arquivos da seção 1.1. A lista exata vai na descrição do PR e é o red do 0M-44.
+  - os **únicos** erros de compilação são de símbolos do Odin (`CS0246`/`CS0234`/`CS0103`: tipos e namespace `Sirenix`, e enums e constantes do Odin como `ObjectFieldAlignment`) nos 8 arquivos da seção 1.1. Na 6000.3.13f1 saem 813: `CS0246` nos 8 e 15 `CS0103` em `GameplayAbility`, `AttributeDefinition`, `ExpressionFormula` e `GameplayEffect`. A lista exata vai na descrição do PR e é o red do 0M-44;
+  - `ProjectVersion.txt` com `m_EditorVersion: 6000.3.13f1`.
 
-  **Inferido:** I-g, I-j.
+  **Inferido:** I-g. **Desvio:** D5.
 - Manual: nenhuma (documento interno).
-- Tamanho: ~40 linhas, 3 arquivos.
+- Tamanho: ~40 linhas, 4 arquivos.
 
 ### 0M-44 — `refactor(gas)!: remover o Odin dos 8 arquivos do runtime` (novo)
 - **Novo (revisão sem Odin, I45).** Vem logo depois do 0M-06, porque nenhum teste roda enquanto o Core não compilar no host sem Odin.
-- Objetivo: o pacote compila numa Unity 6000.0 sem Odin, sem mudar dado serializado.
+- Objetivo: o pacote compila numa Unity sem Odin, sem mudar dado serializado. O ticket verifica no host (6000.3.13f1, D5); a 6000.0 fica com o CI (0M-11).
 - Arquivos (8):
   - `Runtime/GAS/Abilities/GameplayAbility.cs`:
     - sai o `using Sirenix.OdinInspector`;
@@ -777,7 +789,7 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Depende de: 0M-06.
 - CAs: CA5 (S, com o texto novo: host **sem** Odin).
 - Testes: **red de compilação**, a única exceção da 0-M (0004, emenda). Ainda não há asmdef de teste, e com erro de compilação a Unity não recarrega o domínio.
-  - Red: a lista de erros `Sirenix` registrada no PR do 0M-06.
+  - Red: a lista de erros de símbolos do Odin (`CS0246`/`CS0234`/`CS0103`) registrada no PR do 0M-06.
   - Green, todos estes:
     - o host compila sem erro e sem aviso vindo do SpellBook;
     - busca textual: nenhum arquivo de `Runtime/` e `Editor/` contém `Sirenix` (a guarda automática vem no 0M-07);
@@ -804,6 +816,24 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
   - Guardas: CA2 e CA3.
 - Manual: nenhuma (sem mudança visível ao usuário).
 - Tamanho: ~220 linhas, 7 arquivos.
+
+### 0M-11 — `ci(test): rodar as suítes na 6000.0 e na última 6000.x com GameCI`
+- **Alterado (revisão sem Odin):** **desbloqueado**, porque a P21 perdeu o objeto (I45). Saem o script e os secrets do Odin e o passo de importação extra.
+- **Adiantado (D5, aprovado em 2026-10-29):** vem logo depois do 0M-07, para que os tickets com risco de API da 6000.0 (0M-41, 0M-47, 0M-42, 0M-46, 0M-48) já tenham o job 6000.0 no PR. A seção "Compatibilidade" da Instalação passou para o 0M-08, porque a página ainda não existe neste ponto.
+- Arquivos: `.github/workflows/tests.yml`.
+- Depende de: 0M-07 (existe ao menos um asmdef de teste).
+- Desenho:
+  - matriz `unityVersion: [6000.0.x, 6000.y.z]` (I-j), passada explicitamente ao runner. Nunca `auto`, que leria o `ProjectVersion.txt` do host (6000.3.13f1, D5) e deixaria a 6000.0 sem teste;
+  - `game-ci/unity-test-runner` com `projectPath: HostProject~` e `testMode: all`;
+  - secrets só da Unity (`UNITY_LICENSE`, `UNITY_EMAIL`, `UNITY_PASSWORD`);
+  - falha se o número de testes executados for 0;
+  - artefatos por versão.
+- CAs: CA56 (E, com o texto novo: nenhum arquivo do Odin e nenhuma referência ao Odin nos workflows), CA57 (S), N1.
+- Testes: critérios:
+  - um PR dispara as duas versões, cada uma com resultado separado, e o log de cada job mostra o Editor da versão da matriz (o da 6000.0 não é o 6000.3.13f1 do host);
+  - `grep -i "odin\|sirenix"` em `.github/` não encontra nada.
+- Manual: nenhuma (a seção "Compatibilidade" é do 0M-08).
+- Tamanho: ~85 linhas, 1 arquivo.
 
 ### 0M-41 — `feat(core): catálogo do seletor de tipo e atributos TypePicker/TypeCategory` (novo)
 - **Novo (revisão sem Odin, I45).** É a parte lógica do seletor, sem UI. O drawer vem no 0M-42.
@@ -946,7 +976,7 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Decisão registrada no ticket: Zensical ou MkDocs Material (0025), com a versão travada.
 - Manual:
   - **O que é**: o pacote, os módulos e para quem é;
-  - **Instalação**, com conteúdo real: Unity 6000.0 ou mais nova; instalação por URL git; nenhuma dependência de terceiros; o Inspector do pacote é UI Toolkit (link para a página Inspector quando ela existir, 0M-42). Tem âncoras `{#...}`. **Não cita o Odin** (a guarda `NoOdinTests` não lê o manual; o Examinador confere).
+  - **Instalação**, com conteúdo real: Unity 6000.0 ou mais nova; instalação por URL git; nenhuma dependência de terceiros; o Inspector do pacote é UI Toolkit (link para a página Inspector quando ela existir, 0M-42); seção **Compatibilidade** com as versões testadas no CI, copiadas da matriz do `tests.yml` (vinha do 0M-11, adiantado pelo D5). Tem âncoras `{#...}`. **Não cita o Odin** (a guarda `NoOdinTests` não lê o manual; o Examinador confere).
 
   Verificação: `mkdocs build --strict` local passa.
 - Tamanho: ~70 linhas de código, 8 arquivos.
@@ -965,23 +995,6 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Testes: critério: o arquivo antigo e o `.meta` não existem; `mkdocs build --strict` passa.
 - Manual: **GAS** (conteúdo atual revisado: visão geral, ASC, atributos, efeitos, habilidades, targeting, projéteis, descrições; com âncoras `{#abilitysystemcomponent}`, `{#gameplayability}`, `{#gameplayeffect}`, `{#attributeset}`, `{#attributedefinition}`, `{#formulas}`, `{#targeting}`, `{#projectile}`).
 - Tamanho: 0 linhas de código, 2 arquivos.
-
-### 0M-11 — `ci(test): rodar as suítes na 6000.0 e na última 6000.x com GameCI`
-- **Alterado (revisão sem Odin):** **desbloqueado**, porque a P21 perdeu o objeto (I45). Saem o script e os secrets do Odin e o passo de importação extra.
-- Arquivos: `.github/workflows/tests.yml`, `Documentation~/manual/inicio/instalacao.md`.
-- Depende de: 0M-07 (existe ao menos um asmdef de teste).
-- Desenho:
-  - matriz `unityVersion: [6000.0.x, 6000.y.z]` (I-j);
-  - `game-ci/unity-test-runner` com `projectPath: HostProject~` e `testMode: all`;
-  - secrets só da Unity (`UNITY_LICENSE`, `UNITY_EMAIL`, `UNITY_PASSWORD`);
-  - falha se o número de testes executados for 0;
-  - artefatos por versão.
-- CAs: CA56 (E, com o texto novo: nenhum arquivo do Odin e nenhuma referência ao Odin nos workflows), CA57 (S), N1.
-- Testes: critérios:
-  - um PR dispara as duas versões, cada uma com resultado separado;
-  - `grep -i "odin\|sirenix"` em `.github/` não encontra nada.
-- Manual: seção "Compatibilidade" na Instalação (versões testadas no CI).
-- Tamanho: ~90 linhas, 2 arquivos.
 
 ### 0M-12 — `refactor(gas)!: separar o GAS no assembly SpellBook.GAS`
 - Objetivo: GAS fora do Core; o Core deixa de depender do GAS; fim do evento global do ASC (R22, R22a).
@@ -1343,3 +1356,7 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
     - R1 (regra dos `.Editor`) e R32 (validação no Inspector e na janela), com o texto do Arquiteto;
     - R28, R29, R40, R41 (`file:../..`), R42 e outros revistos.
 - Continua aberto o passo manual do usuário de ligar o Pages com "Source: GitHub Actions" (0M-09).
+- Abertas pelo D5 (host na 6000.3.13f1, decisão do usuário de 2026-10-29):
+  - ~~emenda da ADR 0010~~: **resolvida**, aprovada pelo usuário em 2026-10-29 (consequência do host trocada e seção "Emenda: host local fora da 6000.0");
+  - ~~ajuste do CA5 do PRD pelo Criativo~~: **resolvido**. O Criativo ajustou o CA5 (PRD, linha 242) e registrou o D5 no diário;
+  - ~~adiantar o 0M-11 para logo depois do 0M-07~~: **resolvida**, aprovada pelo usuário em 2026-10-29 (ordem e Resumo da seção 8; a seção "Compatibilidade" do manual passou para o 0M-08).

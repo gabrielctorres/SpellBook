@@ -239,7 +239,7 @@ Cada CA é um teste automatizado (T), um teste de compilação/estrutura (E) ou 
 - CA2 (T). Um teste EditMode lê as referências de cada asmdef do pacote e falha se Core, Time, Events, Pooling ou Tags referenciarem `SpellBook.GAS*`, se `SpellBook.GAS` referenciar `SpellBook.Events` ou `SpellBook.Pooling`, ou se `SpellBook.GAS.Bridges` referenciar `SpellBook.Pooling`.
 - CA3 (T). Um teste EditMode falha se algum assembly de runtime do SpellBook referenciar `UnityEditor`. (A parte do Odin desta verificação passou para o CA65.)
 - CA4 (E). `package.json` tem `"unity": "6000.0"`, `"version"` no formato `3.0.0-pre.<n>` e `documentationUrl` igual a `https://gabrielctorres.github.io/SpellBook/`.
-- CA5 (S). No projeto host com Unity 6000.0 e **sem** Odin nem outro plugin de terceiros, o pacote importa sem erros e sem avisos de compilação vindos do SpellBook (cenário C8, parte da compilação).
+- CA5 (S). No projeto host com a versão da Spec (D5) e **sem** Odin nem outro plugin de terceiros, o pacote importa sem erros e sem avisos de compilação vindos do SpellBook (cenário C8, parte da compilação).
 - CA6 (S). No projeto host, um script próprio que referencia só `SpellBook.Core` e `SpellBook.Pooling` usa um `PooledSpawnerAsset` e compila (cenário C1).
 - CA43 (E). Não existe `Runtime/MathTools/Math.cs` com o `MonoBehaviour` `Math`; a classe estática de matemática está no `SpellBook.Core` e nenhum `MonoBehaviour` do pacote a embrulha.
 
@@ -403,3 +403,4 @@ Preenchido via `/ajustar`. "Playtest" aqui é validação de uso num projeto hos
 | 2026-10-29 | usuário | I49 (P23): perdas no Inspector do GAS aceitas até os épicos do GAS | Seção 6 (Inspector rico do GAS) | Aplicado (PRD em rascunho, aguarda gate) |
 | 2026-10-29 | usuário | I50: o canal fica dentro da `EventEmission` do emissor | Decisão técnica (ADR 0016, emenda); nenhum texto muda. R19, CA22 e CA24 continuam valendo: o emissor dispara o canal configurado no Inspector, e o Find references o mostra como "emite" | Aplicado |
 | 2026-10-29 | Arquiteto | Caminho do pacote no manifest do host é `file:../..`, porque a Unity resolve o caminho a partir de `HostProject~/Packages/` (Spec, D1) | R41, CA55; confirmação no 0M-06 | Aplicado (confirmar no 0M-06) |
+| 2026-10-29 | usuário | D5 da Spec: host local na 6000.3.13f1, não na 6000.0; o mínimo declarado e a matriz do CI não mudam | CA5 ("host com a versão da Spec, D5") | Aplicado |
