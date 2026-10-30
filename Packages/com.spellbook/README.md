@@ -12,7 +12,8 @@ Siga os passos abaixo para adicionar o SpellBook - Unity Tools ao seu projeto:
  -  Vá para Window > Package Manager.
  -  Clique no botão de + (Adicionar).
  -  Escolha a opção Adicionar pacote do URL git.
- -  Cole o seguinte link no campo de URL: https://github.com/gabrielctorres/SpellBook.git
+ -  Cole o seguinte link no campo de URL: https://github.com/gabrielctorres/SpellBook.git?path=/Packages/com.spellbook
+ -  Para fixar uma versão, acrescente `#<tag>` ao final da URL, por exemplo `https://github.com/gabrielctorres/SpellBook.git?path=/Packages/com.spellbook#v3.0.0-pre.1`.
  -  Clique em Adicionar e aguarde o Unity instalar o pacote.
 
 ## 📖 Como usar?

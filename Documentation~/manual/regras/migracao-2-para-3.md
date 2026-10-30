@@ -3,6 +3,19 @@
 A 3.0 tem quebras de compatibilidade. Esta página lista o que muda e o que fazer em cada caso.
 A 3.0 ainda está em desenvolvimento, e a lista cresce junto com ela.
 
+## URL de instalação {#url-de-instalacao}
+
+O pacote agora fica na pasta `Packages/com.spellbook` do repositório, e a URL do git passa a
+apontar para ela com `?path=`. A chave `com.spellbook` no `manifest.json` não muda.
+
+| Antes (2.x) | Depois (3.0) |
+|---|---|
+| `https://github.com/gabrielctorres/SpellBook.git` | `https://github.com/gabrielctorres/SpellBook.git?path=/Packages/com.spellbook` |
+
+- Acrescente `#<tag>` ao final para fixar uma versão, por exemplo `#v3.0.0-pre.1`.
+- As tags 2.x continuam com a URL antiga, sem `?path=`.
+- Veja [Instalação](../inicio/instalacao.md).
+
 ## Sem Odin Inspector {#sem-odin}
 
 O pacote não depende mais do Odin Inspector. Ele compila e funciona num projeto sem o Odin.

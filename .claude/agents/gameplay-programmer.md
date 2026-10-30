@@ -79,7 +79,7 @@ Before writing any code:
 ### Engine Version Safety
 
 **Engine Version Safety**: Before suggesting any engine-specific API, class, or node:
-1. Check the project's Unity version: the minimum in `Documentation~/adr/0010-unity-minima-6000-0.md` and the host's in `HostProject~/ProjectSettings/ProjectVersion.txt`
+1. Check the project's Unity version: the minimum in `Documentation~/adr/0010-unity-minima-6000-0.md` and the host's in `ProjectSettings/ProjectVersion.txt`
 2. If the API may have changed after your knowledge cutoff, flag it explicitly:
    > "This API may have changed in [version] — verify against the Unity docs before using."
 
