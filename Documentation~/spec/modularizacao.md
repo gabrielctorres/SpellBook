@@ -106,6 +106,8 @@ Legenda:
 - `Runtime/Core/Sets/RuntimeSet.cs:5`: namespace `SpellBook.Core.RuntimeSets`.
 - `Runtime/GAS/GAS_Documentation.md` (+ `.meta`) dentro do runtime; a linha 98 cita o `AbilityActivatedEvent` global.
 - **Conflito de nome do namespace `SpellBook.Time`:** dentro de qualquer `namespace SpellBook.*`, o nome `Time` resolve primeiro para o namespace `SpellBook.Time` (se o assembly estiver referenciado), antes de `UnityEngine.Time` vindo de `using`. Consequência: o assembly que passa a referenciar `SpellBook.Time` precisa, no mesmo ticket, eliminar todo `Time.xxx` não qualificado. É um efeito desejável (o compilador reforça a ADR 0014: fora do módulo Time ninguém lê `UnityEngine.Time`), mas ordena os tickets.
+  - **Vale também para os testes** (emenda de 2026-10-30, bloqueio do 0M-31): um asmdef de teste que passa a referenciar o `SpellBook.Time` escreve `UnityEngine.Time.timeScale`, nunca `Time.timeScale`.
+  - **O mesmo vale para `Editor`** (emenda de 2026-10-30): dentro de `namespace SpellBook.<Módulo>.*`, o nome `Editor` resolve para o namespace `SpellBook.<Módulo>.Editor` quando o assembly `.Editor` do módulo está referenciado. Testes e código de Editor escrevem `UnityEditor.Editor.CreateEditor(...)`, como os testes do Core já fazem (`Tests/Core/EditMode/Inspector/SpellBookEditorTests.cs:167`).
 - Testes em EditMode: `AddComponent` não chama `Awake`, `OnEnable` nem `Update`. ASC (`Awake` monta o `AttributeSet`, `OnEnable` liga o cancelamento por tag) e `EventListener` (inscrição no `OnEnable`) só se comportam de verdade em PlayMode (ADR 0004).
 
 ---
@@ -259,6 +261,11 @@ O `AsmdefRulesTests` cobra essa regra a partir do 0M-45.
 - um `SpellBook.<Módulo>.Tests.*` referencia o módulo testado, as dependências dele, o `SpellBook.Time` e o `SpellBook.Testing` (ADR 0004, item 4);
 - o `SpellBook.Core.Tests.EditMode` também é o assembly dos testes de estrutura e de integração do pacote (`AsmdefRulesTests`, validador do 0M-38, uso do seletor e do `[ShowIf]` nos tipos do GAS). Por isso pode referenciar qualquer runtime do pacote: o GAS desde o 0M-12 e os outros módulos no 0M-38;
 - o `AsmdefRulesTests` não aplica a regra do Core aos asmdefs de teste: a lista `Infra` tem só os runtimes.
+- **Emenda (2026-10-30, bloqueio do 0M-31, issue #32):** nenhum ticket cobra essa regra, e 9 dos 10 asmdefs de teste não a cumprem hoje (só o `GAS.Tests.PlayMode` cumpre). Quem precisa de uma referência que falta só descobre pelo `CS0012`. A regra é aplicada assim:
+  - nos asmdefs que um ticket já edita ou que o ticket precisa, a referência entra no próprio ticket: Events PlayMode no 0M-31; Events EditMode no 0M-45; Core EditMode no 0M-38;
+  - os outros 6 (`Tags.Tests.EditMode` sem Time e Testing; `Time.Tests.EditMode` e `Time.Tests.PlayMode` sem Testing; `Pooling.Tests.EditMode` e `Core.Tests.PlayMode` sem Time; `GAS.Tests.EditMode` sem Testing) não são tocados por nenhum ticket. A correção e uma guarda no `AsmdefRulesTests` ficam para o gate (seção 9, ticket proposto 0M-57).
+  - **Atualização (2026-10-30, gate parcial, alternativa A):** o **0M-57**, logo depois do 0M-31, corrige os 6 e cria a guarda `AsmdefRules_EveryModuleTestAsmdef_ReferencesTimeAndTesting`. Para a suíte fechar verde com a guarda, o `SpellBook.Time` do `Events.Tests.EditMode` e do `Core.Tests.EditMode` também passa para o 0M-57 e sai do 0M-45 e do 0M-38.
+  - "As dependências dele" inclui as dependências públicas: quem referencia o `SpellBook.GAS` referencia também `SpellBook.Tags` e `SpellBook.Time`, porque a API pública do GAS expõe tipos dos dois.
 
 ### 4.2 Core
 
@@ -420,6 +427,9 @@ namespace SpellBook.Time
   - `LogReaction { string message; LogType type = Log }`;
   - `RaiseChannelReaction { Mode { ForwardPayload, RaiseVoid }; EventChannel target }`. No modo `ForwardPayload`, só dispara se `target is EventChannel<T>`, e o validador da resposta acusa tipo diferente;
   - `DelayedReaction { float delay; TimeSourceAsset timeSource; [SerializeReference, TypePicker] List<Reaction> reactions }`.
+- **Pontos de extensão internos** (emenda de 2026-10-30, varredura de lacunas; a API pública desta seção não muda):
+  - **Esperas do `EventListener` (0M-31).** O `EventListener` ganha um método `internal` que agenda uma ação para quando a fonte de tempo avançar `delay` (o nome e a assinatura exata são da Fábrica). O vencimento é `fonte.ElapsedTime + delay`, lido no agendamento (consumo por diferença, 0014). O `Update` roda as vencidas, e uma ação que agenda outra espera ou desabilita o ouvinte durante o `Update` não pula nem repete nenhuma espera. O `OnDisable` descarta todas as esperas. A `DelayedReaction` captura o payload numa cópia local (I-i) e repassa `Execute<T>` às reações internas com ele. Sem `timeSource`, usa `TimeSourceAsset.Scaled`. Ela sobrescreve as duas sobrecargas de `Validate`: lista vazia é erro, e a sobrecarga com `payloadType` repassa o tipo às reações internas, para o 0M-33 acusar um `RaiseChannel` de tipo errado dentro de um delay.
+  - **Canal para o Editor (0M-45).** O `EventChannel` ganha `internal abstract object BoxedLastPayload { get; }` e `internal abstract void RaiseDebugPayload()` (dispara o `debugPayload`, sem emissor), implementados pelo `EventChannel<T>`. O `Runtime/Events/AssemblyInfo.cs` ganha `InternalsVisibleTo("SpellBook.Events.Editor")`, que também dá ao debugger (0M-35) acesso ao `Observed` e ao `LiveChannels`. Motivo: o `EventChannelEditor` trabalha com a base não genérica, e a outra saída seria reflection sobre `LastPayload` e `Raise(T)`.
 - **`EventEmission`** (abstrato, `IValidatable`: sem canal é erro) e **`EventEmission<T>`** (`EventChannel<T> channel`, `T payload`, `Raise(sender)`). Tem `abstract EventChannel Channel { get; }`, `abstract Type PayloadType { get; }` e `static EventEmission CreateFor(EventChannel channel)` por `MakeGenericType`; com canal nulo, devolve `null`.
 - **`EventEmitter : MonoBehaviour, IValidatable`**: `[SerializeReference] EventEmission emission` (sem `[TypePicker]`; o canal fica **dentro** da emissão, 0016 emenda) e `public void Raise()`. O botão no Play vem do `EventEmitterEditor` (0M-45). O `EventEmissionDrawer` (0M-45) mostra o campo de canal e, quando o tipo de payload do canal escolhido difere do da emissão atual, troca `managedReferenceValue` por `EventEmission.CreateFor(canal)`. A lógica fica numa função estática testável, `EventEmissionEditing.SetChannel(SerializedProperty emission, EventChannel channel)`.
 - **Editor** (`SpellBook.Events.Editor`, tudo em UI Toolkit):
@@ -428,6 +438,8 @@ namespace SpellBook.Time
   - `EventEmissionDrawer`;
   - `ChannelCatalog.Filter(IEnumerable<EventChannel>, Type payloadType)` (função pura, CA21 e CA58) e `ChannelCatalog.FindAll()` (AssetDatabase);
   - `ChannelPickerDrawer` para campos `EventChannel` dentro de respostas e de `RaiseChannelReaction` (modo repassar): um botão abre a lista filtrada, e a descrição do canal aparece num `HelpBox`;
+    - (emenda de 2026-10-30) o drawer vale para todo campo `EventChannel` por tipo, inclusive em scripts do usuário. Filtro: campo `EventChannel<T>` → canais de `T`; `RaiseChannelReaction` em `ForwardPayload` → o payload da resposta que contém a reação; em `RaiseVoid` → canais Void; qualquer outro campo do tipo base → todos os canais;
+    - o canal da `EventEmission` não passa por ele: o `EventEmissionDrawer` (0M-45) desenha um campo próprio do tipo base `EventChannel`, e não um `PropertyField` do campo `channel`. Se passasse, o filtro por `EventChannel<T>` impediria trocar o tipo do payload;
   - `EventDebuggerWindow` (`EditorWindow.CreateGUI`) + `EventDebuggerModel` (busca, histórico, limpar);
   - `ChannelReferenceFinder.Find(EventChannel)`, que varre prefabs, ScriptableObjects e cenas carregadas por `SerializedObject`, com papel decidido pelo tipo dono da referência (`EventEmission` e `RaiseChannelReaction` → emite; `EventResponse` → ouve).
 
@@ -535,7 +547,7 @@ O Setup sem Odin foi **cancelado**: não existe `SpellBook.Setup.Editor` nem `Od
 |---|---|---|---|
 | O que é | `manual/index.md` | 0M-08 | 0M-40 |
 | Instalação | `manual/inicio/instalacao.md` | 0M-08 (com a seção Compatibilidade, D5) | — |
-| Conceitos (mapa de módulos, três usos de evento, seletor de tipo e `[ShowIf]`) | `manual/inicio/conceitos.md` | 0M-12 | 0M-24, 0M-26, 0M-40 |
+| Conceitos (mapa de módulos, três usos de evento, seletor de tipo e `[ShowIf]`) | `manual/inicio/conceitos.md` | 0M-12 | 0M-24, 0M-26, 0M-33 e 0M-38 (mapa atual, emenda de 2026-10-30), 0M-40 |
 | Inspector do SpellBook (seletor de tipo, tipo ausente, `[MovedFrom]` para tipos do usuário, `[ShowIf]`, ambiguidade com outros pacotes) | `manual/inicio/inspector.md` | 0M-42 | 0M-46, 0M-48 (validação no topo, botão Revalidar), 0M-53 (tipo ausente no topo, seção **Tipo não encontrado**), 0M-50 (como herdar de `SpellBookEditor` nos tipos do usuário) |
 | Migração 2.x → 3.0 | `manual/regras/migracao-2-para-3.md` | 0M-12 (já com a linha "o pacote não depende mais do Odin; perdas no Inspector do GAS", do 0M-44) | 0M-15, 0M-16, 0M-21 (com as linhas do 0M-19, emenda de 2026-10-30), 0M-25, 0M-40 (linha de Pooling, emenda de 2026-10-30) |
 | GAS | `manual/modulos/gas.md` | 0M-10 | 0M-12, 0M-19, 0M-21, 0M-22, 0M-37, 0M-39 |
@@ -701,6 +713,8 @@ O DevOps leva esta lista ao CHANGELOG no release, com a tabela da página "Migra
 
 Ordem por dependência. **WIP 1**: um ticket com Unity em implementação por vez (exceção para tickets sem Editor logo abaixo). Nenhum ticket está bloqueado depois da revisão sem Odin. "Linhas" é a estimativa de código, sem páginas e fixtures (ADR 0003). **Teto por ticket: ~500 linhas e 10 arquivos** (emenda da 0003 de 2026-10-30; antes ~400). As menções a ~400 e às exceções de tamanho nos tickets abaixo são registro do que valia na época. Todos os tickets de código usam a trava (0005) e terminam com a suíte inteira verde no host. A exceção é o 0M-44, que termina com o host compilando, porque ainda não existe suíte.
 
+**Varredura de lacunas (emenda de 2026-10-30, depois do bloqueio do 0M-31 na issue #32).** Os tickets não feitos (0M-31 a 0M-40, 0M-45, 0M-49, 0M-50) foram conferidos contra o código do lote. Emendas nos próprios tickets: 0M-31 (asmdef de PlayMode, 5 arquivos), 0M-32 (sai `TypePickerUsageTests.cs`, entra `EmissionHolder.cs`; `[HelpURL]` do emissor), 0M-45 (`EventChannel.cs`, `AssemblyInfo.cs` e referências do asmdef de teste, 10 arquivos), 0M-33 (`conceitos.md`, 5 arquivos), 0M-34 (regra do filtro), 0M-35 (hook e relógio), 0M-37 (referências dos asmdefs), 0M-38 (referências e `conceitos.md`, 6 arquivos), 0M-39 (escopo do teste), 0M-49 (`ComponentPooler`). Sem lacuna: 0M-36, 0M-50 e 0M-40. Nenhum ticket passa de ~500 linhas nem de 10 arquivos, e nenhuma dependência muda. As issues dos tickets emendados precisam receber o texto novo (Controlador). O que fica para o gate está na seção 9.
+
 **Paralelo sem Editor** (emenda da 0003, 2026-10-29): o WIP 1 vale para os tickets que usam a Unity e a trava. Um ticket de docs, processo ou CI, sem trava, pode rodar em paralelo, na própria branch e numa cópia de trabalho própria (0006 adiada), desde que não toque arquivo do outro ticket. Pares marcados nesta Spec (revisão de 2026-10-29). Outros pares só valem se forem marcados aqui.
 
 - ~~**0M-11 em paralelo com o 0M-41.**~~ Sem objeto: o 0M-11 foi cancelado (2026-10-29).
@@ -762,6 +776,7 @@ Mudança: **igual** (sem mudança), **alterado** (escopo, arquivos, dependência
 | 0M-29 | `feat(events): EventListener com respostas e reações` | 0M-28, 0M-41 | CA13, CA14 | alterado | `[TypePicker]` nas listas; escape em classe aninhada (foldout nativo) no lugar do `[FoldoutGroup]` |
 | 0M-30 | `feat(events): reações SetActive, Log, Toggle e RaiseChannel` | 0M-29, 0M-43 | CA47, CA48, CA49, CA50, CA58 (runtime) | alterado | `Validate(ValidationResult)`; `[TypeCategory]` nas reações (I-k) |
 | 0M-31 | `feat(events): reação Invoke com delay` | 0M-30, 0M-18 | CA51, CA59, CA60 | alterado | `[TypePicker]` na lista interna; `[TypeCategory]`; validação por `ValidationResult` |
+| 0M-57 | `test(core): referências dos asmdefs de teste e guarda da ADR 0004` | 0M-31 | — | **novo** (2026-10-30) | Bloqueio da issue #32: 8 asmdefs de teste sem `SpellBook.Time` ou `SpellBook.Testing` (ADR 0004, item 4) e nenhuma guarda. Alternativa A do gate parcial; inclui o `Events.Tests.EditMode` e o `Core.Tests.EditMode` para a suíte fechar verde |
 | 0M-32 | `feat(events): EventEmitter e payload próprio de ponta a ponta` | 0M-31 | CA20, CA22 | alterado | Canal dentro da emissão; sem `[HideReferenceObjectPicker]`/`[OnValueChanged]`/botão (vão para o 0M-45); `IValidatable` |
 | 0M-45 | `feat(events): Inspectors do canal e do emissor e drawer de emissão em UI Toolkit` | 0M-32, 0M-48 | R12, R19, CA22 (parte) | **novo** | I45/I46: substitui `[Button]`, `[EnableIf]` e `[OnValueChanged]` do Odin; cria o `SpellBook.Events.Editor`. 2ª rodada: os dois Inspectors herdam de `SpellBookEditor`; o asmdef referencia `Core.Editor` |
 | 0M-33 | `feat(events): validação de ouvintes e respostas` | 0M-32, 0M-43 | CA35 (parte) | alterado | `IValidatable`; passa a depender do 0M-43, não do 0M-23 |
@@ -775,7 +790,7 @@ Mudança: **igual** (sem mudança), **alterado** (escopo, arquivos, dependência
 | 0M-50 | `feat(editor): Inspectors de uma linha para GAS e Events e cobertura completa` | 0M-49 | R32 | **novo** (2ª rodada) | I48: completa a cobertura; cria `GAS.Editor` |
 | 0M-40 | `refactor(core)!: Core em Runtime/Core e verificação final da estrutura` | 0M-50 | CA1, CA32, CA54, CA6, N4 | alterado | Lista final de asmdefs sem `Setup.Editor` e com `Core.Editor`, `Events.Editor`, `Time.Editor`, `Tags.Editor`, `Pooling.Editor` e `GAS.Editor`; depende do 0M-50. 2026-10-30 (0027): C1 em `Assets/Scenarios/C1/`; o manual é lido na raiz do repositório (`PackageFiles.RepositoryRoot`, +1 arquivo; o asmdef `R100` sai da contagem; 8) |
 
-Ordem de execução linear: 01 → 02 → 03 → 04 → 05 → 06 → **44** → 07 → ~~11~~ (cancelado) → **41** → **47** → 08 → **42** → **46** → **43** → **48** → **53** → 09 → 10 → 12 → 13 → … → 23 → **54** (∥ **55**) → **56** (∥ 26 em diante) → 26 → … → 31 → 32 → **45** → 33 → 34 → 35 → 36 → 37 → 38 → 39 → **49** → **50** → 40.
+Ordem de execução linear: 01 → 02 → 03 → 04 → 05 → 06 → **44** → 07 → ~~11~~ (cancelado) → **41** → **47** → 08 → **42** → **46** → **43** → **48** → **53** → 09 → 10 → 12 → 13 → … → 23 → **54** (∥ **55**) → **56** (∥ 26 em diante) → 26 → … → 31 → **57** → 32 → **45** → 33 → 34 → 35 → 36 → 37 → 38 → 39 → **49** → **50** → 40.
 
 Migração da estrutura (emenda de 2026-10-30, ADR 0027): o 0M-54 começa depois do APROVADO e do commit do 0M-23, com a cópia de trabalho limpa. O 0M-26 só começa com o 0M-54 e o 0M-55 no lote. O 0M-56 pode entrar depois, em paralelo (seção "Paralelo sem Editor").
 
@@ -1478,6 +1493,36 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Testes red: `Delayed_1s_NotAt0_9_OnceAt1_1_InOrder` (com `ManualTimeSource`), `Delayed_ListenerDisabledDuringWait_NeverRuns`, `Delayed_NoAsset_TimeScaleZero_DoesNotRun`, `Delayed_NoReactions_IsValidationError` falham.
 - Manual: Eventos, seção **Invoke com delay** `{#delayedreaction}` (fonte de tempo, cancelamento). **Inferido:** I-i.
 - Tamanho: ~200 linhas, 4 arquivos.
+- **Emenda (2026-10-30, bloqueio da issue #32; decisão do Arquiteto, aceita a proposta da Fábrica):**
+  - **`Tests/Events/PlayMode/SpellBook.Events.Tests.PlayMode.asmdef` entra no ticket**, com `SpellBook.Time` nas referências. O teste usa `ManualTimeSource.Advance`, e sem a referência a compilação falha com `CS0012`. É a regra da 4.1 (ADR 0004, item 4), que nenhum ticket tinha aplicado a esse asmdef. Não pede gate: cumpre uma regra aceita e cabe nos limites.
+  - Com a referência, `Time` passa a resolver para o namespace `SpellBook.Time` dentro dos testes: o `Delayed_NoAsset_TimeScaleZero_DoesNotRun` escreve `UnityEngine.Time.timeScale` e o restaura no `TearDown` (1.7).
+  - O ponto de extensão do `EventListener` e a validação da `DelayedReaction` seguem a 4.7 ("Pontos de extensão internos").
+  - Tamanho: ~200 linhas, **5 arquivos**.
+
+### 0M-57 — `test(core): referências dos asmdefs de teste e guarda da ADR 0004` (novo, 2026-10-30)
+- **Novo (gate parcial de 2026-10-30, alternativa A da seção 9, aprovada pelo usuário).** Aplica a regra da 4.1 (ADR 0004, item 4) aos asmdefs de teste que nenhum ticket toca e cria a guarda que a cobra. Depois dele, uma referência que falta aparece como falha da guarda, com o asmdef e a referência, e não como `CS0012` no meio de outro ticket.
+- Objetivo: todo asmdef `SpellBook.<Módulo>.Tests.<EditMode|PlayMode>` referencia o `SpellBook.Time` e o `SpellBook.Testing`. O `SpellBook.Testing` fica fora da regra: é a biblioteca de factories, não um assembly de testes, e não referencia a si mesmo.
+- Arquivos (9; os 8 asmdefs que, depois do 0M-31, ainda não cumprem a regra, e o teste):
+  - `Packages/com.spellbook/Tests/Tags/EditMode/SpellBook.Tags.Tests.EditMode.asmdef` (+ `SpellBook.Time`, `SpellBook.Testing`);
+  - `Packages/com.spellbook/Tests/Time/EditMode/SpellBook.Time.Tests.EditMode.asmdef` (+ `SpellBook.Testing`);
+  - `Packages/com.spellbook/Tests/Time/PlayMode/SpellBook.Time.Tests.PlayMode.asmdef` (+ `SpellBook.Testing`);
+  - `Packages/com.spellbook/Tests/Pooling/EditMode/SpellBook.Pooling.Tests.EditMode.asmdef` (+ `SpellBook.Time`);
+  - `Packages/com.spellbook/Tests/Core/PlayMode/SpellBook.Core.Tests.PlayMode.asmdef` (+ `SpellBook.Time`);
+  - `Packages/com.spellbook/Tests/GAS/EditMode/SpellBook.GAS.Tests.EditMode.asmdef` (+ `SpellBook.Testing`);
+  - `Packages/com.spellbook/Tests/Events/EditMode/SpellBook.Events.Tests.EditMode.asmdef` (+ `SpellBook.Time`; antes ficava no 0M-45);
+  - `Packages/com.spellbook/Tests/Core/EditMode/SpellBook.Core.Tests.EditMode.asmdef` (+ `SpellBook.Time`; antes ficava no 0M-38);
+  - `Packages/com.spellbook/Tests/Core/EditMode/Structure/AsmdefRulesTests.cs` (teste novo).
+- **Por que 8 asmdefs e não 6** (decisão do Arquiteto ao escrever o ticket): a guarda roda na suíte, e o ticket termina com a suíte verde. Com só os 6, o `Events.Tests.EditMode` e o `Core.Tests.EditMode` continuariam sem o `SpellBook.Time` até o 0M-45 e o 0M-38, e a guarda falharia. A outra saída seria uma lista de exceções no teste, que é caso especial para passar e fica fora. O `SpellBook.Time` sai das emendas do 0M-45 e do 0M-38; o resto delas não muda.
+- Depende de: 0M-31 (é ele que põe o `SpellBook.Time` no `Events.Tests.PlayMode`; o `Testing` já está lá). Nenhum ticket depois dele muda de dependência.
+- Testes red (falham antes da mudança nos asmdefs):
+  - `AsmdefRules_EveryModuleTestAsmdef_ReferencesTimeAndTesting`: percorre `PackageFiles.Asmdefs()` com `Kind == AsmdefKind.Test` e nome diferente de `SpellBook.Testing`, e lista cada par asmdef e referência que falta, no formato `<caminho>: falta a referência <nome>` dos outros testes do arquivo. Antes da mudança, a lista tem exatamente 9 entradas em 8 asmdefs (o `Tags.Tests.EditMode` falta nas duas). O teste falha também se a varredura achar menos de 10 asmdefs de teste de módulo, para não passar vazio.
+- Critério de pronto:
+  1. O teste novo passa, e a suíte inteira (EditMode e PlayMode) fica verde na raiz, com a trava (0005).
+  2. O diff de cada asmdef só acrescenta nomes em `references`; nenhum outro campo muda, e nenhum `.meta` muda.
+  3. Nenhum `.cs` de teste além do `AsmdefRulesTests.cs` muda. Hoje nenhum teste escreve `Time.` sem qualificar (busca de 2026-10-30), então o conflito do namespace `SpellBook.Time` (1.7) não aparece. Se aparecer um `CS0234` ou um `CS0117` em `Time.`, a correção é escrever `UnityEngine.Time`, e o arquivo volta ao Arquiteto antes de entrar.
+  4. Sem aviso novo do SpellBook no console.
+- Manual: nenhuma página. A regra já está na 4.1 e na ADR 0004.
+- Tamanho: ~50 linhas (8 a 9 linhas nos asmdefs e ~40 no teste), 9 arquivos, com Unity.
 
 ### 0M-32 — `feat(events): EventEmitter e payload próprio de ponta a ponta`
 - **Alterado (revisão sem Odin):**
@@ -1497,6 +1542,11 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
   - `Emitter_NoEmissionOrNoChannel_IsValidationError`.
 - Manual: Eventos, seção **EventEmitter** `{#eventemitter}` (disparo por `UnityEvent` e por animação; o botão entra no 0M-45).
 - Tamanho: ~250 linhas, 8 arquivos.
+- **Emenda (2026-10-30, varredura de lacunas):**
+  - **Sai `Tests/Core/EditMode/Inspector/TypePickerUsageTests.cs`.** A exceção da `EventEmission` já existe (`TypePickerUsageTests.cs:17-18,48-63`), e o teste já cobre o campo do emissor e o da `RaiseEventAction` (0M-37).
+  - **Entra `Tests/Events/EditMode/EmissionHolder.cs`**: o `ScriptableObject` com `[SerializeReference] EventEmission` usado na ida e volta e o struct próprio do `Emission_GenericRoundTrip_Float_AndCustomStruct`. Os tipos de `Tests/Events/PlayMode/TestPayload/` ficam no assembly de PlayMode, que o teste EditMode não enxerga. O holder fica em arquivo próprio pelo mesmo motivo do `PickHolder.cs` (0M-41).
+  - O `EventEmitter` leva `[HelpURL(DocUrls.Events + "#eventemitter")]` (0007). Sem ele, o red do 0M-39 contaria 8 tipos.
+  - Tamanho: ~260 linhas, 8 arquivos.
 
 ### 0M-45 — `feat(events): Inspectors do canal e do emissor e drawer de emissão em UI Toolkit` (novo)
 - **Novo (revisão sem Odin, I45/I46).** Entrega o que o Odin dava por `[Button]`, `[EnableIf]` e `[OnValueChanged]`. Cria o asmdef `SpellBook.Events.Editor`, que antes nascia no 0M-34.
@@ -1525,6 +1575,12 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Risco 27: o red confirma que um drawer de tipo para um campo `[SerializeReference]` de tipo abstrato é usado pela Unity na 6000.0, também com o campo nulo. Se não for, o plano B é um atributo de marcação **no módulo Events** (`[EmissionField]`), não no Core, porque a necessidade é de um módulo só (0026, item 5); isso volta ao Controlador.
 - Manual: Eventos, seções **Canais** (botão Raise, ouvintes, último payload) e **EventEmitter** (escolher o canal recria o payload; botão no Play).
 - Tamanho: ~280 linhas, 8 arquivos.
+- **Emenda (2026-10-30, varredura de lacunas):**
+  - **Entram `Runtime/Events/EventChannel.cs` e `Runtime/Events/AssemblyInfo.cs`** (4.7, "Canal para o Editor"): `BoxedLastPayload`, `RaiseDebugPayload()` e `InternalsVisibleTo("SpellBook.Events.Editor")`. O `LastPayload` e o `debugPayload` são do `EventChannel<T>`, e o editor trabalha com a base.
+  - **O asmdef `SpellBook.Events.Tests.EditMode` ganha `SpellBook.Events.Editor`, `SpellBook.Core.Editor` e `SpellBook.Time`.** O `Core.Editor` é preciso para o `ChannelInspector_IsSpellBookEditor`; o `Time` cumpre a 4.1. Os testes escrevem `UnityEditor.Editor.CreateEditor` e `UnityEngine.Time` (1.7). **Atualização (2026-10-30):** o `SpellBook.Time` já chega pelo 0M-57; aqui entram só o `Events.Editor` e o `Core.Editor`. Arquivos e tamanho não mudam.
+  - O `EventEmissionDrawer` desenha o canal num campo próprio do tipo base `EventChannel`, não num `PropertyField` do campo `channel` (4.7; protege a troca de payload quando o 0M-34 registrar o drawer de canal).
+  - Teste red a mais: `ChannelInspector_Raise_UsesDebugPayload` (em Play, o botão dispara o canal com o `debugPayload`; testado por `RaiseDebugPayload` com um ouvinte).
+  - Tamanho: ~310 linhas, **10 arquivos**.
 
 ### 0M-33 — `feat(events): validação de ouvintes e respostas`
 - **Alterado (revisão sem Odin):** `IValidatable` no lugar de `ISelfValidator`; depende do 0M-43 em vez do 0M-23. A posição na fila não muda.
@@ -1534,6 +1590,10 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Testes red: `Response_NoChannel_IsError`, `Escape_CallWithoutTarget_IsError`, `Escape_CallWithoutMethod_IsError`, `Forward_ReactionWrongType_IsError`, `ValidListener_NoIssues` falham.
 - Manual: Eventos, seção **Validação**.
 - Tamanho: ~150 linhas, 4 arquivos.
+- **Emenda (2026-10-30, varredura de lacunas):**
+  - **Entra `Documentation~/manual/inicio/conceitos.md`.** O "Mapa atual" e a "Regra de dependência" de hoje estão errados desde o 0M-14: dizem que o Core tem eventos e pooling, que as tags estão no GAS e que o GAS depende só do Core. O ticket reescreve as duas seções com o estado do lote: `SpellBook.Core`, `.Time`, `.Tags`, `.Pooling`, `.Events`, `.GAS` (que referencia Core, Tags e Time), `.Core.Editor` e `.Events.Editor`. O `SpellBook.GAS.Bridges` continua no mapa alvo (entra no manual com o 0M-38).
+  - O `Forward_ReactionWrongType_IsError` cobre também um `RaiseChannel` dentro de uma `DelayedReaction` (4.7).
+  - Tamanho: ~150 linhas, **5 arquivos**.
 
 ### 0M-34 — `feat(events): seletor de canal filtrado por payload`
 - **Alterado (revisão sem Odin):** o drawer é UI Toolkit e a descrição do canal fica num `HelpBox`, não num `InfoBox` do Odin. O asmdef `Events.Editor`, a referência de teste e a regra de asmdef já vêm do 0M-45 e saem deste ticket.
@@ -1543,6 +1603,7 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Testes red: `Filter_FloatResponse_OnlyFloatChannels`, `Filter_ForwardReaction_OnlySameType`, `Filter_Void_OnlyVoid` falham.
 - Manual: Eventos, seção **Escolher o canal** (filtro e descrição ao lado).
 - Tamanho: ~200 linhas, 4 arquivos.
+- **Emenda (2026-10-30, varredura de lacunas):** o filtro segue a regra completa da 4.7 (campo `EventChannel<T>`, `ForwardPayload`, `RaiseVoid` → Void, tipo base → todos). Teste red a mais: `Filter_RaiseVoidReaction_OnlyVoid`. Critério a mais: os testes `SetChannel_*` do 0M-45 continuam verdes (o canal da emissão não passa pelo drawer novo). Arquivos e tamanho não mudam.
 
 ### 0M-35 — `feat(events): Event Debugger`
 - **Alterado (revisão sem Odin):** a janela é UI Toolkit (`EditorWindow.CreateGUI`, `ListView`, `ToolbarSearchField`), não `OdinEditorWindow`. O modelo não muda.
@@ -1553,6 +1614,9 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Cenário CA23 no host: canal "PlayerDied", botão com `EventEmitter`, `EventListener` com SetActive num painel; o debugger mostra o disparo com horário e o ouvinte.
 - Manual: **Event Debugger** (abrir, ler a lista, histórico, busca, limpar). **Inferido:** I-d.
 - Tamanho: ~300 linhas, 5 arquivos.
+- **Emenda (2026-10-30, varredura de lacunas):**
+  - o acesso ao `EventChannel.Observed` e ao `LiveChannels` vem do `InternalsVisibleTo` do 0M-45. O `Observed` já tem o emissor desde o 0M-27 (`EventChannel.cs:25`); se o ajuste do hook não for preciso, o `EventChannel.cs` sai da lista;
+  - o quadro vem de `UnityEngine.Time.frameCount` e o horário de `DateTime.Now`, sempre qualificados, porque o `SpellBook.Events.Editor` referencia o `SpellBook.Time` (1.7). Nada lê `Time.time` nem `realtimeSinceStartup` (0014).
 
 ### 0M-36 — `feat(events): Find references de canal`
 - **Alterado (revisão sem Odin):** o botão e a lista de resultados são UI Toolkit. O papel "emite" é lido do canal **dentro** da `EventEmission` (0016, emenda).
@@ -1574,6 +1638,10 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Testes red: `Ability_RaiseVoid_OnceAndListenerReacts`, `Action_IntChannelFixed7_Raises7`, `Action_NoChannel_IsValidationError`, `AsmdefRules_BridgesDoesNotReferencePooling` falham.
 - Manual: GAS, seção **RaiseEventAction** `{#raiseeventaction}` (canal sem payload ou com payload fixo; payload dinâmico no B-004).
 - Tamanho: ~240 linhas, 10 arquivos.
+- **Emenda (2026-10-30, varredura de lacunas):** as referências dos asmdefs ficam explícitas (4.1, dependências públicas do GAS). Arquivos e tamanho não mudam.
+  - `SpellBook.GAS.Bridges`: Core, Tags, Time, GAS, Events.
+  - `SpellBook.GAS.Bridges.Tests.EditMode` e `.PlayMode`: os mesmos, mais `SpellBook.GAS.Bridges`, `SpellBook.Testing` e os dois `TestRunner`.
+  - O `AsmdefRules_BridgesDoesNotReferencePooling` também confere que o Bridges não referencia nenhum `.Editor`.
 
 ### 0M-38 — `feat(core): validar projeto por menu e por teste`
 - **Alterado (revisão sem Odin):**
@@ -1597,6 +1665,10 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
   - R32: o mesmo erro aparece no topo do Inspector do `EventListener` e some ao ligar o canal. Isso só é verificável depois do 0M-50, que dá ao `EventListener` o editor de uma linha; o Examinador registra o cenário no 0M-50.
 - Manual: **Validador** (menu, como ler a janela e o Inspector, regras da 0-M, tipo ausente com link para a seção **Tipo não encontrado** da página Inspector, e a frase de que um tipo próprio sem `SpellBookEditor` só aparece no validador (passou do 0M-53, porque o validador nasce aqui), o teste `Project_HasNoValidationErrors` na suíte do projeto (não há CI de testes, 2026-10-29), como implementar `IValidatable` num tipo próprio).
 - Tamanho: ~280 linhas, 5 arquivos.
+- **Emenda (2026-10-30, varredura de lacunas):**
+  - o asmdef `SpellBook.Core.Tests.EditMode` ganha também `SpellBook.Time` e `SpellBook.Tags` (4.1: a regra da ADR 0004 e as dependências públicas do GAS). O `Validator_ReportsEachR35Error` monta uma `DelayedReaction` e um `PooledSpawnerAsset`. **Atualização (2026-10-30):** o `SpellBook.Time` já chega pelo 0M-57; aqui entra só o `SpellBook.Tags` (e os runtimes que o validador usa). Arquivos e tamanho não mudam;
+  - **entra `Documentation~/manual/inicio/conceitos.md`**: a linha do `SpellBook.GAS.Bridges` no "Mapa atual" e a regra "o Bridges não depende de Pooling" na "Regra de dependência" de hoje;
+  - Tamanho: ~285 linhas, **6 arquivos**.
 
 ### 0M-39 — `docs(gas): HelpURL nos tipos restantes e teste de HelpURL`
 - Arquivos: `Runtime/GAS/Attributes/AttributeSet.cs`, `AttributeDefinition.cs`, `Formulas/SimpleAttributeFormula.cs`, `Formulas/ExpressionFormula.cs`, `Runtime/GAS/Targeting/CircleTargeting.cs`, `MouseTargetingStrategy.cs`, `Runtime/GAS/Effects/GameplayEffect.cs`, `Tests/Core/EditMode/HelpUrlTests.cs`, `Documentation~/manual/modulos/gas.md` (âncoras que faltarem). (`GameplayAbility` recebeu no 0M-37.)
@@ -1605,6 +1677,7 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Testes red: `AllPublicConcreteMbAndSo_HaveHelpUrl` falha (7 tipos sem atributo); `AllHelpUrls_StartWithBase` passa a cobrir todos.
 - Manual: GAS (âncoras e uma linha por tipo, se faltar).
 - Tamanho: ~80 linhas, 9 arquivos.
+- **Emenda (2026-10-30, varredura de lacunas):** o `HelpUrlTests` olha só os assemblies de runtime do pacote (`SpellBook.*` sem `.Tests`, `.Editor` nem `SpellBook.Testing`), como o `TypePickerUsageTests`. Os tipos de teste `TestPayloadEventChannel` (0M-32) e `TestListenerAsset` (0M-36) são SO públicos e concretos sem `[HelpURL]`. Conferido em 2026-10-30: os 7 tipos sem atributo são `AttributeSet`, `AttributeDefinition`, `SimpleAttributeFormula`, `ExpressionFormula`, `CircleTargeting`, `MouseTargetingStrategy` e `GameplayEffect`. O `GameplayAbility` recebe o atributo no 0M-37 e o `EventEmitter` no 0M-32. Arquivos e tamanho não mudam.
 
 ### 0M-49 — `feat(editor): Inspectors de uma linha para Core, Time, Tags e Pooling` (novo, 2ª rodada)
 - **Novo (I48).** Todo tipo do pacote usa o `SpellBookEditor`. Este ticket cobre os módulos de infraestrutura e cria o teste de cobertura.
@@ -1612,7 +1685,7 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
   - `Editor/Core/Inspector/CoreEditors.cs` (`InstantiateSpawnerAsset`);
   - `Editor/Time/SpellBook.Time.Editor.asmdef` (Core, Time, Core.Editor) e `Editor/Time/TimeEditors.cs` (`TimeSourceAsset` com `editorForChildClasses`);
   - `Editor/Tags/SpellBook.Tags.Editor.asmdef` (Core, Tags, Core.Editor) e `Editor/Tags/TagsEditors.cs` (`GameplayTagDefinition`);
-  - `Editor/Pooling/SpellBook.Pooling.Editor.asmdef` (Core, Pooling, Core.Editor) e `Editor/Pooling/PoolingEditors.cs` (`PooledSpawnerAsset`, `PoolManager`, `PoolConfiguration`, `PoolableObject`);
+  - `Editor/Pooling/SpellBook.Pooling.Editor.asmdef` (Core, Pooling, Core.Editor) e `Editor/Pooling/PoolingEditors.cs` (`PooledSpawnerAsset`, `PoolManager`, `PoolConfiguration`, `PoolableObject`, `ComponentPooler`; emenda de 2026-10-30: o `ComponentPooler` é um `MonoBehaviour` público e concreto, `Runtime/Pooling/ComponentPooler.cs:12`, e faltava na lista);
   - `Tests/Core/EditMode/Inspector/SpellBookEditorCoverageTests.cs` (assemblies cobertos: Core, Time, Tags, Pooling; seção 4.10);
   - `Tests/Core/EditMode/Structure/AsmdefRulesTests.cs` (os 3 asmdefs novos e as referências deles).
 - Depende de: 0M-39 (todos os tipos e `[HelpURL]` existem), 0M-48.
@@ -1713,6 +1786,11 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
   - Efeito: memória pequena, mas cresce com o número de prefabs e com as trocas de cena. No Editor, aparece como objeto vazado ao sair do Play Mode.
   - Direção sugerida, a decidir na triagem: o `PoolConfiguration` criado em runtime pertence ao pool, e é destruído junto com o `GameObject` do pool (por exemplo, no `OnDestroy` do `ComponentPooler`, só quando a configuração não é um asset), com um teste EditMode que conta as instâncias de `PoolConfiguration` antes e depois de destruir o pool. É `fix(pooling)`, sem quebra de API.
   - Sem efeito na ordem da 0-M: não bloqueia o 0M-54 nem o 0M-26.
+- Abertas pela varredura de lacunas (2026-10-30), para o usuário (gate parcial: só a Spec):
+  - ~~**Os 6 asmdefs de teste fora da regra da ADR 0004, item 4, que nenhum ticket toca**~~: **alternativa A aprovada pelo usuário em 2026-10-30.** O 0M-57 está na seção 8, logo depois do 0M-31. Ao escrever o ticket, o Arquiteto pôs nele também o `SpellBook.Time` do `Events.Tests.EditMode` e do `Core.Tests.EditMode`, que estavam no 0M-45 e no 0M-38. Sem isso, a guarda deixaria a suíte vermelha até esses tickets. Ficou com 8 asmdefs e o teste: 9 arquivos, ~50 linhas. **Para o usuário confirmar:** a troca de 6 para 8 asmdefs. Se recusar, a saída é uma lista de exceções no teste até o 0M-45 e o 0M-38, que o Arquiteto não recomenda. Registro da decisão original:
+    - **(A) recomendada:** ticket novo **0M-57** `test(core): referências dos asmdefs de teste e guarda da ADR 0004`, logo depois do 0M-31. Arquivos: os 6 asmdefs (`Tags.Tests.EditMode`, `Time.Tests.EditMode`, `Time.Tests.PlayMode`, `Pooling.Tests.EditMode`, `Core.Tests.PlayMode`, `GAS.Tests.EditMode`) e o `AsmdefRulesTests.cs`, com a regra "todo `SpellBook.*.Tests.*` referencia o `SpellBook.Time` e o `SpellBook.Testing`". Red: `AsmdefRules_EveryTestAsmdefReferencesTimeAndTesting` falha listando os 9 asmdefs. ~50 linhas, 7 arquivos, com Unity. Depois dele, a guarda impede o próximo `CS0012` desse tipo, e os ajustes de asmdef de teste do 0M-45 e do 0M-38 continuam valendo (o 0M-57 cobre só os 6 que eles não tocam);
+    - (B) emenda da ADR 0004, item 4: o asmdef de teste referencia o `Time` e o `Testing` só quando o teste usa algum tipo deles. Sem ticket, mas a falta continua aparecendo só no `CS0012`.
+  - **Controlador:** atualizar as issues dos tickets emendados na seção 8 ("Varredura de lacunas"). A do 0M-31 (#32) é a que destrava a fila agora.
 - Abertas pelo D5 (host na 6000.3.13f1, decisão do usuário de 2026-10-29):
   - ~~emenda da ADR 0010~~: **resolvida**, aprovada pelo usuário em 2026-10-29 (consequência do host trocada e seção "Emenda: host local fora da 6000.0");
   - ~~ajuste do CA5 do PRD pelo Criativo~~: **resolvido**. O Criativo ajustou o CA5 (PRD, linha 242) e registrou o D5 no diário;
