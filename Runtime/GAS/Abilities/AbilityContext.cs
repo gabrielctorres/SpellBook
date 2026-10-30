@@ -45,6 +45,28 @@ namespace SpellBook.GAS.Abilities
         }
 
         /// <summary>
+        /// Espera, quadro a quadro, até o <see cref="AbilitySystemComponent.TickedTime"/> do <see cref="Source"/>
+        /// avançar <paramref name="seconds"/>. Não lê o relógio da Unity: com o ASC parado, a espera não anda.
+        /// Termina na hora se <paramref name="seconds"/> não for positivo ou se o ASC for destruído.
+        /// </summary>
+        public IEnumerator WaitSeconds(float seconds)
+        {
+            if (Source == null) yield break;
+
+            double last = Source.TickedTime;
+            double remaining = seconds;
+            while (remaining > 0d)
+            {
+                yield return null;
+                if (Source == null) yield break;
+
+                double now = Source.TickedTime;
+                remaining -= now - last;
+                last = now;
+            }
+        }
+
+        /// <summary>
         /// Inicia uma corrotina paralela no ASC. Ela é interrompida junto se a habilidade for cancelada.
         /// </summary>
         public Coroutine StartChildRoutine(IEnumerator routine)

@@ -27,7 +27,7 @@ namespace SpellBook.GAS.Abilities.Actions
                 if (context.IsCancelled) yield break;
                 yield return RunSequence(Actions, context);
 
-                if (Interval > 0f && i < Count - 1) yield return new WaitForSeconds(Interval);
+                if (Interval > 0f && i < Count - 1) yield return context.WaitSeconds(Interval);
             }
         }
     }

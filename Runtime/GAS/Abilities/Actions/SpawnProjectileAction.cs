@@ -102,7 +102,7 @@ namespace SpellBook.GAS.Abilities.Actions
 
                 if (DelayBetweenShots > 0 && i < ProjectileCount - 1)
                 {
-                    yield return new WaitForSeconds(DelayBetweenShots);
+                    yield return context.WaitSeconds(DelayBetweenShots);
                 }
             }
 

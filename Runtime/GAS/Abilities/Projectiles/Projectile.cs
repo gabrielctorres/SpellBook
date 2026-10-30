@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using SpellBook.Core;
@@ -53,7 +52,7 @@ namespace SpellBook.GAS.Abilities.Projectiles
         public Transform Target; 
 
         [Header("Time")]
-        [Tooltip("Fonte de tempo do movimento. Vazio usa o tempo escalado da Unity.")]
+        [Tooltip("Fonte de tempo do movimento, do Lifetime e da InitialInvulnerabilityDuration. Vazio usa o tempo escalado da Unity.")]
         [SerializeField] private TimeSourceAsset timeSource;
 
         // O que o projétil fará ao colidir
@@ -76,6 +75,10 @@ namespace SpellBook.GAS.Abilities.Projectiles
         protected bool _shouldMove = true;
         protected bool _spawnerIsFacingRight;
         protected bool _isInvulnerable = false;
+        /// <summary>Segundos de vida e de invulnerabilidade que faltam, contados no <c>FixedUpdate</c> pela fonte de tempo.</summary>
+        private float _lifetimeRemaining;
+        private float _invulnerabilityRemaining;
+        private bool _released;
         /// <summary>Delta do último <c>FixedUpdate</c>, lido da fonte de tempo por diferença.</summary>
         protected float _deltaTime;
         private double _timeCursor;
@@ -118,11 +121,10 @@ namespace SpellBook.GAS.Abilities.Projectiles
             _timeCursor = TimeSource.ElapsedTime;
             _deltaTime = 0f;
             Initialization();
-            if (Lifetime > 0) StartCoroutine(AutoReturnToPool(Lifetime));
-            if (InitialInvulnerabilityDuration > 0)
-            {
-                StartCoroutine(InitialInvulnerability());
-            }
+            _lifetimeRemaining = Lifetime > 0f ? Lifetime : float.PositiveInfinity; // Lifetime <= 0: sem limite
+            _invulnerabilityRemaining = InitialInvulnerabilityDuration;
+            if (_invulnerabilityRemaining > 0f) _isInvulnerable = true; // sem contador, a flag fica com a subclasse
+            _released = false;
         }
 
         protected virtual void Initialization()
@@ -138,25 +140,25 @@ namespace SpellBook.GAS.Abilities.Projectiles
             if (_collider2D != null) _collider2D.enabled = true;
         }
 
-        protected virtual IEnumerator InitialInvulnerability()
-        {
-            _isInvulnerable = true;
-            yield return new WaitForSeconds(InitialInvulnerabilityDuration);
-            _isInvulnerable = false;
-        }
-
-        private IEnumerator AutoReturnToPool(float delay)
-        {
-            yield return new WaitForSeconds(delay);
-            ReturnToPool();
-        }
-
         protected virtual void FixedUpdate()
         {
             // Consumo por diferença (ADR 0014); dentro do FixedUpdate o relógio escalado é o de física
             double now = TimeSource.ElapsedTime;
             _deltaTime = (float)(now - _timeCursor);
             _timeCursor = now;
+
+            if (_invulnerabilityRemaining > 0f)
+            {
+                _invulnerabilityRemaining -= _deltaTime;
+                if (_invulnerabilityRemaining <= 0f) _isInvulnerable = false;
+            }
+
+            _lifetimeRemaining -= _deltaTime;
+            if (_lifetimeRemaining <= 0f)
+            {
+                ReturnToPool();
+                return;
+            }
 
             if (_shouldMove)
             {
@@ -275,8 +277,10 @@ namespace SpellBook.GAS.Abilities.Projectiles
 
         public virtual void ReturnToPool()
         {
-            if (!gameObject.activeInHierarchy) return;
-            
+            // O spawner pode desativar só no fim do quadro: volta uma vez só até o próximo OnEnable
+            if (_released || !gameObject.activeInHierarchy) return;
+            _released = true;
+
             _shouldMove = false;
             if (_collider != null) _collider.enabled = false;
             if (_collider2D != null) _collider2D.enabled = false;
