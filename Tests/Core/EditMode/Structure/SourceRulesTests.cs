@@ -9,6 +9,7 @@ namespace SpellBook.Core.Tests.Structure
     /// <summary>
     /// Regras sobre os fontes e os tipos do pacote. Os três sistemas de eventos da 2.x
     /// foram removidos (CA25); <c>Void</c> e <c>RuntimeSet&lt;T&gt;</c> ficam no namespace do Core.
+    /// Fora do módulo Pooling, ninguém usa o singleton do pool (CA30; ADR 0015).
     /// </summary>
     public class SourceRulesTests
     {
@@ -20,6 +21,11 @@ namespace SpellBook.Core.Tests.Structure
         };
 
         private static readonly string[] OldEventTypeNames = { "GameEventListner", "EventManager", "GameEvent" };
+
+        // Montado por partes: este arquivo também é lido pela regra.
+        private const string PoolSingleton = "PoolManager" + ".Instance";
+
+        private static readonly string[] ScannedFolders = { "Runtime", "Editor", "Tests" };
 
         [Test]
         public void OldEventFoldersDoNotExist()
@@ -46,6 +52,18 @@ namespace SpellBook.Core.Tests.Structure
             Assert.That(found, Is.Empty);
         }
 
+        [Test]
+        public void NoPoolManagerInstanceOutsidePooling()
+        {
+            List<string> violations = ScannedFolders
+                .SelectMany(folder => PackageFiles.Find(folder, ".cs"))
+                .Where(path => !IsInPoolingModule(path))
+                .Where(path => PackageFiles.ReadText(path).Contains(PoolSingleton))
+                .ToList();
+
+            Assert.That(violations, Is.Empty);
+        }
+
         [TestCase("SpellBook.Core.Void")]
         [TestCase("SpellBook.Core.RuntimeSet`1")]
         public void CoreUtility_IsInCoreNamespace(string fullName)
@@ -53,6 +71,12 @@ namespace SpellBook.Core.Tests.Structure
             Type type = typeof(DocUrls).Assembly.GetType(fullName);
 
             Assert.That(type, Is.Not.Null, $"{fullName} não existe no assembly SpellBook.Core.");
+        }
+
+        /// <summary>Uma pasta <c>Pooling</c> no caminho: hoje <c>Runtime/Systems/Pooling</c>, a partir do 0M-23 <c>Runtime/Pooling</c>.</summary>
+        private static bool IsInPoolingModule(string relativePath)
+        {
+            return relativePath.Split('/').Contains("Pooling");
         }
     }
 }

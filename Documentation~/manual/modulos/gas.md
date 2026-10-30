@@ -57,15 +57,29 @@ os efeitos ativos e as tags de um personagem. Veja a seção [Ciclo de vida](#ci
 - **WaitAction:** pausa a execução por X segundos.
 - **TargetingAction:** busca alvos usando uma estratégia (Raio, Mouse...). `Mode` Replace substitui os alvos atuais, Append adiciona.
 - **ApplyEffectAction:** aplica GameplayEffects aos alvos ou ao conjurador.
-- **PlayCueAction:** dispara efeitos visuais e sonoros.
+- **PlayCueAction:** dispara efeitos visuais e sonoros (veja [Ações de spawn](#acoes-de-spawn)).
 - **AnimationAction:** altera parâmetros (Trigger, Bool, Int) no Animator do personagem.
-- **SpawnProjectileAction:** dispara projéteis (detalhes em [SpawnProjectileAction](#projectile)).
+- **SpawnProjectileAction:** dispara projéteis (detalhes em [Projéteis](#projectile)).
 - **RepeatAction:** repete uma lista de ações N vezes, com intervalo opcional.
 - **ParallelAction:** executa várias ações ao mesmo tempo e espera todas terminarem.
 - **ConditionalAction:** executa `Then` ou `Else` conforme tags do conjurador ou existência de alvos.
 
-#### SpawnProjectileAction {#projectile}
-Dispara projéteis. As `OnHitActions` rodam no impacto com um contexto derivado (mesma habilidade e nível).
+#### Projéteis {#projectile}
+A `SpawnProjectileAction` dispara projéteis: cria o `ProjectilePrefab` pelo campo `Spawner` e chama `Setup` no componente `Projectile`. As `OnHitActions` rodam no impacto com um contexto derivado (mesma habilidade e nível).
+
+- **`Setup(SpawnerAsset spawner, AbilityContext parentContext, List<AbilityAction> onHitActions)`** guarda o spawner que criou o projétil. Há uma sobrecarga com `AbilitySystemComponent` no lugar do contexto.
+- **`ReturnToPool()`** devolve o projétil por esse mesmo spawner (`spawner.Release`). Sem spawner, ele volta pelo `SpawnerAsset.Default`, que destrói a instância.
+- O `Projectile` reinicia o estado no `OnEnable`, que roda tanto no `Instantiate` quanto ao sair de um pool. Ele não implementa mais o `IPoolable`.
+
+#### Ações de spawn {#acoes-de-spawn}
+`SpawnProjectileAction`, `PlayCueAction` e `SpawnVFXEffectAction` (ação de efeito) criam objetos só pelo campo **`Spawner`**, um [`SpawnerAsset`](pooling.md#spawnerasset). Vazio usa o spawner padrão, por `Instantiate`. Elas não procuram nenhum `PoolManager` na cena, então funcionam numa cena sem ele.
+
+- **`SpawnProjectileAction`:** o projétil volta pelo mesmo spawner ([Projéteis](#projectile)).
+- **`SpawnVFXEffectAction`:** com `DestroyOnRemoval`, o VFX volta pelo spawner quando o efeito é removido. Sem `DestroyOnRemoval`, um VFX com `ParticleSystem` na raiz volta quando a partícula para ([`ReleaseWhenParticlesStop`](pooling.md#releasewhenparticlesstop)).
+- **`PlayCueAction`:** cria o VFX pelo spawner e toca o som com `AudioSource.PlayClipAtPoint`.
+
+!!! warning "Armadilha: o VFX do `PlayCueAction` não volta"
+    O `PlayCueAction` não devolve o VFX ao spawner. Com o padrão por `Instantiate`, o VFX precisa se destruir sozinho (por exemplo, `Stop Action` = `Destroy` na partícula). Com um spawner de pool, o pool cresce a cada uso. Isso continua assim até o módulo Cues.
 
 ### 3.1 Criando ações próprias {#acoes-proprias}
 Herde de `AbilityAction` e implemente `IEnumerator Execute(AbilityContext context)`.

@@ -125,6 +125,20 @@ namespace SpellBook.Testing
             return ability;
         }
 
+        /// <summary>
+        /// Contexto de habilidade com o <paramref name="source"/> como conjurador, sem habilidade e nível 1,
+        /// como o de uma ação rodada fora da ativação. Os <paramref name="targets"/> entram em <c>Targets</c>.
+        /// </summary>
+        public static AbilityContext CreateAbilityContext(
+            AbilitySystemComponent source,
+            Vector3 targetPosition,
+            params AbilitySystemComponent[] targets)
+        {
+            var context = new AbilityContext(source, targetPosition);
+            context.Targets.AddRange(targets);
+            return context;
+        }
+
         /// <summary>Liga ou desliga o <c>autoTick</c> do ASC, campo privado serializado, como o Inspector faria.</summary>
         public static void SetAutoTick(AbilitySystemComponent asc, bool autoTick)
         {

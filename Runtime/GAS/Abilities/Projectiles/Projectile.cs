@@ -5,17 +5,16 @@ using UnityEngine;
 using SpellBook.Core;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Abilities;
-using SpellBook.Systems.Pooling;
 using SpellBook.Time;
 
 namespace SpellBook.GAS.Abilities.Projectiles
 {
     /// <summary>
     /// Projétil universal (2D/3D) inspirado no TopDown Engine.
-    /// Utiliza o sistema de ComponentPooler para performance.
+    /// Volta pelo <see cref="SpawnerAsset"/> recebido no <c>Setup</c> e reinicia o estado no <c>OnEnable</c> (ADR 0015).
     /// </summary>
     [HelpURL(DocUrls.Gas + "#projectile")]
-    public class Projectile : MonoBehaviour, IPoolable
+    public class Projectile : MonoBehaviour
     {
         public enum MovementVectors { Forward, Right, Up }
 
@@ -61,8 +60,8 @@ namespace SpellBook.GAS.Abilities.Projectiles
         [HideInInspector] public List<AbilityAction> OnHitActions;
         [HideInInspector] public AbilitySystemComponent Source;
         
-        // Referência ao Pool local que o criou para retornar corretamente
-        protected ComponentPooler _originPool;
+        // Spawner que criou o projétil; vazio volta pelo SpawnerAsset.Default
+        protected SpawnerAsset _spawner;
 
         protected Vector3 _movement;
         protected float _initialSpeed;
@@ -100,17 +99,17 @@ namespace SpellBook.GAS.Abilities.Projectiles
         // Contexto da habilidade que disparou o projétil (habilidade e nível são herdados no impacto)
         protected AbilityContext _parentContext;
 
-        public void Setup(ComponentPooler pool, AbilitySystemComponent source, List<AbilityAction> onHitActions)
+        public void Setup(SpawnerAsset spawner, AbilitySystemComponent source, List<AbilityAction> onHitActions)
         {
-            _originPool = pool;
+            _spawner = spawner;
             Source = source;
             OnHitActions = onHitActions;
             _parentContext = null;
         }
 
-        public void Setup(ComponentPooler pool, AbilityContext parentContext, List<AbilityAction> onHitActions)
+        public void Setup(SpawnerAsset spawner, AbilityContext parentContext, List<AbilityAction> onHitActions)
         {
-            Setup(pool, parentContext?.Source, onHitActions);
+            Setup(spawner, parentContext?.Source, onHitActions);
             _parentContext = parentContext;
         }
 
@@ -283,22 +282,7 @@ namespace SpellBook.GAS.Abilities.Projectiles
             if (_collider2D != null) _collider2D.enabled = false;
 
             StopAllCoroutines();
-            if (_originPool != null)
-            {
-                _originPool.ReturnToPool(this.gameObject);
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
-        }
-
-        // IPoolable Implementation
-        public virtual void OnSpawnFromPool() { }
-
-        public virtual void OnReturnToPool()
-        {
-            StopAllCoroutines();
+            SpawnerAsset.OrDefault(_spawner).Release(gameObject);
         }
 
         protected virtual void OnTriggerEnter(Collider other)

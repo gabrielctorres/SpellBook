@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
-using SpellBook.Systems.Pooling;
+using SpellBook.Core;
 
 namespace SpellBook.GAS.Abilities.Actions
 {
@@ -9,6 +9,8 @@ namespace SpellBook.GAS.Abilities.Actions
     public class PlayCueAction : AbilityAction
     {
         public GameObject VFX_Prefab;
+        [Tooltip("Cria o VFX. Vazio usa o spawner padrão, por Instantiate. O VFX não é devolvido (até o módulo Cues).")]
+        public SpawnerAsset Spawner;
         public AudioClip SFX_Clip;
 
         [Header("Location Configuration")]
@@ -34,8 +36,8 @@ namespace SpellBook.GAS.Abilities.Actions
 
             if (VFX_Prefab)
             {
-                var vfx = PoolManager.Instance.Get(VFX_Prefab, spawnPos, Quaternion.identity);
-                if (AttachToTransform && parent != null) vfx.transform.SetParent(parent);
+                // parent só é preenchido com AttachToTransform ligado
+                SpawnerAsset.OrDefault(Spawner).Spawn(VFX_Prefab, spawnPos, Quaternion.identity, parent);
             }
 
             if (SFX_Clip) AudioSource.PlayClipAtPoint(SFX_Clip, spawnPos);

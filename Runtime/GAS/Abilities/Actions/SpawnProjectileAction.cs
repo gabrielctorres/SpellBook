@@ -1,11 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using SpellBook.Core;
 using SpellBook.Core.Inspector;
 using UnityEngine;
 using SpellBook.GAS.Effects;
 using SpellBook.GAS.Abilities.Projectiles;
-using SpellBook.Systems.Pooling;
 
 namespace SpellBook.GAS.Abilities.Actions
 {
@@ -16,7 +16,9 @@ namespace SpellBook.GAS.Abilities.Actions
 
         [Header("Projectile Prefab")]
         public GameObject ProjectilePrefab;
-        
+        [Tooltip("Cria e devolve os projéteis. Vazio usa o spawner padrão, por Instantiate.")]
+        public SpawnerAsset Spawner;
+
         [Header("Impact Payload")]
         [SerializeReference]
         [TypePicker]
@@ -50,6 +52,7 @@ namespace SpellBook.GAS.Abilities.Actions
             Vector3 targetDir = (context.TargetPosition - spawnBasePos).normalized;
             if (targetDir == Vector3.zero) targetDir = forward;
 
+            SpawnerAsset spawner = SpawnerAsset.OrDefault(Spawner);
             float startAngle = -SpreadAngle / 2f;
             float angleStep = (ProjectileCount > 1) ? SpreadAngle / (ProjectileCount - 1) : 0f;
 
@@ -76,14 +79,12 @@ namespace SpellBook.GAS.Abilities.Actions
                     finalDirection = finalRotation * Vector3.right;
                 }
 
-                // SOLICITA AO MANAGER (Ele gerencia os poolers internamente por prefab)
-                GameObject projObj = PoolManager.Instance.Get(ProjectilePrefab, spawnBasePos, finalRotation);
-                
+                GameObject projObj = spawner.Spawn(ProjectilePrefab, spawnBasePos, finalRotation);
+
                 if (projObj.TryGetComponent<Projectile>(out var projScript))
                 {
-                    // Busca o pooler específico para este projétil para que ele saiba onde voltar
-                    var pooler = PoolManager.Instance.GetPooler(ProjectilePrefab);
-                    projScript.Setup(pooler, context, OnHitActions);
+                    // O projétil volta pelo mesmo spawner que o criou (ADR 0015)
+                    projScript.Setup(spawner, context, OnHitActions);
 
                     // Determina se o spawner está virado para a direita (baseado no forward do transform)
                     bool spawnerFacingRight = context.Source.transform.right.x > 0;
