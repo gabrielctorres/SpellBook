@@ -8,8 +8,8 @@ os eventos precisa referenciar o `SpellBook.Events`. Veja [Conceitos](../inicio/
 
 !!! note "Em desenvolvimento"
     Nesta versão de desenvolvimento da 3.0, o módulo tem o barramento de código (`EventBus<T>`)
-    e os canais Void, Int e Float. Os outros canais, o componente ouvinte e o emissor chegam nas
-    próximas etapas.
+    e os canais Void, Int, Float, Bool, String, Vector3 e GameObject. O componente ouvinte e o
+    emissor chegam nas próximas etapas.
 
 ## Três usos e uma regra {#tres-usos}
 
@@ -94,6 +94,13 @@ No Project, **Create > SpellBook > Events** e escolha o tipo:
 | Void Channel | [`VoidEventChannel`](#voideventchannel) | nenhum |
 | Int Channel | [`IntEventChannel`](#inteventchannel) | `int` |
 | Float Channel | [`FloatEventChannel`](#floateventchannel) | `float` |
+| Bool Channel | [`BoolEventChannel`](#booleventchannel) | `bool` |
+| String Channel | [`StringEventChannel`](#stringeventchannel) | `string` |
+| Vector3 Channel | [`Vector3EventChannel`](#vector3eventchannel) | `Vector3` |
+| GameObject Channel | [`GameObjectEventChannel`](#gameobjecteventchannel) | `GameObject` |
+
+Não há canal de `Component`. Para avisar sobre um componente, use o
+[`GameObjectEventChannel`](#gameobjecteventchannel) e leia o componente no objeto recebido.
 
 No Inspector do canal:
 
@@ -154,6 +161,25 @@ Canal com payload `int`, como uma quantidade ou um índice.
 ### FloatEventChannel {#floateventchannel}
 
 Canal com payload `float`, como uma porcentagem ou uma duração.
+
+### BoolEventChannel {#booleventchannel}
+
+Canal com payload `bool`, como ligado e desligado ou pausado e em jogo.
+
+### StringEventChannel {#stringeventchannel}
+
+Canal com payload `string`, como um identificador ou uma mensagem. Montar a string a cada disparo
+aloca memória; prefira strings fixas num disparo que acontece todo quadro.
+
+### Vector3EventChannel {#vector3eventchannel}
+
+Canal com payload `Vector3`, como uma posição ou uma direção.
+
+### GameObjectEventChannel {#gameobjecteventchannel}
+
+Canal com payload `GameObject`, como o objeto que morreu ou que foi coletado. O ouvinte lê o
+componente de que precisa no objeto recebido. Um objeto destruído antes do disparo chega como
+`null` para o Unity: confira antes de usar.
 
 ### Armadilhas {#canais-armadilhas}
 
