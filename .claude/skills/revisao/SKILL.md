@@ -11,6 +11,7 @@ Revise o ticket: $ARGUMENTS
    - até 10 arquivos: caminhos distintos no diff, e um arquivo movido conta uma vez;
    - `.meta` não conta; páginas de `Documentation~/manual/` e fixtures contam só nos arquivos;
    - remoção pura (arquivo apagado por inteiro, sem substituto no mesmo ticket) não conta em nenhum dos dois, mas é revisada pela lista de caminhos.
+   - movimento puro (arquivo movido sem alteração de conteúdo, `R100` no `git diff -M --name-status`) conta 1 linha e fica fora dos 10 arquivos; confira com `git diff -M --name-status`;
    - ticket em paralelo (emenda de 2026-10-29 da ADR 0003): só é aceito se não usa a Unity nem a trava, se o par está marcado na Spec e se não toca arquivo do outro ticket em andamento.
 2. **Checar quatro eixos.** Cada eixo vale 25%:
    - **Padrões:** regras do `CLAUDE.md` (C#, Unity, testes, segurança), `.meta` presentes, sem suppressions, sem dependência nova.
@@ -20,7 +21,7 @@ Revise o ticket: $ARGUMENTS
 3. **Testes** (ADR 0005). Ticket sem Unity (docs, processo): rode o critério verificável do ticket e não crie a trava. Ticket com Unity:
    1. Se `.claude/editor.lock` existir, não rode: avise o Controlador e reprove com "testes não executados (lock ativo)".
    2. Senão, crie a trava com uma linha `examinador; <ticket>; <horário ISO-8601>; <caminho do host>`.
-   3. Rode os testes em batchmode no host `HostProject~/`, como em `/implementar`, e cole o resumo (total, passou, falhou). Não abra o Editor interativo e não altere assets.
+   3. Rode os testes em batchmode no projeto da raiz, como em `/implementar`, e cole o resumo (total, passou, falhou). Não abra o Editor interativo e não altere assets.
    4. Remova a trava, também em caso de erro.
 4. **Veredito.**
 
