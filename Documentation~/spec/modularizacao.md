@@ -503,7 +503,7 @@ O Setup sem Odin foi **cancelado**: não existe `SpellBook.Setup.Editor` nem `Od
 | Instalação | `manual/inicio/instalacao.md` | 0M-08 (com a seção Compatibilidade, D5) | — |
 | Conceitos (mapa de módulos, três usos de evento, seletor de tipo e `[ShowIf]`) | `manual/inicio/conceitos.md` | 0M-12 | 0M-24, 0M-26, 0M-40 |
 | Inspector do SpellBook (seletor de tipo, tipo ausente, `[MovedFrom]` para tipos do usuário, `[ShowIf]`, ambiguidade com outros pacotes) | `manual/inicio/inspector.md` | 0M-42 | 0M-46, 0M-48 (validação no topo, botão Revalidar), 0M-53 (tipo ausente no topo, seção **Tipo não encontrado**), 0M-50 (como herdar de `SpellBookEditor` nos tipos do usuário) |
-| Migração 2.x → 3.0 | `manual/regras/migracao-2-para-3.md` | 0M-12 (já com a linha "o pacote não depende mais do Odin; perdas no Inspector do GAS", do 0M-44) | 0M-15, 0M-16, 0M-19, 0M-21, 0M-23, 0M-25 |
+| Migração 2.x → 3.0 | `manual/regras/migracao-2-para-3.md` | 0M-12 (já com a linha "o pacote não depende mais do Odin; perdas no Inspector do GAS", do 0M-44) | 0M-15, 0M-16, 0M-19, 0M-21, 0M-25, 0M-40 (linha de Pooling, emenda de 2026-10-30) |
 | GAS | `manual/modulos/gas.md` | 0M-10 | 0M-12, 0M-19, 0M-21, 0M-22, 0M-37, 0M-39 |
 | Tags | `manual/modulos/tags.md` | 0M-16 | — |
 | Tempo | `manual/modulos/tempo.md` | 0M-17 | 0M-18 |
@@ -1199,7 +1199,8 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Depende de: 0M-21, 0M-43.
 - CAs: CA28, CA35 (parte: regra do `PooledSpawnerAsset`), CA6 (parte), CA32 (parte).
 - Testes red: `Pooled_NoPoolManager_SpawnsWithoutException`, `Pooled_ReleaseThenSpawn_ReusesSameInstance`, `Pooled_ReleaseNonPooled_Destroys` e `Pooled_NegativeInitialSize_IsValidationError` falham (o tipo não existe). O último chama `Validate(new ValidationResult(asset))` e confere um erro com `PropertyPath == "initialSize"`.
-- Manual: Pooling, seções **PooledSpawnerAsset**, **PoolManager (pré-aquecimento)** e **ComponentPooler/IPoolable**; Migração recebe a linha do namespace no próximo ticket que edita a página (0M-25). **Inferido:** I-c.
+- Manual: Pooling, seções **PooledSpawnerAsset**, **PoolManager (pré-aquecimento)** e **ComponentPooler/IPoolable**. **Inferido:** I-c.
+- **Emenda (2026-10-30):** a linha da Migração (`SpellBook.Systems.Pooling.*` → `SpellBook.Pooling.*`, menu `PoolingSystem/...` → `SpellBook/Pooling/...`) não entra aqui, porque o ticket já tem 10 arquivos e a ADR 0003 não tem exceção. Também não entra no 0M-25: ele é feito antes deste ticket, quando o namespace novo ainda não existe. A linha vai para o 0M-40, o primeiro ticket depois deste com folga no limite e garantidamente posterior (depende do 0M-50). Até lá a Migração fica sem a linha de Pooling; a quebra continua registrada na seção 7.
 - Tamanho: ~200 linhas de código novo; os 5 arquivos movidos contam pela diferença real (namespace, menu e `[HelpURL]`, ~30 linhas). 10 arquivos.
 
 ### 0M-24 — `refactor(core)!: MathTools como classe estática no Core`
@@ -1211,7 +1212,7 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Tamanho: ~150 linhas, 4 arquivos.
 
 ### 0M-25 — `refactor(events)!: remover os três sistemas de eventos antigos`
-- Arquivos (decisão I42: arquivos apagados por inteiro, sem substituto, não contam no limite de arquivos nem no de linhas): apagar `Runtime/Core/Events/**` (2), `Runtime/Core/NewEventSystem/**` (18, exceto `Void.cs`), `Runtime/Systems/Events/**` (4); mover `Runtime/Core/NewEventSystem/Void.cs` → `Runtime/Core/Void.cs` (namespace `SpellBook.Core`); `Runtime/Core/Sets/RuntimeSet.cs` (namespace `SpellBook.Core`); `Tests/Core/EditMode/Structure/SourceRulesTests.cs`; `Documentation~/manual/regras/migracao-2-para-3.md` (tabela de eventos, Pooling, MathTools, `Void`, `RuntimeSet`). Contam no limite: 4 arquivos (as 24 remoções puras ficam listadas no PR, fora da contagem).
+- Arquivos (decisão I42: arquivos apagados por inteiro, sem substituto, não contam no limite de arquivos nem no de linhas): apagar `Runtime/Core/Events/**` (2), `Runtime/Core/NewEventSystem/**` (18, exceto `Void.cs`), `Runtime/Systems/Events/**` (4); mover `Runtime/Core/NewEventSystem/Void.cs` → `Runtime/Core/Void.cs` (namespace `SpellBook.Core`); `Runtime/Core/Sets/RuntimeSet.cs` (namespace `SpellBook.Core`); `Tests/Core/EditMode/Structure/SourceRulesTests.cs`; `Documentation~/manual/regras/migracao-2-para-3.md` (tabela de eventos, MathTools, `Void`, `RuntimeSet`; a linha de Pooling saiu na emenda de 2026-10-30 e foi para o 0M-40). Contam no limite: 4 arquivos (as 24 remoções puras ficam listadas no PR, fora da contagem).
 - Depende de: 0M-12, 0M-24.
 - CAs: CA25, R22.
 - Testes red: `OldEventFoldersDoNotExist`, `NoTypeNamed_GameEventListner_EventManager_GameEvent` falham.
@@ -1439,13 +1440,13 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Tamanho: ~150 linhas, 6 arquivos.
 
 ### 0M-40 — `refactor(core)!: Core em Runtime/Core e verificação final da estrutura`
-- Arquivos: `Runtime/SpellBook.Core.asmdef` → `Runtime/Core/SpellBook.Core.asmdef` (com o `.meta`, GUID mantido; as pastas vazias `Runtime/Systems`, `Runtime/MathTools` e os `.meta` delas somem), `Tests/Core/EditMode/Structure/AsmdefRulesTests.cs` (lista completa do CA1 e do CA32), `Tests/Core/EditMode/ManualLinksTests.cs`, `HostProject~/Assets/Scenarios/C1/C1.PoolingOnly.asmdef` (refs só Core e Pooling), `HostProject~/Assets/Scenarios/C1/C1PoolingUsage.cs`, `Documentation~/manual/inicio/conceitos.md` (mapa final), `Documentation~/manual/index.md`.
+- Arquivos: `Runtime/SpellBook.Core.asmdef` → `Runtime/Core/SpellBook.Core.asmdef` (com o `.meta`, GUID mantido; as pastas vazias `Runtime/Systems`, `Runtime/MathTools` e os `.meta` delas somem), `Tests/Core/EditMode/Structure/AsmdefRulesTests.cs` (lista completa do CA1 e do CA32), `Tests/Core/EditMode/ManualLinksTests.cs`, `HostProject~/Assets/Scenarios/C1/C1.PoolingOnly.asmdef` (refs só Core e Pooling), `HostProject~/Assets/Scenarios/C1/C1PoolingUsage.cs`, `Documentation~/manual/inicio/conceitos.md` (mapa final), `Documentation~/manual/index.md`, `Documentation~/manual/regras/migracao-2-para-3.md` (linha de Pooling, emenda de 2026-10-30).
 - Depende de: 0M-50.
 - CAs: CA1, CA32, CA54, CA6, N4.
 - **Alterado (revisão sem Odin):** a lista final do CA1 não tem `SpellBook.Setup.Editor`. Tem `SpellBook.Core.Editor`, `.Events.Editor`, `.Time.Editor`, `.Tags.Editor`, `.Pooling.Editor` e `.GAS.Editor`. Depende do 0M-50, não mais do 0M-39. O `NoOdinTests` e o `SpellBookEditorCoverageTests` continuam verdes depois do movimento.
 - Testes red: `AsmdefRules_CoreAsmdefInRuntimeCore` falha (asmdef ainda na raiz de `Runtime/`); `AllExpectedAssembliesExist` e `EachRuntimeModuleHasEditModeTests` são guardas finais; `EveryHelpUrlHasPageAndAnchor` e `NoStubPages` são guardas (red mostrado removendo uma âncora localmente). CA6: o host compila o cenário C1 (ao rodar a suíte no host; sem CI desde 2026-10-29).
-- Manual: Conceitos (mapa final com as referências permitidas) e O que é (lista final de módulos).
-- Tamanho: ~150 linhas, 7 arquivos.
+- Manual: Conceitos (mapa final com as referências permitidas), O que é (lista final de módulos) e Migração (linha `SpellBook.Systems.Pooling.*` → `SpellBook.Pooling.*` e menu `PoolingSystem/...` → `SpellBook/Pooling/...`, vinda do 0M-23/0M-25 pela emenda de 2026-10-30).
+- Tamanho: ~150 linhas, 8 arquivos.
 
 ---
 
