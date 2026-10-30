@@ -50,7 +50,7 @@ O projeto host local na raiz do repositório (pastas `Assets/`, `Packages/`, `Pr
   
   O host antigo na raiz (pastas já ignoradas pelo git) não é apagado por nenhum ticket. (Emendado em 2026-10-29; ver a emenda do host antigo abaixo.)
 - **Odin no host e no CI:** local no host; no CI, baixado de um local privado por secret (0025, decisão I33), condicionado à licença do Odin (PRD P21).
-- **CI:** existe, com GameCI, na 6000.0 e na última 6000.x (decisão I30, 0010). A licença da Unity entra como secret do repositório (`UNITY_LICENSE`, `UNITY_EMAIL`, `UNITY_PASSWORD`).
+- ~~**CI:** existe, com GameCI, na 6000.0 e na última 6000.x (decisão I30, 0010). A licença da Unity entra como secret do repositório (`UNITY_LICENSE`, `UNITY_EMAIL`, `UNITY_PASSWORD`).~~ (Revogado pela emenda "sem CI de testes" abaixo.)
 - **Testes de ciclo de vida** (decisão técnica): em EditMode, `AddComponent` não chama `Awake`/`OnEnable`. Por isso testes que dependem de `Awake`, `OnEnable`, `OnDisable` ou `Update` (ASC, `EventListener`, `Projectile`) ficam no asmdef `PlayMode`; o código de produção não ganha inicialização preguiçosa só para caber em EditMode.
 - **Testes de guarda:** testes estruturais que verificam uma regra já cumprida (por exemplo, nenhum runtime referencia `UnityEditor`) não têm red natural. A Spec os marca como "guarda"; o red é mostrado uma vez apontando o teste para um alvo que viola a regra (por exemplo, um asmdef temporário), sem commitar esse alvo.
 
@@ -70,6 +70,10 @@ Esta emenda vale quando a 0026 for aceita. As decisões I45 a I47 do usuário su
 ## Emenda (2026-10-29): host antigo fora do repositório
 
 Decisão do usuário, a partir do 0M-06: o `file:../..` do host aponta para a raiz do repositório, que é a pasta do pacote. Ali ainda estava o host antigo (`Assets/`, `Library/`, `Packages/`, `ProjectSettings/`, `UserSettings/`, `Logs/`), ignorado pelo git mas presente no disco, e a Unity o importaria como conteúdo do `com.spellbook`. O host antigo foi movido, sem ser apagado, para `C:/Users/gabri/MeusProjetos/SpellBook-host-antigo/`. A frase "o host antigo na raiz não é apagado por nenhum ticket" continua valendo para a cópia movida. Regra nova: a raiz do repositório não pode ter projeto Unity, porque ela é a pasta do pacote; o único host é o `HostProject~/`.
+
+## Emenda (2026-10-29): sem CI de testes
+
+Decisão do usuário (2026-10-29, emenda da 0010 com o mesmo nome): o item "**CI:** existe, com GameCI, na 6000.0 e na última 6000.x" deixa de valer. Não há workflow de testes nem secrets da Unity no repositório. A prova de um ticket é a saída da suíte no host `HostProject~/`, rodada pela Fábrica e conferida pelo Examinador. O resto desta ADR não muda.
 
 ## Em aberto
 

@@ -9,11 +9,13 @@ ADRs: 0001, 0002, 0003, 0004, 0005, 0006 (Adiada), 0007, 0008, 0009, 0010, 0011 
 > - remove o Odin dos 8 arquivos atuais logo depois do host (0M-44);
 > - cria a infraestrutura de testes com a guarda "nenhum Sirenix" (0M-07);
 > - cria o seletor de tipo para `[SerializeReference]` (catálogo no 0M-41, popup UI Toolkit no 0M-47, drawer no 0M-42), o `[ShowIf]` (0M-46), a interface de validação (0M-43), o Inspector base `SpellBookEditor` com validação no topo (0M-48) e o tipo ausente no topo dele (0M-53; relatado por objeto, D6), os Inspectors do Events (0M-45) e um `[CustomEditor]` de uma linha por tipo (0M-49, 0M-50);
-> - desbloqueia o CI (0M-11).
+> - desbloqueia o CI (0M-11; cancelado depois, em 2026-10-29, ver abaixo).
 >
 > **Segunda rodada (2026-10-29, decisões I48 a I50):** nenhuma exceção IMGUI. Saem o `AdvancedDropdown` e o gancho `Editor.finishedDefaultHeaderGUI`, e entram o popup próprio e o `SpellBookEditor`. As perdas no Inspector do GAS foram aceitas (I49) e o canal dentro da `EventEmission` também (I50).
 >
 > Os ids 0M-01 a 0M-40 não mudam (issues #2 a #41). Os tickets novos são 0M-41 a 0M-50. Os ids 0M-51 (plano de divisão do 0M-07) e 0M-52 (divisão do 0M-41) não são usados: as duas divisões foram descartadas e os dois tickets têm exceção de tamanho aprovada. A coluna "Mudança" da seção 8 mostra o que mudou em cada ticket. O PRD está sendo ajustado em paralelo pelo Criativo; os CAs novos CA63 a CA66 foram aceitos no PRD.
+>
+> **Sem CI de testes (decisão do usuário, 2026-10-29):** "tira essa regra. A ideia é que o sistema funciona a partir do 6000, o que já vai funcionar". Os secrets da Unity não serão cadastrados. O **0M-11 foi cancelado** (seção 8), o D5 passa de desvio a decisão, o mínimo declarado continua `"unity": "6000.0"` e a verificação é só no host 6000.3.13f1. ADRs 0010 e 0004 emendadas. O PRD já foi ajustado pelo Criativo nesta revisão (R34, R42, R43, N1, CA56, CA57, P14, I30, objetivo 5 e persona Mantenedor).
 
 Legenda:
 - **Desvio:** o código obriga a fugir do PRD ou de uma decisão do usuário. Precisa de aprovação no gate.
@@ -106,7 +108,7 @@ Legenda:
 | 0007 | Cada ticket que cria componente ou SO público traz `[HelpURL]` e a seção do manual; constantes de página em `DocUrls` |
 | 0008 | Commits Conventional com escopo do módulo; o `version` (`3.0.0-pre.1`) e o CHANGELOG mudam só no release (DevOps); a 2.x está congelada, sem `release/2.x` (decisão I43) |
 | 0009 | Sem `[MovedFrom]`, `[Obsolete]` nem `[FormerlySerializedAs]`; quebras listadas na seção 7 |
-| 0010 | `"unity": "6000.0"`; CI na 6000.0 e na última 6000.x. Desvio: host local na 6000.3.13f1, não na 6000.0 (D5) |
+| 0010 | `"unity": "6000.0"` declarado; API mais nova só com guarda de versão; verificação só no host 6000.3.13f1 (D5), sem CI de testes (emenda de 2026-10-29) |
 | 0011 | Substituída pela 0026: nada dela vale (sem constraint, sem Setup, sem DLL do Odin) |
 | 0012 | Tabela de módulos com a emenda Events → Time; asmdefs auxiliares listados; emenda 0026 (Core sem Odin, `Core.Editor` no 0M-41, `Events.Editor` no 0M-45, `Time.Editor`/`Tags.Editor`/`Pooling.Editor` no 0M-49, `GAS.Editor` no 0M-50, `.Editor` de módulo pode referenciar `Core.Editor`, sem `Setup.Editor`, `overrideReferences: true`) |
 | 0013 | Reações não genéricas; `EventEmission<T>` genérica criada por código, verificada no 0M-32; seletor `[TypePicker]` com o filtro da 0013 (0M-41) |
@@ -128,10 +130,11 @@ Legenda:
 - **D2. Nome do canal sem payload** (PRD R12). `EventChannel` é a base abstrata não genérica (descrição, `logRaises`, tipo do payload, ouvintes vivos) e o canal sem payload concreto é `VoidEventChannel : EventChannel<Void>` com `Raise()`. Motivo: um `EventChannel` concreto e um `EventChannel<T>` com o mesmo nome confundem o seletor, o menu Create e o filtro por tipo, e o debugger precisa de uma base comum. O menu continua "Void Channel" (C2 e CA12 inalterados).
 - **D3. Alocação do `ASC.Tick` com efeito periódico** (PRD N2). **Aceito pela decisão I44** até o B-002. `AttributeState.Recalculate` usa LINQ (`AttributeState.cs:69-82`) e roda a cada tick periódico (`ApplyModifiersToBase` → `SetBaseValue`). A correção é do B-002 (fora da 0-M). O teste de N2 da 0-M mede o `Tick` em regime com efeitos de duração **sem** tick periódico naquele quadro.
 - **D4. `RaiseEventAction` saiu do B-004** (PRD seção 6 antiga). Já reconciliado pelo Criativo (R25a, decisões I22 e I39); listado só para rastreio.
-- **D5. Host local na 6000.3.13f1, não na 6000.0** (ADR 0010, consequência "o host fixa a 6000.0"; I-j na parte do host). Decisão do usuário em 2026-10-29. Motivo: a 6000.0 não está instalada na máquina (instaladas: 6000.3.1f1, 6000.3.5f2, 6000.3.13f1, 6000.4.10f1). O `HostProject~/ProjectSettings/ProjectVersion.txt` fica com 6000.3.13f1 (0M-06). Não mudam o mínimo declarado (`"unity": "6000.0"`: 0M-08, CA4, CA42) nem a matriz do CI (0M-11: 6000.0 e última 6000.x).
-  - Risco: código que usa API ou comportamento que só existe a partir da 6000.1 passa no host. Os reds que dizem "confirma na 6000.0" (riscos 16, 25, 27 e 28; 0M-32, 0M-41, 0M-42, 0M-46, 0M-47, 0M-48, 0M-53) passam a confirmar na versão do host, e só o job 6000.0 do CI prova a 6000.0. Por isso o 0M-11 vem logo depois do 0M-07 (seção 8); antes dele, nenhum ticket depende de API da 6000.0.
-  - Cobertura: o CI (0M-11) roda a suíte na 6000.0 com a versão explícita da matriz; o Examinador barra API nova sem a guarda de versão do item 3 da 0010; release só com as duas versões verdes (0010). O cenário CA5 é verificado no host 6000.3.13f1, e a compilação na 6000.0 fica com o CA57. A ADR 0010 foi emendada e o CA5 do PRD foi ajustado pelo Criativo (2026-10-29).
-  - Quando a 6000.0 for instalada: um ticket `chore(host)` troca o `ProjectVersion.txt` para o patch da 6000.0 usado no CI (I-j), revê o `com.unity.test-framework` (I-g) e roda a suíte inteira no host. Com ela verde, este desvio sai e o I-j volta a valer para o host.
+- **D5. Host local na 6000.3.13f1, não na 6000.0** (ADR 0010, consequência "o host fixa a 6000.0"; I-j na parte do host). Decisão do usuário em 2026-10-29. Motivo: a 6000.0 não está instalada na máquina (instaladas: 6000.3.1f1, 6000.3.5f2, 6000.3.13f1, 6000.4.10f1). O `HostProject~/ProjectSettings/ProjectVersion.txt` fica com 6000.3.13f1 (0M-06). O mínimo declarado não muda (`"unity": "6000.0"`: 0M-08, CA4, CA42).
+  - **Atualização (2026-10-29, decisão do usuário): o D5 deixa de ser desvio e vira decisão.** Não há CI de testes (0M-11 cancelado; emenda "sem CI de testes" da 0010). A única verificação é a suíte no host 6000.3.13f1. O texto abaixo substitui o que dizia que o job 6000.0 do CI provava a versão mínima.
+  - Risco aceito pelo usuário: código que usa API ou comportamento que só existe a partir da 6000.1 passa no host e ninguém o roda na 6000.0. Os reds que dizem "confirma na 6000.0" (riscos 16, 25, 27 e 28; 0M-32, 0M-41, 0M-42, 0M-46, 0M-47, 0M-48, 0M-53) confirmam na versão do host.
+  - Cobertura: o Examinador barra API nova sem a guarda de versão do item 3 da 0010 (conferindo na documentação da Unity 6000.0 as APIs do risco 27 e as que o ticket usa pela primeira vez); release com a suíte inteira verde no host. O cenário CA5 é verificado no host 6000.3.13f1. O manual cita como testada só a versão do host (0010, "não afirmar compatibilidade com versão em que os testes não rodaram").
+  - Se a 6000.0 for instalada um dia: trocar o host para ela é opcional, por ticket `chore(host)` próprio, que revê o `com.unity.test-framework` (I-g) e roda a suíte inteira.
 - **D6. Tipo ausente relatado por objeto, não por campo** (ADR 0026, item 4, "Drawer: num campo com tipo ausente"). Proposto pelo Arquiteto em 2026-10-29 e **aprovado pelo usuário em 2026-10-29**. Achado da Fábrica no red do 0M-41, com log de diagnóstico na 6000.3.13f1:
   - quando o tipo de uma referência `[SerializeReference]` some, o campo fica com `managedReferenceId = -2` (`ManagedReferenceUtility.RefIdNull`, o mesmo valor de um campo nulo) e `managedReferenceFullTypename` vazio;
   - `SerializationUtility.GetManagedReferencesWithMissingTypes(obj)` devolve o tipo ausente com outro `referenceId` (no log, `3572287566287470595: SpellBook.Core.Tests.Inspector.PickRemovido`);
@@ -154,10 +157,10 @@ Legenda:
 | I-d | Histórico do Event Debugger: buffer circular de 256 disparos por sessão de Play | 0M-35 |
 | I-e | Navegação do site gerada da árvore de pastas (sem `nav:` explícito), para nenhum ticket precisar editar a configuração ao criar página | 0M-08 |
 | I-f | Âncoras de `[HelpURL]` explícitas com `attr_list` (`## EventListener {#eventlistener}`) | 0M-08, CA54 |
-| I-g | `com.unity.test-framework` fixado no manifest numa versão que resolva no host (6000.3.13f1, D5) e na 6000.0 do CI: a que acompanha a 6000.0, se o host aceitar; senão, a do host, e o job 6000.0 do CI confirma | 0M-06, 0M-11 |
+| I-g | `com.unity.test-framework` fixado no manifest numa versão que resolva no host (6000.3.13f1, D5). Sem CI (2026-10-29), a parte "e na 6000.0 do CI" sai | 0M-06 |
 | I-h | Menus de criação dos assets do GAS continuam `GAS/...` (R27 pede tags sem mudança de comportamento); padronizar para `SpellBook/...` fica para a Fase 9 | 0M-14 |
 | I-i | Uma espera pendente do Invoke com delay aloca uma entrada por disparo (fora do caminho sem alocação do N2) | 0M-31 |
-| I-j | Patch exato da 6000.0 e da última 6000.x no CI: o mais recente disponível no GameCI na data do ticket. Não vale para o `ProjectVersion.txt` do host enquanto durar o D5 | 0M-11 |
+| ~~I-j~~ | ~~Patch exato da 6000.0 e da última 6000.x no CI~~. **Cancelado** com o 0M-11 (sem CI de testes, 2026-10-29) | — |
 | I-k | Categorias das reações prontas no seletor: `Objeto` (SetActive, Toggle de componente), `Eventos` (RaiseChannel), `Depuração` (Log), `Fluxo` (Invoke com delay) | 0M-30, 0M-31 |
 | I-l | Tipos sem `[TypeCategory]` aparecem na raiz da lista do seletor. As ações e os elementos de descrição do GAS ficam sem categoria na 0-M; as categorias deles entram nas fases do GAS | 0M-41, 0M-42 |
 | ~~I-m~~ | ~~Lista do seletor por `AdvancedDropdown`~~. **Resolvido pela I48:** popup próprio em UI Toolkit (0M-47) | — |
@@ -207,7 +210,7 @@ Tests/
   <Módulo>/EditMode, <Módulo>/PlayMode
 HostProject~/ (decisão I41)
 Documentation~/mkdocs.yml, requirements-docs.txt, manual/
-.github/workflows/docs.yml, tests.yml
+.github/workflows/docs.yml   (tests.yml saiu com o 0M-11, cancelado em 2026-10-29)
 ```
 
 Regras de todos os asmdefs do pacote (0026, item 1). Nenhum tem constraint ou referência do Odin.
@@ -576,7 +579,7 @@ Cenários (S), verificados pelo Examinador no host e registrados na seção 9 do
 - CA23 (0M-35);
 - CA34 (0M-38);
 - CA38 e CA39 (0M-09 e a cada página nova);
-- CA57 (0M-11);
+- ~~CA57 (0M-11)~~: **cancelado** com o 0M-11 (sem CI de testes, 2026-10-29); o CA57 também está cancelado no PRD;
 - seletor de tipo no host (0M-42): adicionar uma `WaitAction` numa habilidade pelo seletor, salvar, reabrir e conferir o valor.
 
 O CA41 foi **cancelado** (não existe cenário sem Odin).
@@ -603,9 +606,9 @@ O CA41 foi **cancelado** (não existe cenário sem Odin).
 | 14 | Dados externos | ~~Odin ausente ou símbolo velho~~. **Removido** (0026). Risco novo: um `using Sirenix` volta ao pacote por engano num projeto local que tem o Odin | Todos os asmdefs | `overrideReferences: true` com `precompiledReferences: []` (o compilador recusa); host e CI sem Odin | `NoOdinTests`, `AsmdefRulesTests` (0M-07) |
 | 15 | Dados externos | ~~API de `SelfValidationResult`~~. **Removido**: a interface é própria (`IValidatable`, 0M-43) | — | — | — |
 | 16 | Dados externos | Suporte da 6000.0 a genérico fechado em `[SerializeReference]` | `EventEmission<T>` | Teste de ida e volta no 0M-32; plano B (0013) | 0M-32 |
-| 17 | Dados externos | Disponibilidade das imagens GameCI (a parte da licença do Odin, P21, foi **removida** pela 0026) | 0M-11 | Versões fixadas no workflow | CA57 |
-| 18 | Dados externos | ~~Primeira compilação sem `ODIN_INSPECTOR`~~. **Removido** (0026). Continua valendo a verificação de que a contagem de testes executados é > 0 | 0M-11 | Falha se 0 testes | 0M-11 |
-| 19 | Dados externos | Secrets da Unity (`UNITY_LICENSE`, `UNITY_EMAIL`, `UNITY_PASSWORD`); não há secret do Odin | 0M-11 | Só via `secrets.*`; nada escrito no workflow | CA56 |
+| 17 | Dados externos | ~~Disponibilidade das imagens GameCI~~. **Removido** com o 0M-11 (sem CI de testes, 2026-10-29) | — | — | — |
+| 18 | Dados externos | ~~Primeira compilação sem `ODIN_INSPECTOR`~~. **Removido** (0026). ~~Contagem de testes executados > 0 no CI~~ **removida** com o 0M-11 (2026-10-29); no host, o Examinador confere que a saída lista os testes do ticket | — | — | — |
+| 19 | Dados externos | ~~Secrets da Unity no CI~~. **Removido** com o 0M-11 (2026-10-29): o usuário não cadastra os secrets. Continua valendo que nenhum workflow traz credencial escrita (o `docs.yml` do 0M-09 não usa secret) | `.github/workflows/docs.yml` (0M-09) | Critério CA56 no 0M-09 | CA56 (0M-09) |
 | 20 | Dados externos | Pages precisa ser ligado nas configurações do repositório ("Source: GitHub Actions"), passo manual do dono | 0M-09 | Passo listado no ticket para o usuário | CA39 |
 | 21 | Dados externos | Versões Python da ferramenta de doc mudam | 0M-08 | `requirements-docs.txt` com `==` | Build `--strict` |
 | 22 | Dados externos | Testes que leem arquivos do pacote (asmdefs, `.cs`, manual) dependem do caminho real | CA2, CA10, CA25, CA30, CA54, CA65 | Caminho obtido por `PackageInfo.FindForAssembly(...).resolvedPath`; os testes rodam só no host com `file:` | 0M-07 |
@@ -613,14 +616,14 @@ O CA41 foi **cancelado** (não existe cenário sem Odin).
 | 24 | Dados externos | ~~Setup lê `documentationUrl`~~. **Removido**: o Setup foi cancelado (0026) | — | — | — |
 | 25 | Dados externos | **Compatibilidade do UI Toolkit, parte 1: recursão.** Um drawer que devolve `new PropertyField(property)` da própria propriedade cai de novo no mesmo drawer | `ShowIfDrawer` | Duas formas, (a) e (b), decididas no red do 0M-46 (4.10). O `TypePickerDrawer` só cria `PropertyField` de filhos | Cenário no host do 0M-42 e do 0M-46 (o Inspector abre sem estouro de pilha) |
 | 26 | Dados externos | **Compatibilidade do UI Toolkit, parte 2: Inspector IMGUI.** Um Inspector IMGUI do usuário, ou um Inspector de terceiros (o Odin, por exemplo), desenha campos do SpellBook sem os drawers UI Toolkit | Drawers do Core e do Events | O `OnGUI` dos drawers mostra só o `HelpBox` de uma linha "precisa do Inspector em UI Toolkit" (único `OnGUI` permitido, 0026 item 3); sem suporte a outros Inspectors (I47); o manual explica na página Inspector | Página Inspector (0M-42) |
-| 27 | Dados externos | **Compatibilidade do UI Toolkit, parte 3: APIs na 6000.0.** `CreatePropertyGUI`, `TrackPropertyValue`, `TrackSerializedObjectValue`, `CreateInspectorGUI`, `InspectorElement.FillDefaultInspector`, `EditorWindow.ShowAsDropDown`, `CreateGUI`, `ToolbarSearchField`, `ListView`, `TypeCache` e `SerializationUtility.*MissingTypes` precisam existir e se comportar igual na 6000.0 e na última 6000.x (0010, emenda) | 0M-41, 0M-47, 0M-42, 0M-46, 0M-48, 0M-53, 0M-38, 0M-45 | O red de cada ticket confirma a API no host (6000.3.13f1, D5); a 6000.0 e a última 6000.x são confirmadas pelo CI | CI (0M-11) |
-| 28 | Dados externos | **Tipo serializado não encontrado.** Um tipo `[SerializeReference]` removido ou renomeado (do pacote na 3.0, de uma ponte ou do usuário) deixa a referência com "tipo ausente"; um clique errado ou uma limpeza automática apagaria os dados | Assets com `[SerializeReference]` | **Por objeto, não por campo (D6):** a Unity deixa o campo com `managedReferenceId = -2`, igual a nulo, e não liga o campo ao tipo ausente (medido pela Fábrica na 6000.3.13f1, 2026-10-29). O topo do Inspector (`SpellBookEditor`) mostra um erro por tipo ausente e só limpa por botão com confirmação (0026, item 4, com a emenda da D6); validador acusa erro com o mesmo texto (CA64); tipos do pacote renomeados na 3.0 vão para a tabela de migração (seção 7); depois da `3.0.0`, `[MovedFrom]`; o manual ensina `[MovedFrom]` ao usuário e avisa que o campo aparece como "(Nenhum)". Limite: tipo do usuário sem `SpellBookEditor` só vê o erro no validador. Em aberto até o cenário do host do 0M-53: o que acontece com os dados ausentes se o designer escolher um tipo no campo "(Nenhum)" sem limpar antes, e se o Undo recupera uma limpeza | 0M-53 (`MissingReferenceTypesTests`: a Unity guarda os dados do tipo ausente até o `Clear`, no host; a 6000.0 pelo CI, D5), 0M-38 (CA64) |
+| 27 | Dados externos | **Compatibilidade do UI Toolkit, parte 3: APIs na 6000.0.** `CreatePropertyGUI`, `TrackPropertyValue`, `TrackSerializedObjectValue`, `CreateInspectorGUI`, `InspectorElement.FillDefaultInspector`, `EditorWindow.ShowAsDropDown`, `CreateGUI`, `ToolbarSearchField`, `ListView`, `TypeCache` e `SerializationUtility.*MissingTypes` precisam existir e se comportar igual na 6000.0 e na última 6000.x (0010, emenda) | 0M-41, 0M-47, 0M-42, 0M-46, 0M-48, 0M-53, 0M-38, 0M-45 | O red de cada ticket confirma a API no host (6000.3.13f1, D5). Sem CI (2026-10-29): o Examinador confere na documentação da Unity 6000.0 que cada API existe e, se não existir, cobra a guarda do item 3 da 0010. Risco aceito pelo usuário: comportamento diferente na 6000.0 não é testado | Red no host; revisão do Examinador |
+| 28 | Dados externos | **Tipo serializado não encontrado.** Um tipo `[SerializeReference]` removido ou renomeado (do pacote na 3.0, de uma ponte ou do usuário) deixa a referência com "tipo ausente"; um clique errado ou uma limpeza automática apagaria os dados | Assets com `[SerializeReference]` | **Por objeto, não por campo (D6):** a Unity deixa o campo com `managedReferenceId = -2`, igual a nulo, e não liga o campo ao tipo ausente (medido pela Fábrica na 6000.3.13f1, 2026-10-29). O topo do Inspector (`SpellBookEditor`) mostra um erro por tipo ausente e só limpa por botão com confirmação (0026, item 4, com a emenda da D6); validador acusa erro com o mesmo texto (CA64); tipos do pacote renomeados na 3.0 vão para a tabela de migração (seção 7); depois da `3.0.0`, `[MovedFrom]`; o manual ensina `[MovedFrom]` ao usuário e avisa que o campo aparece como "(Nenhum)". Limite: tipo do usuário sem `SpellBookEditor` só vê o erro no validador. Em aberto até o cenário do host do 0M-53: o que acontece com os dados ausentes se o designer escolher um tipo no campo "(Nenhum)" sem limpar antes, e se o Undo recupera uma limpeza | 0M-53 (`MissingReferenceTypesTests`: a Unity guarda os dados do tipo ausente até o `Clear`, no host; sem CI, D5), 0M-38 (CA64) |
 | 29 | Repetição | **Referência compartilhada.** Duplicar um elemento de lista `[SerializeReference]` no Inspector deixa dois elementos com o mesmo `managedReferenceId`; editar um muda o outro (proibido pela 0013) | Listas com `[TypePicker]` | `EnsureUniqueInArray` no bind do drawer | `TypePickerCatalogTests` (0M-41) |
 | 30 | Repetição | Custo do seletor e da validação no Inspector | `TypePickerCatalog`, `SpellBookEditor` | Candidatos em cache por tipo base (o `TypeCache` já é indexado); validação só ao montar o Inspector e em `TrackSerializedObjectValue`, nunca por repaint | N5; revisão do Examinador |
 | 32 | Dados externos | **Inspector do usuário concorre com o do pacote.** Um `[CustomEditor]` do usuário para um tipo do SpellBook (ou de terceiros, com `editorForChildClasses`) pode ser o escolhido pela Unity, e a validação no topo some | Tipos do pacote | O manual (página Inspector, 0M-50) manda herdar de `SpellBookEditor`; a janela do validador continua mostrando as mensagens | Página Inspector |
 | 33 | Dados externos | **Bind do UI Toolkit em teste.** `CreateInspectorGUI` fora de um painel não liga os campos (`Bind`), e o teste não deve depender disso | `SpellBookEditorTests`, `SpellBookEditorMissingTypeTests`, `EventsInspectorTests` | Os testes conferem só a estrutura (contêiner, `HelpBox`, botões) e as funções puras (`CollectMessages`, `SetChannel`); o comportamento ligado fica nos cenários no host | 0M-48, 0M-53, 0M-45 |
 | 34 | Dados externos | **Projeto Unity na raiz do pacote.** A raiz do repositório é a pasta do pacote; um `Assets/`, `Library/`, `Packages/` ou `ProjectSettings/` ali, mesmo ignorado pelo git, entra como conteúdo do `com.spellbook` (assemblies duplicados, `.meta` gravados, importação lenta) | Raiz do repositório, `HostProject~/` | Host antigo movido para fora (ADR 0004, emenda de 2026-10-29); único host em `HostProject~/` | Critério do 0M-06: as quatro pastas não existem na raiz quando o host abre |
-| 35 | Dados externos | **Caminhos relativos no batchmode** (B-025, medido no 0M-07 rodando da raiz com `-projectPath HostProject~`). O `-logFile` relativo resolve a partir da pasta de onde o comando roda: o log foi para `Temp/` na raiz do pacote, a Unity importou e gerou `.meta` e erro (mesma causa do risco 34). O `-testResults` relativo resolve a partir do projeto: foi para `HostProject~/Temp/`, que a Unity apaga ao fechar, e o relatório se perdeu | `/implementar`, `unity-test-reader`, `unity-console-reader`, toda chamada local da Unity em batchmode | Caminhos **absolutos** dentro de `HostProject~/Logs/` (o `~` impede a importação, e a pasta já está no `.gitignore`): `-testResults "$PWD/HostProject~/Logs/TestResults-<Plataforma>.xml"` (`EditMode` ou `PlayMode`) e `-logFile "$PWD/HostProject~/Logs/unity-tests.log"`, com o comando rodando da raiz do repositório. Nenhum caminho relativo e nada em `Temp/`. A pasta é criada antes da chamada se não existir. O CI (0M-11) usa os caminhos do GameCI e fica fora desta regra | Depois da rodada: o XML e o log existem em `HostProject~/Logs/`; não existe `Temp/` na raiz do pacote; `git status` sem arquivo novo fora do `HostProject~/`. A atualização da skill e dos dois agentes é um ticket rápido à parte (B-025) |
+| 35 | Dados externos | **Caminhos relativos no batchmode** (B-025, medido no 0M-07 rodando da raiz com `-projectPath HostProject~`). O `-logFile` relativo resolve a partir da pasta de onde o comando roda: o log foi para `Temp/` na raiz do pacote, a Unity importou e gerou `.meta` e erro (mesma causa do risco 34). O `-testResults` relativo resolve a partir do projeto: foi para `HostProject~/Temp/`, que a Unity apaga ao fechar, e o relatório se perdeu | `/implementar`, `unity-test-reader`, `unity-console-reader`, toda chamada local da Unity em batchmode | Caminhos **absolutos** dentro de `HostProject~/Logs/` (o `~` impede a importação, e a pasta já está no `.gitignore`): `-testResults "$PWD/HostProject~/Logs/TestResults-<Plataforma>.xml"` (`EditMode` ou `PlayMode`) e `-logFile "$PWD/HostProject~/Logs/unity-tests.log"`, com o comando rodando da raiz do repositório. Nenhum caminho relativo e nada em `Temp/`. A pasta é criada antes da chamada se não existir. (Não há CI de testes: o 0M-11 foi cancelado em 2026-10-29) | Depois da rodada: o XML e o log existem em `HostProject~/Logs/`; não existe `Temp/` na raiz do pacote; `git status` sem arquivo novo fora do `HostProject~/`. A atualização da skill e dos dois agentes é um ticket rápido à parte (B-025) |
 | 31 | Dados externos | Ambiguidade de nome (`ShowIf`, `TypeCategory`) com outros pacotes no código do usuário | Projetos do usuário | Namespace `SpellBook.Core.Inspector` (só quem escreve `using` dele vê os nomes); o manual mostra o alias | Página Inspector |
 
 ---
@@ -656,7 +659,7 @@ Ordem por dependência. **WIP 1**: um ticket com Unity em implementação por ve
 
 **Paralelo sem Editor** (emenda da 0003, 2026-10-29): o WIP 1 vale para os tickets que usam a Unity e a trava. Um ticket de docs, processo ou CI, sem trava, pode rodar em paralelo, na própria branch e numa cópia de trabalho própria (0006 adiada), desde que não toque arquivo do outro ticket. Pares marcados nesta Spec (revisão de 2026-10-29). Outros pares só valem se forem marcados aqui.
 
-- **0M-11 em paralelo com o 0M-41.** O 0M-11 só cria `.github/workflows/tests.yml`.
+- ~~**0M-11 em paralelo com o 0M-41.**~~ Sem objeto: o 0M-11 foi cancelado (2026-10-29).
 - **0M-08 em paralelo com o 0M-42, o 0M-46, o 0M-43, o 0M-48 ou o 0M-53** (decisão do usuário de 2026-10-29; o 0M-08 entra logo depois do 0M-47). Nenhum desses tickets toca os arquivos do 0M-08. O 0M-08 usa a Unity e a trava só no passo de `DocUrls.cs`, `DocUrlsTests.cs` e `package.json`, que roda na vez da trava, sem coincidir com a suíte do outro ticket. O resto (`mkdocs.yml`, páginas, `README.md`) não usa a Unity. As partes que precisam da Unity são `Runtime/Core/DocUrls.cs` e `Tests/Core/EditMode/DocUrlsTests.cs`, porque compilam no pacote e rodam na suíte com a trava, e o campo `unity` do `package.json`, que o host resolve e que o `Package_DeclaresUnity6000_0` testa. O resto (`mkdocs.yml`, `requirements-docs.txt`, `index.md`, `instalacao.md` e `README.md`) não precisa da Unity, mas fica no mesmo ticket.
 - **0M-09 em paralelo com o 0M-42, o 0M-46, o 0M-43, o 0M-48, o 0M-53 ou o 0M-12**, depois do merge do 0M-08. O 0M-09 só cria `.github/workflows/docs.yml`, e nenhum desses tickets toca `.github/`. O passo do usuário (ligar o Pages) não usa a Unity.
 - **0M-10 em paralelo com o 0M-42, o 0M-46, o 0M-43, o 0M-48 ou o 0M-53**, depois do merge do 0M-08. O 0M-10 apaga `Runtime/GAS/GAS_Documentation.md` e o `.meta` dele sem o Editor e cria `Documentation~/manual/modulos/gas.md`. O 0M-42 e o 0M-46 mexem em outros arquivos de `Runtime/GAS/` e em `manual/inicio/inspector.md`, mas nenhum desses arquivos é do 0M-10. **O 0M-10 nunca roda junto com o 0M-12**: o 0M-12 depende dele e edita o `gas.md` que o 0M-10 cria, então o 0M-10 precisa estar no `main` antes de o 0M-12 começar.
@@ -679,7 +682,7 @@ Mudança: **igual** (sem mudança), **alterado** (escopo, arquivos, dependência
 | 0M-06 | `chore(host): criar projeto host de testes com o pacote em testables` | 0M-05 | CA55 | alterado | Host sem Odin; o critério registra os erros `Sirenix` como red do 0M-44; host na 6000.3.13f1 (D5) |
 | 0M-44 | `refactor(gas)!: remover o Odin dos 8 arquivos do runtime` | 0M-06 | CA5 | **novo** | I45: o pacote precisa compilar no host sem Odin antes de qualquer teste |
 | 0M-07 | `test(core): asmdef de testes do Core e regras de estrutura sem Odin` | 0M-44 | CA65, CA3, CA2 (guarda) | alterado | Era "desligar sem Odin e avisar" (Setup, `defineConstraints`), que a I47 elimina. Fica a infraestrutura de teste e entra a guarda "nenhum Sirenix" + `overrideReferences` |
-| 0M-11 | `ci(test): rodar as suítes na 6000.0 e na última 6000.x com GameCI` | 0M-07 | CA56, CA57, N1 | alterado | Desbloqueado (P21 sem objeto); sem secret nem script do Odin; sem passo de importação extra. Adiantado para logo depois do 0M-07 (D5); a seção "Compatibilidade" do manual passou para o 0M-08 |
+| 0M-11 | `ci(test): rodar as suítes na 6000.0 e na última 6000.x com GameCI` | 0M-07 | ~~CA56, CA57, N1~~ | **cancelado** | Decisão do usuário (2026-10-29): sem CI de testes e sem secrets da Unity; verificação só no host (D5, emenda da 0010). Nenhum ticket dependia dele na ordem de dependências; os CAs que ele levava foram redistribuídos: CA56 para o 0M-09, N1 para o DevOps no release, CA57 cancelado no PRD. Issue #12 e PR #64 fecham sem merge |
 | 0M-41 | `feat(core): catálogo do seletor de tipo e atributos TypePicker/TypeCategory` | 0M-07 | CA63 (parte) | **novo** | I45: parte lógica do seletor que substitui o do Odin (filtro, categorias, busca, referência compartilhada); renomeia o asmdef do Editor para `Core.Editor`. Exceção de tamanho (~440 linhas) aprovada em 2026-10-29. O tipo ausente saiu para o 0M-53 (D6, aprovado em 2026-10-29; passou do 0M-48 para o 0M-53 na divisão por tamanho) |
 | 0M-47 | `feat(core): popup de seleção de tipo em UI Toolkit` | 0M-41 | CA63 (parte: busca e categorias) | **novo** (2ª rodada) | I48: substitui o `AdvancedDropdown`; o popup próprio não cabia no 0M-42 |
 | 0M-42 | `feat(core): drawer do seletor de tipo e uso no GAS` | 0M-47, 0M-41 | CA63 | **novo** | I45/I46: drawer UI Toolkit do seletor; devolve ao GAS a escolha de tipo nos 10 campos `[SerializeReference]`. 2ª rodada: abre o popup do 0M-47 |
@@ -687,8 +690,8 @@ Mudança: **igual** (sem mudança), **alterado** (escopo, arquivos, dependência
 | 0M-43 | `feat(core): interface de validação IValidatable` | 0M-07 | R32 (parte) | **novo** | I45: substitui `ISelfValidator`; precisa existir antes do primeiro validador (0M-23) |
 | 0M-48 | `feat(core): Inspector base SpellBookEditor com validação no topo` | 0M-43, 0M-41 | R32, CA66 | **novo** (2ª rodada) | I48: substitui o gancho IMGUI; base dos Inspectors com botão e dos editors de uma linha. Divisão por tamanho (2026-10-29): o tipo ausente (D6) saiu para o 0M-53; o 0M-48 deixa o contêiner `spellbook-top-notices` e `RefreshTopNotices()` como ponto de extensão |
 | 0M-53 | `feat(core): tipo ausente por objeto no Inspector do SpellBook` | 0M-48 | R45 (Inspector) | **novo** (divisão do 0M-48) | D6: `MissingReferenceTypes`, o `HelpBox` com "Limpar referência" no topo do `SpellBookEditor` e a seção **Tipo não encontrado**; confirma o risco 28. Issue #74 |
-| 0M-08 | `docs(manual): criar o manual, DocUrls, Instalação e declarar Unity 6000.0` | 0M-07 | CA4 (parte), CA37 (parte), CA42 | alterado | Cria a página Instalação (vinha do 0M-07) sem Odin; README sem Odin |
-| 0M-09 | `ci(manual): publicar o manual no GitHub Pages` | 0M-08 | CA39 | igual | — |
+| 0M-08 | `docs(manual): criar o manual, DocUrls, Instalação e declarar Unity 6000.0` | 0M-07 | CA4 (parte), CA37 (parte), CA42 | alterado | Cria a página Instalação (vinha do 0M-07) sem Odin; README sem Odin. 2026-10-29: a seção "Compatibilidade" cita só a versão do host (0M-11 cancelado) |
+| 0M-09 | `ci(manual): publicar o manual no GitHub Pages` | 0M-08 | CA39, CA56 | alterado | Recebe o CA56 do 0M-11 cancelado (2026-10-29): o `docs.yml` passa a ser o único workflow, e o critério cobra nenhum Odin/Sirenix e nenhuma credencial escrita |
 | 0M-10 | `docs(gas): mover GAS_Documentation.md para o manual` | 0M-08 | CA40 | igual | — |
 | 0M-12 | `refactor(gas)!: separar o GAS no assembly SpellBook.GAS` | 0M-10 | CA1 (parte), CA2 (parte), R22 (parte) | alterado | Asmdef do GAS sem constraint e sem DLL do Odin (`overrideReferences: true`, `[]`); a Migração ganha a linha "sem Odin" |
 | 0M-13 | `test(gas): caracterizar tags do ASC e criar as factories` | 0M-12 | CA31 (parte), CA33 (parte) | igual | (asmdefs seguem a 4.1 revisada) |
@@ -723,21 +726,21 @@ Mudança: **igual** (sem mudança), **alterado** (escopo, arquivos, dependência
 | 0M-50 | `feat(editor): Inspectors de uma linha para GAS e Events e cobertura completa` | 0M-49 | R32 | **novo** (2ª rodada) | I48: completa a cobertura; cria `GAS.Editor` |
 | 0M-40 | `refactor(core)!: Core em Runtime/Core e verificação final da estrutura` | 0M-50 | CA1, CA32, CA54, CA6, N4 | alterado | Lista final de asmdefs sem `Setup.Editor` e com `Core.Editor`, `Events.Editor`, `Time.Editor`, `Tags.Editor`, `Pooling.Editor` e `GAS.Editor`; depende do 0M-50 |
 
-Ordem de execução linear: 01 → 02 → 03 → 04 → 05 → 06 → **44** → 07 → 11 → **41** → **47** → 08 → **42** → **46** → **43** → **48** → **53** → 09 → 10 → 12 → 13 → … → 31 → 32 → **45** → 33 → 34 → 35 → 36 → 37 → 38 → 39 → **49** → **50** → 40.
+Ordem de execução linear: 01 → 02 → 03 → 04 → 05 → 06 → **44** → 07 → ~~11~~ (cancelado) → **41** → **47** → 08 → **42** → **46** → **43** → **48** → **53** → 09 → 10 → 12 → 13 → … → 31 → 32 → **45** → 33 → 34 → 35 → 36 → 37 → 38 → 39 → **49** → **50** → 40.
 
 Os ids novos não seguem a ordem de execução (0M-47 vem antes do 0M-42), porque o 0M-42 já tinha sido divulgado na primeira rodada.
 
 Por que essa ordem no começo:
 - o Core só compila no host sem Odin depois do 0M-44, e nenhum teste roda antes disso (com erro de compilação, a Unity não recarrega o domínio). Por isso o 0M-44 é o primeiro ticket depois do host;
 - a guarda "nenhum Sirenix" vem logo depois, no 0M-07, junto com o primeiro asmdef de teste;
-- o CI (0M-11) vem logo depois do 0M-07, primeiro ticket com teste: o host está na 6000.3.13f1 (D5), e só o job 6000.0 do CI prova a versão mínima para os tickets com risco de API (0M-41, 0M-47, 0M-42, 0M-46, 0M-48, 0M-53);
+- ~~o CI (0M-11) vem logo depois do 0M-07~~: o 0M-11 foi cancelado (2026-10-29). Os tickets com risco de API (0M-41, 0M-47, 0M-42, 0M-46, 0M-48, 0M-53) são verificados no host 6000.3.13f1 e na revisão do item 3 da 0010 (D5, risco 27);
 - o manual (0M-08) vem logo depois do 0M-47, por decisão do usuário de 2026-10-29. Ele depende só do 0M-07 e nenhuma dependência muda. Assim, o 0M-09 e o 0M-10 (que dependem dele) ficam livres durante a trilha do Inspector e podem rodar em paralelo com ela (seção "Paralelo sem Editor");
 - o seletor (0M-41, 0M-42) e o `[ShowIf]` (0M-46) entram antes de qualquer ticket que crie ou mexa em `[SerializeReference]`, e antes do 0M-12 mover o GAS de assembly;
 - a validação (0M-43) entra antes do primeiro validador (0M-23);
 - o `SpellBookEditor` (0M-48) entra logo depois, para os Inspectors do Events (0M-45) herdarem dele, e o tipo ausente (0M-53) logo depois dele, porque pluga no ponto de extensão do 0M-48 e o validador (0M-38) reusa o `MissingReferenceTypes`;
 - os editors de uma linha (0M-49, 0M-50) ficam para o fim, quando todos os tipos existem, e o teste de cobertura fecha a regra antes da verificação final (0M-40).
 
-CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3.0.0-pre.1`) e CA26 (CHANGELOG com a seção 7 e a nota do R22a).
+CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3.0.0-pre.1`), CA26 (CHANGELOG com a seção 7 e a nota do R22a) e N1 (veio do 0M-11 cancelado, 2026-10-29). O N1 é uma propriedade do pacote inteiro na hora do release, não de um ticket: no commit do release, o `package.json` declara `"unity": "6000.0"` (campo trocado no 0M-08), o host `HostProject~/` na versão da Spec compila o pacote sem avisos novos do SpellBook e roda a suíte inteira verde (emenda "sem CI de testes" da 0010: release exige a suíte inteira verde no host). A saída da suíte vai na descrição do PR do release. Cada ticket já termina com a suíte verde no host; o release só confere de novo no commit final.
 
 ---
 
@@ -804,7 +807,7 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 
 ### 0M-44 — `refactor(gas)!: remover o Odin dos 8 arquivos do runtime` (novo)
 - **Novo (revisão sem Odin, I45).** Vem logo depois do 0M-06, porque nenhum teste roda enquanto o Core não compilar no host sem Odin.
-- Objetivo: o pacote compila numa Unity sem Odin, sem mudar dado serializado. O ticket verifica no host (6000.3.13f1, D5); a 6000.0 fica com o CI (0M-11).
+- Objetivo: o pacote compila numa Unity sem Odin, sem mudar dado serializado. O ticket verifica no host (6000.3.13f1, D5). (A frase "a 6000.0 fica com o CI (0M-11)" deixou de valer: 0M-11 cancelado em 2026-10-29.)
 - Arquivos (8):
   - `Runtime/GAS/Abilities/GameplayAbility.cs`:
     - sai o `using Sirenix.OdinInspector`;
@@ -865,7 +868,8 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
     - Dividir não ajuda a revisão. Seria preciso tirar do diff as regras por tipo e o `RuntimeReferencesTests` (~110 linhas) e reabrir o `AsmdefRulesTests.cs` e o `PackageFiles.cs` num ticket novo. Isso custa mais um ciclo com Unity em WIP 1 e reescreve código que já cumpre a Spec.
     - **Plano de divisão descartado (0M-51 não existe):** o usuário aprovou a exceção em 2026-10-29, então o 0M-07 segue inteiro e não se cria o 0M-51. O texto abaixo fica só como registro do plano que não foi usado: o 0M-07 mantém o asmdef de testes, os dois asmdefs, o `PackageFiles.cs` sem o `AsmdefKind`, o `NoOdinTests.cs`, o teste de varredura e `AsmdefRules_AllOverrideReferences_PrecompiledInAllowList` (com a lista permitida do asmdef de testes lida pelo caminho em `Tests/`), mais `AsmdefRules_ModuleReferences_FollowDependencyMap`. Os testes `AsmdefRules_RuntimeAsmdefs_*`, `AsmdefRules_EditorAsmdefs_*` e `AsmdefRules_TestAsmdefs_*`, o `AsmdefKind` e o `RuntimeReferencesTests.cs` (CA3) vão para o **0M-51** (`test(core): regras por tipo de asmdef e runtime sem UnityEditor`), que depende do 0M-07, vem antes do 0M-11 e mede ~120 linhas em 3 arquivos.
 
-### 0M-11 — `ci(test): rodar as suítes na 6000.0 e na última 6000.x com GameCI`
+### 0M-11 — `ci(test): rodar as suítes na 6000.0 e na última 6000.x com GameCI` (cancelado)
+- **Cancelado (decisão do usuário, 2026-10-29):** "tira essa regra. A ideia é que o sistema funciona a partir do 6000, o que já vai funcionar". O usuário não cadastra `UNITY_LICENSE`, `UNITY_EMAIL` e `UNITY_PASSWORD`, então o workflow não roda. A verificação é só no host 6000.3.13f1 (D5, emenda "sem CI de testes" da 0010). Nenhum ticket dependia dele na ordem de dependências. A issue #12 e o PR #64 fecham sem merge; o `.github/workflows/tests.yml` não entra no `main`. Os CAs dele: o CA57 foi cancelado no PRD; o CA56 (texto novo do PRD) passou para o **0M-09**, cujo `docs.yml` fica como único workflow; o N1 passou para os **CAs do DevOps no release** (seção 8, depois de "Por que essa ordem"). O texto abaixo fica só como registro.
 - **Alterado (revisão sem Odin):** **desbloqueado**, porque a P21 perdeu o objeto (I45). Saem o script e os secrets do Odin e o passo de importação extra.
 - **Adiantado (D5, aprovado em 2026-10-29):** vem logo depois do 0M-07, para que os tickets com risco de API da 6000.0 (0M-41, 0M-47, 0M-42, 0M-46, 0M-48, 0M-53) já tenham o job 6000.0 no PR. A seção "Compatibilidade" da Instalação passou para o 0M-08, porque a página ainda não existe neste ponto.
 - Arquivos: `.github/workflows/tests.yml`.
@@ -907,7 +911,7 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
   - `Assign_CreatesInstanceOfChosenType_NullClears` (SO de teste em memória + `SerializedObject`);
   - `EnsureUnique_SharedReferenceInList_BecomesIndependentCopy` (a mesma instância posta duas vezes na lista por código; depois da chamada, mudar um elemento não muda o outro).
 - Manual: nenhuma página neste ticket (nenhum campo usa o seletor ainda). A página **Inspector** nasce no 0M-42 com o drawer.
-- Critério de pronto: os testes do catálogo passam no host e nos dois jobs do CI; `TypePickerCatalog` não tem API de tipo ausente.
+- Critério de pronto: os testes do catálogo passam no host (sem CI, 2026-10-29); `TypePickerCatalog` não tem API de tipo ausente.
 - Tamanho: **~390 linhas** estimadas depois da D6 (a Fábrica mediu 463 linhas físicas em 6 arquivos com o tipo ausente; saem ~70: `TryGetMissingType` ~20, o teste com o YAML ~40, a pasta temporária no `SetUp`/`TearDown` ~10), 8 arquivos na lista do ticket (os 2 movidos com `.meta` não somam linhas). A Fábrica confirma a medição. A **exceção de ~440 linhas aprovada em 2026-10-29, só para este ticket**, continua cobrindo o ticket se a medição passar de 400; nenhuma exceção nova é pedida. O limite de ~400 da 0003 não muda para os outros.
 - **Decisões da implementação (2026-10-29, achados da Fábrica):**
   - **`PickHolder` em arquivo próprio.** A Unity só liga um `ScriptableObject` salvo em disco ao script quando o arquivo tem o nome da classe. Com o `PickHolder` dentro do `TypePickerCatalogTests.cs`, o `LoadAssetAtPath<PickHolder>` devolve `null` depois do reimport, e o risco 28 fica sem verificação. Aceita a proposta da Fábrica: o `PickHolder` vai para `Tests/Core/EditMode/Inspector/PickHolder.cs` já neste ticket. Os outros tipos de teste continuam no arquivo de testes, porque não são `UnityEngine.Object`.
@@ -1025,7 +1029,7 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
   Os testes conferem a estrutura, sem bind (risco 33). Cenários no host:
   - depois do 0M-49, um `PooledSpawnerAsset` com `initialSize` negativo mostra o erro no topo, e o erro some ao corrigir o valor;
   - o cenário do tipo ausente (risco 28) é do 0M-53.
-- Critério de pronto: os testes passam no host e nos dois jobs do CI; o `SpellBookEditor` não referencia `MissingReferenceTypes`; `spellbook-top-notices` existe e fica escondido.
+- Critério de pronto: os testes passam no host (sem CI, 2026-10-29); o `SpellBookEditor` não referencia `MissingReferenceTypes`; `spellbook-top-notices` existe e fica escondido.
 - Manual: Inspector, seção **Validação no Inspector** (onde aparece, botão Revalidar, como um Inspector próprio herda de `SpellBookEditor`). A seção **Tipo não encontrado** é do 0M-53.
 - Tamanho: ~371 linhas (`SpellBookEditor.cs` 154, `SpellBookEditorTests.cs` 217; a medição do usuário, que a Fábrica confirma), 3 arquivos. Dentro do limite da 0003.
 
@@ -1047,13 +1051,13 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
   - `Get_ObjectWithoutMissingType_ReturnsEmpty` (o `PickHolder` em memória, e alvo nulo);
   - `FormatMessage_HasAssemblyAndFullName_NamespaceOptional`.
 
-  Esses testes confirmam na versão do host (6000.3.13f1) o comportamento medido pela Fábrica; só o job 6000.0 do CI prova a 6000.0 (D5).
+  Esses testes confirmam na versão do host (6000.3.13f1) o comportamento medido pela Fábrica; a 6000.0 não é testada (D5, sem CI desde 2026-10-29).
 - Testes red do Inspector, em `SpellBookEditorMissingTypeTests` (sem o plug, `spellbook-top-notices` fica vazio e só o `MissingType_HelpBox...` falha; o `NoMissingType...` passa sem o plug e fica como guarda):
   - `CreateInspectorGUI_MissingType_HelpBoxWithClearButtonInTopNotices` (o asset em disco; confere a estrutura, sem bind, risco 33; o botão não é clicado, porque abre o diálogo de confirmação; o contêiner vem antes do de validação);
   - `CreateInspectorGUI_NoMissingType_TopNoticesHidden`.
 - Cenário no host (risco 28), com scripts temporários no host, sem commit (como o red do 0M-07): um SO com um campo `[SerializeReference, TypePicker]`, o editor de uma linha dele (`: SpellBookEditor`) e uma classe de dados escolhida no campo. Apagar a classe de dados: o topo mostra "Tipo não encontrado" e o campo mostra "(Nenhum)"; voltar a classe recupera os dados; apagar de novo e usar "Limpar referência": pede confirmação e remove o aviso. O Examinador registra duas observações para o manual: se `Ctrl+Z` recupera a limpeza, e o que acontece com os dados ausentes se um tipo for escolhido no campo "(Nenhum)" sem limpar antes.
 - Manual: Inspector, seção **Tipo não encontrado** (o aviso fica no topo do Inspector, não no campo, que aparece como "(Nenhum)"; restaurar o tipo recupera os dados; limpar apaga; o que o cenário observou sobre Undo e sobre escolher um tipo antes de limpar; link para `[MovedFrom]`). A frase de que o tipo próprio sem `SpellBookEditor` só aparece no validador não entra aqui: o validador nasce no 0M-38 e o manual não cita o que ainda não existe (CA54).
-- Critério de pronto: os testes passam no host e nos dois jobs do CI; o `HelpBox` só aparece para tipo ausente; nada no pacote chama `Clear` fora do botão.
+- Critério de pronto: os testes passam no host (sem CI, 2026-10-29); o `HelpBox` só aparece para tipo ausente; nada no pacote chama `Clear` fora do botão.
 - Tamanho: ~240 linhas (`MissingReferenceTypes.cs` 69 e `MissingReferenceTypesTests.cs` 142, que são os ~211 medidos pelo usuário, mais ~30 do plug no `SpellBookEditor` e do teste de estrutura; a Fábrica confirma), 5 arquivos. Dentro do limite da 0003.
 
 ### 0M-08 — `docs(manual): criar o manual, DocUrls, Instalação e declarar Unity 6000.0`
@@ -1067,7 +1071,7 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Achado da Fábrica fora do escopo deste ticket: o build gera `Documentation~/site/`, que não está no `.gitignore`. Fica com o 0M-09.
 - Manual:
   - **O que é**: o pacote, os módulos e para quem é;
-  - **Instalação**, com conteúdo real: Unity 6000.0 ou mais nova; instalação por URL git; nenhuma dependência de terceiros; o Inspector do pacote é UI Toolkit (link para a página Inspector quando ela existir, 0M-42); seção **Compatibilidade** com as versões testadas no CI, copiadas da matriz do `tests.yml` (vinha do 0M-11, adiantado pelo D5). Tem âncoras `{#...}`. **Não cita o Odin** (a guarda `NoOdinTests` não lê o manual; o Examinador confere).
+  - **Instalação**, com conteúdo real: Unity 6000.0 ou mais nova; instalação por URL git; nenhuma dependência de terceiros; o Inspector do pacote é UI Toolkit (link para a página Inspector quando ela existir, 0M-42); seção **Compatibilidade** (texto revisto em 2026-10-29, 0M-11 cancelado): mínimo declarado 6000.0 (`package.json`); a suíte EditMode e PlayMode roda no projeto host do repositório na 6000.3.13f1 (a de `HostProject~/ProjectSettings/ProjectVersion.txt`), que é a única versão testada; não há CI de testes. Não cita `tests.yml`, GameCI nem outras versões como testadas (0010, CA54). Tem âncoras `{#...}`. **Não cita o Odin** (a guarda `NoOdinTests` não lê o manual; o Examinador confere).
 
   Verificação: `mkdocs build --strict` local passa, pelo venv fora do repositório (seção 4.11), com `-d` fora da árvore.
 - Tamanho: ~70 linhas de código, 8 arquivos.
@@ -1075,8 +1079,10 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 ### 0M-09 — `ci(manual): publicar o manual no GitHub Pages`
 - Arquivos: `.github/workflows/docs.yml`, `.gitignore` (acrescenta `Documentation~/site/`, a saída do `mkdocs build`, que não deve ser commitada).
 - Depende de: 0M-08. **Passo do usuário:** ligar Pages com "Source: GitHub Actions" (risco 20).
-- CAs: CA39 (S), CA38 (S, só depois do 0M-29 para o `EventListener`).
-- Testes: critério: após o merge, a Action roda, `https://gabrielctorres.github.io/SpellBook/` abre sem login e não há nenhuma URL de `prd/`, `spec/`, `adr/`, `planos/`, `backlog`, `TIME`.
+- CAs: CA39 (S), CA38 (S, só depois do 0M-29 para o `EventListener`), CA56 (E; veio do 0M-11 cancelado, 2026-10-29).
+- Testes: critérios:
+  - após o merge, a Action roda, `https://gabrielctorres.github.io/SpellBook/` abre sem login e não há nenhuma URL de `prd/`, `spec/`, `adr/`, `planos/`, `backlog`, `TIME`;
+  - CA56: `grep -ri "odin\|sirenix" .github/` não encontra nada; o `docs.yml` não baixa nada de local privado e não traz credencial escrita (não usa `secrets.*` além do `GITHUB_TOKEN` implícito do Pages, nem token, senha ou URL com credencial no arquivo); `git ls-files | grep -i "sirenix\|odin" | grep -v "^Documentation~/adr/" | grep -v "^Tests/Core/EditMode/Structure/NoOdinTests\.cs"` tem **saída vazia** (texto revisto em 2026-10-29, achado do Examinador: sem os dois `grep -v`, o comando lista 4 arquivos legítimos, as ADRs 0011 e 0026 e a guarda `NoOdinTests.cs` com o `.meta`).
 - Manual: nenhuma página nova. Tamanho: ~50 linhas, 2 arquivos.
 
 ### 0M-10 — `docs(gas): mover GAS_Documentation.md para o manual`
@@ -1376,7 +1382,7 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Cenários no host:
   - CA34: um `EventListener` sem canal aparece na janela, e o clique seleciona o objeto;
   - R32: o mesmo erro aparece no topo do Inspector do `EventListener` e some ao ligar o canal. Isso só é verificável depois do 0M-50, que dá ao `EventListener` o editor de uma linha; o Examinador registra o cenário no 0M-50.
-- Manual: **Validador** (menu, como ler a janela e o Inspector, regras da 0-M, tipo ausente com link para a seção **Tipo não encontrado** da página Inspector, e a frase de que um tipo próprio sem `SpellBookEditor` só aparece no validador (passou do 0M-53, porque o validador nasce aqui), o teste no CI, como implementar `IValidatable` num tipo próprio).
+- Manual: **Validador** (menu, como ler a janela e o Inspector, regras da 0-M, tipo ausente com link para a seção **Tipo não encontrado** da página Inspector, e a frase de que um tipo próprio sem `SpellBookEditor` só aparece no validador (passou do 0M-53, porque o validador nasce aqui), o teste `Project_HasNoValidationErrors` na suíte do projeto (não há CI de testes, 2026-10-29), como implementar `IValidatable` num tipo próprio).
 - Tamanho: ~280 linhas, 5 arquivos.
 
 ### 0M-39 — `docs(gas): HelpURL nos tipos restantes e teste de HelpURL`
@@ -1430,7 +1436,7 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Depende de: 0M-50.
 - CAs: CA1, CA32, CA54, CA6, N4.
 - **Alterado (revisão sem Odin):** a lista final do CA1 não tem `SpellBook.Setup.Editor`. Tem `SpellBook.Core.Editor`, `.Events.Editor`, `.Time.Editor`, `.Tags.Editor`, `.Pooling.Editor` e `.GAS.Editor`. Depende do 0M-50, não mais do 0M-39. O `NoOdinTests` e o `SpellBookEditorCoverageTests` continuam verdes depois do movimento.
-- Testes red: `AsmdefRules_CoreAsmdefInRuntimeCore` falha (asmdef ainda na raiz de `Runtime/`); `AllExpectedAssembliesExist` e `EachRuntimeModuleHasEditModeTests` são guardas finais; `EveryHelpUrlHasPageAndAnchor` e `NoStubPages` são guardas (red mostrado removendo uma âncora localmente). CA6: o host compila o cenário C1 (no CI, ao rodar a suíte).
+- Testes red: `AsmdefRules_CoreAsmdefInRuntimeCore` falha (asmdef ainda na raiz de `Runtime/`); `AllExpectedAssembliesExist` e `EachRuntimeModuleHasEditModeTests` são guardas finais; `EveryHelpUrlHasPageAndAnchor` e `NoStubPages` são guardas (red mostrado removendo uma âncora localmente). CA6: o host compila o cenário C1 (ao rodar a suíte no host; sem CI desde 2026-10-29).
 - Manual: Conceitos (mapa final com as referências permitidas) e O que é (lista final de módulos).
 - Tamanho: ~150 linhas, 7 arquivos.
 
@@ -1468,3 +1474,8 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
   - ~~emenda da ADR 0010~~: **resolvida**, aprovada pelo usuário em 2026-10-29 (consequência do host trocada e seção "Emenda: host local fora da 6000.0");
   - ~~ajuste do CA5 do PRD pelo Criativo~~: **resolvido**. O Criativo ajustou o CA5 (PRD, linha 242) e registrou o D5 no diário;
   - ~~adiantar o 0M-11 para logo depois do 0M-07~~: **resolvida**, aprovada pelo usuário em 2026-10-29 (ordem e Resumo da seção 8; a seção "Compatibilidade" do manual passou para o 0M-08).
+- Decidida pelo usuário em 2026-10-29: **sem CI de testes.** O 0M-11 foi cancelado, o D5 virou decisão e as ADRs 0010 e 0004 ganharam a emenda "sem CI de testes". Aberto para o gate parcial (só as emendas, a Spec e o PRD):
+  - ~~**Criativo (PRD)**~~: **resolvido** nesta revisão (o PRD também ajustou R34, o objetivo 5 e a persona Mantenedor). Escopo pedido: R42 (sai "os únicos secrets do CI são os da licença da Unity"; fica "nenhum workflow traz credencial escrita"); R43 cancelado ou trocado por "a suíte roda no host"; N1 ("passa nos testes no host, na versão da Spec; 6000.0 é o mínimo declarado"); CA56 (sai a parte dos secrets da Unity); CA57 cancelado; P14 e a linha I30 do diário marcadas como substituídas; linha nova no diário;
+  - **Fábrica:** seção "Compatibilidade" de `manual/inicio/instalacao.md` no PR do 0M-08 (texto na seção 8, 0M-08); `Documentation~/README.md` ("desvio D5" vira "decisão D5");
+  - **Controlador/DevOps:** fechar a issue #12 e o PR #64 sem merge.
+  - **Rastreabilidade (re-revisão do Examinador, 2026-10-29):** os CAs do 0M-11 cancelado que continuam no PRD foram redistribuídos: CA56 para o 0M-09 (critério novo, sem mudar arquivos nem tamanho) e N1 para os CAs do DevOps no release (seção 8). A issue do 0M-09 precisa ganhar o CA56 nos critérios.

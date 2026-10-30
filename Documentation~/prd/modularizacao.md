@@ -30,7 +30,7 @@ Ao fim da 0-M, um desenvolvedor ou designer consegue:
 2. montar eventos globais só pelo Inspector (canal, emissor, ouvinte, reações prontas) e ver pelo Event Debugger o que foi disparado e quem ouviu;
 3. escolher a fonte de tempo do GAS por asset (escalada, não escalada ou grupo pausável) e, em testes, avançá-lo manualmente;
 4. escolher como o pacote instancia objetos (Instantiate ou pool) por asset, sem singleton obrigatório;
-5. validar o projeto inteiro por um menu e por um teste EditMode no CI;
+5. validar o projeto inteiro por um menu e por um teste EditMode que roda no host (R34, R43);
 6. abrir a página de documentação de qualquer componente pelo ícone de ajuda do Inspector, num site público com conteúdo real.
 
 A 0-M é parte da versão 3.0, que aceita quebras sem fachada de compatibilidade (decisão I1). Ela sai como pré-release `3.0.0-pre.N` (decisão I24).
@@ -41,7 +41,7 @@ A 0-M é parte da versão 3.0, que aceita quebras sem fachada de compatibilidade
 |---|---|---|
 | **Desenvolvedor de gameplay** | Programa sistemas do jogo e integra o pacote | Assemblies pequenos e independentes, `EventBus<T>` sem alocação, tempo injetável, factories para testar o próprio código |
 | **Designer técnico** | Monta comportamento pelo Inspector, sem escrever código | Canais, emissores e ouvintes por asset e componente, reações prontas, fontes de tempo por asset, validação com erros claros, link para a doc |
-| **Mantenedor do pacote** | Evolui o SpellBook nas próximas fases | Testes EditMode/PlayMode por módulo, validadores no CI em duas versões da Unity, regras de dependência que o compilador garante, site de doc que nasce junto com o código |
+| **Mantenedor do pacote** | Evolui o SpellBook nas próximas fases | Testes EditMode/PlayMode por módulo, a suíte rodando no host 6000.3.13f1 (o mínimo declarado, 6000.0, não é testado; N1), regras de dependência que o compilador garante, site de doc que nasce junto com o código |
 
 **Cenários** (cada um vira um cenário verificável num Sample ou no projeto host de testes):
 
@@ -177,7 +177,7 @@ R31. Existem factories de teste que criam, em código e sem assets em disco: ASC
 
 R32. Os assets e componentes do pacote se validam implementando a interface de validação do SpellBook (`IValidatable`, no `SpellBook.Core`). As mensagens de erro e aviso aparecem em dois lugares: no topo do Inspector do próprio objeto, desenhadas pelo Inspector base do pacote, e na janela de `SpellBook > Validar projeto` (R33). Os dois lugares mostram as mesmas mensagens, vindas da mesma validação.
 R33. O menu `SpellBook > Validar projeto` roda todos os validadores sobre os assets do projeto e as cenas abertas e mostra o resultado numa janela, com erros e avisos clicáveis.
-R34. Um teste EditMode roda os mesmos validadores e falha se houver algum erro. O teste roda no CI (R43).
+R34. Um teste EditMode roda os mesmos validadores e falha se houver algum erro. O teste roda no host (R43).
 R35. Regras mínimas de validação da 0-M:
 - resposta de `EventListener` sem canal: erro;
 - reação pronta com campo obrigatório vazio (por exemplo, SetActive sem GameObject, RaiseChannel sem canal): erro;
@@ -198,12 +198,12 @@ R39. `Runtime/GAS/GAS_Documentation.md` sai de `Runtime/`. O conteúdo vira pág
 ### 4.10 Projeto host de testes, repositório e CI
 
 R41. **Host de testes** (decisão I41, que substitui a I32): o projeto Unity host fica em `HostProject~/`, não na raiz. A raiz contém só o pacote. O `HostProject~/Packages/manifest.json` referencia o pacote por `file:../..` (a Unity resolve o caminho a partir de `HostProject~/Packages/`; confirmação no 0M-06) e o lista em `testables`. O host não tem o Odin nem outro plugin de terceiros (decisão I45), e os artefatos gerados do host (`Library/`, `Temp/` e afins) estão no `.gitignore`. Nenhuma pasta de projeto Unity (`Assets/`, `Library/`, `ProjectSettings/`) existe na raiz do pacote.
-R42. **Repositório público** (decisão I33, ajustada pela I45): o repositório é público e o CI roda sem baixar nada privado. Os únicos secrets do CI são os da licença da Unity, e nenhum arquivo de workflow traz credencial escrita.
-R43. **CI** (decisão I30): usando GameCI, o CI compila o pacote e roda as suítes EditMode e PlayMode (incluindo o teste de validação do R34) na Unity 6000.0 e na última 6000.x.
+R42. **Repositório público** (decisão I33, ajustada pela I45): o repositório é público e nenhum workflow baixa nada privado e nenhum arquivo de workflow traz credencial escrita. Não há secrets da Unity, porque não há CI de testes (decisão do usuário, 2026-10-29).
+R43. ~~**CI** (decisão I30): usando GameCI, o CI compila o pacote e roda as suítes EditMode e PlayMode na Unity 6000.0 e na última 6000.x.~~ **Cancelado** (decisão do usuário, 2026-10-29): não há CI de testes. A suíte (EditMode e PlayMode, incluindo o teste de validação do R34) roda no host `HostProject~/`, na 6000.3.13f1 (Spec, D5), e o release exige a suíte inteira verde no host.
 
 ## 5. Requisitos não funcionais
 
-N1. **Compatibilidade:** Unity 6000.0 ou mais nova. O pacote compila sem avisos novos e passa nos testes na 6000.0 e na última 6000.x, verificados no CI (R43).
+N1. **Compatibilidade:** Unity 6000.0 ou mais nova. A 6000.0 é o mínimo declarado (`"unity": "6000.0"`). O pacote compila sem avisos novos e passa nos testes no host, na versão da Spec (6000.3.13f1, D5); não há CI de testes e a 6000.0 não é testada (R43).
 N2. **Alocação:** `EventBus<T>.Raise` e `EventChannel<T>.Raise` sem reações e sem `UnityEvent` não alocam memória gerenciada depois do aquecimento. `ASC.Tick` não aloca em regime (sem efeitos sendo aplicados ou removidos naquele quadro).
 N3. **Determinismo:** com `ManualTimeSource`, duas execuções com os mesmos avanços produzem o mesmo estado do ASC.
 N4. **Independência:** cada módulo de infraestrutura compila só com as dependências do R1 (Core; o Events, com Core e Time), sem o GAS no projeto.
@@ -317,8 +317,8 @@ Cada CA é um teste automatizado (T), um teste de compilação/estrutura (E) ou 
 
 **Host, repositório e CI**
 - CA55 (E). O `HostProject~/Packages/manifest.json` referencia o pacote por `file:../..` e o lista em `testables`; o `.gitignore` ignora os artefatos gerados do host e não tem entrada do Sirenix; a raiz do repositório não tem `Assets/`, `Library/` nem `ProjectSettings/`.
-- CA56 (E). Nenhum arquivo do Odin está versionado no repositório; os workflows do CI não citam o Odin, não baixam nada de local privado e só usam os secrets da licença da Unity, sem credencial escrita no arquivo.
-- CA57 (S). Um pull request dispara o CI, que compila e roda as suítes EditMode e PlayMode na 6000.0 e na última 6000.x, e o resultado de cada versão aparece separado.
+- CA56 (E). Nenhum arquivo do Odin está versionado no repositório; os workflows do CI não citam o Odin, não baixam nada de local privado e nenhum traz credencial escrita no arquivo (não há secrets da Unity).
+- ~~CA57 (S). Um pull request dispara o CI, que compila e roda as suítes EditMode e PlayMode na 6000.0 e na última 6000.x, e o resultado de cada versão aparece separado.~~ **Cancelado** (decisão do usuário, 2026-10-29): não há CI de testes (0M-11 cancelado).
 
 ## 8. Perguntas em aberto
 
@@ -337,7 +337,7 @@ Cada CA é um teste automatizado (T), um teste de compilação/estrutura (E) ou 
 - ~~**P11. Domínio e visibilidade do site.**~~ Respondida pela decisão I29: público, em `gabrielctorres.github.io/SpellBook`. Ver R4, R36, R38, CA4, CA37 a CA39.
 - ~~**P12. Páginas exigidas nesta fase.**~~ Respondida pela decisão I26: conteúdo real desde a 0-M, sem stubs. Ver R37, CA54.
 - ~~**P13. Asmdefs dos testes.**~~ Respondida pela decisão I27: `SpellBook.<Módulo>.Tests.EditMode` / `.PlayMode`. Ver R1, R30, CA1, CA32.
-- ~~**P14. Matriz de versões no CI.**~~ Respondida pela decisão I30: 6000.0 e última 6000.x, com GameCI. Ver R43, N1, CA57.
+- ~~**P14. Matriz de versões no CI.**~~ Respondida pela decisão I30: 6000.0 e última 6000.x, com GameCI. **Substituída** pela decisão do usuário de 2026-10-29: sem CI de testes; verificação só no host. Ver R43, N1, CA57.
 - ~~**P15. `PlayCueAction` e a regra R2.**~~ Respondida pela decisão I37: fica no GAS e instancia pelo `SpawnerAsset` do Core; o GAS não referencia o Pooling. Ver R25, CA30, CA62.
 - ~~**P16. Escopo da `RaiseEventAction`.**~~ Respondida pela decisão I39: canais sem payload e `EventChannel<T>` com payload fixo no Inspector; payload dinâmico no B-004. Ver R25a, CA52, CA61.
 - ~~**P17. Reação Invoke com delay.**~~ Respondida pela decisão I38: o Events referencia Core e Time; atraso por `TimeSourceAsset` no Inspector (padrão: escalado); roda uma lista de reações; é cancelada se o ouvinte for desabilitado. Ver R1, R18a, N4, CA51, CA59, CA60.
@@ -383,7 +383,7 @@ Preenchido via `/ajustar`. "Playtest" aqui é validação de uso num projeto hos
 | 2026-10-29 | usuário | I27 (P13): assemblies de teste por módulo, `SpellBook.<Módulo>.Tests.EditMode` / `.PlayMode` | R1, R30, CA1, CA32 | Aplicado |
 | 2026-10-29 | usuário | I28 (P6): reações prontas mínimas: SetActive, RaiseChannel, Log, Toggle de componente, Invoke com delay | R1, R18a, R35, C2, CA23, CA47 a CA51; abriu P17 e P18 | Aplicado |
 | 2026-10-29 | usuário | I29 (P11): site público em `gabrielctorres.github.io/SpellBook` | R4, R36, R38, CA4, CA37 a CA39 | Aplicado |
-| 2026-10-29 | usuário | I30 (P14): CI compila e testa na 6000.0 e na última 6000.x, com GameCI | R34, R43, N1, CA57 | Aplicado |
+| 2026-10-29 | usuário | I30 (P14): CI compila e testa na 6000.0 e na última 6000.x, com GameCI | R34, R43, N1, CA57 | Substituído pela decisão de 2026-10-29 (sem CI de testes) |
 | 2026-10-29 | usuário | I31 (P10): `Math.cs` vira só a classe estática, no Core | R1, R5a, CA43 | Aplicado |
 | 2026-10-29 | usuário | I32: host de testes na raiz atual; manifest com `file:` e `testables`; Odin importado localmente e `Assets/Plugins/Sirenix` no `.gitignore` | R41, CA55; "projeto host" nos CAs (S) é este projeto | Substituído pela I41 |
 | 2026-10-29 | usuário | I33: repositório público; o CI baixa o Odin de um local privado via secret (falta confirmar a licença do Odin) | R42, CA56; abriu P21 | Substituído pela I45 (o repositório continua público; sai a parte do Odin no CI) |
@@ -404,3 +404,4 @@ Preenchido via `/ajustar`. "Playtest" aqui é validação de uso num projeto hos
 | 2026-10-29 | usuário | I50: o canal fica dentro da `EventEmission` do emissor | Decisão técnica (ADR 0016, emenda); nenhum texto muda. R19, CA22 e CA24 continuam valendo: o emissor dispara o canal configurado no Inspector, e o Find references o mostra como "emite" | Aplicado |
 | 2026-10-29 | Arquiteto | Caminho do pacote no manifest do host é `file:../..`, porque a Unity resolve o caminho a partir de `HostProject~/Packages/` (Spec, D1) | R41, CA55; confirmação no 0M-06 | Aplicado (confirmar no 0M-06) |
 | 2026-10-29 | usuário | D5 da Spec: host local na 6000.3.13f1, não na 6000.0; o mínimo declarado e a matriz do CI não mudam | CA5 ("host com a versão da Spec, D5") | Aplicado |
+| 2026-10-29 | usuário | Sem CI de testes: "tira essa regra. A ideia é que o sistema funciona a partir do 6000, o que já vai funcionar". Secrets da Unity não serão cadastrados; 0M-11 cancelado; D5 vira decisão. O mínimo declarado continua 6000.0 e a única verificação é a suíte no host 6000.3.13f1 (ADRs 0010 e 0004 emendadas) | R42, R43, N1, CA56, CA57; P14 e I30 substituídas | Aplicado |
