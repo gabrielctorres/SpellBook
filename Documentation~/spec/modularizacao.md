@@ -3,7 +3,16 @@
 Status: **Aprovada** (gate da revisão sem Odin, 2026-10-29). A versão anterior foi aprovada no gate de 2026-10-29 e volta a rascunho por causa das decisões I45 a I47.
 Data: 2026-10-29 · Backlog: B-001 (e B-020, B-021, B-022 pela via rápida)
 PRD: [prd/modularizacao.md](../prd/modularizacao.md) · Plano: [planos/gas-estudo-e-roadmap.md](../planos/gas-estudo-e-roadmap.md), seção I (decisões 1 a 47)
-ADRs: 0001, 0002, 0003, 0004, 0005, 0006 (Adiada), 0007, 0008, 0009, 0010, 0011 (Substituída por 0026), 0012, 0013, 0014, 0015, 0016, 0025, **0026 (Proposta)**
+ADRs: 0001, 0002, 0003, 0004, 0005, 0006 (Adiada), 0007, 0008, 0009, 0010, 0011 (Substituída por 0026), 0012, 0013, 0014, 0015, 0016, 0025, **0026 (Proposta)**, 0027 (Aceita em 2026-10-30)
+
+> **Estrutura do repositório (emenda de 2026-10-30, ADR 0027, gate do usuário).** A raiz do repositório passa a ser o projeto Unity de desenvolvimento, e o pacote fica embutido em `Packages/com.spellbook/`. O `HostProject~/` deixa de existir. A migração são três tickets, que entram logo depois do 0M-23 (seção 8): **0M-54** (movimento, com Unity), **0M-55** (skills e agentes que rodam a Unity) e **0M-56** (agentes de leitura, instalação e READMEs).
+>
+> **Regra de prefixo.** Vale para os tickets que ainda não foram implementados: 0M-26 a 0M-40, e o 0M-45, o 0M-49 e o 0M-50, que estão no meio deles. Nenhuma linha desses tickets é reescrita, com uma exceção: o 0M-40, emendado no próprio ticket.
+> - Todo caminho de pacote é relativo a `Packages/com.spellbook/`: `Runtime/...`, `Editor/...`, `Tests/...`, `package.json`, o `README.md` do pacote e o `CHANGELOG.md`. Exemplo: `Runtime/Events/EventBus.cs` é `Packages/com.spellbook/Runtime/Events/EventBus.cs`.
+> - `Documentation~/...`, `.github/...`, `.claude/...`, `Assets/...`, `ProjectSettings/...` e `Packages/manifest.json` são relativos à raiz do repositório.
+> - Toda menção a "host", "host `HostProject~/`" ou "no host" nesta Spec, a partir do 0M-54, lê-se "projeto da raiz do repositório".
+> - Os testes que leem arquivos do pacote usam caminhos relativos ao `resolvedPath`, como `"Runtime/GAS/SpellBook.GAS.asmdef"`, e não mudam.
+> - A contagem segue a emenda de 2026-10-30 da 0003: o movimento puro (`R100`) conta como 1 linha e fica fora dos 10 arquivos.
 
 > **Revisão sem Odin (2026-10-29).** O usuário decidiu que o SpellBook não depende do Odin (I45), que drawers e janelas são em UI Toolkit (I46) e que não há compatibilidade com o Odin (I47). A ADR 0026 substitui a 0011. A revisão:
 > - remove o Odin dos 8 arquivos atuais logo depois do host (0M-44);
@@ -52,6 +61,12 @@ Legenda:
 - A raiz do repositório é **ao mesmo tempo** a pasta do pacote (`package.json` na raiz) e um projeto Unity (`Assets/`, `Library/`, `Packages/`, `ProjectSettings/`, todos no `.gitignore`), versão 6000.3.5f2 (`ProjectSettings/ProjectVersion.txt`).
   - Atualização (2026-10-29, decisão do usuário no 0M-06): o host antigo foi movido, sem ser apagado, para `C:/Users/gabri/MeusProjetos/SpellBook-host-antigo/`. A raiz agora só tem os arquivos do pacote (ADR 0004, emenda do host antigo).
 - `Packages/manifest.json` da raiz não referencia `com.spellbook`, não tem `testables` nem `com.unity.test-framework`. O host não tem o Odin (`Assets/Plugins/` não existe). Hoje nenhum código do pacote é compilado pelo host.
+- **Atualização (2026-10-30, ADR 0027): a raiz passa a ser o host.** Estado antes do 0M-54:
+  - os arquivos versionados do host são `HostProject~/Packages/manifest.json` (com `"com.spellbook": "file:../.."` e `testables`), `HostProject~/Packages/packages-lock.json`, `HostProject~/ProjectSettings/ProjectVersion.txt` e `HostProject~/Assets/.gitkeep`;
+  - o `HostProject~/ProjectSettings/` tem mais 21 arquivos gerados pela Unity e ignorados (`.gitignore:21-22`);
+  - o `.gitignore:2-13` ignora `/Assets/`, `/Packages/` e `/ProjectSettings/` na raiz.
+
+  O 0M-54 move o pacote para `Packages/com.spellbook/` e o host para a raiz, e troca o `.gitignore` pelo padrão Unity. Os testes de estrutura leem o pacote por `PackageInfo.FindForAssembly(...).resolvedPath` (`Tests/Core/EditMode/Structure/PackageFiles.cs:18-31`, `Tests/GAS/EditMode/GasSourceScanTests.cs:46-53`), que para o pacote embutido é `Packages/com.spellbook`. Por isso não mudam.
 
 ### 1.3 Tempo
 
@@ -91,6 +106,8 @@ Legenda:
 - `Runtime/Core/Sets/RuntimeSet.cs:5`: namespace `SpellBook.Core.RuntimeSets`.
 - `Runtime/GAS/GAS_Documentation.md` (+ `.meta`) dentro do runtime; a linha 98 cita o `AbilityActivatedEvent` global.
 - **Conflito de nome do namespace `SpellBook.Time`:** dentro de qualquer `namespace SpellBook.*`, o nome `Time` resolve primeiro para o namespace `SpellBook.Time` (se o assembly estiver referenciado), antes de `UnityEngine.Time` vindo de `using`. Consequência: o assembly que passa a referenciar `SpellBook.Time` precisa, no mesmo ticket, eliminar todo `Time.xxx` não qualificado. É um efeito desejável (o compilador reforça a ADR 0014: fora do módulo Time ninguém lê `UnityEngine.Time`), mas ordena os tickets.
+  - **Vale também para os testes** (emenda de 2026-10-30, bloqueio do 0M-31): um asmdef de teste que passa a referenciar o `SpellBook.Time` escreve `UnityEngine.Time.timeScale`, nunca `Time.timeScale`.
+  - **O mesmo vale para `Editor`** (emenda de 2026-10-30): dentro de `namespace SpellBook.<Módulo>.*`, o nome `Editor` resolve para o namespace `SpellBook.<Módulo>.Editor` quando o assembly `.Editor` do módulo está referenciado. Testes e código de Editor escrevem `UnityEditor.Editor.CreateEditor(...)`, como os testes do Core já fazem (`Tests/Core/EditMode/Inspector/SpellBookEditorTests.cs:167`).
 - Testes em EditMode: `AddComponent` não chama `Awake`, `OnEnable` nem `Update`. ASC (`Awake` monta o `AttributeSet`, `OnEnable` liga o cancelamento por tag) e `EventListener` (inscrição no `OnEnable`) só se comportam de verdade em PlayMode (ADR 0004).
 
 ---
@@ -101,7 +118,7 @@ Legenda:
 |---|---|
 | 0001 | Spec em `spec/`; manual em `Documentation~/manual/`; `GAS_Documentation.md` sai do runtime (0M-10) |
 | 0002 | Tickets de processo pela via rápida (0M-01 a 0M-04) não criam ADR nem quebram API; issues em `gabrielctorres/SpellBook` com labels da 0002 |
-| 0003 | Todo ticket ≤ ~400 linhas de código e ≤ 10 arquivos (páginas e fixtures contam só nos arquivos; arquivos apagados por inteiro, sem substituto, não contam em nenhum dos dois, decisão I42); WIP 1 para tickets com Unity; paralelo só sem Editor (emenda de 2026-10-29, seção 8) |
+| 0003 | Todo ticket ≤ ~500 linhas de código (emenda de 2026-10-30; antes ~400) e ≤ 10 arquivos (páginas e fixtures contam só nos arquivos; arquivos apagados por inteiro, sem substituto, não contam em nenhum dos dois, decisão I42); WIP 1 para tickets com Unity; paralelo só sem Editor (emenda de 2026-10-29, seção 8) |
 | 0004 | Red antes do código; testes de guarda e de caracterização marcados; ciclo de vida em PlayMode; host em `HostProject~/` (decisão I41), sem Odin (emenda 0026); o 0M-44 é o único ticket com red de compilação |
 | 0005 | Fábrica e Examinador criam e removem `.claude/editor.lock` antes de usar a Unity no host |
 | 0006 | Adiada: uma branch por ticket no mesmo checkout |
@@ -116,6 +133,7 @@ Legenda:
 | 0015 | `SpawnerAsset` com `GameObject`; `PooledSpawnerAsset` sem `PoolManager.Instance`; `PlayCueAction` só troca o spawn |
 | 0016 | Canais, bus, ouvinte, emissor e reações conforme as decisões incorporadas e a emenda 0026 (Inspectors UI Toolkit, canal dentro da `EventEmission`) |
 | 0025 | `Documentation~/mkdocs.yml` com `docs_dir: manual`; Action do Pages; CI sem Odin (emenda 0026) |
+| 0027 | Projeto Unity na raiz e pacote embutido em `Packages/com.spellbook/` (0M-54 a 0M-56); regra de prefixo para os tickets 0M-26 a 0M-40, 0M-45, 0M-49 e 0M-50; nada que não seja publicado dentro do pacote; cenário C1 em `Assets/Scenarios/C1/` (0M-40) |
 | 0026 (Proposta) | Nenhum `Sirenix`/`ODIN_INSPECTOR` no pacote (guarda no 0M-07); `overrideReferences: true`; `[TypePicker]`, `[TypeCategory]`, `[ShowIf]` no Core; `IValidatable`; drawers, Inspectors e janelas em UI Toolkit sem nenhuma exceção IMGUI (I48); popup próprio do seletor; `SpellBookEditor` com validação no topo e um `[CustomEditor]` de uma linha por tipo |
 
 ---
@@ -127,6 +145,7 @@ Legenda:
 - **D1. Host de testes em `HostProject~/`, não na raiz** (PRD R41, CA55). **Resolvido pela decisão I41**, que substitui a I32. Motivo técnico na ADR 0004: um `file:` apontando para a raiz faria a Unity importar `Assets/`, `Library/` e `ProjectSettings/` do próprio host como conteúdo do pacote. O host usa `HostProject~/Packages/manifest.json` com o pacote por `file:` e em `testables`, **sem Odin** (0026). Leitura do CA55 com a I41 e a I45: "`HostProject~/Packages/manifest.json`" e "`.gitignore` contém os artefatos do host", sem nenhuma entrada do Sirenix (o Criativo ajusta o PRD).
   - **Raiz sem projeto Unity** (decisão do usuário, 2026-10-29): o mesmo motivo vale para o host antigo que estava na raiz. Ele foi movido para fora do repositório, e a raiz não pode ter `Assets/`, `Library/`, `Packages/` nem `ProjectSettings/` (risco 34).
   - **Caminho relativo** (confirmado em 2026-10-29 como valor esperado; o PRD deve escrever `file:../..`): a I41 escreve `file:../`. A Unity resolve caminhos relativos do `manifest.json` a partir da pasta `Packages/` do projeto, não da raiz dele. Por isso a raiz do repositório, vista de `HostProject~/Packages/`, é `file:../..`. O 0M-06 confirma o caminho no red: o Package Manager precisa mostrar `com.spellbook` como pacote local. Se `file:../` resolver, fica `file:../`.
+  - **Atualização (2026-10-30, ADR 0027): o D1 é substituído a partir do 0M-54.** O host é a raiz do repositório, e o pacote fica embutido em `Packages/com.spellbook/`, sem `file:`. O `Packages/manifest.json` da raiz não lista `com.spellbook` em `dependencies` e mantém `"testables": ["com.spellbook"]`. A "raiz sem projeto Unity" e o risco 34 deixam de valer. A regra que fica no lugar deles é a da 0027: nada que não seja publicado entra em `Packages/com.spellbook/`. Leitura do CA55 a partir do 0M-54: "`Packages/manifest.json` da raiz com o pacote em `testables`" e "`.gitignore` padrão Unity". O Criativo ajusta o PRD.
 - **D2. Nome do canal sem payload** (PRD R12). `EventChannel` é a base abstrata não genérica (descrição, `logRaises`, tipo do payload, ouvintes vivos) e o canal sem payload concreto é `VoidEventChannel : EventChannel<Void>` com `Raise()`. Motivo: um `EventChannel` concreto e um `EventChannel<T>` com o mesmo nome confundem o seletor, o menu Create e o filtro por tipo, e o debugger precisa de uma base comum. O menu continua "Void Channel" (C2 e CA12 inalterados).
 - **D3. Alocação do `ASC.Tick` com efeito periódico** (PRD N2). **Aceito pela decisão I44** até o B-002. `AttributeState.Recalculate` usa LINQ (`AttributeState.cs:69-82`) e roda a cada tick periódico (`ApplyModifiersToBase` → `SetBaseValue`). A correção é do B-002 (fora da 0-M). O teste de N2 da 0-M mede o `Tick` em regime com efeitos de duração **sem** tick periódico naquele quadro.
 - **D4. `RaiseEventAction` saiu do B-004** (PRD seção 6 antiga). Já reconciliado pelo Criativo (R25a, decisões I22 e I39); listado só para rastreio.
@@ -135,6 +154,7 @@ Legenda:
   - Risco aceito pelo usuário: código que usa API ou comportamento que só existe a partir da 6000.1 passa no host e ninguém o roda na 6000.0. Os reds que dizem "confirma na 6000.0" (riscos 16, 25, 27 e 28; 0M-32, 0M-41, 0M-42, 0M-46, 0M-47, 0M-48, 0M-53) confirmam na versão do host.
   - Cobertura: o Examinador barra API nova sem a guarda de versão do item 3 da 0010 (conferindo na documentação da Unity 6000.0 as APIs do risco 27 e as que o ticket usa pela primeira vez); release com a suíte inteira verde no host. O cenário CA5 é verificado no host 6000.3.13f1. O manual cita como testada só a versão do host (0010, "não afirmar compatibilidade com versão em que os testes não rodaram").
   - Se a 6000.0 for instalada um dia: trocar o host para ela é opcional, por ticket `chore(host)` próprio, que revê o `com.unity.test-framework` (I-g) e roda a suíte inteira.
+  - **Atualização (2026-10-30, ADR 0027):** a partir do 0M-54, a versão do host fica em `ProjectSettings/ProjectVersion.txt` da raiz, e o arquivo é movido sem alteração (6000.3.13f1). Abrir o projeto com outra versão muda arquivos versionados de `ProjectSettings/`, que não são commitados fora de um ticket `chore(host)` (0010, emenda de 2026-10-30).
 - **D6. Tipo ausente relatado por objeto, não por campo** (ADR 0026, item 4, "Drawer: num campo com tipo ausente"). Proposto pelo Arquiteto em 2026-10-29 e **aprovado pelo usuário em 2026-10-29**. Achado da Fábrica no red do 0M-41, com log de diagnóstico na 6000.3.13f1:
   - quando o tipo de uma referência `[SerializeReference]` some, o campo fica com `managedReferenceId = -2` (`ManagedReferenceUtility.RefIdNull`, o mesmo valor de um campo nulo) e `managedReferenceFullTypename` vazio;
   - `SerializationUtility.GetManagedReferencesWithMissingTypes(obj)` devolve o tipo ausente com outro `referenceId` (no log, `3572287566287470595: SpellBook.Core.Tests.Inspector.PickRemovido`);
@@ -174,6 +194,8 @@ Legenda:
 
 ### 4.1 Mapa final de pastas e asmdefs
 
+**Emenda (2026-10-30, ADR 0027):** a partir do 0M-54, `Runtime/`, `Editor/` e `Tests/` deste mapa ficam em `Packages/com.spellbook/`, junto com `package.json`, `README.md` e `CHANGELOG.md`. A linha do host mudou de `HostProject~/` para a raiz. O resto do mapa não muda.
+
 ```
 Runtime/
   Core/      SpellBook.Core.asmdef (o mesmo .meta de hoje, movido no 0M-40)
@@ -208,7 +230,11 @@ Editor/
 Tests/
   Testing/   SpellBook.Testing.asmdef: GasFactory, TimeFactory, EventsFactory, SpawnFactory
   <Módulo>/EditMode, <Módulo>/PlayMode
-HostProject~/ (decisão I41)
+(raiz do repositório = projeto de desenvolvimento; era HostProject~/, I41, até o 0M-54)
+  Assets/Scenarios/C1/   cenário do CA6 (0M-40); Assets/.gitkeep
+  Packages/manifest.json, Packages/packages-lock.json   (com.spellbook embutido, em testables)
+  ProjectSettings/       (ProjectVersion.txt 6000.3.13f1, D5)
+README.md (do repositório, 0M-56), CLAUDE.md, .claude/
 Documentation~/mkdocs.yml, requirements-docs.txt, manual/
 .github/workflows/docs.yml   (tests.yml saiu com o 0M-11, cancelado em 2026-10-29)
 ```
@@ -235,6 +261,11 @@ O `AsmdefRulesTests` cobra essa regra a partir do 0M-45.
 - um `SpellBook.<Módulo>.Tests.*` referencia o módulo testado, as dependências dele, o `SpellBook.Time` e o `SpellBook.Testing` (ADR 0004, item 4);
 - o `SpellBook.Core.Tests.EditMode` também é o assembly dos testes de estrutura e de integração do pacote (`AsmdefRulesTests`, validador do 0M-38, uso do seletor e do `[ShowIf]` nos tipos do GAS). Por isso pode referenciar qualquer runtime do pacote: o GAS desde o 0M-12 e os outros módulos no 0M-38;
 - o `AsmdefRulesTests` não aplica a regra do Core aos asmdefs de teste: a lista `Infra` tem só os runtimes.
+- **Emenda (2026-10-30, bloqueio do 0M-31, issue #32):** nenhum ticket cobra essa regra, e 9 dos 10 asmdefs de teste não a cumprem hoje (só o `GAS.Tests.PlayMode` cumpre). Quem precisa de uma referência que falta só descobre pelo `CS0012`. A regra é aplicada assim:
+  - nos asmdefs que um ticket já edita ou que o ticket precisa, a referência entra no próprio ticket: Events PlayMode no 0M-31; Events EditMode no 0M-45; Core EditMode no 0M-38;
+  - os outros 6 (`Tags.Tests.EditMode` sem Time e Testing; `Time.Tests.EditMode` e `Time.Tests.PlayMode` sem Testing; `Pooling.Tests.EditMode` e `Core.Tests.PlayMode` sem Time; `GAS.Tests.EditMode` sem Testing) não são tocados por nenhum ticket. A correção e uma guarda no `AsmdefRulesTests` ficam para o gate (seção 9, ticket proposto 0M-57).
+  - **Atualização (2026-10-30, gate parcial, alternativa A):** o **0M-57**, logo depois do 0M-31, corrige os 6 e cria a guarda `AsmdefRules_EveryModuleTestAsmdef_ReferencesTimeAndTesting`. Para a suíte fechar verde com a guarda, o `SpellBook.Time` do `Events.Tests.EditMode` e do `Core.Tests.EditMode` também passa para o 0M-57 e sai do 0M-45 e do 0M-38.
+  - "As dependências dele" inclui as dependências públicas: quem referencia o `SpellBook.GAS` referencia também `SpellBook.Tags` e `SpellBook.Time`, porque a API pública do GAS expõe tipos dos dois.
 
 ### 4.2 Core
 
@@ -352,12 +383,17 @@ namespace SpellBook.Time
   - `[SerializeField] TimeSourceAsset timeSource` (vazio → `TimeSourceAsset.Scaled`), `[SerializeField] bool autoTick = true`.
   - `public ITimeSource TimeSource { get; }`, `public void SetTimeSource(ITimeSource source)` (código e testes; reinicia o cursor).
   - `public void Tick(float deltaTime)`: ignora `deltaTime <= 0`, soma em `public double TickedTime { get; }` (relógio próprio do ASC) e avança os efeitos de trás para frente, como hoje.
-  - `Update`: se `autoTick`, `Tick((float)(fonte.ElapsedTime - cursor))`.
+  - `Update`: se `autoTick`, `Tick((float)(fonte.ElapsedTime - cursor))`. Em todo quadro, com `autoTick` ligado ou não, o cursor recebe o `ElapsedTime` atual da fonte. Assim, ao religar o `autoTick`, o primeiro `Tick` recebe só o delta do último quadro, e não o tempo acumulado enquanto esteve desligado (0014, risco 10). Com `autoTick` desligado o ASC só avança por `Tick` explícito.
+  - (Emenda do Arquiteto, 2026-10-30, comportamento aceito pelo Examinador na revisão do 0M-19.)
   - Tags: `_activeTags` passa a `Dictionary<GameplayTag, int>`; `HasTag` itera as chaves com `Matches`.
   - Remove `EventManager.Trigger` (`:217`). Os eventos C# continuam.
 - **`ActiveEffectInstance`:** remove `StartTime` (quebra; ninguém no pacote o lê) e o `using UnityEngine` deixa de ser preciso para tempo.
 - **Esperas das ações** (0M-22): `AbilityContext.WaitSeconds(float seconds)` devolve um `IEnumerator` que espera, quadro a quadro, até o `Source.TickedTime` avançar `seconds` (conta pelo restante: `restante -= TickedTime - último`). `WaitAction`, `RepeatAction.Interval` e `SpawnProjectileAction.DelayBetweenShots` usam isso. Se o ASC for destruído, a espera termina.
+  - **`WaitSeconds` com `seconds <= 0` termina na hora**, sem ceder quadro. `RepeatAction` e `SpawnProjectileAction` só esperam com intervalo `> 0`, como na 2.x.
+  - **`WaitAction` com `Duration <= 0` espera exatamente um quadro** (`yield return null`) e não lê o tempo, nem o do ASC. É o comportamento da 2.x (`WaitForSeconds(0)` e valores negativos cedem um quadro), e há listas de ações que usam "Wait 0" para passar ao quadro seguinte. A regra fica no `WaitAction`, não no `WaitSeconds`. Com o ASC parado (`autoTick` desligado ou grupo pausado), "Wait 0" ainda termina no quadro seguinte, porque espera quadro, não tempo.
+  - (Emenda do Arquiteto, 2026-10-30, dúvida da Fábrica no 0M-22.)
 - **`Projectile`:** `[SerializeField] TimeSourceAsset timeSource` (vazio → escalado); `FixedUpdate` lê o delta por diferença de `ElapsedTime`; tempo de vida e invulnerabilidade viram contadores de restante decrementados no `FixedUpdate`, sem corrotina. `Setup(SpawnerAsset spawner, AbilityContext parentContext, List<AbilityAction> onHitActions)` (e a sobrecarga com `AbilitySystemComponent`); `ReturnToPool()` chama `SpawnerAsset.OrDefault(spawner).Release(gameObject)`. Não implementa mais `IPoolable`; `OnEnable` reinicia o estado.
+  - Com o contador, sai o `protected virtual IEnumerator InitialInvulnerability()` (quebra para subclasses que o sobrescrevem; seção 7). A invulnerabilidade continua no campo `InitialInvulnerabilityDuration` e no `HandleCollision`, que ignora o choque enquanto o contador for positivo. (Emenda do Arquiteto, 2026-10-30, 0M-22.)
 - **`SpawnProjectileAction`**, **`PlayCueAction`**, **`SpawnVFXEffectAction`:** campo `public SpawnerAsset Spawner` (vazio → `SpawnerAsset.Default`). `SpawnVFXEffectAction.Cleanup` devolve pelo mesmo spawner; o ramo sem `DestroyOnRemoval` usa `ReleaseWhenParticlesStop`. `PlayCueAction` mantém `PlayClipAtPoint` e não devolve o VFX (I37).
 - `[HelpURL]` em todos os tipos públicos concretos que são `MonoBehaviour` ou `ScriptableObject`, com âncora na página GAS.
 
@@ -391,6 +427,9 @@ namespace SpellBook.Time
   - `LogReaction { string message; LogType type = Log }`;
   - `RaiseChannelReaction { Mode { ForwardPayload, RaiseVoid }; EventChannel target }`. No modo `ForwardPayload`, só dispara se `target is EventChannel<T>`, e o validador da resposta acusa tipo diferente;
   - `DelayedReaction { float delay; TimeSourceAsset timeSource; [SerializeReference, TypePicker] List<Reaction> reactions }`.
+- **Pontos de extensão internos** (emenda de 2026-10-30, varredura de lacunas; a API pública desta seção não muda):
+  - **Esperas do `EventListener` (0M-31).** O `EventListener` ganha um método `internal` que agenda uma ação para quando a fonte de tempo avançar `delay` (o nome e a assinatura exata são da Fábrica). O vencimento é `fonte.ElapsedTime + delay`, lido no agendamento (consumo por diferença, 0014). O `Update` roda as vencidas, e uma ação que agenda outra espera ou desabilita o ouvinte durante o `Update` não pula nem repete nenhuma espera. O `OnDisable` descarta todas as esperas. A `DelayedReaction` captura o payload numa cópia local (I-i) e repassa `Execute<T>` às reações internas com ele. Sem `timeSource`, usa `TimeSourceAsset.Scaled`. Ela sobrescreve as duas sobrecargas de `Validate`: lista vazia é erro, e a sobrecarga com `payloadType` repassa o tipo às reações internas, para o 0M-33 acusar um `RaiseChannel` de tipo errado dentro de um delay.
+  - **Canal para o Editor (0M-45).** O `EventChannel` ganha `internal abstract object BoxedLastPayload { get; }` e `internal abstract void RaiseDebugPayload()` (dispara o `debugPayload`, sem emissor), implementados pelo `EventChannel<T>`. O `Runtime/Events/AssemblyInfo.cs` ganha `InternalsVisibleTo("SpellBook.Events.Editor")`, que também dá ao debugger (0M-35) acesso ao `Observed` e ao `LiveChannels`. Motivo: o `EventChannelEditor` trabalha com a base não genérica, e a outra saída seria reflection sobre `LastPayload` e `Raise(T)`.
 - **`EventEmission`** (abstrato, `IValidatable`: sem canal é erro) e **`EventEmission<T>`** (`EventChannel<T> channel`, `T payload`, `Raise(sender)`). Tem `abstract EventChannel Channel { get; }`, `abstract Type PayloadType { get; }` e `static EventEmission CreateFor(EventChannel channel)` por `MakeGenericType`; com canal nulo, devolve `null`.
 - **`EventEmitter : MonoBehaviour, IValidatable`**: `[SerializeReference] EventEmission emission` (sem `[TypePicker]`; o canal fica **dentro** da emissão, 0016 emenda) e `public void Raise()`. O botão no Play vem do `EventEmitterEditor` (0M-45). O `EventEmissionDrawer` (0M-45) mostra o campo de canal e, quando o tipo de payload do canal escolhido difere do da emissão atual, troca `managedReferenceValue` por `EventEmission.CreateFor(canal)`. A lógica fica numa função estática testável, `EventEmissionEditing.SetChannel(SerializedProperty emission, EventChannel channel)`.
 - **Editor** (`SpellBook.Events.Editor`, tudo em UI Toolkit):
@@ -399,6 +438,8 @@ namespace SpellBook.Time
   - `EventEmissionDrawer`;
   - `ChannelCatalog.Filter(IEnumerable<EventChannel>, Type payloadType)` (função pura, CA21 e CA58) e `ChannelCatalog.FindAll()` (AssetDatabase);
   - `ChannelPickerDrawer` para campos `EventChannel` dentro de respostas e de `RaiseChannelReaction` (modo repassar): um botão abre a lista filtrada, e a descrição do canal aparece num `HelpBox`;
+    - (emenda de 2026-10-30) o drawer vale para todo campo `EventChannel` por tipo, inclusive em scripts do usuário. Filtro: campo `EventChannel<T>` → canais de `T`; `RaiseChannelReaction` em `ForwardPayload` → o payload da resposta que contém a reação; em `RaiseVoid` → canais Void; qualquer outro campo do tipo base → todos os canais;
+    - o canal da `EventEmission` não passa por ele: o `EventEmissionDrawer` (0M-45) desenha um campo próprio do tipo base `EventChannel`, e não um `PropertyField` do campo `channel`. Se passasse, o filtro por `EventChannel<T>` impediria trocar o tipo do payload;
   - `EventDebuggerWindow` (`EditorWindow.CreateGUI`) + `EventDebuggerModel` (busca, histórico, limpar);
   - `ChannelReferenceFinder.Find(EventChannel)`, que varre prefabs, ScriptableObjects e cenas carregadas por `SerializedObject`, com papel decidido pelo tipo dono da referência (`EventEmission` e `RaiseChannelReaction` → emite; `EventResponse` → ouve).
 
@@ -506,9 +547,9 @@ O Setup sem Odin foi **cancelado**: não existe `SpellBook.Setup.Editor` nem `Od
 |---|---|---|---|
 | O que é | `manual/index.md` | 0M-08 | 0M-40 |
 | Instalação | `manual/inicio/instalacao.md` | 0M-08 (com a seção Compatibilidade, D5) | — |
-| Conceitos (mapa de módulos, três usos de evento, seletor de tipo e `[ShowIf]`) | `manual/inicio/conceitos.md` | 0M-12 | 0M-24, 0M-26, 0M-40 |
+| Conceitos (mapa de módulos, três usos de evento, seletor de tipo e `[ShowIf]`) | `manual/inicio/conceitos.md` | 0M-12 | 0M-24, 0M-26, 0M-33 e 0M-38 (mapa atual, emenda de 2026-10-30), 0M-40 |
 | Inspector do SpellBook (seletor de tipo, tipo ausente, `[MovedFrom]` para tipos do usuário, `[ShowIf]`, ambiguidade com outros pacotes) | `manual/inicio/inspector.md` | 0M-42 | 0M-46, 0M-48 (validação no topo, botão Revalidar), 0M-53 (tipo ausente no topo, seção **Tipo não encontrado**), 0M-50 (como herdar de `SpellBookEditor` nos tipos do usuário) |
-| Migração 2.x → 3.0 | `manual/regras/migracao-2-para-3.md` | 0M-12 (já com a linha "o pacote não depende mais do Odin; perdas no Inspector do GAS", do 0M-44) | 0M-15, 0M-16, 0M-19, 0M-21, 0M-25, 0M-40 (linha de Pooling, emenda de 2026-10-30) |
+| Migração 2.x → 3.0 | `manual/regras/migracao-2-para-3.md` | 0M-12 (já com a linha "o pacote não depende mais do Odin; perdas no Inspector do GAS", do 0M-44) | 0M-15, 0M-16, 0M-21 (com as linhas do 0M-19, emenda de 2026-10-30), 0M-25, 0M-40 (linha de Pooling, emenda de 2026-10-30) |
 | GAS | `manual/modulos/gas.md` | 0M-10 | 0M-12, 0M-19, 0M-21, 0M-22, 0M-37, 0M-39 |
 | Tags | `manual/modulos/tags.md` | 0M-16 | — |
 | Tempo | `manual/modulos/tempo.md` | 0M-17 | 0M-18 |
@@ -608,7 +649,7 @@ O CA41 foi **cancelado** (não existe cenário sem Odin).
 | 5 | Repetição | Find references e validador do projeto lentos em projetos grandes | `ChannelReferenceFinder`, `ProjectValidator` | Rodam só sob demanda; o finder filtra antes por `AssetDatabase.GetDependencies` | N5 no host (projeto pequeno); medido no cenário CA34 |
 | 6 | Repetição | Pool cresce sem limite se nada devolve (VFX do `PlayCueAction`) | `PlayCueAction`, `PooledSpawnerAsset` | Aceito até o Cues (I37); manual avisa em "Armadilhas" | Página Pooling |
 | 7 | Tempo | Teste dependendo de relógio real | Todos | `ManualTimeSource` e `Tick`; PlayMode conta quadros, nunca segundos; nada de `WaitForSeconds` em teste | Revisão do Examinador (0004) |
-| 8 | Tempo | Soma de floats na fronteira: `3f - 2.9f - 0.1f` dá cerca de `2,4e-8`, positivo, e a recarga **não** expiraria após "2,9 + 0,1" | CA8 | O CA8 usa dois arranjos independentes: um ASC com `Tick(2.9f)` (ainda em recarga) e outro com `Tick(3.0f)` (liberado); nunca a soma 2,9 + 0,1. Expiração continua "restante ≤ 0", como no código atual. A armadilha vai para a página GAS | CA8 |
+| 8 | Tempo | Soma de floats na fronteira: o sinal do resto depende dos valores. Em float32, `3f - 2.9f - 0.1f` dá cerca de `-9,7e-8` (a recarga expira por acaso), mas `2f - 1.9f - 0.1f` dá cerca de `+2,2e-8`, positivo, e a recarga de 2 s **não** expiraria após "1,9 + 0,1". (Emenda do Arquiteto, 2026-10-30, revisão do 0M-19: o exemplo anterior dava `+2,4e-8` para `3f - 2.9f - 0.1f`, o que estava errado.) | CA8 | O CA8 usa dois arranjos independentes: um ASC com `Tick(2.9f)` (ainda em recarga) e outro com `Tick(3.0f)` (liberado); nunca a soma 2,9 + 0,1. Expiração continua "restante ≤ 0", como no código atual. A armadilha vai para a página GAS | CA8 |
 | 9 | Tempo | `Time.timeScale` alterado por um teste afeta os seguintes | CA45, CA46, CA60 | `SetUp` guarda e `TearDown` restaura `UnityEngine.Time.timeScale` | Testes em ordem aleatória |
 | 10 | Tempo | Salto de delta no primeiro quadro ou ao trocar de fonte | ASC, `Projectile`, `EventListener` | Cursor recebe o `ElapsedTime` atual no `OnEnable` e no `SetTimeSource` | CA9, CA46 |
 | 11 | Tempo | Precisão do tempo acumulado em sessões longas | `ITimeSource.ElapsedTime` | `double` (`Time.timeAsDouble`) | — |
@@ -622,7 +663,7 @@ O CA41 foi **cancelado** (não existe cenário sem Odin).
 | 19 | Dados externos | ~~Secrets da Unity no CI~~. **Removido** com o 0M-11 (2026-10-29): o usuário não cadastra os secrets. Continua valendo que nenhum workflow traz credencial escrita (o `docs.yml` do 0M-09 não usa secret) | `.github/workflows/docs.yml` (0M-09) | Critério CA56 no 0M-09 | CA56 (0M-09) |
 | 20 | Dados externos | Pages precisa ser ligado nas configurações do repositório ("Source: GitHub Actions"), passo manual do dono | 0M-09 | Passo listado no ticket para o usuário | CA39 |
 | 21 | Dados externos | Versões Python da ferramenta de doc mudam | 0M-08 | `requirements-docs.txt` com `==` | Build `--strict` |
-| 22 | Dados externos | Testes que leem arquivos do pacote (asmdefs, `.cs`, manual) dependem do caminho real | CA2, CA10, CA25, CA30, CA54, CA65 | Caminho obtido por `PackageInfo.FindForAssembly(...).resolvedPath`; os testes rodam só no host com `file:` | 0M-07 |
+| 22 | Dados externos | Testes que leem arquivos do pacote (asmdefs, `.cs`, manual) dependem do caminho real | CA2, CA10, CA25, CA30, CA54, CA65 | Caminho obtido por `PackageInfo.FindForAssembly(...).resolvedPath`; os testes rodam só no host com `file:`. **Emenda (2026-10-30, ADR 0027):** a partir do 0M-54, o pacote é embutido, e o `resolvedPath` é `Packages/com.spellbook`. Os testes que leem o pacote não mudam. O manual fica fora do pacote: o `ManualLinksTests` (CA54) lê `Documentation~/manual/` em `PackageFiles.RepositoryRoot`, dois níveis acima do `resolvedPath`, e falha com mensagem clara se a pasta não existir (0M-40) | 0M-07; 0M-54 (mesmo total de testes); 0M-40 (manual) |
 | 23 | Dados externos | Testes que criam assets e cenas em disco (Find references) deixam lixo ou mudam as cenas abertas | 0M-36 | Pasta temporária `Assets/__SpellBookTestTemp` criada no `SetUp` e apagada no `TearDown`; cenas abertas salvas e restauradas com `EditorSceneManager` | CA24 |
 | 24 | Dados externos | ~~Setup lê `documentationUrl`~~. **Removido**: o Setup foi cancelado (0026) | — | — | — |
 | 25 | Dados externos | **Compatibilidade do UI Toolkit, parte 1: recursão.** Um drawer que devolve `new PropertyField(property)` da própria propriedade cai de novo no mesmo drawer | `ShowIfDrawer` | Duas formas, (a) e (b), decididas no red do 0M-46 (4.10). O `TypePickerDrawer` só cria `PropertyField` de filhos | Cenário no host do 0M-42 e do 0M-46 (o Inspector abre sem estouro de pilha) |
@@ -633,8 +674,8 @@ O CA41 foi **cancelado** (não existe cenário sem Odin).
 | 30 | Repetição | Custo do seletor e da validação no Inspector | `TypePickerCatalog`, `SpellBookEditor` | Candidatos em cache por tipo base (o `TypeCache` já é indexado); validação só ao montar o Inspector e em `TrackSerializedObjectValue`, nunca por repaint | N5; revisão do Examinador |
 | 32 | Dados externos | **Inspector do usuário concorre com o do pacote.** Um `[CustomEditor]` do usuário para um tipo do SpellBook (ou de terceiros, com `editorForChildClasses`) pode ser o escolhido pela Unity, e a validação no topo some | Tipos do pacote | O manual (página Inspector, 0M-50) manda herdar de `SpellBookEditor`; a janela do validador continua mostrando as mensagens | Página Inspector |
 | 33 | Dados externos | **Bind do UI Toolkit em teste.** `CreateInspectorGUI` fora de um painel não liga os campos (`Bind`), e o teste não deve depender disso | `SpellBookEditorTests`, `SpellBookEditorMissingTypeTests`, `EventsInspectorTests` | Os testes conferem só a estrutura (contêiner, `HelpBox`, botões) e as funções puras (`CollectMessages`, `SetChannel`); o comportamento ligado fica nos cenários no host | 0M-48, 0M-53, 0M-45 |
-| 34 | Dados externos | **Projeto Unity na raiz do pacote.** A raiz do repositório é a pasta do pacote; um `Assets/`, `Library/`, `Packages/` ou `ProjectSettings/` ali, mesmo ignorado pelo git, entra como conteúdo do `com.spellbook` (assemblies duplicados, `.meta` gravados, importação lenta) | Raiz do repositório, `HostProject~/` | Host antigo movido para fora (ADR 0004, emenda de 2026-10-29); único host em `HostProject~/` | Critério do 0M-06: as quatro pastas não existem na raiz quando o host abre |
-| 35 | Dados externos | **Caminhos relativos no batchmode** (B-025, medido no 0M-07 rodando da raiz com `-projectPath HostProject~`). O `-logFile` relativo resolve a partir da pasta de onde o comando roda: o log foi para `Temp/` na raiz do pacote, a Unity importou e gerou `.meta` e erro (mesma causa do risco 34). O `-testResults` relativo resolve a partir do projeto: foi para `HostProject~/Temp/`, que a Unity apaga ao fechar, e o relatório se perdeu | `/implementar`, `unity-test-reader`, `unity-console-reader`, toda chamada local da Unity em batchmode | Caminhos **absolutos** dentro de `HostProject~/Logs/` (o `~` impede a importação, e a pasta já está no `.gitignore`): `-testResults "$PWD/HostProject~/Logs/TestResults-<Plataforma>.xml"` (`EditMode` ou `PlayMode`) e `-logFile "$PWD/HostProject~/Logs/unity-tests.log"`, com o comando rodando da raiz do repositório. Nenhum caminho relativo e nada em `Temp/`. A pasta é criada antes da chamada se não existir. (Não há CI de testes: o 0M-11 foi cancelado em 2026-10-29) | Depois da rodada: o XML e o log existem em `HostProject~/Logs/`; não existe `Temp/` na raiz do pacote; `git status` sem arquivo novo fora do `HostProject~/`. A atualização da skill e dos dois agentes é um ticket rápido à parte (B-025) |
+| 34 | Dados externos | **Projeto Unity na raiz do pacote.** A raiz do repositório é a pasta do pacote; um `Assets/`, `Library/`, `Packages/` ou `ProjectSettings/` ali, mesmo ignorado pelo git, entra como conteúdo do `com.spellbook` (assemblies duplicados, `.meta` gravados, importação lenta) | Raiz do repositório, `HostProject~/` | Host antigo movido para fora (ADR 0004, emenda de 2026-10-29); único host em `HostProject~/`. **Substituído em 2026-10-30 (ADR 0027):** a partir do 0M-54, a raiz é o projeto, e o pacote fica em `Packages/com.spellbook/`. O risco passa a ser pôr dentro do pacote algo que não é publicado, como docs, cenários ou configuração de agente | Critério do 0M-06 (até o 0M-54). Depois: critério do 0M-54 (a pasta do pacote só tem `package.json`, `README.md`, `CHANGELOG.md`, `Runtime/`, `Editor/`, `Tests/` e os `.meta`) e revisão do Examinador (0027, "O que os agentes NÃO podem fazer") |
+| 35 | Dados externos | **Caminhos relativos no batchmode** (B-025, medido no 0M-07 rodando da raiz com `-projectPath HostProject~`). O `-logFile` relativo resolve a partir da pasta de onde o comando roda: o log foi para `Temp/` na raiz do pacote, a Unity importou e gerou `.meta` e erro (mesma causa do risco 34). O `-testResults` relativo resolve a partir do projeto: foi para `HostProject~/Temp/`, que a Unity apaga ao fechar, e o relatório se perdeu | `/implementar`, `unity-test-reader`, `unity-console-reader`, toda chamada local da Unity em batchmode | Caminhos **absolutos** dentro de `HostProject~/Logs/` (o `~` impede a importação, e a pasta já está no `.gitignore`): `-testResults "$PWD/HostProject~/Logs/TestResults-<Plataforma>.xml"` (`EditMode` ou `PlayMode`) e `-logFile "$PWD/HostProject~/Logs/unity-tests.log"`, com o comando rodando da raiz do repositório. Nenhum caminho relativo e nada em `Temp/`. A pasta é criada antes da chamada se não existir. (Não há CI de testes: o 0M-11 foi cancelado em 2026-10-29) | Depois da rodada: o XML e o log existem em `HostProject~/Logs/`; não existe `Temp/` na raiz do pacote; `git status` sem arquivo novo fora do `HostProject~/`. A atualização da skill e dos dois agentes é um ticket rápido à parte (B-025). **Emenda (2026-10-30, ADR 0027):** a partir do 0M-54, o comando roda da raiz com `-projectPath "$PWD"`, `-testResults "$PWD/Logs/TestResults-<EditMode\|PlayMode>.xml"` e `-logFile "$PWD/Logs/unity-tests.log"`. A pasta `Logs/` do projeto está no `.gitignore` e fica fora de `Assets/` e de `Packages/`. A skill e os dois agentes mudam no 0M-55, que absorve o B-025 |
 | 31 | Dados externos | Ambiguidade de nome (`ShowIf`, `TypeCategory`) com outros pacotes no código do usuário | Projetos do usuário | Namespace `SpellBook.Core.Inspector` (só quem escreve `using` dele vê os nomes); o manual mostra o alias | Página Inspector |
 
 ---
@@ -655,18 +696,24 @@ O DevOps leva esta lista ao CHANGELOG no release, com a tabela da página "Migra
 | `ActiveEffectInstance.StartTime` | removido | 0M-19 |
 | `Projectile.Setup(ComponentPooler, ...)`, `Projectile : IPoolable` | `Projectile.Setup(SpawnerAsset, ...)`, sem `IPoolable` | 0M-21 |
 | Ações de spawn usavam `PoolManager.Instance` | campo `Spawner` (vazio → Instantiate) | 0M-21 |
+| `SpawnVFXEffectAction` sem `DestroyOnRemoval` destruía o VFX em `duration + startLifetime`, mesmo com `Looping` ligado | devolve o VFX pelo spawner quando a partícula para (`ReleaseWhenParticlesStop`, ADR 0015); um `ParticleSystem` com `Looping` nunca para e o VFX não volta: ligar `DestroyOnRemoval` ou desligar `Looping` | 0M-21 |
+| `WaitAction`, `RepeatAction.Interval` e `SpawnProjectileAction.DelayBetweenShots` esperavam o tempo escalado da Unity (`WaitForSeconds`) | esperam o `TickedTime` do ASC de origem; com `autoTick` desligado sem `Tick`, ou com o grupo pausado, a espera para. Com os padrões (`autoTick` ligado, fonte vazia), nada muda. `WaitAction` com `Duration <= 0` continua cedendo um quadro | 0M-22 |
+| `Projectile`: vida e invulnerabilidade por corrotina no tempo escalado; `protected virtual IEnumerator InitialInvulnerability()` | contadores no `FixedUpdate` pela fonte de tempo do projétil (vazio → escalado, como na 2.x); o método saiu, e subclasses que o sobrescrevem deixam de compilar: ajuste `InitialInvulnerabilityDuration` ou sobrescreva `HandleCollision`; subclasses que sobrescrevem o `FixedUpdate` sem chamar `base.FixedUpdate()` perdem a vida e a invulnerabilidade | 0M-22 |
 | `SpellBook.Systems.Pooling.*`, menu `PoolingSystem/...` | `SpellBook.Pooling.*`, menu `SpellBook/Pooling/...` | 0M-23 |
 | `SpellBook.MathTools.Math.MathTools` | `SpellBook.Core.MathTools` | 0M-24 |
 | `SpellBook.Core.NewEventSystem.Void`, `SpellBook.Core.RuntimeSets.RuntimeSet<T>` | `SpellBook.Core.Void`, `SpellBook.Core.RuntimeSet<T>` | 0M-25 |
 | `GameEvent`/`GameEventListner` (Core/Events), `VoidEvent`, `IntEvent`, `FloatEvent`, `StringEvent`, `ComponentEvent` e listeners, `EventManager`, `GameEvent`/`GameEventListener` por string | `VoidEventChannel` etc., `EventListener`, `EventEmitter`, `EventBus<T>`; não há canal de `Component`; assets de evento precisam ser recriados | 0M-25 a 0M-32 |
 | `AbilityActivatedEvent`, `AbilitySlotUpdateEvent` globais | removidos; usar `ASC.OnAbilityActivated`; relay no B-004 (R22a) | 0M-12 |
 | `Runtime/GAS/GAS_Documentation.md` | página GAS do manual | 0M-10 |
+| Instalação por `https://github.com/gabrielctorres/SpellBook.git` (a raiz do repositório era o pacote) | `https://github.com/gabrielctorres/SpellBook.git?path=/Packages/com.spellbook`, com `#<tag>` opcional. A chave `com.spellbook` no `manifest.json` do usuário não muda. As tags 2.x continuam com a URL antiga. O usuário deixa de baixar `Documentation~/` e o `CLAUDE.md` (ADR 0027) | 0M-54, 0M-56 |
 
 ---
 
 ## 8. Tickets
 
-Ordem por dependência. **WIP 1**: um ticket com Unity em implementação por vez (exceção para tickets sem Editor logo abaixo). Nenhum ticket está bloqueado depois da revisão sem Odin. "Linhas" é a estimativa de código, sem páginas e fixtures (ADR 0003). Todos os tickets de código usam a trava (0005) e terminam com a suíte inteira verde no host. A exceção é o 0M-44, que termina com o host compilando, porque ainda não existe suíte.
+Ordem por dependência. **WIP 1**: um ticket com Unity em implementação por vez (exceção para tickets sem Editor logo abaixo). Nenhum ticket está bloqueado depois da revisão sem Odin. "Linhas" é a estimativa de código, sem páginas e fixtures (ADR 0003). **Teto por ticket: ~500 linhas e 10 arquivos** (emenda da 0003 de 2026-10-30; antes ~400). As menções a ~400 e às exceções de tamanho nos tickets abaixo são registro do que valia na época. Todos os tickets de código usam a trava (0005) e terminam com a suíte inteira verde no host. A exceção é o 0M-44, que termina com o host compilando, porque ainda não existe suíte.
+
+**Varredura de lacunas (emenda de 2026-10-30, depois do bloqueio do 0M-31 na issue #32).** Os tickets não feitos (0M-31 a 0M-40, 0M-45, 0M-49, 0M-50) foram conferidos contra o código do lote. Emendas nos próprios tickets: 0M-31 (asmdef de PlayMode, 5 arquivos), 0M-32 (sai `TypePickerUsageTests.cs`, entra `EmissionHolder.cs`; `[HelpURL]` do emissor), 0M-45 (`EventChannel.cs`, `AssemblyInfo.cs` e referências do asmdef de teste, 10 arquivos), 0M-33 (`conceitos.md`, 5 arquivos), 0M-34 (regra do filtro), 0M-35 (hook e relógio), 0M-37 (referências dos asmdefs), 0M-38 (referências e `conceitos.md`, 6 arquivos), 0M-39 (escopo do teste), 0M-49 (`ComponentPooler`). Sem lacuna: 0M-36, 0M-50 e 0M-40. Nenhum ticket passa de ~500 linhas nem de 10 arquivos, e nenhuma dependência muda. As issues dos tickets emendados precisam receber o texto novo (Controlador). O que fica para o gate está na seção 9.
 
 **Paralelo sem Editor** (emenda da 0003, 2026-10-29): o WIP 1 vale para os tickets que usam a Unity e a trava. Um ticket de docs, processo ou CI, sem trava, pode rodar em paralelo, na própria branch e numa cópia de trabalho própria (0006 adiada), desde que não toque arquivo do outro ticket. Pares marcados nesta Spec (revisão de 2026-10-29). Outros pares só valem se forem marcados aqui.
 
@@ -675,6 +722,8 @@ Ordem por dependência. **WIP 1**: um ticket com Unity em implementação por ve
 - **0M-09 em paralelo com o 0M-42, o 0M-46, o 0M-43, o 0M-48, o 0M-53 ou o 0M-12**, depois do merge do 0M-08. O 0M-09 só cria `.github/workflows/docs.yml`, e nenhum desses tickets toca `.github/`. O passo do usuário (ligar o Pages) não usa a Unity.
 - **0M-10 em paralelo com o 0M-42, o 0M-46, o 0M-43, o 0M-48 ou o 0M-53**, depois do merge do 0M-08. O 0M-10 apaga `Runtime/GAS/GAS_Documentation.md` e o `.meta` dele sem o Editor e cria `Documentation~/manual/modulos/gas.md`. O 0M-42 e o 0M-46 mexem em outros arquivos de `Runtime/GAS/` e em `manual/inicio/inspector.md`, mas nenhum desses arquivos é do 0M-10. **O 0M-10 nunca roda junto com o 0M-12**: o 0M-12 depende dele e edita o `gas.md` que o 0M-10 cria, então o 0M-10 precisa estar no `main` antes de o 0M-12 começar.
 - **0M-09 em paralelo com o 0M-10.** Os dois não usam a Unity e não têm arquivo em comum.
+- **0M-55 em paralelo com o 0M-54** (emenda de 2026-10-30, ADR 0027). O 0M-55 não usa a Unity nem a trava e só toca `.claude/` e `Documentation~/TIME.md`. O 0M-54 não toca nenhum desses arquivos. O 0M-55 roda numa cópia de trabalho própria, sem trocar a branch do checkout do 0M-54, e entra na branch de lote **depois** do 0M-54, porque descreve um layout que só existe depois dele. Enquanto o 0M-54 não estiver no lote, a Fábrica e o Examinador do 0M-54 usam os comandos escritos no próprio ticket, e não os da skill.
+- **0M-56 em paralelo com o 0M-55 e com os tickets 0M-26 a 0M-50**, depois do 0M-54 (ele edita o `Packages/com.spellbook/README.md`, que o 0M-54 move). Nenhum desses tickets toca os arquivos do 0M-56. A exceção é o 0M-40, que edita a `manual/regras/migracao-2-para-3.md`: o 0M-56 nunca roda junto com o 0M-40 e precisa estar no lote antes dele.
 - Um par cai se um dos tickets precisar de um arquivo fora da lista dele. O caso provável é a navegação do `mkdocs.yml`. Nesse caso, quem roda em paralelo volta para a fila.
 
 Na ordem atual, o 0M-08 vem logo depois do 0M-47 (decisão do usuário, 2026-10-29; ele depende só do 0M-07 e nenhuma dependência muda). Depois do merge do 0M-08, o 0M-09 e o 0M-10 ficam livres e rodam em paralelo com a trilha do Inspector (0M-42, 0M-46, 0M-43, 0M-48, 0M-53). Regra fixa: **o 0M-10 nunca roda junto com o 0M-12**; o 0M-09 pode rodar com o 0M-12.
@@ -714,16 +763,20 @@ Mudança: **igual** (sem mudança), **alterado** (escopo, arquivos, dependência
 | 0M-19 | `feat(gas)!: Tick, autoTick e fonte de tempo no ASC` | 0M-18, 0M-15 | CA7, CA8, CA9, CA11, CA46, N2, N3 | igual | — |
 | 0M-20 | `feat(core): SpawnerAsset com implementação por Instantiate` | 0M-12 | CA27, CA33 (parte) | igual | — |
 | 0M-21 | `refactor(gas)!: ações de spawn e projétil usam SpawnerAsset` | 0M-20, 0M-19 | CA29, CA62, CA30 | igual | — |
-| 0M-22 | `refactor(gas): esperas do GAS pelo relógio do ASC` | 0M-21 | CA10, CA32 (parte) | igual | — |
+| 0M-22 | `refactor(gas)!: esperas do GAS pelo relógio do ASC` | 0M-21 | CA10, CA32 (parte) | alterado | Emenda de 2026-10-30: quebras na Migração (+1 arquivo, 10), `Duration <= 0` espera um quadro, teste da invulnerabilidade; exceção de tamanho (~480 linhas, teto 500) |
 | 0M-23 | `refactor(pooling)!: módulo SpellBook.Pooling e PooledSpawnerAsset` | 0M-21, 0M-43 | CA28, CA35 (parte), CA6 (parte) | alterado | `IValidatable` no lugar de `ISelfValidator`; sai a verificação do `SelfValidationResult` e o plano B |
+| 0M-54 | `chore(host)!: pacote em Packages/com.spellbook e projeto na raiz` | 0M-23 | CA55 (releitura, D1) | **novo** (2026-10-30) | ADR 0027 (gate de 2026-10-30): movimento puro com `.meta` e GUIDs, `.gitignore` padrão Unity, suíte com o mesmo total. `ProjectSettings/` entra inteiro, com exceção só deste ticket (decisão do usuário, 2026-10-30) |
+| 0M-55 | `docs(process): skills e agentes da Unity com o projeto na raiz` | 0M-54 (entra no lote depois dele) | — | **novo** (2026-10-30) | ADR 0027: `/implementar`, `/revisao`, `/commit` e os agentes que rodam ou leem a Unity; absorve o B-025; regra do movimento puro (0003) |
+| 0M-56 | `docs(manual): instalação por ?path= e README do repositório` | 0M-54 | CA26 (parte: Migração) | **novo** (2026-10-30) | ADR 0027: URL com `?path=`, README do pacote, README novo da raiz, `Documentation~/README.md` e agentes de leitura |
 | 0M-24 | `refactor(core)!: MathTools como classe estática no Core` | 0M-12 | CA43 | igual | — |
 | 0M-25 | `refactor(events)!: remover os três sistemas de eventos antigos` | 0M-12, 0M-24 | CA25, R22 | igual | — |
-| 0M-26 | `feat(events): EventBus<T> e registro limpo por sessão` | 0M-25, 0M-17 | CA15, CA16, CA17, CA19 (bus), CA2 (parte) | igual | (idem) |
+| 0M-26 | `feat(events): EventBus<T> e registro limpo por sessão` | 0M-25, 0M-17, 0M-54, 0M-55 | CA15, CA16, CA17, CA19 (bus), CA2 (parte) | alterado (2026-10-30) | Caminhos com o prefixo `Packages/com.spellbook/` (0027); espera o 0M-55, porque é o primeiro ticket com Unity no layout novo |
 | 0M-27 | `feat(events): EventChannel e canais Void, Int e Float` | 0M-26 | CA15, CA16, CA18, CA19, CA33 (parte) | alterado | Sai o `[Button]`/`[EnableIf]` do runtime; o botão Raise vai para o 0M-45 |
 | 0M-28 | `feat(events): canais Bool, String, Vector3 e GameObject` | 0M-27 | CA12 | igual | — |
 | 0M-29 | `feat(events): EventListener com respostas e reações` | 0M-28, 0M-41 | CA13, CA14 | alterado | `[TypePicker]` nas listas; escape em classe aninhada (foldout nativo) no lugar do `[FoldoutGroup]` |
 | 0M-30 | `feat(events): reações SetActive, Log, Toggle e RaiseChannel` | 0M-29, 0M-43 | CA47, CA48, CA49, CA50, CA58 (runtime) | alterado | `Validate(ValidationResult)`; `[TypeCategory]` nas reações (I-k) |
 | 0M-31 | `feat(events): reação Invoke com delay` | 0M-30, 0M-18 | CA51, CA59, CA60 | alterado | `[TypePicker]` na lista interna; `[TypeCategory]`; validação por `ValidationResult` |
+| 0M-57 | `test(core): referências dos asmdefs de teste e guarda da ADR 0004` | 0M-31 | — | **novo** (2026-10-30) | Bloqueio da issue #32: 8 asmdefs de teste sem `SpellBook.Time` ou `SpellBook.Testing` (ADR 0004, item 4) e nenhuma guarda. Alternativa A do gate parcial; inclui o `Events.Tests.EditMode` e o `Core.Tests.EditMode` para a suíte fechar verde |
 | 0M-32 | `feat(events): EventEmitter e payload próprio de ponta a ponta` | 0M-31 | CA20, CA22 | alterado | Canal dentro da emissão; sem `[HideReferenceObjectPicker]`/`[OnValueChanged]`/botão (vão para o 0M-45); `IValidatable` |
 | 0M-45 | `feat(events): Inspectors do canal e do emissor e drawer de emissão em UI Toolkit` | 0M-32, 0M-48 | R12, R19, CA22 (parte) | **novo** | I45/I46: substitui `[Button]`, `[EnableIf]` e `[OnValueChanged]` do Odin; cria o `SpellBook.Events.Editor`. 2ª rodada: os dois Inspectors herdam de `SpellBookEditor`; o asmdef referencia `Core.Editor` |
 | 0M-33 | `feat(events): validação de ouvintes e respostas` | 0M-32, 0M-43 | CA35 (parte) | alterado | `IValidatable`; passa a depender do 0M-43, não do 0M-23 |
@@ -735,9 +788,11 @@ Mudança: **igual** (sem mudança), **alterado** (escopo, arquivos, dependência
 | 0M-39 | `docs(gas): HelpURL nos tipos restantes e teste de HelpURL` | 0M-38 | CA36, CA37 | igual | — |
 | 0M-49 | `feat(editor): Inspectors de uma linha para Core, Time, Tags e Pooling` | 0M-39, 0M-48 | R32 | **novo** (2ª rodada) | I48: todo tipo do pacote usa o `SpellBookEditor`; cria `Time.Editor`, `Tags.Editor` e `Pooling.Editor` |
 | 0M-50 | `feat(editor): Inspectors de uma linha para GAS e Events e cobertura completa` | 0M-49 | R32 | **novo** (2ª rodada) | I48: completa a cobertura; cria `GAS.Editor` |
-| 0M-40 | `refactor(core)!: Core em Runtime/Core e verificação final da estrutura` | 0M-50 | CA1, CA32, CA54, CA6, N4 | alterado | Lista final de asmdefs sem `Setup.Editor` e com `Core.Editor`, `Events.Editor`, `Time.Editor`, `Tags.Editor`, `Pooling.Editor` e `GAS.Editor`; depende do 0M-50 |
+| 0M-40 | `refactor(core)!: Core em Runtime/Core e verificação final da estrutura` | 0M-50 | CA1, CA32, CA54, CA6, N4 | alterado | Lista final de asmdefs sem `Setup.Editor` e com `Core.Editor`, `Events.Editor`, `Time.Editor`, `Tags.Editor`, `Pooling.Editor` e `GAS.Editor`; depende do 0M-50. 2026-10-30 (0027): C1 em `Assets/Scenarios/C1/`; o manual é lido na raiz do repositório (`PackageFiles.RepositoryRoot`, +1 arquivo; o asmdef `R100` sai da contagem; 8) |
 
-Ordem de execução linear: 01 → 02 → 03 → 04 → 05 → 06 → **44** → 07 → ~~11~~ (cancelado) → **41** → **47** → 08 → **42** → **46** → **43** → **48** → **53** → 09 → 10 → 12 → 13 → … → 31 → 32 → **45** → 33 → 34 → 35 → 36 → 37 → 38 → 39 → **49** → **50** → 40.
+Ordem de execução linear: 01 → 02 → 03 → 04 → 05 → 06 → **44** → 07 → ~~11~~ (cancelado) → **41** → **47** → 08 → **42** → **46** → **43** → **48** → **53** → 09 → 10 → 12 → 13 → … → 23 → **54** (∥ **55**) → **56** (∥ 26 em diante) → 26 → … → 31 → **57** → 32 → **45** → 33 → 34 → 35 → 36 → 37 → 38 → 39 → **49** → **50** → 40.
+
+Migração da estrutura (emenda de 2026-10-30, ADR 0027): o 0M-54 começa depois do APROVADO e do commit do 0M-23, com a cópia de trabalho limpa. O 0M-26 só começa com o 0M-54 e o 0M-55 no lote. O 0M-56 pode entrar depois, em paralelo (seção "Paralelo sem Editor").
 
 Os ids novos não seguem a ordem de execução (0M-47 vem antes do 0M-42), porque o 0M-42 já tinha sido divulgado na primeira rodada.
 
@@ -1167,11 +1222,12 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 
 ### 0M-19 — `feat(gas)!: Tick, autoTick e fonte de tempo no ASC`
 - Objetivo: R8 a R10 para efeitos e recargas; elimina todo `Time.` do GAS (risco 12).
-- Arquivos: `Runtime/GAS/SpellBook.GAS.asmdef` (+Time), `Runtime/GAS/Core/AbilitySystemComponent.cs` (+`[HelpURL]`), `Runtime/GAS/Effects/ActiveEffectInstance.cs` (sem `StartTime`), `Runtime/GAS/Abilities/Projectiles/Projectile.cs` (delta pela fonte, +`[HelpURL]`), `Tests/Testing/SpellBook.Testing.asmdef` (+Time), `Tests/Testing/TimeFactory.cs`, `Tests/Testing/GasFactory.cs` (efeito com duração, habilidade com recarga), `Tests/GAS/PlayMode/AscTimeTests.cs`, `Documentation~/manual/modulos/gas.md`, `Documentation~/manual/regras/migracao-2-para-3.md`.
+- Arquivos: `Runtime/GAS/SpellBook.GAS.asmdef` (+Time), `Runtime/GAS/Core/AbilitySystemComponent.cs` (+`[HelpURL]`), `Runtime/GAS/Effects/ActiveEffectInstance.cs` (sem `StartTime`), `Runtime/GAS/Abilities/Projectiles/Projectile.cs` (delta pela fonte, +`[HelpURL]`), `Tests/Testing/SpellBook.Testing.asmdef` (+Time), `Tests/Testing/TimeFactory.cs`, `Tests/Testing/GasFactory.cs` (efeito com duração, habilidade com recarga), `Tests/GAS/PlayMode/AscTimeTests.cs`, `Tests/GAS/PlayMode/SpellBook.GAS.Tests.PlayMode.asmdef` (+Time), `Documentation~/manual/modulos/gas.md`.
+- **Emenda (2026-10-30, Arquiteto):** o asmdef de testes PlayMode do GAS ganha a referência `SpellBook.Time` aqui. O `AscTimeTests` usa `ManualTimeSource`, `PausableTimeSource` e `SetTimeSource(ITimeSource)`, e sem a referência não compila (CS0012). A regra já estava na 4.1 ("Referências dos asmdefs de teste"), mas nenhum ticket a aplicava. Para ficar em 10 arquivos (ADR 0003), a página Migração sai deste ticket: as linhas `autoTick` e `StartTime` passam para o 0M-21, que é o próximo ticket que edita a página e depende deste. É o mesmo caminho do 0M-15. O gate de doc (0007) continua atendido: a página do comportamento (GAS, seção **Tempo do ASC**) muda aqui, e as quebras seguem no 0M-19 na tabela de "Quebras de compatibilidade" (CHANGELOG).
 - Depende de: 0M-18, 0M-15.
 - CAs: CA7, CA8, CA9, CA11, CA46, N2 (D3), N3.
 - Testes red: `Effect2s_ActiveAfter1_9_RemovedAfter0_2`, `Cooldown3s_BlockedBefore_AllowedAt3`, `StoppedSource_AutoTick_NothingChangesOverNFrames`, `SameTicks_SameState`, `PausableGroup_TwoAscsFrozen_UnscaledAscRuns`, `Tick_InSteadyState_DoesNotAllocate` falham (`Tick`, `SetTimeSource` e o campo de fonte não existem).
-- Manual: GAS, seção **Tempo do ASC** (`timeSource`, `autoTick`, `Tick`, `TickedTime`, receita do C6); Migração (`autoTick`, `StartTime`).
+- Manual: GAS, seção **Tempo do ASC** (`timeSource`, `autoTick`, `Tick`, `TickedTime`, receita do C6). A Migração (`autoTick`, `StartTime`) vai para o 0M-21 (emenda acima).
 - Tamanho: ~300 linhas, 10 arquivos.
 
 ### 0M-20 — `feat(core): SpawnerAsset com implementação por Instantiate`
@@ -1187,16 +1243,28 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Depende de: 0M-20, 0M-19.
 - CAs: CA29, CA62, CA30.
 - Testes red: `SpawnProjectile_NoSpawner_NoPoolManager_NoException`, `PlayCue_NoSpawner_NoPoolManager_NoException`, `SpawnVfx_ReleasesThroughConfiguredSpawner`, `Projectile_ReturnsThroughSpawner` falham (NRE do `PoolManager.Instance` / `Destroy` direto); `NoPoolManagerInstanceOutsidePooling` falha (3 ocorrências no GAS).
-- Manual: GAS, seções **Projéteis** e **Ações de spawn** (campo `Spawner`, armadilha do VFX do `PlayCueAction` até o Cues); Migração (`Projectile.Setup`, `IPoolable`).
+- Manual: GAS, seções **Projéteis** e **Ações de spawn** (campo `Spawner`, armadilha do VFX do `PlayCueAction` até o Cues); Migração (`Projectile.Setup`, `IPoolable` e, pela emenda de 2026-10-30 do 0M-19, `autoTick` e `StartTime`).
 - Tamanho: ~220 linhas, 9 arquivos.
 
-### 0M-22 — `refactor(gas): esperas do GAS pelo relógio do ASC`
-- Arquivos: `Runtime/GAS/Abilities/AbilityContext.cs` (`WaitSeconds`), `Runtime/GAS/Abilities/Actions/WaitAction.cs`, `Runtime/GAS/Abilities/Actions/FlowActions.cs`, `Runtime/GAS/Abilities/Actions/SpawnProjectileAction.cs`, `Runtime/GAS/Abilities/Projectiles/Projectile.cs` (vida e invulnerabilidade como contadores), `Tests/GAS/EditMode/SpellBook.GAS.Tests.EditMode.asmdef`, `Tests/GAS/EditMode/GasSourceScanTests.cs`, `Tests/GAS/PlayMode/AbilityWaitTests.cs`, `Documentation~/manual/modulos/gas.md`.
+### 0M-22 — `refactor(gas)!: esperas do GAS pelo relógio do ASC`
+- Arquivos: `Runtime/GAS/Abilities/AbilityContext.cs` (`WaitSeconds`), `Runtime/GAS/Abilities/Actions/WaitAction.cs`, `Runtime/GAS/Abilities/Actions/FlowActions.cs`, `Runtime/GAS/Abilities/Actions/SpawnProjectileAction.cs`, `Runtime/GAS/Abilities/Projectiles/Projectile.cs` (vida e invulnerabilidade como contadores), `Tests/GAS/EditMode/SpellBook.GAS.Tests.EditMode.asmdef`, `Tests/GAS/EditMode/GasSourceScanTests.cs`, `Tests/GAS/PlayMode/AbilityWaitTests.cs`, `Documentation~/manual/modulos/gas.md`, `Documentation~/manual/regras/migracao-2-para-3.md`.
+- **Emenda (2026-10-30, Arquiteto, dúvidas da Fábrica na implementação):**
+  - **Quebras.** O ticket quebra compatibilidade em três pontos: as esperas contam o `TickedTime` do ASC (param com `autoTick` desligado sem `Tick` ou com o grupo pausado); o `Projectile` perde o `protected virtual IEnumerator InitialInvulnerability()`; vida e invulnerabilidade do projétil seguem a fonte de tempo dele. A Spec já pedia "sem corrotina" (4.4), mas o ticket não listava as quebras. Por isso o título ganha `!`, a seção 7 ganha duas linhas e a página Migração entra no ticket, que vai a 10 arquivos (limite da ADR 0003; página do manual conta só em arquivos).
+  - **`Duration <= 0`.** O `WaitAction` espera exatamente um quadro, como na 2.x (4.4). O `WaitSeconds` continua terminando na hora com `seconds <= 0`.
+  - **Invulnerabilidade com teste.** O teste não usa física: uma subclasse de teste do `Projectile` chama o `HandleCollision` (`protected virtual`, ponto de extensão público para herança) com um alvo que tem ASC, e o efeito observável é o projétil voltar pelo spawner. A fonte é uma `ManualTimeSource` posta no campo `timeSource` por `SerializedObject`, como em `Projectile_Lifetime_CountsItsTimeSource`.
 - Depende de: 0M-21.
 - CAs: CA10, CA32 (parte: EditMode do GAS).
 - Testes red: `GasSources_DoNotReadUnityTimeOrWaitForSeconds` falha (5 ocorrências de `WaitForSeconds`); `WaitAction_FinishesByAscTicks_NotRealTime` falha (com `autoTick` desligado e sem `Tick`, a espera atual termina pelo relógio real; com o ASC, só termina após `Tick` somar a duração).
-- Manual: GAS, seção **Ações que esperam** (a espera conta o tempo do ASC; pausa do grupo pausa a habilidade).
-- Tamanho: ~180 linhas, 9 arquivos.
+  - Pela emenda: `WaitAction_ZeroDuration_WaitsOneFrame` (ASC com `autoTick` desligado e sem `Tick`; logo depois do `StartCoroutine` a ação ainda não terminou; depois de no máximo dois `yield return null` do teste, terminou; o mesmo com `Duration = -1`). Com o código de antes da emenda, a primeira asserção falha (termina na hora). `Projectile_Invulnerability_CountsItsTimeSource` (`InitialInvulnerabilityDuration = 1`, `ManualTimeSource` parada: o choque é ignorado e o projétil continua ativo; avançar a fonte 1 s e esperar um `WaitForFixedUpdate`: o choque devolve o projétil pelo spawner). Ele passa com o contador e serve de caracterização: a Fábrica confirma que ele falha se o `FixedUpdate` não decrementar o contador (mutação manual, não commitada).
+- Manual: GAS, seção **Ações que esperam** (a espera conta o tempo do ASC; pausa do grupo pausa a habilidade; "Wait 0" passa ao quadro seguinte). Migração, seção **Tempo do ASC** `{#tempo-do-asc}`: as esperas das ações e, em **Spawn e projéteis**, a vida, a invulnerabilidade e o `InitialInvulnerability()` removido, com as linhas da tabela iguais às da seção 7.
+- Tamanho: ~220 linhas, 10 arquivos. **Revisto pela emenda abaixo: ~480 linhas, 10 arquivos.**
+- **Emenda (2026-10-30, Arquiteto, limite da ADR 0003 na revisão):**
+  - **Medida.** O Examinador contou 465 linhas (82 em `Runtime/`, 383 nos testes novos) e 10 arquivos. Com os achados da revisão (teste de regressão do `_isInvulnerable`, ~15 linhas, e 1 linha de tooltip), o ticket fecha em ~480 linhas. A estimativa de ~220 subestimou os testes PlayMode que as emendas de hoje pediram (`Duration <= 0`, invulnerabilidade, `ReleasesOnce`).
+  - **Decisão: o 0M-22 fica inteiro, com ~480 linhas (teto de 500), como exceção pontual ao ~400 da ADR 0003.** A ADR não muda.
+  - **Motivo para não dividir.** (1) O código de produção tem 82 linhas; o excesso é só de testes, que são o que a ADR 0004 pede, e o diff continua fácil de revisar. (2) Separar o `Projectile` deixa o `GasSources_DoNotReadUnityTimeOrWaitForSeconds` vermelho no primeiro ticket, porque o `Projectile` tem 2 dos 5 `WaitForSeconds`. Para ele passar, seria preciso uma exceção temporária na varredura, ou seja, contornar o sintoma. (3) As duas partes mudam o mesmo contrato (o tempo do GAS segue o ASC ou a fonte do projétil) e a mesma seção da Migração. Dividir criaria dois PRs com quebras parciais do mesmo assunto. (4) O diff já foi revisado inteiro. Dividir agora custa uma issue nova, duas revisões e mover testes entre arquivos, sem reduzir o risco.
+  - **Para o Examinador:** neste ticket, o limite de linhas é 500, contado como na ADR 0003. Acima disso, ou com um 11º arquivo, o ticket volta ao Arquiteto para ser dividido.
+  - **Registro (2026-10-30):** com a emenda da ADR 0003 de 2026-10-30 (teto geral de ~500), esta exceção deixa de ser exceção e fica só como registro.
+  - **Testes red adicionais (achados da revisão):** o teste de regressão do `_isInvulnerable` (a Fábrica escolhe o nome, seguindo o padrão `Projectile_<caso>_<resultado>`) entra em `Tests/GAS/PlayMode/AbilityWaitTests.cs`. Não entra arquivo novo.
 
 ### 0M-23 — `refactor(pooling)!: módulo SpellBook.Pooling e PooledSpawnerAsset`
 - Arquivos: `Runtime/Pooling/SpellBook.Pooling.asmdef`, `Runtime/Pooling/PoolManager.cs`, `ComponentPooler.cs`, `PoolConfiguration.cs`, `PoolableObject.cs`, `IPoolable.cs` (os 5 movidos de `Runtime/Systems/Pooling/`, namespace novo, `[HelpURL]`), `Runtime/Pooling/PooledSpawnerAsset.cs`, `Tests/Pooling/EditMode/SpellBook.Pooling.Tests.EditMode.asmdef`, `Tests/Pooling/EditMode/PooledSpawnerTests.cs`, `Documentation~/manual/modulos/pooling.md`.
@@ -1207,6 +1275,146 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Manual: Pooling, seções **PooledSpawnerAsset**, **PoolManager (pré-aquecimento)** e **ComponentPooler/IPoolable**. **Inferido:** I-c.
 - **Emenda (2026-10-30):** a linha da Migração (`SpellBook.Systems.Pooling.*` → `SpellBook.Pooling.*`, menu `PoolingSystem/...` → `SpellBook/Pooling/...`) não entra aqui, porque o ticket já tem 10 arquivos e a ADR 0003 não tem exceção. Também não entra no 0M-25: ele é feito antes deste ticket, quando o namespace novo ainda não existe. A linha vai para o 0M-40, o primeiro ticket depois deste com folga no limite e garantidamente posterior (depende do 0M-50). Até lá a Migração fica sem a linha de Pooling; a quebra continua registrada na seção 7.
 - Tamanho: ~200 linhas de código novo; os 5 arquivos movidos contam pela diferença real (namespace, menu e `[HelpURL]`, ~30 linhas). 10 arquivos.
+
+### 0M-54 — `chore(host)!: pacote em Packages/com.spellbook e projeto na raiz` (novo, 2026-10-30)
+- ADR: 0027 (alternativa A, gate de 2026-10-30); contagem pela emenda de 2026-10-30 da 0003. Executor: Fábrica, **com Unity e trava** (0005; uma trava para os dois projetos, emenda de 2026-10-30).
+- Pré-condições, conferidas antes de qualquer `git mv`:
+  - o 0M-23 está APROVADO e commitado na branch de lote `feat/0m-lote-19-em-diante`;
+  - `git status` está limpo, sem mudanças de outro ticket (0027, "O que os agentes NÃO podem fazer");
+  - nenhuma Unity aberta;
+  - a raiz não tem `Assets/`, `Library/`, `Packages/` nem `ProjectSettings/` (risco 34).
+- Objetivo: a raiz do repositório vira o projeto Unity de desenvolvimento, e o pacote fica embutido em `Packages/com.spellbook/`, com os mesmos `.meta` e GUIDs e sem mudar o conteúdo de nenhum arquivo do pacote.
+- Arquivos:
+  - **Movimento puro (`R100`, 1 linha cada, fora dos 10 arquivos), sempre com o `.meta` de cada arquivo e de cada pasta:**
+    - `Runtime/` → `Packages/com.spellbook/Runtime/`;
+    - `Editor/` → `Packages/com.spellbook/Editor/`;
+    - `Tests/` → `Packages/com.spellbook/Tests/`;
+    - `package.json`, `README.md` e `CHANGELOG.md` → `Packages/com.spellbook/`;
+    - `HostProject~/ProjectSettings/ProjectVersion.txt` → `ProjectSettings/ProjectVersion.txt`;
+    - `HostProject~/Assets/.gitkeep` → `Assets/.gitkeep`.
+
+    São cerca de 120 arquivos, contados em 2026-10-30 com o 0M-23 na cópia de trabalho.
+
+    `Runtime/Systems/` não entra: o 0M-23 (commit `c59a68f`) já apagou a pasta e o `Runtime/Systems.meta` (0027, item 12 das decisões do usuário). Se a pasta ou o `.meta` reaparecer antes do movimento, o ticket para e avisa o Controlador.
+  - **Movidos com alteração** (1 arquivo cada; linhas pela diferença real):
+    - `HostProject~/Packages/manifest.json` → `Packages/manifest.json`: sai a linha `"com.spellbook": "file:../.."`, porque o pacote embutido não fica em `dependencies`. O `testables` e as outras dependências ficam iguais;
+    - `HostProject~/Packages/packages-lock.json` → `Packages/packages-lock.json`: fica o que a Unity gravar ao abrir o projeto (a entrada `com.spellbook` passa a `source: embedded`). Não é editado à mão.
+  - **Alterado:** `.gitignore`, trocado pelo padrão Unity da raiz:
+    - `/[Ll]ibrary/`, `/[Tt]emp/`, `/[Oo]bj/`, `/[Bb]uild/`, `/[Bb]uilds/`, `/[Ll]ogs/`, `/[Uu]ser[Ss]ettings/`, `/[Mm]emoryCaptures/`, `/[Rr]ecordings/`;
+    - os restos de testes interrompidos: `/[Aa]ssets/InitTestScene*` (B-026, parte do `.gitignore`) e `/[Aa]ssets/__SpellBookTestTemp*` (risco 23);
+    - os blocos atuais de IDE, de sistema operacional, de `.claude/editor.lock`, de `.claude/settings.local.json` e de `/Documentation~/site/`.
+
+    Saem as regras `/Assets/`, `/Packages/` e `/ProjectSettings/` da raiz (`.gitignore:1-13`) e o bloco do `HostProject~/` (`.gitignore:15-22`). Se continuassem, o `Packages/com.spellbook/` seria ignorado.
+  - **`ProjectSettings/` (exceção aprovada pelo usuário em 2026-10-30, só neste ticket; 0027, item 11):** os 21 arquivos que a Unity gerou em `HostProject~/ProjectSettings/` vão para `ProjectSettings/` e entram no git como configuração gerada, sem edição à mão. Não contam nas linhas nem nos 10 arquivos. O `.gitignore` novo não ignora `ProjectSettings/`.
+  - **Remoção pura:** `CLAUDE.md.meta`. O `CLAUDE.md` deixa de estar na pasta de um pacote.
+  - **Fora do git (local):**
+    - a `HostProject~/Library/` pode ser movida para `Library/`, para evitar uma reimportação completa (opcional);
+    - o resto de `HostProject~/` (`Logs/`, `Temp/`, `UserSettings/`, e a `Library/` se não for movida) sai do repositório. Ele é movido para fora ou apagado, e só com a confirmação do usuário (`CLAUDE.md`: comando destrutivo).
+- Depende de: 0M-23.
+- CAs: CA55 (releitura do D1, emenda de 2026-10-30).
+- **Testes: caracterização** (movimento sem comportamento novo; não há red):
+  1. Antes do movimento, a suíte EditMode inteira roda no `HostProject~/`. O total, passou e falhou é registrado:
+     ```
+     "$UNITY_EDITOR" -batchmode -nographics -projectPath HostProject~ -runTests -testPlatform EditMode -testResults "$PWD/HostProject~/Logs/TestResults-EditMode.xml" -logFile "$PWD/HostProject~/Logs/unity-tests.log"
+     ```
+  2. Depois do movimento, a mesma suíte roda na raiz (a skill `/implementar` só muda no 0M-55; neste ticket valem estes comandos):
+     ```
+     "$UNITY_EDITOR" -batchmode -nographics -projectPath "$PWD" -runTests -testPlatform EditMode -testResults "$PWD/Logs/TestResults-EditMode.xml" -logFile "$PWD/Logs/unity-tests.log"
+     ```
+  3. O PlayMode roda uma vez antes e uma vez depois, com `-testPlatform PlayMode` e o XML `TestResults-PlayMode.xml`. Se a rodada terminar, o total precisa bater. Se travar como no B-026, o travamento é registrado no relatório e não bloqueia o ticket, porque o critério do usuário é a suíte EditMode.
+- Critério de pronto:
+  1. A suíte EditMode inteira está verde na raiz, com **o mesmo total** da rodada do item 1. O Examinador roda de novo na revisão, com a trava.
+  2. `git diff --cached -M --name-status HEAD` (depois do stage) só mostra:
+     - `R100` para cada arquivo de `Runtime/`, `Editor/` e `Tests/`, para `package.json`, `README.md`, `CHANGELOG.md`, `ProjectVersion.txt` e `.gitkeep`, e para todos os `.meta` deles. Assim nenhum GUID muda;
+     - `R` para `manifest.json` e `packages-lock.json`;
+     - `M` para `.gitignore`;
+     - `D` para `CLAUDE.md.meta`;
+     - `A` só para os 21 arquivos de `ProjectSettings/*` (exceção aprovada).
+
+     A lista é conferida **depois** das rodadas da Unity, para pegar `.meta` regravados.
+  3. A estrutura no disco fica assim:
+     - `HostProject~/` não existe;
+     - a raiz tem `Assets/`, `Packages/` e `ProjectSettings/`;
+     - a raiz não tem `package.json`, `Runtime/`, `Editor/`, `Tests/` nem `CHANGELOG.md`;
+     - `Packages/com.spellbook/` só tem `package.json`, `README.md`, `CHANGELOG.md`, `Runtime/`, `Editor/`, `Tests/` e os `.meta`.
+  4. O `Packages/packages-lock.json` lista `com.spellbook` com `"source": "embedded"`.
+  5. `git check-ignore -v` dá **ignorado** para estes caminhos: `Library/x`, `Temp/x`, `Logs/x`, `UserSettings/x`, `obj/x`, `Assets/InitTestScene0.unity`, `Assets/InitTestScene0.unity.meta`, `Assets/__SpellBookTestTemp/x`, `.claude/editor.lock` e `x.csproj`. Dá **não ignorado** para `Packages/manifest.json`, `Packages/packages-lock.json`, `Packages/com.spellbook/package.json`, `Packages/com.spellbook/Runtime/Core/DocUrls.cs`, `ProjectSettings/ProjectVersion.txt` e `Assets/.gitkeep`. Também dá **não ignorado** para `ProjectSettings/EditorSettings.asset`. O `.gitignore` não contém `HostProject`.
+  6. Depois das rodadas, o `git status` não mostra arquivo novo fora da lista do item 2. Em particular, nenhum `.meta` novo dentro de `Packages/com.spellbook/` e nenhuma `InitTestScene*` versionável.
+  7. A trava criada no começo tem a raiz como "caminho do host" e é removida no fim.
+- Manual: nenhuma página neste ticket. A URL de instalação muda no 0M-56. Entre o 0M-54 e o 0M-56, o README do pacote e a página Instalação ficam com a URL antiga, sem efeito para ninguém porque nada é publicado antes do release.
+- Tamanho: ~120 movimentos puros (~120 linhas), `.gitignore` (~35 linhas), `manifest.json` (1 linha) e `packages-lock.json` (~5 linhas, gerado), cerca de 160 linhas. Contam **3 arquivos**: `.gitignore`, `manifest.json` e `packages-lock.json`. Os 21 de `ProjectSettings/` ficam fora pela exceção aprovada em 2026-10-30, só deste ticket.
+
+### 0M-55 — `docs(process): skills e agentes da Unity com o projeto na raiz` (novo, 2026-10-30)
+- ADR: 0027, 0004 e 0005 (emendas de 2026-10-30), 0003 (regra do movimento puro). Executor: Fábrica, **sem Unity e sem trava**. Absorve o B-025.
+- Objetivo: quem roda ou lê a Unity, ou faz o release, usa o projeto da raiz e os caminhos do pacote. Os relatórios ficam em `Logs/` com caminho absoluto. A contagem do movimento puro está escrita onde o Examinador e a Fábrica a aplicam.
+- Arquivos:
+  - `.claude/skills/implementar/SKILL.md`:
+    - o passo 5 passa a ter os comandos EditMode e PlayMode com `-projectPath "$PWD"`, `-testResults "$PWD/Logs/TestResults-<EditMode|PlayMode>.xml"` e `-logFile "$PWD/Logs/unity-tests.log"`, rodados da raiz, criando `Logs/` antes se não existir;
+    - a versão passa a ser lida em `ProjectSettings/ProjectVersion.txt`;
+    - o "caminho do host" da trava passa a ser a raiz;
+    - o passo 1 ganha o movimento puro na lista de contagem;
+  - `.claude/skills/revisao/SKILL.md`:
+    - passo 1: movimento puro (`R100`, 1 linha, fora dos 10 arquivos), conferido com `git diff -M --name-status`;
+    - passo 3: "no projeto da raiz", no lugar de "no host `HostProject~/`";
+  - `.claude/skills/commit/SKILL.md`: passo 5 com `Packages/com.spellbook/package.json` e `Packages/com.spellbook/CHANGELOG.md`;
+  - `.claude/agents/fabrica.md`: linha 14, "Usa o projeto Unity da raiz; o pacote fica em `Packages/com.spellbook/`";
+  - `.claude/agents/examinador.md`: linha 12, "no projeto da raiz";
+  - `.claude/agents/devops.md`: linhas 12 e 15, `package.json` e `CHANGELOG.md` em `Packages/com.spellbook/`;
+  - `.claude/agents/unity-test-reader.md`: linha 11, fonte padrão `Logs/TestResults-<EditMode|PlayMode>.xml` na raiz; sai a busca em `HostProject~/Temp/` e em `Temp/`; linha 15, frame `Packages/com.spellbook/Tests/...cs:linha`;
+  - `.claude/agents/unity-console-reader.md`: linha 11, fonte padrão `Logs/unity-tests.log` na raiz; linha 18, frames em `Packages/com.spellbook/{Runtime,Editor,Tests}/`;
+  - `Documentation~/TIME.md`:
+    - linhas 58-63: contagem com o movimento puro;
+    - linhas 88-93: a seção "Projeto host de testes" passa a "Projeto de desenvolvimento" (raiz, pacote embutido em `Packages/com.spellbook/`, `testables`, `.gitignore` padrão Unity, regra de prefixo da Spec);
+    - linha 101: "caminho do host" é a raiz.
+- `.github/workflows/docs.yml` **não muda**: todos os caminhos dele são `Documentation~/...` (0027, decisões do gate, item 7).
+- Depende de: 0M-54. Pode ser escrito em paralelo com o 0M-54 (seção 8, "Paralelo sem Editor"), mas entra no lote depois dele.
+- CAs: nenhum do PRD (processo).
+- Testes red (critério verificável falhando antes da mudança):
+  - `rg -n "HostProject"`, rodado só nos 9 arquivos do ticket, encontra 10 linhas (3 no `/implementar`, 2 no `TIME.md` e 1 em cada um destes: `/revisao`, `fabrica.md`, `examinador.md`, `unity-test-reader.md` e `unity-console-reader.md`). Os 4 agentes de leitura que também citam `HostProject` são do 0M-56 e ficam fora desta busca;
+  - `rg -n "Temp/TestResults|Temp/unity-tests"` nos 9 arquivos encontra 3 linhas;
+  - `rg -n "R100|movimento puro" .claude/skills/revisao .claude/skills/implementar Documentation~/TIME.md` não encontra nada.
+- Critério de pronto:
+  1. `rg -n "HostProject"` nos 9 arquivos do ticket não devolve nada.
+  2. `rg -n "Temp/TestResults|Temp/unity-tests"` nos 9 arquivos não devolve nada.
+  3. O `/implementar` contém literalmente `-projectPath "$PWD"`, `"$PWD/Logs/TestResults-EditMode.xml"`, `"$PWD/Logs/TestResults-PlayMode.xml"` e `"$PWD/Logs/unity-tests.log"`.
+  4. O `/revisao`, o `/implementar` e o `TIME.md` têm a regra do movimento puro, com `R100`, "1 linha" e "fora dos 10 arquivos".
+  5. O `/commit` e o `devops.md` citam `Packages/com.spellbook/package.json` e `Packages/com.spellbook/CHANGELOG.md`.
+  6. O diff não toca nenhum arquivo do 0M-54.
+- Tamanho: 0 linhas de código (só `.md`, cerca de 60 linhas de texto), **9 arquivos**.
+
+### 0M-56 — `docs(manual): instalação por ?path= e README do repositório` (novo, 2026-10-30)
+- ADR: 0027 (item 4 da Decisão; decisões do gate, item 5, READMEs), 0008 (emenda de 2026-10-30). Executor: Fábrica, **sem Unity e sem trava**.
+- Objetivo: quem instala usa a URL com `?path=`. Quem chega ao repositório vê um README curto que manda instalar pelo README do pacote. Os agentes de leitura procuram o código no pacote.
+- Arquivos:
+  - `README.md` da raiz (**novo**, curto):
+    - a 1ª linha manda quem quer instalar para `Packages/com.spellbook/README.md` e para o manual;
+    - depois vêm o layout (pacote, projeto de desenvolvimento, `Documentation~/`), como abrir o projeto (Hub, trava da 0005) e os links para `Documentation~/README.md` e `Documentation~/TIME.md`;
+    - **não** repete os passos de instalação;
+  - `Packages/com.spellbook/README.md`: linha 15, a URL passa a `https://github.com/gabrielctorres/SpellBook.git?path=/Packages/com.spellbook`, com a nota do `#<tag>`;
+  - `Documentation~/manual/inicio/instalacao.md`:
+    - as linhas 12 e 19 com a URL nova, e um exemplo com `#v3.0.0-pre.1`;
+    - uma nota: as versões 2.x usam a URL antiga, sem `?path=`;
+    - na "Compatibilidade", "projeto host do repositório" passa a "projeto de desenvolvimento do repositório";
+  - `Documentation~/manual/regras/migracao-2-para-3.md`: linha da URL de instalação (seção 7 desta Spec; CA26, parte);
+  - `Documentation~/README.md`:
+    - linha 3: `Documentation~/` fica na raiz do repositório, fora do pacote, e o til se mantém (0027, item 3);
+    - a seção "Projeto host" (linhas 27-40) passa a "Projeto de desenvolvimento": raiz, `ProjectSettings/ProjectVersion.txt`, pacote embutido em `testables`, `Assets/.gitkeep`, abrir a raiz pelo Hub ou com `-projectPath "$PWD"`;
+  - `.claude/agents/unity-explorer.md`: linha 13, "Procure em `Packages/com.spellbook/Runtime/` e `Packages/com.spellbook/Editor/` primeiro; o projeto da raiz (`Assets/`, `ProjectSettings/`) e pacotes de terceiros só se a pergunta exigir";
+  - `.claude/agents/engine-programmer.md` (linha 84), `ui-programmer.md` (linha 81) e `gameplay-programmer.md` (linha 82): a versão do host passa a ser lida em `ProjectSettings/ProjectVersion.txt`.
+- Depende de: 0M-54 (o README do pacote só existe depois do movimento). Pode rodar em paralelo com o 0M-55 e com os tickets 0M-26 a 0M-50, **exceto o 0M-40** (seção 8, "Paralelo sem Editor").
+- CAs: CA26 (parte: a linha da Migração; o CHANGELOG continua com o DevOps no release).
+- Testes red (critério verificável falhando antes da mudança):
+  - `rg -n "SpellBook\.git" Packages/com.spellbook/README.md Documentation~/manual/inicio/instalacao.md` encontra a URL sem `?path=`;
+  - `rg -n "HostProject" Documentation~/README.md .claude/agents/unity-explorer.md .claude/agents/engine-programmer.md .claude/agents/ui-programmer.md .claude/agents/gameplay-programmer.md` encontra 9 linhas (5 no `Documentation~/README.md` e 1 em cada agente);
+  - o `README.md` da raiz não existe: o que está lá hoje é o README do pacote, que o 0M-54 move.
+- Critério de pronto:
+  1. Toda ocorrência de `SpellBook.git` no `Packages/com.spellbook/README.md`, na `instalacao.md` e na `migracao-2-para-3.md` traz `?path=/Packages/com.spellbook`. A única exceção é a nota das 2.x, marcada como URL antiga.
+  2. `rg -n "HostProject" Documentation~/README.md Documentation~/manual` e a mesma busca nos 4 agentes do ticket não devolvem nada. Os agentes do 0M-55 ficam fora, porque os dois tickets podem rodar em paralelo.
+  3. O `README.md` da raiz existe, a 1ª linha linka `Packages/com.spellbook/README.md`, e ele não contém "Package Manager" nem "git URL" (não repete a instalação).
+  4. `mkdocs build --strict -f Documentation~/mkdocs.yml` passa, com as versões do `requirements-docs.txt`.
+  5. O diff não toca nenhum arquivo do 0M-55 nem do ticket com Unity em andamento.
+  6. **Verificação depois do merge na `main`** (usuário ou DevOps, fora do ticket, antes do release `3.0.0-pre.1`): num projeto vazio na 6000.3.13f1, instalar pela URL nova com `#main`, e o Package Manager precisa mostrar `com.spellbook` sem erro.
+- Tamanho: 0 linhas de código (`.md` e páginas do manual), **9 arquivos** (4 páginas e documentos, 1 README novo, 4 agentes).
 
 ### 0M-24 — `refactor(core)!: MathTools como classe estática no Core`
 - Arquivos: `Runtime/MathTools/Math.cs` (apagado), `Runtime/Core/MathTools.cs`, `Tests/Core/EditMode/MathToolsTests.cs`, `Documentation~/manual/inicio/conceitos.md` (seção Core: `Void`, `RuntimeSet<T>`, `MathTools`).
@@ -1229,6 +1437,7 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Depende de: 0M-25, 0M-17.
 - CAs: CA15, CA16, CA17, CA19 (bus), CA2 (parte).
 - Testes red: `Bus_DeliversToAll`, `Bus_UnsubscribeOtherDuringRaise_NoSkipNoDouble`, `Bus_SubscribeDuringRaise_NotCalledThisRaise`, `Bus_ExceptionInSecond_FirstAndThirdReceive_LogsException`, `Bus_ThousandRaises_ZeroAlloc`, `Bus_AfterSessionReset_NoListeners` falham (tipos não existem).
+- **Emenda (2026-10-30, ADR 0027):** depende também do 0M-54 e do 0M-55. Os caminhos seguem a regra de prefixo do topo da Spec, então `Runtime/Events/...` é `Packages/com.spellbook/Runtime/Events/...`.
 - Manual: **Eventos** (o que é; regra dos três usos; `EventBus<T>` com exemplo; segurança do disparo; release build sem `try/catch`).
 - Tamanho: ~280 linhas, 10 arquivos.
 
@@ -1240,6 +1449,12 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Testes red: `Channel_RaiseDeliversExactValue`, `Channel_LastPayload`, `Channel_ReentrancySafe`, `Channel_ExceptionIsolatedInEditor`, `Channel_ThousandRaises_ZeroAlloc`, `Channel_AfterSessionReset_NoListeners`, `Channel_LogRaises_WritesToConsole` falham.
 - Manual: Eventos, seções **Canais** (`{#eventchannel}`, `{#voideventchannel}` …), criar pelo menu, descrição, `logRaises` (o botão Raise entra na página no 0M-45), armadilhas (asset duplicado por Addressables; ordem não garantida; `Void` vs `System.Void`).
 - Tamanho: ~260 linhas, 8 arquivos.
+- **Emenda (2026-10-30, dúvidas da Fábrica na issue #28):** a API pública da 4.7 não muda.
+  - **`ListenerList.cs` entra no ticket.** Ganha `int Count` (conta só as posições não nulas, então fica certo durante um disparo) e `void CopyTargets(List<object> targets)`: limpa `targets` e acrescenta, para cada posição não nula, `listener.Target`, ou o próprio delegate se `Target` for nulo (método estático). Os dois são internos, não alocam e servem a `EventChannel.ListenerCount` e `EventChannel.GetListeners`. `ListenerCount` e `GetListeners` ficam no 0M-27 e não vão para o 0M-45.
+  - **`Tests/Events/EditMode/SpellBook.Events.Tests.EditMode.asmdef` entra no ticket** (+`SpellBook.Testing` nas referências). O `EventChannelTests` cria os canais pelo `EventsFactory`, não por `CreateInstance` direto.
+  - **Limpeza por sessão dos canais:** a base `EventChannel` tem uma lista estática interna de canais vivos e um construtor estático que faz **um único** `EventRegistry.Register` de uma ação que limpa os ouvintes de todos os canais da lista. O `EventChannel` entra na lista no `OnEnable` e sai no `OnDisable`; os dois são `protected virtual`, e o XML doc diz que quem sobrescreve chama o `base`. Entrar duas vezes não duplica. A limpeza chama um `internal abstract void ClearListeners()` implementado pelo `EventChannel<T>` com `ListenerList<T>.Clear()`; ela não mexe em `LastPayload` nem em `debugPayload`. O `EventRegistry` continua sem `Unregister`. Isso cumpre a 4.7: o `EventRegistry` continua sendo o único ponto de limpeza no `SubsystemRegistration` (CA19).
+  - Testes red a mais: `Channel_ListenerCount_IgnoresRemovedDuringRaise`, `Channel_GetListeners_ReturnsTargets`, `Channel_DestroyedBeforeSessionReset_NoError` (um canal destruído antes do reset sai da lista e o reset roda sem erro).
+  - Tamanho: ~300 linhas, 10 arquivos.
 
 ### 0M-28 — `feat(events): canais Bool, String, Vector3 e GameObject`
 - Arquivos: `Runtime/Events/Channels/BoolEventChannel.cs`, `StringEventChannel.cs`, `Vector3EventChannel.cs`, `GameObjectEventChannel.cs`, `Tests/Events/EditMode/ChannelMenuTests.cs`, `Documentation~/manual/modulos/eventos.md`.
@@ -1278,6 +1493,36 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Testes red: `Delayed_1s_NotAt0_9_OnceAt1_1_InOrder` (com `ManualTimeSource`), `Delayed_ListenerDisabledDuringWait_NeverRuns`, `Delayed_NoAsset_TimeScaleZero_DoesNotRun`, `Delayed_NoReactions_IsValidationError` falham.
 - Manual: Eventos, seção **Invoke com delay** `{#delayedreaction}` (fonte de tempo, cancelamento). **Inferido:** I-i.
 - Tamanho: ~200 linhas, 4 arquivos.
+- **Emenda (2026-10-30, bloqueio da issue #32; decisão do Arquiteto, aceita a proposta da Fábrica):**
+  - **`Tests/Events/PlayMode/SpellBook.Events.Tests.PlayMode.asmdef` entra no ticket**, com `SpellBook.Time` nas referências. O teste usa `ManualTimeSource.Advance`, e sem a referência a compilação falha com `CS0012`. É a regra da 4.1 (ADR 0004, item 4), que nenhum ticket tinha aplicado a esse asmdef. Não pede gate: cumpre uma regra aceita e cabe nos limites.
+  - Com a referência, `Time` passa a resolver para o namespace `SpellBook.Time` dentro dos testes: o `Delayed_NoAsset_TimeScaleZero_DoesNotRun` escreve `UnityEngine.Time.timeScale` e o restaura no `TearDown` (1.7).
+  - O ponto de extensão do `EventListener` e a validação da `DelayedReaction` seguem a 4.7 ("Pontos de extensão internos").
+  - Tamanho: ~200 linhas, **5 arquivos**.
+
+### 0M-57 — `test(core): referências dos asmdefs de teste e guarda da ADR 0004` (novo, 2026-10-30)
+- **Novo (gate parcial de 2026-10-30, alternativa A da seção 9, aprovada pelo usuário).** Aplica a regra da 4.1 (ADR 0004, item 4) aos asmdefs de teste que nenhum ticket toca e cria a guarda que a cobra. Depois dele, uma referência que falta aparece como falha da guarda, com o asmdef e a referência, e não como `CS0012` no meio de outro ticket.
+- Objetivo: todo asmdef `SpellBook.<Módulo>.Tests.<EditMode|PlayMode>` referencia o `SpellBook.Time` e o `SpellBook.Testing`. O `SpellBook.Testing` fica fora da regra: é a biblioteca de factories, não um assembly de testes, e não referencia a si mesmo.
+- Arquivos (9; os 8 asmdefs que, depois do 0M-31, ainda não cumprem a regra, e o teste):
+  - `Packages/com.spellbook/Tests/Tags/EditMode/SpellBook.Tags.Tests.EditMode.asmdef` (+ `SpellBook.Time`, `SpellBook.Testing`);
+  - `Packages/com.spellbook/Tests/Time/EditMode/SpellBook.Time.Tests.EditMode.asmdef` (+ `SpellBook.Testing`);
+  - `Packages/com.spellbook/Tests/Time/PlayMode/SpellBook.Time.Tests.PlayMode.asmdef` (+ `SpellBook.Testing`);
+  - `Packages/com.spellbook/Tests/Pooling/EditMode/SpellBook.Pooling.Tests.EditMode.asmdef` (+ `SpellBook.Time`);
+  - `Packages/com.spellbook/Tests/Core/PlayMode/SpellBook.Core.Tests.PlayMode.asmdef` (+ `SpellBook.Time`);
+  - `Packages/com.spellbook/Tests/GAS/EditMode/SpellBook.GAS.Tests.EditMode.asmdef` (+ `SpellBook.Testing`);
+  - `Packages/com.spellbook/Tests/Events/EditMode/SpellBook.Events.Tests.EditMode.asmdef` (+ `SpellBook.Time`; antes ficava no 0M-45);
+  - `Packages/com.spellbook/Tests/Core/EditMode/SpellBook.Core.Tests.EditMode.asmdef` (+ `SpellBook.Time`; antes ficava no 0M-38);
+  - `Packages/com.spellbook/Tests/Core/EditMode/Structure/AsmdefRulesTests.cs` (teste novo).
+- **Por que 8 asmdefs e não 6** (decisão do Arquiteto ao escrever o ticket): a guarda roda na suíte, e o ticket termina com a suíte verde. Com só os 6, o `Events.Tests.EditMode` e o `Core.Tests.EditMode` continuariam sem o `SpellBook.Time` até o 0M-45 e o 0M-38, e a guarda falharia. A outra saída seria uma lista de exceções no teste, que é caso especial para passar e fica fora. O `SpellBook.Time` sai das emendas do 0M-45 e do 0M-38; o resto delas não muda.
+- Depende de: 0M-31 (é ele que põe o `SpellBook.Time` no `Events.Tests.PlayMode`; o `Testing` já está lá). Nenhum ticket depois dele muda de dependência.
+- Testes red (falham antes da mudança nos asmdefs):
+  - `AsmdefRules_EveryModuleTestAsmdef_ReferencesTimeAndTesting`: percorre `PackageFiles.Asmdefs()` com `Kind == AsmdefKind.Test` e nome diferente de `SpellBook.Testing`, e lista cada par asmdef e referência que falta, no formato `<caminho>: falta a referência <nome>` dos outros testes do arquivo. Antes da mudança, a lista tem exatamente 9 entradas em 8 asmdefs (o `Tags.Tests.EditMode` falta nas duas). O teste falha também se a varredura achar menos de 10 asmdefs de teste de módulo, para não passar vazio.
+- Critério de pronto:
+  1. O teste novo passa, e a suíte inteira (EditMode e PlayMode) fica verde na raiz, com a trava (0005).
+  2. O diff de cada asmdef só acrescenta nomes em `references`; nenhum outro campo muda, e nenhum `.meta` muda.
+  3. Nenhum `.cs` de teste além do `AsmdefRulesTests.cs` muda. Hoje nenhum teste escreve `Time.` sem qualificar (busca de 2026-10-30), então o conflito do namespace `SpellBook.Time` (1.7) não aparece. Se aparecer um `CS0234` ou um `CS0117` em `Time.`, a correção é escrever `UnityEngine.Time`, e o arquivo volta ao Arquiteto antes de entrar.
+  4. Sem aviso novo do SpellBook no console.
+- Manual: nenhuma página. A regra já está na 4.1 e na ADR 0004.
+- Tamanho: ~50 linhas (8 a 9 linhas nos asmdefs e ~40 no teste), 9 arquivos, com Unity.
 
 ### 0M-32 — `feat(events): EventEmitter e payload próprio de ponta a ponta`
 - **Alterado (revisão sem Odin):**
@@ -1297,6 +1542,11 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
   - `Emitter_NoEmissionOrNoChannel_IsValidationError`.
 - Manual: Eventos, seção **EventEmitter** `{#eventemitter}` (disparo por `UnityEvent` e por animação; o botão entra no 0M-45).
 - Tamanho: ~250 linhas, 8 arquivos.
+- **Emenda (2026-10-30, varredura de lacunas):**
+  - **Sai `Tests/Core/EditMode/Inspector/TypePickerUsageTests.cs`.** A exceção da `EventEmission` já existe (`TypePickerUsageTests.cs:17-18,48-63`), e o teste já cobre o campo do emissor e o da `RaiseEventAction` (0M-37).
+  - **Entra `Tests/Events/EditMode/EmissionHolder.cs`**: o `ScriptableObject` com `[SerializeReference] EventEmission` usado na ida e volta e o struct próprio do `Emission_GenericRoundTrip_Float_AndCustomStruct`. Os tipos de `Tests/Events/PlayMode/TestPayload/` ficam no assembly de PlayMode, que o teste EditMode não enxerga. O holder fica em arquivo próprio pelo mesmo motivo do `PickHolder.cs` (0M-41).
+  - O `EventEmitter` leva `[HelpURL(DocUrls.Events + "#eventemitter")]` (0007). Sem ele, o red do 0M-39 contaria 8 tipos.
+  - Tamanho: ~260 linhas, 8 arquivos.
 
 ### 0M-45 — `feat(events): Inspectors do canal e do emissor e drawer de emissão em UI Toolkit` (novo)
 - **Novo (revisão sem Odin, I45/I46).** Entrega o que o Odin dava por `[Button]`, `[EnableIf]` e `[OnValueChanged]`. Cria o asmdef `SpellBook.Events.Editor`, que antes nascia no 0M-34.
@@ -1325,6 +1575,12 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Risco 27: o red confirma que um drawer de tipo para um campo `[SerializeReference]` de tipo abstrato é usado pela Unity na 6000.0, também com o campo nulo. Se não for, o plano B é um atributo de marcação **no módulo Events** (`[EmissionField]`), não no Core, porque a necessidade é de um módulo só (0026, item 5); isso volta ao Controlador.
 - Manual: Eventos, seções **Canais** (botão Raise, ouvintes, último payload) e **EventEmitter** (escolher o canal recria o payload; botão no Play).
 - Tamanho: ~280 linhas, 8 arquivos.
+- **Emenda (2026-10-30, varredura de lacunas):**
+  - **Entram `Runtime/Events/EventChannel.cs` e `Runtime/Events/AssemblyInfo.cs`** (4.7, "Canal para o Editor"): `BoxedLastPayload`, `RaiseDebugPayload()` e `InternalsVisibleTo("SpellBook.Events.Editor")`. O `LastPayload` e o `debugPayload` são do `EventChannel<T>`, e o editor trabalha com a base.
+  - **O asmdef `SpellBook.Events.Tests.EditMode` ganha `SpellBook.Events.Editor`, `SpellBook.Core.Editor` e `SpellBook.Time`.** O `Core.Editor` é preciso para o `ChannelInspector_IsSpellBookEditor`; o `Time` cumpre a 4.1. Os testes escrevem `UnityEditor.Editor.CreateEditor` e `UnityEngine.Time` (1.7). **Atualização (2026-10-30):** o `SpellBook.Time` já chega pelo 0M-57; aqui entram só o `Events.Editor` e o `Core.Editor`. Arquivos e tamanho não mudam.
+  - O `EventEmissionDrawer` desenha o canal num campo próprio do tipo base `EventChannel`, não num `PropertyField` do campo `channel` (4.7; protege a troca de payload quando o 0M-34 registrar o drawer de canal).
+  - Teste red a mais: `ChannelInspector_Raise_UsesDebugPayload` (em Play, o botão dispara o canal com o `debugPayload`; testado por `RaiseDebugPayload` com um ouvinte).
+  - Tamanho: ~310 linhas, **10 arquivos**.
 
 ### 0M-33 — `feat(events): validação de ouvintes e respostas`
 - **Alterado (revisão sem Odin):** `IValidatable` no lugar de `ISelfValidator`; depende do 0M-43 em vez do 0M-23. A posição na fila não muda.
@@ -1334,6 +1590,10 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Testes red: `Response_NoChannel_IsError`, `Escape_CallWithoutTarget_IsError`, `Escape_CallWithoutMethod_IsError`, `Forward_ReactionWrongType_IsError`, `ValidListener_NoIssues` falham.
 - Manual: Eventos, seção **Validação**.
 - Tamanho: ~150 linhas, 4 arquivos.
+- **Emenda (2026-10-30, varredura de lacunas):**
+  - **Entra `Documentation~/manual/inicio/conceitos.md`.** O "Mapa atual" e a "Regra de dependência" de hoje estão errados desde o 0M-14: dizem que o Core tem eventos e pooling, que as tags estão no GAS e que o GAS depende só do Core. O ticket reescreve as duas seções com o estado do lote: `SpellBook.Core`, `.Time`, `.Tags`, `.Pooling`, `.Events`, `.GAS` (que referencia Core, Tags e Time), `.Core.Editor` e `.Events.Editor`. O `SpellBook.GAS.Bridges` continua no mapa alvo (entra no manual com o 0M-38).
+  - O `Forward_ReactionWrongType_IsError` cobre também um `RaiseChannel` dentro de uma `DelayedReaction` (4.7).
+  - Tamanho: ~150 linhas, **5 arquivos**.
 
 ### 0M-34 — `feat(events): seletor de canal filtrado por payload`
 - **Alterado (revisão sem Odin):** o drawer é UI Toolkit e a descrição do canal fica num `HelpBox`, não num `InfoBox` do Odin. O asmdef `Events.Editor`, a referência de teste e a regra de asmdef já vêm do 0M-45 e saem deste ticket.
@@ -1343,6 +1603,7 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Testes red: `Filter_FloatResponse_OnlyFloatChannels`, `Filter_ForwardReaction_OnlySameType`, `Filter_Void_OnlyVoid` falham.
 - Manual: Eventos, seção **Escolher o canal** (filtro e descrição ao lado).
 - Tamanho: ~200 linhas, 4 arquivos.
+- **Emenda (2026-10-30, varredura de lacunas):** o filtro segue a regra completa da 4.7 (campo `EventChannel<T>`, `ForwardPayload`, `RaiseVoid` → Void, tipo base → todos). Teste red a mais: `Filter_RaiseVoidReaction_OnlyVoid`. Critério a mais: os testes `SetChannel_*` do 0M-45 continuam verdes (o canal da emissão não passa pelo drawer novo). Arquivos e tamanho não mudam.
 
 ### 0M-35 — `feat(events): Event Debugger`
 - **Alterado (revisão sem Odin):** a janela é UI Toolkit (`EditorWindow.CreateGUI`, `ListView`, `ToolbarSearchField`), não `OdinEditorWindow`. O modelo não muda.
@@ -1353,6 +1614,9 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Cenário CA23 no host: canal "PlayerDied", botão com `EventEmitter`, `EventListener` com SetActive num painel; o debugger mostra o disparo com horário e o ouvinte.
 - Manual: **Event Debugger** (abrir, ler a lista, histórico, busca, limpar). **Inferido:** I-d.
 - Tamanho: ~300 linhas, 5 arquivos.
+- **Emenda (2026-10-30, varredura de lacunas):**
+  - o acesso ao `EventChannel.Observed` e ao `LiveChannels` vem do `InternalsVisibleTo` do 0M-45. O `Observed` já tem o emissor desde o 0M-27 (`EventChannel.cs:25`); se o ajuste do hook não for preciso, o `EventChannel.cs` sai da lista;
+  - o quadro vem de `UnityEngine.Time.frameCount` e o horário de `DateTime.Now`, sempre qualificados, porque o `SpellBook.Events.Editor` referencia o `SpellBook.Time` (1.7). Nada lê `Time.time` nem `realtimeSinceStartup` (0014).
 
 ### 0M-36 — `feat(events): Find references de canal`
 - **Alterado (revisão sem Odin):** o botão e a lista de resultados são UI Toolkit. O papel "emite" é lido do canal **dentro** da `EventEmission` (0016, emenda).
@@ -1374,6 +1638,10 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Testes red: `Ability_RaiseVoid_OnceAndListenerReacts`, `Action_IntChannelFixed7_Raises7`, `Action_NoChannel_IsValidationError`, `AsmdefRules_BridgesDoesNotReferencePooling` falham.
 - Manual: GAS, seção **RaiseEventAction** `{#raiseeventaction}` (canal sem payload ou com payload fixo; payload dinâmico no B-004).
 - Tamanho: ~240 linhas, 10 arquivos.
+- **Emenda (2026-10-30, varredura de lacunas):** as referências dos asmdefs ficam explícitas (4.1, dependências públicas do GAS). Arquivos e tamanho não mudam.
+  - `SpellBook.GAS.Bridges`: Core, Tags, Time, GAS, Events.
+  - `SpellBook.GAS.Bridges.Tests.EditMode` e `.PlayMode`: os mesmos, mais `SpellBook.GAS.Bridges`, `SpellBook.Testing` e os dois `TestRunner`.
+  - O `AsmdefRules_BridgesDoesNotReferencePooling` também confere que o Bridges não referencia nenhum `.Editor`.
 
 ### 0M-38 — `feat(core): validar projeto por menu e por teste`
 - **Alterado (revisão sem Odin):**
@@ -1397,6 +1665,10 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
   - R32: o mesmo erro aparece no topo do Inspector do `EventListener` e some ao ligar o canal. Isso só é verificável depois do 0M-50, que dá ao `EventListener` o editor de uma linha; o Examinador registra o cenário no 0M-50.
 - Manual: **Validador** (menu, como ler a janela e o Inspector, regras da 0-M, tipo ausente com link para a seção **Tipo não encontrado** da página Inspector, e a frase de que um tipo próprio sem `SpellBookEditor` só aparece no validador (passou do 0M-53, porque o validador nasce aqui), o teste `Project_HasNoValidationErrors` na suíte do projeto (não há CI de testes, 2026-10-29), como implementar `IValidatable` num tipo próprio).
 - Tamanho: ~280 linhas, 5 arquivos.
+- **Emenda (2026-10-30, varredura de lacunas):**
+  - o asmdef `SpellBook.Core.Tests.EditMode` ganha também `SpellBook.Time` e `SpellBook.Tags` (4.1: a regra da ADR 0004 e as dependências públicas do GAS). O `Validator_ReportsEachR35Error` monta uma `DelayedReaction` e um `PooledSpawnerAsset`. **Atualização (2026-10-30):** o `SpellBook.Time` já chega pelo 0M-57; aqui entra só o `SpellBook.Tags` (e os runtimes que o validador usa). Arquivos e tamanho não mudam;
+  - **entra `Documentation~/manual/inicio/conceitos.md`**: a linha do `SpellBook.GAS.Bridges` no "Mapa atual" e a regra "o Bridges não depende de Pooling" na "Regra de dependência" de hoje;
+  - Tamanho: ~285 linhas, **6 arquivos**.
 
 ### 0M-39 — `docs(gas): HelpURL nos tipos restantes e teste de HelpURL`
 - Arquivos: `Runtime/GAS/Attributes/AttributeSet.cs`, `AttributeDefinition.cs`, `Formulas/SimpleAttributeFormula.cs`, `Formulas/ExpressionFormula.cs`, `Runtime/GAS/Targeting/CircleTargeting.cs`, `MouseTargetingStrategy.cs`, `Runtime/GAS/Effects/GameplayEffect.cs`, `Tests/Core/EditMode/HelpUrlTests.cs`, `Documentation~/manual/modulos/gas.md` (âncoras que faltarem). (`GameplayAbility` recebeu no 0M-37.)
@@ -1405,6 +1677,7 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Testes red: `AllPublicConcreteMbAndSo_HaveHelpUrl` falha (7 tipos sem atributo); `AllHelpUrls_StartWithBase` passa a cobrir todos.
 - Manual: GAS (âncoras e uma linha por tipo, se faltar).
 - Tamanho: ~80 linhas, 9 arquivos.
+- **Emenda (2026-10-30, varredura de lacunas):** o `HelpUrlTests` olha só os assemblies de runtime do pacote (`SpellBook.*` sem `.Tests`, `.Editor` nem `SpellBook.Testing`), como o `TypePickerUsageTests`. Os tipos de teste `TestPayloadEventChannel` (0M-32) e `TestListenerAsset` (0M-36) são SO públicos e concretos sem `[HelpURL]`. Conferido em 2026-10-30: os 7 tipos sem atributo são `AttributeSet`, `AttributeDefinition`, `SimpleAttributeFormula`, `ExpressionFormula`, `CircleTargeting`, `MouseTargetingStrategy` e `GameplayEffect`. O `GameplayAbility` recebe o atributo no 0M-37 e o `EventEmitter` no 0M-32. Arquivos e tamanho não mudam.
 
 ### 0M-49 — `feat(editor): Inspectors de uma linha para Core, Time, Tags e Pooling` (novo, 2ª rodada)
 - **Novo (I48).** Todo tipo do pacote usa o `SpellBookEditor`. Este ticket cobre os módulos de infraestrutura e cria o teste de cobertura.
@@ -1412,7 +1685,7 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
   - `Editor/Core/Inspector/CoreEditors.cs` (`InstantiateSpawnerAsset`);
   - `Editor/Time/SpellBook.Time.Editor.asmdef` (Core, Time, Core.Editor) e `Editor/Time/TimeEditors.cs` (`TimeSourceAsset` com `editorForChildClasses`);
   - `Editor/Tags/SpellBook.Tags.Editor.asmdef` (Core, Tags, Core.Editor) e `Editor/Tags/TagsEditors.cs` (`GameplayTagDefinition`);
-  - `Editor/Pooling/SpellBook.Pooling.Editor.asmdef` (Core, Pooling, Core.Editor) e `Editor/Pooling/PoolingEditors.cs` (`PooledSpawnerAsset`, `PoolManager`, `PoolConfiguration`, `PoolableObject`);
+  - `Editor/Pooling/SpellBook.Pooling.Editor.asmdef` (Core, Pooling, Core.Editor) e `Editor/Pooling/PoolingEditors.cs` (`PooledSpawnerAsset`, `PoolManager`, `PoolConfiguration`, `PoolableObject`, `ComponentPooler`; emenda de 2026-10-30: o `ComponentPooler` é um `MonoBehaviour` público e concreto, `Runtime/Pooling/ComponentPooler.cs:12`, e faltava na lista);
   - `Tests/Core/EditMode/Inspector/SpellBookEditorCoverageTests.cs` (assemblies cobertos: Core, Time, Tags, Pooling; seção 4.10);
   - `Tests/Core/EditMode/Structure/AsmdefRulesTests.cs` (os 3 asmdefs novos e as referências deles).
 - Depende de: 0M-39 (todos os tipos e `[HelpURL]` existem), 0M-48.
@@ -1452,6 +1725,18 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Testes red: `AsmdefRules_CoreAsmdefInRuntimeCore` falha (asmdef ainda na raiz de `Runtime/`); `AllExpectedAssembliesExist` e `EachRuntimeModuleHasEditModeTests` são guardas finais; `EveryHelpUrlHasPageAndAnchor` e `NoStubPages` são guardas (red mostrado removendo uma âncora localmente). CA6: o host compila o cenário C1 (ao rodar a suíte no host; sem CI desde 2026-10-29).
 - Manual: Conceitos (mapa final com as referências permitidas), O que é (lista final de módulos) e Migração (linha `SpellBook.Systems.Pooling.*` → `SpellBook.Pooling.*` e menu `PoolingSystem/...` → `SpellBook/Pooling/...`, vinda do 0M-23/0M-25 pela emenda de 2026-10-30).
 - Tamanho: ~150 linhas, 8 arquivos.
+- **Emenda (2026-10-30, ADR 0027).** Vale no lugar dos trechos acima quando eles divergem:
+  - **Cenário C1:** os dois arquivos passam de `HostProject~/Assets/Scenarios/C1/...` para `Assets/Scenarios/C1/C1.PoolingOnly.asmdef` e `Assets/Scenarios/C1/C1PoolingUsage.cs`, com os `.meta`, na raiz do repositório.
+    - O asmdef do C1 não é do pacote: fica fora do `AsmdefRulesTests`, que lê só o `resolvedPath` (0012, emenda de 2026-10-30).
+    - O CA6 lê-se "o projeto da raiz compila o cenário C1".
+  - **Caminhos de pacote:** `Runtime/SpellBook.Core.asmdef` → `Runtime/Core/SpellBook.Core.asmdef` e os testes ficam em `Packages/com.spellbook/` (regra de prefixo). O movimento do asmdef do Core é `R100` e conta como 1 linha. As pastas vazias que somem e os `.meta` delas são remoção pura.
+  - **Manual fora do pacote:** o `ManualLinksTests` (CA54) precisa ler `Documentation~/manual/`, que depois do 0M-54 não fica mais embaixo do `resolvedPath`. Entra `Packages/com.spellbook/Tests/Core/EditMode/Structure/PackageFiles.cs` (+1 arquivo):
+    - propriedade nova `RepositoryRoot`, dois níveis acima de `Root` (`Packages/com.spellbook` → raiz);
+    - o `ManualLinksTests` lê as páginas por ela e falha com a mensagem "manual não encontrado em `<caminho>`; os testes rodam só no projeto de desenvolvimento do repositório" se a pasta não existir;
+    - a mensagem de `Root` passa a citar "pacote embutido em `Packages/com.spellbook` e em `testables`", no lugar de "file:".
+  - Teste red novo: `PackageFiles_RepositoryRoot_HasManual` falha, porque a propriedade não existe.
+  - **Tamanho (substitui a linha acima):** ~170 linhas, **8 arquivos**. O movimento `R100` do asmdef do Core sai da contagem de arquivos, e entra o `PackageFiles.cs`. Se o asmdef mudar de conteúdo, volta a contar, e são 9 arquivos.
+  - **`Runtime/Systems` sai da lista (emenda de 2026-10-30, decisão do usuário; 0027, item 12):** o 0M-23 (commit `c59a68f`) já apagou a pasta `Runtime/Systems/` e o `Runtime/Systems.meta`, porque o `.meta` órfão gerava aviso num clone limpo. O 0M-40 não toca mais nesse caminho. A `Runtime/MathTools` também não tem `.meta` na cópia de trabalho (conferido em 2026-10-30); se a pasta vazia ainda existir no disco de alguém, ela sai como remoção pura, sem contar. A contagem do ticket não muda, porque remoção pura já não contava.
 
 ---
 
@@ -1483,6 +1768,29 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
   - ~~exceção de tamanho do 0M-47 (~500 linhas: `TypePickerTree` 163, `TypePickerPopup` 223, testes 108)~~: **aprovada**, só neste ticket (registrada no 0M-47);
   - ~~adiantar o 0M-08 para logo depois do 0M-47~~: **aprovado**. Ordem, "Por que essa ordem" e "Paralelo sem Editor" da seção 8 atualizados; nenhuma dependência muda.
 - Continua aberto o passo manual do usuário de ligar o Pages com "Source: GitHub Actions" (0M-09).
+- Decididas pelo usuário em 2026-10-30, no gate da ADR 0027 (registro completo na 0027, "Decisões do gate"):
+  - ~~alternativa A, B ou C~~: **A**;
+  - ~~nome do pacote~~: `com.spellbook` continua;
+  - ~~momento~~: agora, depois do 0M-23 e antes do 0M-26, na branch de lote;
+  - ~~exceção ou regra para o movimento~~: **regra permanente** na 0003 (emenda de 2026-10-30);
+  - READMEs: decididos pelo Arquiteto a pedido do usuário. São dois, e só o do pacote tem os passos de instalação (0M-56).
+- Abertas pela 0027 (2026-10-30), para o usuário:
+  - ~~**confirmar a leitura da regra nova**~~: **confirmada pelo usuário em 2026-10-30**. O movimento puro conta como 1 linha e não conta nos 10 arquivos (0003, emenda de 2026-10-30; 0027, item 10);
+  - ~~**`ProjectSettings/` no 0M-54**~~: **exceção só no 0M-54, aprovada em 2026-10-30**. Os 21 arquivos gerados pela Unity entram nesse ticket sem contar nos limites (0027, item 11);
+  - ~~**`Runtime/Systems` no 0M-40**~~: **sem objeto**. O 0M-23 (`c59a68f`) já apagou a pasta e o `.meta`. Saiu do 0M-40 e do que o 0M-54 move (0027, item 12);
+  - **divisão do M2:** o M2 da proposta tinha 17 arquivos e virou 0M-55 (9) e 0M-56 (9), sem exceção;
+  - **Criativo (PRD):** releitura do CA55 (D1, emenda de 2026-10-30) e do R41, que citam `HostProject~/` e `file:../..`; entrada nova no diário. Nenhum CA novo;
+  - **Controlador (backlog):** o B-025 é absorvido pelo 0M-55, e a parte de `.gitignore` do B-026 pelo 0M-54. O timeout e a limpeza do PlayMode no `/implementar` e no `/revisao` continuam no B-026.
+- Achado depois do commit do 0M-23 (2026-10-30), **para o Controlador levar ao backlog** (não é ticket desta Spec):
+  - **Vazamento de `PoolConfiguration` no `PooledSpawnerAsset`.** O `GetOrCreatePooler` (`Runtime/Pooling/PooledSpawnerAsset.cs:63-78`) cria um `PoolConfiguration` com `CreateInstance` (linha 67) para cada pool novo, e ninguém o destrói. Fica um `ScriptableObject` órfão por pool. Isso também vale quando o pool é recriado, porque o `ComponentPooler` do dicionário foi destruído (linha 65, `pooler != null`).
+  - Efeito: memória pequena, mas cresce com o número de prefabs e com as trocas de cena. No Editor, aparece como objeto vazado ao sair do Play Mode.
+  - Direção sugerida, a decidir na triagem: o `PoolConfiguration` criado em runtime pertence ao pool, e é destruído junto com o `GameObject` do pool (por exemplo, no `OnDestroy` do `ComponentPooler`, só quando a configuração não é um asset), com um teste EditMode que conta as instâncias de `PoolConfiguration` antes e depois de destruir o pool. É `fix(pooling)`, sem quebra de API.
+  - Sem efeito na ordem da 0-M: não bloqueia o 0M-54 nem o 0M-26.
+- Abertas pela varredura de lacunas (2026-10-30), para o usuário (gate parcial: só a Spec):
+  - ~~**Os 6 asmdefs de teste fora da regra da ADR 0004, item 4, que nenhum ticket toca**~~: **alternativa A aprovada pelo usuário em 2026-10-30.** O 0M-57 está na seção 8, logo depois do 0M-31. Ao escrever o ticket, o Arquiteto pôs nele também o `SpellBook.Time` do `Events.Tests.EditMode` e do `Core.Tests.EditMode`, que estavam no 0M-45 e no 0M-38. Sem isso, a guarda deixaria a suíte vermelha até esses tickets. Ficou com 8 asmdefs e o teste: 9 arquivos, ~50 linhas. **Para o usuário confirmar:** a troca de 6 para 8 asmdefs. Se recusar, a saída é uma lista de exceções no teste até o 0M-45 e o 0M-38, que o Arquiteto não recomenda. Registro da decisão original:
+    - **(A) recomendada:** ticket novo **0M-57** `test(core): referências dos asmdefs de teste e guarda da ADR 0004`, logo depois do 0M-31. Arquivos: os 6 asmdefs (`Tags.Tests.EditMode`, `Time.Tests.EditMode`, `Time.Tests.PlayMode`, `Pooling.Tests.EditMode`, `Core.Tests.PlayMode`, `GAS.Tests.EditMode`) e o `AsmdefRulesTests.cs`, com a regra "todo `SpellBook.*.Tests.*` referencia o `SpellBook.Time` e o `SpellBook.Testing`". Red: `AsmdefRules_EveryTestAsmdefReferencesTimeAndTesting` falha listando os 9 asmdefs. ~50 linhas, 7 arquivos, com Unity. Depois dele, a guarda impede o próximo `CS0012` desse tipo, e os ajustes de asmdef de teste do 0M-45 e do 0M-38 continuam valendo (o 0M-57 cobre só os 6 que eles não tocam);
+    - (B) emenda da ADR 0004, item 4: o asmdef de teste referencia o `Time` e o `Testing` só quando o teste usa algum tipo deles. Sem ticket, mas a falta continua aparecendo só no `CS0012`.
+  - **Controlador:** atualizar as issues dos tickets emendados na seção 8 ("Varredura de lacunas"). A do 0M-31 (#32) é a que destrava a fila agora.
 - Abertas pelo D5 (host na 6000.3.13f1, decisão do usuário de 2026-10-29):
   - ~~emenda da ADR 0010~~: **resolvida**, aprovada pelo usuário em 2026-10-29 (consequência do host trocada e seção "Emenda: host local fora da 6000.0");
   - ~~ajuste do CA5 do PRD pelo Criativo~~: **resolvido**. O Criativo ajustou o CA5 (PRD, linha 242) e registrou o D5 no diário;

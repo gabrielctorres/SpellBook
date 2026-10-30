@@ -75,10 +75,30 @@ Decisão do usuário, a partir do 0M-06: o `file:../..` do host aponta para a ra
 
 Decisão do usuário (2026-10-29, emenda da 0010 com o mesmo nome): o item "**CI:** existe, com GameCI, na 6000.0 e na última 6000.x" deixa de valer. Não há workflow de testes nem secrets da Unity no repositório. A prova de um ticket é a saída da suíte no host `HostProject~/`, rodada pela Fábrica e conferida pelo Examinador. O resto desta ADR não muda.
 
+## Emenda (2026-10-30): o host é a raiz do repositório, pela 0027
+
+Decisão do usuário no gate da 0027 (alternativa A). Vale a partir do ticket 0M-54.
+
+- **Host de testes:** é o projeto Unity da raiz do repositório. O `HostProject~/` deixa de existir. Isso substitui o item "Host de testes em `HostProject~/`" das "Decisões incorporadas" (decisão I41) e a regra nova da emenda "host antigo fora do repositório" ("a raiz do repositório não pode ter projeto Unity"). A cópia do host antigo fora do repositório continua sem ser apagada por ticket.
+- **Pacote:** é embutido (embedded) em `Packages/com.spellbook/`, sem `file:`.
+  - O `Packages/manifest.json` mantém `"testables": ["com.spellbook"]` e não lista `com.spellbook` em `dependencies`.
+  - O `ProjectSettings/` é versionado (0027, item 1; a forma de entrar no git está pendente na 0027).
+  - O `.gitignore` segue o padrão Unity.
+- **Item 4 da Decisão:** `Tests/<Módulo>/...` é relativo à pasta do pacote, ou seja, `Packages/com.spellbook/Tests/<Módulo>/...`.
+- **Consequências:** onde diz que o host precisa "referenciar o pacote e listá-lo em `testables`", basta o pacote estar embutido e em `testables`.
+- **Batchmode:** o comando roda da raiz:
+
+  ```
+  -projectPath "$PWD" -testResults "$PWD/Logs/TestResults-<EditMode|PlayMode>.xml" -logFile "$PWD/Logs/unity-tests.log"
+  ```
+
+  `Logs/` está no `.gitignore` e fica fora de `Assets/` e de `Packages/`, então a Unity não importa nada dali. A emenda "sem CI de testes" passa a ler "a saída da suíte no projeto da raiz".
+- **Testes que leem arquivos:** os que leem arquivos do pacote usam o `resolvedPath`, que para o pacote embutido é `Packages/com.spellbook`, e não mudam. Os que leem o manual procuram `Documentation~/manual/` na raiz do repositório, dois níveis acima do `resolvedPath` (0M-40).
+
 ## Em aberto
 
 Nada.
 
 ## Relacionadas
 
-- 0003 (ticket), 0005 (editor-lock), 0007 (validadores), 0011 (Odin), 0014 (tempo injetável).
+- 0003 (ticket), 0005 (editor-lock), 0007 (validadores), 0011 (Odin), 0014 (tempo injetável), 0027 (estrutura do repositório).

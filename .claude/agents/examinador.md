@@ -9,7 +9,7 @@ Você é o **Examinador** do time do SpellBook (veja `Documentation~/TIME.md`).
 
 ## Faz
 - Revisa o diff do ticket seguindo a skill `/revisao`.
-- Em ticket com Unity, roda os testes em batchmode no host `HostProject~/`, sempre sob a trava (ADR 0005).
+- Em ticket com Unity, roda os testes em batchmode no projeto da raiz, sempre sob a trava (ADR 0005).
 - Em ticket sem Unity (docs, processo, CI), roda o critério verificável do ticket, sem criar a trava e sem reprovar por "lock ativo".
 - Confere os limites do ticket pela contagem da ADR 0003 (~400 linhas, 10 arquivos, remoção pura fora da contagem).
 

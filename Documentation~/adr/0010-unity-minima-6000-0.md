@@ -68,10 +68,19 @@ Decisão do usuário (2026-10-29): "tira essa regra. A ideia é que o sistema fu
 
 Um CI de testes futuro precisa de ADR nova ou emenda, e de decisão do usuário sobre os secrets.
 
+## Emenda (2026-10-30): host na raiz, pela 0027
+
+A partir do ticket 0M-54:
+
+- O host de testes é o projeto da raiz do repositório (0004, emenda de 2026-10-30). A versão dele fica em `ProjectSettings/ProjectVersion.txt` da raiz, ainda 6000.3.13f1 (D5), e não mais em `HostProject~/ProjectSettings/ProjectVersion.txt`.
+- O item 2 da Decisão, na leitura da emenda "sem CI de testes", passa a ser "compila e passa nos testes no projeto da raiz, na versão da Spec".
+- O `package.json` fica em `Packages/com.spellbook/package.json`. O campo `unity` e as proibições desta ADR não mudam.
+- Abrir o projeto com outra versão da Unity muda arquivos versionados de `ProjectSettings/`. Uma troca de versão do host continua sendo um ticket `chore(host)` próprio. Fora desse ticket, nada em `ProjectSettings/` é commitado.
+
 ## Em aberto
 
 Nada.
 
 ## Relacionadas
 
-- 0004 (testes), 0008 (SemVer), 0009 (3.0).
+- 0004 (testes), 0008 (SemVer), 0009 (3.0), 0027 (estrutura do repositório).

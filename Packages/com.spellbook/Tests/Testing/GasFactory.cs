@@ -1,0 +1,178 @@
+#if UNITY_EDITOR
+using System;
+using System.Collections.Generic;
+using SpellBook.GAS.Abilities;
+using SpellBook.GAS.Attributes;
+using SpellBook.GAS.Core;
+using SpellBook.GAS.Effects;
+using SpellBook.Tags;
+using UnityEngine;
+using UnityEditor;
+using Object = UnityEngine.Object;
+
+namespace SpellBook.Testing
+{
+    /// <summary>
+    /// Cria objetos do GAS para testes sem nenhum asset em disco. Tudo o que a factory cria é destruído no <see cref="Dispose"/>.
+    /// Campos privados serializados são preenchidos por <c>SerializedObject</c>, como o Inspector faria.
+    /// O <see cref="CreateAsc"/> depende do <c>Awake</c>, então é para testes PlayMode. Só compila no Editor (SerializedObject).
+    /// </summary>
+    public sealed class GasFactory : IDisposable
+    {
+        private readonly List<Object> _created = new List<Object>();
+        private readonly Dictionary<GameplayTag, GameplayTagDefinition> _tagDefinitions =
+            new Dictionary<GameplayTag, GameplayTagDefinition>();
+
+        /// <summary>ASC ativo com um <see cref="AttributeSet"/> que começa com os atributos dados.</summary>
+        public AbilitySystemComponent CreateAsc(params (AttributeDefinition Definition, float InitialValue)[] attributes)
+        {
+            var go = new GameObject("ASC");
+            go.SetActive(false);
+            _created.Add(go);
+
+            var asc = go.AddComponent<AbilitySystemComponent>();
+            AttributeSet set = go.GetComponent<AttributeSet>();
+            Modify(set, so =>
+            {
+                SerializedProperty list = so.FindProperty("startingAttributes");
+                list.arraySize = attributes.Length;
+                for (int i = 0; i < attributes.Length; i++)
+                {
+                    SerializedProperty item = list.GetArrayElementAtIndex(i);
+                    item.FindPropertyRelative(nameof(AttributeSet.InitialAttribute.Definition)).objectReferenceValue =
+                        attributes[i].Definition;
+                    item.FindPropertyRelative(nameof(AttributeSet.InitialAttribute.InitialValue)).floatValue =
+                        attributes[i].InitialValue;
+                }
+            });
+
+            go.SetActive(true);
+            return asc;
+        }
+
+        /// <summary>Tag nova; o <paramref name="parent"/>, se houver, precisa ter sido criado por esta factory.</summary>
+        public GameplayTag CreateTag(string name, GameplayTag parent = default)
+        {
+            GameplayTagDefinition parentDefinition = null;
+            if (parent.IsValid && !_tagDefinitions.TryGetValue(parent, out parentDefinition))
+            {
+                throw new ArgumentException($"A tag pai '{parent}' não foi criada por esta factory.", nameof(parent));
+            }
+
+            var definition = Track(ScriptableObject.CreateInstance<GameplayTagDefinition>(), name);
+            Modify(definition, so => so.FindProperty("parent").objectReferenceValue = parentDefinition);
+
+            var tag = new GameplayTag(definition);
+            _tagDefinitions[tag] = definition;
+            return tag;
+        }
+
+        /// <summary>
+        /// Efeito sem modificadores e sem ações que concede as <paramref name="grantedTags"/>.
+        /// A política e a duração são obrigatórias para que <c>CreateEffect(tag)</c> não caia num parâmetro opcional.
+        /// </summary>
+        public GameplayEffect CreateEffect(
+            EffectDurationPolicy durationPolicy,
+            float duration,
+            params GameplayTag[] grantedTags)
+        {
+            var effect = Track(ScriptableObject.CreateInstance<GameplayEffect>(), "GE_Test");
+            effect.DurationPolicy = durationPolicy;
+            effect.Duration = duration;
+            effect.Modifiers = new List<AttributeEffectModifier>();
+            effect.PeriodicModifiers = new List<AttributeEffectModifier>();
+            effect.GrantedTags = new List<GameplayTag>(grantedTags);
+            effect.ApplicationRequirements = new List<GameplayTag>();
+            effect.ApplicationImmunityTags = new List<GameplayTag>();
+            return effect;
+        }
+
+        /// <summary>Efeito <see cref="EffectDurationPolicy.HasDuration"/> de <paramref name="seconds"/> segundos.</summary>
+        public GameplayEffect CreateDurationEffect(float seconds, params GameplayTag[] grantedTags)
+        {
+            return CreateEffect(EffectDurationPolicy.HasDuration, seconds, grantedTags);
+        }
+
+        /// <summary>Atributo primário com os limites padrão do <see cref="AttributeDefinition"/>.</summary>
+        public AttributeDefinition CreateAttribute(string name)
+        {
+            return Track(ScriptableObject.CreateInstance<AttributeDefinition>(), name);
+        }
+
+        /// <summary>
+        /// Habilidade sem custo, sem recarga e sem tags de bloqueio, que roda as <paramref name="actions"/> em sequência.
+        /// Sem ações, ela termina na própria ativação.
+        /// </summary>
+        public GameplayAbility CreateAbility(GameplayTag abilityTag = default, params AbilityAction[] actions)
+        {
+            var ability = Track(ScriptableObject.CreateInstance<GameplayAbility>(), "GA_Test");
+            ability.AbilityTag = abilityTag;
+            ability.BlockedTags = new List<GameplayTag>();
+            ability.RequiredTags = new List<GameplayTag>();
+            ability.ActivationOwnedTags = new List<GameplayTag>();
+            ability.CancelAbilitiesWithTag = new List<GameplayTag>();
+            ability.BlockAbilitiesWithTag = new List<GameplayTag>();
+            ability.CancelledByTags = new List<GameplayTag>();
+            ability.Actions = new List<AbilityAction>(actions);
+            return ability;
+        }
+
+        /// <summary>Habilidade sem ações cuja recarga é um efeito de <paramref name="seconds"/> segundos, sem tags.</summary>
+        public GameplayAbility CreateAbilityWithCooldown(float seconds)
+        {
+            GameplayAbility ability = CreateAbility();
+            ability.CooldownEffect = CreateDurationEffect(seconds);
+            return ability;
+        }
+
+        /// <summary>
+        /// Contexto de habilidade com o <paramref name="source"/> como conjurador, sem habilidade e nível 1,
+        /// como o de uma ação rodada fora da ativação. Os <paramref name="targets"/> entram em <c>Targets</c>.
+        /// </summary>
+        public static AbilityContext CreateAbilityContext(
+            AbilitySystemComponent source,
+            Vector3 targetPosition,
+            params AbilitySystemComponent[] targets)
+        {
+            var context = new AbilityContext(source, targetPosition);
+            context.Targets.AddRange(targets);
+            return context;
+        }
+
+        /// <summary>Liga ou desliga o <c>autoTick</c> do ASC, campo privado serializado, como o Inspector faria.</summary>
+        public static void SetAutoTick(AbilitySystemComponent asc, bool autoTick)
+        {
+            Modify(asc, so => so.FindProperty("autoTick").boolValue = autoTick);
+        }
+
+        public void Dispose()
+        {
+            for (int i = _created.Count - 1; i >= 0; i--)
+            {
+                if (_created[i] == null) continue;
+                if (Application.isPlaying) Object.Destroy(_created[i]);
+                else Object.DestroyImmediate(_created[i]);
+            }
+
+            _created.Clear();
+            _tagDefinitions.Clear();
+        }
+
+        private T Track<T>(T asset, string name) where T : Object
+        {
+            asset.name = name;
+            _created.Add(asset);
+            return asset;
+        }
+
+        private static void Modify(Object target, Action<SerializedObject> edit)
+        {
+            using (var so = new SerializedObject(target))
+            {
+                edit(so);
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+    }
+}
+#endif

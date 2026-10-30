@@ -9,17 +9,31 @@
 
 1. Na Unity, abra **Window > Package Manager**.
 2. Clique em **+** e escolha **Install package from git URL...**.
-3. Cole a URL `https://github.com/gabrielctorres/SpellBook.git` e clique em **Install**.
+3. Cole a URL `https://github.com/gabrielctorres/SpellBook.git?path=/Packages/com.spellbook` e clique em **Install**.
 
 Também dá para adicionar o pacote direto no `Packages/manifest.json` do projeto:
 
 ```json
 {
   "dependencies": {
-    "com.spellbook": "https://github.com/gabrielctorres/SpellBook.git"
+    "com.spellbook": "https://github.com/gabrielctorres/SpellBook.git?path=/Packages/com.spellbook"
   }
 }
 ```
+
+Para fixar uma versão, acrescente `#<tag>` ao final da URL. Por exemplo, para a pré-release:
+
+```json
+{
+  "dependencies": {
+    "com.spellbook": "https://github.com/gabrielctorres/SpellBook.git?path=/Packages/com.spellbook#v3.0.0-pre.1"
+  }
+}
+```
+
+!!! note "Versões 2.x"
+    As versões 2.x usam a **URL antiga**, sem `?path=`: `https://github.com/gabrielctorres/SpellBook.git`.
+    A URL com `?path=` vale só a partir da 3.0.
 
 Depois da instalação, o projeto deve compilar sem erros vindos do SpellBook.
 
@@ -33,7 +47,7 @@ de uma habilidade) ganham um seletor com busca e categorias.
 
 A versão mínima declarada é a **Unity 6000.0** (campo `unity` do `package.json`).
 
-Os testes do pacote (EditMode e PlayMode) rodam no projeto host do repositório, na
+Os testes do pacote (EditMode e PlayMode) rodam no projeto de desenvolvimento do repositório, na
 **Unity 6000.3.13f1**. Essa é a única versão testada. Não há CI de testes.
 
 Nas outras versões a partir da 6000.0 o pacote deve funcionar, mas elas não são testadas.

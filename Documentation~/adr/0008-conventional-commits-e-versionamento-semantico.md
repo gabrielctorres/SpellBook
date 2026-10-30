@@ -46,10 +46,19 @@ O `CLAUDE.md` exige Conventional Commits. O `CHANGELOG.md` já segue Keep a Chan
 
 - **2.x congelada** (decisão I43): a 2.x não recebe correções e não existe branch `release/2.x`. Toda correção entra na linha 3.0.
 
+## Emenda (2026-10-30): arquivos do release no pacote, pela 0027
+
+A partir do ticket 0M-54:
+
+- O `package.json` e o `CHANGELOG.md` do release são `Packages/com.spellbook/package.json` e `Packages/com.spellbook/CHANGELOG.md`. Nenhum dos dois existe na raiz.
+- A tag `vX.Y.Z` continua no repositório. A URL de instalação de uma versão passa a ser `https://github.com/gabrielctorres/SpellBook.git?path=/Packages/com.spellbook#vX.Y.Z`. As tags 2.x continuam com a URL antiga, sem `?path=`.
+- A troca de URL é quebra de instalação. Entra no CHANGELOG da `3.0.0-pre.1` (seção 7 da Spec da modularização).
+- O escopo `host` cobre os commits do projeto de desenvolvimento da raiz (`Assets/`, `Packages/manifest.json`, `ProjectSettings/`, `.gitignore`).
+
 ## Em aberto
 
 Nada.
 
 ## Relacionadas
 
-- 0003 (um ticket, um PR), 0009 (3.0 com quebras livres), 0010 (Unity mínima).
+- 0003 (um ticket, um PR), 0009 (3.0 com quebras livres), 0010 (Unity mínima), 0027 (estrutura do repositório).

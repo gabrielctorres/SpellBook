@@ -1,0 +1,26 @@
+{
+    "name": "SpellBook.Tags.Tests.EditMode",
+    "rootNamespace": "SpellBook.Tags.Tests",
+    "references": [
+        "SpellBook.Tags",
+        "SpellBook.Time",
+        "SpellBook.Testing",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

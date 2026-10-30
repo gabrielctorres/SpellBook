@@ -1,0 +1,24 @@
+{
+    "name": "SpellBook.Time.Tests.PlayMode",
+    "rootNamespace": "SpellBook.Time.Tests",
+    "references": [
+        "SpellBook.Core",
+        "SpellBook.Time",
+        "SpellBook.Testing",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -3,6 +3,19 @@
 A 3.0 tem quebras de compatibilidade. Esta página lista o que muda e o que fazer em cada caso.
 A 3.0 ainda está em desenvolvimento, e a lista cresce junto com ela.
 
+## URL de instalação {#url-de-instalacao}
+
+O pacote agora fica na pasta `Packages/com.spellbook` do repositório, e a URL do git passa a
+apontar para ela com `?path=`. A chave `com.spellbook` no `manifest.json` não muda.
+
+| Antes (2.x) | Depois (3.0) |
+|---|---|
+| `https://github.com/gabrielctorres/SpellBook.git` | `https://github.com/gabrielctorres/SpellBook.git?path=/Packages/com.spellbook` |
+
+- Acrescente `#<tag>` ao final para fixar uma versão, por exemplo `#v3.0.0-pre.1`.
+- As tags 2.x continuam com a URL antiga, sem `?path=`.
+- Veja [Instalação](../inicio/instalacao.md).
+
 ## Sem Odin Inspector {#sem-odin}
 
 O pacote não depende mais do Odin Inspector. Ele compila e funciona num projeto sem o Odin.
@@ -115,3 +128,54 @@ não dispara mais evento no `EventManager`.
 
 Até uma versão futura, o pacote não tem canal global de "habilidade ativada" nem de "slot
 atualizado". Quem precisa desses fatos usa os eventos C# do ASC.
+
+## Tempo do ASC {#tempo-do-asc}
+
+O ASC não lê mais o `Time` da Unity. Durações de efeitos e recargas contam o tempo que o ASC
+recebe da fonte de tempo. Veja [Tempo do ASC](../modulos/gas.md#tempo-do-asc).
+
+- **Nada muda para quem não mexe nos campos novos.** O `autoTick` vem ligado e o `timeSource`
+  vazio usa o tempo escalado da Unity, como na 2.x.
+- **`ActiveEffectInstance.StartTime` foi removido.** Para saber há quanto tempo um efeito está
+  ativo, guarde o `TickedTime` do ASC ao aplicar o efeito e compare com o valor atual.
+- **As esperas das ações contam o tempo do ASC.** `WaitAction`, `RepeatAction.Interval` e
+  `SpawnProjectileAction.DelayBetweenShots` esperam o `TickedTime` do ASC de origem, e não mais o
+  `WaitForSeconds`. Com os padrões, nada muda. Com `autoTick` desligado e sem `Tick`, ou com o
+  grupo pausado, a espera para. Veja [Ações que esperam](../modulos/gas.md#acoes-que-esperam).
+
+| Antes (2.x) | Depois (3.0) |
+|---|---|
+| O ASC avançava sozinho por `Time.deltaTime` | `autoTick` (ligado por padrão) + `Tick(deltaTime)` + `timeSource` |
+| `ActiveEffectInstance.StartTime` | removido |
+| `WaitAction`, `RepeatAction.Interval` e `SpawnProjectileAction.DelayBetweenShots` esperavam o tempo escalado da Unity (`WaitForSeconds`) | esperam o `TickedTime` do ASC de origem; com `autoTick` desligado sem `Tick`, ou com o grupo pausado, a espera para. Com os padrões (`autoTick` ligado, fonte vazia), nada muda. `WaitAction` com `Duration <= 0` continua cedendo um quadro |
+
+## Spawn e projéteis {#spawn-e-projeteis}
+
+As ações de spawn não usam mais o `PoolManager` da cena. Elas criam objetos pelo campo
+`Spawner`, um `SpawnerAsset`. Vazio usa o spawner padrão, por `Instantiate`. Veja
+[Ações de spawn](../modulos/gas.md#acoes-de-spawn).
+
+- **Uma cena sem `PoolManager` não dá mais erro.** Na 2.x, `SpawnProjectileAction` e
+  `PlayCueAction` lançavam `NullReferenceException` sem ele.
+- **Quem usava o pool perde o pool até configurar um spawner.** Os projéteis e VFX passam a ser
+  criados por `Instantiate`. O spawner com pool chega no módulo Pooling.
+- **Código que chamava `Projectile.Setup` passa um `SpawnerAsset`** no lugar do
+  `ComponentPooler`. Passe o mesmo spawner que criou o projétil, porque é por ele que o projétil
+  volta.
+- **O `Projectile` não implementa mais o `IPoolable`.** Uma subclasse que sobrescrevia
+  `OnSpawnFromPool` ou `OnReturnToPool` passa o código para o `OnEnable` (reinício) ou para o
+  `ReturnToPool` (saída).
+- **Vida e invulnerabilidade do projétil seguem a fonte de tempo dele.** O `Lifetime` e a
+  `InitialInvulnerabilityDuration` viraram contadores no `FixedUpdate`, pelo campo `timeSource`
+  (vazio usa o tempo escalado, como na 2.x). O `protected virtual IEnumerator
+  InitialInvulnerability()` saiu, e uma subclasse que o sobrescrevia deixa de compilar: ajuste a
+  `InitialInvulnerabilityDuration` ou sobrescreva o `HandleCollision`. Uma subclasse que sobrescreve o
+  `FixedUpdate` sem chamar `base.FixedUpdate()` perde a vida e a invulnerabilidade.
+
+| Antes (2.x) | Depois (3.0) |
+|---|---|
+| `Projectile.Setup(ComponentPooler, ...)` | `Projectile.Setup(SpawnerAsset, ...)` |
+| `Projectile : IPoolable` (`OnSpawnFromPool`, `OnReturnToPool`) | sem `IPoolable`; o estado reinicia no `OnEnable` |
+| `SpawnProjectileAction` e `PlayCueAction` usavam `PoolManager.Instance` | campo `Spawner` (vazio → `Instantiate`) |
+| `SpawnVFXEffectAction` usava `Instantiate` e `Destroy` | campo `Spawner`; o VFX volta pelo mesmo spawner. **Mudou o fim de vida sem `DestroyOnRemoval`:** na 2.x, `Destroy(vfx, duration + startLifetime)` destruía o VFX mesmo com `Looping` ligado; na 3.0 ele só volta pelo spawner quando a partícula para (`ReleaseWhenParticlesStop`), então uma partícula em loop nunca volta. Desligue o `Looping` ou marque `DestroyOnRemoval`. Veja [Armadilhas do pooling](../modulos/pooling.md#armadilhas). |
+| `Projectile`: vida e invulnerabilidade por corrotina no tempo escalado; `protected virtual IEnumerator InitialInvulnerability()` | contadores no `FixedUpdate` pela fonte de tempo do projétil (vazio → escalado, como na 2.x); o método saiu, e subclasses que o sobrescrevem deixam de compilar: ajuste `InitialInvulnerabilityDuration` ou sobrescreva `HandleCollision` |

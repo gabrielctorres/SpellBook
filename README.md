@@ -1,27 +1,20 @@
+Para **instalar** o pacote, siga o [README do pacote](Packages/com.spellbook/README.md) ou o [manual](https://gabrielctorres.github.io/SpellBook/).
+
 # 📖 SpellBook - Unity Tools
-Uma coleção mágica de ferramentas reutilizáveis para seus projetos Unity. Assim como um SpellBook ajuda um mago a canalizar seus feitiços mais poderosos com facilidade, o SpellBook - Unity Tools oferece recursos para simplificar e aprimorar o desenvolvimento no Unity, poupando tempo e esforço em projetos futuros.
 
-## ✅ Requisitos
- - Unity 6000.0 ou mais nova.
- - Nenhuma dependência de terceiros.
+Coleção de ferramentas reutilizáveis para projetos Unity.
 
-## 🛠️ Instalação
-Siga os passos abaixo para adicionar o SpellBook - Unity Tools ao seu projeto:
+## Layout do repositório
 
- - Abra o Gerenciador de Pacotes no Unity.
- -  Vá para Window > Package Manager.
- -  Clique no botão de + (Adicionar).
- -  Escolha a opção Adicionar pacote do URL git.
- -  Cole o seguinte link no campo de URL: https://github.com/gabrielctorres/SpellBook.git
- -  Clique em Adicionar e aguarde o Unity instalar o pacote.
+- `Packages/com.spellbook/`: o pacote (`com.spellbook`), com `Runtime/`, `Editor/`, `Tests/`, `package.json` e o `CHANGELOG.md`. É só isso que chega a quem instala.
+- Raiz (`Assets/`, `ProjectSettings/`, `Packages/manifest.json`): o projeto Unity de desenvolvimento, que embute o pacote e roda os testes dele.
+- `Documentation~/`: manual, PRD, Spec, ADRs e documentos internos do time. Fica fora do pacote.
 
-## 📖 Como usar?
-Veja o manual em https://gabrielctorres.github.io/SpellBook/
+## Abrir o projeto de desenvolvimento
 
-## 📬 Feedback e Contribuição
-Tem sugestões, encontrou um bug, ou quer contribuir com novos feitiços?  
-Sinta-se à vontade para abrir uma **issue** ou enviar um **pull request** no repositório.
+Abra a raiz do repositório pelo Unity Hub (Add project from disk), na Unity 6000.3.13f1. Antes de abrir a Unity, confira se `.claude/editor.lock` existe: se existir, outro papel está usando o Editor (ADR 0005).
 
+## Mais
 
-## 🔮 Feito para Meus Projetos, Mas Disponível para Você!
-O SpellBook - Unity Tools foi criado para ser usado nos meus próprios projetos, otimizando e padronizando fluxos de trabalho. No entanto, este SpellBook também está disponível para que outros desenvolvedores possam se beneficiar da magia que ele traz!
+- [Documentation~/README.md](Documentation~/README.md): como a documentação interna se organiza e o projeto de desenvolvimento.
+- [Documentation~/TIME.md](Documentation~/TIME.md): papéis e fluxo do time.

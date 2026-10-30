@@ -54,18 +54,43 @@ os efeitos ativos e as tags de um personagem. Veja a seção [Ciclo de vida](#ci
 ---
 
 ## 3. Lista de ações disponíveis {#acoes}
-- **WaitAction:** pausa a execução por X segundos.
+- **WaitAction:** pausa a execução por X segundos do tempo do ASC (veja [Ações que esperam](#acoes-que-esperam)).
 - **TargetingAction:** busca alvos usando uma estratégia (Raio, Mouse...). `Mode` Replace substitui os alvos atuais, Append adiciona.
 - **ApplyEffectAction:** aplica GameplayEffects aos alvos ou ao conjurador.
-- **PlayCueAction:** dispara efeitos visuais e sonoros.
+- **PlayCueAction:** dispara efeitos visuais e sonoros (veja [Ações de spawn](#acoes-de-spawn)).
 - **AnimationAction:** altera parâmetros (Trigger, Bool, Int) no Animator do personagem.
-- **SpawnProjectileAction:** dispara projéteis (detalhes em [SpawnProjectileAction](#projectile)).
+- **SpawnProjectileAction:** dispara projéteis (detalhes em [Projéteis](#projectile)).
 - **RepeatAction:** repete uma lista de ações N vezes, com intervalo opcional.
 - **ParallelAction:** executa várias ações ao mesmo tempo e espera todas terminarem.
 - **ConditionalAction:** executa `Then` ou `Else` conforme tags do conjurador ou existência de alvos.
 
-#### SpawnProjectileAction {#projectile}
-Dispara projéteis. As `OnHitActions` rodam no impacto com um contexto derivado (mesma habilidade e nível).
+#### Ações que esperam {#acoes-que-esperam}
+O `Duration` da `WaitAction`, o `Interval` da `RepeatAction` e o `DelayBetweenShots` da `SpawnProjectileAction` contam o tempo do ASC que conjurou, o [`TickedTime`](#tempo-do-asc), e não o relógio da Unity.
+
+- Com a fonte padrão (tempo escalado), a espera dura o mesmo que na 2.x.
+- Se o ASC usa um [grupo pausável](tempo.md#pausabletimesource), pausar o grupo pausa a habilidade no meio da espera. Ao retomar, ela continua de onde parou.
+- Com `autoTick` desligado, a espera só anda quando alguém chama `Tick`.
+- Se o ASC for destruído, a espera termina.
+- **Wait 0:** uma `WaitAction` com `Duration` zero ou negativo espera exatamente um quadro, como na 2.x, e não lê o tempo. Serve para passar a lista de ações ao quadro seguinte e termina mesmo com o ASC parado.
+
+Numa ação própria, espere com `yield return context.WaitSeconds(segundos)`, e não com `WaitForSeconds`.
+
+#### Projéteis {#projectile}
+A `SpawnProjectileAction` dispara projéteis: cria o `ProjectilePrefab` pelo campo `Spawner` e chama `Setup` no componente `Projectile`. As `OnHitActions` rodam no impacto com um contexto derivado (mesma habilidade e nível).
+
+- **`Setup(SpawnerAsset spawner, AbilityContext parentContext, List<AbilityAction> onHitActions)`** guarda o spawner que criou o projétil. Há uma sobrecarga com `AbilitySystemComponent` no lugar do contexto.
+- **`ReturnToPool()`** devolve o projétil por esse mesmo spawner (`spawner.Release`). Sem spawner, ele volta pelo `SpawnerAsset.Default`, que destrói a instância.
+- O `Projectile` reinicia o estado no `OnEnable`, que roda tanto no `Instantiate` quanto ao sair de um pool. Ele não implementa mais o `IPoolable`.
+
+#### Ações de spawn {#acoes-de-spawn}
+`SpawnProjectileAction`, `PlayCueAction` e `SpawnVFXEffectAction` (ação de efeito) criam objetos só pelo campo **`Spawner`**, um [`SpawnerAsset`](pooling.md#spawnerasset). Vazio usa o spawner padrão, por `Instantiate`. Elas não procuram nenhum `PoolManager` na cena, então funcionam numa cena sem ele.
+
+- **`SpawnProjectileAction`:** o projétil volta pelo mesmo spawner ([Projéteis](#projectile)).
+- **`SpawnVFXEffectAction`:** com `DestroyOnRemoval`, o VFX volta pelo spawner quando o efeito é removido. Sem `DestroyOnRemoval`, um VFX com `ParticleSystem` na raiz volta quando a partícula para ([`ReleaseWhenParticlesStop`](pooling.md#releasewhenparticlesstop)).
+- **`PlayCueAction`:** cria o VFX pelo spawner e toca o som com `AudioSource.PlayClipAtPoint`.
+
+!!! warning "Armadilha: o VFX do `PlayCueAction` não volta"
+    O `PlayCueAction` não devolve o VFX ao spawner. Com o padrão por `Instantiate`, o VFX precisa se destruir sozinho (por exemplo, `Stop Action` = `Destroy` na partícula). Com um spawner de pool, o pool cresce a cada uso. Isso continua assim até o módulo Cues.
 
 ### 3.1 Criando ações próprias {#acoes-proprias}
 Herde de `AbilityAction` e implemente `IEnumerator Execute(AbilityContext context)`.
@@ -74,6 +99,7 @@ Herde de `AbilityAction` e implemente `IEnumerator Execute(AbilityContext contex
 - Sobrescreva `OnCancel(AbilityContext context)` para restaurar estado se a habilidade for cancelada no meio da ação (ex: reabilitar movimento após um dash).
 - Para rodar sub-ações use `AbilityAction.RunSequence(lista, context)`; para corrotinas paralelas use `context.StartChildRoutine(...)`, que é interrompida junto no cancelamento.
 - Use `context.GetValidTargets()` em vez de `context.Targets` quando alvos podem ter sido destruídos durante a habilidade.
+- Para esperar, use `yield return context.WaitSeconds(segundos)`, que conta o tempo do ASC ([Ações que esperam](#acoes-que-esperam)).
 
 ### 3.2 Targeting {#targeting}
 `TargetingStrategy` respeita `physicsMode` (2D/3D), procura o `AbilitySystemComponent` no collider ou nos pais (sem duplicatas) e filtra por:
@@ -118,6 +144,31 @@ Para consultar sem ativar, use `ability.CanActivate(asc, out var reason)`.
 ### 4.5 Eventos do ASC
 `OnAbilityActivated(spec)`, `OnAbilityEnded(spec, cancelled)` e `OnAbilityFailed(ability, result)`, este último útil para feedback de UI ("Sem mana", "Em recarga").
 O ASC não dispara mais evento global; veja a [Migração 2.x → 3.0](../regras/migracao-2-para-3.md#eventos-do-gas).
+
+### 4.6 Tempo do ASC {#tempo-do-asc}
+Durações de efeitos, ticks periódicos e recargas contam só o tempo que o ASC recebe. O ASC não lê o `Time` da Unity.
+
+- **`timeSource`** (Inspector): um `TimeSourceAsset` do módulo [Tempo](tempo.md). Vazio usa o tempo escalado da Unity, como na 2.x.
+- **`autoTick`** (Inspector, ligado por padrão): o ASC avança sozinho no `Update` pela diferença do `ElapsedTime` da fonte ([consumo por diferença](tempo.md#consumo-por-diferenca)). Desligado, ele só avança quando alguém chama `Tick`.
+- **`Tick(float deltaTime)`**: avança efeitos e recargas em `deltaTime` segundos. Delta zero ou negativo é ignorado.
+- **`TickedTime`**: o relógio do ASC, a soma de todos os `Tick` aceitos.
+- **`SetTimeSource(ITimeSource)`**: troca a fonte por código, por exemplo para um `ManualTimeSource` num teste. `null` volta à fonte do Inspector. O tempo que passou na fonte antiga não é contado.
+
+Com `autoTick` desligado, a mesma sequência de `Tick` sempre dá o mesmo estado, o que serve para testes e para simulação.
+
+```csharp
+asc.SetTimeSource(manualTime); // com autoTick desligado no Inspector
+asc.ApplyEffect(burning);      // efeito de 2 s
+asc.Tick(1.9f);                // ainda ativo
+asc.Tick(0.2f);                // expirou
+```
+
+**Receita: pausar a gameplay e manter a UI.** Crie um grupo pausável pelo menu *SpellBook > Time > Pausable Time Group*, chame-o de "Gameplay" e coloque-o no `timeSource` dos ASCs dos personagens. Ao chamar `Pause` no grupo, as recargas e as durações desses ASCs param. Um ASC com fonte não escalada e o resto da cena continuam. Ao chamar `Resume`, tudo volta de onde parou. Veja [Grupo pausável](tempo.md#pausabletimesource).
+
+O `Projectile` também tem um campo `timeSource`. Ele conta o movimento, o `Lifetime` e a `InitialInvulnerabilityDuration` no `FixedUpdate`, e não o relógio da Unity.
+
+!!! warning "Armadilha: somar floats na fronteira"
+    Um efeito expira quando o tempo restante fica menor ou igual a 0. Em `float`, `2f - 1.9f - 0.1f` dá cerca de `+2,2e-8`, um valor positivo, e não 0. Por isso uma recarga de 2 s **não** expira depois de `Tick(1.9f)` seguido de `Tick(0.1f)`. Já `3f - 2.9f - 0.1f` dá cerca de `-9,7e-8`, e essa recarga expira. O resultado na fronteira depende dos valores, então não conte com ele. Nos testes, avance direto até o valor da fronteira (`Tick(2f)`) ou passe um pouco dela.
 
 ---
 

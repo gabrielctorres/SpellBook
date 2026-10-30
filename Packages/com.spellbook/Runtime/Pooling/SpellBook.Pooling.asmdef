@@ -1,0 +1,16 @@
+{
+    "name": "SpellBook.Pooling",
+    "rootNamespace": "SpellBook.Pooling",
+    "references": [
+        "GUID:7834e8f3d0902ad45bfb6fab58f7b919"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
