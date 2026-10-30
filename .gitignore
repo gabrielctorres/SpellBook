@@ -1,25 +1,17 @@
-# Projeto Unity host local (não faz parte do pacote)
-/Assets/
-/Library/
-/Logs/
-/Packages/
-/ProjectSettings/
-/UserSettings/
-/Temp/
-/obj/
-/Build/
-/Builds/
-/MemoryCaptures/
-/Recordings/
+# Projeto Unity de desenvolvimento na raiz (ADR 0027); o pacote fica em Packages/com.spellbook/
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
 
-# Projeto host de testes (HostProject~/): só Packages/ e ProjectVersion.txt são versionados
-/HostProject~/Library/
-/HostProject~/Logs/
-/HostProject~/Temp/
-/HostProject~/UserSettings/
-/HostProject~/obj/
-/HostProject~/ProjectSettings/*
-!/HostProject~/ProjectSettings/ProjectVersion.txt
+# Restos de testes interrompidos (B-026; risco 23)
+/[Aa]ssets/InitTestScene*
+/[Aa]ssets/__SpellBookTestTemp*
 
 # Arquivos gerados por IDEs
 .vs/
