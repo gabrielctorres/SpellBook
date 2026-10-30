@@ -28,7 +28,7 @@ Os agentes do time leem estes arquivos em vez de depender de memória ou de conv
 
 O pacote é testado no projeto Unity em `HostProject~/` (ADR 0004). A raiz do repositório é a pasta do pacote e não pode ter `Assets/`, `Library/`, `Packages/` nem `ProjectSettings/`: tudo o que estiver ali entra como conteúdo do `com.spellbook`.
 
-- Versão: a de `HostProject~/ProjectSettings/ProjectVersion.txt` (6000.3.13f1, desvio D5 da Spec da modularização).
+- Versão: a de `HostProject~/ProjectSettings/ProjectVersion.txt` (6000.3.13f1, decisão D5 da Spec da modularização).
 - `HostProject~/Packages/manifest.json` traz o pacote por `"com.spellbook": "file:../.."` e em `testables`. O caminho relativo parte de `HostProject~/Packages/`, por isso são dois níveis.
 - `HostProject~/Assets/` vem versionada com um `.gitkeep`, então já existe num clone novo. Não apague o `.gitkeep`: a Unity não abre o projeto sem `Assets/`.
 
