@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using SpellBook.Core.Inspector;
 using UnityEngine;
-using SpellBook.GAS.Tags;
+using SpellBook.Tags;
 using SpellBook.GAS.Attributes;
 
 namespace SpellBook.GAS.Effects

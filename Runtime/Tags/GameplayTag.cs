@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace SpellBook.GAS.Tags
+namespace SpellBook.Tags
 {
     [Serializable]
     public struct GameplayTag : IEquatable<GameplayTag>
@@ -23,7 +23,7 @@ namespace SpellBook.GAS.Tags
         public static bool operator !=(GameplayTag a, GameplayTag b) => !a.Equals(b);
         public override string ToString() => Name;
         
-        // Internal helper to get definition for ASC logic
+        // Acesso interno à definição, usado por Matches.
         internal GameplayTagDefinition GetDefinition() => definition;
     }
 }

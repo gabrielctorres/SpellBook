@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using SpellBook.GAS.Core;
-using SpellBook.GAS.Tags;
+using SpellBook.Tags;
 using SpellBook.Testing;
 
 namespace SpellBook.GAS.Tests

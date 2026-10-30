@@ -5,7 +5,7 @@ using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
-using SpellBook.GAS.Tags;
+using SpellBook.Tags;
 using UnityEngine;
 using UnityEditor;
 using Object = UnityEngine.Object;

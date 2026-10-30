@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using SpellBook.GAS.Core;
-using SpellBook.GAS.Tags;
+using SpellBook.Tags;
 
 namespace SpellBook.GAS.Targeting
 {

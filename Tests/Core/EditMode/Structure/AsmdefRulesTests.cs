@@ -195,6 +195,18 @@ namespace SpellBook.Core.Tests.Structure
             Assert.That(owners, Is.EqualTo(new[] { "SpellBook.Tags" }));
         }
 
+        [TestCase("GameplayTag")]
+        [TestCase("GameplayTagDefinition")]
+        public void GameplayTag_NamespaceIsSpellBookTags(string typeName)
+        {
+            List<string> namespaces = LoadedAssembly("SpellBook.Tags").GetTypes()
+                .Where(t => t.Name == typeName)
+                .Select(t => t.Namespace)
+                .ToList();
+
+            Assert.That(namespaces, Is.EqualTo(new[] { "SpellBook.Tags" }));
+        }
+
         private static Assembly LoadedAssembly(string name)
         {
             return AppDomain.CurrentDomain.GetAssemblies().SingleOrDefault(a => a.GetName().Name == name);
