@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using SpellBook.Core.Inspector;
 using UnityEngine;
 using SpellBook.GAS.Tags;
 using SpellBook.GAS.Attributes;
@@ -27,6 +28,7 @@ namespace SpellBook.GAS.Effects
         [Header("Duration")]
         public EffectDurationPolicy DurationPolicy;
         
+        [ShowIf(nameof(DurationPolicy), EffectDurationPolicy.HasDuration)]
         public float Duration;
 
         [Header("Periodic")]
@@ -42,13 +44,16 @@ namespace SpellBook.GAS.Effects
 
         [Header("Actions")]
         [SerializeReference]
+        [TypePicker]
         public List<EffectAction> OnApplication = new List<EffectAction>();
 
         [SerializeReference]
+        [TypePicker]
         [Tooltip("Usado só quando Period > 0")]
         public List<EffectAction> OnTickActions = new List<EffectAction>();
 
         [SerializeReference]
+        [TypePicker]
         public List<EffectAction> OnRemoval = new List<EffectAction>();
 
         [Header("Gameplay Tags")]

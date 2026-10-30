@@ -1,3 +1,4 @@
+using SpellBook.Core.Inspector;
 using UnityEngine;
 
 namespace SpellBook.GAS.Attributes
@@ -17,6 +18,7 @@ namespace SpellBook.GAS.Attributes
 
         public AttributeType Type = AttributeType.Primary;
 
+        [ShowIf(nameof(Type), AttributeType.Derived)]
         [Tooltip("Obrigatório quando Type = Derived")]
         public Formula Formula;
 

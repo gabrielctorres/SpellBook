@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using SpellBook.Core.Inspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 using SpellBook.GAS.Core;
@@ -53,6 +54,7 @@ namespace SpellBook.GAS.Abilities
 
         [Header("Execução")]
         [SerializeReference]
+        [TypePicker]
         public List<AbilityAction> Actions = new List<AbilityAction>();
 
         /// <summary>
