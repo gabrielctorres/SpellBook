@@ -7,9 +7,9 @@ O módulo fica no assembly `SpellBook.Events` (namespace `SpellBook.Events`). Um
 os eventos precisa referenciar o `SpellBook.Events`. Veja [Conceitos](../inicio/conceitos.md#modulos).
 
 !!! note "Em desenvolvimento"
-    Nesta versão de desenvolvimento da 3.0, o módulo tem o barramento de código (`EventBus<T>`)
-    e os canais Void, Int, Float, Bool, String, Vector3 e GameObject. O componente ouvinte e o
-    emissor chegam nas próximas etapas.
+    Nesta versão de desenvolvimento da 3.0, o módulo tem o barramento de código (`EventBus<T>`),
+    os canais Void, Int, Float, Bool, String, Vector3 e GameObject e o componente ouvinte
+    (`EventListener`). As reações prontas e o emissor chegam nas próximas etapas.
 
 ## Três usos e uma regra {#tres-usos}
 
@@ -191,6 +191,96 @@ componente de que precisa no objeto recebido. Um objeto destruído antes do disp
 - **`Void` não é `System.Void`.** O payload do `VoidEventChannel` é o `Void` do namespace
   `SpellBook.Core`. Num arquivo com `using System;`, escreva `SpellBook.Core.Void` no método do
   ouvinte.
+
+## EventListener {#eventlistener}
+
+O `EventListener` é o componente que ouve canais sem código. Adicione-o a um objeto
+(**Add Component > EventListener**) e, na lista **Responses**, escolha uma resposta para cada
+canal que o objeto deve ouvir.
+
+- O componente se inscreve nos canais no `OnEnable` e se desinscreve no `OnDisable`. Desabilitado
+  (o componente ou o objeto), ele não recebe disparos; habilitado de novo, volta a receber.
+- Um disparo do canal roda as **reações** da resposta na ordem da lista e, depois delas, o
+  **Escape**.
+- Uma resposta sem canal não faz nada.
+
+### Respostas {#respostas}
+
+Cada resposta liga **um** canal ao que acontece quando ele dispara. Há uma resposta pronta para
+cada canal, na categoria **Respostas** do seletor:
+
+| Resposta | Canal |
+|---|---|
+| `VoidEventResponse` | [`VoidEventChannel`](#voideventchannel) |
+| `IntEventResponse` | [`IntEventChannel`](#inteventchannel) |
+| `FloatEventResponse` | [`FloatEventChannel`](#floateventchannel) |
+| `BoolEventResponse` | [`BoolEventChannel`](#booleventchannel) |
+| `StringEventResponse` | [`StringEventChannel`](#stringeventchannel) |
+| `Vector3EventResponse` | [`Vector3EventChannel`](#vector3eventchannel) |
+| `GameObjectEventResponse` | [`GameObjectEventChannel`](#gameobjecteventchannel) |
+
+No Inspector de uma resposta:
+
+- **Channel**: o canal ouvido. Só aceita canais do mesmo payload da resposta.
+- **Reactions**: lista de reações, escolhidas pelo seletor de tipo. Cada uma recebe o payload do
+  disparo e o `EventListener` que a executa.
+- **Escape**: um `UnityEvent` com o payload, num foldout fechado. Chamado depois das reações. Use
+  só quando nenhuma reação serve: a ligação pelo `UnityEvent` quebra se o método for
+  renomeado.
+
+Uma reação sua herda de `Reaction` e sobrescreve `Execute(EventListener)`, ou
+`Execute<T>(EventListener, in T)` quando precisa do payload:
+
+```csharp
+using System;
+using SpellBook.Events;
+using UnityEngine;
+
+[Serializable]
+public sealed class TocarSom : Reaction
+{
+    [SerializeField] private AudioSource fonte;
+
+    public override void Execute(EventListener listener)
+    {
+        fonte.Play();
+    }
+}
+```
+
+### Payload próprio {#payload-proprio}
+
+Para um canal com um dado seu, crie o struct, o canal e a resposta. As classes do canal e da
+resposta não precisam de corpo.
+
+```csharp
+using System;
+using SpellBook.Events;
+using UnityEngine;
+
+[Serializable]
+public struct Dano
+{
+    public int Valor;
+    public Vector3 Ponto;
+}
+
+[CreateAssetMenu(menuName = "Jogo/Events/Dano Channel")]
+public sealed class DanoEventChannel : EventChannel<Dano>
+{
+}
+
+[Serializable]
+public sealed class DanoEventResponse : EventResponse<Dano>
+{
+}
+```
+
+- O canal (`DanoEventChannel.cs`) fica num arquivo com o nome da classe, porque é um asset.
+- A `DanoEventResponse` aparece no seletor da lista **Responses**; o **Escape** dela é um
+  `UnityEvent<Dano>`.
+- Quem dispara usa `danoRecebido.Raise(new Dano { Valor = 10, Ponto = transform.position })`.
+- Marque o struct com `[Serializable]` para o payload aparecer no Inspector do canal e do Escape.
 
 ## Segurança do disparo {#seguranca}
 
