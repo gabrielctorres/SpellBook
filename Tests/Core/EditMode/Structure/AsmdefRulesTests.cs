@@ -169,6 +169,32 @@ namespace SpellBook.Core.Tests.Structure
             Assert.That(gasReferences, Is.Empty, "o SpellBook.Core referencia o GAS");
         }
 
+        [Test]
+        public void AsmdefRules_TagsAssemblyExists()
+        {
+            AsmdefFile tags = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.Tags");
+            AsmdefFile gas = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.GAS");
+
+            Assert.That(tags, Is.Not.Null, "não existe asmdef SpellBook.Tags");
+            Assert.That(tags.Path, Is.EqualTo("Runtime/Tags/SpellBook.Tags.asmdef"));
+            Assert.That(gas.ReferenceNames, Does.Contain("SpellBook.Tags"));
+            Assert.That(LoadedAssembly("SpellBook.Tags"), Is.Not.Null, "o assembly SpellBook.Tags não foi compilado");
+        }
+
+        [TestCase("GameplayTag")]
+        [TestCase("GameplayTagDefinition")]
+        public void GameplayTag_LivesInTagsAssembly(string typeName)
+        {
+            List<string> owners = AppDomain.CurrentDomain.GetAssemblies()
+                .Where(a => a.GetName().Name.StartsWith("SpellBook.", StringComparison.Ordinal))
+                .SelectMany(a => a.GetTypes())
+                .Where(t => t.Name == typeName)
+                .Select(t => t.Assembly.GetName().Name)
+                .ToList();
+
+            Assert.That(owners, Is.EqualTo(new[] { "SpellBook.Tags" }));
+        }
+
         private static Assembly LoadedAssembly(string name)
         {
             return AppDomain.CurrentDomain.GetAssemblies().SingleOrDefault(a => a.GetName().Name == name);
