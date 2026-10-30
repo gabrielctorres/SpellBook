@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SpellBook.Core.RuntimeSets
+namespace SpellBook.Core
 {
     public abstract class RuntimeSet<T> : ScriptableObject
     {

@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using SpellBook.GAS.Tags;
+using SpellBook.Tags;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Effects;
 using SpellBook.GAS.Abilities;
@@ -16,7 +16,7 @@ namespace SpellBook.GAS.Core
         [SerializeField] private List<GameplayAbility> startingAbilities = new List<GameplayAbility>();
 
         // Contagem de referência: várias fontes podem conceder a mesma tag
-        private readonly Dictionary<GameplayTagDefinition, int> _activeTags = new Dictionary<GameplayTagDefinition, int>();
+        private readonly Dictionary<GameplayTag, int> _activeTags = new Dictionary<GameplayTag, int>();
         private readonly List<ActiveEffectInstance> _activeEffects = new List<ActiveEffectInstance>();
         private readonly List<AbilitySpec> _abilities = new List<AbilitySpec>();
 
@@ -332,26 +332,24 @@ namespace SpellBook.GAS.Core
         public void AddTag(GameplayTag tag)
         {
             if (!tag.IsValid) return;
-            var def = tag.GetDefinition();
-            _activeTags.TryGetValue(def, out int count);
-            _activeTags[def] = count + 1;
+            _activeTags.TryGetValue(tag, out int count);
+            _activeTags[tag] = count + 1;
             if (count == 0) OnTagChanged?.Invoke(tag, true);
         }
 
         public void RemoveTag(GameplayTag tag)
         {
             if (!tag.IsValid) return;
-            var def = tag.GetDefinition();
-            if (!_activeTags.TryGetValue(def, out int count)) return;
+            if (!_activeTags.TryGetValue(tag, out int count)) return;
 
             if (count <= 1)
             {
-                _activeTags.Remove(def);
+                _activeTags.Remove(tag);
                 OnTagChanged?.Invoke(tag, false);
             }
             else
             {
-                _activeTags[def] = count - 1;
+                _activeTags[tag] = count - 1;
             }
         }
 
@@ -370,10 +368,9 @@ namespace SpellBook.GAS.Core
         public bool HasTag(GameplayTag tag)
         {
             if (!tag.IsValid) return false;
-            var defToCheck = tag.GetDefinition();
-            foreach (var activeDef in _activeTags.Keys)
+            foreach (var activeTag in _activeTags.Keys)
             {
-                if (activeDef.Matches(defToCheck)) return true;
+                if (activeTag.Matches(tag)) return true;
             }
             return false;
         }
