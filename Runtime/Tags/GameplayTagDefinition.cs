@@ -1,7 +1,9 @@
+using SpellBook.Core;
 using UnityEngine;
 
-namespace SpellBook.GAS.Tags
+namespace SpellBook.Tags
 {
+    [HelpURL(DocUrls.Tags + "#gameplaytagdefinition")]
     [CreateAssetMenu(fileName = "NewTag", menuName = "GAS/Tag Definition")]
     public class GameplayTagDefinition : ScriptableObject
     {

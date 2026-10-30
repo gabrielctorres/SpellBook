@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using SpellBook.Core.Inspector;
 using UnityEngine;
-using UnityEngine.Serialization;
 using SpellBook.GAS.Core;
-using SpellBook.GAS.Tags;
+using SpellBook.Tags;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Effects;
 
@@ -27,7 +26,6 @@ namespace SpellBook.GAS.Abilities
         [Header("Ativação")]
         public GameplayEffect CooldownEffect;
 
-        [FormerlySerializedAs("_cooldownReductionAttribute")]
         public AttributeDefinition CooldownReductionAttribute;
 
         [Tooltip("Efeito Instant aplicado ao ativar (ex: Mana Add -20). A ativação falha se o atributo ficaria abaixo do MinValue.")]

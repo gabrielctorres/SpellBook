@@ -2,7 +2,8 @@
     "name": "SpellBook.GAS",
     "rootNamespace": "SpellBook.GAS",
     "references": [
-        "GUID:7834e8f3d0902ad45bfb6fab58f7b919"
+        "GUID:7834e8f3d0902ad45bfb6fab58f7b919",
+        "GUID:f5577235018b35e4aa9aa10a86427936"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
