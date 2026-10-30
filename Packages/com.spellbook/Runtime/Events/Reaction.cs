@@ -1,4 +1,5 @@
 using System;
+using SpellBook.Core.Validation;
 
 namespace SpellBook.Events
 {
@@ -7,7 +8,7 @@ namespace SpellBook.Events
     /// As reações de uma resposta rodam na ordem da lista, antes do escape (<see cref="EscapeEvent{T}"/>).
     /// </summary>
     [Serializable]
-    public abstract class Reaction
+    public abstract class Reaction : IValidatable
     {
         /// <summary>Executa a reação sem olhar o payload. É o que as reações prontas sem payload sobrescrevem.</summary>
         public virtual void Execute(EventListener listener)
@@ -18,6 +19,20 @@ namespace SpellBook.Events
         public virtual void Execute<T>(EventListener listener, in T payload)
         {
             Execute(listener);
+        }
+
+        /// <summary>Acusa campos obrigatórios vazios. Por padrão, não acusa nada.</summary>
+        public virtual void Validate(ValidationResult result)
+        {
+        }
+
+        /// <summary>
+        /// Valida sabendo o tipo do payload da resposta que contém a reação. Por padrão, chama
+        /// <see cref="Validate(ValidationResult)"/>.
+        /// </summary>
+        public virtual void Validate(ValidationResult result, Type payloadType)
+        {
+            Validate(result);
         }
     }
 }

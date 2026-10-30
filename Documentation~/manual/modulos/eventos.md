@@ -9,7 +9,8 @@ os eventos precisa referenciar o `SpellBook.Events`. Veja [Conceitos](../inicio/
 !!! note "Em desenvolvimento"
     Nesta versão de desenvolvimento da 3.0, o módulo tem o barramento de código (`EventBus<T>`),
     os canais Void, Int, Float, Bool, String, Vector3 e GameObject e o componente ouvinte
-    (`EventListener`). As reações prontas e o emissor chegam nas próximas etapas.
+    (`EventListener`) com as reações prontas SetActive, Toggle de componente, Log e RaiseChannel.
+    A reação Invoke com delay e o emissor chegam nas próximas etapas.
 
 ## Três usos e uma regra {#tres-usos}
 
@@ -247,6 +248,55 @@ public sealed class TocarSom : Reaction
     }
 }
 ```
+
+### Reações prontas {#reacoes-prontas}
+
+O pacote traz reações para os casos comuns. No seletor da lista **Reactions**, elas ficam
+agrupadas por categoria. Cada uma tem validação: um campo obrigatório vazio é erro de validação.
+
+| Reação | Categoria | Faz |
+|---|---|---|
+| [`SetActiveReaction`](#setactivereaction) | Objeto | Ativa ou desativa um GameObject |
+| [`ToggleComponentReaction`](#togglecomponentreaction) | Objeto | Liga, desliga ou inverte um componente |
+| [`RaiseChannelReaction`](#raisechannelreaction) | Eventos | Dispara outro canal |
+| [`LogReaction`](#logreaction) | Depuração | Escreve uma mensagem no console |
+
+#### SetActive {#setactivereaction}
+
+Chama `SetActive` no GameObject escolhido.
+
+- **Target**: o GameObject. Obrigatório.
+- **Active**: marcado, ativa o objeto; desmarcado, desativa. Começa desmarcado.
+
+#### Toggle de componente {#togglecomponentreaction}
+
+Muda o `enabled` de um componente que é `Behaviour`, como um script seu, uma `Light` ou um
+`Animator`. Um `Collider` 3D ou um `Renderer` não entram no campo, porque não são `Behaviour`.
+
+- **Target**: o componente. Obrigatório.
+- **Mode**: `Enable` liga, `Disable` desliga e `Toggle` inverte o estado atual.
+
+#### RaiseChannel {#raisechannelreaction}
+
+Dispara outro canal quando a resposta recebe um disparo. O `EventListener` aparece como quem
+disparou no log do canal. Há duas formas, escolhidas em **Mode**:
+
+- `ForwardPayload`: repassa o payload recebido para o **Target**, que precisa ter o mesmo tipo de
+  payload da resposta. Com um canal de outro tipo, a reação não dispara nada e a validação acusa
+  erro. Exemplo: numa `FloatEventResponse`, ao receber `3.5`, dispara outro `FloatEventChannel`
+  com `3.5`.
+- `RaiseVoid`: dispara um [`VoidEventChannel`](#voideventchannel), seja qual for o payload da
+  resposta. Um **Target** que não é Void é erro de validação.
+
+**Target** é obrigatório nas duas formas.
+
+#### Log {#logreaction}
+
+Escreve no console exatamente o texto de **Message**, sem prefixo. Clicar na entrada do console
+seleciona o `EventListener`.
+
+- **Message**: o texto. Obrigatório.
+- **Type**: tipo da entrada (`Log`, `Warning`, `Error`...). Começa em `Log`.
 
 ### Payload próprio {#payload-proprio}
 
