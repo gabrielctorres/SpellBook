@@ -21,6 +21,33 @@ O GAS saiu do `SpellBook.Core` e agora é o assembly `SpellBook.GAS`. Um asmdef 
 tipos do GAS precisa referenciar o `SpellBook.GAS`. Scripts fora de asmdef não precisam mudar.
 Veja [Conceitos](../inicio/conceitos.md#modulos).
 
+## Tags {#tags}
+
+As tags agora são o módulo [Tags](../modulos/tags.md), no assembly `SpellBook.Tags`. O
+namespace saiu do GAS (`SpellBook.GAS.Tags` virou `SpellBook.Tags`) e o assembly saiu do
+`SpellBook.Core`.
+
+| Antes (2.x) | Depois (3.0) |
+|---|---|
+| Namespace `SpellBook.GAS.Tags` | Namespace `SpellBook.Tags` |
+| `GameplayTag` e `GameplayTagDefinition` no assembly `SpellBook.Core` | Os mesmos tipos no assembly `SpellBook.Tags` |
+
+- Troque `using SpellBook.GAS.Tags;` por `using SpellBook.Tags;`.
+- Um asmdef seu que usa tags precisa referenciar o `SpellBook.Tags`.
+- Os assets de tag e os campos de tag continuam válidos; nada muda no Inspector.
+
+## Recarga da habilidade {#recarga-da-habilidade}
+
+O campo **Cooldown Reduction Attribute** da `GameplayAbility` não aceita mais o nome antigo
+`_cooldownReductionAttribute`. Na 2.x, um `[FormerlySerializedAs]` lia esse nome antigo e
+migrava o valor; na 3.0 esse atributo saiu.
+
+- Assets salvos na 2.x já usam o nome novo e não perdem nada.
+- Assets salvos pela última vez na 1.x perdem o valor desse campo. Antes de atualizar, abra o
+  projeto na 2.x e regrave essas habilidades, por exemplo com
+  `AssetDatabase.ForceReserializeAssets()` num script de Editor. Se já atualizou, preencha o
+  campo de novo no Inspector.
+
 ## Eventos do GAS {#eventos-do-gas}
 
 Os eventos globais `AbilityActivatedEvent` e `AbilitySlotUpdateEvent` foram removidos, e o ASC
