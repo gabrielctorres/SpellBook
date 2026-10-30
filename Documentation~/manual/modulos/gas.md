@@ -3,6 +3,9 @@
 O GAS (Gameplay Ability System) é o sistema modular e orientado a dados do SpellBook para
 habilidades, efeitos e atributos. Esta página é o guia de uso.
 
+O GAS fica no assembly `SpellBook.GAS`. Um asmdef seu que usa o GAS precisa referenciar o
+`SpellBook.GAS` (e o `SpellBook.Core`, se usar tipos do Core). Veja [Conceitos](../inicio/conceitos.md#modulos).
+
 ## 1. Visão geral {#visao-geral}
 
 ### 1.1 Tags (GameplayTags) {#tags}
@@ -113,7 +116,8 @@ Para consultar sem ativar, use `ability.CanActivate(asc, out var reason)`.
 - Desativar o GameObject do ASC cancela todas as habilidades ativas.
 
 ### 4.5 Eventos do ASC
-`OnAbilityActivated(spec)`, `OnAbilityEnded(spec, cancelled)` e `OnAbilityFailed(ability, result)`, este último útil para feedback de UI ("Sem mana", "Em recarga"). O `AbilityActivatedEvent` global do `EventManager` continua sendo disparado.
+`OnAbilityActivated(spec)`, `OnAbilityEnded(spec, cancelled)` e `OnAbilityFailed(ability, result)`, este último útil para feedback de UI ("Sem mana", "Em recarga").
+O ASC não dispara mais evento global; veja a [Migração 2.x → 3.0](../regras/migracao-2-para-3.md#eventos-do-gas).
 
 ---
 

@@ -214,7 +214,6 @@ namespace SpellBook.GAS.Core
 
             // Dispara eventos DEPOIS de aplicar o cooldown, para que a UI leia o tempo correto
             OnAbilityActivated?.Invoke(spec);
-            SpellBook.Events.EventManager.Trigger(new SpellBook.Events.AbilityActivatedEvent(ability, this));
 
             // A tag concedida acima pode ter cancelado a própria habilidade
             if (!spec.IsActive || spec.ActiveContext != context) return;
