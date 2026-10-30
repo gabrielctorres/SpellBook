@@ -230,6 +230,12 @@ O `AsmdefRulesTests` (0M-07) cobra essas regras, e o `NoOdinTests` (0M-07) cobra
 
 O `AsmdefRulesTests` cobra essa regra a partir do 0M-45.
 
+**Referências dos asmdefs de teste** (esclarecimento de 2026-10-29, desvio do 0M-12):
+- a regra de dependência entre módulos (o Core e a infraestrutura não referenciam o GAS) vale para os asmdefs de runtime e de Editor. Os asmdefs de teste ficam fora do grafo: têm `autoReferenced: false` e ninguém os referencia, então não criam ciclo nem acoplamento no pacote;
+- um `SpellBook.<Módulo>.Tests.*` referencia o módulo testado, as dependências dele, o `SpellBook.Time` e o `SpellBook.Testing` (ADR 0004, item 4);
+- o `SpellBook.Core.Tests.EditMode` também é o assembly dos testes de estrutura e de integração do pacote (`AsmdefRulesTests`, validador do 0M-38, uso do seletor e do `[ShowIf]` nos tipos do GAS). Por isso pode referenciar qualquer runtime do pacote: o GAS desde o 0M-12 e os outros módulos no 0M-38;
+- o `AsmdefRulesTests` não aplica a regra do Core aos asmdefs de teste: a lista `Infra` tem só os runtimes.
+
 ### 4.2 Core
 
 ```csharp
@@ -1096,12 +1102,13 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 ### 0M-12 — `refactor(gas)!: separar o GAS no assembly SpellBook.GAS`
 - Objetivo: GAS fora do Core; o Core deixa de depender do GAS; fim do evento global do ASC (R22, R22a).
 - **Alterado (revisão sem Odin):** o asmdef do GAS segue a 4.1 revisada, sem constraint e sem DLL do Odin. A Migração ganha a linha "sem Odin" do 0M-44.
-- Arquivos: `Runtime/GAS/SpellBook.GAS.asmdef` (refs Core; `overrideReferences: true`, `precompiledReferences: []`), `Runtime/Systems/Events/GAS_Events.cs` (apagado), `Runtime/GAS/Core/AbilitySystemComponent.cs` (remove `:217`), `Tests/Core/EditMode/Structure/AsmdefRulesTests.cs`, `Documentation~/manual/inicio/conceitos.md`, `Documentation~/manual/regras/migracao-2-para-3.md`, `Documentation~/manual/modulos/gas.md` (tira a frase do evento global).
+- Arquivos: `Runtime/GAS/SpellBook.GAS.asmdef` (refs Core; `overrideReferences: true`, `precompiledReferences: []`), `Runtime/Systems/Events/GAS_Events.cs` (apagado), `Runtime/GAS/Core/AbilitySystemComponent.cs` (remove `:217`), `Tests/Core/EditMode/Structure/AsmdefRulesTests.cs`, `Tests/Core/EditMode/SpellBook.Core.Tests.EditMode.asmdef` (+GAS), `Documentation~/manual/inicio/conceitos.md`, `Documentation~/manual/regras/migracao-2-para-3.md`, `Documentation~/manual/modulos/gas.md` (tira a frase do evento global).
+- **Desvio aceito (2026-10-29, Arquiteto):** a referência `SpellBook.GAS` no asmdef de testes do Core entra aqui, e não no 0M-38. O `ShowIfRuleTests` (0M-46) e o `TypePickerCatalogTests` (0M-41) usam tipos do GAS (`SpellBook.GAS.Attributes`, `.Effects`, `.Core`) e deixam de compilar quando o GAS vira assembly próprio. Esses testes **não** vão para o `SpellBook.GAS.Tests.EditMode` (0M-22): eles testam o `ShowIfRule` e o `TypePickerCatalog`, que são do `Core.Editor`, aplicados aos campos reais do GAS; levá-los obrigaria o asmdef de testes do GAS a referenciar o `Core.Editor`. Nenhum ticket posterior move esses testes. Regra na 4.1 ("Referências dos asmdefs de teste").
 - Depende de: 0M-10 (a página GAS precisa existir).
 - CAs: CA1 (parte), CA2 (parte), R22 (parte), R22a.
 - Testes red: `AsmdefRules_GasAssemblyExists` e `AsmdefRules_CoreDoesNotReferenceGas` falham (não existe asmdef do GAS).
 - Manual: **Conceitos** (mapa de módulos atual e alvo da 0-M; regra de dependência); **Migração 2.x → 3.0** (primeiras linhas: o pacote não depende mais do Odin, os assets continuam válidos e há perdas no Inspector do GAS (seção 7); assembly do GAS; fim do `AbilityActivatedEvent` e do `AbilitySlotUpdateEvent`, usar `OnAbilityActivated`).
-- Tamanho: ~60 linhas, 7 arquivos.
+- Tamanho: ~60 linhas, 8 arquivos (o asmdef de testes entrou pelo desvio aceito; o `.meta` apagado do `GAS_Events.cs` não conta, ADR 0003).
 
 ### 0M-13 — `test(gas): caracterizar tags do ASC e criar as factories`
 - Objetivo: proteger o comportamento de tags antes de mexer no ASC; criar o assembly de factories.
@@ -1370,7 +1377,7 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
   - o rename do asmdef do Editor e a mudança do `FolderStructureCreator` saem, porque foram feitos no 0M-41;
   - **2ª rodada (I48):** sai o `ValidationInspectorHook`. As mensagens no Inspector vêm do `SpellBookEditor` (0M-48). A janela e o Inspector usam as mesmas mensagens: o `ProjectValidator` e o `SpellBookEditor.CollectMessages` chamam o mesmo `IValidatable`;
   - **D6 (2026-10-29, aprovada pelo usuário em 2026-10-29):** o erro de tipo ausente usa `MissingReferenceTypes.Get` e `FormatMessage` do 0M-53, por objeto, com o mesmo texto do topo do Inspector. O CA64 não muda: o validador já relatava por objeto.
-- Arquivos: `Editor/Core/ProjectValidator.cs`, `Editor/Core/ValidationWindow.cs`, `Tests/Core/EditMode/SpellBook.Core.Tests.EditMode.asmdef` (+Events, Pooling, GAS, GAS.Bridges), `Tests/Core/EditMode/ProjectValidationTests.cs`, `Documentation~/manual/ferramentas/validador.md`.
+- Arquivos: `Editor/Core/ProjectValidator.cs`, `Editor/Core/ValidationWindow.cs`, `Tests/Core/EditMode/SpellBook.Core.Tests.EditMode.asmdef` (+Events, Pooling, GAS.Bridges; o GAS já entrou no 0M-12), `Tests/Core/EditMode/ProjectValidationTests.cs`, `Documentation~/manual/ferramentas/validador.md`.
 - Depende de: 0M-37, 0M-33, 0M-48 (`SpellBookEditor`, CA66), 0M-53 (`MissingReferenceTypes`, CA64; o 0M-53 já vem antes na ordem linear).
 - CAs: CA35, R32, R33, R34, CA64, CA34 (S).
 - Testes red (falham, porque `ProjectValidator` não existe):
