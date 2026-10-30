@@ -95,6 +95,11 @@ namespace SpellBook.GAS.Tests
             AbilitySystemComponent asc = CreateManualAsc(ability);
 
             asc.TryActivateAbility(ability, Vector3.zero);
+            // A 1ª repetição termina na hora, e a Unity só retoma o RepeatAction no quadro seguinte (corrotina
+            // aninhada que termina sem ceder custa um quadro ao pai): o intervalo começa a contar ali, como na 2.x.
+            // Dois quadros, para não depender da ordem das corrotinas dentro do quadro.
+            yield return null;
+            yield return null;
             asc.Tick(0.5f);
             yield return null;
             int afterHalf = counter.Count;

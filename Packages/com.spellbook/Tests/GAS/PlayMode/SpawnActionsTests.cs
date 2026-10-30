@@ -40,10 +40,11 @@ namespace SpellBook.GAS.Tests
             AbilitySystemComponent caster = _gas.CreateAsc();
             var action = new SpawnProjectileAction { ProjectilePrefab = prefab };
             AbilityContext context = GasFactory.CreateAbilityContext(caster, new Vector3(0f, 0f, 10f));
+            HashSet<Projectile> existing = FindExisting<Projectile>();
 
             Assert.DoesNotThrow(() => RunToEnd(action.Execute(context)));
 
-            List<Projectile> spawned = TrackSpawned<Projectile>(prefab);
+            List<Projectile> spawned = TrackSpawned(existing);
             Assert.That(spawned, Has.Count.EqualTo(1), "o projétil deveria ter sido criado pelo spawner padrão");
         }
 
@@ -54,10 +55,11 @@ namespace SpellBook.GAS.Tests
             var position = new Vector3(3f, 0f, 4f);
             var action = new PlayCueAction { VFX_Prefab = prefab, TargetSource = AbilityTargetSource.Location };
             AbilityContext context = GasFactory.CreateAbilityContext(_gas.CreateAsc(), position);
+            HashSet<ParticleSystem> existing = FindExisting<ParticleSystem>();
 
             Assert.DoesNotThrow(() => RunToEnd(action.Execute(context)));
 
-            List<ParticleSystem> spawned = TrackSpawned<ParticleSystem>(prefab);
+            List<ParticleSystem> spawned = TrackSpawned(existing);
             Assert.That(spawned, Has.Count.EqualTo(1), "o VFX deveria ter sido criado pelo spawner padrão");
             Assert.That(spawned[0].transform.position, Is.EqualTo(position));
         }
@@ -105,13 +107,22 @@ namespace SpellBook.GAS.Tests
             return spawner;
         }
 
-        /// <summary>Instâncias de <paramref name="prefab"/> criadas pelo teste, registradas para o <c>Dispose</c>.</summary>
-        private List<T> TrackSpawned<T>(GameObject prefab) where T : Component
+        /// <summary>
+        /// Componentes <typeparamref name="T"/> já na cena antes da ação: o prefab do teste e o que um teste anterior deixou
+        /// (o <c>Destroy</c> do <c>TearDown</c> só vale no fim do quadro, e um <c>[Test]</c> roda no mesmo quadro do anterior).
+        /// </summary>
+        private static HashSet<T> FindExisting<T>() where T : Component
+        {
+            return new HashSet<T>(Object.FindObjectsByType<T>(FindObjectsSortMode.None));
+        }
+
+        /// <summary>Componentes <typeparamref name="T"/> criados depois de <paramref name="existing"/>, registrados para o <c>Dispose</c>.</summary>
+        private List<T> TrackSpawned<T>(HashSet<T> existing) where T : Component
         {
             var spawned = new List<T>();
             foreach (T component in Object.FindObjectsByType<T>(FindObjectsSortMode.None))
             {
-                if (component.gameObject == prefab) continue;
+                if (existing.Contains(component)) continue;
                 spawned.Add(component);
                 _spawn.Track(component.gameObject);
             }
