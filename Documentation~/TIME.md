@@ -60,7 +60,8 @@ Um ticket = uma issue = uma branch = um PR (0003).
   - "arquivos" são os caminhos distintos no diff, e um arquivo movido conta uma vez;
   - `.meta` não conta em nenhum dos dois limites;
   - páginas de `Documentation~/manual/` e fixtures contam só nos 10 arquivos;
-  - **remoção pura** (I42): um arquivo apagado por inteiro, sem substituto no mesmo ticket, não conta em nenhum dos dois limites. Ele continua listado no PR.
+  - **remoção pura** (I42): um arquivo apagado por inteiro, sem substituto no mesmo ticket, não conta em nenhum dos dois limites. Ele continua listado no PR;
+  - **movimento puro** (0003): arquivo movido sem mudar o conteúdo (`R100` no `git diff -M --name-status`) conta 1 linha e fica fora dos 10 arquivos. Ele continua listado no PR.
 - **Paralelo sem Editor** (emenda de 2026-10-29 da 0003): um ticket que não abre a Unity nem pega a trava pode rodar em paralelo só se a Spec marcar o par e os dois não tocarem o mesmo arquivo. Ele usa a própria branch e uma cópia de trabalho própria, sem trocar a branch do checkout do ticket com Unity. Os detalhes estão na emenda e na seção 8 da Spec.
 - **Branch:** uma branch por ticket no mesmo checkout, `feat|fix|refactor/<feature>-<ticket>`, criada pelo DevOps a partir da `main`. Os worktrees por ticket estão adiados (0006 Adiada).
 - **Depois do APROVADO:** o DevOps cria a branch, commita com stage seletivo (`/commit`) e abre o PR contra a `main`, confirmando cada passo com o usuário. O merge é do usuário.
@@ -85,12 +86,13 @@ Documentation~/
 `Documentation~/` segue a convenção UPM: a Unity ignora a pasta, então ela não gera `.meta` nem
 entra no pacote importado. Uma ADR aceita não é reescrita: ganha emenda datada ou é substituída.
 
-## Projeto host de testes
+## Projeto de desenvolvimento
 
-O pacote é testado no projeto Unity em `HostProject~/` (0004, I41), dentro do repositório. A pasta
-termina em `~`, então a Unity não a importa como conteúdo do pacote. O
-`HostProject~/Packages/manifest.json` referencia o pacote por `file:` e o lista em `testables`. Os
-artefatos gerados do host (`Library/`, `Temp/` e afins) ficam no `.gitignore`.
+A raiz do repositório é o projeto Unity de desenvolvimento (0004 e 0027), e o pacote fica embutido
+em `Packages/com.spellbook/`. O `Packages/manifest.json` lista `com.spellbook` em `testables`. O
+`.gitignore` é o padrão Unity (`Library/`, `Temp/`, `Logs/`, `UserSettings/` e afins). Os caminhos
+da Spec seguem a regra de prefixo do topo dela: `Runtime/...` é `Packages/com.spellbook/Runtime/...`.
+Os relatórios de teste ficam em `Logs/`.
 
 ## Editor-lock
 
@@ -98,7 +100,7 @@ A trava segue a ADR 0005.
 
 - Só a Fábrica abre o Unity Editor ou roda a Unity para implementar.
 - O Examinador roda a Unity em batchmode **só para testes**, também sob a trava. Ele cria e remove a trava; é a única exceção ao "não edita arquivos" dele.
-- Antes de usar a Unity, o papel verifica `.claude/editor.lock`. Se existir, para e avisa o Controlador. Senão, cria a trava com uma linha `papel; ticket; horário ISO-8601; caminho do host`.
+- Antes de usar a Unity, o papel verifica `.claude/editor.lock`. Se existir, para e avisa o Controlador. Senão, cria a trava com uma linha `papel; ticket; horário ISO-8601; caminho do host`, onde o "caminho do host" é a raiz do repositório.
 - Quem criou remove a trava ao terminar, mesmo se falhar. Ninguém apaga a trava de outro papel. Trava órfã só é removida pelo usuário, ou pelo Controlador com a confirmação do usuário.
 - Ticket sem Unity (docs, processo) não cria a trava.
 - A trava é local, fica na raiz do checkout e nunca é commitada.

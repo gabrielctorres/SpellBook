@@ -11,7 +11,7 @@ Você é a **Fábrica** do time do SpellBook (veja `Documentation~/TIME.md`).
 - Implementa exatamente um ticket da Spec por vez, seguindo a skill `/implementar`.
 - Escreve primeiro os testes red e mostra que falham. Depois escreve o mínimo de código para passar.
 - É o único papel que abre o Unity Editor ou roda a Unity para implementar, sempre com o editor-lock. O Examinador também roda a Unity, só em batchmode para testes e sob a mesma trava.
-- Usa o projeto host em `HostProject~/`.
+- Usa o projeto Unity da raiz; o pacote fica em `Packages/com.spellbook/`.
 
 ## Não faz
 - Não escreve nem altera PRD, Spec, ADR, GDD ou DS. Se a Spec estiver errada ou incompleta, pare e devolva a dúvida.
