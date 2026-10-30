@@ -325,7 +325,7 @@ Decisão do usuário (D6 da `spec/modularizacao.md`), achado no red do 0M-41. Es
 - Por isso o aviso não fica no drawer. O `SpellBookEditor` mostra no topo do Inspector um `HelpBox` de erro por tipo ausente do objeto, "Tipo não encontrado: `<assembly>` `<namespace.Classe>`", com o botão "Limpar referência" (com confirmação), que age pelo `referenceId`.
 - **Nunca limpa sozinho.** O campo aparece como "(Nenhum)". Restaurar o tipo recupera os dados.
 - Um tipo do usuário sem `SpellBookEditor` só vê o erro no validador do projeto (item 4, validador; CA64).
-- O tipo ausente é implementado no 0M-48, não no 0M-41.
+- O tipo ausente é implementado no 0M-53, não no 0M-41.
 
 ## Em aberto
 
