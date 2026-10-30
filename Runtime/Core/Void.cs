@@ -1,4 +1,4 @@
-namespace SpellBook.Core.NewEventSystem
+namespace SpellBook.Core
 {
     [System.Serializable] public struct Void { }
 }

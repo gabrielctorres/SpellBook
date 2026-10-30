@@ -35,6 +35,52 @@ próprios. Estes assemblies ainda **não existem**; a tabela mostra para onde o 
 | `SpellBook.GAS` | Sistema de habilidades. |
 | `SpellBook.GAS.Bridges` | Ligações do GAS com outros módulos, como disparar um evento a partir de uma habilidade. |
 
+## Core {#core}
+
+Além do Inspector e da validação, o `SpellBook.Core` tem três utilidades que os outros módulos
+e o seu projeto podem usar.
+
+### `Void` {#void}
+
+`Void` é uma struct vazia e serializável. Serve de payload para um evento que não carrega dado,
+no lugar de um tipo inventado só para isso.
+
+### `RuntimeSet<T>` {#runtime-set}
+
+`RuntimeSet<T>` é um `ScriptableObject` abstrato que guarda uma lista de itens em runtime, como
+os inimigos vivos na cena. Para usar, crie uma classe concreta que herda dele com o tipo do
+item. `Add` ignora um item que já está na lista, e `Remove` ignora um item que não está.
+
+```csharp
+[CreateAssetMenu(menuName = "Game/Enemy Set")]
+public class EnemySet : RuntimeSet<Enemy> { }
+```
+
+### `MathTools` {#math-tools}
+
+`MathTools` é uma classe estática do namespace `SpellBook.Core`. Não precisa de componente na
+cena: chame os métodos direto.
+
+| Método | O que faz |
+|---|---|
+| `AngleBetweenVectors(from, to)` | Ângulo com sinal entre dois vetores 2D, em graus. |
+| `Map(value, inMin, inMax, outMin, outMax)` | Converte um valor de um intervalo para outro, de forma linear. Valores fora do intervalo de entrada saem fora do intervalo de saída. |
+| `ProjectToXZPlane(point, height)` | O mesmo ponto com o `y` trocado por `height`. |
+| `RandomPointInCircle(center, radius)` | Ponto aleatório dentro de um círculo 2D, com distribuição uniforme. Usa o `UnityEngine.Random`. |
+| `RandomPointInSphere(center, radius)` | Ponto aleatório dentro de uma esfera. Usa o `UnityEngine.Random`. |
+| `MidPoint(a, b)` | Ponto médio entre dois pontos. |
+| `IsInRange(value, min, max)` | `true` se `value` está entre `min` e `max`, com os dois limites incluídos. |
+| `CenterOfMass(points)` | Média dos pontos de um array. |
+
+```csharp
+using SpellBook.Core;
+
+float volume = MathTools.Map(distance, 0f, 20f, 1f, 0f);
+```
+
+Na 2.x, `MathTools` ficava aninhada no componente `Math` (`SpellBook.MathTools.Math.MathTools`).
+Esse componente não existe mais na 3.0.
+
 ## Regra de dependência {#regra-de-dependencia}
 
 A regra vale entre assemblies. Hoje ela é esta:
