@@ -352,7 +352,8 @@ namespace SpellBook.Time
   - `[SerializeField] TimeSourceAsset timeSource` (vazio → `TimeSourceAsset.Scaled`), `[SerializeField] bool autoTick = true`.
   - `public ITimeSource TimeSource { get; }`, `public void SetTimeSource(ITimeSource source)` (código e testes; reinicia o cursor).
   - `public void Tick(float deltaTime)`: ignora `deltaTime <= 0`, soma em `public double TickedTime { get; }` (relógio próprio do ASC) e avança os efeitos de trás para frente, como hoje.
-  - `Update`: se `autoTick`, `Tick((float)(fonte.ElapsedTime - cursor))`.
+  - `Update`: se `autoTick`, `Tick((float)(fonte.ElapsedTime - cursor))`. Em todo quadro, com `autoTick` ligado ou não, o cursor recebe o `ElapsedTime` atual da fonte. Assim, ao religar o `autoTick`, o primeiro `Tick` recebe só o delta do último quadro, e não o tempo acumulado enquanto esteve desligado (0014, risco 10). Com `autoTick` desligado o ASC só avança por `Tick` explícito.
+  - (Emenda do Arquiteto, 2026-10-30, comportamento aceito pelo Examinador na revisão do 0M-19.)
   - Tags: `_activeTags` passa a `Dictionary<GameplayTag, int>`; `HasTag` itera as chaves com `Matches`.
   - Remove `EventManager.Trigger` (`:217`). Os eventos C# continuam.
 - **`ActiveEffectInstance`:** remove `StartTime` (quebra; ninguém no pacote o lê) e o `using UnityEngine` deixa de ser preciso para tempo.
@@ -508,7 +509,7 @@ O Setup sem Odin foi **cancelado**: não existe `SpellBook.Setup.Editor` nem `Od
 | Instalação | `manual/inicio/instalacao.md` | 0M-08 (com a seção Compatibilidade, D5) | — |
 | Conceitos (mapa de módulos, três usos de evento, seletor de tipo e `[ShowIf]`) | `manual/inicio/conceitos.md` | 0M-12 | 0M-24, 0M-26, 0M-40 |
 | Inspector do SpellBook (seletor de tipo, tipo ausente, `[MovedFrom]` para tipos do usuário, `[ShowIf]`, ambiguidade com outros pacotes) | `manual/inicio/inspector.md` | 0M-42 | 0M-46, 0M-48 (validação no topo, botão Revalidar), 0M-53 (tipo ausente no topo, seção **Tipo não encontrado**), 0M-50 (como herdar de `SpellBookEditor` nos tipos do usuário) |
-| Migração 2.x → 3.0 | `manual/regras/migracao-2-para-3.md` | 0M-12 (já com a linha "o pacote não depende mais do Odin; perdas no Inspector do GAS", do 0M-44) | 0M-15, 0M-16, 0M-19, 0M-21, 0M-25, 0M-40 (linha de Pooling, emenda de 2026-10-30) |
+| Migração 2.x → 3.0 | `manual/regras/migracao-2-para-3.md` | 0M-12 (já com a linha "o pacote não depende mais do Odin; perdas no Inspector do GAS", do 0M-44) | 0M-15, 0M-16, 0M-21 (com as linhas do 0M-19, emenda de 2026-10-30), 0M-25, 0M-40 (linha de Pooling, emenda de 2026-10-30) |
 | GAS | `manual/modulos/gas.md` | 0M-10 | 0M-12, 0M-19, 0M-21, 0M-22, 0M-37, 0M-39 |
 | Tags | `manual/modulos/tags.md` | 0M-16 | — |
 | Tempo | `manual/modulos/tempo.md` | 0M-17 | 0M-18 |
@@ -608,7 +609,7 @@ O CA41 foi **cancelado** (não existe cenário sem Odin).
 | 5 | Repetição | Find references e validador do projeto lentos em projetos grandes | `ChannelReferenceFinder`, `ProjectValidator` | Rodam só sob demanda; o finder filtra antes por `AssetDatabase.GetDependencies` | N5 no host (projeto pequeno); medido no cenário CA34 |
 | 6 | Repetição | Pool cresce sem limite se nada devolve (VFX do `PlayCueAction`) | `PlayCueAction`, `PooledSpawnerAsset` | Aceito até o Cues (I37); manual avisa em "Armadilhas" | Página Pooling |
 | 7 | Tempo | Teste dependendo de relógio real | Todos | `ManualTimeSource` e `Tick`; PlayMode conta quadros, nunca segundos; nada de `WaitForSeconds` em teste | Revisão do Examinador (0004) |
-| 8 | Tempo | Soma de floats na fronteira: `3f - 2.9f - 0.1f` dá cerca de `2,4e-8`, positivo, e a recarga **não** expiraria após "2,9 + 0,1" | CA8 | O CA8 usa dois arranjos independentes: um ASC com `Tick(2.9f)` (ainda em recarga) e outro com `Tick(3.0f)` (liberado); nunca a soma 2,9 + 0,1. Expiração continua "restante ≤ 0", como no código atual. A armadilha vai para a página GAS | CA8 |
+| 8 | Tempo | Soma de floats na fronteira: o sinal do resto depende dos valores. Em float32, `3f - 2.9f - 0.1f` dá cerca de `-9,7e-8` (a recarga expira por acaso), mas `2f - 1.9f - 0.1f` dá cerca de `+2,2e-8`, positivo, e a recarga de 2 s **não** expiraria após "1,9 + 0,1". (Emenda do Arquiteto, 2026-10-30, revisão do 0M-19: o exemplo anterior dava `+2,4e-8` para `3f - 2.9f - 0.1f`, o que estava errado.) | CA8 | O CA8 usa dois arranjos independentes: um ASC com `Tick(2.9f)` (ainda em recarga) e outro com `Tick(3.0f)` (liberado); nunca a soma 2,9 + 0,1. Expiração continua "restante ≤ 0", como no código atual. A armadilha vai para a página GAS | CA8 |
 | 9 | Tempo | `Time.timeScale` alterado por um teste afeta os seguintes | CA45, CA46, CA60 | `SetUp` guarda e `TearDown` restaura `UnityEngine.Time.timeScale` | Testes em ordem aleatória |
 | 10 | Tempo | Salto de delta no primeiro quadro ou ao trocar de fonte | ASC, `Projectile`, `EventListener` | Cursor recebe o `ElapsedTime` atual no `OnEnable` e no `SetTimeSource` | CA9, CA46 |
 | 11 | Tempo | Precisão do tempo acumulado em sessões longas | `ITimeSource.ElapsedTime` | `double` (`Time.timeAsDouble`) | — |
@@ -1167,11 +1168,12 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 
 ### 0M-19 — `feat(gas)!: Tick, autoTick e fonte de tempo no ASC`
 - Objetivo: R8 a R10 para efeitos e recargas; elimina todo `Time.` do GAS (risco 12).
-- Arquivos: `Runtime/GAS/SpellBook.GAS.asmdef` (+Time), `Runtime/GAS/Core/AbilitySystemComponent.cs` (+`[HelpURL]`), `Runtime/GAS/Effects/ActiveEffectInstance.cs` (sem `StartTime`), `Runtime/GAS/Abilities/Projectiles/Projectile.cs` (delta pela fonte, +`[HelpURL]`), `Tests/Testing/SpellBook.Testing.asmdef` (+Time), `Tests/Testing/TimeFactory.cs`, `Tests/Testing/GasFactory.cs` (efeito com duração, habilidade com recarga), `Tests/GAS/PlayMode/AscTimeTests.cs`, `Documentation~/manual/modulos/gas.md`, `Documentation~/manual/regras/migracao-2-para-3.md`.
+- Arquivos: `Runtime/GAS/SpellBook.GAS.asmdef` (+Time), `Runtime/GAS/Core/AbilitySystemComponent.cs` (+`[HelpURL]`), `Runtime/GAS/Effects/ActiveEffectInstance.cs` (sem `StartTime`), `Runtime/GAS/Abilities/Projectiles/Projectile.cs` (delta pela fonte, +`[HelpURL]`), `Tests/Testing/SpellBook.Testing.asmdef` (+Time), `Tests/Testing/TimeFactory.cs`, `Tests/Testing/GasFactory.cs` (efeito com duração, habilidade com recarga), `Tests/GAS/PlayMode/AscTimeTests.cs`, `Tests/GAS/PlayMode/SpellBook.GAS.Tests.PlayMode.asmdef` (+Time), `Documentation~/manual/modulos/gas.md`.
+- **Emenda (2026-10-30, Arquiteto):** o asmdef de testes PlayMode do GAS ganha a referência `SpellBook.Time` aqui. O `AscTimeTests` usa `ManualTimeSource`, `PausableTimeSource` e `SetTimeSource(ITimeSource)`, e sem a referência não compila (CS0012). A regra já estava na 4.1 ("Referências dos asmdefs de teste"), mas nenhum ticket a aplicava. Para ficar em 10 arquivos (ADR 0003), a página Migração sai deste ticket: as linhas `autoTick` e `StartTime` passam para o 0M-21, que é o próximo ticket que edita a página e depende deste. É o mesmo caminho do 0M-15. O gate de doc (0007) continua atendido: a página do comportamento (GAS, seção **Tempo do ASC**) muda aqui, e as quebras seguem no 0M-19 na tabela de "Quebras de compatibilidade" (CHANGELOG).
 - Depende de: 0M-18, 0M-15.
 - CAs: CA7, CA8, CA9, CA11, CA46, N2 (D3), N3.
 - Testes red: `Effect2s_ActiveAfter1_9_RemovedAfter0_2`, `Cooldown3s_BlockedBefore_AllowedAt3`, `StoppedSource_AutoTick_NothingChangesOverNFrames`, `SameTicks_SameState`, `PausableGroup_TwoAscsFrozen_UnscaledAscRuns`, `Tick_InSteadyState_DoesNotAllocate` falham (`Tick`, `SetTimeSource` e o campo de fonte não existem).
-- Manual: GAS, seção **Tempo do ASC** (`timeSource`, `autoTick`, `Tick`, `TickedTime`, receita do C6); Migração (`autoTick`, `StartTime`).
+- Manual: GAS, seção **Tempo do ASC** (`timeSource`, `autoTick`, `Tick`, `TickedTime`, receita do C6). A Migração (`autoTick`, `StartTime`) vai para o 0M-21 (emenda acima).
 - Tamanho: ~300 linhas, 10 arquivos.
 
 ### 0M-20 — `feat(core): SpawnerAsset com implementação por Instantiate`
@@ -1187,7 +1189,7 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Depende de: 0M-20, 0M-19.
 - CAs: CA29, CA62, CA30.
 - Testes red: `SpawnProjectile_NoSpawner_NoPoolManager_NoException`, `PlayCue_NoSpawner_NoPoolManager_NoException`, `SpawnVfx_ReleasesThroughConfiguredSpawner`, `Projectile_ReturnsThroughSpawner` falham (NRE do `PoolManager.Instance` / `Destroy` direto); `NoPoolManagerInstanceOutsidePooling` falha (3 ocorrências no GAS).
-- Manual: GAS, seções **Projéteis** e **Ações de spawn** (campo `Spawner`, armadilha do VFX do `PlayCueAction` até o Cues); Migração (`Projectile.Setup`, `IPoolable`).
+- Manual: GAS, seções **Projéteis** e **Ações de spawn** (campo `Spawner`, armadilha do VFX do `PlayCueAction` até o Cues); Migração (`Projectile.Setup`, `IPoolable` e, pela emenda de 2026-10-30 do 0M-19, `autoTick` e `StartTime`).
 - Tamanho: ~220 linhas, 9 arquivos.
 
 ### 0M-22 — `refactor(gas): esperas do GAS pelo relógio do ASC`
