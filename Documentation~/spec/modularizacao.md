@@ -656,6 +656,7 @@ O DevOps leva esta lista ao CHANGELOG no release, com a tabela da página "Migra
 | `ActiveEffectInstance.StartTime` | removido | 0M-19 |
 | `Projectile.Setup(ComponentPooler, ...)`, `Projectile : IPoolable` | `Projectile.Setup(SpawnerAsset, ...)`, sem `IPoolable` | 0M-21 |
 | Ações de spawn usavam `PoolManager.Instance` | campo `Spawner` (vazio → Instantiate) | 0M-21 |
+| `SpawnVFXEffectAction` sem `DestroyOnRemoval` destruía o VFX em `duration + startLifetime`, mesmo com `Looping` ligado | devolve o VFX pelo spawner quando a partícula para (`ReleaseWhenParticlesStop`, ADR 0015); um `ParticleSystem` com `Looping` nunca para e o VFX não volta: ligar `DestroyOnRemoval` ou desligar `Looping` | 0M-21 |
 | `SpellBook.Systems.Pooling.*`, menu `PoolingSystem/...` | `SpellBook.Pooling.*`, menu `SpellBook/Pooling/...` | 0M-23 |
 | `SpellBook.MathTools.Math.MathTools` | `SpellBook.Core.MathTools` | 0M-24 |
 | `SpellBook.Core.NewEventSystem.Void`, `SpellBook.Core.RuntimeSets.RuntimeSet<T>` | `SpellBook.Core.Void`, `SpellBook.Core.RuntimeSet<T>` | 0M-25 |
