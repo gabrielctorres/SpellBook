@@ -339,6 +339,11 @@ namespace SpellBook.Time
 - Leitura da Unity só aqui, sempre qualificada (`UnityEngine.Time.timeAsDouble`), por causa do conflito de nome (1.7).
 - `PausableTimeSource`: `ElapsedTime = escalado - pausadoAcumulado - inícioDaSessão`, calculado sob demanda (sem `Update`); `DeltaTime = IsPaused ? 0 : UnityEngine.Time.deltaTime`.
 - Reset: registro estático de instâncias vivas; `[RuntimeInitializeOnLoadMethod(SubsystemRegistration)]` chama `ResetState()` em todas (P20).
+  - O gancho é `internal static void ResetAllOnSessionStart()`, exposto aos testes por `InternalsVisibleTo("SpellBook.Time.Tests.EditMode")` e `.PlayMode` em `Runtime/Time/AssemblyInfo.cs`, como o `EventRegistry` (4.7). Os testes o chamam direto, sem reflection, e no `TearDown` (risco 1).
+  - O registro **não é esvaziado**: o gancho remove só as instâncias destruídas e reseta as outras. Sem domain reload, um asset já carregado não roda `OnEnable` de novo ao entrar em Play; se a lista fosse esvaziada, ele sairia do registro e não seria resetado na sessão seguinte. "Registro limpo" na 0014 quer dizer estado de sessão limpo, não lista vazia.
+  - (Emenda do Arquiteto, 2026-10-30, dúvida da Fábrica no 0M-17.)
+  - **Início da sessão do grupo pausável é gravado na primeira leitura, não no reset.** A documentação da Unity não garante o valor de `Time.timeAsDouble` em `SubsystemRegistration` (sem domain reload ele pode ainda ser o da sessão anterior). Por isso `ResetState()` não lê o relógio: zera pausa e acumulado e marca o início como pendente. O primeiro uso depois do reset (leitura de `ElapsedTime` ou `SetPaused`/`Pause`/`Resume`) grava `inícioDaSessão = UnityEngine.Time.timeAsDouble` e desmarca a pendência; esse uso já devolve ou conta a partir de 0. Assim o `ElapsedTime` do grupo nunca começa negativo e "recomeça do 0" vale para a primeira leitura da sessão, qualquer que seja a ordem de inicialização da Unity. Fontes escalada e não escalada não mudam (devolvem o relógio da Unity; o consumo é por diferença).
+  - (Emenda do Arquiteto, 2026-10-30, dúvida do Examinador no 0M-18.)
 - **Consumo por diferença** (0014): o consumidor guarda o último `ElapsedTime` lido; ao ligar (`OnEnable` ou ao trocar a fonte) o cursor recebe o valor atual, para não haver salto no primeiro quadro.
 
 ### 4.4 GAS (mudanças da 0-M)
@@ -1145,18 +1150,18 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Tamanho: ~120 linhas, 5 arquivos.
 
 ### 0M-17 — `feat(time): ITimeSource, fontes escalada, não escalada e manual`
-- Arquivos: `Runtime/Time/SpellBook.Time.asmdef`, `Runtime/Time/ITimeSource.cs`, `Runtime/Time/TimeSourceAsset.cs` (base, padrão escalado, registro e reset), `Runtime/Time/ScaledTimeSource.cs`, `Runtime/Time/UnscaledTimeSource.cs`, `Runtime/Time/ManualTimeSource.cs`, `Tests/Time/EditMode/SpellBook.Time.Tests.EditMode.asmdef`, `Tests/Time/EditMode/TimeSourceTests.cs`, `Documentation~/manual/modulos/tempo.md`.
+- Arquivos: `Runtime/Time/SpellBook.Time.asmdef`, `Runtime/Time/AssemblyInfo.cs` (`InternalsVisibleTo` dos testes EditMode e PlayMode), `Runtime/Time/ITimeSource.cs`, `Runtime/Time/TimeSourceAsset.cs` (base, padrão escalado, registro e reset), `Runtime/Time/ScaledTimeSource.cs`, `Runtime/Time/UnscaledTimeSource.cs`, `Runtime/Time/ManualTimeSource.cs`, `Tests/Time/EditMode/SpellBook.Time.Tests.EditMode.asmdef`, `Tests/Time/EditMode/TimeSourceTests.cs`, `Documentation~/manual/modulos/tempo.md`.
 - Depende de: 0M-12.
 - CAs: CA44 (parte: duas variantes), CA33 (parte, a factory vem no 0M-19).
-- Testes red: `Manual_AdvanceAccumulates`, `Manual_NegativeAdvanceThrows`, `Manual_ResetOnSessionStart`, `Menu_HasScaledAndUnscaled`, `Default_IsScaled` falham (módulo não existe).
+- Testes red: `Manual_AdvanceAccumulates`, `Manual_NegativeAdvanceThrows`, `Manual_ResetOnSessionStart`, `Manual_ResetTwice_StillRegistered` (avança, reseta, avança, reseta: zera nas duas; pega o registro esvaziado), `SessionHook_IsSubsystemRegistration` (só confere o atributo do gancho), `Menu_HasScaledAndUnscaled`, `Default_IsScaled` falham (módulo não existe). Os testes chamam `TimeSourceAsset.ResetAllOnSessionStart()` direto e no `TearDown` (4.3, risco 1).
 - Manual: **Tempo** (o que é, `ITimeSource`, criar fontes pelo menu, `ManualTimeSource` em testes, consumo por diferença, armadilha do nome `Time` em `namespace SpellBook.*`). `[HelpURL]` nas três fontes.
-- Tamanho: ~260 linhas, 9 arquivos.
+- Tamanho: ~280 linhas, 10 arquivos.
 
 ### 0M-18 — `feat(time): grupo pausável e reset sem domain reload`
 - Arquivos: `Runtime/Time/PausableTimeSource.cs`, `Tests/Time/PlayMode/SpellBook.Time.Tests.PlayMode.asmdef`, `Tests/Time/PlayMode/TimeScaleTests.cs`, `Tests/Time/PlayMode/PausableTimeSourceTests.cs`, `Tests/Time/EditMode/TimeSourceTests.cs` (menu com 3 variantes), `Documentation~/manual/modulos/tempo.md`.
 - Depende de: 0M-17.
 - CAs: CA44, CA45, CA46 (parte: o grupo em si).
-- Testes red: `Pausable_PausedHasZeroDeltaAndFrozenElapsed`, `Pausable_ResumeContinuesFromSameValue`, `Pausable_ResetOnSessionStart`, `Scaled_DoesNotAccumulateWithTimeScaleZero`, `Unscaled_AccumulatesWithTimeScaleZero`, `Menu_HasThreeVariants` falham (tipo e asmdef não existem).
+- Testes red: `Pausable_PausedHasZeroDeltaAndFrozenElapsed`, `Pausable_ResumeContinuesFromSameValue`, `Pausable_ResetOnSessionStart`, `Pausable_AfterReset_FirstReadIsZeroEvenIfFramesPassed` (reseta, espera quadros sem ler, a primeira leitura é 0), `Pausable_AfterReset_PauseBeforeAnyRead_ElapsedIsZero` (reseta, espera quadros, pausa sem ler antes, espera, `ElapsedTime` é 0), `Scaled_DoesNotAccumulateWithTimeScaleZero`, `Unscaled_AccumulatesWithTimeScaleZero`, `Menu_HasThreeVariants` falham (tipo e asmdef não existem).
 - Manual: seção **Grupo pausável** `{#pausabletimesource}` (pausar a gameplay e manter a UI, chamar `Pause` por `UnityEvent`, P19 e P20 explicadas). `[HelpURL]` no `PausableTimeSource`. **Inferido:** I-b.
 - Tamanho: ~220 linhas, 6 arquivos.
 
