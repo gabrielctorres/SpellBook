@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using SpellBook.Core.Inspector;
 using UnityEngine;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Attributes;
@@ -55,6 +56,7 @@ namespace SpellBook.GAS.Abilities
             public string Format;
             public string Placeholder;
             public bool UseColor;
+            [ShowIf(nameof(UseColor), true)]
             public Color Color;
         }
 
@@ -91,6 +93,7 @@ namespace SpellBook.GAS.Abilities
     public class AbilityDescription
     {
         [SerializeReference]
+        [TypePicker]
         public List<DescriptionElement> Elements = new List<DescriptionElement>();
 
         public string GetFullDescription(GameplayAbility ability, AbilitySystemComponent source)
