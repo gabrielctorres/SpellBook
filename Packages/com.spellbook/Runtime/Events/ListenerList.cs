@@ -15,6 +15,41 @@ namespace SpellBook.Events
         private int _raiseDepth;
         private bool _dirty;
 
+        /// <summary>Ouvintes inscritos agora. Quem saiu durante um disparo já não conta.</summary>
+        public int Count
+        {
+            get
+            {
+                int count = 0;
+                for (int i = 0; i < _listeners.Count; i++)
+                {
+                    if (_listeners[i] != null)
+                    {
+                        count++;
+                    }
+                }
+
+                return count;
+            }
+        }
+
+        /// <summary>
+        /// Esvazia <paramref name="targets"/> e põe nela o alvo de cada ouvinte inscrito, ou o próprio
+        /// delegate quando ele não tem alvo (método estático).
+        /// </summary>
+        public void CopyTargets(List<object> targets)
+        {
+            targets.Clear();
+            for (int i = 0; i < _listeners.Count; i++)
+            {
+                Action<T> listener = _listeners[i];
+                if (listener != null)
+                {
+                    targets.Add(listener.Target ?? listener);
+                }
+            }
+        }
+
         /// <summary>Inscreve o ouvinte. Inscrever de novo o mesmo delegate não tem efeito.</summary>
         public void Add(Action<T> listener)
         {

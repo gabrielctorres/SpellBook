@@ -6,6 +6,7 @@
         "SpellBook.GAS",
         "SpellBook.Tags",
         "SpellBook.Time",
+        "SpellBook.Events",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

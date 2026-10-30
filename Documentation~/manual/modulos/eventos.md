@@ -7,8 +7,9 @@ O módulo fica no assembly `SpellBook.Events` (namespace `SpellBook.Events`). Um
 os eventos precisa referenciar o `SpellBook.Events`. Veja [Conceitos](../inicio/conceitos.md#modulos).
 
 !!! note "Em desenvolvimento"
-    Nesta versão de desenvolvimento da 3.0, o módulo tem só o barramento de código
-    (`EventBus<T>`). Os canais em asset e o componente ouvinte chegam nas próximas etapas.
+    Nesta versão de desenvolvimento da 3.0, o módulo tem o barramento de código (`EventBus<T>`)
+    e os canais Void, Int e Float. Os outros canais, o componente ouvinte e o emissor chegam nas
+    próximas etapas.
 
 ## Três usos e uma regra {#tres-usos}
 
@@ -16,7 +17,7 @@ Existem três jeitos de avisar que algo aconteceu. Cada um tem o seu caso:
 
 | Uso | Quando usar | Forma |
 |---|---|---|
-| Canal em asset | Fato global que o designer liga no Inspector, sem código | `ScriptableObject` de canal (em breve) |
+| Canal em asset | Fato global que o designer liga no Inspector, sem código | [Canal](#canais) (`ScriptableObject`) |
 | Barramento de código | Fato global só entre sistemas de código | [`EventBus<T>`](#eventbus) com um struct |
 | Evento C# por instância | Estado de **uma** entidade | `event` C# no próprio componente, fora deste módulo |
 
@@ -78,6 +79,93 @@ EventBus<PartidaComecou>.Raise(new PartidaComecou { Fase = 2 });
 O `Raise` não aloca memória depois que os ouvintes estão inscritos, então pode ser chamado todo
 quadro. A **ordem** de chamada dos ouvintes não é garantida: não escreva código que dependa dela.
 
+## Canais {#canais}
+
+Um canal é um asset (`ScriptableObject`) que representa um fato global, como "o jogador morreu"
+ou "a porta abriu". Quem dispara e quem ouve recebem o **mesmo asset** num campo do Inspector e
+não se conhecem. É o jeito de ligar eventos sem escrever código de ligação.
+
+### Criar um canal {#criar-canal}
+
+No Project, **Create > SpellBook > Events** e escolha o tipo:
+
+| Menu | Classe | Payload |
+|---|---|---|
+| Void Channel | [`VoidEventChannel`](#voideventchannel) | nenhum |
+| Int Channel | [`IntEventChannel`](#inteventchannel) | `int` |
+| Float Channel | [`FloatEventChannel`](#floateventchannel) | `float` |
+
+No Inspector do canal:
+
+- **Description**: para que serve o canal e quando ele é disparado. Escreva para quem vai ligar o
+  canal depois.
+- **Log Raises**: escreve cada disparo no console, com o nome do canal e o payload. Ligue para
+  depurar e desligue depois, porque o log aloca memória.
+- **Debug Payload**: payload de teste do canal. Não muda nada no jogo.
+
+### EventChannel\<T\> {#eventchannel}
+
+Todo canal herda de `EventChannel<T>`, em que `T` é o tipo do dado que o disparo leva.
+
+```csharp
+using SpellBook.Events;
+using UnityEngine;
+
+public sealed class BarraDeVida : MonoBehaviour
+{
+    [SerializeField] private IntEventChannel vidaMudou;
+
+    private void OnEnable()  { vidaMudou.Raised += AoMudar; }
+    private void OnDisable() { vidaMudou.Raised -= AoMudar; }
+
+    private void AoMudar(int vida)
+    {
+        Debug.Log($"Vida: {vida}");
+    }
+}
+
+// Em quem dispara, com o mesmo asset no campo:
+vidaMudou.Raise(80);
+```
+
+- `Raised` é um `event` C#: `+=` inscreve e `-=` desinscreve. Inscrever duas vezes o mesmo método
+  não faz ele ser chamado duas vezes.
+- `Raise(T payload)` entrega o payload a todos os inscritos. `Raise(T payload, Object sender)` faz
+  o mesmo e informa quem disparou, que aparece no log.
+- `LastPayload` guarda o último payload disparado.
+- `ListenerCount` diz quantos ouvintes estão inscritos, e `GetListeners(List<object>)` preenche a
+  lista com o objeto de cada ouvinte (ou o próprio delegate, num método estático).
+- As regras do barramento valem aqui: inscreva no `OnEnable` e desinscreva no `OnDisable`, o
+  `Raise` não aloca memória com os ouvintes inscritos e o Log Raises desligado, e a
+  [segurança do disparo](#seguranca) é a mesma.
+
+Para um payload seu, crie uma classe `XEventChannel : EventChannel<X>` com
+`[CreateAssetMenu]`.
+
+### VoidEventChannel {#voideventchannel}
+
+Canal sem dado: só avisa que algo aconteceu. Dispare com `Raise()`. O ouvinte recebe um
+`SpellBook.Core.Void`, que não carrega nada.
+
+### IntEventChannel {#inteventchannel}
+
+Canal com payload `int`, como uma quantidade ou um índice.
+
+### FloatEventChannel {#floateventchannel}
+
+Canal com payload `float`, como uma porcentagem ou uma duração.
+
+### Armadilhas {#canais-armadilhas}
+
+- **Asset duplicado pelo Addressables.** Se o canal estiver num grupo do Addressables e também for
+  referenciado por uma cena ou asset fora dele, o build pode ter duas cópias do canal. Quem
+  dispara numa cópia não chega a quem ouve na outra. Deixe o canal e quem o usa no mesmo esquema
+  de carregamento.
+- **A ordem não é garantida.** Não escreva um ouvinte que dependa de outro ter sido chamado antes.
+- **`Void` não é `System.Void`.** O payload do `VoidEventChannel` é o `Void` do namespace
+  `SpellBook.Core`. Num arquivo com `using System;`, escreva `SpellBook.Core.Void` no método do
+  ouvinte.
+
 ## Segurança do disparo {#seguranca}
 
 Um ouvinte pode inscrever ou desinscrever ouvintes durante um disparo sem quebrar o disparo:
@@ -97,7 +185,7 @@ jogo publicado. Trate a exceção dentro do próprio ouvinte se ele puder falhar
 
 ## Estado entre sessões de Play {#reset}
 
-Ao entrar em Play, todo `EventBus<T>` fica sem ouvintes. Isso acontece com e sem domain reload
+Ao entrar em Play, todo `EventBus<T>` e todo canal ficam sem ouvintes. Isso acontece com e sem domain reload
 (opção **Enter Play Mode Options**), pelo
 `RuntimeInitializeOnLoadMethod(SubsystemRegistration)`. Um ouvinte de uma sessão anterior que não
-se desinscreveu não é chamado na sessão seguinte.
+se desinscreveu não é chamado na sessão seguinte. O `LastPayload` dos canais não é limpo.

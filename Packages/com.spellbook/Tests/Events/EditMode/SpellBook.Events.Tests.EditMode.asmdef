@@ -4,6 +4,7 @@
     "references": [
         "SpellBook.Core",
         "SpellBook.Events",
+        "SpellBook.Testing",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
