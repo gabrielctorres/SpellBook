@@ -1,12 +1,14 @@
 using System.Collections.Generic;
+using SpellBook.Core;
 using UnityEngine;
 
-namespace SpellBook.Systems.Pooling
+namespace SpellBook.Pooling
 {
     /// <summary>
     /// Pooler de objetos baseado em componente.
     /// Gerencia uma fila (Queue) para acesso O(1) e utiliza uma Safe Zone para instanciar objetos.
     /// </summary>
+    [HelpURL(DocUrls.Pooling + "#componentpooler")]
     public class ComponentPooler : MonoBehaviour
     {
         private PoolConfiguration _config;

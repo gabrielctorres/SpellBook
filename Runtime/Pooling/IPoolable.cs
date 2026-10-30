@@ -1,4 +1,4 @@
-namespace SpellBook.Systems.Pooling
+namespace SpellBook.Pooling
 {
     /// <summary>
     /// Interface para objetos gerenciados por um ComponentPooler local.

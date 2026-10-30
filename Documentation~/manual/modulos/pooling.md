@@ -1,8 +1,8 @@
 # Pooling {#pooling}
 
 Esta página mostra como o SpellBook cria e devolve objetos de jogo, como projéteis e partículas.
-Por enquanto ela cobre o `SpawnerAsset`, que fica no Core. O pool de objetos vai entrar nesta
-página junto com o módulo `SpellBook.Pooling`.
+O `SpawnerAsset` fica no Core. O pool de objetos fica no módulo `SpellBook.Pooling` (assembly
+`SpellBook.Pooling`, namespace `SpellBook.Pooling`), que depende só do Core.
 
 ## SpawnerAsset {#spawnerasset}
 
@@ -94,6 +94,78 @@ O método troca o **Stop Action** do `ParticleSystem` da raiz da instância para
 adiciona um componente interno que chama `Release` desse spawner quando a partícula para. Ele
 não conta tempo: a devolução acontece quando o `ParticleSystem` termina.
 
+## PooledSpawnerAsset {#pooledspawnerasset}
+
+O `PooledSpawnerAsset` é o `SpawnerAsset` com pool. Use-o no campo **Spawner** de qualquer
+sistema para reaproveitar instâncias em vez de criar e destruir.
+
+Para criar o asset: clique com o botão direito no Project → **Create → SpellBook → Pooling →
+Pooled Spawner**.
+
+| Campo | Padrão | O que faz |
+|---|---|---|
+| **Initial Size** | 5 | Instâncias criadas quando o pool de um prefab nasce, no primeiro `Spawn` dele. Não pode ser negativo. |
+| **Can Expand** | ligado | Cria uma instância nova quando o pool está vazio. Desligado, o `Spawn` devolve `null`. |
+
+Como funciona:
+
+- O pool de cada prefab é criado no primeiro `Spawn` desse prefab. Não precisa de `PoolManager`
+  na cena.
+- Os pools ficam embaixo de um objeto raiz `[SpellBook Pools]`, criado na hora. Em Play ele é
+  `DontDestroyOnLoad`, então os pools sobrevivem à troca de cena.
+- O `Release` devolve a instância ao pool de onde ela saiu. Uma instância que não veio de um pool
+  é destruída.
+- Ao entrar em Play, o asset esquece os pools da sessão anterior, mesmo sem domain reload.
+
+```csharp
+using SpellBook.Core;
+using UnityEngine;
+
+[SerializeField] private SpawnerAsset spawner; // arraste um PooledSpawnerAsset aqui
+
+GameObject bullet = spawner.Spawn(prefab, position, rotation);
+// ...quando o objeto não serve mais:
+spawner.Release(bullet);
+```
+
+O validador acusa erro se **Initial Size** for negativo.
+
+## PoolManager (pré-aquecimento) {#poolmanager}
+
+O `PoolManager` é um componente de cena que cria pools no `Awake`, antes do primeiro uso. Ele é
+opcional e o `PooledSpawnerAsset` não o procura: os pools dele são separados.
+
+Cada pool pré-aquecido vem de um `PoolConfiguration` (**Create → SpellBook → Pooling → Pool
+Configuration**), com o prefab, o tamanho inicial e se pode crescer. Coloque as configurações na
+lista **Starting Pools** do `PoolManager`.
+
+O `PoolManager` é um singleton com `DontDestroyOnLoad`. Os sistemas do pacote não usam o
+`PoolManager.Instance`; use um `PooledSpawnerAsset` no campo **Spawner** deles.
+
+## ComponentPooler e IPoolable {#componentpooler}
+
+O `ComponentPooler` é o pool de um prefab: uma fila de instâncias desativadas. O
+`PooledSpawnerAsset` e o `PoolManager` criam um por prefab. Cada instância ganha um
+`PoolableObject`, que guarda o pool de origem. O `PoolableObject.ReturnToPool()` devolve a
+instância a esse pool, ou a destrói se ela não veio de um.
+
+Para reiniciar o estado de um objeto ao sair e ao voltar do pool, implemente `IPoolable` num
+componente da raiz do prefab:
+
+```csharp
+using SpellBook.Pooling;
+using UnityEngine;
+
+public class Bullet : MonoBehaviour, IPoolable
+{
+    public void OnSpawnFromPool() { /* reinicia vida, velocidade... */ }
+    public void OnReturnToPool() { /* para efeitos, limpa alvos... */ }
+}
+```
+
+Se o objeto também pode nascer por `Instantiate`, prefira reiniciar no `OnEnable`, que roda nos
+dois casos. É o que o `Projectile` do GAS faz.
+
 ## Armadilhas {#armadilhas}
 
 - **Devolva pelo spawner que criou.** Devolver por outro spawner pode destruir um objeto que
@@ -104,3 +176,9 @@ não conta tempo: a devolução acontece quando o `ParticleSystem` termina.
   objeto não é devolvido. Desligue o **Looping** ou chame `Stop()` no `ParticleSystem`.
 - **O Stop Action é trocado.** Um **Stop Action** configurado no prefab (Destroy, Disable) é
   substituído por **Callback** na instância.
+- **O pool cresce se nada devolve.** Com **Can Expand** ligado, cada `Spawn` sem `Release`
+  cria uma instância nova. O VFX do `PlayCueAction` não é devolvido (veja a
+  [página GAS](gas.md#acoes-de-spawn)), então com um `PooledSpawnerAsset` o pool dele cresce a
+  cada uso até o módulo Cues.
+- **Devolver duas vezes coloca a instância duas vezes na fila.** Chame `Release` uma vez por
+  `Spawn`.

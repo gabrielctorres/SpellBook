@@ -1,12 +1,14 @@
 using System.Collections.Generic;
+using SpellBook.Core;
 using UnityEngine;
 
-namespace SpellBook.Systems.Pooling
+namespace SpellBook.Pooling
 {
     /// <summary>
     /// Gerenciador Central de Pooling Modular. 
     /// Recebe uma lista de PoolConfigurations para realizar o pre-warm no Awake.
     /// </summary>
+    [HelpURL(DocUrls.Pooling + "#poolmanager")]
     public class PoolManager : MonoBehaviour
     {
         public static PoolManager Instance { get; private set; }
