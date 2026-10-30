@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using NUnit.Framework;
 
 namespace SpellBook.Core.Tests.Structure
@@ -135,6 +137,41 @@ namespace SpellBook.Core.Tests.Structure
             }
 
             Assert.That(violations, Is.Empty);
+        }
+
+        [Test]
+        public void AsmdefRules_GasAssemblyExists()
+        {
+            AsmdefFile gas = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.GAS");
+
+            Assert.That(gas, Is.Not.Null, "não existe asmdef SpellBook.GAS");
+            Assert.That(gas.Path, Is.EqualTo("Runtime/GAS/SpellBook.GAS.asmdef"));
+            Assert.That(gas.ReferenceNames, Does.Contain("SpellBook.Core"));
+            Assert.That(LoadedAssembly("SpellBook.GAS"), Is.Not.Null, "o assembly SpellBook.GAS não foi compilado");
+        }
+
+        [Test]
+        public void AsmdefRules_CoreDoesNotReferenceGas()
+        {
+            Assembly core = LoadedAssembly("SpellBook.Core");
+
+            List<string> gasTypesInCore = core.GetTypes()
+                .Where(t => t.Namespace != null && t.Namespace.StartsWith("SpellBook.GAS", StringComparison.Ordinal))
+                .Select(t => t.FullName)
+                .ToList();
+            List<string> gasReferences = core.GetReferencedAssemblies()
+                .Select(a => a.Name)
+                .Where(n => n.StartsWith("SpellBook.GAS", StringComparison.Ordinal))
+                .ToList();
+
+            Assert.That(PackageFiles.Asmdefs().Any(a => a.Data.name == "SpellBook.GAS"), Is.True, "não existe asmdef SpellBook.GAS");
+            Assert.That(gasTypesInCore, Is.Empty, "tipos do GAS compilados no SpellBook.Core");
+            Assert.That(gasReferences, Is.Empty, "o SpellBook.Core referencia o GAS");
+        }
+
+        private static Assembly LoadedAssembly(string name)
+        {
+            return AppDomain.CurrentDomain.GetAssemblies().SingleOrDefault(a => a.GetName().Name == name);
         }
     }
 }
