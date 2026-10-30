@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using SpellBook.Core.Inspector;
 using UnityEngine;
 using SpellBook.GAS.Effects;
 using SpellBook.GAS.Abilities.Projectiles;
@@ -18,6 +19,7 @@ namespace SpellBook.GAS.Abilities.Actions
         
         [Header("Impact Payload")]
         [SerializeReference]
+        [TypePicker]
         public List<AbilityAction> OnHitActions = new List<AbilityAction>();
 
         [Header("Spawn Configuration")]

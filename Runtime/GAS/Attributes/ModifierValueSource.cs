@@ -1,4 +1,5 @@
 using System;
+using SpellBook.Core.Inspector;
 using UnityEngine;
 using SpellBook.GAS.Core;
 
@@ -16,10 +17,13 @@ namespace SpellBook.GAS.Attributes
 
         public SourceType Type;
 
+        [ShowIf(nameof(Type), SourceType.Constant)]
         public float ConstantValue;
 
+        [ShowIf(nameof(Type), SourceType.Attribute)]
         public AttributeDefinition Attribute;
 
+        [ShowIf(nameof(Type), SourceType.Formula)]
         public Formula Formula;
 
         public float GetValue(AbilitySystemComponent source, AbilitySystemComponent target)

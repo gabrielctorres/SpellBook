@@ -1,0 +1,4 @@
+# Ferramenta do manual (ADR 0025): só para gerar o site, fora do pacote e do projeto Unity.
+# Instalar: pip install -r Documentation~/requirements-docs.txt
+mkdocs==1.6.1
+mkdocs-material==9.8.0

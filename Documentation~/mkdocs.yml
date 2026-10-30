@@ -1,0 +1,20 @@
+# Site do manual público do SpellBook (ADR 0025). Só a pasta manual/ vira site.
+# Ferramenta: MkDocs com o tema Material, versões travadas em requirements-docs.txt.
+# Sem nav: a navegação lista só as páginas que existem (ADR 0007, I26).
+# Build: mkdocs build --strict -f Documentation~/mkdocs.yml
+site_name: SpellBook
+site_url: https://gabrielctorres.github.io/SpellBook/
+site_description: Manual do SpellBook, pacote de ferramentas reutilizáveis para Unity.
+repo_url: https://github.com/gabrielctorres/SpellBook
+docs_dir: manual
+use_directory_urls: true
+
+theme:
+  name: material
+  language: pt-BR
+
+markdown_extensions:
+  - attr_list
+  - admonition
+  - toc
+  - fenced_code
