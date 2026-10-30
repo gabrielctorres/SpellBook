@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 using SpellBook.GAS.Core;
 
 namespace SpellBook.GAS.Effects
@@ -10,7 +9,6 @@ namespace SpellBook.GAS.Effects
         public GameplayEffect Effect { get; private set; }
         public float TimeRemaining { get; private set; }
         public int CurrentStacks { get; private set; } = 1;
-        public float StartTime { get; private set; }
         public AbilitySystemComponent Target { get; private set; }
         public AbilitySystemComponent Source { get; private set; }
 
@@ -28,7 +26,6 @@ namespace SpellBook.GAS.Effects
             Effect = effect;
             Source = source;
             Target = target;
-            StartTime = Time.time;
             TimeRemaining = duration;
             _timeSinceLastTick = 0;
 

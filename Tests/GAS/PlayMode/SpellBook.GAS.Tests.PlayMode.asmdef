@@ -5,6 +5,7 @@
         "SpellBook.Core",
         "SpellBook.GAS",
         "SpellBook.Tags",
+        "SpellBook.Time",
         "SpellBook.Testing",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"

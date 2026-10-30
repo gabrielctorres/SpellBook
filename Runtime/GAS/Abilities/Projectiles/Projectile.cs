@@ -2,9 +2,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using SpellBook.Core;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Abilities;
 using SpellBook.Systems.Pooling;
+using SpellBook.Time;
 
 namespace SpellBook.GAS.Abilities.Projectiles
 {
@@ -12,6 +14,7 @@ namespace SpellBook.GAS.Abilities.Projectiles
     /// Projétil universal (2D/3D) inspirado no TopDown Engine.
     /// Utiliza o sistema de ComponentPooler para performance.
     /// </summary>
+    [HelpURL(DocUrls.Gas + "#projectile")]
     public class Projectile : MonoBehaviour, IPoolable
     {
         public enum MovementVectors { Forward, Right, Up }
@@ -50,6 +53,10 @@ namespace SpellBook.GAS.Abilities.Projectiles
         public float HomingTurnSpeed = 10f;
         public Transform Target; 
 
+        [Header("Time")]
+        [Tooltip("Fonte de tempo do movimento. Vazio usa o tempo escalado da Unity.")]
+        [SerializeField] private TimeSourceAsset timeSource;
+
         // O que o projétil fará ao colidir
         [HideInInspector] public List<AbilityAction> OnHitActions;
         [HideInInspector] public AbilitySystemComponent Source;
@@ -70,6 +77,11 @@ namespace SpellBook.GAS.Abilities.Projectiles
         protected bool _shouldMove = true;
         protected bool _spawnerIsFacingRight;
         protected bool _isInvulnerable = false;
+        /// <summary>Delta do último <c>FixedUpdate</c>, lido da fonte de tempo por diferença.</summary>
+        protected float _deltaTime;
+        private double _timeCursor;
+
+        private ITimeSource TimeSource => timeSource != null ? timeSource : TimeSourceAsset.Scaled;
 
         protected virtual void Awake()
         {
@@ -104,6 +116,8 @@ namespace SpellBook.GAS.Abilities.Projectiles
 
         protected virtual void OnEnable()
         {
+            _timeCursor = TimeSource.ElapsedTime;
+            _deltaTime = 0f;
             Initialization();
             if (Lifetime > 0) StartCoroutine(AutoReturnToPool(Lifetime));
             if (InitialInvulnerabilityDuration > 0)
@@ -140,6 +154,11 @@ namespace SpellBook.GAS.Abilities.Projectiles
 
         protected virtual void FixedUpdate()
         {
+            // Consumo por diferença (ADR 0014); dentro do FixedUpdate o relógio escalado é o de física
+            double now = TimeSource.ElapsedTime;
+            _deltaTime = (float)(now - _timeCursor);
+            _timeCursor = now;
+
             if (_shouldMove)
             {
                 Movement();
@@ -153,7 +172,7 @@ namespace SpellBook.GAS.Abilities.Projectiles
                 HandleHoming();
             }
 
-            _movement = Direction * Speed * Time.deltaTime;
+            _movement = Direction * Speed * _deltaTime;
 
             if (_rigidBody != null)
             {
@@ -169,7 +188,7 @@ namespace SpellBook.GAS.Abilities.Projectiles
             }
 
             // We apply the acceleration to increase the speed
-            Speed += Acceleration * Time.deltaTime;
+            Speed += Acceleration * _deltaTime;
         }
 
         protected virtual void HandleHoming()
@@ -184,7 +203,7 @@ namespace SpellBook.GAS.Abilities.Projectiles
             {
                 float angle = Mathf.Atan2(targetDir.y, targetDir.x) * Mathf.Rad2Deg;
                 Quaternion targetRotation = Quaternion.Euler(0, 0, angle);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, HomingTurnSpeed * Time.deltaTime);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, HomingTurnSpeed * _deltaTime);
                 
                 // Em 2D, a direção de movimento é tipicamente o 'right' ou 'up' do transform após a rotação
                 switch (MovementVector)
@@ -197,7 +216,7 @@ namespace SpellBook.GAS.Abilities.Projectiles
             else
             {
                 Quaternion targetRotation = Quaternion.LookRotation(targetDir);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, HomingTurnSpeed * Time.deltaTime);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, HomingTurnSpeed * _deltaTime);
                 Direction = transform.forward;
             }
         }

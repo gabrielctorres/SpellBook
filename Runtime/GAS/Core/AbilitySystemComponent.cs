@@ -2,18 +2,29 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using SpellBook.Core;
 using SpellBook.Tags;
+using SpellBook.Time;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Effects;
 using SpellBook.GAS.Abilities;
 namespace SpellBook.GAS.Core
 {
     [RequireComponent(typeof(AttributeSet))]
+    [HelpURL(DocUrls.Gas + "#abilitysystemcomponent")]
     public class AbilitySystemComponent : MonoBehaviour
     {
         [SerializeField] private AttributeSet attributeSet;
         [Tooltip("Habilidades concedidas automaticamente no Awake.")]
         [SerializeField] private List<GameplayAbility> startingAbilities = new List<GameplayAbility>();
+        [Tooltip("Fonte de tempo de efeitos e recargas. Vazio usa o tempo escalado da Unity.")]
+        [SerializeField] private TimeSourceAsset timeSource;
+        [Tooltip("Avança sozinho no Update pela fonte de tempo. Desligado, só avança por Tick.")]
+        [SerializeField] private bool autoTick = true;
+
+        private ITimeSource _timeSourceOverride;
+        private double _timeCursor;
+        private double _tickedTime;
 
         // Contagem de referência: várias fontes podem conceder a mesma tag
         private readonly Dictionary<GameplayTag, int> _activeTags = new Dictionary<GameplayTag, int>();
@@ -28,6 +39,22 @@ namespace SpellBook.GAS.Core
         public AttributeSet AttributeSet => attributeSet;
         public IReadOnlyList<AbilitySpec> Abilities => _abilities;
 
+        /// <summary>
+        /// Fonte de tempo em uso: a dada por <see cref="SetTimeSource"/>, senão a do Inspector, senão
+        /// <see cref="TimeSourceAsset.Scaled"/>.
+        /// </summary>
+        public ITimeSource TimeSource
+        {
+            get
+            {
+                if (_timeSourceOverride != null) return _timeSourceOverride;
+                return timeSource != null ? timeSource : TimeSourceAsset.Scaled;
+            }
+        }
+
+        /// <summary>Relógio próprio do ASC: a soma de todos os <see cref="Tick"/> com delta positivo, em segundos.</summary>
+        public double TickedTime => _tickedTime;
+
         private void Awake()
         {
             if (attributeSet == null) attributeSet = GetComponent<AttributeSet>();
@@ -41,6 +68,7 @@ namespace SpellBook.GAS.Core
         private void OnEnable()
         {
             OnTagChanged += HandleTagChangedForCancellation;
+            _timeCursor = TimeSource.ElapsedTime;
         }
 
         private void OnDisable()
@@ -51,9 +79,35 @@ namespace SpellBook.GAS.Core
 
         private void Update()
         {
+            // Consumo por diferença (ADR 0014): o cursor anda mesmo sem autoTick, para não saltar ao religar
+            double now = TimeSource.ElapsedTime;
+            float deltaTime = (float)(now - _timeCursor);
+            _timeCursor = now;
+            if (autoTick) Tick(deltaTime);
+        }
+
+        /// <summary>
+        /// Troca a fonte de tempo por código (por exemplo, um <see cref="ManualTimeSource"/> num teste).
+        /// <c>null</c> volta à fonte do Inspector. O tempo passado na fonte antiga não é contado.
+        /// </summary>
+        public void SetTimeSource(ITimeSource source)
+        {
+            _timeSourceOverride = source;
+            _timeCursor = TimeSource.ElapsedTime;
+        }
+
+        /// <summary>
+        /// Avança efeitos e recargas em <paramref name="deltaTime"/> segundos e soma em <see cref="TickedTime"/>.
+        /// Ignora delta zero ou negativo. Com <c>autoTick</c> ligado, o próprio ASC chama a cada quadro.
+        /// </summary>
+        public void Tick(float deltaTime)
+        {
+            if (!(deltaTime > 0f)) return;
+
+            _tickedTime += deltaTime;
             for (int i = _activeEffects.Count - 1; i >= 0; i--)
             {
-                _activeEffects[i].Update(Time.deltaTime);
+                _activeEffects[i].Update(deltaTime);
             }
         }
 

@@ -119,6 +119,31 @@ Para consultar sem ativar, use `ability.CanActivate(asc, out var reason)`.
 `OnAbilityActivated(spec)`, `OnAbilityEnded(spec, cancelled)` e `OnAbilityFailed(ability, result)`, este último útil para feedback de UI ("Sem mana", "Em recarga").
 O ASC não dispara mais evento global; veja a [Migração 2.x → 3.0](../regras/migracao-2-para-3.md#eventos-do-gas).
 
+### 4.6 Tempo do ASC {#tempo-do-asc}
+Durações de efeitos, ticks periódicos e recargas contam só o tempo que o ASC recebe. O ASC não lê o `Time` da Unity.
+
+- **`timeSource`** (Inspector): um `TimeSourceAsset` do módulo [Tempo](tempo.md). Vazio usa o tempo escalado da Unity, como na 2.x.
+- **`autoTick`** (Inspector, ligado por padrão): o ASC avança sozinho no `Update` pela diferença do `ElapsedTime` da fonte ([consumo por diferença](tempo.md#consumo-por-diferenca)). Desligado, ele só avança quando alguém chama `Tick`.
+- **`Tick(float deltaTime)`**: avança efeitos e recargas em `deltaTime` segundos. Delta zero ou negativo é ignorado.
+- **`TickedTime`**: o relógio do ASC, a soma de todos os `Tick` aceitos.
+- **`SetTimeSource(ITimeSource)`**: troca a fonte por código, por exemplo para um `ManualTimeSource` num teste. `null` volta à fonte do Inspector. O tempo que passou na fonte antiga não é contado.
+
+Com `autoTick` desligado, a mesma sequência de `Tick` sempre dá o mesmo estado, o que serve para testes e para simulação.
+
+```csharp
+asc.SetTimeSource(manualTime); // com autoTick desligado no Inspector
+asc.ApplyEffect(burning);      // efeito de 2 s
+asc.Tick(1.9f);                // ainda ativo
+asc.Tick(0.2f);                // expirou
+```
+
+**Receita: pausar a gameplay e manter a UI.** Crie um grupo pausável pelo menu *SpellBook > Time > Pausable Time Group*, chame-o de "Gameplay" e coloque-o no `timeSource` dos ASCs dos personagens. Ao chamar `Pause` no grupo, as recargas e as durações desses ASCs param. Um ASC com fonte não escalada e o resto da cena continuam. Ao chamar `Resume`, tudo volta de onde parou. Veja [Grupo pausável](tempo.md#pausabletimesource).
+
+O `Projectile` também tem um campo `timeSource`, usado no movimento do `FixedUpdate`.
+
+!!! warning "Armadilha: somar floats na fronteira"
+    Um efeito expira quando o tempo restante fica menor ou igual a 0. Em `float`, `2f - 1.9f - 0.1f` dá cerca de `+2,2e-8`, um valor positivo, e não 0. Por isso uma recarga de 2 s **não** expira depois de `Tick(1.9f)` seguido de `Tick(0.1f)`. Já `3f - 2.9f - 0.1f` dá cerca de `-9,7e-8`, e essa recarga expira. O resultado na fronteira depende dos valores, então não conte com ele. Nos testes, avance direto até o valor da fronteira (`Tick(2f)`) ou passe um pouco dela.
+
 ---
 
 ## 5. Integração via código (C#) {#codigo}

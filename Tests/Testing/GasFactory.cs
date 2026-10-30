@@ -67,9 +67,13 @@ namespace SpellBook.Testing
             return tag;
         }
 
+        /// <summary>
+        /// Efeito sem modificadores e sem ações que concede as <paramref name="grantedTags"/>.
+        /// A política e a duração são obrigatórias para que <c>CreateEffect(tag)</c> não caia num parâmetro opcional.
+        /// </summary>
         public GameplayEffect CreateEffect(
-            EffectDurationPolicy durationPolicy = EffectDurationPolicy.Instant,
-            float duration = 0f,
+            EffectDurationPolicy durationPolicy,
+            float duration,
             params GameplayTag[] grantedTags)
         {
             var effect = Track(ScriptableObject.CreateInstance<GameplayEffect>(), "GE_Test");
@@ -83,6 +87,22 @@ namespace SpellBook.Testing
             return effect;
         }
 
+        /// <summary>Efeito <see cref="EffectDurationPolicy.HasDuration"/> de <paramref name="seconds"/> segundos.</summary>
+        public GameplayEffect CreateDurationEffect(float seconds, params GameplayTag[] grantedTags)
+        {
+            return CreateEffect(EffectDurationPolicy.HasDuration, seconds, grantedTags);
+        }
+
+        /// <summary>Atributo primário com os limites padrão do <see cref="AttributeDefinition"/>.</summary>
+        public AttributeDefinition CreateAttribute(string name)
+        {
+            return Track(ScriptableObject.CreateInstance<AttributeDefinition>(), name);
+        }
+
+        /// <summary>
+        /// Habilidade sem custo, sem recarga e sem tags de bloqueio, que roda as <paramref name="actions"/> em sequência.
+        /// Sem ações, ela termina na própria ativação.
+        /// </summary>
         public GameplayAbility CreateAbility(GameplayTag abilityTag = default, params AbilityAction[] actions)
         {
             var ability = Track(ScriptableObject.CreateInstance<GameplayAbility>(), "GA_Test");
@@ -95,6 +115,20 @@ namespace SpellBook.Testing
             ability.CancelledByTags = new List<GameplayTag>();
             ability.Actions = new List<AbilityAction>(actions);
             return ability;
+        }
+
+        /// <summary>Habilidade sem ações cuja recarga é um efeito de <paramref name="seconds"/> segundos, sem tags.</summary>
+        public GameplayAbility CreateAbilityWithCooldown(float seconds)
+        {
+            GameplayAbility ability = CreateAbility();
+            ability.CooldownEffect = CreateDurationEffect(seconds);
+            return ability;
+        }
+
+        /// <summary>Liga ou desliga o <c>autoTick</c> do ASC, campo privado serializado, como o Inspector faria.</summary>
+        public static void SetAutoTick(AbilitySystemComponent asc, bool autoTick)
+        {
+            Modify(asc, so => so.FindProperty("autoTick").boolValue = autoTick);
         }
 
         public void Dispose()
