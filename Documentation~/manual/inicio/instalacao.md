@@ -31,12 +31,9 @@ de uma habilidade) ganham um seletor com busca e categorias.
 
 ## Compatibilidade {#compatibilidade}
 
-Os testes do pacote (EditMode e PlayMode) rodam no CI a cada pull request, nestas versões:
+A versão mínima declarada é a **Unity 6000.0** (campo `unity` do `package.json`).
 
-| Versão | Papel |
-|---|---|
-| 6000.0.85f1 | Versão mínima suportada (6000.0) |
-| 6000.6.7f1 | Última 6000.x testada |
+Os testes do pacote (EditMode e PlayMode) rodam no projeto host do repositório, na
+**Unity 6000.3.13f1**. Essa é a única versão testada. Não há CI de testes.
 
-O pacote vale para qualquer patch da 6000.0 em diante, mas só as versões da tabela são
-testadas. As versões mudam quando o CI é atualizado.
+Nas outras versões a partir da 6000.0 o pacote deve funcionar, mas elas não são testadas.
