@@ -3,6 +3,8 @@
     "rootNamespace": "SpellBook.Tags.Tests",
     "references": [
         "SpellBook.Tags",
+        "SpellBook.Time",
+        "SpellBook.Testing",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

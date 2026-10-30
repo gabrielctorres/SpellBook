@@ -113,6 +113,29 @@ namespace SpellBook.Core.Tests.Structure
         }
 
         [Test]
+        public void AsmdefRules_EveryModuleTestAsmdef_ReferencesTimeAndTesting()
+        {
+            List<AsmdefFile> moduleTests = PackageFiles.Asmdefs()
+                .Where(a => a.Kind == AsmdefKind.Test && a.Data.name != "SpellBook.Testing")
+                .ToList();
+            var violations = new List<string>();
+
+            foreach (AsmdefFile asmdef in moduleTests)
+            {
+                foreach (string required in new[] { "SpellBook.Time", "SpellBook.Testing" })
+                {
+                    if (!asmdef.ReferenceNames.Contains(required))
+                    {
+                        violations.Add($"{asmdef.Path}: falta a referência {required}");
+                    }
+                }
+            }
+
+            Assert.That(moduleTests.Count, Is.GreaterThanOrEqualTo(10), "a varredura achou poucos asmdefs de teste de módulo");
+            Assert.That(violations, Is.Empty);
+        }
+
+        [Test]
         public void AsmdefRules_ModuleReferences_FollowDependencyMap()
         {
             var violations = new List<string>();
