@@ -27,6 +27,7 @@ A interface não tem evento de tick nem `Update`. Quem consome a fonte é que a 
 |---|---|---|---|
 | `ScaledTimeSource` | `Time.timeAsDouble` | `Time.deltaTime` | **Create → SpellBook → Time → Scaled Time Source** |
 | `UnscaledTimeSource` | `Time.unscaledTimeAsDouble` | `Time.unscaledDeltaTime` | **Create → SpellBook → Time → Unscaled Time Source** |
+| `PausableTimeSource` | tempo escalado sem os trechos pausados | `Time.deltaTime`, ou 0 se pausado | **Create → SpellBook → Time → Pausable Time Group** |
 | `ManualTimeSource` | soma dos `Advance` | último `Advance` | sem menu |
 
 Todas herdam de `TimeSourceAsset`, um `ScriptableObject`. Por isso uma fonte é um asset que você
@@ -44,6 +45,42 @@ Lida dentro de `FixedUpdate`, ela devolve o passo fixo, porque a própria Unity 
 ### UnscaledTimeSource {#unscaledtimesource}
 
 Ignora o `Time.timeScale`. Use em UI, menus e tudo o que precisa andar com o jogo pausado.
+
+### Grupo pausável {#pausabletimesource}
+
+O `PausableTimeSource` serve para pausar parte do jogo sem mexer no `Time.timeScale`. O caso
+típico é pausar a gameplay e deixar a UI andando:
+
+1. Crie um asset em **Create → SpellBook → Time → Pausable Time Group**, por exemplo `Gameplay`.
+2. Ligue todos os componentes de gameplay a esse asset.
+3. Ligue a UI e os menus a uma `UnscaledTimeSource`, ou deixe-os no tempo escalado padrão.
+4. Chame `Pause()` e `Resume()` no asset `Gameplay`.
+
+Todos os consumidores que leem o mesmo asset param e voltam juntos. Enquanto pausado, o
+`DeltaTime` é 0 e o `ElapsedTime` não muda. Ao retomar, o `ElapsedTime` continua do valor em que
+parou, sem salto.
+
+Os métodos são públicos e sem retorno, então dá para chamá-los por `UnityEvent` no Inspector, sem
+código. Arraste o asset para o evento `OnClick` de um botão e escolha
+`PausableTimeSource.Pause` ou `PausableTimeSource.Resume`. Num `Toggle`, use `SetPaused(bool)`
+como função dinâmica (o valor do toggle vira o estado de pausa). Por código:
+
+```csharp
+[SerializeField] private PausableTimeSource gameplay;
+
+public void AbrirMenu()  { gameplay.Pause(); }
+public void FecharMenu() { gameplay.Resume(); }
+```
+
+O grupo **segue o tempo escalado** da Unity e **só pausa**: não tem escala própria. Por isso:
+
+- com `Time.timeScale = 0`, o grupo também para, mesmo sem estar pausado;
+- com `Time.timeScale = 0.5`, o grupo anda na metade da velocidade, como o tempo escalado;
+- para câmera lenta só na gameplay, ainda não há fonte pronta. Crie a sua herdando de
+  `TimeSourceAsset` (veja [Estado entre sessões de Play](#reset)).
+
+`IsPaused` diz se o grupo está pausado. `Pause()` com o grupo já pausado e `Resume()` com ele
+andando não fazem nada.
 
 ### ManualTimeSource {#manualtimesource}
 
@@ -105,8 +142,9 @@ public sealed class Cronometro : MonoBehaviour
 
 ## Estado entre sessões de Play {#reset}
 
-Ao entrar em Play, toda fonte com estado volta ao inicial. A `ManualTimeSource` volta a 0. Isso
-acontece com e sem domain reload (opção **Enter Play Mode Options**), pelo
+Ao entrar em Play, toda fonte com estado volta ao inicial. A `ManualTimeSource` volta a 0. O
+`PausableTimeSource` volta despausado e o `ElapsedTime` dele recomeça do 0, mesmo que você tenha
+saído do Play com o grupo pausado. Isso acontece com e sem domain reload (opção **Enter Play Mode Options**), pelo
 `RuntimeInitializeOnLoadMethod(SubsystemRegistration)`, então o tempo de uma sessão não vaza para a
 próxima.
 

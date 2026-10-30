@@ -13,6 +13,7 @@ namespace SpellBook.Time.Tests
     {
         private const string ScaledMenu = "SpellBook/Time/Scaled Time Source";
         private const string UnscaledMenu = "SpellBook/Time/Unscaled Time Source";
+        private const string PausableMenu = "SpellBook/Time/Pausable Time Group";
 
         private readonly List<Object> _created = new List<Object>();
 
@@ -101,14 +102,18 @@ namespace SpellBook.Time.Tests
         }
 
         [Test]
-        public void Menu_HasScaledAndUnscaled()
+        public void Menu_HasThreeVariants()
         {
             Dictionary<Type, string> menus = TimeSourceMenus();
+
+            Assert.That(menus, Has.Count.EqualTo(3));
 
             Assert.That(menus.TryGetValue(typeof(ScaledTimeSource), out string scaled), Is.True, "ScaledTimeSource sem menu");
             Assert.That(scaled, Is.EqualTo(ScaledMenu));
             Assert.That(menus.TryGetValue(typeof(UnscaledTimeSource), out string unscaled), Is.True, "UnscaledTimeSource sem menu");
             Assert.That(unscaled, Is.EqualTo(UnscaledMenu));
+            Assert.That(menus.TryGetValue(typeof(PausableTimeSource), out string pausable), Is.True, "PausableTimeSource sem menu");
+            Assert.That(pausable, Is.EqualTo(PausableMenu));
         }
 
         [Test]
