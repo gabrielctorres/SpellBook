@@ -68,6 +68,18 @@ Decisão do usuário no gate da 0027: em vez de dar uma exceção ao ticket de m
 
 O resto desta ADR não muda.
 
+## Emenda (2026-10-30): teto de ~500 linhas por ticket
+
+Decisão do usuário no gate de 2026-10-30. A regra é permanente e vale para todos os tickets daqui em diante.
+
+- **Teto de linhas:** o limite passa de **~400** para **~500 linhas de diff** por ticket. Onde esta ADR diz "~400" como regra (item 1 da Decisão, "Decisões incorporadas" e a emenda do movimento puro), leia "~500". O texto anterior fica como está, como histórico.
+- **O que não muda:** o limite de **10 arquivos**; a "Contagem" (linhas adicionadas mais removidas, nos mesmos tipos de arquivo, sem `.meta`); páginas do manual e fixtures contam só nos arquivos (I35); a remoção pura (I42); o movimento puro (emenda acima).
+- **Motivo:** os tickets com testes PlayMode e EditMode completos passam de 400 linhas de forma recorrente (0M-22 e 0M-27). Os testes são o que a 0004 pede, e o código de produção desses tickets continua pequeno.
+- **Exceções anteriores:** a exceção do 0M-22 (teto de 500) passa a ser só um registro, porque o teto geral já a cobre. As exceções do 0M-07 (440), do 0M-47 (~500) e do 0M-48 (~440) também ficam só como registro.
+- O item 4 da Decisão continua: acima de ~500 linhas ou de 10 arquivos, a Fábrica para e devolve ao Controlador, que leva ao Arquiteto.
+
+O resto desta ADR não muda.
+
 ## Em aberto
 
 Nada.

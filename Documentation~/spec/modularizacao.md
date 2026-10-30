@@ -116,7 +116,7 @@ Legenda:
 |---|---|
 | 0001 | Spec em `spec/`; manual em `Documentation~/manual/`; `GAS_Documentation.md` sai do runtime (0M-10) |
 | 0002 | Tickets de processo pela via rápida (0M-01 a 0M-04) não criam ADR nem quebram API; issues em `gabrielctorres/SpellBook` com labels da 0002 |
-| 0003 | Todo ticket ≤ ~400 linhas de código e ≤ 10 arquivos (páginas e fixtures contam só nos arquivos; arquivos apagados por inteiro, sem substituto, não contam em nenhum dos dois, decisão I42); WIP 1 para tickets com Unity; paralelo só sem Editor (emenda de 2026-10-29, seção 8) |
+| 0003 | Todo ticket ≤ ~500 linhas de código (emenda de 2026-10-30; antes ~400) e ≤ 10 arquivos (páginas e fixtures contam só nos arquivos; arquivos apagados por inteiro, sem substituto, não contam em nenhum dos dois, decisão I42); WIP 1 para tickets com Unity; paralelo só sem Editor (emenda de 2026-10-29, seção 8) |
 | 0004 | Red antes do código; testes de guarda e de caracterização marcados; ciclo de vida em PlayMode; host em `HostProject~/` (decisão I41), sem Odin (emenda 0026); o 0M-44 é o único ticket com red de compilação |
 | 0005 | Fábrica e Examinador criam e removem `.claude/editor.lock` antes de usar a Unity no host |
 | 0006 | Adiada: uma branch por ticket no mesmo checkout |
@@ -699,7 +699,7 @@ O DevOps leva esta lista ao CHANGELOG no release, com a tabela da página "Migra
 
 ## 8. Tickets
 
-Ordem por dependência. **WIP 1**: um ticket com Unity em implementação por vez (exceção para tickets sem Editor logo abaixo). Nenhum ticket está bloqueado depois da revisão sem Odin. "Linhas" é a estimativa de código, sem páginas e fixtures (ADR 0003). Todos os tickets de código usam a trava (0005) e terminam com a suíte inteira verde no host. A exceção é o 0M-44, que termina com o host compilando, porque ainda não existe suíte.
+Ordem por dependência. **WIP 1**: um ticket com Unity em implementação por vez (exceção para tickets sem Editor logo abaixo). Nenhum ticket está bloqueado depois da revisão sem Odin. "Linhas" é a estimativa de código, sem páginas e fixtures (ADR 0003). **Teto por ticket: ~500 linhas e 10 arquivos** (emenda da 0003 de 2026-10-30; antes ~400). As menções a ~400 e às exceções de tamanho nos tickets abaixo são registro do que valia na época. Todos os tickets de código usam a trava (0005) e terminam com a suíte inteira verde no host. A exceção é o 0M-44, que termina com o host compilando, porque ainda não existe suíte.
 
 **Paralelo sem Editor** (emenda da 0003, 2026-10-29): o WIP 1 vale para os tickets que usam a Unity e a trava. Um ticket de docs, processo ou CI, sem trava, pode rodar em paralelo, na própria branch e numa cópia de trabalho própria (0006 adiada), desde que não toque arquivo do outro ticket. Pares marcados nesta Spec (revisão de 2026-10-29). Outros pares só valem se forem marcados aqui.
 
@@ -1248,6 +1248,7 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
   - **Decisão: o 0M-22 fica inteiro, com ~480 linhas (teto de 500), como exceção pontual ao ~400 da ADR 0003.** A ADR não muda.
   - **Motivo para não dividir.** (1) O código de produção tem 82 linhas; o excesso é só de testes, que são o que a ADR 0004 pede, e o diff continua fácil de revisar. (2) Separar o `Projectile` deixa o `GasSources_DoNotReadUnityTimeOrWaitForSeconds` vermelho no primeiro ticket, porque o `Projectile` tem 2 dos 5 `WaitForSeconds`. Para ele passar, seria preciso uma exceção temporária na varredura, ou seja, contornar o sintoma. (3) As duas partes mudam o mesmo contrato (o tempo do GAS segue o ASC ou a fonte do projétil) e a mesma seção da Migração. Dividir criaria dois PRs com quebras parciais do mesmo assunto. (4) O diff já foi revisado inteiro. Dividir agora custa uma issue nova, duas revisões e mover testes entre arquivos, sem reduzir o risco.
   - **Para o Examinador:** neste ticket, o limite de linhas é 500, contado como na ADR 0003. Acima disso, ou com um 11º arquivo, o ticket volta ao Arquiteto para ser dividido.
+  - **Registro (2026-10-30):** com a emenda da ADR 0003 de 2026-10-30 (teto geral de ~500), esta exceção deixa de ser exceção e fica só como registro.
   - **Testes red adicionais (achados da revisão):** o teste de regressão do `_isInvulnerable` (a Fábrica escolhe o nome, seguindo o padrão `Projectile_<caso>_<resultado>`) entra em `Tests/GAS/PlayMode/AbilityWaitTests.cs`. Não entra arquivo novo.
 
 ### 0M-23 — `refactor(pooling)!: módulo SpellBook.Pooling e PooledSpawnerAsset`
@@ -1433,6 +1434,12 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Testes red: `Channel_RaiseDeliversExactValue`, `Channel_LastPayload`, `Channel_ReentrancySafe`, `Channel_ExceptionIsolatedInEditor`, `Channel_ThousandRaises_ZeroAlloc`, `Channel_AfterSessionReset_NoListeners`, `Channel_LogRaises_WritesToConsole` falham.
 - Manual: Eventos, seções **Canais** (`{#eventchannel}`, `{#voideventchannel}` …), criar pelo menu, descrição, `logRaises` (o botão Raise entra na página no 0M-45), armadilhas (asset duplicado por Addressables; ordem não garantida; `Void` vs `System.Void`).
 - Tamanho: ~260 linhas, 8 arquivos.
+- **Emenda (2026-10-30, dúvidas da Fábrica na issue #28):** a API pública da 4.7 não muda.
+  - **`ListenerList.cs` entra no ticket.** Ganha `int Count` (conta só as posições não nulas, então fica certo durante um disparo) e `void CopyTargets(List<object> targets)`: limpa `targets` e acrescenta, para cada posição não nula, `listener.Target`, ou o próprio delegate se `Target` for nulo (método estático). Os dois são internos, não alocam e servem a `EventChannel.ListenerCount` e `EventChannel.GetListeners`. `ListenerCount` e `GetListeners` ficam no 0M-27 e não vão para o 0M-45.
+  - **`Tests/Events/EditMode/SpellBook.Events.Tests.EditMode.asmdef` entra no ticket** (+`SpellBook.Testing` nas referências). O `EventChannelTests` cria os canais pelo `EventsFactory`, não por `CreateInstance` direto.
+  - **Limpeza por sessão dos canais:** a base `EventChannel` tem uma lista estática interna de canais vivos e um construtor estático que faz **um único** `EventRegistry.Register` de uma ação que limpa os ouvintes de todos os canais da lista. O `EventChannel` entra na lista no `OnEnable` e sai no `OnDisable`; os dois são `protected virtual`, e o XML doc diz que quem sobrescreve chama o `base`. Entrar duas vezes não duplica. A limpeza chama um `internal abstract void ClearListeners()` implementado pelo `EventChannel<T>` com `ListenerList<T>.Clear()`; ela não mexe em `LastPayload` nem em `debugPayload`. O `EventRegistry` continua sem `Unregister`. Isso cumpre a 4.7: o `EventRegistry` continua sendo o único ponto de limpeza no `SubsystemRegistration` (CA19).
+  - Testes red a mais: `Channel_ListenerCount_IgnoresRemovedDuringRaise`, `Channel_GetListeners_ReturnsTargets`, `Channel_DestroyedBeforeSessionReset_NoError` (um canal destruído antes do reset sai da lista e o reset roda sem erro).
+  - Tamanho: ~300 linhas, 10 arquivos.
 
 ### 0M-28 — `feat(events): canais Bool, String, Vector3 e GameObject`
 - Arquivos: `Runtime/Events/Channels/BoolEventChannel.cs`, `StringEventChannel.cs`, `Vector3EventChannel.cs`, `GameObjectEventChannel.cs`, `Tests/Events/EditMode/ChannelMenuTests.cs`, `Documentation~/manual/modulos/eventos.md`.

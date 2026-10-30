@@ -9,7 +9,7 @@ Cada papel é um agente em `.claude/agents/` e pode rodar de dois jeitos:
 |---|---|---|---|
 | Controlador | sessão principal (regras no `CLAUDE.md`) | Triagem, backlog (`backlog.md`), fila e WIP. Cria issues (`/issue`), abre e fecha terminais, leva dúvidas e gates ao usuário | Não lê código, não implementa, não commita |
 | Criativo | `criativo` | Cristaliza ideias, escreve o PRD na visão de quem usa o pacote (`/prd-feature`), GDD e DS. Registra a validação de uso (`/ajustar`, seção 9 do PRD) | Código e Spec |
-| Arquiteto | `arquiteto` | Pesquisa o código (só lê), escreve a Spec com os tickets (≤ ~400 linhas e ≤ 10 arquivos cada) e as ADRs | Implementar |
+| Arquiteto | `arquiteto` | Pesquisa o código (só lê), escreve a Spec com os tickets (≤ ~500 linhas e ≤ 10 arquivos cada) e as ADRs | Implementar |
 | Fábrica | `fabrica` | Implementa um ticket por vez (`/implementar`): testes red primeiro, depois o mínimo de código. Única que abre o Editor ou roda a Unity para implementar (editor-lock) | PRD, Spec, git |
 | Examinador | `examinador` | Revisa (`/revisao`: padrões, Spec, ADR, DS) e roda os testes em batchmode, sob a trava. Veredito APROVADO com nota ≥ 80% e zero achados | Implementar |
 | DevOps | `devops` | Git: branch, commit, versão, tag, PR contra a `main` (`/commit`), rebase e release. Sobe em modo manual | Código |
@@ -54,7 +54,7 @@ CI) podem rodar em paralelo, nas condições da emenda de 2026-10-29 da 0003 (ve
 
 Um ticket = uma issue = uma branch = um PR (0003).
 
-- **Limites:** até ~400 linhas e até 10 arquivos por ticket. Se passar disso ou precisar de arquivo fora do escopo, a Fábrica para e devolve ao Controlador, que leva ao Arquiteto.
+- **Limites:** até ~500 linhas e até 10 arquivos por ticket (emenda de 2026-10-30 da 0003). Se passar disso ou precisar de arquivo fora do escopo, a Fábrica para e devolve ao Controlador, que leva ao Arquiteto.
 - **Contagem** (0003):
   - "linhas" são as adicionadas mais as removidas no diff de código (`.cs`, `.asmdef`, `.json`, `.yml` de CI, `package.json`);
   - "arquivos" são os caminhos distintos no diff, e um arquivo movido conta uma vez;
