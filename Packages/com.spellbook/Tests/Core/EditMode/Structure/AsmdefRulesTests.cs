@@ -181,6 +181,19 @@ namespace SpellBook.Core.Tests.Structure
             Assert.That(LoadedAssembly("SpellBook.Tags"), Is.Not.Null, "o assembly SpellBook.Tags não foi compilado");
         }
 
+        [Test]
+        public void AsmdefRules_EventsAssemblyExists_ReferencesOnlyCoreAndTime()
+        {
+            AsmdefFile events = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.Events");
+
+            Assert.That(events, Is.Not.Null, "não existe asmdef SpellBook.Events");
+            Assert.That(events.Path, Is.EqualTo("Runtime/Events/SpellBook.Events.asmdef"));
+            Assert.That(
+                events.ReferenceNames.Where(r => r.StartsWith("SpellBook.", StringComparison.Ordinal)),
+                Is.EquivalentTo(new[] { "SpellBook.Core", "SpellBook.Time" }));
+            Assert.That(LoadedAssembly("SpellBook.Events"), Is.Not.Null, "o assembly SpellBook.Events não foi compilado");
+        }
+
         [TestCase("GameplayTag")]
         [TestCase("GameplayTagDefinition")]
         public void GameplayTag_LivesInTagsAssembly(string typeName)
