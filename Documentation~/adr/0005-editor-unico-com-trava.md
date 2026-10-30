@@ -42,10 +42,21 @@ Há uma lacuna: rodar testes é rodar a Unity em batchmode, e o Examinador roda 
 - **Caminho da trava:** `.claude/editor.lock` na raiz do checkout. Como os worktrees foram adiados (0006 Adiada, decisão I34) e o host fica dentro do repositório (0004), existe um só checkout e um só host, e o caminho é único. Formato: uma linha `papel; ticket; horário ISO-8601; caminho do host`.
 - A trava também vale para o host em `HostProject~/` (0004): quem abre ou roda a Unity nesse projeto cria a trava antes.
 
+## Emenda (2026-10-30): o host é a raiz, pela 0027
+
+A partir do ticket 0M-54, o projeto host é a raiz do repositório (0004, emenda de 2026-10-30).
+
+- A trava continua sendo `.claude/editor.lock` na raiz do checkout, uma por checkout, com o mesmo formato.
+- O campo "caminho do host" da trava passa a ser o caminho da raiz do repositório.
+- O item "A trava também vale para o host em `HostProject~/`" passa a valer para o projeto da raiz. Quem abre esse projeto no Hub, ou roda a Unity nele em batchmode, cria a trava antes.
+- Durante o próprio 0M-54, a Unity roda nos dois projetos (antes do movimento em `HostProject~/` e depois na raiz). A mesma trava vale para os dois, e ela é criada uma vez só, no começo do ticket.
+
+O resto não muda.
+
 ## Em aberto
 
 Nada.
 
 ## Relacionadas
 
-- 0003 (WIP 1), 0004 (testes), 0006 (worktrees).
+- 0003 (WIP 1), 0004 (testes), 0006 (worktrees), 0027 (estrutura do repositório).

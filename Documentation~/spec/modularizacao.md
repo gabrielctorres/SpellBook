@@ -3,7 +3,16 @@
 Status: **Aprovada** (gate da revisão sem Odin, 2026-10-29). A versão anterior foi aprovada no gate de 2026-10-29 e volta a rascunho por causa das decisões I45 a I47.
 Data: 2026-10-29 · Backlog: B-001 (e B-020, B-021, B-022 pela via rápida)
 PRD: [prd/modularizacao.md](../prd/modularizacao.md) · Plano: [planos/gas-estudo-e-roadmap.md](../planos/gas-estudo-e-roadmap.md), seção I (decisões 1 a 47)
-ADRs: 0001, 0002, 0003, 0004, 0005, 0006 (Adiada), 0007, 0008, 0009, 0010, 0011 (Substituída por 0026), 0012, 0013, 0014, 0015, 0016, 0025, **0026 (Proposta)**
+ADRs: 0001, 0002, 0003, 0004, 0005, 0006 (Adiada), 0007, 0008, 0009, 0010, 0011 (Substituída por 0026), 0012, 0013, 0014, 0015, 0016, 0025, **0026 (Proposta)**, 0027 (Aceita em 2026-10-30)
+
+> **Estrutura do repositório (emenda de 2026-10-30, ADR 0027, gate do usuário).** A raiz do repositório passa a ser o projeto Unity de desenvolvimento, e o pacote fica embutido em `Packages/com.spellbook/`. O `HostProject~/` deixa de existir. A migração são três tickets, que entram logo depois do 0M-23 (seção 8): **0M-54** (movimento, com Unity), **0M-55** (skills e agentes que rodam a Unity) e **0M-56** (agentes de leitura, instalação e READMEs).
+>
+> **Regra de prefixo.** Vale para os tickets que ainda não foram implementados: 0M-26 a 0M-40, e o 0M-45, o 0M-49 e o 0M-50, que estão no meio deles. Nenhuma linha desses tickets é reescrita, com uma exceção: o 0M-40, emendado no próprio ticket.
+> - Todo caminho de pacote é relativo a `Packages/com.spellbook/`: `Runtime/...`, `Editor/...`, `Tests/...`, `package.json`, o `README.md` do pacote e o `CHANGELOG.md`. Exemplo: `Runtime/Events/EventBus.cs` é `Packages/com.spellbook/Runtime/Events/EventBus.cs`.
+> - `Documentation~/...`, `.github/...`, `.claude/...`, `Assets/...`, `ProjectSettings/...` e `Packages/manifest.json` são relativos à raiz do repositório.
+> - Toda menção a "host", "host `HostProject~/`" ou "no host" nesta Spec, a partir do 0M-54, lê-se "projeto da raiz do repositório".
+> - Os testes que leem arquivos do pacote usam caminhos relativos ao `resolvedPath`, como `"Runtime/GAS/SpellBook.GAS.asmdef"`, e não mudam.
+> - A contagem segue a emenda de 2026-10-30 da 0003: o movimento puro (`R100`) conta como 1 linha e fica fora dos 10 arquivos.
 
 > **Revisão sem Odin (2026-10-29).** O usuário decidiu que o SpellBook não depende do Odin (I45), que drawers e janelas são em UI Toolkit (I46) e que não há compatibilidade com o Odin (I47). A ADR 0026 substitui a 0011. A revisão:
 > - remove o Odin dos 8 arquivos atuais logo depois do host (0M-44);
@@ -52,6 +61,12 @@ Legenda:
 - A raiz do repositório é **ao mesmo tempo** a pasta do pacote (`package.json` na raiz) e um projeto Unity (`Assets/`, `Library/`, `Packages/`, `ProjectSettings/`, todos no `.gitignore`), versão 6000.3.5f2 (`ProjectSettings/ProjectVersion.txt`).
   - Atualização (2026-10-29, decisão do usuário no 0M-06): o host antigo foi movido, sem ser apagado, para `C:/Users/gabri/MeusProjetos/SpellBook-host-antigo/`. A raiz agora só tem os arquivos do pacote (ADR 0004, emenda do host antigo).
 - `Packages/manifest.json` da raiz não referencia `com.spellbook`, não tem `testables` nem `com.unity.test-framework`. O host não tem o Odin (`Assets/Plugins/` não existe). Hoje nenhum código do pacote é compilado pelo host.
+- **Atualização (2026-10-30, ADR 0027): a raiz passa a ser o host.** Estado antes do 0M-54:
+  - os arquivos versionados do host são `HostProject~/Packages/manifest.json` (com `"com.spellbook": "file:../.."` e `testables`), `HostProject~/Packages/packages-lock.json`, `HostProject~/ProjectSettings/ProjectVersion.txt` e `HostProject~/Assets/.gitkeep`;
+  - o `HostProject~/ProjectSettings/` tem mais 21 arquivos gerados pela Unity e ignorados (`.gitignore:21-22`);
+  - o `.gitignore:2-13` ignora `/Assets/`, `/Packages/` e `/ProjectSettings/` na raiz.
+
+  O 0M-54 move o pacote para `Packages/com.spellbook/` e o host para a raiz, e troca o `.gitignore` pelo padrão Unity. Os testes de estrutura leem o pacote por `PackageInfo.FindForAssembly(...).resolvedPath` (`Tests/Core/EditMode/Structure/PackageFiles.cs:18-31`, `Tests/GAS/EditMode/GasSourceScanTests.cs:46-53`), que para o pacote embutido é `Packages/com.spellbook`. Por isso não mudam.
 
 ### 1.3 Tempo
 
@@ -116,6 +131,7 @@ Legenda:
 | 0015 | `SpawnerAsset` com `GameObject`; `PooledSpawnerAsset` sem `PoolManager.Instance`; `PlayCueAction` só troca o spawn |
 | 0016 | Canais, bus, ouvinte, emissor e reações conforme as decisões incorporadas e a emenda 0026 (Inspectors UI Toolkit, canal dentro da `EventEmission`) |
 | 0025 | `Documentation~/mkdocs.yml` com `docs_dir: manual`; Action do Pages; CI sem Odin (emenda 0026) |
+| 0027 | Projeto Unity na raiz e pacote embutido em `Packages/com.spellbook/` (0M-54 a 0M-56); regra de prefixo para os tickets 0M-26 a 0M-40, 0M-45, 0M-49 e 0M-50; nada que não seja publicado dentro do pacote; cenário C1 em `Assets/Scenarios/C1/` (0M-40) |
 | 0026 (Proposta) | Nenhum `Sirenix`/`ODIN_INSPECTOR` no pacote (guarda no 0M-07); `overrideReferences: true`; `[TypePicker]`, `[TypeCategory]`, `[ShowIf]` no Core; `IValidatable`; drawers, Inspectors e janelas em UI Toolkit sem nenhuma exceção IMGUI (I48); popup próprio do seletor; `SpellBookEditor` com validação no topo e um `[CustomEditor]` de uma linha por tipo |
 
 ---
@@ -127,6 +143,7 @@ Legenda:
 - **D1. Host de testes em `HostProject~/`, não na raiz** (PRD R41, CA55). **Resolvido pela decisão I41**, que substitui a I32. Motivo técnico na ADR 0004: um `file:` apontando para a raiz faria a Unity importar `Assets/`, `Library/` e `ProjectSettings/` do próprio host como conteúdo do pacote. O host usa `HostProject~/Packages/manifest.json` com o pacote por `file:` e em `testables`, **sem Odin** (0026). Leitura do CA55 com a I41 e a I45: "`HostProject~/Packages/manifest.json`" e "`.gitignore` contém os artefatos do host", sem nenhuma entrada do Sirenix (o Criativo ajusta o PRD).
   - **Raiz sem projeto Unity** (decisão do usuário, 2026-10-29): o mesmo motivo vale para o host antigo que estava na raiz. Ele foi movido para fora do repositório, e a raiz não pode ter `Assets/`, `Library/`, `Packages/` nem `ProjectSettings/` (risco 34).
   - **Caminho relativo** (confirmado em 2026-10-29 como valor esperado; o PRD deve escrever `file:../..`): a I41 escreve `file:../`. A Unity resolve caminhos relativos do `manifest.json` a partir da pasta `Packages/` do projeto, não da raiz dele. Por isso a raiz do repositório, vista de `HostProject~/Packages/`, é `file:../..`. O 0M-06 confirma o caminho no red: o Package Manager precisa mostrar `com.spellbook` como pacote local. Se `file:../` resolver, fica `file:../`.
+  - **Atualização (2026-10-30, ADR 0027): o D1 é substituído a partir do 0M-54.** O host é a raiz do repositório, e o pacote fica embutido em `Packages/com.spellbook/`, sem `file:`. O `Packages/manifest.json` da raiz não lista `com.spellbook` em `dependencies` e mantém `"testables": ["com.spellbook"]`. A "raiz sem projeto Unity" e o risco 34 deixam de valer. A regra que fica no lugar deles é a da 0027: nada que não seja publicado entra em `Packages/com.spellbook/`. Leitura do CA55 a partir do 0M-54: "`Packages/manifest.json` da raiz com o pacote em `testables`" e "`.gitignore` padrão Unity". O Criativo ajusta o PRD.
 - **D2. Nome do canal sem payload** (PRD R12). `EventChannel` é a base abstrata não genérica (descrição, `logRaises`, tipo do payload, ouvintes vivos) e o canal sem payload concreto é `VoidEventChannel : EventChannel<Void>` com `Raise()`. Motivo: um `EventChannel` concreto e um `EventChannel<T>` com o mesmo nome confundem o seletor, o menu Create e o filtro por tipo, e o debugger precisa de uma base comum. O menu continua "Void Channel" (C2 e CA12 inalterados).
 - **D3. Alocação do `ASC.Tick` com efeito periódico** (PRD N2). **Aceito pela decisão I44** até o B-002. `AttributeState.Recalculate` usa LINQ (`AttributeState.cs:69-82`) e roda a cada tick periódico (`ApplyModifiersToBase` → `SetBaseValue`). A correção é do B-002 (fora da 0-M). O teste de N2 da 0-M mede o `Tick` em regime com efeitos de duração **sem** tick periódico naquele quadro.
 - **D4. `RaiseEventAction` saiu do B-004** (PRD seção 6 antiga). Já reconciliado pelo Criativo (R25a, decisões I22 e I39); listado só para rastreio.
@@ -135,6 +152,7 @@ Legenda:
   - Risco aceito pelo usuário: código que usa API ou comportamento que só existe a partir da 6000.1 passa no host e ninguém o roda na 6000.0. Os reds que dizem "confirma na 6000.0" (riscos 16, 25, 27 e 28; 0M-32, 0M-41, 0M-42, 0M-46, 0M-47, 0M-48, 0M-53) confirmam na versão do host.
   - Cobertura: o Examinador barra API nova sem a guarda de versão do item 3 da 0010 (conferindo na documentação da Unity 6000.0 as APIs do risco 27 e as que o ticket usa pela primeira vez); release com a suíte inteira verde no host. O cenário CA5 é verificado no host 6000.3.13f1. O manual cita como testada só a versão do host (0010, "não afirmar compatibilidade com versão em que os testes não rodaram").
   - Se a 6000.0 for instalada um dia: trocar o host para ela é opcional, por ticket `chore(host)` próprio, que revê o `com.unity.test-framework` (I-g) e roda a suíte inteira.
+  - **Atualização (2026-10-30, ADR 0027):** a partir do 0M-54, a versão do host fica em `ProjectSettings/ProjectVersion.txt` da raiz, e o arquivo é movido sem alteração (6000.3.13f1). Abrir o projeto com outra versão muda arquivos versionados de `ProjectSettings/`, que não são commitados fora de um ticket `chore(host)` (0010, emenda de 2026-10-30).
 - **D6. Tipo ausente relatado por objeto, não por campo** (ADR 0026, item 4, "Drawer: num campo com tipo ausente"). Proposto pelo Arquiteto em 2026-10-29 e **aprovado pelo usuário em 2026-10-29**. Achado da Fábrica no red do 0M-41, com log de diagnóstico na 6000.3.13f1:
   - quando o tipo de uma referência `[SerializeReference]` some, o campo fica com `managedReferenceId = -2` (`ManagedReferenceUtility.RefIdNull`, o mesmo valor de um campo nulo) e `managedReferenceFullTypename` vazio;
   - `SerializationUtility.GetManagedReferencesWithMissingTypes(obj)` devolve o tipo ausente com outro `referenceId` (no log, `3572287566287470595: SpellBook.Core.Tests.Inspector.PickRemovido`);
@@ -174,6 +192,8 @@ Legenda:
 
 ### 4.1 Mapa final de pastas e asmdefs
 
+**Emenda (2026-10-30, ADR 0027):** a partir do 0M-54, `Runtime/`, `Editor/` e `Tests/` deste mapa ficam em `Packages/com.spellbook/`, junto com `package.json`, `README.md` e `CHANGELOG.md`. A linha do host mudou de `HostProject~/` para a raiz. O resto do mapa não muda.
+
 ```
 Runtime/
   Core/      SpellBook.Core.asmdef (o mesmo .meta de hoje, movido no 0M-40)
@@ -208,7 +228,11 @@ Editor/
 Tests/
   Testing/   SpellBook.Testing.asmdef: GasFactory, TimeFactory, EventsFactory, SpawnFactory
   <Módulo>/EditMode, <Módulo>/PlayMode
-HostProject~/ (decisão I41)
+(raiz do repositório = projeto de desenvolvimento; era HostProject~/, I41, até o 0M-54)
+  Assets/Scenarios/C1/   cenário do CA6 (0M-40); Assets/.gitkeep
+  Packages/manifest.json, Packages/packages-lock.json   (com.spellbook embutido, em testables)
+  ProjectSettings/       (ProjectVersion.txt 6000.3.13f1, D5)
+README.md (do repositório, 0M-56), CLAUDE.md, .claude/
 Documentation~/mkdocs.yml, requirements-docs.txt, manual/
 .github/workflows/docs.yml   (tests.yml saiu com o 0M-11, cancelado em 2026-10-29)
 ```
@@ -627,7 +651,7 @@ O CA41 foi **cancelado** (não existe cenário sem Odin).
 | 19 | Dados externos | ~~Secrets da Unity no CI~~. **Removido** com o 0M-11 (2026-10-29): o usuário não cadastra os secrets. Continua valendo que nenhum workflow traz credencial escrita (o `docs.yml` do 0M-09 não usa secret) | `.github/workflows/docs.yml` (0M-09) | Critério CA56 no 0M-09 | CA56 (0M-09) |
 | 20 | Dados externos | Pages precisa ser ligado nas configurações do repositório ("Source: GitHub Actions"), passo manual do dono | 0M-09 | Passo listado no ticket para o usuário | CA39 |
 | 21 | Dados externos | Versões Python da ferramenta de doc mudam | 0M-08 | `requirements-docs.txt` com `==` | Build `--strict` |
-| 22 | Dados externos | Testes que leem arquivos do pacote (asmdefs, `.cs`, manual) dependem do caminho real | CA2, CA10, CA25, CA30, CA54, CA65 | Caminho obtido por `PackageInfo.FindForAssembly(...).resolvedPath`; os testes rodam só no host com `file:` | 0M-07 |
+| 22 | Dados externos | Testes que leem arquivos do pacote (asmdefs, `.cs`, manual) dependem do caminho real | CA2, CA10, CA25, CA30, CA54, CA65 | Caminho obtido por `PackageInfo.FindForAssembly(...).resolvedPath`; os testes rodam só no host com `file:`. **Emenda (2026-10-30, ADR 0027):** a partir do 0M-54, o pacote é embutido, e o `resolvedPath` é `Packages/com.spellbook`. Os testes que leem o pacote não mudam. O manual fica fora do pacote: o `ManualLinksTests` (CA54) lê `Documentation~/manual/` em `PackageFiles.RepositoryRoot`, dois níveis acima do `resolvedPath`, e falha com mensagem clara se a pasta não existir (0M-40) | 0M-07; 0M-54 (mesmo total de testes); 0M-40 (manual) |
 | 23 | Dados externos | Testes que criam assets e cenas em disco (Find references) deixam lixo ou mudam as cenas abertas | 0M-36 | Pasta temporária `Assets/__SpellBookTestTemp` criada no `SetUp` e apagada no `TearDown`; cenas abertas salvas e restauradas com `EditorSceneManager` | CA24 |
 | 24 | Dados externos | ~~Setup lê `documentationUrl`~~. **Removido**: o Setup foi cancelado (0026) | — | — | — |
 | 25 | Dados externos | **Compatibilidade do UI Toolkit, parte 1: recursão.** Um drawer que devolve `new PropertyField(property)` da própria propriedade cai de novo no mesmo drawer | `ShowIfDrawer` | Duas formas, (a) e (b), decididas no red do 0M-46 (4.10). O `TypePickerDrawer` só cria `PropertyField` de filhos | Cenário no host do 0M-42 e do 0M-46 (o Inspector abre sem estouro de pilha) |
@@ -638,8 +662,8 @@ O CA41 foi **cancelado** (não existe cenário sem Odin).
 | 30 | Repetição | Custo do seletor e da validação no Inspector | `TypePickerCatalog`, `SpellBookEditor` | Candidatos em cache por tipo base (o `TypeCache` já é indexado); validação só ao montar o Inspector e em `TrackSerializedObjectValue`, nunca por repaint | N5; revisão do Examinador |
 | 32 | Dados externos | **Inspector do usuário concorre com o do pacote.** Um `[CustomEditor]` do usuário para um tipo do SpellBook (ou de terceiros, com `editorForChildClasses`) pode ser o escolhido pela Unity, e a validação no topo some | Tipos do pacote | O manual (página Inspector, 0M-50) manda herdar de `SpellBookEditor`; a janela do validador continua mostrando as mensagens | Página Inspector |
 | 33 | Dados externos | **Bind do UI Toolkit em teste.** `CreateInspectorGUI` fora de um painel não liga os campos (`Bind`), e o teste não deve depender disso | `SpellBookEditorTests`, `SpellBookEditorMissingTypeTests`, `EventsInspectorTests` | Os testes conferem só a estrutura (contêiner, `HelpBox`, botões) e as funções puras (`CollectMessages`, `SetChannel`); o comportamento ligado fica nos cenários no host | 0M-48, 0M-53, 0M-45 |
-| 34 | Dados externos | **Projeto Unity na raiz do pacote.** A raiz do repositório é a pasta do pacote; um `Assets/`, `Library/`, `Packages/` ou `ProjectSettings/` ali, mesmo ignorado pelo git, entra como conteúdo do `com.spellbook` (assemblies duplicados, `.meta` gravados, importação lenta) | Raiz do repositório, `HostProject~/` | Host antigo movido para fora (ADR 0004, emenda de 2026-10-29); único host em `HostProject~/` | Critério do 0M-06: as quatro pastas não existem na raiz quando o host abre |
-| 35 | Dados externos | **Caminhos relativos no batchmode** (B-025, medido no 0M-07 rodando da raiz com `-projectPath HostProject~`). O `-logFile` relativo resolve a partir da pasta de onde o comando roda: o log foi para `Temp/` na raiz do pacote, a Unity importou e gerou `.meta` e erro (mesma causa do risco 34). O `-testResults` relativo resolve a partir do projeto: foi para `HostProject~/Temp/`, que a Unity apaga ao fechar, e o relatório se perdeu | `/implementar`, `unity-test-reader`, `unity-console-reader`, toda chamada local da Unity em batchmode | Caminhos **absolutos** dentro de `HostProject~/Logs/` (o `~` impede a importação, e a pasta já está no `.gitignore`): `-testResults "$PWD/HostProject~/Logs/TestResults-<Plataforma>.xml"` (`EditMode` ou `PlayMode`) e `-logFile "$PWD/HostProject~/Logs/unity-tests.log"`, com o comando rodando da raiz do repositório. Nenhum caminho relativo e nada em `Temp/`. A pasta é criada antes da chamada se não existir. (Não há CI de testes: o 0M-11 foi cancelado em 2026-10-29) | Depois da rodada: o XML e o log existem em `HostProject~/Logs/`; não existe `Temp/` na raiz do pacote; `git status` sem arquivo novo fora do `HostProject~/`. A atualização da skill e dos dois agentes é um ticket rápido à parte (B-025) |
+| 34 | Dados externos | **Projeto Unity na raiz do pacote.** A raiz do repositório é a pasta do pacote; um `Assets/`, `Library/`, `Packages/` ou `ProjectSettings/` ali, mesmo ignorado pelo git, entra como conteúdo do `com.spellbook` (assemblies duplicados, `.meta` gravados, importação lenta) | Raiz do repositório, `HostProject~/` | Host antigo movido para fora (ADR 0004, emenda de 2026-10-29); único host em `HostProject~/`. **Substituído em 2026-10-30 (ADR 0027):** a partir do 0M-54, a raiz é o projeto, e o pacote fica em `Packages/com.spellbook/`. O risco passa a ser pôr dentro do pacote algo que não é publicado, como docs, cenários ou configuração de agente | Critério do 0M-06 (até o 0M-54). Depois: critério do 0M-54 (a pasta do pacote só tem `package.json`, `README.md`, `CHANGELOG.md`, `Runtime/`, `Editor/`, `Tests/` e os `.meta`) e revisão do Examinador (0027, "O que os agentes NÃO podem fazer") |
+| 35 | Dados externos | **Caminhos relativos no batchmode** (B-025, medido no 0M-07 rodando da raiz com `-projectPath HostProject~`). O `-logFile` relativo resolve a partir da pasta de onde o comando roda: o log foi para `Temp/` na raiz do pacote, a Unity importou e gerou `.meta` e erro (mesma causa do risco 34). O `-testResults` relativo resolve a partir do projeto: foi para `HostProject~/Temp/`, que a Unity apaga ao fechar, e o relatório se perdeu | `/implementar`, `unity-test-reader`, `unity-console-reader`, toda chamada local da Unity em batchmode | Caminhos **absolutos** dentro de `HostProject~/Logs/` (o `~` impede a importação, e a pasta já está no `.gitignore`): `-testResults "$PWD/HostProject~/Logs/TestResults-<Plataforma>.xml"` (`EditMode` ou `PlayMode`) e `-logFile "$PWD/HostProject~/Logs/unity-tests.log"`, com o comando rodando da raiz do repositório. Nenhum caminho relativo e nada em `Temp/`. A pasta é criada antes da chamada se não existir. (Não há CI de testes: o 0M-11 foi cancelado em 2026-10-29) | Depois da rodada: o XML e o log existem em `HostProject~/Logs/`; não existe `Temp/` na raiz do pacote; `git status` sem arquivo novo fora do `HostProject~/`. A atualização da skill e dos dois agentes é um ticket rápido à parte (B-025). **Emenda (2026-10-30, ADR 0027):** a partir do 0M-54, o comando roda da raiz com `-projectPath "$PWD"`, `-testResults "$PWD/Logs/TestResults-<EditMode\|PlayMode>.xml"` e `-logFile "$PWD/Logs/unity-tests.log"`. A pasta `Logs/` do projeto está no `.gitignore` e fica fora de `Assets/` e de `Packages/`. A skill e os dois agentes mudam no 0M-55, que absorve o B-025 |
 | 31 | Dados externos | Ambiguidade de nome (`ShowIf`, `TypeCategory`) com outros pacotes no código do usuário | Projetos do usuário | Namespace `SpellBook.Core.Inspector` (só quem escreve `using` dele vê os nomes); o manual mostra o alias | Página Inspector |
 
 ---
@@ -669,6 +693,7 @@ O DevOps leva esta lista ao CHANGELOG no release, com a tabela da página "Migra
 | `GameEvent`/`GameEventListner` (Core/Events), `VoidEvent`, `IntEvent`, `FloatEvent`, `StringEvent`, `ComponentEvent` e listeners, `EventManager`, `GameEvent`/`GameEventListener` por string | `VoidEventChannel` etc., `EventListener`, `EventEmitter`, `EventBus<T>`; não há canal de `Component`; assets de evento precisam ser recriados | 0M-25 a 0M-32 |
 | `AbilityActivatedEvent`, `AbilitySlotUpdateEvent` globais | removidos; usar `ASC.OnAbilityActivated`; relay no B-004 (R22a) | 0M-12 |
 | `Runtime/GAS/GAS_Documentation.md` | página GAS do manual | 0M-10 |
+| Instalação por `https://github.com/gabrielctorres/SpellBook.git` (a raiz do repositório era o pacote) | `https://github.com/gabrielctorres/SpellBook.git?path=/Packages/com.spellbook`, com `#<tag>` opcional. A chave `com.spellbook` no `manifest.json` do usuário não muda. As tags 2.x continuam com a URL antiga. O usuário deixa de baixar `Documentation~/` e o `CLAUDE.md` (ADR 0027) | 0M-54, 0M-56 |
 
 ---
 
@@ -683,6 +708,8 @@ Ordem por dependência. **WIP 1**: um ticket com Unity em implementação por ve
 - **0M-09 em paralelo com o 0M-42, o 0M-46, o 0M-43, o 0M-48, o 0M-53 ou o 0M-12**, depois do merge do 0M-08. O 0M-09 só cria `.github/workflows/docs.yml`, e nenhum desses tickets toca `.github/`. O passo do usuário (ligar o Pages) não usa a Unity.
 - **0M-10 em paralelo com o 0M-42, o 0M-46, o 0M-43, o 0M-48 ou o 0M-53**, depois do merge do 0M-08. O 0M-10 apaga `Runtime/GAS/GAS_Documentation.md` e o `.meta` dele sem o Editor e cria `Documentation~/manual/modulos/gas.md`. O 0M-42 e o 0M-46 mexem em outros arquivos de `Runtime/GAS/` e em `manual/inicio/inspector.md`, mas nenhum desses arquivos é do 0M-10. **O 0M-10 nunca roda junto com o 0M-12**: o 0M-12 depende dele e edita o `gas.md` que o 0M-10 cria, então o 0M-10 precisa estar no `main` antes de o 0M-12 começar.
 - **0M-09 em paralelo com o 0M-10.** Os dois não usam a Unity e não têm arquivo em comum.
+- **0M-55 em paralelo com o 0M-54** (emenda de 2026-10-30, ADR 0027). O 0M-55 não usa a Unity nem a trava e só toca `.claude/` e `Documentation~/TIME.md`. O 0M-54 não toca nenhum desses arquivos. O 0M-55 roda numa cópia de trabalho própria, sem trocar a branch do checkout do 0M-54, e entra na branch de lote **depois** do 0M-54, porque descreve um layout que só existe depois dele. Enquanto o 0M-54 não estiver no lote, a Fábrica e o Examinador do 0M-54 usam os comandos escritos no próprio ticket, e não os da skill.
+- **0M-56 em paralelo com o 0M-55 e com os tickets 0M-26 a 0M-50**, depois do 0M-54 (ele edita o `Packages/com.spellbook/README.md`, que o 0M-54 move). Nenhum desses tickets toca os arquivos do 0M-56. A exceção é o 0M-40, que edita a `manual/regras/migracao-2-para-3.md`: o 0M-56 nunca roda junto com o 0M-40 e precisa estar no lote antes dele.
 - Um par cai se um dos tickets precisar de um arquivo fora da lista dele. O caso provável é a navegação do `mkdocs.yml`. Nesse caso, quem roda em paralelo volta para a fila.
 
 Na ordem atual, o 0M-08 vem logo depois do 0M-47 (decisão do usuário, 2026-10-29; ele depende só do 0M-07 e nenhuma dependência muda). Depois do merge do 0M-08, o 0M-09 e o 0M-10 ficam livres e rodam em paralelo com a trilha do Inspector (0M-42, 0M-46, 0M-43, 0M-48, 0M-53). Regra fixa: **o 0M-10 nunca roda junto com o 0M-12**; o 0M-09 pode rodar com o 0M-12.
@@ -724,9 +751,12 @@ Mudança: **igual** (sem mudança), **alterado** (escopo, arquivos, dependência
 | 0M-21 | `refactor(gas)!: ações de spawn e projétil usam SpawnerAsset` | 0M-20, 0M-19 | CA29, CA62, CA30 | igual | — |
 | 0M-22 | `refactor(gas)!: esperas do GAS pelo relógio do ASC` | 0M-21 | CA10, CA32 (parte) | alterado | Emenda de 2026-10-30: quebras na Migração (+1 arquivo, 10), `Duration <= 0` espera um quadro, teste da invulnerabilidade; exceção de tamanho (~480 linhas, teto 500) |
 | 0M-23 | `refactor(pooling)!: módulo SpellBook.Pooling e PooledSpawnerAsset` | 0M-21, 0M-43 | CA28, CA35 (parte), CA6 (parte) | alterado | `IValidatable` no lugar de `ISelfValidator`; sai a verificação do `SelfValidationResult` e o plano B |
+| 0M-54 | `chore(host)!: pacote em Packages/com.spellbook e projeto na raiz` | 0M-23 | CA55 (releitura, D1) | **novo** (2026-10-30) | ADR 0027 (gate de 2026-10-30): movimento puro com `.meta` e GUIDs, `.gitignore` padrão Unity, suíte com o mesmo total. `ProjectSettings/` entra inteiro, com exceção só deste ticket (decisão do usuário, 2026-10-30) |
+| 0M-55 | `docs(process): skills e agentes da Unity com o projeto na raiz` | 0M-54 (entra no lote depois dele) | — | **novo** (2026-10-30) | ADR 0027: `/implementar`, `/revisao`, `/commit` e os agentes que rodam ou leem a Unity; absorve o B-025; regra do movimento puro (0003) |
+| 0M-56 | `docs(manual): instalação por ?path= e README do repositório` | 0M-54 | CA26 (parte: Migração) | **novo** (2026-10-30) | ADR 0027: URL com `?path=`, README do pacote, README novo da raiz, `Documentation~/README.md` e agentes de leitura |
 | 0M-24 | `refactor(core)!: MathTools como classe estática no Core` | 0M-12 | CA43 | igual | — |
 | 0M-25 | `refactor(events)!: remover os três sistemas de eventos antigos` | 0M-12, 0M-24 | CA25, R22 | igual | — |
-| 0M-26 | `feat(events): EventBus<T> e registro limpo por sessão` | 0M-25, 0M-17 | CA15, CA16, CA17, CA19 (bus), CA2 (parte) | igual | (idem) |
+| 0M-26 | `feat(events): EventBus<T> e registro limpo por sessão` | 0M-25, 0M-17, 0M-54, 0M-55 | CA15, CA16, CA17, CA19 (bus), CA2 (parte) | alterado (2026-10-30) | Caminhos com o prefixo `Packages/com.spellbook/` (0027); espera o 0M-55, porque é o primeiro ticket com Unity no layout novo |
 | 0M-27 | `feat(events): EventChannel e canais Void, Int e Float` | 0M-26 | CA15, CA16, CA18, CA19, CA33 (parte) | alterado | Sai o `[Button]`/`[EnableIf]` do runtime; o botão Raise vai para o 0M-45 |
 | 0M-28 | `feat(events): canais Bool, String, Vector3 e GameObject` | 0M-27 | CA12 | igual | — |
 | 0M-29 | `feat(events): EventListener com respostas e reações` | 0M-28, 0M-41 | CA13, CA14 | alterado | `[TypePicker]` nas listas; escape em classe aninhada (foldout nativo) no lugar do `[FoldoutGroup]` |
@@ -743,9 +773,11 @@ Mudança: **igual** (sem mudança), **alterado** (escopo, arquivos, dependência
 | 0M-39 | `docs(gas): HelpURL nos tipos restantes e teste de HelpURL` | 0M-38 | CA36, CA37 | igual | — |
 | 0M-49 | `feat(editor): Inspectors de uma linha para Core, Time, Tags e Pooling` | 0M-39, 0M-48 | R32 | **novo** (2ª rodada) | I48: todo tipo do pacote usa o `SpellBookEditor`; cria `Time.Editor`, `Tags.Editor` e `Pooling.Editor` |
 | 0M-50 | `feat(editor): Inspectors de uma linha para GAS e Events e cobertura completa` | 0M-49 | R32 | **novo** (2ª rodada) | I48: completa a cobertura; cria `GAS.Editor` |
-| 0M-40 | `refactor(core)!: Core em Runtime/Core e verificação final da estrutura` | 0M-50 | CA1, CA32, CA54, CA6, N4 | alterado | Lista final de asmdefs sem `Setup.Editor` e com `Core.Editor`, `Events.Editor`, `Time.Editor`, `Tags.Editor`, `Pooling.Editor` e `GAS.Editor`; depende do 0M-50 |
+| 0M-40 | `refactor(core)!: Core em Runtime/Core e verificação final da estrutura` | 0M-50 | CA1, CA32, CA54, CA6, N4 | alterado | Lista final de asmdefs sem `Setup.Editor` e com `Core.Editor`, `Events.Editor`, `Time.Editor`, `Tags.Editor`, `Pooling.Editor` e `GAS.Editor`; depende do 0M-50. 2026-10-30 (0027): C1 em `Assets/Scenarios/C1/`; o manual é lido na raiz do repositório (`PackageFiles.RepositoryRoot`, +1 arquivo; o asmdef `R100` sai da contagem; 8) |
 
-Ordem de execução linear: 01 → 02 → 03 → 04 → 05 → 06 → **44** → 07 → ~~11~~ (cancelado) → **41** → **47** → 08 → **42** → **46** → **43** → **48** → **53** → 09 → 10 → 12 → 13 → … → 31 → 32 → **45** → 33 → 34 → 35 → 36 → 37 → 38 → 39 → **49** → **50** → 40.
+Ordem de execução linear: 01 → 02 → 03 → 04 → 05 → 06 → **44** → 07 → ~~11~~ (cancelado) → **41** → **47** → 08 → **42** → **46** → **43** → **48** → **53** → 09 → 10 → 12 → 13 → … → 23 → **54** (∥ **55**) → **56** (∥ 26 em diante) → 26 → … → 31 → 32 → **45** → 33 → 34 → 35 → 36 → 37 → 38 → 39 → **49** → **50** → 40.
+
+Migração da estrutura (emenda de 2026-10-30, ADR 0027): o 0M-54 começa depois do APROVADO e do commit do 0M-23, com a cópia de trabalho limpa. O 0M-26 só começa com o 0M-54 e o 0M-55 no lote. O 0M-56 pode entrar depois, em paralelo (seção "Paralelo sem Editor").
 
 Os ids novos não seguem a ordem de execução (0M-47 vem antes do 0M-42), porque o 0M-42 já tinha sido divulgado na primeira rodada.
 
@@ -1228,6 +1260,146 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - **Emenda (2026-10-30):** a linha da Migração (`SpellBook.Systems.Pooling.*` → `SpellBook.Pooling.*`, menu `PoolingSystem/...` → `SpellBook/Pooling/...`) não entra aqui, porque o ticket já tem 10 arquivos e a ADR 0003 não tem exceção. Também não entra no 0M-25: ele é feito antes deste ticket, quando o namespace novo ainda não existe. A linha vai para o 0M-40, o primeiro ticket depois deste com folga no limite e garantidamente posterior (depende do 0M-50). Até lá a Migração fica sem a linha de Pooling; a quebra continua registrada na seção 7.
 - Tamanho: ~200 linhas de código novo; os 5 arquivos movidos contam pela diferença real (namespace, menu e `[HelpURL]`, ~30 linhas). 10 arquivos.
 
+### 0M-54 — `chore(host)!: pacote em Packages/com.spellbook e projeto na raiz` (novo, 2026-10-30)
+- ADR: 0027 (alternativa A, gate de 2026-10-30); contagem pela emenda de 2026-10-30 da 0003. Executor: Fábrica, **com Unity e trava** (0005; uma trava para os dois projetos, emenda de 2026-10-30).
+- Pré-condições, conferidas antes de qualquer `git mv`:
+  - o 0M-23 está APROVADO e commitado na branch de lote `feat/0m-lote-19-em-diante`;
+  - `git status` está limpo, sem mudanças de outro ticket (0027, "O que os agentes NÃO podem fazer");
+  - nenhuma Unity aberta;
+  - a raiz não tem `Assets/`, `Library/`, `Packages/` nem `ProjectSettings/` (risco 34).
+- Objetivo: a raiz do repositório vira o projeto Unity de desenvolvimento, e o pacote fica embutido em `Packages/com.spellbook/`, com os mesmos `.meta` e GUIDs e sem mudar o conteúdo de nenhum arquivo do pacote.
+- Arquivos:
+  - **Movimento puro (`R100`, 1 linha cada, fora dos 10 arquivos), sempre com o `.meta` de cada arquivo e de cada pasta:**
+    - `Runtime/` → `Packages/com.spellbook/Runtime/`;
+    - `Editor/` → `Packages/com.spellbook/Editor/`;
+    - `Tests/` → `Packages/com.spellbook/Tests/`;
+    - `package.json`, `README.md` e `CHANGELOG.md` → `Packages/com.spellbook/`;
+    - `HostProject~/ProjectSettings/ProjectVersion.txt` → `ProjectSettings/ProjectVersion.txt`;
+    - `HostProject~/Assets/.gitkeep` → `Assets/.gitkeep`.
+
+    São cerca de 120 arquivos, contados em 2026-10-30 com o 0M-23 na cópia de trabalho.
+
+    `Runtime/Systems/` não entra: o 0M-23 (commit `c59a68f`) já apagou a pasta e o `Runtime/Systems.meta` (0027, item 12 das decisões do usuário). Se a pasta ou o `.meta` reaparecer antes do movimento, o ticket para e avisa o Controlador.
+  - **Movidos com alteração** (1 arquivo cada; linhas pela diferença real):
+    - `HostProject~/Packages/manifest.json` → `Packages/manifest.json`: sai a linha `"com.spellbook": "file:../.."`, porque o pacote embutido não fica em `dependencies`. O `testables` e as outras dependências ficam iguais;
+    - `HostProject~/Packages/packages-lock.json` → `Packages/packages-lock.json`: fica o que a Unity gravar ao abrir o projeto (a entrada `com.spellbook` passa a `source: embedded`). Não é editado à mão.
+  - **Alterado:** `.gitignore`, trocado pelo padrão Unity da raiz:
+    - `/[Ll]ibrary/`, `/[Tt]emp/`, `/[Oo]bj/`, `/[Bb]uild/`, `/[Bb]uilds/`, `/[Ll]ogs/`, `/[Uu]ser[Ss]ettings/`, `/[Mm]emoryCaptures/`, `/[Rr]ecordings/`;
+    - os restos de testes interrompidos: `/[Aa]ssets/InitTestScene*` (B-026, parte do `.gitignore`) e `/[Aa]ssets/__SpellBookTestTemp*` (risco 23);
+    - os blocos atuais de IDE, de sistema operacional, de `.claude/editor.lock`, de `.claude/settings.local.json` e de `/Documentation~/site/`.
+
+    Saem as regras `/Assets/`, `/Packages/` e `/ProjectSettings/` da raiz (`.gitignore:1-13`) e o bloco do `HostProject~/` (`.gitignore:15-22`). Se continuassem, o `Packages/com.spellbook/` seria ignorado.
+  - **`ProjectSettings/` (exceção aprovada pelo usuário em 2026-10-30, só neste ticket; 0027, item 11):** os 21 arquivos que a Unity gerou em `HostProject~/ProjectSettings/` vão para `ProjectSettings/` e entram no git como configuração gerada, sem edição à mão. Não contam nas linhas nem nos 10 arquivos. O `.gitignore` novo não ignora `ProjectSettings/`.
+  - **Remoção pura:** `CLAUDE.md.meta`. O `CLAUDE.md` deixa de estar na pasta de um pacote.
+  - **Fora do git (local):**
+    - a `HostProject~/Library/` pode ser movida para `Library/`, para evitar uma reimportação completa (opcional);
+    - o resto de `HostProject~/` (`Logs/`, `Temp/`, `UserSettings/`, e a `Library/` se não for movida) sai do repositório. Ele é movido para fora ou apagado, e só com a confirmação do usuário (`CLAUDE.md`: comando destrutivo).
+- Depende de: 0M-23.
+- CAs: CA55 (releitura do D1, emenda de 2026-10-30).
+- **Testes: caracterização** (movimento sem comportamento novo; não há red):
+  1. Antes do movimento, a suíte EditMode inteira roda no `HostProject~/`. O total, passou e falhou é registrado:
+     ```
+     "$UNITY_EDITOR" -batchmode -nographics -projectPath HostProject~ -runTests -testPlatform EditMode -testResults "$PWD/HostProject~/Logs/TestResults-EditMode.xml" -logFile "$PWD/HostProject~/Logs/unity-tests.log"
+     ```
+  2. Depois do movimento, a mesma suíte roda na raiz (a skill `/implementar` só muda no 0M-55; neste ticket valem estes comandos):
+     ```
+     "$UNITY_EDITOR" -batchmode -nographics -projectPath "$PWD" -runTests -testPlatform EditMode -testResults "$PWD/Logs/TestResults-EditMode.xml" -logFile "$PWD/Logs/unity-tests.log"
+     ```
+  3. O PlayMode roda uma vez antes e uma vez depois, com `-testPlatform PlayMode` e o XML `TestResults-PlayMode.xml`. Se a rodada terminar, o total precisa bater. Se travar como no B-026, o travamento é registrado no relatório e não bloqueia o ticket, porque o critério do usuário é a suíte EditMode.
+- Critério de pronto:
+  1. A suíte EditMode inteira está verde na raiz, com **o mesmo total** da rodada do item 1. O Examinador roda de novo na revisão, com a trava.
+  2. `git diff --cached -M --name-status HEAD` (depois do stage) só mostra:
+     - `R100` para cada arquivo de `Runtime/`, `Editor/` e `Tests/`, para `package.json`, `README.md`, `CHANGELOG.md`, `ProjectVersion.txt` e `.gitkeep`, e para todos os `.meta` deles. Assim nenhum GUID muda;
+     - `R` para `manifest.json` e `packages-lock.json`;
+     - `M` para `.gitignore`;
+     - `D` para `CLAUDE.md.meta`;
+     - `A` só para os 21 arquivos de `ProjectSettings/*` (exceção aprovada).
+
+     A lista é conferida **depois** das rodadas da Unity, para pegar `.meta` regravados.
+  3. A estrutura no disco fica assim:
+     - `HostProject~/` não existe;
+     - a raiz tem `Assets/`, `Packages/` e `ProjectSettings/`;
+     - a raiz não tem `package.json`, `Runtime/`, `Editor/`, `Tests/` nem `CHANGELOG.md`;
+     - `Packages/com.spellbook/` só tem `package.json`, `README.md`, `CHANGELOG.md`, `Runtime/`, `Editor/`, `Tests/` e os `.meta`.
+  4. O `Packages/packages-lock.json` lista `com.spellbook` com `"source": "embedded"`.
+  5. `git check-ignore -v` dá **ignorado** para estes caminhos: `Library/x`, `Temp/x`, `Logs/x`, `UserSettings/x`, `obj/x`, `Assets/InitTestScene0.unity`, `Assets/InitTestScene0.unity.meta`, `Assets/__SpellBookTestTemp/x`, `.claude/editor.lock` e `x.csproj`. Dá **não ignorado** para `Packages/manifest.json`, `Packages/packages-lock.json`, `Packages/com.spellbook/package.json`, `Packages/com.spellbook/Runtime/Core/DocUrls.cs`, `ProjectSettings/ProjectVersion.txt` e `Assets/.gitkeep`. Também dá **não ignorado** para `ProjectSettings/EditorSettings.asset`. O `.gitignore` não contém `HostProject`.
+  6. Depois das rodadas, o `git status` não mostra arquivo novo fora da lista do item 2. Em particular, nenhum `.meta` novo dentro de `Packages/com.spellbook/` e nenhuma `InitTestScene*` versionável.
+  7. A trava criada no começo tem a raiz como "caminho do host" e é removida no fim.
+- Manual: nenhuma página neste ticket. A URL de instalação muda no 0M-56. Entre o 0M-54 e o 0M-56, o README do pacote e a página Instalação ficam com a URL antiga, sem efeito para ninguém porque nada é publicado antes do release.
+- Tamanho: ~120 movimentos puros (~120 linhas), `.gitignore` (~35 linhas), `manifest.json` (1 linha) e `packages-lock.json` (~5 linhas, gerado), cerca de 160 linhas. Contam **3 arquivos**: `.gitignore`, `manifest.json` e `packages-lock.json`. Os 21 de `ProjectSettings/` ficam fora pela exceção aprovada em 2026-10-30, só deste ticket.
+
+### 0M-55 — `docs(process): skills e agentes da Unity com o projeto na raiz` (novo, 2026-10-30)
+- ADR: 0027, 0004 e 0005 (emendas de 2026-10-30), 0003 (regra do movimento puro). Executor: Fábrica, **sem Unity e sem trava**. Absorve o B-025.
+- Objetivo: quem roda ou lê a Unity, ou faz o release, usa o projeto da raiz e os caminhos do pacote. Os relatórios ficam em `Logs/` com caminho absoluto. A contagem do movimento puro está escrita onde o Examinador e a Fábrica a aplicam.
+- Arquivos:
+  - `.claude/skills/implementar/SKILL.md`:
+    - o passo 5 passa a ter os comandos EditMode e PlayMode com `-projectPath "$PWD"`, `-testResults "$PWD/Logs/TestResults-<EditMode|PlayMode>.xml"` e `-logFile "$PWD/Logs/unity-tests.log"`, rodados da raiz, criando `Logs/` antes se não existir;
+    - a versão passa a ser lida em `ProjectSettings/ProjectVersion.txt`;
+    - o "caminho do host" da trava passa a ser a raiz;
+    - o passo 1 ganha o movimento puro na lista de contagem;
+  - `.claude/skills/revisao/SKILL.md`:
+    - passo 1: movimento puro (`R100`, 1 linha, fora dos 10 arquivos), conferido com `git diff -M --name-status`;
+    - passo 3: "no projeto da raiz", no lugar de "no host `HostProject~/`";
+  - `.claude/skills/commit/SKILL.md`: passo 5 com `Packages/com.spellbook/package.json` e `Packages/com.spellbook/CHANGELOG.md`;
+  - `.claude/agents/fabrica.md`: linha 14, "Usa o projeto Unity da raiz; o pacote fica em `Packages/com.spellbook/`";
+  - `.claude/agents/examinador.md`: linha 12, "no projeto da raiz";
+  - `.claude/agents/devops.md`: linhas 12 e 15, `package.json` e `CHANGELOG.md` em `Packages/com.spellbook/`;
+  - `.claude/agents/unity-test-reader.md`: linha 11, fonte padrão `Logs/TestResults-<EditMode|PlayMode>.xml` na raiz; sai a busca em `HostProject~/Temp/` e em `Temp/`; linha 15, frame `Packages/com.spellbook/Tests/...cs:linha`;
+  - `.claude/agents/unity-console-reader.md`: linha 11, fonte padrão `Logs/unity-tests.log` na raiz; linha 18, frames em `Packages/com.spellbook/{Runtime,Editor,Tests}/`;
+  - `Documentation~/TIME.md`:
+    - linhas 58-63: contagem com o movimento puro;
+    - linhas 88-93: a seção "Projeto host de testes" passa a "Projeto de desenvolvimento" (raiz, pacote embutido em `Packages/com.spellbook/`, `testables`, `.gitignore` padrão Unity, regra de prefixo da Spec);
+    - linha 101: "caminho do host" é a raiz.
+- `.github/workflows/docs.yml` **não muda**: todos os caminhos dele são `Documentation~/...` (0027, decisões do gate, item 7).
+- Depende de: 0M-54. Pode ser escrito em paralelo com o 0M-54 (seção 8, "Paralelo sem Editor"), mas entra no lote depois dele.
+- CAs: nenhum do PRD (processo).
+- Testes red (critério verificável falhando antes da mudança):
+  - `rg -n "HostProject"`, rodado só nos 9 arquivos do ticket, encontra 10 linhas (3 no `/implementar`, 2 no `TIME.md` e 1 em cada um destes: `/revisao`, `fabrica.md`, `examinador.md`, `unity-test-reader.md` e `unity-console-reader.md`). Os 4 agentes de leitura que também citam `HostProject` são do 0M-56 e ficam fora desta busca;
+  - `rg -n "Temp/TestResults|Temp/unity-tests"` nos 9 arquivos encontra 3 linhas;
+  - `rg -n "R100|movimento puro" .claude/skills/revisao .claude/skills/implementar Documentation~/TIME.md` não encontra nada.
+- Critério de pronto:
+  1. `rg -n "HostProject"` nos 9 arquivos do ticket não devolve nada.
+  2. `rg -n "Temp/TestResults|Temp/unity-tests"` nos 9 arquivos não devolve nada.
+  3. O `/implementar` contém literalmente `-projectPath "$PWD"`, `"$PWD/Logs/TestResults-EditMode.xml"`, `"$PWD/Logs/TestResults-PlayMode.xml"` e `"$PWD/Logs/unity-tests.log"`.
+  4. O `/revisao`, o `/implementar` e o `TIME.md` têm a regra do movimento puro, com `R100`, "1 linha" e "fora dos 10 arquivos".
+  5. O `/commit` e o `devops.md` citam `Packages/com.spellbook/package.json` e `Packages/com.spellbook/CHANGELOG.md`.
+  6. O diff não toca nenhum arquivo do 0M-54.
+- Tamanho: 0 linhas de código (só `.md`, cerca de 60 linhas de texto), **9 arquivos**.
+
+### 0M-56 — `docs(manual): instalação por ?path= e README do repositório` (novo, 2026-10-30)
+- ADR: 0027 (item 4 da Decisão; decisões do gate, item 5, READMEs), 0008 (emenda de 2026-10-30). Executor: Fábrica, **sem Unity e sem trava**.
+- Objetivo: quem instala usa a URL com `?path=`. Quem chega ao repositório vê um README curto que manda instalar pelo README do pacote. Os agentes de leitura procuram o código no pacote.
+- Arquivos:
+  - `README.md` da raiz (**novo**, curto):
+    - a 1ª linha manda quem quer instalar para `Packages/com.spellbook/README.md` e para o manual;
+    - depois vêm o layout (pacote, projeto de desenvolvimento, `Documentation~/`), como abrir o projeto (Hub, trava da 0005) e os links para `Documentation~/README.md` e `Documentation~/TIME.md`;
+    - **não** repete os passos de instalação;
+  - `Packages/com.spellbook/README.md`: linha 15, a URL passa a `https://github.com/gabrielctorres/SpellBook.git?path=/Packages/com.spellbook`, com a nota do `#<tag>`;
+  - `Documentation~/manual/inicio/instalacao.md`:
+    - as linhas 12 e 19 com a URL nova, e um exemplo com `#v3.0.0-pre.1`;
+    - uma nota: as versões 2.x usam a URL antiga, sem `?path=`;
+    - na "Compatibilidade", "projeto host do repositório" passa a "projeto de desenvolvimento do repositório";
+  - `Documentation~/manual/regras/migracao-2-para-3.md`: linha da URL de instalação (seção 7 desta Spec; CA26, parte);
+  - `Documentation~/README.md`:
+    - linha 3: `Documentation~/` fica na raiz do repositório, fora do pacote, e o til se mantém (0027, item 3);
+    - a seção "Projeto host" (linhas 27-40) passa a "Projeto de desenvolvimento": raiz, `ProjectSettings/ProjectVersion.txt`, pacote embutido em `testables`, `Assets/.gitkeep`, abrir a raiz pelo Hub ou com `-projectPath "$PWD"`;
+  - `.claude/agents/unity-explorer.md`: linha 13, "Procure em `Packages/com.spellbook/Runtime/` e `Packages/com.spellbook/Editor/` primeiro; o projeto da raiz (`Assets/`, `ProjectSettings/`) e pacotes de terceiros só se a pergunta exigir";
+  - `.claude/agents/engine-programmer.md` (linha 84), `ui-programmer.md` (linha 81) e `gameplay-programmer.md` (linha 82): a versão do host passa a ser lida em `ProjectSettings/ProjectVersion.txt`.
+- Depende de: 0M-54 (o README do pacote só existe depois do movimento). Pode rodar em paralelo com o 0M-55 e com os tickets 0M-26 a 0M-50, **exceto o 0M-40** (seção 8, "Paralelo sem Editor").
+- CAs: CA26 (parte: a linha da Migração; o CHANGELOG continua com o DevOps no release).
+- Testes red (critério verificável falhando antes da mudança):
+  - `rg -n "SpellBook\.git" Packages/com.spellbook/README.md Documentation~/manual/inicio/instalacao.md` encontra a URL sem `?path=`;
+  - `rg -n "HostProject" Documentation~/README.md .claude/agents/unity-explorer.md .claude/agents/engine-programmer.md .claude/agents/ui-programmer.md .claude/agents/gameplay-programmer.md` encontra 9 linhas (5 no `Documentation~/README.md` e 1 em cada agente);
+  - o `README.md` da raiz não existe: o que está lá hoje é o README do pacote, que o 0M-54 move.
+- Critério de pronto:
+  1. Toda ocorrência de `SpellBook.git` no `Packages/com.spellbook/README.md`, na `instalacao.md` e na `migracao-2-para-3.md` traz `?path=/Packages/com.spellbook`. A única exceção é a nota das 2.x, marcada como URL antiga.
+  2. `rg -n "HostProject" Documentation~/README.md Documentation~/manual` e a mesma busca nos 4 agentes do ticket não devolvem nada. Os agentes do 0M-55 ficam fora, porque os dois tickets podem rodar em paralelo.
+  3. O `README.md` da raiz existe, a 1ª linha linka `Packages/com.spellbook/README.md`, e ele não contém "Package Manager" nem "git URL" (não repete a instalação).
+  4. `mkdocs build --strict -f Documentation~/mkdocs.yml` passa, com as versões do `requirements-docs.txt`.
+  5. O diff não toca nenhum arquivo do 0M-55 nem do ticket com Unity em andamento.
+  6. **Verificação depois do merge na `main`** (usuário ou DevOps, fora do ticket, antes do release `3.0.0-pre.1`): num projeto vazio na 6000.3.13f1, instalar pela URL nova com `#main`, e o Package Manager precisa mostrar `com.spellbook` sem erro.
+- Tamanho: 0 linhas de código (`.md` e páginas do manual), **9 arquivos** (4 páginas e documentos, 1 README novo, 4 agentes).
+
 ### 0M-24 — `refactor(core)!: MathTools como classe estática no Core`
 - Arquivos: `Runtime/MathTools/Math.cs` (apagado), `Runtime/Core/MathTools.cs`, `Tests/Core/EditMode/MathToolsTests.cs`, `Documentation~/manual/inicio/conceitos.md` (seção Core: `Void`, `RuntimeSet<T>`, `MathTools`).
 - Depende de: 0M-12.
@@ -1249,6 +1421,7 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Depende de: 0M-25, 0M-17.
 - CAs: CA15, CA16, CA17, CA19 (bus), CA2 (parte).
 - Testes red: `Bus_DeliversToAll`, `Bus_UnsubscribeOtherDuringRaise_NoSkipNoDouble`, `Bus_SubscribeDuringRaise_NotCalledThisRaise`, `Bus_ExceptionInSecond_FirstAndThirdReceive_LogsException`, `Bus_ThousandRaises_ZeroAlloc`, `Bus_AfterSessionReset_NoListeners` falham (tipos não existem).
+- **Emenda (2026-10-30, ADR 0027):** depende também do 0M-54 e do 0M-55. Os caminhos seguem a regra de prefixo do topo da Spec, então `Runtime/Events/...` é `Packages/com.spellbook/Runtime/Events/...`.
 - Manual: **Eventos** (o que é; regra dos três usos; `EventBus<T>` com exemplo; segurança do disparo; release build sem `try/catch`).
 - Tamanho: ~280 linhas, 10 arquivos.
 
@@ -1472,6 +1645,18 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Testes red: `AsmdefRules_CoreAsmdefInRuntimeCore` falha (asmdef ainda na raiz de `Runtime/`); `AllExpectedAssembliesExist` e `EachRuntimeModuleHasEditModeTests` são guardas finais; `EveryHelpUrlHasPageAndAnchor` e `NoStubPages` são guardas (red mostrado removendo uma âncora localmente). CA6: o host compila o cenário C1 (ao rodar a suíte no host; sem CI desde 2026-10-29).
 - Manual: Conceitos (mapa final com as referências permitidas), O que é (lista final de módulos) e Migração (linha `SpellBook.Systems.Pooling.*` → `SpellBook.Pooling.*` e menu `PoolingSystem/...` → `SpellBook/Pooling/...`, vinda do 0M-23/0M-25 pela emenda de 2026-10-30).
 - Tamanho: ~150 linhas, 8 arquivos.
+- **Emenda (2026-10-30, ADR 0027).** Vale no lugar dos trechos acima quando eles divergem:
+  - **Cenário C1:** os dois arquivos passam de `HostProject~/Assets/Scenarios/C1/...` para `Assets/Scenarios/C1/C1.PoolingOnly.asmdef` e `Assets/Scenarios/C1/C1PoolingUsage.cs`, com os `.meta`, na raiz do repositório.
+    - O asmdef do C1 não é do pacote: fica fora do `AsmdefRulesTests`, que lê só o `resolvedPath` (0012, emenda de 2026-10-30).
+    - O CA6 lê-se "o projeto da raiz compila o cenário C1".
+  - **Caminhos de pacote:** `Runtime/SpellBook.Core.asmdef` → `Runtime/Core/SpellBook.Core.asmdef` e os testes ficam em `Packages/com.spellbook/` (regra de prefixo). O movimento do asmdef do Core é `R100` e conta como 1 linha. As pastas vazias que somem e os `.meta` delas são remoção pura.
+  - **Manual fora do pacote:** o `ManualLinksTests` (CA54) precisa ler `Documentation~/manual/`, que depois do 0M-54 não fica mais embaixo do `resolvedPath`. Entra `Packages/com.spellbook/Tests/Core/EditMode/Structure/PackageFiles.cs` (+1 arquivo):
+    - propriedade nova `RepositoryRoot`, dois níveis acima de `Root` (`Packages/com.spellbook` → raiz);
+    - o `ManualLinksTests` lê as páginas por ela e falha com a mensagem "manual não encontrado em `<caminho>`; os testes rodam só no projeto de desenvolvimento do repositório" se a pasta não existir;
+    - a mensagem de `Root` passa a citar "pacote embutido em `Packages/com.spellbook` e em `testables`", no lugar de "file:".
+  - Teste red novo: `PackageFiles_RepositoryRoot_HasManual` falha, porque a propriedade não existe.
+  - **Tamanho (substitui a linha acima):** ~170 linhas, **8 arquivos**. O movimento `R100` do asmdef do Core sai da contagem de arquivos, e entra o `PackageFiles.cs`. Se o asmdef mudar de conteúdo, volta a contar, e são 9 arquivos.
+  - **`Runtime/Systems` sai da lista (emenda de 2026-10-30, decisão do usuário; 0027, item 12):** o 0M-23 (commit `c59a68f`) já apagou a pasta `Runtime/Systems/` e o `Runtime/Systems.meta`, porque o `.meta` órfão gerava aviso num clone limpo. O 0M-40 não toca mais nesse caminho. A `Runtime/MathTools` também não tem `.meta` na cópia de trabalho (conferido em 2026-10-30); se a pasta vazia ainda existir no disco de alguém, ela sai como remoção pura, sem contar. A contagem do ticket não muda, porque remoção pura já não contava.
 
 ---
 
@@ -1503,6 +1688,24 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
   - ~~exceção de tamanho do 0M-47 (~500 linhas: `TypePickerTree` 163, `TypePickerPopup` 223, testes 108)~~: **aprovada**, só neste ticket (registrada no 0M-47);
   - ~~adiantar o 0M-08 para logo depois do 0M-47~~: **aprovado**. Ordem, "Por que essa ordem" e "Paralelo sem Editor" da seção 8 atualizados; nenhuma dependência muda.
 - Continua aberto o passo manual do usuário de ligar o Pages com "Source: GitHub Actions" (0M-09).
+- Decididas pelo usuário em 2026-10-30, no gate da ADR 0027 (registro completo na 0027, "Decisões do gate"):
+  - ~~alternativa A, B ou C~~: **A**;
+  - ~~nome do pacote~~: `com.spellbook` continua;
+  - ~~momento~~: agora, depois do 0M-23 e antes do 0M-26, na branch de lote;
+  - ~~exceção ou regra para o movimento~~: **regra permanente** na 0003 (emenda de 2026-10-30);
+  - READMEs: decididos pelo Arquiteto a pedido do usuário. São dois, e só o do pacote tem os passos de instalação (0M-56).
+- Abertas pela 0027 (2026-10-30), para o usuário:
+  - ~~**confirmar a leitura da regra nova**~~: **confirmada pelo usuário em 2026-10-30**. O movimento puro conta como 1 linha e não conta nos 10 arquivos (0003, emenda de 2026-10-30; 0027, item 10);
+  - ~~**`ProjectSettings/` no 0M-54**~~: **exceção só no 0M-54, aprovada em 2026-10-30**. Os 21 arquivos gerados pela Unity entram nesse ticket sem contar nos limites (0027, item 11);
+  - ~~**`Runtime/Systems` no 0M-40**~~: **sem objeto**. O 0M-23 (`c59a68f`) já apagou a pasta e o `.meta`. Saiu do 0M-40 e do que o 0M-54 move (0027, item 12);
+  - **divisão do M2:** o M2 da proposta tinha 17 arquivos e virou 0M-55 (9) e 0M-56 (9), sem exceção;
+  - **Criativo (PRD):** releitura do CA55 (D1, emenda de 2026-10-30) e do R41, que citam `HostProject~/` e `file:../..`; entrada nova no diário. Nenhum CA novo;
+  - **Controlador (backlog):** o B-025 é absorvido pelo 0M-55, e a parte de `.gitignore` do B-026 pelo 0M-54. O timeout e a limpeza do PlayMode no `/implementar` e no `/revisao` continuam no B-026.
+- Achado depois do commit do 0M-23 (2026-10-30), **para o Controlador levar ao backlog** (não é ticket desta Spec):
+  - **Vazamento de `PoolConfiguration` no `PooledSpawnerAsset`.** O `GetOrCreatePooler` (`Runtime/Pooling/PooledSpawnerAsset.cs:63-78`) cria um `PoolConfiguration` com `CreateInstance` (linha 67) para cada pool novo, e ninguém o destrói. Fica um `ScriptableObject` órfão por pool. Isso também vale quando o pool é recriado, porque o `ComponentPooler` do dicionário foi destruído (linha 65, `pooler != null`).
+  - Efeito: memória pequena, mas cresce com o número de prefabs e com as trocas de cena. No Editor, aparece como objeto vazado ao sair do Play Mode.
+  - Direção sugerida, a decidir na triagem: o `PoolConfiguration` criado em runtime pertence ao pool, e é destruído junto com o `GameObject` do pool (por exemplo, no `OnDestroy` do `ComponentPooler`, só quando a configuração não é um asset), com um teste EditMode que conta as instâncias de `PoolConfiguration` antes e depois de destruir o pool. É `fix(pooling)`, sem quebra de API.
+  - Sem efeito na ordem da 0-M: não bloqueia o 0M-54 nem o 0M-26.
 - Abertas pelo D5 (host na 6000.3.13f1, decisão do usuário de 2026-10-29):
   - ~~emenda da ADR 0010~~: **resolvida**, aprovada pelo usuário em 2026-10-29 (consequência do host trocada e seção "Emenda: host local fora da 6000.0");
   - ~~ajuste do CA5 do PRD pelo Criativo~~: **resolvido**. O Criativo ajustou o CA5 (PRD, linha 242) e registrou o D5 no diário;

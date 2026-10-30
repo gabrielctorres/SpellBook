@@ -112,6 +112,14 @@ Esta emenda vale quando a 0026 for aceita.
 
   O teste de asmdefs do item 5 cobra isso.
 
+## Emenda (2026-10-30): pastas relativas ao pacote, pela 0027
+
+A partir do ticket 0M-54, as pastas do item 4 da Decisão (`Runtime/<Módulo>/`, `Editor/<Módulo>/`, `Tests/<Módulo>/`) e a coluna "Pasta" da tabela de asmdefs auxiliares são relativas à pasta do pacote, `Packages/com.spellbook/`. A organização por módulo, os nomes, os GUIDs e as regras de dependência não mudam.
+
+- O teste do item 5 lê os asmdefs pelo `resolvedPath` do pacote e por isso não muda.
+- Asmdefs em `Assets/` (cenários de verificação, como o C1 do 0M-40) não são do pacote. Ficam fora da tabela e do teste do item 5.
+- Um asmdef em `Assets/` pode referenciar só os módulos de runtime que o cenário exercita.
+
 ## Em aberto
 
 - Aprovar `com.unity.ugui` como dependência declarada no `package.json` (dependência nova; só no épico de UI).

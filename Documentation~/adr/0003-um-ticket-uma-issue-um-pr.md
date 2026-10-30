@@ -53,10 +53,25 @@ Decisão do usuário: "só tickets sem Editor" podem rodar em paralelo.
 - O item "Pegar um segundo ticket com outro em implementação ou em revisão" da lista de proibições vale entre tickets com Unity e, para os sem Editor, só quando os dois tocam o mesmo arquivo.
 - Como a 0006 (worktrees) está adiada, o ticket em paralelo não pode trocar a branch do checkout que o ticket com Unity está usando. Ele precisa de uma cópia de trabalho própria, ou espera.
 
+## Emenda (2026-10-30): movimento puro conta como 1 linha
+
+Decisão do usuário no gate da 0027: em vez de dar uma exceção ao ticket de migração, vale uma regra permanente. Ela é mais um item das "Decisões incorporadas":
+
+- **Movimento puro:** um arquivo movido sem alteração de conteúdo conta como **1 linha** no limite de ~400.
+  - Ele **não conta no limite de 10 arquivos**, como a remoção pura (I42). Leitura do Arquiteto, **confirmada pelo usuário em 2026-10-30** (0027, item 10 das decisões do usuário).
+  - O arquivo continua listado no PR e é revisado pela lista de caminhos.
+- **Como reconhecer:** o git mostra o movimento como `R100` (similaridade de 100%) em `git diff -M --name-status` contra a base do ticket. O Examinador confere que todo arquivo contado como movimento puro aparece com `R100`.
+- **Movido com alteração** (`R` abaixo de 100, ou apagado e criado de novo com outro conteúdo): conta como antes, 1 arquivo e as linhas da diferença real.
+- O `.meta` que acompanha o arquivo continua fora dos dois limites. Movê-lo junto, com o mesmo GUID, é obrigatório (0027).
+- A frase "Um arquivo movido conta uma vez", em "Contagem", passa a valer só para o movimento com alteração.
+- **Exceção única, não regra (decisão do usuário, 2026-10-30):** no 0M-54, os 21 arquivos de `ProjectSettings/` gerados pela Unity entram sem contar nos dois limites (0027, item 11 das decisões do usuário). Fora desse ticket, arquivo criado em `ProjectSettings/` conta normalmente.
+
+O resto desta ADR não muda.
+
 ## Em aberto
 
 Nada.
 
 ## Relacionadas
 
-- 0002 (fluxo), 0004 (testes primeiro), 0006 (worktrees), 0008 (commits e versão).
+- 0002 (fluxo), 0004 (testes primeiro), 0006 (worktrees), 0008 (commits e versão), 0027 (estrutura do repositório).

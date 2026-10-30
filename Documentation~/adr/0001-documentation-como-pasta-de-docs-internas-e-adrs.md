@@ -60,10 +60,19 @@ Os documentos divergem no nome da pasta das Specs: `Documentation~/README.md` e 
 
 - **Pasta das Specs: `spec/`** (decisão I35). `TIME.md`, `.claude/agents/arquiteto.md` e `.claude/skills/implementar/SKILL.md` são corrigidos no ticket 0M-02 da Spec [modularizacao](../spec/modularizacao.md) (B-022).
 
+## Emenda (2026-10-30): pacote em `Packages/com.spellbook/`, pela 0027
+
+A partir do ticket 0M-54, a raiz do repositório é o projeto Unity de desenvolvimento, e o pacote é a pasta `Packages/com.spellbook/` (0027).
+
+- **Item 1:** `Documentation~/` fica na raiz do repositório, fora do pacote, com o mesmo nome, as mesmas pastas e os mesmos donos. "Documento interno do pacote" passa a ser "documento interno do repositório".
+- **Item 2:** "raiz do pacote" é `Packages/com.spellbook/`. Ali ficam só `README.md`, `CHANGELOG.md`, `LICENSE` (se houver), `package.json`, `Runtime/`, `Editor/`, `Tests/` e `Samples~/`. Nenhum documento interno fica dentro de `Packages/com.spellbook/`.
+- **Motivo, segundo item:** o til deixa de ser o que tira os documentos do pacote, porque `Documentation~/` já fica fora dele. O nome continua para não mudar as referências (0027, item 3 da Decisão).
+- O `CLAUDE.md` e o `README.md` da raiz são do repositório e não são publicados. O `CLAUDE.md.meta` é apagado no 0M-54.
+
 ## Em aberto
 
 Nada.
 
 ## Relacionadas
 
-- 0002 (fluxo e gate), 0007 (documentação como código), 0025 (ferramenta do manual).
+- 0002 (fluxo e gate), 0007 (documentação como código), 0025 (ferramenta do manual), 0027 (estrutura do repositório).
