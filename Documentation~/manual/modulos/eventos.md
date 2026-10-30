@@ -201,6 +201,7 @@ canal que o objeto deve ouvir.
 
 - O componente se inscreve nos canais no `OnEnable` e se desinscreve no `OnDisable`. Desabilitado
   (o componente ou o objeto), ele não recebe disparos; habilitado de novo, volta a receber.
+  Desabilitar também cancela as esperas de um [Invoke com delay](#delayedreaction).
 - Um disparo do canal roda as **reações** da resposta na ordem da lista e, depois delas, o
   **Escape**.
 - Uma resposta sem canal não faz nada.
@@ -260,6 +261,7 @@ agrupadas por categoria. Cada uma tem validação: um campo obrigatório vazio �
 | [`ToggleComponentReaction`](#togglecomponentreaction) | Objeto | Liga, desliga ou inverte um componente |
 | [`RaiseChannelReaction`](#raisechannelreaction) | Eventos | Dispara outro canal |
 | [`LogReaction`](#logreaction) | Depuração | Escreve uma mensagem no console |
+| [`DelayedReaction`](#delayedreaction) | Fluxo | Roda uma lista de reações depois de um atraso |
 
 #### SetActive {#setactivereaction}
 
@@ -297,6 +299,27 @@ seleciona o `EventListener`.
 
 - **Message**: o texto. Obrigatório.
 - **Type**: tipo da entrada (`Log`, `Warning`, `Error`...). Começa em `Log`.
+
+#### Invoke com delay {#delayedreaction}
+
+Espera um atraso e então roda a sua própria lista de reações, na ordem, com o payload do disparo
+que a agendou.
+
+- **Delay**: o atraso em segundos. Começa em `1`.
+- **Time Source**: a [fonte de tempo](tempo.md) que conta o atraso. Vazio usa o tempo escalado:
+  com `Time.timeScale = 0`, a espera não anda, e volta a andar quando o jogo retoma. Escolha uma
+  [fonte não escalada](tempo.md#unscaledtimesource) para contar o atraso no menu de pausa, ou
+  um [grupo pausável](tempo.md#pausabletimesource) para pausar só uma parte do jogo.
+- **Reactions**: as reações rodadas depois do atraso, escolhidas pelo seletor. Obrigatória: uma
+  lista vazia é erro de validação.
+
+Cada disparo agenda uma espera própria: dois disparos seguidos rodam a lista duas vezes, cada
+uma com o payload dela. Cada espera pendente ocupa um pouco de memória, então evite um Invoke
+com delay num canal que dispara todo quadro.
+
+**Cancelamento.** Se o `EventListener` for desabilitado (o componente ou o objeto) durante a
+espera, a lista não roda, nem quando o atraso acaba nem quando o ouvinte é habilitado de novo.
+Um disparo recebido depois de reabilitar agenda uma espera nova normalmente.
 
 ### Payload próprio {#payload-proprio}
 
