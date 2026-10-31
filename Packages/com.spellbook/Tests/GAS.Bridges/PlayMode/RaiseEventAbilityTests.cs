@@ -39,7 +39,7 @@ namespace SpellBook.GAS.Bridges.Tests
         public IEnumerator Ability_RaiseVoid_OnceAndListenerReacts()
         {
             var channel = _events.CreateChannel<VoidEventChannel>();
-            GameplayAbility ability = _gas.CreateAbility(default, new RaiseEventAction());
+            GameplayAbility ability = _gas.CreateAbility(new RaiseEventAction());
             SetEmission(ability, channel);
             CreateLogListener(channel, "Bola de fogo");
             AbilitySystemComponent asc = _gas.CreateAsc();
