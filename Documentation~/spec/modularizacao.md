@@ -1633,6 +1633,7 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
   - O `EventChannel.cs` sai da lista: o hook já tem o emissor, conforme a emenda de 2026-10-30.
   - Arquivos: `Editor/Events/EventDebuggerModel.cs`, `Editor/Events/EventDebuggerWindow.cs`, `Editor/Events/ListenerLabel.cs`, `Editor/Events/EventChannelEditor.cs`, `Runtime/Events/EventResponse.cs`, `Tests/Events/EditMode/EventDebuggerModelTests.cs`, `Tests/Events/EditMode/ListenerLabelTests.cs`, `Documentation~/manual/ferramentas/event-debugger.md`.
   - Tamanho: **~380 linhas, 8 arquivos**, dentro dos limites da ADR 0003. Não há quebra de compatibilidade, porque o membro novo é `internal`, e não há ADR nova.
+- **Tamanho real e decisão (2026-10-31, depois do commit `0afe173`):** o diff tem **~620 linhas** de código (~372 de produção, ~248 de teste) e 8 arquivos. A estimativa de ~380 ficou curta por causa da emenda do nome do ouvinte. O total passa do teto geral de ~500 da ADR 0003 (emenda de 2026-10-30). O **usuário aprovou a exceção em 2026-10-31, só neste ticket**, como as do 0M-07, do 0M-22 e do 0M-47. Nenhum outro ticket herda a exceção, e a ADR 0003 não muda.
 
 ### 0M-36 — `feat(events): Find references de canal`
 - **Alterado (revisão sem Odin):** o botão e a lista de resultados são UI Toolkit. O papel "emite" é lido do canal **dentro** da `EventEmission` (0016, emenda).
@@ -1642,6 +1643,13 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Testes red: `Find_PrefabEmitterAndSoListener_ExactlyTwo_WithRoles`, `Find_ClosedSceneListener_NotIncluded` falham (risco 23).
 - Manual: Event Debugger, seção **Find references** (escopo: assets e cenas abertas).
 - Tamanho: ~250 linhas, 6 arquivos.
+- **Emenda (2026-10-31, Arquiteto, troca da Fábrica no `Find_ClosedSceneListener_NotIncluded`, risco 23):**
+  - **Problema.** A cena fechada não pode ser criada com `EditorSceneManager.NewScene` aditiva. A Unity recusa ("Cannot create a new scene additively with an untitled scene unsaved"), porque a cena do Test Runner é sem título e não foi salva.
+  - **Decisão: troca confirmada.** O teste cria o ouvinte na cena aberta e salva uma cópia dela na pasta temporária com `EditorSceneManager.SaveScene(cena, caminho, saveAsCopy: true)`. A cópia fica só no disco e não é aberta. Depois o teste apaga o ouvinte da cena aberta. As cenas abertas terminam com o mesmo conteúdo, e o caminho e o título delas não mudam, porque a cópia não troca o caminho da cena. A cópia some com a pasta no `TearDown`. A mitigação do risco 23 continua a mesma: pasta temporária e cenas abertas sem mudança. Só muda o jeito de criar a cena fechada.
+  - **Condições:**
+    - o teste confirma que a cena fechada referencia o canal antes de chamar o `Find`, por exemplo com `AssetDatabase.GetDependencies(caminho, false)` contendo o caminho do canal. Sem isso, o `Is.Empty` passaria mesmo com uma cópia vazia. O teste atual já faz isso;
+    - **ajuste pedido:** o `GameObject` do ouvinte entra no `_sceneObjects` logo depois de criado, como no `Find_OpenSceneListener_IsListens`. Hoje, se o `Assert` do `SaveScene` falhar, o `DestroyImmediate` não roda, e o "Painel" fica na cena aberta para os testes seguintes. O `DestroyImmediate` no meio do teste continua, e o `TearDown` ignora o objeto já destruído.
+  - A lista de arquivos, os testes red, o critério e o tamanho não mudam. Também não há ADR nova.
 
 ### 0M-37 — `feat(gas-bridges): RaiseEventAction`
 - **Alterado (revisão sem Odin):**
@@ -1783,6 +1791,8 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Decididas pelo usuário em 2026-10-29 (0M-47):
   - ~~exceção de tamanho do 0M-47 (~500 linhas: `TypePickerTree` 163, `TypePickerPopup` 223, testes 108)~~: **aprovada**, só neste ticket (registrada no 0M-47);
   - ~~adiantar o 0M-08 para logo depois do 0M-47~~: **aprovado**. Ordem, "Por que essa ordem" e "Paralelo sem Editor" da seção 8 atualizados; nenhuma dependência muda.
+- Decidida pelo usuário em 2026-10-31 (0M-35):
+  - ~~exceção de tamanho do 0M-35 (~620 linhas: ~372 de produção e ~248 de teste, 8 arquivos)~~: **aprovada**, só neste ticket (registrada no 0M-35).
 - Continua aberto o passo manual do usuário de ligar o Pages com "Source: GitHub Actions" (0M-09).
 - Decididas pelo usuário em 2026-10-30, no gate da ADR 0027 (registro completo na 0027, "Decisões do gate"):
   - ~~alternativa A, B ou C~~: **A**;
