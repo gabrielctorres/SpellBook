@@ -18,6 +18,7 @@ namespace SpellBook.Core.Tests.Inspector
         private static readonly string[] CoveredAssemblies =
         {
             "SpellBook.Core", "SpellBook.Time", "SpellBook.Tags", "SpellBook.Pooling",
+            "SpellBook.GAS", "SpellBook.Events", "SpellBook.GAS.Bridges",
         };
 
         private readonly List<Object> _created = new List<Object>();
@@ -34,7 +35,7 @@ namespace SpellBook.Core.Tests.Inspector
         }
 
         [Test]
-        public void EveryPublicConcreteMbAndSo_InCoreTimeTagsPooling_UsesSpellBookEditor()
+        public void EveryPublicConcreteMbAndSo_InRuntimeAssemblies_UsesSpellBookEditor()
         {
             List<Type> types = CoveredTypes();
             var violations = new List<string>();
@@ -49,7 +50,8 @@ namespace SpellBook.Core.Tests.Inspector
                 }
             }
 
-            Assert.That(types.Select(t => t.Name), Does.Contain("PooledSpawnerAsset").And.Contain("ManualTimeSource"),
+            Assert.That(types.Select(t => t.Name), Does.Contain("PooledSpawnerAsset").And.Contain("ManualTimeSource")
+                .And.Contain("AbilitySystemComponent").And.Contain("EventListener"),
                 "a varredura não achou os tipos esperados");
             Assert.That(violations, Is.Empty);
         }

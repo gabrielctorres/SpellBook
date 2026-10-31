@@ -277,6 +277,20 @@ namespace SpellBook.Core.Tests.Structure
         }
 
         [Test]
+        public void AsmdefRules_GasEditorExists_WithAllowedReferences()
+        {
+            AsmdefFile editor = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.GAS.Editor");
+
+            Assert.That(editor, Is.Not.Null, "não existe asmdef SpellBook.GAS.Editor");
+            Assert.That(editor.Path, Is.EqualTo("Editor/GAS/SpellBook.GAS.Editor.asmdef"));
+            Assert.That(editor.Kind, Is.EqualTo(AsmdefKind.Editor));
+            Assert.That(
+                editor.ReferenceNames.Where(r => r.StartsWith("SpellBook.", StringComparison.Ordinal)),
+                Is.EquivalentTo(new[] { "SpellBook.Core", "SpellBook.Tags", "SpellBook.Time", "SpellBook.GAS", "SpellBook.Core.Editor" }));
+            Assert.That(LoadedAssembly("SpellBook.GAS.Editor"), Is.Not.Null, "o assembly SpellBook.GAS.Editor não foi compilado");
+        }
+
+        [Test]
         public void AsmdefRules_ModuleEditorsDoNotReferenceOtherModuleEditors()
         {
             List<AsmdefFile> moduleEditors = PackageFiles.Asmdefs()

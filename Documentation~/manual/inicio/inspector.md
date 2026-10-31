@@ -207,6 +207,34 @@ public sealed class MinhaConfigEditor : SpellBookEditor { }
 Para pôr botões ou outros elementos, sobrescreva `BuildBeforeDefault` (antes dos campos) ou
 `BuildAfterDefault` (depois dos campos), que recebem o elemento raiz do Inspector.
 
+## Inspectors dos seus tipos {#inspectors-dos-seus-tipos}
+
+Todo `MonoBehaviour` e `ScriptableObject` público do SpellBook já tem um Inspector que herda de
+`SpellBookEditor`. Nos seus tipos, faça o mesmo: crie o editor de uma linha mostrado acima. Se o
+seu tipo herda de um tipo do SpellBook, ele pode já usar o Inspector do pacote por herança, como
+as subclasses de `Formula`, `TargetingStrategy`, `TimeSourceAsset` e `EventChannel`.
+
+Para cobrir um tipo base e todas as subclasses dele, passe `true` no segundo argumento:
+
+```csharp
+using SpellBook.Core.Editor;
+using UnityEditor;
+
+[CustomEditor(typeof(MinhaBase), true)]
+public sealed class MinhaBaseEditor : SpellBookEditor { }
+```
+
+**Conflito com um Inspector seu.** Se você escrever um `[CustomEditor]` para um tipo do
+SpellBook, ou um com `editorForChildClasses` para uma base da qual um tipo do SpellBook herda,
+a Unity pode escolher o seu Inspector em vez do do pacote. Se ele não herdar de
+`SpellBookEditor`, a validação no topo e os avisos de tipo não encontrado somem desse Inspector.
+O mesmo vale para Inspectors de outros pacotes. Para não perder os avisos:
+
+- herde de `SpellBookEditor` e use `BuildBeforeDefault` e `BuildAfterDefault` para o que for
+  seu;
+- se não puder herdar, use o validador do projeto, que continua mostrando as mesmas mensagens
+  (veja [Validador](../ferramentas/validador.md)).
+
 ## Inspectors IMGUI e de terceiros {#imgui-e-terceiros}
 
 Os drawers do SpellBook só existem em UI Toolkit. Se um Inspector IMGUI seu, ou um Inspector
