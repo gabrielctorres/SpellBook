@@ -33,6 +33,17 @@ Handling** precisa ser **Input Manager (Old)** ou **Both**. Os materiais usam o 
 
 ## Controles {#controles}
 
+A placa 3D da cena e o `README.md` do Sample trazem este mesmo texto:
+
+```text
+SpellBook Sandbox
+Mouse: mira no chão (o conjurador gira)
+1: Bola de Fogo (custo, recarga, pool, dano, queimadura)
+P: pausa e retoma o jogo (grupo de tempo do gameplay)
+T: câmera lenta, escala 0,25 (tempo escalado)
+R: reinicia (vida, mana, recarga, pausa e escala)
+```
+
 | Tecla | Ação | O que mostra |
 |---|---|---|
 | Mouse | Mira no chão | O conjurador gira para o ponto mirado |
@@ -44,6 +55,62 @@ Handling** precisa ser **Input Manager (Old)** ou **Both**. Os materiais usam o 
 O boneco começa com 2000 de vida e o conjurador com 400 de mana, o que cabe em 20 conjurações
 por reinício. A vida do boneco não passa de 0 e nada acontece quando chega lá: use `R` para
 voltar ao início.
+
+## Passo a passo {#passo-a-passo}
+
+### S1. Conjurar e ver o dano
+
+1. Entre em Play e mire com o mouse no boneco, a cerca de 8 m.
+2. Aperte `1`. O Console mostra "Bola de Fogo conjurada", e a bola sai do pool (na Hierarchy, o objeto
+   é ativado em `[SpellBook Pools]`).
+3. No impacto, o boneco pisca e o Console mostra "Bola de Fogo acertou" e "Dano recebido: 20".
+4. A cor de queimadura fica por 4 s. A cada 0,5 s o Console mostra "Queimadura: tique" e
+   "Dano recebido: 5".
+5. Selecione o boneco e o conjurador para ver Vida e Mana no Inspector (`AttributeReadout`).
+
+### S2. Recarga, mana e renovação
+
+1. Aperte `1` duas vezes em menos de 1,5 s. A segunda mostra "Bola de Fogo em recarga: N,N s".
+2. Conjure de novo durante a queimadura: a duração volta a 4 s, sem segunda queimadura paralela.
+3. Gaste a mana (20 conjurações). A próxima mostra "Sem mana para a Bola de Fogo". Use `R` para voltar ao início.
+
+### S3. Pausa e câmera lenta
+
+1. Conjure e aperte `P` com a bola em voo: projétil, queimadura e recarga param. `P` de novo retoma.
+2. Aperte `T`: a escala vai a 0,25 e tudo o que segue o tempo escalado fica mais lento. `T` de novo volta a 1.
+3. `R` reinicia a cena e devolve a escala a 1, também com o jogo pausado ou em câmera lenta.
+
+## Dados do Sample {#dados}
+
+Os valores abaixo são os dos assets do Sample e podem ser ajustados no playtest.
+
+| Asset | Configuração |
+|---|---|
+| `ATR_Vida` | Mínimo 0, máximo 9999 |
+| `ATR_Mana` | Mínimo 0, máximo 9999 |
+| Conjurador (`AttributeSet`) | Vida 100, Mana 400 |
+| Boneco (`AttributeSet`) | Vida 2000 |
+| `GE_BolaDeFogo_Custo` | Instantâneo. Mana soma −20 |
+| `GE_BolaDeFogo_Recarga` | Com duração de 1,5 s. Sem modificadores |
+| `GE_BolaDeFogo_Dano` | Instantâneo. Vida soma −20 |
+| `GE_Queimadura` | Com duração de 4 s e período de 0,5 s. Modificador periódico: Vida soma −5. Tique: `DebugLogEffectAction` "Queimadura: tique". Tag concedida: `Status.Queimando`. `CanStack` ligado, `MaxStacks` 1 e `RefreshDurationOnStack` ligado |
+| `GA_BolaDeFogo` | Custo e recarga acima. `SpawnProjectileAction` com `SpawnOffset` (0, 1,2, 1). No impacto: `ApplyEffectAction` (Dano e Queimadura) e `RaiseEventAction` (`CH_BolaDeFogoAcertou`) |
+| `SP_Projeteis` | `initialSize` 5 e `canExpand` ligado |
+| `BolaDeFogo.prefab` | `Projectile` com `Speed` 12 e `Lifetime` 3 s, na fonte de tempo `TS_Gameplay` |
+| Câmera lenta | `Time.timeScale` 0,25 |
+
+## O relay de dano é do Sample {#relay}
+
+A Bola de Fogo dispara "Bola de Fogo Acertou" pela ponte GAS → Events do pacote (`RaiseEventAction`), mas essa
+ação tem payload fixo e não alcança a queimadura, que é um efeito. Por isso o `DamageTakenRelay` ouve a Vida
+do próprio boneco e dispara "Dano Recebido" com o valor real. Ele é um substituto local do relay de
+eventos do ASC (B-004), que o pacote ainda não tem. Quando o B-004 entrar, o Sample troca o relay pelo do pacote.
+
+## Renovação da queimadura {#renovacao-da-queimadura}
+
+Reaplicar a queimadura **renova** a duração para 4 s, sem somar pilhas e sem criar segunda instância.
+Isso vem de `CanStack` ligado, `MaxStacks` 1 e `RefreshDurationOnStack` ligado. Com `CanStack` desligado, um
+efeito com duração reaplicado cria uma segunda instância paralela, que não renova nem empilha.
 
 ## Scripts do Sample {#scripts}
 
