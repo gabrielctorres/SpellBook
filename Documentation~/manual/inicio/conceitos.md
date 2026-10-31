@@ -22,16 +22,9 @@ estes assemblies:
 | `SpellBook.Pooling` | [Reaproveitamento de objetos](../modulos/pooling.md). | Core |
 | `SpellBook.Events` | [Eventos](../modulos/eventos.md) por código, canais em asset, ouvintes e emissores. | Core e Time |
 | `SpellBook.GAS` | [Sistema de habilidades](../modulos/gas.md): atributos, efeitos, habilidades, alvos e projéteis. | Core, Tags e Time |
+| `SpellBook.GAS.Bridges` | Ligações do GAS com outros módulos, como a [`RaiseEventAction`](../modulos/gas.md#raiseeventaction), que dispara um evento a partir de uma habilidade. | Core, Tags, Time, GAS e Events |
 | `SpellBook.Core.Editor` | Código de Editor do Core (Inspector do SpellBook). Só existe no Editor. | Core |
 | `SpellBook.Events.Editor` | Inspectors do canal e do emissor. Só existe no Editor. | Core, Time, Events e Core.Editor |
-
-### Mapa ao fim da reorganização {#mapa-alvo}
-
-Ao fim da reorganização da 3.0, entra mais um assembly. Ele ainda **não existe**:
-
-| Assembly | Para que serve |
-|---|---|
-| `SpellBook.GAS.Bridges` | Ligações do GAS com outros módulos, como disparar um evento a partir de uma habilidade. |
 
 ## Core {#core}
 
@@ -87,14 +80,13 @@ A regra vale entre assemblies. Hoje ela é esta:
 - Os módulos de infraestrutura (Core, Time, Tags, Pooling e Events) nunca dependem do GAS.
 - O `SpellBook.Events` depende só do `SpellBook.Core` e do `SpellBook.Time`.
 - O `SpellBook.GAS` não depende de Events nem de Pooling.
+- O `SpellBook.GAS.Bridges` é o único assembly que liga o GAS a outro módulo (hoje, ao Events) e
+  não depende de Pooling nem de nenhum assembly de Editor.
 - Um assembly de Editor de módulo, como o `SpellBook.Events.Editor`, pode depender do
   `SpellBook.Core.Editor`, mas não do Editor de outro módulo.
 
 Assim, um projeto que só quer eventos ou pooling não carrega o GAS. Os testes do pacote conferem
 essa regra lendo os asmdefs.
-
-Quando o `SpellBook.GAS.Bridges` existir, é ele que vai ligar o GAS a outros módulos, como Events,
-sem depender de Pooling.
 
 O pacote não depende do Odin Inspector nem de outro pacote de Inspector. Veja
 [Inspector](inspector.md).
