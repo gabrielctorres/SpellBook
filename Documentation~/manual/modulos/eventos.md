@@ -9,8 +9,9 @@ os eventos precisa referenciar o `SpellBook.Events`. Veja [Conceitos](../inicio/
 !!! note "Em desenvolvimento"
     Nesta versão de desenvolvimento da 3.0, o módulo tem o barramento de código (`EventBus<T>`),
     os canais Void, Int, Float, Bool, String, Vector3 e GameObject e o componente ouvinte
-    (`EventListener`) com as reações prontas SetActive, Toggle de componente, Log e RaiseChannel.
-    A reação Invoke com delay e o emissor chegam nas próximas etapas.
+    (`EventListener`) com as reações prontas SetActive, Toggle de componente, Log, RaiseChannel e
+    Invoke com delay, e o emissor (`EventEmitter`). A escolha do canal do emissor no Inspector e o
+    botão Raise chegam nas próximas etapas.
 
 ## Três usos e uma regra {#tres-usos}
 
@@ -353,7 +354,30 @@ public sealed class DanoEventResponse : EventResponse<Dano>
 - A `DanoEventResponse` aparece no seletor da lista **Responses**; o **Escape** dela é um
   `UnityEvent<Dano>`.
 - Quem dispara usa `danoRecebido.Raise(new Dano { Valor = 10, Ponto = transform.position })`.
+- Um [`EventEmitter`](#eventemitter) com um `DanoEventChannel` dispara o `Dano` sem código.
 - Marque o struct com `[Serializable]` para o payload aparecer no Inspector do canal e do Escape.
+
+## EventEmitter {#eventemitter}
+
+O `EventEmitter` é o componente que dispara um canal sem código. Ele guarda uma **emissão**: o
+canal e o payload fixo enviado a cada disparo. O tipo do payload vem do canal: um canal Float
+pede um número, um canal de payload próprio pede os campos do seu struct, e um canal Void não
+pede nada.
+
+Para disparar, chame o método público `Raise()` do componente:
+
+- **Por um `UnityEvent`**: no `OnClick` de um botão, por exemplo, arraste o objeto com o
+  `EventEmitter` e escolha **EventEmitter > Raise ()**.
+- **Por animação**: num evento de animação de um clipe do objeto, escolha a função `Raise`.
+
+Cada chamada dispara o canal uma vez, e o emissor aparece como quem disparou no log do canal.
+Sem emissão ou sem canal, `Raise()` não faz nada, e o validador acusa o
+erro.
+
+!!! note "Em desenvolvimento"
+    Nesta versão, o Inspector do `EventEmitter` ainda não tem o campo de canal nem o botão Raise
+    no Play. A emissão só pode ser montada por código de Editor, com
+    `EventEmission.CreateFor(canal)`.
 
 ## Segurança do disparo {#seguranca}
 
