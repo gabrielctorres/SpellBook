@@ -69,6 +69,34 @@ minúsculas. Ele filtra as duas listas ao mesmo tempo: digitar `player` deixa s�
 O botão **Limpar** apaga o histórico de disparos. A lista de canais não muda. O botão **?** abre
 esta página.
 
+## Find references {#find-references}
+
+O **Find references** responde "quem emite e quem ouve este canal?" fora do Play, lendo o que está
+configurado nos objetos. Há três jeitos de usar:
+
+- no Event Debugger, selecione um canal na lista e clique em **Find References** na barra de cima;
+- no Inspector do canal, abra o menu da engrenagem e escolha **Find References**;
+- na janela Project, clique com o botão direito no asset do canal e escolha
+  **SpellBook > Find References**.
+
+O resultado aparece na parte de baixo do Event Debugger, em **Referências**, com uma linha por
+objeto e papel:
+
+| Papel | Quem é |
+|---|---|
+| `emite` | o canal de uma emissão (`EventEmitter`, `RaiseEventAction`) ou de uma reação que dispara outro canal |
+| `ouve` | o canal de uma resposta (`EventListener` ou outro objeto com uma resposta) |
+| `referencia` | um campo comum com o canal, que não emite nem ouve pelo Inspector |
+
+Cada linha mostra também o objeto, como `Botao (EventEmitter)`, e onde ele está: o caminho do
+prefab ou do asset, ou o caminho da cena. Clique numa linha para selecionar o objeto, que aparece no
+Inspector e fica destacado no Project ou na Hierarchy.
+
+O escopo é **os assets do projeto (prefabs e assets `.asset`) e as cenas abertas**. Cenas fechadas
+não são abertas nem lidas: abra a cena (inclusive de forma aditiva) antes de procurar, se quiser
+vê-la no resultado. Um canal criado em memória durante o Play não tem asset, e por isso só mostra as
+referências das cenas abertas. A lista não se atualiza sozinha: clique de novo depois de mudar algo.
+
 ## Exemplo: o jogador morreu {#exemplo}
 
 1. Crie um canal em **Create > SpellBook > Events > Void Channel** com o nome `PlayerDied`.

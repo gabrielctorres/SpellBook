@@ -11,7 +11,8 @@ namespace SpellBook.Events.Editor
     /// <summary>
     /// Event Debugger (R20): lista os canais do projeto com os ouvintes vivos e o histórico de disparos com quadro,
     /// horário, payload e emissor. Busca por nome e botão para limpar. Só grava com a janela aberta, e o histórico
-    /// recomeça a cada entrada no Play (I-d).
+    /// recomeça a cada entrada no Play (I-d). O botão "Find References" lista quem emite e quem ouve o canal selecionado
+    /// nos assets e nas cenas abertas (CA24).
     /// </summary>
     internal sealed class EventDebuggerWindow : EditorWindow
     {
@@ -23,16 +24,27 @@ namespace SpellBook.Events.Editor
         private readonly List<EventDebuggerModel.Entry> _entries = new List<EventDebuggerModel.Entry>();
         private readonly List<object> _listeners = new List<object>();
         private readonly List<string> _listenerNames = new List<string>();
+        private readonly List<ChannelReference> _references = new List<ChannelReference>();
 
         private string _search = "";
         private ListView _channelList;
         private ListView _historyList;
         private Label _historyHeader;
+        private ListView _referencesList;
+        private Label _referencesHeader;
+        private ToolbarButton _findButton;
+        private EventChannel _referencesChannel;
 
         [MenuItem("Window/SpellBook/Event Debugger")]
         public static void Open()
         {
             GetWindow<EventDebuggerWindow>("Event Debugger");
+        }
+
+        /// <summary>Abre a janela com as referências de <paramref name="channel"/>. Com canal nulo, só abre.</summary>
+        public static void ShowReferences(EventChannel channel)
+        {
+            GetWindow<EventDebuggerWindow>("Event Debugger").FindReferences(channel);
         }
 
         private void OnEnable()
@@ -66,6 +78,13 @@ namespace SpellBook.Events.Editor
                 _model.Clear();
                 Refresh();
             }) { text = "Limpar", tooltip = "Apaga o histórico de disparos." });
+            _findButton = new ToolbarButton(() => FindReferences(_channelList.selectedItem as EventChannel))
+            {
+                text = "Find References",
+                tooltip = "Lista quem emite e quem ouve o canal selecionado nos assets e nas cenas abertas.",
+            };
+            _findButton.SetEnabled(false);
+            toolbar.Add(_findButton);
             toolbar.Add(new ToolbarButton(() => Application.OpenURL(DocUrls.EventDebugger)) { text = "?", tooltip = "Abre o manual do Event Debugger." });
             rootVisualElement.Add(toolbar);
 
@@ -77,7 +96,11 @@ namespace SpellBook.Events.Editor
                 virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight,
                 showAlternatingRowBackgrounds = AlternatingRowBackground.ContentOnly,
             };
-            _channelList.selectionChanged += _ => Ping(_channelList.selectedItem as Object);
+            _channelList.selectionChanged += _ =>
+            {
+                _findButton.SetEnabled(_channelList.selectedItem is EventChannel);
+                Ping(_channelList.selectedItem as Object);
+            };
 
             _historyHeader = new Label();
             _historyList = new ListView
@@ -95,11 +118,31 @@ namespace SpellBook.Events.Editor
                 }
             };
 
+            _referencesHeader = new Label();
+            _referencesList = new ListView
+            {
+                itemsSource = _references,
+                makeItem = () => new Label(),
+                bindItem = BindReferenceRow,
+                showAlternatingRowBackgrounds = AlternatingRowBackground.ContentOnly,
+            };
+            _referencesList.selectionChanged += _ =>
+            {
+                if (_referencesList.selectedItem is ChannelReference reference)
+                {
+                    Reveal(reference.Target);
+                }
+            };
+
+            var bottom = new TwoPaneSplitView(1, 120, TwoPaneSplitViewOrientation.Vertical);
+            bottom.Add(Section(_historyHeader, _historyList));
+            bottom.Add(Section(_referencesHeader, _referencesList));
             var split = new TwoPaneSplitView(0, 200, TwoPaneSplitViewOrientation.Vertical);
             split.Add(Section(new Label("Canais"), _channelList));
-            split.Add(Section(_historyHeader, _historyList));
+            split.Add(bottom);
             rootVisualElement.Add(split);
 
+            RefreshReferences();
             Refresh();
             rootVisualElement.schedule.Execute(Refresh).Every(RefreshIntervalMs);
         }
@@ -173,6 +216,38 @@ namespace SpellBook.Events.Editor
             names.style.display = _listenerNames.Count > 0 ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
+        private void FindReferences(EventChannel channel)
+        {
+            if (channel == null) return;
+
+            _referencesChannel = channel;
+            _references.Clear();
+            _references.AddRange(ChannelReferenceFinder.Find(channel));
+            RefreshReferences();
+        }
+
+        private void RefreshReferences()
+        {
+            if (_referencesList == null) return;
+
+            _referencesHeader.text = _referencesChannel == null
+                ? "Referências (selecione um canal e clique em Find References)"
+                : $"Referências de {_referencesChannel.name} ({_references.Count}, assets e cenas abertas)";
+            _referencesList.RefreshItems();
+        }
+
+        private void BindReferenceRow(VisualElement row, int index)
+        {
+            ChannelReference reference = _references[index];
+            string role = reference.Role switch
+            {
+                ChannelReferenceRole.Emits => "emite",
+                ChannelReferenceRole.Listens => "ouve",
+                _ => "referencia",
+            };
+            ((Label)row).text = $"[{role}]  {ListenerLabel.Describe(reference.Target)}  em {reference.Location}";
+        }
+
         private void BindEntryRow(VisualElement row, int index)
         {
             EventDebuggerModel.Entry entry = _entries[index];
@@ -196,6 +271,16 @@ namespace SpellBook.Events.Editor
         {
             if (target != null)
             {
+                EditorGUIUtility.PingObject(target);
+            }
+        }
+
+        /// <summary>Seleciona o objeto e o destaca no Project ou na Hierarchy (clique numa referência, R21).</summary>
+        internal static void Reveal(Object target)
+        {
+            if (target != null)
+            {
+                Selection.activeObject = target;
                 EditorGUIUtility.PingObject(target);
             }
         }
