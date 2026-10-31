@@ -28,6 +28,19 @@ namespace SpellBook.Core.Tests.Structure
             "UnityEngine.InputSystem", "UnityEngine.UI", "TMPro", "UnityEditor", "Sire" + "nix",
         };
 
+        private const string SamplesPage = "Documentation~/manual/exemplos/sandbox.md";
+
+        // Termos proibidos no corpo de Update, LateUpdate e FixedUpdate (convenções Unity do CLAUDE.md).
+        private static readonly string[] ForbiddenPerFrameTerms = { "GetComponent", "Find", "new List", "Linq" };
+
+        private static readonly Regex MonoBehaviourDeclaration =
+            new Regex(@"\bclass\s+(?<name>\w+)\s*:\s*(UnityEngine\.)?MonoBehaviour\b");
+
+        private static readonly Regex SamplesHelpUrl =
+            new Regex(@"\[\s*HelpURL\s*\(\s*DocUrls\.Samples\s*\+\s*""#(?<anchor>[\w-]+)""\s*\)\s*\]");
+
+        private static readonly Regex PerFrameMethod = new Regex(@"\bvoid\s+(?<name>Update|LateUpdate|FixedUpdate)\s*\(\s*\)");
+
         private static readonly Regex MetaGuid = new Regex(@"^guid:\s*([0-9a-fA-F]{32})\s*$", RegexOptions.Multiline);
 
         [Test]
@@ -130,6 +143,98 @@ namespace SpellBook.Core.Tests.Structure
 
             Assert.That(entries, Is.Not.Empty, $"a varredura não achou nenhum arquivo em {SamplePath}");
             Assert.That(violations, Is.Empty);
+        }
+
+        [Test]
+        public void SampleBehaviours_HaveHelpUrlToSamplesPage()
+        {
+            string page = File.ReadAllText(Path.Combine(PackageFiles.RepositoryRoot, SamplesPage));
+            var behaviours = new List<string>();
+            var violations = new List<string>();
+
+            foreach (string file in SampleSources())
+            {
+                string text = File.ReadAllText(file);
+                foreach (Match declaration in MonoBehaviourDeclaration.Matches(text))
+                {
+                    string name = declaration.Groups["name"].Value;
+                    behaviours.Add(name);
+
+                    Match help = SamplesHelpUrl.Match(AttributesBefore(text, declaration.Index));
+                    if (!help.Success)
+                    {
+                        violations.Add($"{Relative(file)}: {name} sem [HelpURL(DocUrls.Samples + \"#...\")]");
+                    }
+                    else if (!page.Contains("{#" + help.Groups["anchor"].Value + "}"))
+                    {
+                        violations.Add($"{Relative(file)}: âncora {{#{help.Groups["anchor"].Value}}} não existe em {SamplesPage}");
+                    }
+                }
+            }
+
+            Assert.That(behaviours, Is.Not.Empty, $"nenhum \": MonoBehaviour\" nos .cs de {SamplePath}");
+            Assert.That(violations, Is.Empty);
+        }
+
+        [Test]
+        public void SampleSources_HaveNoFindOrGetComponentInUpdate()
+        {
+            var violations = new List<string>();
+
+            foreach (string file in SampleSources())
+            {
+                string text = File.ReadAllText(file);
+                foreach (Match method in PerFrameMethod.Matches(text))
+                {
+                    string[] lines = MethodBody(text, method.Index + method.Length).Split('\n');
+                    foreach (string line in lines)
+                    {
+                        foreach (string term in ForbiddenPerFrameTerms.Where(t => line.Contains(t)))
+                        {
+                            violations.Add($"{Relative(file)}: {method.Groups["name"].Value} usa {term}: {line.Trim()}");
+                        }
+                    }
+                }
+            }
+
+            Assert.That(violations, Is.Empty);
+        }
+
+        /// <summary>Os atributos logo antes da declaração: o trecho desde o último <c>;</c>, <c>{</c> ou <c>}</c>.</summary>
+        private static string AttributesBefore(string text, int declarationIndex)
+        {
+            int start = text.LastIndexOfAny(new[] { ';', '{', '}' }, declarationIndex) + 1;
+            return text.Substring(start, declarationIndex - start);
+        }
+
+        /// <summary>O corpo entre a primeira <c>{</c> depois de <paramref name="from"/> e a <c>}</c> que a fecha.</summary>
+        private static string MethodBody(string text, int from)
+        {
+            int open = text.IndexOf('{', from);
+            if (open < 0)
+            {
+                return string.Empty;
+            }
+
+            int depth = 0;
+            for (int i = open; i < text.Length; i++)
+            {
+                if (text[i] == '{')
+                {
+                    depth++;
+                }
+                else if (text[i] == '}' && --depth == 0)
+                {
+                    return text.Substring(open + 1, i - open - 1);
+                }
+            }
+
+            return text.Substring(open + 1);
+        }
+
+        private static IEnumerable<string> SampleSources()
+        {
+            return SampleEntries().Where(f => f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase));
         }
 
         private static string SampleFolder()
