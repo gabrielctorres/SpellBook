@@ -9,5 +9,12 @@
     "name": "Gabriel Torres",
     "email": "gabrielctorres38@gmail.com",
     "url": "https://github.com/gabrielctorres"
-  }
+  },
+  "samples": [
+    {
+      "displayName": "Sandbox",
+      "description": "Cena 3D de teste manual que liga GAS, Events, Pooling e Time: Bola de Fogo, queimadura, canal de dano recebido, pausa e câmera lenta.",
+      "path": "Samples~/Sandbox"
+    }
+  ]
 }

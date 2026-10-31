@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db7ce2d1a4c7a144ca09c1ab52810eb4, type: 3}
+  m_Name: GE_BolaDeFogo_Custo
+  m_EditorClassIdentifier: SpellBook.GAS::SpellBook.GAS.Effects.GameplayEffect
+  DurationPolicy: 0
+  Duration: 0
+  Period: 0
+  Modifiers:
+  - Attribute: {fileID: 11400000, guid: 5e04370c78b0d7b4e8dc7b2e9bbae061, type: 2}
+    Operation: 0
+    ValueSource:
+      Type: 0
+      ConstantValue: -20
+      Attribute: {fileID: 0}
+      Formula: {fileID: 0}
+  PeriodicModifiers: []
+  OnApplication: []
+  OnTickActions: []
+  OnRemoval: []
+  GrantedTags: []
+  ApplicationRequirements: []
+  ApplicationImmunityTags: []
+  CanStack: 0
+  MaxStacks: 1
+  RefreshDurationOnStack: 1
+  references:
+    version: 2
+    RefIds: []

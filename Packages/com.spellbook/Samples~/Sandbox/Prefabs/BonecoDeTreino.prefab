@@ -1,0 +1,273 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3876075367260150889
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1337579775857214536}
+  - component: {fileID: 5164709695453916434}
+  - component: {fileID: 4595057909260188262}
+  m_Layer: 0
+  m_Name: Visual
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1337579775857214536
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3876075367260150889}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6117951132222318977}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &5164709695453916434
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3876075367260150889}
+  m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &4595057909260188262
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3876075367260150889}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: de5e197aae90a1048918e6bee8c7b0bf, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &5939457354471458340
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6117951132222318977}
+  - component: {fileID: 5665067733963557255}
+  - component: {fileID: 4162690574170307805}
+  - component: {fileID: 793532725458039257}
+  - component: {fileID: 2702453895243035718}
+  - component: {fileID: 5605621693066905443}
+  - component: {fileID: 5588178653336017363}
+  - component: {fileID: 2379561564034608382}
+  m_Layer: 0
+  m_Name: BonecoDeTreino
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6117951132222318977
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5939457354471458340}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1337579775857214536}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!136 &5665067733963557255
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5939457354471458340}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 2
+  m_Direction: 1
+  m_Center: {x: 0, y: 1, z: 0}
+--- !u!114 &4162690574170307805
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5939457354471458340}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0e6a6bca937db242a18b97bcfdcb9d5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpellBook.GAS::SpellBook.GAS.Attributes.AttributeSet
+  startingAttributes:
+  - Definition: {fileID: 11400000, guid: 9e242287da19ef24897717e50ec580eb, type: 2}
+    InitialValue: 2000
+--- !u!114 &793532725458039257
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5939457354471458340}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a2dc2bc6a69ccc408710118d5a6a9ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpellBook.GAS::SpellBook.GAS.Core.AbilitySystemComponent
+  attributeSet: {fileID: 4162690574170307805}
+  startingAbilities: []
+  timeSource: {fileID: 11400000, guid: 270467b95be598945b2fbce277c1d6b9, type: 2}
+  autoTick: 1
+--- !u!114 &2702453895243035718
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5939457354471458340}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b814140edbd8774285d7f6c61a67266, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpellBook.Samples.Sandbox::SpellBook.Samples.Sandbox.DamageTakenRelay
+  health: {fileID: 11400000, guid: 9e242287da19ef24897717e50ec580eb, type: 2}
+  damageTaken: {fileID: 11400000, guid: 62dea702254525643a50ca6d77aff641, type: 2}
+--- !u!114 &5605621693066905443
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5939457354471458340}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c4e8cc53ab8fc24e956316dab9ff805, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpellBook.Events::SpellBook.Events.EventListener
+  responses:
+  - rid: 3572287606204923908
+  references:
+    version: 2
+    RefIds:
+    - rid: 3572287606204923908
+      type: {class: FloatEventResponse, ns: SpellBook.Events, asm: SpellBook.Events}
+      data:
+        channel: {fileID: 11400000, guid: 62dea702254525643a50ca6d77aff641, type: 2}
+        reactions: []
+        escape:
+          Event:
+            m_PersistentCalls:
+              m_Calls:
+              - m_Target: {fileID: 5588178653336017363}
+                m_TargetAssemblyTypeName: SpellBook.Samples.Sandbox.TrainingDummyFeedback,
+                  SpellBook.Samples.Sandbox
+                m_MethodName: OnDamaged
+                m_Mode: 0
+                m_Arguments:
+                  m_ObjectArgument: {fileID: 0}
+                  m_ObjectArgumentAssemblyTypeName: 
+                  m_IntArgument: 0
+                  m_FloatArgument: 0
+                  m_StringArgument: 
+                  m_BoolArgument: 0
+                m_CallState: 2
+--- !u!114 &5588178653336017363
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5939457354471458340}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca775e763e3e51d49ac28d025db9eae9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpellBook.Samples.Sandbox::SpellBook.Samples.Sandbox.TrainingDummyFeedback
+  target: {fileID: 4595057909260188262}
+  burningTag:
+    definition: {fileID: 11400000, guid: d746a42321683ae4dbb40510377c858b, type: 2}
+  normal: {r: 1, g: 1, b: 1, a: 1}
+  hit: {r: 1, g: 0, b: 0, a: 1}
+  burning: {r: 1, g: 0.5, b: 0, a: 1}
+  hitFlash: 0.15
+  timeSource: {fileID: 11400000, guid: 270467b95be598945b2fbce277c1d6b9, type: 2}
+--- !u!114 &2379561564034608382
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5939457354471458340}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a3eaabc812589b4dafa9eda7a90a868, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpellBook.Samples.Sandbox::SpellBook.Samples.Sandbox.AttributeReadout
+  entries:
+  - attribute: {fileID: 11400000, guid: 9e242287da19ef24897717e50ec580eb, type: 2}
+    current: 0
