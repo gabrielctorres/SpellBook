@@ -1617,6 +1617,22 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - **Emenda (2026-10-30, varredura de lacunas):**
   - o acesso ao `EventChannel.Observed` e ao `LiveChannels` vem do `InternalsVisibleTo` do 0M-45. O `Observed` já tem o emissor desde o 0M-27 (`EventChannel.cs:25`); se o ajuste do hook não for preciso, o `EventChannel.cs` sai da lista;
   - o quadro vem de `UnityEngine.Time.frameCount` e o horário de `DateTime.Now`, sempre qualificados, porque o `SpellBook.Events.Editor` referencia o `SpellBook.Time` (1.7). Nada lê `Time.time` nem `realtimeSinceStartup` (0014).
+- **Emenda (2026-10-31, nome do ouvinte):**
+  - **Problema.** O `EventResponse<T>` se inscreve no canal com o próprio `OnRaised` (`Runtime/Events/EventResponse.cs:58`), e o `ListenerList.CopyTargets` devolve o `Target` do delegate (`Runtime/Events/ListenerList.cs:48`). Por isso o canal lista a resposta, não o `EventListener` dono. A janela e o Inspector do canal (0M-45) mostram "SpellBook.Events.VoidEventResponse" em vez de "Painel (EventListener)", e o CA23 não fecha. A mesma regra de nome existe duas vezes: `EventDebuggerModel.Describe` e o `EventChannelEditor.Describe` privado (`Editor/Events/EventChannelEditor.cs:68`).
+  - **Decisão: opção (a).** O ticket passa a incluir o `EventResponse.cs`, o `EventChannelEditor.cs` e um nomeador único. A API pública não muda: o `GetListeners` continua devolvendo o alvo do delegate, e a tradução de resposta para dono fica no Editor.
+  - `EventResponse` ganha `internal virtual EventListener Owner => null;`. O `EventResponse<T>` sobrescreve com `=> _listener`, que vale o ouvinte entre o `Subscribe` e o `Unsubscribe`. O membro é `virtual` e não `abstract` para não impedir que outro assembly herde direto de `EventResponse`. O acesso pelo Editor usa o `InternalsVisibleTo("SpellBook.Events.Editor")` que já existe (`Runtime/Events/AssemblyInfo.cs:5`).
+  - Novo `Editor/Events/ListenerLabel.cs`: `internal static class ListenerLabel` com `Describe(object target)`. Para uma `EventResponse` com `Owner`, devolve o nome do dono, por exemplo "Painel (EventListener)". Para uma resposta sem dono, devolve o nome curto do tipo. Para um `Object` da Unity, devolve "nome (Tipo)", ou "(destruído)" se o objeto foi destruído. Para `null`, devolve "(nulo)". Para outro alvo, devolve o `ToString()`. O nome do emissor no `Entry` continua sendo `sender.name`.
+  - Saem o `EventDebuggerModel.Describe` e o `EventChannelEditor.Describe`. A janela e o Inspector do canal chamam o `ListenerLabel.Describe`.
+  - Testes red novos em `Tests/Events/EditMode/ListenerLabelTests.cs`, todos com fábricas pequenas e com o `channel` da resposta posto por `SerializedObject`:
+    - `Describe_ChannelListenerFromEventListener_ShowsOwnerNameAndType`: um GameObject "Painel" com `EventListener` e uma `VoidEventResponse` inscrita; o canal passa pelo `GetListeners`; o resultado esperado é "Painel (EventListener)".
+    - `Describe_ResponseWithoutOwner_ShowsResponseTypeName`.
+    - `Describe_DestroyedObject_ShowsDestroyed`.
+    - `Describe_Null_ShowsNull`.
+    - Testes do modelo que usavam `EventDebuggerModel.Describe` passam a usar `ListenerLabel` ou saem, sem perder cobertura.
+  - Critério a mais: `Channel_GetListeners_ReturnsTargets` (`Tests/Events/EditMode/EventChannelTests.cs:153`) e os testes do Inspector do canal do 0M-45 continuam verdes. No cenário CA23 do host, a janela e o Inspector do canal mostram "Painel (EventListener)".
+  - O `EventChannel.cs` sai da lista: o hook já tem o emissor, conforme a emenda de 2026-10-30.
+  - Arquivos: `Editor/Events/EventDebuggerModel.cs`, `Editor/Events/EventDebuggerWindow.cs`, `Editor/Events/ListenerLabel.cs`, `Editor/Events/EventChannelEditor.cs`, `Runtime/Events/EventResponse.cs`, `Tests/Events/EditMode/EventDebuggerModelTests.cs`, `Tests/Events/EditMode/ListenerLabelTests.cs`, `Documentation~/manual/ferramentas/event-debugger.md`.
+  - Tamanho: **~380 linhas, 8 arquivos**, dentro dos limites da ADR 0003. Não há quebra de compatibilidade, porque o membro novo é `internal`, e não há ADR nova.
 
 ### 0M-36 — `feat(events): Find references de canal`
 - **Alterado (revisão sem Odin):** o botão e a lista de resultados são UI Toolkit. O papel "emite" é lido do canal **dentro** da `EventEmission` (0016, emenda).
