@@ -218,6 +218,25 @@ namespace SpellBook.Core.Tests.Structure
         }
 
         [Test]
+        public void AsmdefRules_BridgesDoesNotReferencePooling()
+        {
+            AsmdefFile bridges = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.GAS.Bridges");
+
+            Assert.That(bridges, Is.Not.Null, "não existe asmdef SpellBook.GAS.Bridges");
+            Assert.That(bridges.Path, Is.EqualTo("Runtime/GAS.Bridges/SpellBook.GAS.Bridges.asmdef"));
+            Assert.That(bridges.Kind, Is.EqualTo(AsmdefKind.Runtime));
+            Assert.That(bridges.ReferenceNames, Has.None.EqualTo("SpellBook.Pooling"), "o Bridges referencia o Pooling");
+            Assert.That(
+                bridges.ReferenceNames.Where(r => r.EndsWith(".Editor", StringComparison.Ordinal)),
+                Is.Empty,
+                "o Bridges referencia um assembly de Editor");
+            Assert.That(
+                bridges.ReferenceNames.Where(r => r.StartsWith("SpellBook.", StringComparison.Ordinal)),
+                Is.EquivalentTo(new[] { "SpellBook.Core", "SpellBook.Tags", "SpellBook.Time", "SpellBook.GAS", "SpellBook.Events" }));
+            Assert.That(LoadedAssembly("SpellBook.GAS.Bridges"), Is.Not.Null, "o assembly SpellBook.GAS.Bridges não foi compilado");
+        }
+
+        [Test]
         public void AsmdefRules_EventsEditorReferencesOnlyCoreTimeEventsCoreEditor()
         {
             AsmdefFile editor = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.Events.Editor");

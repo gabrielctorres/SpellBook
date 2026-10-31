@@ -63,6 +63,7 @@ os efeitos ativos e as tags de um personagem. Veja a seção [Ciclo de vida](#ci
 - **RepeatAction:** repete uma lista de ações N vezes, com intervalo opcional.
 - **ParallelAction:** executa várias ações ao mesmo tempo e espera todas terminarem.
 - **ConditionalAction:** executa `Then` ou `Else` conforme tags do conjurador ou existência de alvos.
+- **RaiseEventAction:** dispara um canal de eventos (detalhes em [RaiseEventAction](#raiseeventaction)).
 
 #### Ações que esperam {#acoes-que-esperam}
 O `Duration` da `WaitAction`, o `Interval` da `RepeatAction` e o `DelayBetweenShots` da `SpawnProjectileAction` contam o tempo do ASC que conjurou, o [`TickedTime`](#tempo-do-asc), e não o relógio da Unity.
@@ -92,6 +93,18 @@ A `SpawnProjectileAction` dispara projéteis: cria o `ProjectilePrefab` pelo cam
 !!! warning "Armadilha: o VFX do `PlayCueAction` não volta"
     O `PlayCueAction` não devolve o VFX ao spawner. Com o padrão por `Instantiate`, o VFX precisa se destruir sozinho (por exemplo, `Stop Action` = `Destroy` na partícula). Com um spawner de pool, o pool cresce a cada uso. Isso continua assim até o módulo Cues.
 
+#### RaiseEventAction {#raiseeventaction}
+A `RaiseEventAction` dispara um [canal de eventos](eventos.md) quando a habilidade chega nela. Ela fica no assembly `SpellBook.GAS.Bridges`, que liga o GAS ao módulo de Eventos, e aparece no seletor de ações na categoria **Eventos**.
+
+A ação guarda uma **emissão**, o mesmo campo do [`EventEmitter`](eventos.md#eventemitter): o canal e o payload fixo.
+
+- **Canal sem payload** (Void): a ação só dispara o canal.
+- **Canal com payload** (`EventChannel<T>`, como Int ou um payload próprio): a ação envia o valor fixo do campo **Payload**. Trocar o canal por um de outro tipo recria a emissão, e o payload volta ao valor padrão.
+- Cada passagem pela ação dispara o canal uma vez, e a ação termina no mesmo quadro. O ASC que conjurou aparece como quem disparou no log do canal.
+- Sem emissão ou sem canal, a ação não faz nada, e o validador acusa o erro na habilidade.
+
+O payload é sempre o valor fixo do Inspector. Um payload calculado na hora (o alvo, o dano causado) ainda não existe.
+
 ### 3.1 Criando ações próprias {#acoes-proprias}
 Herde de `AbilityAction` e implemente `IEnumerator Execute(AbilityContext context)`.
 
@@ -100,6 +113,7 @@ Herde de `AbilityAction` e implemente `IEnumerator Execute(AbilityContext contex
 - Para rodar sub-ações use `AbilityAction.RunSequence(lista, context)`; para corrotinas paralelas use `context.StartChildRoutine(...)`, que é interrompida junto no cancelamento.
 - Use `context.GetValidTargets()` em vez de `context.Targets` quando alvos podem ter sido destruídos durante a habilidade.
 - Para esperar, use `yield return context.WaitSeconds(segundos)`, que conta o tempo do ASC ([Ações que esperam](#acoes-que-esperam)).
+- Para acusar uma configuração inválida, sobrescreva `Validate(ValidationResult result)` e chame `result.AddError(...)`. O `GameplayAbility` repassa a validação a cada ação da lista.
 
 ### 3.2 Targeting {#targeting}
 `TargetingStrategy` respeita `physicsMode` (2D/3D), procura o `AbilitySystemComponent` no collider ou nos pais (sem duplicatas) e filtra por:
