@@ -215,7 +215,7 @@ canal que o objeto deve ouvir.
   Desabilitar também cancela as esperas de um [Invoke com delay](#delayedreaction).
 - Um disparo do canal roda as **reações** da resposta na ordem da lista e, depois delas, o
   **Escape**.
-- Uma resposta sem canal não faz nada.
+- Uma resposta sem canal não faz nada e é erro de [validação](#validacao).
 
 ### Respostas {#respostas}
 
@@ -366,6 +366,21 @@ public sealed class DanoEventResponse : EventResponse<Dano>
 - Quem dispara usa `danoRecebido.Raise(new Dano { Valor = 10, Ponto = transform.position })`.
 - Um [`EventEmitter`](#eventemitter) com um `DanoEventChannel` dispara o `Dano` sem código.
 - Marque o struct com `[Serializable]` para o payload aparecer no Inspector do canal e do Escape.
+
+### Validação {#validacao}
+
+O `EventListener` valida cada resposta da lista **Responses**. O validador acusa erro em:
+
+- uma resposta sem **Channel**;
+- uma chamada do **Escape** sem objeto (o campo do alvo vazio ou com um objeto que foi apagado);
+- uma chamada do **Escape** com objeto, mas sem função escolhida (**No Function**);
+- uma reação com campo obrigatório vazio (veja cada [reação pronta](#reacoes-prontas));
+- um [RaiseChannel](#raisechannelreaction) em `ForwardPayload` com um canal de outro tipo de
+  payload, inclusive dentro de um [Invoke com delay](#delayedreaction).
+
+Uma chamada do Escape sem objeto e sem função gera um erro só, o do objeto. Escolhido o objeto,
+o erro da função aparece se ela ainda faltar. Uma resposta vazia na lista (sem tipo escolhido)
+não é validada.
 
 ## EventEmitter {#eventemitter}
 
