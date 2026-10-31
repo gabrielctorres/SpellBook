@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using SpellBook.Core;
 using SpellBook.Core.Inspector;
 using UnityEngine;
 using SpellBook.Tags;
@@ -23,6 +24,7 @@ namespace SpellBook.GAS.Effects
     }
 
     [CreateAssetMenu(fileName = "GE_NewEffect", menuName = "GAS/Gameplay Effect")]
+    [HelpURL(DocUrls.Gas + "#gameplayeffect")]
     public class GameplayEffect : ScriptableObject
     {
         [Header("Duration")]

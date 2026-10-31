@@ -21,6 +21,14 @@ Cada valor tem uma `AttributeDefinition`.
 #### Fórmulas de modificadores {#formulas}
 Os atributos mantêm um histórico de modificadores (Add, Multiply, Override), permitindo cálculos precisos de bônus e penalidades.
 
+Uma fórmula calcula um valor a partir dos atributos de quem aplica (Source) e de quem recebe (Target). Ela serve no `Formula` de um atributo `Derived` e na fonte `Formula` de um modificador.
+
+#### SimpleAttributeFormula {#simpleattributeformula}
+Um valor base mais a soma de atributos multiplicados (`Base Value` + `Attribute` × `Multiplier`). Crie em **Create → GAS → Formulas → Simple Attribute Formula**.
+
+#### ExpressionFormula {#expressionformula}
+Uma expressão em texto, como `([ATK] * 2) / [DEF]`. Cada token entre colchetes é ligado a um atributo da Source ou da Target em `Mappings`. Crie em **Create → GAS → Formulas → Expression Formula**.
+
 ### 1.3 Gameplay Effects (GE) {#gameplayeffect}
 - **Instant:** modifica o valor base (ex: Dano, Cura).
 - **Duration/Infinite:** adiciona um modificador temporário ou permanente e pode conceder Tags enquanto ativo.
@@ -121,7 +129,11 @@ Herde de `AbilityAction` e implemente `IEnumerator Execute(AbilityContext contex
 - `includeSelf` (padrão: falso);
 - `requiredTargetTags` / `ignoredTargetTags` (ex: ignorar a tag do próprio time).
 
-`CircleTargeting` aceita `maxTargets` (prioriza os mais próximos). `MouseTargetingStrategy` retorna o alvo válido mais próximo.
+#### CircleTargeting {#circletargeting}
+Os alvos num raio em volta da origem. Aceita `maxTargets` (prioriza os mais próximos). Crie em **Create → GAS → Targeting → Circle**.
+
+#### MouseTargetingStrategy {#mousetargetingstrategy}
+O alvo válido mais próximo do ponto mirado, num raio pequeno. Crie em **Create → GAS → Targeting → Mouse**.
 
 ---
 

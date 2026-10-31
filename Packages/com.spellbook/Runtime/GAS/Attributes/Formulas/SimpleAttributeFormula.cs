@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using SpellBook.Core;
 using SpellBook.GAS.Core;
 
 namespace SpellBook.GAS.Attributes
 {
     [CreateAssetMenu(fileName = "Formula_Simple", menuName = "GAS/Formulas/Simple Attribute Formula")]
+    [HelpURL(DocUrls.Gas + "#simpleattributeformula")]
     public class SimpleAttributeFormula : Formula
     {
         [Serializable]

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using SpellBook.Core;
 using SpellBook.GAS.Core;
 
 namespace SpellBook.GAS.Targeting
@@ -9,6 +10,7 @@ namespace SpellBook.GAS.Targeting
     /// Útil para habilidades de alvo único (Single Target): retorna o alvo válido mais próximo da origem.
     /// </summary>
     [CreateAssetMenu(fileName = "Mouse Targeting", menuName = "GAS/Targeting/Mouse")]
+    [HelpURL(DocUrls.Gas + "#mousetargetingstrategy")]
     public class MouseTargetingStrategy : TargetingStrategy
     {
         [SerializeField] private float radius = 0.5f;

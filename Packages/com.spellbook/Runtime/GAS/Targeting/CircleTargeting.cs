@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using SpellBook.Core;
 using SpellBook.GAS.Core;
 using UnityEngine;
 
 namespace SpellBook.GAS.Targeting
 {
     [CreateAssetMenu(fileName = "Circle Targeting", menuName = "GAS/Targeting/Circle")]
+    [HelpURL(DocUrls.Gas + "#circletargeting")]
     public class CircleTargeting : TargetingStrategy
     {
         [SerializeField] private float radius = 5f;

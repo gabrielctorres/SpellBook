@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
+using SpellBook.Core;
 using SpellBook.GAS.Core;
 
 namespace SpellBook.GAS.Attributes
 {
+    [HelpURL(DocUrls.Gas + "#attributeset")]
     public class AttributeSet : MonoBehaviour
     {
         [System.Serializable]
