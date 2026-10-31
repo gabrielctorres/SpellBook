@@ -18,6 +18,9 @@ O GAS fica no assembly `SpellBook.GAS`. Um asmdef seu que usa o GAS precisa refe
 #### AttributeDefinition {#attributedefinition}
 Cada valor tem uma `AttributeDefinition`.
 
+- **Limites:** `MinValue` e `MaxValue` valem para o valor base e para o valor atual. O valor base nunca sai do intervalo: um dano maior que a vida deixa a base em `MinValue`, e a cura seguinte conta inteira. Isso vale para efeitos instantâneos, tiques periódicos e `SetBaseValue`.
+- **Valor inicial fora do intervalo:** o `AttributeSet` limita o valor inicial ao intervalo e registra um aviso no Console, uma vez por atributo, com o nome do atributo e do objeto. Revise o asset ou o `startingAttributes` apontado pelo aviso.
+
 #### Fórmulas de modificadores {#formulas}
 Os atributos mantêm um histórico de modificadores (Add, Multiply, Override), permitindo cálculos precisos de bônus e penalidades.
 

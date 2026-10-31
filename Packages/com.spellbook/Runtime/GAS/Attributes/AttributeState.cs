@@ -19,7 +19,7 @@ namespace SpellBook.GAS.Attributes
         public AttributeState(AttributeDefinition definition, float baseValue, AbilitySystemComponent owner)
         {
             Definition = definition;
-            BaseValue = baseValue;
+            BaseValue = ClampToLimits(baseValue);
             _owner = owner;
             Recalculate();
         }
@@ -30,7 +30,7 @@ namespace SpellBook.GAS.Attributes
             {
                 Debug.LogWarning($"Trying to set base value of a Derived attribute: {Definition.DisplayName}. This will be overwritten by formula.");
             }
-            BaseValue = newValue;
+            BaseValue = ClampToLimits(newValue);
             Recalculate();
         }
 
@@ -85,12 +85,18 @@ namespace SpellBook.GAS.Attributes
                 finalValue = overrideMod.Value;
             }
 
-            CurrentValue = Mathf.Clamp(finalValue, Definition.MinValue, Definition.MaxValue);
+            CurrentValue = ClampToLimits(finalValue);
 
             if (!Mathf.Approximately(oldVal, CurrentValue))
             {
                 OnValueChanged?.Invoke(oldVal, CurrentValue);
             }
+        }
+
+        // Único ponto que aplica os limites da definição, na base e no valor atual
+        private float ClampToLimits(float value)
+        {
+            return Mathf.Clamp(value, Definition.MinValue, Definition.MaxValue);
         }
     }
 }
