@@ -217,6 +217,46 @@ namespace SpellBook.Core.Tests.Structure
             Assert.That(LoadedAssembly("SpellBook.Events"), Is.Not.Null, "o assembly SpellBook.Events não foi compilado");
         }
 
+        [Test]
+        public void AsmdefRules_EventsEditorReferencesOnlyCoreTimeEventsCoreEditor()
+        {
+            AsmdefFile editor = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.Events.Editor");
+
+            Assert.That(editor, Is.Not.Null, "não existe asmdef SpellBook.Events.Editor");
+            Assert.That(editor.Path, Is.EqualTo("Editor/Events/SpellBook.Events.Editor.asmdef"));
+            Assert.That(editor.Kind, Is.EqualTo(AsmdefKind.Editor));
+            Assert.That(
+                editor.ReferenceNames.Where(r => r.StartsWith("SpellBook.", StringComparison.Ordinal)),
+                Is.EquivalentTo(new[] { "SpellBook.Core", "SpellBook.Time", "SpellBook.Events", "SpellBook.Core.Editor" }));
+            Assert.That(LoadedAssembly("SpellBook.Events.Editor"), Is.Not.Null, "o assembly SpellBook.Events.Editor não foi compilado");
+        }
+
+        [Test]
+        public void AsmdefRules_ModuleEditorsDoNotReferenceOtherModuleEditors()
+        {
+            List<AsmdefFile> moduleEditors = PackageFiles.Asmdefs()
+                .Where(a => a.Kind == AsmdefKind.Editor && a.Data.name != "SpellBook.Core.Editor")
+                .ToList();
+            var violations = new List<string>();
+
+            foreach (AsmdefFile asmdef in PackageFiles.Asmdefs().Where(a => a.Kind == AsmdefKind.Editor))
+            {
+                foreach (string reference in asmdef.ReferenceNames)
+                {
+                    bool otherEditor = reference.StartsWith("SpellBook.", StringComparison.Ordinal)
+                        && reference.EndsWith(".Editor", StringComparison.Ordinal);
+                    bool allowed = reference == "SpellBook.Core.Editor" && asmdef.Data.name != "SpellBook.Core.Editor";
+                    if (otherEditor && !allowed)
+                    {
+                        violations.Add($"{asmdef.Path}: {asmdef.Data.name} não pode referenciar {reference}");
+                    }
+                }
+            }
+
+            Assert.That(moduleEditors, Is.Not.Empty, "a varredura não achou nenhum asmdef .Editor de módulo");
+            Assert.That(violations, Is.Empty);
+        }
+
         [TestCase("GameplayTag")]
         [TestCase("GameplayTagDefinition")]
         public void GameplayTag_LivesInTagsAssembly(string typeName)

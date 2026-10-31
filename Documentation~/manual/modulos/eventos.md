@@ -10,8 +10,9 @@ os eventos precisa referenciar o `SpellBook.Events`. Veja [Conceitos](../inicio/
     Nesta versão de desenvolvimento da 3.0, o módulo tem o barramento de código (`EventBus<T>`),
     os canais Void, Int, Float, Bool, String, Vector3 e GameObject e o componente ouvinte
     (`EventListener`) com as reações prontas SetActive, Toggle de componente, Log, RaiseChannel e
-    Invoke com delay, e o emissor (`EventEmitter`). A escolha do canal do emissor no Inspector e o
-    botão Raise chegam nas próximas etapas.
+    Invoke com delay, e o emissor (`EventEmitter`), com o botão Raise no Inspector do canal e do
+    emissor. O seletor de canal filtrado por payload e o depurador de eventos chegam nas próximas
+    etapas.
 
 ## Três usos e uma regra {#tres-usos}
 
@@ -110,7 +111,16 @@ No Inspector do canal:
   canal depois.
 - **Log Raises**: escreve cada disparo no console, com o nome do canal e o payload. Ligue para
   depurar e desligue depois, porque o log aloca memória.
-- **Debug Payload**: payload de teste do canal. Não muda nada no jogo.
+- **Debug Payload**: payload de teste do canal, enviado pelo botão **Raise**. Não muda nada no
+  jogo.
+
+Abaixo dos campos, o Inspector do canal mostra:
+
+- **Raise**: dispara o canal com o **Debug Payload**, como um `Raise(T)` sem emissor. Só fica
+  ativo no Play. Com vários canais selecionados, dispara cada um com o seu payload de teste.
+- **Último payload**: o `LastPayload` do canal. Não é limpo ao entrar em Play.
+- **Ouvintes**: quantos estão inscritos agora e quem são (o nome e o tipo do objeto de cada
+  ouvinte). A lista se atualiza sozinha enquanto o Inspector está aberto.
 
 ### EventChannel\<T\> {#eventchannel}
 
@@ -374,10 +384,17 @@ Cada chamada dispara o canal uma vez, e o emissor aparece como quem disparou no 
 Sem emissão ou sem canal, `Raise()` não faz nada, e o validador acusa o
 erro.
 
-!!! note "Em desenvolvimento"
-    Nesta versão, o Inspector do `EventEmitter` ainda não tem o campo de canal nem o botão Raise
-    no Play. A emissão só pode ser montada por código de Editor, com
-    `EventEmission.CreateFor(canal)`.
+No Inspector do `EventEmitter`:
+
+- **Channel**: o canal disparado. Aceita um canal de qualquer payload.
+  - Um canal com o **mesmo** tipo de payload do anterior troca só o canal e mantém o payload.
+  - Um canal de **outro** tipo recria a emissão: o campo do payload passa a ser do tipo novo, com
+    o valor padrão, e o payload anterior se perde.
+  - Esvaziar o campo mantém a emissão e o payload, sem canal; o validador acusa o erro.
+- **Payload**: o valor enviado a cada disparo, no tipo do canal. Um canal Void não mostra o campo.
+- **Raise**: chama `Raise()` do emissor. Só fica ativo no Play.
+
+Por código de Editor, a emissão de um canal é criada com `EventEmission.CreateFor(canal)`.
 
 ## Segurança do disparo {#seguranca}
 

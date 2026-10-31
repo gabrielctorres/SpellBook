@@ -48,6 +48,12 @@ namespace SpellBook.Events
 
         internal abstract void ClearListeners();
 
+        /// <summary>Último payload disparado, como <c>object</c>, para o Inspector do canal.</summary>
+        internal abstract object BoxedLastPayload { get; }
+
+        /// <summary>Dispara o payload de teste do Inspector, sem emissor.</summary>
+        internal abstract void RaiseDebugPayload();
+
         /// <summary>Põe o canal na limpeza de sessão. Quem sobrescreve chama a base.</summary>
         protected virtual void OnEnable()
         {
@@ -132,6 +138,13 @@ namespace SpellBook.Events
         internal override void ClearListeners()
         {
             _listeners.Clear();
+        }
+
+        internal override object BoxedLastPayload => LastPayload;
+
+        internal override void RaiseDebugPayload()
+        {
+            Raise(debugPayload);
         }
     }
 }
