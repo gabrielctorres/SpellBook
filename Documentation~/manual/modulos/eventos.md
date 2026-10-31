@@ -11,8 +11,8 @@ os eventos precisa referenciar o `SpellBook.Events`. Veja [Conceitos](../inicio/
     os canais Void, Int, Float, Bool, String, Vector3 e GameObject e o componente ouvinte
     (`EventListener`) com as reações prontas SetActive, Toggle de componente, Log, RaiseChannel e
     Invoke com delay, e o emissor (`EventEmitter`), com o botão Raise no Inspector do canal e do
-    emissor. O seletor de canal filtrado por payload e o depurador de eventos chegam nas próximas
-    etapas.
+    emissor, e o seletor de canal filtrado por payload. O depurador de eventos chega numa próxima
+    etapa.
 
 ## Três usos e uma regra {#tres-usos}
 
@@ -234,7 +234,8 @@ cada canal, na categoria **Respostas** do seletor:
 
 No Inspector de uma resposta:
 
-- **Channel**: o canal ouvido. Só aceita canais do mesmo payload da resposta.
+- **Channel**: o canal ouvido. Só aceita canais do mesmo payload da resposta (veja
+  [Escolher o canal](#escolher-canal)).
 - **Reactions**: lista de reações, escolhidas pelo seletor de tipo. Cada uma recebe o payload do
   disparo e o `EventListener` que a executa.
 - **Escape**: um `UnityEvent` com o payload, num foldout fechado. Chamado depois das reações. Use
@@ -260,6 +261,27 @@ public sealed class TocarSom : Reaction
     }
 }
 ```
+
+### Escolher o canal {#escolher-canal}
+
+Todo campo de canal no Inspector, nas respostas, nas reações e nos seus scripts, tem ao lado o
+botão **Escolher**. Ele abre a lista dos canais do projeto que o campo aceita, por nome, com
+**(Nenhum)** no topo para limpar o campo. Abaixo do campo, a **Description** do canal escolhido
+aparece num quadro de informação; sem descrição, o quadro some.
+
+A lista segue o tipo de payload do campo:
+
+| Campo | Canais listados |
+|---|---|
+| **Channel** de uma resposta (`EventChannel<T>`) | só os de payload `T`; numa `FloatEventResponse`, só canais Float |
+| **Target** de um [RaiseChannel](#raisechannelreaction) em `ForwardPayload` | só os do payload da resposta que contém a reação, inclusive dentro de um [Invoke com delay](#delayedreaction) |
+| **Target** de um RaiseChannel em `RaiseVoid` | só canais Void |
+| campo seu do tipo base `EventChannel` | todos os canais |
+
+Arrastar para o campo um canal que a lista não mostraria não tem efeito: o campo continua com o
+canal anterior. Trocar o **Mode** de um RaiseChannel não limpa o **Target**; se ele deixar de
+servir, a [validação](#validacao) acusa erro. O canal de um [`EventEmitter`](#eventemitter) não usa
+este seletor, porque escolher um canal de outro tipo ali troca o tipo do payload.
 
 ### Reações prontas {#reacoes-prontas}
 
