@@ -33,6 +33,7 @@ namespace SpellBook.Core
             return spawner != null ? spawner : Default;
         }
 
+        /// <returns>A instância, ou <c>null</c> se o spawner não puder criar uma (por exemplo, pool vazio que não cresce).</returns>
         public abstract GameObject Spawn(GameObject prefab, Vector3 position, Quaternion rotation, Transform parent = null);
 
         public abstract void Release(GameObject instance);

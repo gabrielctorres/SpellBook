@@ -81,7 +81,12 @@ namespace SpellBook.GAS.Abilities.Actions
 
                 GameObject projObj = spawner.Spawn(ProjectilePrefab, spawnBasePos, finalRotation);
 
-                if (projObj.TryGetComponent<Projectile>(out var projScript))
+                if (projObj == null)
+                {
+                    // Spawner sem instância (ex.: pool vazio que não cresce): pula só este tiro e mantém a cadência
+                    Debug.LogWarning($"[SpawnProjectileAction] O spawner '{spawner.name}' não criou uma instância de '{ProjectilePrefab.name}'; o tiro foi pulado.", spawner);
+                }
+                else if (projObj.TryGetComponent<Projectile>(out var projScript))
                 {
                     // O projétil volta pelo mesmo spawner que o criou (ADR 0015)
                     projScript.Setup(spawner, context, OnHitActions);

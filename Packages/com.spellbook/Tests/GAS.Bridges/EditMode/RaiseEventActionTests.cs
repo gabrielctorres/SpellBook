@@ -56,7 +56,7 @@ namespace SpellBook.GAS.Bridges.Tests
         {
             var withoutEmission = new RaiseEventAction();
             RaiseEventAction withoutChannel = CreateAction(null, _ => { });
-            GameplayAbility ability = _gas.CreateAbility(default, withoutChannel);
+            GameplayAbility ability = _gas.CreateAbility(withoutChannel);
             var noEmission = new ValidationResult(null);
             var noChannel = new ValidationResult(null);
             var abilityResult = new ValidationResult(ability);
@@ -74,7 +74,7 @@ namespace SpellBook.GAS.Bridges.Tests
         public void Ability_ActionWithChannel_HasNoValidationIssues()
         {
             RaiseEventAction action = CreateAction(_events.CreateChannel<VoidEventChannel>(), _ => { });
-            GameplayAbility ability = _gas.CreateAbility(default, action, null);
+            GameplayAbility ability = _gas.CreateAbility(action, null);
             var result = new ValidationResult(ability);
 
             ability.Validate(result);
@@ -86,7 +86,7 @@ namespace SpellBook.GAS.Bridges.Tests
         // SerializedProperty, como o Inspector faz. Sem canal, a emissão é de int e fica sem canal.
         private RaiseEventAction CreateAction(EventChannel channel, Action<SerializedProperty> configurePayload)
         {
-            GameplayAbility ability = _gas.CreateAbility(default, new RaiseEventAction());
+            GameplayAbility ability = _gas.CreateAbility(new RaiseEventAction());
             using (var serialized = new SerializedObject(ability))
             {
                 SerializedProperty emission = serialized.FindProperty(nameof(GameplayAbility.Actions))

@@ -80,6 +80,7 @@ O `Duration` da `WaitAction`, o `Interval` da `RepeatAction` e o `DelayBetweenSh
 - Se o ASC usa um [grupo pausável](tempo.md#pausabletimesource), pausar o grupo pausa a habilidade no meio da espera. Ao retomar, ela continua de onde parou.
 - Com `autoTick` desligado, a espera só anda quando alguém chama `Tick`.
 - Se o ASC for destruído, a espera termina.
+- **Início do `Interval`:** o `Interval` da `RepeatAction` começa a contar no quadro seguinte ao fim de cada repetição. Um `Tick` no mesmo quadro em que a repetição termina não entra no intervalo. O `DelayBetweenShots` começa a contar logo depois de cada tiro. Com `autoTick` ligado, a diferença é de no máximo um quadro.
 - **Wait 0:** uma `WaitAction` com `Duration` zero ou negativo espera exatamente um quadro, como na 2.x, e não lê o tempo. Serve para passar a lista de ações ao quadro seguinte e termina mesmo com o ASC parado.
 
 Numa ação própria, espere com `yield return context.WaitSeconds(segundos)`, e não com `WaitForSeconds`.

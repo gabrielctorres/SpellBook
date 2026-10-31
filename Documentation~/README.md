@@ -9,7 +9,7 @@ Os agentes do time leem estes arquivos em vez de depender de memória ou de conv
 | Backlog | [backlog.md](backlog.md) | Controlador | Porta de entrada de toda ideia, bug ou pendência |
 | Visão do pacote | `gdd/` | Criativo | Regras e visão dos sistemas, com selos implementado/parcial/proposta |
 | PRD | `prd/<slug>.md` | Criativo (`/prd-feature`) | O quê e por quê, na visão de quem usa o pacote; CAs numerados; seção 9 é o diário (`/ajustar`) |
-| Spec | `spec/<slug>.md` | Arquiteto | Como construir: pesquisa, ADRs respeitadas, desenho, testes red, riscos, tickets (≤ ~400 linhas, ≤ 10 arquivos) |
+| Spec | `spec/<slug>.md` | Arquiteto | Como construir: pesquisa, ADRs respeitadas, desenho, testes red, riscos, tickets (≤ ~500 linhas, ≤ 10 arquivos) |
 | ADR | `adr/NNNN-titulo.md` (índice em `adr/README.md`) | Arquiteto | Decisões que valem para o pacote inteiro. Uma ADR aceita não é reescrita: ganha emenda datada ou é substituída |
 | DS | `ds/` | Criativo + Arquiteto | Regras do Inspector, da UI e de nomenclatura |
 | Manual público | `manual/` | Writer / Arquiteto | Site MkDocs (GitHub Pages), no estilo TopDown Engine |

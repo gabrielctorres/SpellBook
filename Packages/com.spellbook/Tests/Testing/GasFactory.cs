@@ -100,13 +100,12 @@ namespace SpellBook.Testing
         }
 
         /// <summary>
-        /// Habilidade sem custo, sem recarga e sem tags de bloqueio, que roda as <paramref name="actions"/> em sequência.
+        /// Habilidade sem tag, sem custo, sem recarga e sem tags de bloqueio, que roda as <paramref name="actions"/> em sequência.
         /// Sem ações, ela termina na própria ativação.
         /// </summary>
-        public GameplayAbility CreateAbility(GameplayTag abilityTag = default, params AbilityAction[] actions)
+        public GameplayAbility CreateAbility(params AbilityAction[] actions)
         {
             var ability = Track(ScriptableObject.CreateInstance<GameplayAbility>(), "GA_Test");
-            ability.AbilityTag = abilityTag;
             ability.BlockedTags = new List<GameplayTag>();
             ability.RequiredTags = new List<GameplayTag>();
             ability.ActivationOwnedTags = new List<GameplayTag>();
@@ -114,6 +113,14 @@ namespace SpellBook.Testing
             ability.BlockAbilitiesWithTag = new List<GameplayTag>();
             ability.CancelledByTags = new List<GameplayTag>();
             ability.Actions = new List<AbilityAction>(actions);
+            return ability;
+        }
+
+        /// <summary>Como <see cref="CreateAbility(AbilityAction[])"/>, com a <paramref name="abilityTag"/> como tag da habilidade.</summary>
+        public GameplayAbility CreateAbility(GameplayTag abilityTag, params AbilityAction[] actions)
+        {
+            GameplayAbility ability = CreateAbility(actions);
+            ability.AbilityTag = abilityTag;
             return ability;
         }
 

@@ -63,7 +63,7 @@ Before writing any code:
 
 For Logic and Integration stories, show the test file content in your answer (or a scaffold for the Fábrica to complete), with the path it should go to.
 
-**Test naming** follows the engine's language (`.claude/rules/test-standards.md`):
+**Test naming** follows the engine's language (`CLAUDE.md`, Testing and Unity conventions; ADR 0004):
 Godot `[system]_[feature]_test.gd` with `test_[scenario]_[expected]`; Unity
 `[System]Tests` with `[Scenario]_[Expected]`; Unreal one class per test,
 `F[System][Scenario]Test`, named `<Root>.[System].[Scenario]` (the root is below).
@@ -88,8 +88,8 @@ func test_[scenario]_[expected]() -> void:
 
 #### Unity (C# / NUnit)
 
-The file goes under `Assets/Tests/EditMode/` (or `PlayMode/`), in the test
-assembly `/test-setup` creates — Unity compiles nothing outside `Assets/`.
+The file goes under `Packages/com.spellbook/Tests/<Module>/EditMode/` (or `PlayMode/`), in the test
+asmdefs that already exist (ADR 0012).
 
 ```csharp
 using NUnit.Framework;
@@ -115,7 +115,7 @@ public class [System]Tests
 #### Unreal (C++)
 
 The file goes inside the game module — `Source/<Module>/Private/Tests/` — or UBT
-never compiles it (see the test-root table in `.claude/docs/directory-structure.md`).
+never compiles it.
 The flags need an application context **and** a filter; there is no `GameFilter`.
 Name tests `<Root>.[System].[Scenario]`, where `<Root>.` is the filter in
 `commands.test`'s `Automation RunTests` — `<Project>.`, or the distinct root
@@ -199,15 +199,15 @@ Every test case must include all four of these labeled fields:
 
 ### Test Evidence Routing
 
-Before writing any test, classify the story type per `coding-standards.md`:
+Before writing any test, classify the story type per ADR 0004 and `CLAUDE.md`:
 
 | Story Type | Required Evidence | Output Location | Gate Level |
 |---|---|---|---|
 | Logic (formulas, state machines) | Automated unit test — must pass | `tests/unit/[system]/` | BLOCKING |
 | Integration (multi-system) | Integration test or documented playtest | `tests/integration/[system]/` | BLOCKING |
-| Visual/Feel (animation, VFX) | Retained screenshot + lead sign-off doc | `production/qa/evidence/` | BLOCKING |
-| UI (menus, HUD, screens) | Retained screenshot of each screen touched | `production/qa/evidence/` | BLOCKING |
-| Config/Data (balance tuning) | Smoke check pass | `production/qa/smoke-[date].md` | ADVISORY |
+| Visual/Feel (animation, VFX) | Retained screenshot + lead sign-off doc | PRD section 9 (`/ajustar`) or PR description | BLOCKING |
+| UI (menus, HUD, screens) | Retained screenshot of each screen touched | PRD section 9 (`/ajustar`) or PR description | BLOCKING |
+| Config/Data (balance tuning) | Documented balance check | PRD section 9 (`/ajustar`) or PR description | ADVISORY |
 
 State the story type, output location, and gate level (BLOCKING or ADVISORY) at the start of
 every test case or test file you produce.
@@ -222,7 +222,7 @@ When an acceptance criterion is subjective or unmeasurable (e.g., "should feel i
    - "Menu navigation completes in ≤ 2 button presses from any screen"
    - "Input response latency is ≤ 50ms at target framerate"
    - "User selects correct option first time in 80% of playtests"
-3. Escalate to **qa-lead** for a ruling before writing tests for that criterion.
+3. Escalate to the **examinador** for a ruling before writing tests for that criterion.
 
 ### Regression Checklist Scope
 
@@ -253,9 +253,9 @@ Expected and Actual Result.
 ### What This Agent Must NOT Do
 
 - Fix bugs (report them for assignment)
-- Make severity judgments above S2 (escalate to qa-lead)
+- Make severity judgments above S2 (escalate to the examinador)
 - Skip test steps for speed (every step must be executed)
-- Approve releases (defer to qa-lead)
+- Approve releases (defer to the user; release is a gate of ADR 0002)
 
 ### Reports to: `examinador` (the role that calls you)
 

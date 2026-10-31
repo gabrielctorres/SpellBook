@@ -64,15 +64,10 @@ namespace SpellBook.Pooling
         {
             if (_pools.TryGetValue(prefab, out ComponentPooler pooler) && pooler != null) return pooler;
 
-            var config = CreateInstance<PoolConfiguration>();
-            config.Prefab = prefab;
-            config.InitialSize = initialSize;
-            config.CanExpand = canExpand;
-
             var poolObject = new GameObject($"Pool_{prefab.name}");
             poolObject.transform.SetParent(GetRoot(), false);
             pooler = poolObject.AddComponent<ComponentPooler>();
-            pooler.Initialize(config);
+            pooler.Initialize(prefab, initialSize, canExpand);
             _pools[prefab] = pooler;
             return pooler;
         }

@@ -19,5 +19,6 @@ namespace SpellBook.Core
         public const string Gas = Base + "modulos/gas/";
         public const string Validator = Base + "ferramentas/validador/";
         public const string EventDebugger = Base + "ferramentas/event-debugger/";
+        public const string Samples = Base + "exemplos/sandbox/";
     }
 }

@@ -85,7 +85,7 @@ andando não fazem nada.
 ### ManualTimeSource {#manualtimesource}
 
 Só anda quando você chama `Advance(seconds)`. Cada chamada soma `seconds` ao `ElapsedTime` e
-define o `DeltaTime` como `seconds`. Um valor negativo lança `ArgumentOutOfRangeException`.
+define o `DeltaTime` como `seconds`. Um valor negativo ou NaN lança `ArgumentOutOfRangeException`.
 
 Ela não tem item de menu. Crie por código, em testes ou simulações:
 

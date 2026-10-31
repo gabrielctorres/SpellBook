@@ -65,6 +65,18 @@ Decisão I21: o módulo entra completo na 0-M (`ITimeSource`, `TimeSourceAsset` 
 - **Esperas das ações do GAS na 0-M:** `WaitAction`, `RepeatAction`, o intervalo do `SpawnProjectileAction` e os tempos do `Projectile` deixam de usar `WaitForSeconds` e passam a contar pelo relógio do ASC (o que o `Tick` recebeu) ou pela fonte do próprio componente. As corrotinas continuam como mecanismo de execução até a 0018.
 - **Ferramentas de Editor** (Event Debugger) podem ler `Time.frameCount` e `EditorApplication.timeSinceStartup` para carimbar o histórico; a proibição do item 4 vale para os assemblies de runtime.
 
+## Emenda (2026-10-31): "registro limpo" é estado de sessão limpo
+
+Esta emenda foi aprovada no gate de 2026-10-31 (B-027a). É um esclarecimento e não muda a decisão.
+
+Em "Estado sem domain reload (PRD P20)", a frase "registro estático do módulo, limpo em `RuntimeInitializeOnLoadMethod(SubsystemRegistration)`" quer dizer que o **estado de sessão** de cada fonte registrada volta ao inicial. A **lista não é esvaziada**: o gancho remove só as instâncias destruídas e reseta as outras.
+
+Motivo: sem domain reload, um asset já carregado não roda `OnEnable` de novo ao entrar em Play. Se a lista fosse esvaziada, ele sairia do registro e não seria resetado na sessão seguinte.
+
+A Spec da 0-M (4.3) e o teste `Manual_ResetTwice_StillRegistered` já seguem esta leitura.
+
+O resto desta ADR não muda.
+
 ## Em aberto
 
 Nada.
