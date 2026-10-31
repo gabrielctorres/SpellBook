@@ -1,0 +1,20 @@
+{
+    "name": "SpellBook.Pooling.Editor",
+    "rootNamespace": "SpellBook.Pooling.Editor",
+    "references": [
+        "GUID:7834e8f3d0902ad45bfb6fab58f7b919",
+        "GUID:e71ecb42d5b64eb409c4648c7bf5937e",
+        "GUID:d0725186a5ff669448a26295c851b9c6"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

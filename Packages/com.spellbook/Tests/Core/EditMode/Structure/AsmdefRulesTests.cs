@@ -251,6 +251,32 @@ namespace SpellBook.Core.Tests.Structure
         }
 
         [Test]
+        public void AsmdefRules_TimeTagsPoolingEditorsExist_WithAllowedReferences()
+        {
+            var expected = new Dictionary<string, string[]>
+            {
+                ["Time"] = new[] { "SpellBook.Core", "SpellBook.Time", "SpellBook.Core.Editor" },
+                ["Tags"] = new[] { "SpellBook.Core", "SpellBook.Tags", "SpellBook.Core.Editor" },
+                ["Pooling"] = new[] { "SpellBook.Core", "SpellBook.Pooling", "SpellBook.Core.Editor" },
+            };
+
+            foreach (KeyValuePair<string, string[]> module in expected)
+            {
+                string name = $"SpellBook.{module.Key}.Editor";
+                AsmdefFile editor = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == name);
+
+                Assert.That(editor, Is.Not.Null, $"não existe asmdef {name}");
+                Assert.That(editor.Path, Is.EqualTo($"Editor/{module.Key}/{name}.asmdef"));
+                Assert.That(editor.Kind, Is.EqualTo(AsmdefKind.Editor));
+                Assert.That(
+                    editor.ReferenceNames.Where(r => r.StartsWith("SpellBook.", StringComparison.Ordinal)),
+                    Is.EquivalentTo(module.Value),
+                    name);
+                Assert.That(LoadedAssembly(name), Is.Not.Null, $"o assembly {name} não foi compilado");
+            }
+        }
+
+        [Test]
         public void AsmdefRules_ModuleEditorsDoNotReferenceOtherModuleEditors()
         {
             List<AsmdefFile> moduleEditors = PackageFiles.Asmdefs()
