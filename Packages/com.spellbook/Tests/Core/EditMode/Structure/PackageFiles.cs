@@ -23,12 +23,15 @@ namespace SpellBook.Core.Tests.Structure
                 if (info == null)
                 {
                     throw new InvalidOperationException(
-                        "O assembly de teste não pertence a um pacote; rode os testes no host com o pacote em file: e testables.");
+                        "O assembly de teste não pertence a um pacote; rode os testes no projeto de desenvolvimento, com o pacote embutido em Packages/com.spellbook e em testables.");
                 }
 
                 return info.resolvedPath;
             }
         }
+
+        /// <summary>Raiz do repositório, dois níveis acima de <see cref="Root"/> (<c>Packages/com.spellbook</c>; ADR 0027).</summary>
+        public static string RepositoryRoot => Path.GetFullPath(Path.Combine(Root, "..", ".."));
 
         /// <summary>Caminhos relativos à raiz (com <c>/</c>) dos arquivos com as extensões dadas.</summary>
         public static IReadOnlyList<string> Find(string relativeFolder, params string[] extensions)

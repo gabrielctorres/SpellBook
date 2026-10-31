@@ -26,7 +26,11 @@ realmente precisa.
 | **Tags** | Tags hierárquicas de gameplay, como `Estado.Atordoado`. |
 | **Pooling** | Reaproveitamento de objetos instanciados com frequência, como projéteis e partículas. |
 | **GAS** | Sistema de habilidades: atributos, efeitos, habilidades, alvos e projéteis. |
+| **GAS.Bridges** | Ligações do GAS com outros módulos, como disparar um evento a partir de uma habilidade. |
+
+Os assemblies de cada módulo e as dependências permitidas entre eles estão em
+[Conceitos](inicio/conceitos.md#mapa).
 
 !!! note "Versão 3.0 em desenvolvimento"
     A 3.0 reorganiza o pacote nos módulos acima e ainda está em desenvolvimento.
-    As páginas de cada módulo entram no manual junto com o módulo.
+    Quem vem da 2.x deve ler a [Migração 2.x → 3.0](regras/migracao-2-para-3.md).

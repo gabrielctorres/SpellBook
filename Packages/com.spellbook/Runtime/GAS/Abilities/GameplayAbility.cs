@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using SpellBook.Core;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using UnityEngine;
 using SpellBook.GAS.Core;
 using SpellBook.Tags;
@@ -12,7 +14,8 @@ namespace SpellBook.GAS.Abilities
     /// Dados de uma habilidade. A execução é feita pelo AbilitySystemComponent (TryActivateAbility).
     /// </summary>
     [CreateAssetMenu(fileName = "GA_NewAbility", menuName = "GAS/Gameplay Ability")]
-    public class GameplayAbility : ScriptableObject
+    [HelpURL(DocUrls.Gas + "#gameplayability")]
+    public class GameplayAbility : ScriptableObject, IValidatable
     {
         [Header("Identidade")]
         public Sprite Icon;
@@ -80,6 +83,17 @@ namespace SpellBook.GAS.Abilities
                 duration = Mathf.Max(0.1f, duration * (1f - Mathf.Clamp01(cdr)));
             }
             return duration;
+        }
+
+        /// <summary>Repassa a validação a cada ação da lista. Ações vazias são ignoradas.</summary>
+        public virtual void Validate(ValidationResult result)
+        {
+            if (Actions == null) return;
+
+            for (int i = 0; i < Actions.Count; i++)
+            {
+                Actions[i]?.Validate(result);
+            }
         }
 
         public string GetDescription(AbilitySystemComponent source = null)

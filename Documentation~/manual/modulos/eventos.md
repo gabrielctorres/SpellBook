@@ -9,8 +9,10 @@ os eventos precisa referenciar o `SpellBook.Events`. Veja [Conceitos](../inicio/
 !!! note "Em desenvolvimento"
     Nesta versão de desenvolvimento da 3.0, o módulo tem o barramento de código (`EventBus<T>`),
     os canais Void, Int, Float, Bool, String, Vector3 e GameObject e o componente ouvinte
-    (`EventListener`) com as reações prontas SetActive, Toggle de componente, Log e RaiseChannel.
-    A reação Invoke com delay e o emissor chegam nas próximas etapas.
+    (`EventListener`) com as reações prontas SetActive, Toggle de componente, Log, RaiseChannel e
+    Invoke com delay, e o emissor (`EventEmitter`), com o botão Raise no Inspector do canal e do
+    emissor, e o seletor de canal filtrado por payload. O depurador de eventos chega numa próxima
+    etapa.
 
 ## Três usos e uma regra {#tres-usos}
 
@@ -109,7 +111,16 @@ No Inspector do canal:
   canal depois.
 - **Log Raises**: escreve cada disparo no console, com o nome do canal e o payload. Ligue para
   depurar e desligue depois, porque o log aloca memória.
-- **Debug Payload**: payload de teste do canal. Não muda nada no jogo.
+- **Debug Payload**: payload de teste do canal, enviado pelo botão **Raise**. Não muda nada no
+  jogo.
+
+Abaixo dos campos, o Inspector do canal mostra:
+
+- **Raise**: dispara o canal com o **Debug Payload**, como um `Raise(T)` sem emissor. Só fica
+  ativo no Play. Com vários canais selecionados, dispara cada um com o seu payload de teste.
+- **Último payload**: o `LastPayload` do canal. Não é limpo ao entrar em Play.
+- **Ouvintes**: quantos estão inscritos agora e quem são (o nome e o tipo do objeto de cada
+  ouvinte). A lista se atualiza sozinha enquanto o Inspector está aberto.
 
 ### EventChannel\<T\> {#eventchannel}
 
@@ -204,7 +215,7 @@ canal que o objeto deve ouvir.
   Desabilitar também cancela as esperas de um [Invoke com delay](#delayedreaction).
 - Um disparo do canal roda as **reações** da resposta na ordem da lista e, depois delas, o
   **Escape**.
-- Uma resposta sem canal não faz nada.
+- Uma resposta sem canal não faz nada e é erro de [validação](#validacao).
 
 ### Respostas {#respostas}
 
@@ -223,7 +234,8 @@ cada canal, na categoria **Respostas** do seletor:
 
 No Inspector de uma resposta:
 
-- **Channel**: o canal ouvido. Só aceita canais do mesmo payload da resposta.
+- **Channel**: o canal ouvido. Só aceita canais do mesmo payload da resposta (veja
+  [Escolher o canal](#escolher-canal)).
 - **Reactions**: lista de reações, escolhidas pelo seletor de tipo. Cada uma recebe o payload do
   disparo e o `EventListener` que a executa.
 - **Escape**: um `UnityEvent` com o payload, num foldout fechado. Chamado depois das reações. Use
@@ -249,6 +261,27 @@ public sealed class TocarSom : Reaction
     }
 }
 ```
+
+### Escolher o canal {#escolher-canal}
+
+Todo campo de canal no Inspector, nas respostas, nas reações e nos seus scripts, tem ao lado o
+botão **Escolher**. Ele abre a lista dos canais do projeto que o campo aceita, por nome, com
+**(Nenhum)** no topo para limpar o campo. Abaixo do campo, a **Description** do canal escolhido
+aparece num quadro de informação; sem descrição, o quadro some.
+
+A lista segue o tipo de payload do campo:
+
+| Campo | Canais listados |
+|---|---|
+| **Channel** de uma resposta (`EventChannel<T>`) | só os de payload `T`; numa `FloatEventResponse`, só canais Float |
+| **Target** de um [RaiseChannel](#raisechannelreaction) em `ForwardPayload` | só os do payload da resposta que contém a reação, inclusive dentro de um [Invoke com delay](#delayedreaction) |
+| **Target** de um RaiseChannel em `RaiseVoid` | só canais Void |
+| campo seu do tipo base `EventChannel` | todos os canais |
+
+Arrastar para o campo um canal que a lista não mostraria não tem efeito: o campo continua com o
+canal anterior. Trocar o **Mode** de um RaiseChannel não limpa o **Target**; se ele deixar de
+servir, a [validação](#validacao) acusa erro. O canal de um [`EventEmitter`](#eventemitter) não usa
+este seletor, porque escolher um canal de outro tipo ali troca o tipo do payload.
 
 ### Reações prontas {#reacoes-prontas}
 
@@ -353,7 +386,52 @@ public sealed class DanoEventResponse : EventResponse<Dano>
 - A `DanoEventResponse` aparece no seletor da lista **Responses**; o **Escape** dela é um
   `UnityEvent<Dano>`.
 - Quem dispara usa `danoRecebido.Raise(new Dano { Valor = 10, Ponto = transform.position })`.
+- Um [`EventEmitter`](#eventemitter) com um `DanoEventChannel` dispara o `Dano` sem código.
 - Marque o struct com `[Serializable]` para o payload aparecer no Inspector do canal e do Escape.
+
+### Validação {#validacao}
+
+O `EventListener` valida cada resposta da lista **Responses**. O validador acusa erro em:
+
+- uma resposta sem **Channel**;
+- uma chamada do **Escape** sem objeto (o campo do alvo vazio ou com um objeto que foi apagado);
+- uma chamada do **Escape** com objeto, mas sem função escolhida (**No Function**);
+- uma reação com campo obrigatório vazio (veja cada [reação pronta](#reacoes-prontas));
+- um [RaiseChannel](#raisechannelreaction) em `ForwardPayload` com um canal de outro tipo de
+  payload, inclusive dentro de um [Invoke com delay](#delayedreaction).
+
+Uma chamada do Escape sem objeto e sem função gera um erro só, o do objeto. Escolhido o objeto,
+o erro da função aparece se ela ainda faltar. Uma resposta vazia na lista (sem tipo escolhido)
+não é validada.
+
+## EventEmitter {#eventemitter}
+
+O `EventEmitter` é o componente que dispara um canal sem código. Ele guarda uma **emissão**: o
+canal e o payload fixo enviado a cada disparo. O tipo do payload vem do canal: um canal Float
+pede um número, um canal de payload próprio pede os campos do seu struct, e um canal Void não
+pede nada.
+
+Para disparar, chame o método público `Raise()` do componente:
+
+- **Por um `UnityEvent`**: no `OnClick` de um botão, por exemplo, arraste o objeto com o
+  `EventEmitter` e escolha **EventEmitter > Raise ()**.
+- **Por animação**: num evento de animação de um clipe do objeto, escolha a função `Raise`.
+
+Cada chamada dispara o canal uma vez, e o emissor aparece como quem disparou no log do canal.
+Sem emissão ou sem canal, `Raise()` não faz nada, e o validador acusa o
+erro.
+
+No Inspector do `EventEmitter`:
+
+- **Channel**: o canal disparado. Aceita um canal de qualquer payload.
+  - Um canal com o **mesmo** tipo de payload do anterior troca só o canal e mantém o payload.
+  - Um canal de **outro** tipo recria a emissão: o campo do payload passa a ser do tipo novo, com
+    o valor padrão, e o payload anterior se perde.
+  - Esvaziar o campo mantém a emissão e o payload, sem canal; o validador acusa o erro.
+- **Payload**: o valor enviado a cada disparo, no tipo do canal. Um canal Void não mostra o campo.
+- **Raise**: chama `Raise()` do emissor. Só fica ativo no Play.
+
+Por código de Editor, a emissão de um canal é criada com `EventEmission.CreateFor(canal)`.
 
 ## Segurança do disparo {#seguranca}
 

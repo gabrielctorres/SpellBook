@@ -1,3 +1,4 @@
+using SpellBook.Core;
 using SpellBook.Core.Inspector;
 using UnityEngine;
 
@@ -10,6 +11,7 @@ namespace SpellBook.GAS.Attributes
     }
 
     [CreateAssetMenu(fileName = "NewAttribute", menuName = "GAS/Attribute Definition")]
+    [HelpURL(DocUrls.Gas + "#attributedefinition")]
     public class AttributeDefinition : ScriptableObject
     {
         public Sprite Icon;

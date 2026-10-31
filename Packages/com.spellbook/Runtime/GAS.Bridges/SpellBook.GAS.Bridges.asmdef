@@ -1,0 +1,20 @@
+{
+    "name": "SpellBook.GAS.Bridges",
+    "rootNamespace": "SpellBook.GAS.Bridges",
+    "references": [
+        "GUID:7834e8f3d0902ad45bfb6fab58f7b919",
+        "GUID:f5577235018b35e4aa9aa10a86427936",
+        "GUID:660a209bfdce2334b96a64748b0192f3",
+        "GUID:bb552256824964f42bce82d6d5c3974e",
+        "GUID:21977a0f8064f9b48aead2aff17e2810"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

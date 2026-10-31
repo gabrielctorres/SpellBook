@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using SpellBook.Core;
 using SpellBook.GAS.Core;
 using System.Linq;
 
 namespace SpellBook.GAS.Attributes
 {
     [CreateAssetMenu(fileName = "Formula_Expression", menuName = "GAS/Formulas/Expression Formula")]
+    [HelpURL(DocUrls.Gas + "#expressionformula")]
     public class ExpressionFormula : Formula
     {
         public enum TargetSource

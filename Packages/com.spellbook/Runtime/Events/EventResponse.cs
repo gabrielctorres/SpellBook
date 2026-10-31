@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -11,7 +12,7 @@ namespace SpellBook.Events
     /// <c>XEventResponse : EventResponse&lt;X&gt;</c> ao lado do <c>XEventChannel</c>.
     /// </summary>
     [Serializable]
-    public abstract class EventResponse
+    public abstract class EventResponse : IValidatable
     {
         /// <summary>Canal que a resposta ouve, ou <c>null</c> se nenhum foi escolhido.</summary>
         public abstract EventChannel Channel { get; }
@@ -21,6 +22,17 @@ namespace SpellBook.Events
 
         /// <summary>Para de ouvir o canal da última inscrição.</summary>
         public abstract void Unsubscribe();
+
+        /// <summary>
+        /// Acusa resposta sem canal, chamada do escape sem alvo ou sem método e reações inválidas para o payload.
+        /// </summary>
+        public abstract void Validate(ValidationResult result);
+
+        /// <summary>
+        /// Ouvinte da inscrição atual, ou <c>null</c> fora dela. O Editor usa para nomear a resposta pelo dono.
+        /// É <c>virtual</c> para não impedir que outro assembly herde direto desta classe.
+        /// </summary>
+        internal virtual EventListener Owner => null;
     }
 
     /// <summary>Resposta a um canal com payload <typeparamref name="T"/>: reações na ordem da lista, depois o escape.</summary>
@@ -42,6 +54,8 @@ namespace SpellBook.Events
 
         public override EventChannel Channel => channel;
 
+        internal override EventListener Owner => _listener;
+
         public override void Subscribe(EventListener listener)
         {
             Unsubscribe();
@@ -62,6 +76,33 @@ namespace SpellBook.Events
 
             _subscribed = null;
             _listener = null;
+        }
+
+        public override void Validate(ValidationResult result)
+        {
+            if (channel == null)
+            {
+                result.AddError($"Resposta {typeof(T).Name} sem canal: escolha o Channel.");
+            }
+
+            for (int i = 0; i < reactions.Count; i++)
+            {
+                reactions[i]?.Validate(result, typeof(T));
+            }
+
+            UnityEvent<T> escapeEvent = escape.Event;
+            if (escapeEvent == null) return;
+            for (int i = 0; i < escapeEvent.GetPersistentEventCount(); i++)
+            {
+                if (escapeEvent.GetPersistentTarget(i) == null)
+                {
+                    result.AddError($"Escape com chamada {i} sem alvo: escolha o objeto ou remova a chamada.");
+                }
+                else if (string.IsNullOrEmpty(escapeEvent.GetPersistentMethodName(i)))
+                {
+                    result.AddError($"Escape com chamada {i} sem método: escolha a função ou remova a chamada.");
+                }
+            }
         }
 
         private void OnRaised(T payload)

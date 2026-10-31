@@ -1,0 +1,20 @@
+{
+    "name": "SpellBook.Time.Editor",
+    "rootNamespace": "SpellBook.Time.Editor",
+    "references": [
+        "GUID:7834e8f3d0902ad45bfb6fab58f7b919",
+        "GUID:660a209bfdce2334b96a64748b0192f3",
+        "GUID:d0725186a5ff669448a26295c851b9c6"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

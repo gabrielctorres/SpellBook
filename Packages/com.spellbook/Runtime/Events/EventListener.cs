@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using SpellBook.Time;
 using UnityEngine;
 
@@ -13,7 +14,7 @@ namespace SpellBook.Events
     /// as esperas pendentes do Invoke com delay.
     /// </summary>
     [HelpURL(DocUrls.Events + "#eventlistener")]
-    public sealed class EventListener : MonoBehaviour
+    public sealed class EventListener : MonoBehaviour, IValidatable
     {
         [SerializeReference, TypePicker, Tooltip("Uma resposta por canal ouvido.")]
         private List<EventResponse> responses = new List<EventResponse>();
@@ -53,6 +54,15 @@ namespace SpellBook.Events
 
                 _waits.RemoveAt(i);
                 wait.Action();
+            }
+        }
+
+        /// <summary>Valida cada resposta da lista (R35).</summary>
+        public void Validate(ValidationResult result)
+        {
+            for (int i = 0; i < responses.Count; i++)
+            {
+                responses[i]?.Validate(result);
             }
         }
 

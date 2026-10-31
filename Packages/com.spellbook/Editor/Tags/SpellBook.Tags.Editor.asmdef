@@ -1,0 +1,20 @@
+{
+    "name": "SpellBook.Tags.Editor",
+    "rootNamespace": "SpellBook.Tags.Editor",
+    "references": [
+        "GUID:7834e8f3d0902ad45bfb6fab58f7b919",
+        "GUID:f5577235018b35e4aa9aa10a86427936",
+        "GUID:d0725186a5ff669448a26295c851b9c6"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

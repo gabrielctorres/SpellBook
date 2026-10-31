@@ -1,0 +1,17 @@
+{
+    "name": "C1.PoolingOnly",
+    "rootNamespace": "SpellBook.Scenarios.C1",
+    "references": [
+        "SpellBook.Core",
+        "SpellBook.Pooling"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

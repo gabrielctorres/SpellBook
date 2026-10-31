@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using SpellBook.Core.Validation;
 using UnityEngine;
 
 namespace SpellBook.GAS.Abilities
@@ -10,7 +11,7 @@ namespace SpellBook.GAS.Abilities
     /// então estado por execução deve ficar no AbilityContext (ex: CustomData), não em campos.
     /// </summary>
     [Serializable]
-    public abstract class AbilityAction
+    public abstract class AbilityAction : IValidatable
     {
         public abstract IEnumerator Execute(AbilityContext context);
 
@@ -19,6 +20,12 @@ namespace SpellBook.GAS.Abilities
         /// Use para restaurar estado (ex: reabilitar movimento após um dash interrompido).
         /// </summary>
         public virtual void OnCancel(AbilityContext context) { }
+
+        /// <summary>
+        /// Acusa a configuração inválida da ação (campo obrigatório vazio, por exemplo). O padrão não acusa nada.
+        /// Chamado pelo <see cref="GameplayAbility"/> que contém a ação.
+        /// </summary>
+        public virtual void Validate(ValidationResult result) { }
 
         /// <summary>
         /// Executa uma ação registrando-a como em execução no contexto.

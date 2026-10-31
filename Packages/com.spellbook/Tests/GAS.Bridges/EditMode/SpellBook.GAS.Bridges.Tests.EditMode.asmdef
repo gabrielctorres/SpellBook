@@ -1,0 +1,30 @@
+{
+    "name": "SpellBook.GAS.Bridges.Tests.EditMode",
+    "rootNamespace": "SpellBook.GAS.Bridges.Tests",
+    "references": [
+        "SpellBook.Core",
+        "SpellBook.Tags",
+        "SpellBook.Time",
+        "SpellBook.GAS",
+        "SpellBook.Events",
+        "SpellBook.GAS.Bridges",
+        "SpellBook.Testing",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
