@@ -461,7 +461,9 @@ namespace SpellBook.Time
   - uma exceção dentro de `Validate` vira um erro com o tipo e a mensagem da exceção, e a varredura continua;
   - cada alvo (e cada componente, nos `GameObject`) recebe um erro por entrada de `MissingReferenceTypes.Get(alvo)`, com o texto de `MissingReferenceTypes.FormatMessage` (assembly e classe, CA64). É a mesma função e o mesmo texto do topo do Inspector (0M-53, seção 4.10, D6). O validador nunca chama `Clear`.
 - `ProjectValidator.CollectProjectTargets()`: assets de `ScriptableObject` e prefabs do projeto (`AssetDatabase.FindAssets`), mais os objetos das cenas abertas.
+  - **Emenda (2026-10-31, dúvida do 0M-38):** a varredura olha só `Assets/` (mais as cenas abertas), não `Packages/`. Está certo: R33 fala dos assets **do projeto**; `Packages/` traz pacotes de terceiros, só leitura, que o usuário não corrige; e o `com.spellbook` não tem `.asset` nem `.prefab` (conferido em 2026-10-31). Os erros do próprio pacote são cobertos por tipo (regra de `[HelpURL]`) e pelos testes de cada módulo.
 - Regra de `[HelpURL]` (R35, último item): função `HelpUrlRule.FindViolations(IEnumerable<Assembly>)`, usada pelo teste CA36 e pela janela.
+  - **Emenda (2026-10-31, dúvida do 0M-38):** nenhum ticket listava o arquivo. O `Editor/Core/HelpUrlRule.cs` nasce no **0M-39** (com o `HelpUrlTests`, que o usa). A ligação com a janela fica no **0M-58** (novo, aguarda o usuário): `ProjectValidator.ValidateTypes(IEnumerable<Assembly>, List<ValidationMessage>)` converte cada violação num erro cujo alvo é o `MonoScript` do tipo (clique faz ping no script), e a `ValidationWindow.Run` chama `ValidateTypes` sobre os assemblies de runtime do pacote, além do `Validate` de hoje. O 0M-38 entrega a janela sem essa regra.
 - O menu `SpellBook/Validar projeto` abre a `ValidationWindow` (UI Toolkit, `EditorWindow.CreateGUI`, `ListView`) com a lista. Clicar num item seleciona o objeto e faz ping nele (CA34).
 - **Inspector** (R32, I48): as mensagens aparecem no topo do Inspector do próprio objeto, pelo `SpellBookEditor` (0M-48, seção 4.10), que todo tipo do pacote usa (0M-49, 0M-50). O `ProjectValidator` não desenha nada no Inspector, e não existe gancho IMGUI.
 
@@ -785,7 +787,8 @@ Mudança: **igual** (sem mudança), **alterado** (escopo, arquivos, dependência
 | 0M-36 | `feat(events): Find references de canal` | 0M-35 | CA24 | alterado | Botão do debugger e menu de contexto em UI Toolkit; papel "emite" lido da `EventEmission` (canal dentro dela) |
 | 0M-37 | `feat(gas-bridges): RaiseEventAction` | 0M-32, 0M-22, 0M-43 | CA52, CA61, CA35 (parte), CA2 | alterado | `IValidatable` em `AbilityAction` e `GameplayAbility`; emissão com canal dentro (drawer do 0M-45) |
 | 0M-38 | `feat(core): validar projeto por menu e por teste` | 0M-37, 0M-33, 0M-48, 0M-53 | CA34, CA35, R32, R33, R34, CA64 | alterado | `IValidatable`; janela UI Toolkit; erro de tipo ausente; o rename do asmdef sai (foi para o 0M-41). 2ª rodada: sai o gancho do Inspector (as mensagens no Inspector vêm do `SpellBookEditor`, 0M-48). D6: o erro de tipo ausente usa `MissingReferenceTypes` do 0M-53 |
-| 0M-39 | `docs(gas): HelpURL nos tipos restantes e teste de HelpURL` | 0M-38 | CA36, CA37 | igual | — |
+| 0M-39 | `docs(gas): HelpURL nos tipos restantes e teste de HelpURL` | 0M-38 | CA36, CA37 | alterado (2026-10-31) | ganha `Editor/Core/HelpUrlRule.cs` |
+| 0M-58 | `feat(core): regra de HelpURL na janela de validação` | 0M-39 | R33, R35 (último item) | **novo** (2026-10-31, aprovado pelo usuário em 2026-10-31, issue #97) | liga o `HelpUrlRule` à `ValidationWindow` |
 | 0M-49 | `feat(editor): Inspectors de uma linha para Core, Time, Tags e Pooling` | 0M-39, 0M-48 | R32 | **novo** (2ª rodada) | I48: todo tipo do pacote usa o `SpellBookEditor`; cria `Time.Editor`, `Tags.Editor` e `Pooling.Editor` |
 | 0M-50 | `feat(editor): Inspectors de uma linha para GAS e Events e cobertura completa` | 0M-49 | R32 | **novo** (2ª rodada) | I48: completa a cobertura; cria `GAS.Editor` |
 | 0M-40 | `refactor(core)!: Core em Runtime/Core e verificação final da estrutura` | 0M-50 | CA1, CA32, CA54, CA6, N4 | alterado | Lista final de asmdefs sem `Setup.Editor` e com `Core.Editor`, `Events.Editor`, `Time.Editor`, `Tags.Editor`, `Pooling.Editor` e `GAS.Editor`; depende do 0M-50. 2026-10-30 (0027): C1 em `Assets/Scenarios/C1/`; o manual é lido na raiz do repositório (`PackageFiles.RepositoryRoot`, +1 arquivo; o asmdef `R100` sai da contagem; 8) |
@@ -1693,6 +1696,11 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
   - o asmdef `SpellBook.Core.Tests.EditMode` ganha também `SpellBook.Time` e `SpellBook.Tags` (4.1: a regra da ADR 0004 e as dependências públicas do GAS). O `Validator_ReportsEachR35Error` monta uma `DelayedReaction` e um `PooledSpawnerAsset`. **Atualização (2026-10-30):** o `SpellBook.Time` já chega pelo 0M-57; aqui entra só o `SpellBook.Tags` (e os runtimes que o validador usa). Arquivos e tamanho não mudam;
   - **entra `Documentation~/manual/inicio/conceitos.md`**: a linha do `SpellBook.GAS.Bridges` no "Mapa atual" e a regra "o Bridges não depende de Pooling" na "Regra de dependência" de hoje;
   - Tamanho: ~285 linhas, **6 arquivos**.
+- **Emenda (2026-10-31, dúvida da Fábrica):**
+  - a regra de `[HelpURL]` **não** entra neste ticket. O `HelpUrlRule` vai para o 0M-39 e a ligação com a janela para o 0M-58 (seção 4.9). Arquivos não mudam;
+  - o `Validator_ReportsEachR35Error` cobre as regras de R35 sobre objetos; o último item (tipo sem `[HelpURL]`) fica com o CA36 (0M-39) e com o 0M-58;
+  - a varredura só de `Assets/` e das cenas abertas está certa (seção 4.9, emenda de 2026-10-31);
+  - o tamanho relatado pela Fábrica é ~460 linhas. **Correção (2026-10-31):** o teto vigente é ~500 linhas (emenda da ADR 0003 de 2026-10-30, commit `d178138`), então ~460 **não precisa de exceção**. O Examinador confere a contagem pela 0003; só acima de ~500 o ticket precisaria de exceção do usuário antes do PR.
 
 ### 0M-39 — `docs(gas): HelpURL nos tipos restantes e teste de HelpURL`
 - Arquivos: `Runtime/GAS/Attributes/AttributeSet.cs`, `AttributeDefinition.cs`, `Formulas/SimpleAttributeFormula.cs`, `Formulas/ExpressionFormula.cs`, `Runtime/GAS/Targeting/CircleTargeting.cs`, `MouseTargetingStrategy.cs`, `Runtime/GAS/Effects/GameplayEffect.cs`, `Tests/Core/EditMode/HelpUrlTests.cs`, `Documentation~/manual/modulos/gas.md` (âncoras que faltarem). (`GameplayAbility` recebeu no 0M-37.)
@@ -1702,6 +1710,23 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Manual: GAS (âncoras e uma linha por tipo, se faltar).
 - Tamanho: ~80 linhas, 9 arquivos.
 - **Emenda (2026-10-30, varredura de lacunas):** o `HelpUrlTests` olha só os assemblies de runtime do pacote (`SpellBook.*` sem `.Tests`, `.Editor` nem `SpellBook.Testing`), como o `TypePickerUsageTests`. Os tipos de teste `TestPayloadEventChannel` (0M-32) e `TestListenerAsset` (0M-36) são SO públicos e concretos sem `[HelpURL]`. Conferido em 2026-10-30: os 7 tipos sem atributo são `AttributeSet`, `AttributeDefinition`, `SimpleAttributeFormula`, `ExpressionFormula`, `CircleTargeting`, `MouseTargetingStrategy` e `GameplayEffect`. O `GameplayAbility` recebe o atributo no 0M-37 e o `EventEmitter` no 0M-32. Arquivos e tamanho não mudam.
+- **Emenda (2026-10-31, dúvida do 0M-38):**
+  - entra `Editor/Core/HelpUrlRule.cs`: `public static class HelpUrlRule` com `IReadOnlyList<HelpUrlViolation> FindViolations(IEnumerable<Assembly>)` (`HelpUrlViolation { Type Type; string Reason }`, motivo "sem `[HelpURL]`" ou "URL fora de `DocUrls.Base`") e `IEnumerable<Assembly> RuntimeAssemblies()` (o filtro da emenda de 2026-10-30, num lugar só);
+  - o `HelpUrlTests` chama `HelpUrlRule.FindViolations(HelpUrlRule.RuntimeAssemblies())` e falha listando os tipos. Teste red novo: `HelpUrlRule_TypeWithoutAttribute_IsViolation`, com um tipo de teste passado por um assembly explícito (o de testes), sem depender do estado do pacote;
+  - a janela não muda aqui (0M-58);
+  - Tamanho: ~130 linhas, **10 arquivos**.
+
+### 0M-58 — `feat(core): regra de HelpURL na janela de validação` (novo, 2026-10-31, **aprovado pelo usuário no gate de 2026-10-31, issue #97**)
+- Por quê: a seção 4.9 manda a regra de `[HelpURL]` para a janela, mas nenhum ticket tinha o arquivo. O 0M-38 (~460 linhas) já está perto do teto de ~500 da ADR 0003, e o 0M-39 chegou a 10 arquivos com a emenda.
+- Arquivos: `Editor/Core/ProjectValidator.cs` (`ValidateTypes`), `Editor/Core/ValidationWindow.cs` (`Run` chama `ValidateTypes(HelpUrlRule.RuntimeAssemblies(), ...)`), `Tests/Core/EditMode/ProjectValidationTests.cs`, `Documentation~/manual/ferramentas/validador.md` (a regra de `[HelpURL]` na lista de regras da 0-M e o que fazer com o erro).
+- Depende de: 0M-39. Vem logo depois dele, antes do 0M-49.
+- CAs: R33 e R35 (último item, na janela).
+- Testes red (falham, porque `ValidateTypes` não existe):
+  - `ValidateTypes_TypeWithoutHelpUrl_IsErrorOnItsScript` (assembly de testes com um SO sem atributo; erro com o nome do tipo; alvo é o `MonoScript` quando ele existe);
+  - `ValidateTypes_RuntimeAssemblies_NoErrors`.
+- Cenário no host: tirar localmente o `[HelpURL]` de um tipo, abrir `SpellBook/Validar projeto`, ver o erro e o ping no script.
+- Tamanho: ~90 linhas, 4 arquivos.
+- Alternativa, se o usuário recusar o ticket novo: a regra fica só no teste (CA36) e a 4.9 deixa de citar a janela; o R35 da PRD diz "verificada sobre os tipos", e o teste cumpre isso, mas o usuário perde o erro na janela.
 
 ### 0M-49 — `feat(editor): Inspectors de uma linha para Core, Time, Tags e Pooling` (novo, 2ª rodada)
 - **Novo (I48).** Todo tipo do pacote usa o `SpellBookEditor`. Este ticket cobre os módulos de infraestrutura e cria o teste de cobertura.
@@ -1791,8 +1816,9 @@ CAs que ficam com o DevOps no release (não são de ticket): CA4 (`version` = `3
 - Decididas pelo usuário em 2026-10-29 (0M-47):
   - ~~exceção de tamanho do 0M-47 (~500 linhas: `TypePickerTree` 163, `TypePickerPopup` 223, testes 108)~~: **aprovada**, só neste ticket (registrada no 0M-47);
   - ~~adiantar o 0M-08 para logo depois do 0M-47~~: **aprovado**. Ordem, "Por que essa ordem" e "Paralelo sem Editor" da seção 8 atualizados; nenhuma dependência muda.
-- Decidida pelo usuário em 2026-10-31 (0M-35):
-  - ~~exceção de tamanho do 0M-35 (~620 linhas: ~372 de produção e ~248 de teste, 8 arquivos)~~: **aprovada**, só neste ticket (registrada no 0M-35).
+- Decididas pelo usuário em 2026-10-31 (0M-35 e 0M-58):
+  - ~~exceção de tamanho do 0M-35 (~620 linhas: ~372 de produção e ~248 de teste, 8 arquivos)~~: **aprovada**, só neste ticket (registrada no 0M-35);
+  - ~~ticket novo 0M-58 (regra de `[HelpURL]` na janela de validação)~~: **aprovado no gate de 2026-10-31**, issue #97. A alternativa (regra só no teste) não vale.
 - Continua aberto o passo manual do usuário de ligar o Pages com "Source: GitHub Actions" (0M-09).
 - Decididas pelo usuário em 2026-10-30, no gate da ADR 0027 (registro completo na 0027, "Decisões do gate"):
   - ~~alternativa A, B ou C~~: **A**;
