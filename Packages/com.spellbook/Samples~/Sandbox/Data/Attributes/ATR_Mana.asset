@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3438981542feaa34bb48db357a0d9347, type: 3}
+  m_Name: ATR_Mana
+  m_EditorClassIdentifier: SpellBook.GAS::SpellBook.GAS.Attributes.AttributeDefinition
+  Icon: {fileID: 0}
+  DisplayName: 
+  Type: 0
+  Formula: {fileID: 0}
+  MinValue: 0
+  MaxValue: 9999
