@@ -21,6 +21,7 @@ Formato de cada ADR: Status, Data, Contexto, Decisão, Motivo, Consequências, O
 | [0007](0007-documentacao-como-codigo-e-gate-de-doc.md) | Documentação como código e gate de doc no `/revisao` | Aceita | 2026-10-29 |
 | [0008](0008-conventional-commits-e-versionamento-semantico.md) | Conventional Commits e versionamento semântico | Aceita | 2026-10-29 |
 | [0027](0027-estrutura-do-repositorio-projeto-unity-na-raiz.md) | Estrutura do repositório: projeto Unity na raiz e pacote embutido em `Packages/com.spellbook/` | Aceita | 2026-10-30 |
+| [0028](0028-autoria-de-samples-por-renomeacao-temporaria.md) | Autoria de `Samples~` por renomeação temporária para `Samples` | Aceita | 2026-10-31 |
 
 ## Arquitetura
 
