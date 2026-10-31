@@ -14,25 +14,23 @@ um módulo precisa referenciar o assembly dele. Os assemblies de runtime têm
 A 3.0 está em desenvolvimento, e a separação em módulos acontece aos poucos. Hoje o pacote tem
 estes assemblies:
 
-| Assembly | O que tem hoje |
-|---|---|
-| `SpellBook.Core` | Seletor de tipo e `[ShowIf]` do Inspector, validação de assets, conjuntos em runtime, eventos, pooling e utilidades de matemática. |
-| `SpellBook.GAS` | Sistema de habilidades: atributos, efeitos, habilidades, alvos, projéteis e as tags de gameplay. Referencia só o `SpellBook.Core`. |
-| `SpellBook.Core.Editor` | Código de Editor do Core (Inspector do SpellBook). Só existe no Editor. |
+| Assembly | O que tem hoje | Referencia |
+|---|---|---|
+| `SpellBook.Core` | Seletor de tipo e `[ShowIf]` do Inspector, validação, `Void`, `RuntimeSet<T>`, `MathTools` e os assets de spawn (`SpawnerAsset`). | — |
+| `SpellBook.Time` | [Fontes de tempo](../modulos/tempo.md) trocáveis. | Core |
+| `SpellBook.Tags` | [Tags](../modulos/tags.md) hierárquicas de gameplay. | Core |
+| `SpellBook.Pooling` | [Reaproveitamento de objetos](../modulos/pooling.md). | Core |
+| `SpellBook.Events` | [Eventos](../modulos/eventos.md) por código, canais em asset, ouvintes e emissores. | Core e Time |
+| `SpellBook.GAS` | [Sistema de habilidades](../modulos/gas.md): atributos, efeitos, habilidades, alvos e projéteis. | Core, Tags e Time |
+| `SpellBook.Core.Editor` | Código de Editor do Core (Inspector do SpellBook). Só existe no Editor. | Core |
+| `SpellBook.Events.Editor` | Inspectors do canal e do emissor. Só existe no Editor. | Core, Time, Events e Core.Editor |
 
 ### Mapa ao fim da reorganização {#mapa-alvo}
 
-Ao fim da reorganização da 3.0, o que hoje está dentro do `SpellBook.Core` sai para módulos
-próprios. Estes assemblies ainda **não existem**; a tabela mostra para onde o pacote vai:
+Ao fim da reorganização da 3.0, entra mais um assembly. Ele ainda **não existe**:
 
 | Assembly | Para que serve |
 |---|---|
-| `SpellBook.Core` | Base comum: Inspector, validação e utilidades. |
-| `SpellBook.Time` | Fontes de tempo trocáveis. |
-| `SpellBook.Events` | Eventos por código, canais em asset e ouvintes. |
-| `SpellBook.Pooling` | Reaproveitamento de objetos. |
-| `SpellBook.Tags` | Tags hierárquicas de gameplay (hoje dentro do `SpellBook.GAS`). |
-| `SpellBook.GAS` | Sistema de habilidades. |
 | `SpellBook.GAS.Bridges` | Ligações do GAS com outros módulos, como disparar um evento a partir de uma habilidade. |
 
 ## Core {#core}
@@ -85,20 +83,18 @@ Esse componente não existe mais na 3.0.
 
 A regra vale entre assemblies. Hoje ela é esta:
 
-- O `SpellBook.Core` não depende de nenhum outro módulo do SpellBook, nem do GAS.
-- O `SpellBook.GAS` depende só do `SpellBook.Core`.
+- O `SpellBook.Core` não depende de nenhum outro módulo do SpellBook.
+- Os módulos de infraestrutura (Core, Time, Tags, Pooling e Events) nunca dependem do GAS.
+- O `SpellBook.Events` depende só do `SpellBook.Core` e do `SpellBook.Time`.
+- O `SpellBook.GAS` não depende de Events nem de Pooling.
+- Um assembly de Editor de módulo, como o `SpellBook.Events.Editor`, pode depender do
+  `SpellBook.Core.Editor`, mas não do Editor de outro módulo.
 
-Os testes do pacote conferem essa regra lendo os asmdefs.
+Assim, um projeto que só quer eventos ou pooling não carrega o GAS. Os testes do pacote conferem
+essa regra lendo os asmdefs.
 
-Ao fim da reorganização, com os assemblies do [mapa alvo](#mapa-alvo), a regra vai ser esta:
-
-- O `SpellBook.Core` não vai depender de nenhum outro módulo do SpellBook.
-- Os módulos de infraestrutura (Core, Time, Events, Pooling e Tags) nunca vão depender do GAS.
-- O `SpellBook.GAS` não vai depender de Events nem de Pooling. Quem vai ligar o GAS a esses
-  módulos é o `SpellBook.GAS.Bridges`.
-- O `SpellBook.GAS.Bridges` não vai depender de Pooling.
-
-Assim, um projeto que só quer eventos ou pooling não vai carregar o GAS.
+Quando o `SpellBook.GAS.Bridges` existir, é ele que vai ligar o GAS a outros módulos, como Events,
+sem depender de Pooling.
 
 O pacote não depende do Odin Inspector nem de outro pacote de Inspector. Veja
 [Inspector](inspector.md).
