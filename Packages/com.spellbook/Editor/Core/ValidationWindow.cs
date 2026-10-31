@@ -9,8 +9,8 @@ namespace SpellBook.Core.Editor
 {
     /// <summary>
     /// Janela de <c>SpellBook &gt; Validar projeto</c> (R33, CA34): lista os erros e avisos do
-    /// <see cref="ProjectValidator"/> sobre os assets do projeto e as cenas abertas. Clicar num item seleciona o objeto
-    /// e faz ping nele.
+    /// <see cref="ProjectValidator"/> sobre os assets do projeto e as cenas abertas, mais a regra de <c>[HelpURL]</c>
+    /// sobre os tipos de runtime do pacote. Clicar num item seleciona o objeto (ou o script do tipo) e faz ping nele.
     /// </summary>
     public sealed class ValidationWindow : EditorWindow
     {
@@ -51,6 +51,7 @@ namespace SpellBook.Core.Editor
         {
             _messages.Clear();
             ProjectValidator.Validate(ProjectValidator.CollectProjectTargets(), _messages);
+            ProjectValidator.ValidateTypes(HelpUrlRule.RuntimeAssemblies(), _messages);
 
             int errors = 0;
             foreach (ValidationMessage message in _messages)

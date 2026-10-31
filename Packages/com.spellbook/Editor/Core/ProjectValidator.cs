@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Reflection;
 using SpellBook.Core.Editor.Inspector;
 using SpellBook.Core.Validation;
 using UnityEditor;
@@ -46,6 +48,21 @@ namespace SpellBook.Core.Editor
                 {
                     ValidateOne(target, single, messages);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Regra de <c>[HelpURL]</c> (R35, último item; <see cref="HelpUrlRule"/>) sobre os tipos de
+        /// <paramref name="assemblies"/>: cada violação vira um erro com o nome do tipo, cujo alvo é o
+        /// <see cref="MonoScript"/> do tipo (nulo se o tipo não tem script próprio).
+        /// </summary>
+        public static void ValidateTypes(IEnumerable<Assembly> assemblies, List<ValidationMessage> messages)
+        {
+            foreach (HelpUrlViolation violation in HelpUrlRule.FindViolations(assemblies))
+            {
+                string text = $"Tipo {violation.Type.FullName} {violation.Reason}: aponte o [HelpURL] para a página do " +
+                    "manual (DocUrls.Base).";
+                messages.Add(new ValidationMessage(ValidationSeverity.Error, text, FindScript(violation.Type), null));
             }
         }
 
@@ -109,6 +126,22 @@ namespace SpellBook.Core.Editor
                 messages.Add(new ValidationMessage(ValidationSeverity.Error, MissingReferenceTypes.FormatMessage(entry),
                     target, null));
             }
+        }
+
+        // O script de um tipo tem o nome da classe; a busca por nome acha também scripts de outros tipos com nome
+        // parecido, e o GetClass separa o certo.
+        private static MonoScript FindScript(Type type)
+        {
+            foreach (string guid in AssetDatabase.FindAssets("t:MonoScript " + type.Name))
+            {
+                var script = AssetDatabase.LoadAssetAtPath<MonoScript>(AssetDatabase.GUIDToAssetPath(guid));
+                if (script != null && script.GetClass() == type)
+                {
+                    return script;
+                }
+            }
+
+            return null;
         }
 
         private static void AddHierarchy(GameObject root, List<Object> targets)

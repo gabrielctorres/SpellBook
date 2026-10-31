@@ -52,7 +52,22 @@ O validador acusa erro em:
 - uma `RaiseEventAction` sem canal, acusada na habilidade que a contém (veja
   [RaiseEventAction](../modulos/gas.md#raiseeventaction));
 - um `PooledSpawnerAsset` com **Initial Size** negativo;
-- uma referência `[SerializeReference]` cujo tipo não existe mais (abaixo).
+- uma referência `[SerializeReference]` cujo tipo não existe mais (abaixo);
+- um `MonoBehaviour` ou `ScriptableObject` público e concreto do SpellBook sem `[HelpURL]`, ou com
+  `[HelpURL]` fora do manual (abaixo).
+
+## Tipo sem HelpURL {#helpurl}
+
+Cada componente e asset do SpellBook tem um `[HelpURL]` que leva à página dele neste manual (o
+ícone de ajuda no topo do Inspector). A janela confere isso nos tipos de runtime do pacote, além
+dos assets, e acusa um erro por tipo, por exemplo
+`Tipo SpellBook.Pooling.PooledSpawnerAsset sem [HelpURL]: aponte o [HelpURL] para a página do manual (DocUrls.Base).`
+
+Clique na linha para selecionar o script do tipo. Para corrigir, ponha no tipo o atributo
+`[HelpURL]` com a constante de `DocUrls` do módulo e a âncora do tipo, por exemplo
+`[HelpURL(DocUrls.Pooling + "#spawnerasset")]`. Esse erro só
+aparece com o código do pacote alterado: numa versão publicada, todos os tipos já têm o atributo.
+A regra não olha os seus tipos.
 
 ## Tipo não encontrado {#tipo-nao-encontrado}
 
