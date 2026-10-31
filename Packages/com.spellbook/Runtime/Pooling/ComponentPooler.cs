@@ -12,6 +12,8 @@ namespace SpellBook.Pooling
     public class ComponentPooler : MonoBehaviour
     {
         private PoolConfiguration _config;
+        private GameObject _prefab;
+        private bool _canExpand;
         private Queue<GameObject> _poolQueue = new Queue<GameObject>();
         private Transform _container;
         
@@ -21,11 +23,19 @@ namespace SpellBook.Pooling
         public void Initialize(PoolConfiguration config)
         {
             _config = config;
-            _container = new GameObject($"[Container] {config.Prefab.name}").transform;
+            Initialize(config.Prefab, config.InitialSize, config.CanExpand);
+        }
+
+        /// <summary>Inicia o pool sem asset de configuração (pool criado em runtime).</summary>
+        internal void Initialize(GameObject prefab, int initialSize, bool canExpand)
+        {
+            _prefab = prefab;
+            _canExpand = canExpand;
+            _container = new GameObject($"[Container] {prefab.name}").transform;
             _container.SetParent(this.transform);
             _container.position = _safeZone;
 
-            for (int i = 0; i < config.InitialSize; i++)
+            for (int i = 0; i < initialSize; i++)
             {
                 CreateNewInstance();
             }
@@ -34,7 +44,7 @@ namespace SpellBook.Pooling
         private GameObject CreateNewInstance()
         {
             // Instancia na safe zone e já desativado
-            GameObject obj = Instantiate(_config.Prefab, _container.position, Quaternion.identity, _container);
+            GameObject obj = Instantiate(_prefab, _container.position, Quaternion.identity, _container);
             obj.SetActive(false);
             
             if (!obj.TryGetComponent<PoolableObject>(out var p))
@@ -49,7 +59,7 @@ namespace SpellBook.Pooling
         {
             if (_poolQueue.Count == 0)
             {
-                if (_config.CanExpand) CreateNewInstance();
+                if (_config != null ? _config.CanExpand : _canExpand) CreateNewInstance();
                 else return null;
             }
 

@@ -101,6 +101,37 @@ namespace SpellBook.Pooling.Tests
             Assert.That(result.Messages, Is.Empty);
         }
 
+        [Test]
+        public void Pooled_Spawn_CreatesNoPoolConfiguration()
+        {
+            PooledSpawnerAsset spawner = CreatePooledSpawner();
+            GameObject prefab = _factory.CreatePrefab();
+            int before = CountPoolConfigurations();
+
+            _factory.Track(spawner.Spawn(prefab, Vector3.zero, Quaternion.identity));
+
+            Assert.That(CountPoolConfigurations(), Is.EqualTo(before));
+        }
+
+        [Test]
+        public void Pooled_PoolRecreated_CreatesNoPoolConfiguration()
+        {
+            PooledSpawnerAsset spawner = CreatePooledSpawner();
+            GameObject prefab = _factory.CreatePrefab();
+            int before = CountPoolConfigurations();
+
+            _factory.Track(spawner.Spawn(prefab, Vector3.zero, Quaternion.identity));
+            Object.DestroyImmediate(GameObject.Find(PoolsRootName));
+            _factory.Track(spawner.Spawn(prefab, Vector3.zero, Quaternion.identity));
+
+            Assert.That(CountPoolConfigurations(), Is.EqualTo(before));
+        }
+
+        private static int CountPoolConfigurations()
+        {
+            return Resources.FindObjectsOfTypeAll<PoolConfiguration>().Length;
+        }
+
         private PooledSpawnerAsset CreatePooledSpawner(int? initialSize = null)
         {
             var spawner = _factory.Track(ScriptableObject.CreateInstance<PooledSpawnerAsset>());
