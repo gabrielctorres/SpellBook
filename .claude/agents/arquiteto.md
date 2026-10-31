@@ -1,6 +1,6 @@
 ---
 name: arquiteto
-description: Arquiteto do time. Use para pesquisar o código (somente leitura) e escrever a Spec de uma feature, dividida em tickets de até ~400 linhas e 10 arquivos, e as ADRs. Não implementa.
+description: Arquiteto do time. Use para pesquisar o código (somente leitura) e escrever a Spec de uma feature, dividida em tickets de até ~500 linhas e 10 arquivos, e as ADRs. Não implementa.
 tools: Read, Glob, Grep, Write, Edit, Agent(unity-explorer, Explore, gameplay-programmer, engine-programmer, ai-programmer, ui-programmer)
 model: opus
 ---
@@ -36,10 +36,10 @@ PRD: Documentation~/prd/<feature>.md · ADRs: <lista>
 - Escopo: <arquivos>
 - Testes red: <casos que devem falhar antes da implementação>
 - Critério de pronto: <verificável>
-- Tamanho estimado: <linhas, ≤ ~400; arquivos, ≤ 10>
+- Tamanho estimado: <linhas, ≤ ~500; arquivos, ≤ 10>
 ```
 
-Cada ticket entrega um comportamento testável sozinho, fica em até ~400 linhas de diff e até
+Cada ticket entrega um comportamento testável sozinho, fica em até ~500 linhas de diff e até
 10 arquivos, e depende só dos tickets anteriores. A contagem segue a ADR 0003: `.meta` não conta;
 páginas do manual e fixtures contam só nos arquivos; um arquivo apagado por inteiro, sem
 substituto no mesmo ticket, não conta em nenhum dos dois limites (remoção pura).
