@@ -207,7 +207,7 @@ CHANGELOG, na seção da versão em preparo, "Adicionado": "Sample **Sandbox** (
 
 ## Tickets
 
-Ordem: T1 → T2 → T3 → T4 → T5. O T6 (sem Editor) pode andar em paralelo ao T5, pela emenda de 2026-10-29 da 0003, porque os dois não tocam nenhum arquivo em comum.
+Ordem: T1 → T2a → T2b → T3 → T4 → T5 (o T2 foi dividido em 2026-10-31; ver abaixo). O T6 (sem Editor) pode andar em paralelo ao T5, pela emenda de 2026-10-29 da 0003, porque os dois não tocam nenhum arquivo em comum.
 
 Contagem (0003): os YAML de assets do Sample (`.unity`, `.prefab`, `.asset`, `.mat`) e os `.md` entram como fixtures e páginas. Contam no limite de 10 arquivos e não contam nas linhas. Os `.meta` ficam fora dos dois limites. Em todos os tickets com Unity, a autoria segue a ADR 0028.
 
@@ -235,22 +235,50 @@ Contagem (0003): os YAML de assets do Sample (`.unity`, `.prefab`, `.asset`, `.m
   - o `mkdocs build --strict` passa, se disponível (senão, registrar como não verificado).
 - Tamanho estimado: ~230 linhas (testes ~190, `package.json` ~8, asmdef ~20, `DocUrls` ~2). 7 arquivos.
 
-### T2 — Scripts de apoio do Sample
-- Usa Unity: **sim** (compilação com a pasta renomeada, mais a suíte). Depende de: T1.
-- Escopo:
-  - `Samples~/Sandbox/Scripts/`: `SandboxCaster.cs`, `SandboxDirector.cs`, `DamageTakenRelay.cs`, `TrainingDummyFeedback.cs`, `AttributeReadout.cs` e `LogPayloadReaction.cs` (D3);
-  - `Tests/Core/EditMode/Structure/SampleStructureTests.cs` (casos novos).
+### T2 — dividido em T2a e T2b (emenda de 2026-10-31)
+
+A implementação do T2 original ficou com ~610 linhas (scripts 503, testes +106/−1), acima do teto da
+0003. O usuário decidiu dividir. O código já existe; a divisão só reparte os arquivos, **sem mudança de
+código**:
+- nenhum script do Sample referencia outro script do Sample (só tipos do pacote). A ligação
+  `EventListener` → `TrainingDummyFeedback.OnDamaged` é serializada na cena (T5), não em código;
+- as âncoras dos cinco `MonoBehaviour` já estão em `exemplos/sandbox.md` desde o T1, então o
+  `SampleBehaviours_HaveHelpUrlToSamplesPage` passa com qualquer subconjunto que tenha ao menos um
+  `MonoBehaviour`;
+- cada `.cs` vai com o seu `.meta` no mesmo ticket, senão o `SampleFiles_EveryAssetHasMetaAndUniqueGuid` do T1
+  fica red.
+
+Os dois testes novos ficam no T2a, porque o T2a já tem `MonoBehaviour` com `Update` para eles cobrirem.
+Nenhum teste precisa esperar o T2b.
+
+### T2a — Guardas de scripts, conjurador, diretor e reação de log
+- Usa Unity: **sim** (compilação com a pasta renomeada, mais a suíte). Depende de: T1. Issue: #100.
+- Escopo (4 arquivos, mais os `.meta`):
+  - `Samples~/Sandbox/Scripts/SandboxCaster.cs` (114) e `.meta`;
+  - `Samples~/Sandbox/Scripts/SandboxDirector.cs` (107) e `.meta`;
+  - `Samples~/Sandbox/Scripts/LogPayloadReaction.cs` (32) e `.meta`;
+  - `Tests/Core/EditMode/Structure/SampleStructureTests.cs` (+106/−1: os dois casos abaixo e os auxiliares `AttributesBefore`, `MethodBody`, `SampleSources` e as regex).
 - Testes red:
-  - `SampleBehaviours_HaveHelpUrlToSamplesPage`: varre os `.cs` do Sample, acha ao menos um `: MonoBehaviour` (red antes do T2) e exige `[HelpURL(DocUrls.Samples + "#...")]` em cada um, com a âncora presente em `exemplos/sandbox.md`;
-  - `SampleSources_HaveNoFindOrGetComponentInUpdate`: guarda textual; nenhuma linha de corpo de `Update` com `GetComponent`, `Find`, `new List` ou `Linq`. Red forçado como no T1;
-  - o comportamento dos scripts não tem teste automático (decisão do usuário: a cena é conferida à mão). Por isso a revisão do Examinador lê os scripts contra a tabela D3.
+  - `SampleBehaviours_HaveHelpUrlToSamplesPage`: varre os `.cs` do Sample, acha ao menos um `: MonoBehaviour` (red antes do T2a, quando não há script) e exige `[HelpURL(DocUrls.Samples + "#...")]` em cada um, com a âncora presente em `exemplos/sandbox.md`;
+  - `SampleSources_HaveNoFindOrGetComponentInUpdate`: guarda textual; nenhuma linha de corpo de `Update`, `LateUpdate` ou `FixedUpdate` com `GetComponent`, `Find`, `new List` ou `Linq`. Red forçado como no T1 (pôr um `GetComponent` no `Update` do `SandboxCaster`, ver falhar e tirar);
+  - o comportamento dos scripts não tem teste automático (decisão do usuário: a cena é conferida à mão). A revisão do Examinador lê os scripts contra a tabela D3.
 - Critério de pronto:
-  - com a pasta renomeada: zero erros e zero avisos de compilação do `SpellBook.Samples.Sandbox`, e a janela `SpellBook > Validar projeto` sem violação de `[HelpURL]` nos tipos do Sample;
+  - com a pasta renomeada: zero erros e zero avisos de compilação do `SpellBook.Samples.Sandbox` só com estes três scripts, e a `SpellBook > Validar projeto` sem violação de `[HelpURL]` nos tipos do Sample;
   - com a pasta de volta como `Samples~`: a suíte inteira verde.
-- Tamanho estimado: ~470 linhas (scripts ~430, testes ~40). 7 arquivos.
+- Tamanho: ~358 linhas (scripts 253, testes ~105). 4 arquivos.
+
+### T2b — Scripts do boneco e leitura de atributos
+- Usa Unity: **sim**. Depende de: T2a. Issue: nova.
+- Escopo (3 arquivos, mais os `.meta`):
+  - `Samples~/Sandbox/Scripts/DamageTakenRelay.cs` (59) e `.meta`;
+  - `Samples~/Sandbox/Scripts/TrainingDummyFeedback.cs` (109) e `.meta`;
+  - `Samples~/Sandbox/Scripts/AttributeReadout.cs` (82) e `.meta`.
+- Testes red: nenhum novo. As guardas do T1 e do T2a passam a cobrir estes três scripts (`[HelpURL]` com âncora, `Update` do `TrainingDummyFeedback`, termos proibidos, `.meta` e GUID único). Red forçado de conferência: tirar o `[HelpURL]` do `DamageTakenRelay`, ver o `SampleBehaviours_HaveHelpUrlToSamplesPage` falhar e devolver.
+- Critério de pronto: o mesmo do T2a, agora com os seis scripts do D3; a revisão do Examinador lê os três contra a tabela D3.
+- Tamanho: ~250 linhas (só scripts). 3 arquivos.
 
 ### T3 — Dados: atributos, tag, efeitos, canais e fonte de tempo
-- Usa Unity: **sim** (assets criados pelos menus `Create`). Depende de: T1. Pelo WIP 1 (0003), roda depois do T2.
+- Usa Unity: **sim** (assets criados pelos menus `Create`). Depende de: T1. Pelo WIP 1 (0003), roda depois do T2b.
 - Escopo: `Samples~/Sandbox/Data/`: `ATR_Vida`, `ATR_Mana`, `TAG_Status_Queimando`, `GE_BolaDeFogo_Custo`, `GE_BolaDeFogo_Recarga`, `GE_BolaDeFogo_Dano`, `GE_Queimadura`, `CH_DanoRecebido`, `CH_BolaDeFogoAcertou` e `TS_Gameplay` (D4). São 10 arquivos.
 - Testes red: nenhum novo, porque só há assets de dados. As guardas do T1 (`.meta` e GUID único) passam a cobrir estes arquivos. Não há guarda de referências por GUID (U2, recusado no gate).
 - Critério de pronto:
