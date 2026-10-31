@@ -27,6 +27,12 @@ namespace SpellBook.Events
         /// Acusa resposta sem canal, chamada do escape sem alvo ou sem método e reações inválidas para o payload.
         /// </summary>
         public abstract void Validate(ValidationResult result);
+
+        /// <summary>
+        /// Ouvinte da inscrição atual, ou <c>null</c> fora dela. O Editor usa para nomear a resposta pelo dono.
+        /// É <c>virtual</c> para não impedir que outro assembly herde direto desta classe.
+        /// </summary>
+        internal virtual EventListener Owner => null;
     }
 
     /// <summary>Resposta a um canal com payload <typeparamref name="T"/>: reações na ordem da lista, depois o escape.</summary>
@@ -47,6 +53,8 @@ namespace SpellBook.Events
         [NonSerialized] private Action<T> _handler;
 
         public override EventChannel Channel => channel;
+
+        internal override EventListener Owner => _listener;
 
         public override void Subscribe(EventListener listener)
         {

@@ -45,7 +45,7 @@ namespace SpellBook.Events.Editor
                 listeners.Clear();
                 foreach (object listener in _listeners)
                 {
-                    listeners.Add(new Label(Describe(listener)));
+                    listeners.Add(new Label(ListenerLabel.Describe(listener)));
                 }
             }
 
@@ -63,16 +63,6 @@ namespace SpellBook.Events.Editor
             {
                 (item as EventChannel)?.RaiseDebugPayload();
             }
-        }
-
-        private static string Describe(object listener)
-        {
-            if (listener is Object unityObject)
-            {
-                return unityObject != null ? $"{unityObject.name} ({unityObject.GetType().Name})" : "(destruído)";
-            }
-
-            return listener?.ToString() ?? "(nulo)";
         }
     }
 }
