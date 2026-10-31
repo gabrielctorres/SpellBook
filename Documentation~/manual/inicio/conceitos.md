@@ -9,12 +9,12 @@ Cada módulo do SpellBook é um assembly (`.asmdef`) próprio. Um asmdef do seu 
 um módulo precisa referenciar o assembly dele. Os assemblies de runtime têm
 `autoReferenced` ligado, então scripts fora de asmdef (no `Assembly-CSharp`) já enxergam todos.
 
-### Mapa atual {#mapa-atual}
+### Mapa de assemblies {#mapa}
 
-A 3.0 está em desenvolvimento, e a separação em módulos acontece aos poucos. Hoje o pacote tem
-estes assemblies:
+O pacote tem estes assemblies. A coluna "Referencia" lista os assemblies do SpellBook que cada
+um pode referenciar; nenhum outro é permitido.
 
-| Assembly | O que tem hoje | Referencia |
+| Assembly | O que tem | Referencia |
 |---|---|---|
 | `SpellBook.Core` | Seletor de tipo e `[ShowIf]` do Inspector, validação, `Void`, `RuntimeSet<T>`, `MathTools` e os assets de spawn (`SpawnerAsset`). | — |
 | `SpellBook.Time` | [Fontes de tempo](../modulos/tempo.md) trocáveis. | Core |
@@ -24,7 +24,14 @@ estes assemblies:
 | `SpellBook.GAS` | [Sistema de habilidades](../modulos/gas.md): atributos, efeitos, habilidades, alvos e projéteis. | Core, Tags e Time |
 | `SpellBook.GAS.Bridges` | Ligações do GAS com outros módulos, como a [`RaiseEventAction`](../modulos/gas.md#raiseeventaction), que dispara um evento a partir de uma habilidade. | Core, Tags, Time, GAS e Events |
 | `SpellBook.Core.Editor` | Código de Editor do Core (Inspector do SpellBook). Só existe no Editor. | Core |
-| `SpellBook.Events.Editor` | Inspectors do canal e do emissor. Só existe no Editor. | Core, Time, Events e Core.Editor |
+| `SpellBook.Events.Editor` | Inspectors do canal e do emissor, Event Debugger e Find references. Só existe no Editor. | Core, Time, Events e Core.Editor |
+| `SpellBook.Time.Editor` | Inspectors das fontes de tempo. Só existe no Editor. | Core, Time e Core.Editor |
+| `SpellBook.Tags.Editor` | Inspector da definição de tag. Só existe no Editor. | Core, Tags e Core.Editor |
+| `SpellBook.Pooling.Editor` | Inspectors do pooling. Só existe no Editor. | Core, Pooling e Core.Editor |
+| `SpellBook.GAS.Editor` | Inspectors do GAS. Só existe no Editor. | Core, Tags, Time, GAS e Core.Editor |
+
+Um projeto que usa só o pooling, por exemplo, tem um asmdef que referencia o `SpellBook.Core` e o
+`SpellBook.Pooling` e nada mais. Ele compila sem o GAS, o Events, o Time e o Tags.
 
 ## Core {#core}
 
@@ -74,13 +81,13 @@ Esse componente não existe mais na 3.0.
 
 ## Regra de dependência {#regra-de-dependencia}
 
-A regra vale entre assemblies. Hoje ela é esta:
+A regra vale entre assemblies:
 
 - O `SpellBook.Core` não depende de nenhum outro módulo do SpellBook.
 - Os módulos de infraestrutura (Core, Time, Tags, Pooling e Events) nunca dependem do GAS.
 - O `SpellBook.Events` depende só do `SpellBook.Core` e do `SpellBook.Time`.
 - O `SpellBook.GAS` não depende de Events nem de Pooling.
-- O `SpellBook.GAS.Bridges` é o único assembly que liga o GAS a outro módulo (hoje, ao Events) e
+- O `SpellBook.GAS.Bridges` é o único assembly que liga o GAS a outro módulo (o Events) e
   não depende de Pooling nem de nenhum assembly de Editor.
 - Um assembly de Editor de módulo, como o `SpellBook.Events.Editor`, pode depender do
   `SpellBook.Core.Editor`, mas não do Editor de outro módulo.

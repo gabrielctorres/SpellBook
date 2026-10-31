@@ -14,6 +14,16 @@ namespace SpellBook.Core.Tests.Structure
             "SpellBook.Core", "SpellBook.Time", "SpellBook.Events", "SpellBook.Pooling", "SpellBook.Tags",
         };
 
+        /// <summary>Módulos de runtime da lista final do CA1 e do CA32.</summary>
+        private static readonly string[] RuntimeModules =
+        {
+            "Core", "Time", "Events", "Pooling", "Tags", "GAS", "GAS.Bridges",
+        };
+
+        private static readonly string[] EditorModules = { "Core", "Events", "Time", "Tags", "Pooling", "GAS" };
+
+        private static readonly string[] PlayModeModules = { "Core", "Time", "Events", "GAS", "GAS.Bridges" };
+
         [Test]
         public void AsmdefRules_Scan_FindsCoreAndThisTestAsmdef()
         {
@@ -314,6 +324,55 @@ namespace SpellBook.Core.Tests.Structure
 
             Assert.That(moduleEditors, Is.Not.Empty, "a varredura não achou nenhum asmdef .Editor de módulo");
             Assert.That(violations, Is.Empty);
+        }
+
+        [Test]
+        public void AsmdefRules_CoreAsmdefInRuntimeCore()
+        {
+            List<string> paths = PackageFiles.Asmdefs().Select(a => a.Path).ToList();
+            AsmdefFile core = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.Core");
+
+            Assert.That(core, Is.Not.Null, "não existe asmdef SpellBook.Core");
+            Assert.That(core.Path, Is.EqualTo("Runtime/Core/SpellBook.Core.asmdef"));
+            Assert.That(paths.Where(p => p.Count(c => c == '/') < 2), Is.Empty, "asmdef fora da pasta de um módulo");
+        }
+
+        [Test]
+        public void AllExpectedAssembliesExist()
+        {
+            var expected = new List<string>();
+            expected.AddRange(RuntimeModules.Select(m => $"SpellBook.{m}"));
+            expected.AddRange(EditorModules.Select(m => $"SpellBook.{m}.Editor"));
+            expected.AddRange(RuntimeModules.Select(m => $"SpellBook.{m}.Tests.EditMode"));
+            expected.AddRange(PlayModeModules.Select(m => $"SpellBook.{m}.Tests.PlayMode"));
+            expected.Add("SpellBook.Testing");
+
+            List<string> names = PackageFiles.Asmdefs().Select(a => a.Data.name).ToList();
+
+            Assert.That(names, Is.EquivalentTo(expected));
+            Assert.That(names, Has.None.EqualTo("SpellBook.Setup.Editor"));
+            Assert.That(expected.Where(n => LoadedAssembly(n) == null), Is.Empty, "assemblies não compilados");
+        }
+
+        [Test]
+        public void EachRuntimeModuleHasEditModeTests()
+        {
+            List<AsmdefFile> asmdefs = PackageFiles.Asmdefs().ToList();
+            List<string> runtime = asmdefs.Where(a => a.Kind == AsmdefKind.Runtime).Select(a => a.Data.name).ToList();
+            var missing = new List<string>();
+
+            foreach (string name in runtime)
+            {
+                string module = name.Substring("SpellBook.".Length);
+                string path = $"Tests/{module}/EditMode/{name}.Tests.EditMode.asmdef";
+                if (!asmdefs.Any(a => a.Path == path && a.Data.name == $"{name}.Tests.EditMode"))
+                {
+                    missing.Add(path);
+                }
+            }
+
+            Assert.That(runtime, Is.EquivalentTo(RuntimeModules.Select(m => $"SpellBook.{m}")));
+            Assert.That(missing, Is.Empty);
         }
 
         [TestCase("GameplayTag")]

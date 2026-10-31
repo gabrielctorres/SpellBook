@@ -111,6 +111,20 @@ O componente `Math` não existe mais. A `MathTools` saiu de dentro dele e é uma
 |---|---|
 | `SpellBook.MathTools.Math.MathTools` (aninhada no `MonoBehaviour` `Math`) | `SpellBook.Core.MathTools` |
 
+## Pooling {#pooling}
+
+O pooling saiu de `Systems/Pooling` e agora é o módulo [Pooling](../modulos/pooling.md), no
+assembly `SpellBook.Pooling`. O namespace e o menu de criação mudaram.
+
+| Antes (2.x) | Depois (3.0) |
+|---|---|
+| Namespace `SpellBook.Systems.Pooling` (`PoolManager`, `ComponentPooler`, `PoolConfiguration`, `PoolableObject`, `IPoolable`) | Namespace `SpellBook.Pooling`, com os mesmos nomes de tipo |
+| Menu `PoolingSystem/...` | Menu `SpellBook/Pooling/...` |
+
+- Troque `using SpellBook.Systems.Pooling;` por `using SpellBook.Pooling;`.
+- Um asmdef seu que usa o pooling precisa referenciar o `SpellBook.Pooling`.
+- Os assets de `PoolConfiguration` continuam válidos, porque o nome da classe não mudou.
+
 ## Eventos do GAS {#eventos-do-gas}
 
 Os eventos globais `AbilityActivatedEvent` e `AbilitySlotUpdateEvent` foram removidos, e o ASC
