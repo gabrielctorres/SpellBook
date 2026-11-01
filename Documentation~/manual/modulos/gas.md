@@ -254,7 +254,21 @@ A ação guarda uma **emissão**, o mesmo campo do [`EventEmitter`](eventos.md#e
 - Cada passagem pela ação dispara o canal uma vez, e a ação termina no mesmo quadro. O ASC que conjurou aparece como quem disparou no log do canal.
 - Sem emissão ou sem canal, a ação não faz nada, e o validador acusa o erro na habilidade.
 
-O payload é sempre o valor fixo do Inspector. Um payload calculado na hora (o alvo, o dano causado) ainda não existe.
+O campo **Payload Source** escolhe de onde vem o payload. O padrão, `Fixed`, envia o valor fixo da emissão e serve para qualquer canal. As outras fontes leem a habilidade na hora do disparo e ignoram o payload fixo:
+
+| Fonte | Canal | Valor enviado |
+|---|---|---|
+| `Fixed` | qualquer | o payload fixo da emissão |
+| `AttributeValue` | Float | valor atual do **Attribute** no conjurador |
+| `AbilityName` | String | nome do asset da habilidade |
+| `SourceObject` | GameObject | objeto do conjurador |
+| `TargetObject` | GameObject | objeto do primeiro alvo válido |
+| `EventData` | `AbilityEventData` | dono, habilidade, nível e se a habilidade foi cancelada |
+
+- Fonte que não serve para o tipo do canal não dispara nada, sem exceção, e o validador acusa o erro. `AttributeValue` sem **Attribute** também é erro.
+- Sem valor para enviar (conjurador sem o atributo, nenhum alvo válido), a ação não dispara.
+- Em código, `GasPayloadSourceUtility.Supports(fonte, tipoDoPayload)` diz se a fonte serve para um tipo de canal.
+- As fontes do lado do efeito (a magnitude de um modificador, as pilhas, o nome do efeito e o `EffectEventData`) ainda não existem.
 
 ### 3.1 Criando ações próprias {#acoes-proprias}
 Herde de `AbilityAction` e implemente `IEnumerator Execute(AbilityContext context)`.
