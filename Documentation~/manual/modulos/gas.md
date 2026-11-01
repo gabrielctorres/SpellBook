@@ -37,6 +37,7 @@ Uma expressão em texto, como `([ATK] * 2) / [DEF]`. Cada token entre colchetes 
 - **Instant:** modifica o valor base (ex: Dano, Cura).
 - **Duration/Infinite:** adiciona um modificador temporário ou permanente e pode conceder Tags enquanto ativo.
 - **Stacking:** suporta acúmulo de instâncias (ex: Veneno que acumula até 5 vezes).
+- **Remoção:** `RemoveEffect(instancia)` roda as ações de limpeza e de `OnRemoval` e devolve as tags e os modificadores do efeito, uma vez só. Chamar de novo com a mesma instância, com `null` ou com uma instância de outro ASC não faz nada. Vale também quando a remoção explícita cai no mesmo quadro da expiração, ou quando uma ação de `OnRemoval` remove a própria instância.
 
 ### 1.4 Gameplay Abilities (GA) {#gameplayability}
 As habilidades são compostas **dentro do próprio arquivo da habilidade**, como uma lista de ações.

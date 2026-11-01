@@ -15,6 +15,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); 
 
 ### Corrigido
 - **Recálculo e tique sem alocação:** `AttributeState.Recalculate`, `AddModifier`, `RemoveModifier` e `RemoveModifiersFromSource` não alocam mais memória gerenciada depois do primeiro uso, e o `Tick` do ASC com um efeito periódico de valor constante ou por atributo deixa de gerar lixo a cada quadro. Os valores calculados não mudam.
+- **`RemoveEffect` idempotente:** ignora `null` e instâncias que não estão ativas no ASC. Antes, `null` lançava `NullReferenceException` e uma segunda chamada (ou a remoção no mesmo quadro da expiração) rodava de novo a limpeza e as ações de `OnRemoval` e devolvia as tags outra vez.
 
 ## [2.0.0] - 2026-10-14
 

@@ -107,6 +107,8 @@ namespace SpellBook.GAS.Core
             _tickedTime += deltaTime;
             for (int i = _activeEffects.Count - 1; i >= 0; i--)
             {
+                // Uma remoção no Update de uma instância pode tirar outras da lista
+                if (i >= _activeEffects.Count) continue;
                 _activeEffects[i].Update(deltaTime);
             }
         }
@@ -592,12 +594,19 @@ namespace SpellBook.GAS.Core
             return false;
         }
 
+        /// <summary>
+        /// Remove a instância ativa: roda a limpeza e as ações de remoção e devolve tags e modificadores.
+        /// Ignora <c>null</c> e instâncias que não estão ativas neste ASC (já removidas, de outro ASC ou nunca aplicadas).
+        /// </summary>
         public void RemoveEffect(ActiveEffectInstance instance)
         {
+            if (instance == null) return;
+            // Sai da lista antes da limpeza: uma remoção repetida ou reentrante cai aqui e não refaz nada
+            if (!_activeEffects.Remove(instance)) return;
+
             instance.Cleanup();
             instance.OnEffectExpired -= RemoveEffect;
             instance.OnTick -= HandleEffectTick;
-            _activeEffects.Remove(instance);
 
             RemoveTags(instance.Effect.GrantedTags);
 
