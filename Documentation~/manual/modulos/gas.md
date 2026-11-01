@@ -268,6 +268,7 @@ O campo **Payload Source** escolhe de onde vem o payload. O padrão, `Fixed`, en
 - Fonte que não serve para o tipo do canal não dispara nada, sem exceção, e o validador acusa o erro. `AttributeValue` sem **Attribute** também é erro.
 - Sem valor para enviar (conjurador sem o atributo, nenhum alvo válido), a ação não dispara.
 - Em código, `GasPayloadSourceUtility.Supports(fonte, tipoDoPayload)` diz se a fonte serve para um tipo de canal.
+- No Inspector, inclusive na lista de ações da habilidade, o campo **Payload Source** lista só as fontes que servem para o tipo do canal escolhido. Se a fonte atual não serve (o canal mudou depois), ela continua na lista com a marca "não serve para este canal". O campo **Attribute** só aparece com `AttributeValue`, e um aviso lembra que o payload fixo é ignorado quando a fonte não é `Fixed`.
 - As fontes do lado do efeito (a magnitude de um modificador, as pilhas, o nome do efeito e o `EffectEventData`) ainda não existem.
 
 ### 3.1 Criando ações próprias {#acoes-proprias}

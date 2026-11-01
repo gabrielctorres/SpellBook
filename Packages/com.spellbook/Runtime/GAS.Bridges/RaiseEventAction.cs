@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using SpellBook.Core;
 using SpellBook.Core.Inspector;
 using SpellBook.Core.Validation;
 using SpellBook.Events;
@@ -17,6 +18,7 @@ namespace SpellBook.GAS.Bridges
     /// como quem disparou. Sem emissão, sem canal, com fonte incompatível com o canal ou sem valor para enviar (sem
     /// conjurador, sem o atributo, sem alvo válido), não dispara nada, e a validação acusa o que é configuração.
     /// </summary>
+    [HelpURL(DocUrls.Gas + "#raiseeventaction")]
     [Serializable, TypeCategory("Eventos", Summary = "Dispara um canal de eventos com um payload fixo ou da habilidade.")]
     public sealed class RaiseEventAction : AbilityAction
     {
