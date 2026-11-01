@@ -83,7 +83,7 @@ namespace SpellBook.GAS.Abilities
         {
             if (CooldownEffect == null) return 0f;
 
-            float duration = CooldownEffect.Duration;
+            float duration = CooldownEffect.Duration.Evaluate(1);
             if (CooldownReductionAttribute != null && asc != null)
             {
                 float cdr = asc.GetAttributeValue(CooldownReductionAttribute);

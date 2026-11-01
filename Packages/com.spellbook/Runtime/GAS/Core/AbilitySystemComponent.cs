@@ -368,7 +368,7 @@ namespace SpellBook.GAS.Core
 
             foreach (var mod in costEffect.Modifiers)
             {
-                if (mod.Attribute == null || mod.Operation != ModifierOperation.Add) continue;
+                if (mod == null || mod.Attribute == null || mod.Operation != ModifierOperation.Add) continue;
 
                 float value = mod.ValueSource.GetValue(this, this);
                 if (value >= 0f) continue;
@@ -665,7 +665,7 @@ namespace SpellBook.GAS.Core
             ActiveEffectInstance existing = FindActiveInstance(effect);
             if (existing == null)
             {
-                instance = ApplyDurationEffect(effect, hasOverride ? durationOverride : effect.Duration, source);
+                instance = ApplyDurationEffect(effect, hasOverride ? durationOverride : effect.Duration.Evaluate(1), source);
                 return EffectApplicationResult.Applied;
             }
 
@@ -941,7 +941,7 @@ namespace SpellBook.GAS.Core
                 for (int j = i; j < modifiers.Count; j++)
                 {
                     AttributeEffectModifier mod = modifiers[j];
-                    if (!ReferenceEquals(mod.Attribute, first.Attribute)) continue;
+                    if (mod == null || !ReferenceEquals(mod.Attribute, first.Attribute)) continue;
                     accumulator.Accumulate(mod.Operation, mod.ValueSource.GetValue(source, this));
                 }
                 state.SetBaseValue(accumulator.Result());
@@ -953,13 +953,15 @@ namespace SpellBook.GAS.Core
             AttributeDefinition attribute = modifiers[index].Attribute;
             for (int k = 0; k < index; k++)
             {
-                if (ReferenceEquals(modifiers[k].Attribute, attribute)) return true;
+                if (modifiers[k] != null && ReferenceEquals(modifiers[k].Attribute, attribute)) return true;
             }
             return false;
         }
 
         private static bool IsModifierValid(GameplayEffect effect, AttributeEffectModifier mod)
         {
+            // Entrada nula na lista é ignorada sem aviso
+            if (mod == null) return false;
             if (mod.Attribute != null) return true;
             Debug.LogWarning($"[GAS] Modifier sem atributo ignorado no efeito '{(effect != null ? effect.name : "null")}'.", effect);
             return false;
@@ -1120,7 +1122,7 @@ namespace SpellBook.GAS.Core
             {
                 foreach (var mod in instance.Effect.Modifiers)
                 {
-                    if (attributeSet.TryGetState(mod.Attribute, out var state))
+                    if (mod != null && attributeSet.TryGetState(mod.Attribute, out var state))
                     {
                         state.RemoveModifiersFromSource(instance);
                     }

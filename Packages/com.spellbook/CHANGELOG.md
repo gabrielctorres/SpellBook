@@ -8,6 +8,8 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); 
 ## [Não lançado]
 
 ### Quebras
+- **`GameplayEffect.Duration` é um `ScalableFloat`:** o campo `float` vira uma propriedade `ScalableFloat` (constante, array ou curva por nível), sem conversão implícita de `float`. No código, troque `efeito.Duration = 4f` por `efeito.Duration = ScalableFloat.Constant(4f)` e leia com `efeito.Duration.Evaluate(1)`. Assets 2.x abrem com a mesma duração como constante, sem passo manual. O ASC, a recarga e `new ActiveEffectInstance(efeito, origem, alvo)` avaliam no nível 1.
+- **`AttributeEffectModifier` é classe:** deixa de ser `struct`; o `ValueSource` começa com `new ModifierValueSource()`. Código que copiava o modificador e alterava a cópia passa a alterar o original. Entradas nulas nas listas `Modifiers` e `PeriodicModifiers` são ignoradas.
 - **Base limitada:** `AttributeState.BaseValue` nunca sai de `[MinValue, MaxValue]`. Quem contava com a "dívida" de vida abaixo de 0 vê as curas valerem na hora. Valor inicial fora do intervalo nasce limitado e gera um aviso no Console, uma vez por atributo.
 - **Reaplicar sem `CanStack` renova** a instância existente em vez de criar outra. Quem empilhava "na marra" com `CanStack` desligado passa a ter uma instância só; para empilhar, ligue `CanStack`.
 - **Renovação pela duração aplicada:** a renovação de um efeito (pilha com `RefreshDurationOnStack` ou reaplicação sem `CanStack`) volta à duração com que ele foi aplicado, e não mais à `Duration` do asset. `ApplyEffect` com duração passada redefine essa duração.

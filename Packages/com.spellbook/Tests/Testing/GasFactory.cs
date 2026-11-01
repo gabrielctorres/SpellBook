@@ -5,6 +5,7 @@ using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
+using SpellBook.GAS.Values;
 using SpellBook.Tags;
 using UnityEngine;
 using UnityEditor;
@@ -78,7 +79,7 @@ namespace SpellBook.Testing
         {
             var effect = Track(ScriptableObject.CreateInstance<GameplayEffect>(), "GE_Test");
             effect.DurationPolicy = durationPolicy;
-            effect.Duration = duration;
+            effect.Duration = ScalableFloat.Constant(duration);
             effect.Modifiers = new List<AttributeEffectModifier>();
             effect.PeriodicModifiers = new List<AttributeEffectModifier>();
             effect.GrantedTags = new List<GameplayTag>(grantedTags);
