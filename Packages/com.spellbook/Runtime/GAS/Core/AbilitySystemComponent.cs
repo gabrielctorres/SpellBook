@@ -789,7 +789,11 @@ namespace SpellBook.GAS.Core
                 if (hasOverride && effect.RefreshDurationOnStack) existing.Renew(durationOverride);
                 int stacksBefore = existing.CurrentStacks;
                 existing.AddStack();
-                if (existing.CurrentStacks != stacksBefore) OnEffectStacksChanged?.Invoke(existing, stacksBefore, existing.CurrentStacks);
+                if (existing.CurrentStacks != stacksBefore)
+                {
+                    existing.RefreshMagnitudes();
+                    OnEffectStacksChanged?.Invoke(existing, stacksBefore, existing.CurrentStacks);
+                }
                 return EffectApplicationResult.Stacked;
             }
 
@@ -1010,8 +1014,12 @@ namespace SpellBook.GAS.Core
                 foreach (var mod in effect.Modifiers)
                 {
                     if (!IsModifierValid(effect, mod)) continue;
-                    float value = mod.ValueSource.Evaluate(in context);
-                    attributeSet.AddModifier(mod.Attribute, new AttributeModifier(value, mod.Operation, instance));
+                    if (!attributeSet.TryGetState(mod.Attribute, out var state)) continue;
+                    // O valor avaliado é o de uma pilha; a instância grava o valor multiplicado pelas pilhas (ADR 0029, item 2)
+                    float unitValue = mod.ValueSource.Evaluate(in context);
+                    var modifier = new AttributeModifier(unitValue, mod.Operation, instance);
+                    instance.TrackModifier(modifier, unitValue, state);
+                    state.AddModifier(modifier);
                 }
             }
 
@@ -1063,7 +1071,7 @@ namespace SpellBook.GAS.Core
                     AttributeEffectModifier mod = modifiers[j];
                     if (mod == null || !ReferenceEquals(mod.Attribute, first.Attribute)) continue;
                     float value = tickInstance != null
-                        ? tickInstance.EvaluateTickModifier(j, mod.ValueSource)
+                        ? tickInstance.EvaluateTickModifier(j, mod.ValueSource) * tickInstance.StackFactor
                         : mod.ValueSource.Evaluate(in context);
                     accumulator.Accumulate(mod.Operation, value);
                 }
@@ -1174,7 +1182,8 @@ namespace SpellBook.GAS.Core
         /// <summary>
         /// Grava a contagem de pilhas, limitada a <c>[0, MaxStacks]</c> (<c>MaxStacks</c> menor que 1 vale 1), e dispara
         /// <see cref="OnEffectStacksChanged"/>. Zero remove a instância com <see cref="EffectRemovalReason.StacksDepleted"/>,
-        /// depois da limpeza e do evento de pilhas. Só a contagem muda: tags e modificadores seguem um por instância.
+        /// depois da limpeza e do evento de pilhas. Tags e modificadores seguem um por instância; com
+        /// <see cref="GameplayEffect.StacksMultiplyMagnitude"/>, o valor de cada modificador acompanha as pilhas.
         /// </summary>
         public bool SetEffectStacks(ActiveEffectInstance instance, int count)
         {
@@ -1196,6 +1205,7 @@ namespace SpellBook.GAS.Core
                 return true;
             }
 
+            instance.RefreshMagnitudes();
             OnEffectStacksChanged?.Invoke(instance, before, clamped);
             return true;
         }

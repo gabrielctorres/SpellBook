@@ -120,6 +120,19 @@ namespace SpellBook.GAS.Effects
         public int MaxStacks = 1;
         public bool RefreshDurationOnStack = true;
 
+        [Tooltip("Com N pilhas, cada modificador (persistente e do tique) vale N vezes o valor de uma pilha. Desligue quando a pilha só conta.")]
+        [SerializeField] private bool stacksMultiplyMagnitude = true;
+
+        /// <summary>
+        /// Pilhas multiplicam o valor de cada modificador antes da fórmula (ADR 0029, item 2). Ligado por padrão, também em
+        /// assets antigos sem o campo.
+        /// </summary>
+        public bool StacksMultiplyMagnitude
+        {
+            get => stacksMultiplyMagnitude;
+            set => stacksMultiplyMagnitude = value;
+        }
+
         public void Validate(ValidationResult result)
         {
             if (isBuff && isDebuff)

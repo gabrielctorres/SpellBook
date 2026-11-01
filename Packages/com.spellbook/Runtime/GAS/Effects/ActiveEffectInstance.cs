@@ -40,6 +40,23 @@ namespace SpellBook.GAS.Effects
         private readonly float[] _lastTickValues;
         private readonly Dictionary<EffectAction, List<object>> _actionData = new Dictionary<EffectAction, List<object>>();
 
+        // Modificadores persistentes com o valor de uma pilha; nulo em efeito sem modificador persistente
+        private List<TrackedModifier> _trackedModifiers;
+
+        private readonly struct TrackedModifier
+        {
+            public readonly AttributeModifier Modifier;
+            public readonly float UnitValue;
+            public readonly AttributeState State;
+
+            public TrackedModifier(AttributeModifier modifier, float unitValue, AttributeState state)
+            {
+                Modifier = modifier;
+                UnitValue = unitValue;
+                State = state;
+            }
+        }
+
         public event Action<ActiveEffectInstance> OnEffectExpired;
         public event Action<ActiveEffectInstance> OnTick;
 
@@ -167,6 +184,53 @@ namespace SpellBook.GAS.Effects
 
         /// <summary>Atalho de <see cref="AbilitySystemComponent.RemoveEffectStacks"/> no <see cref="Target"/>.</summary>
         public bool RemoveStacks(int count) => IsActive && Target != null && Target.RemoveEffectStacks(this, count);
+
+        /// <summary>Fator de pilhas do valor de cada modificador: <see cref="CurrentStacks"/> se o efeito multiplica pelas pilhas, senão 1.</summary>
+        internal int StackFactor => Effect.StacksMultiplyMagnitude ? CurrentStacks : 1;
+
+        /// <summary>
+        /// Guarda o modificador persistente criado pelo ASC, o valor de uma pilha e o atributo que ele afeta, e grava o valor
+        /// já multiplicado pelo <see cref="StackFactor"/>. Não recalcula: o ASC adiciona o modificador ao atributo depois.
+        /// </summary>
+        internal void TrackModifier(AttributeModifier modifier, float unitValue, AttributeState state)
+        {
+            _trackedModifiers ??= new List<TrackedModifier>();
+            _trackedModifiers.Add(new TrackedModifier(modifier, unitValue, state));
+            modifier.Value = unitValue * StackFactor;
+        }
+
+        /// <summary>
+        /// Grava em cada modificador persistente <c>valor de uma pilha × fator de pilhas</c> e recalcula cada atributo afetado
+        /// uma vez (ADR 0029, item 2). O ASC chama depois de toda mudança de pilhas, antes de <c>OnEffectStacksChanged</c>.
+        /// </summary>
+        internal void RefreshMagnitudes()
+        {
+            if (_trackedModifiers == null) return;
+
+            int factor = StackFactor;
+            for (int i = 0; i < _trackedModifiers.Count; i++)
+            {
+                TrackedModifier tracked = _trackedModifiers[i];
+                tracked.Modifier.Value = tracked.UnitValue * factor;
+            }
+
+            // Um recálculo por atributo, sem alocação: cada estado é recalculado no primeiro índice que o mira
+            for (int i = 0; i < _trackedModifiers.Count; i++)
+            {
+                AttributeState state = _trackedModifiers[i].State;
+                if (IsStateTrackedBefore(state, i)) continue;
+                state.Recalculate();
+            }
+        }
+
+        private bool IsStateTrackedBefore(AttributeState state, int index)
+        {
+            for (int k = 0; k < index; k++)
+            {
+                if (ReferenceEquals(_trackedModifiers[k].State, state)) return true;
+            }
+            return false;
+        }
 
         internal void SetTimeRemaining(float seconds) => TimeRemaining = seconds;
 
