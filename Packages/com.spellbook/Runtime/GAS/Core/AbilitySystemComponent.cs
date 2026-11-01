@@ -9,7 +9,6 @@ using SpellBook.Time;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Effects;
 using SpellBook.GAS.Abilities;
-using SpellBook.GAS.Conditions;
 namespace SpellBook.GAS.Core
 {
     [RequireComponent(typeof(AttributeSet))]
@@ -398,40 +397,37 @@ namespace SpellBook.GAS.Core
         #endregion
 
         #region Ability Activation
-        /// <summary>Resultado da ativação sem alvo (<see cref="AbilityTarget.None"/>), sem ativar nem mudar estado.</summary>
         public AbilityActivationResult GetActivationResult(GameplayAbility ability)
         {
-            return GetActivationResult(ability, AbilityTarget.None, out _);
-        }
+            if (ability == null) return AbilityActivationResult.InvalidAbility;
 
-        /// <summary>
-        /// Resultado da ativação com o <paramref name="target"/>, e o motivo em <paramref name="failure"/>, pelo mesmo caminho de
-        /// <see cref="TryActivateAbility(GameplayAbility, in AbilityTarget)"/>, sem ativar, sem evento e sem alocar.
-        /// </summary>
-        public AbilityActivationResult GetActivationResult(GameplayAbility ability, in AbilityTarget target, out ActivationFailure failure)
-        {
-            CheckActivation(ability != null ? FindSpec(ability) : null, ability, in target, out failure);
-            return failure.Result;
+            var spec = FindSpec(ability);
+            if (spec == null) return AbilityActivationResult.NotGranted;
+            if (spec.IsActive) return AbilityActivationResult.AlreadyActive;
+
+            if (HasAnyTag(ability.BlockedTags)) return AbilityActivationResult.BlockedByTags;
+            if (!HasAllTags(ability.RequiredTags)) return AbilityActivationResult.MissingRequiredTags;
+            if (IsBlockedByActiveAbility(ability)) return AbilityActivationResult.BlockedByActiveAbility;
+            if (IsOnCooldown(ability.CooldownEffect)) return AbilityActivationResult.OnCooldown;
+            if (!CanAffordCost(ability.CostEffect, ability, spec.Level)) return AbilityActivationResult.CannotAffordCost;
+
+            return AbilityActivationResult.Success;
         }
 
         public AbilityActivationResult TryActivateAbility(GameplayAbility ability, Vector3 targetPos)
         {
-            return TryActivateAbility(ability, AbilityTarget.AtPoint(targetPos));
-        }
+            var result = GetActivationResult(ability);
+            if (result != AbilityActivationResult.Success)
+            {
+                OnAbilityFailed?.Invoke(ability, result);
+                return result;
+            }
 
-        /// <summary>Checa (<see cref="GetActivationResult(GameplayAbility, in AbilityTarget, out ActivationFailure)"/>) e, se passou, ativa.</summary>
-        public AbilityActivationResult TryActivateAbility(GameplayAbility ability, in AbilityTarget target)
-        {
-            return TryActivate(ability != null ? FindSpec(ability) : null, ability, in target);
+            ActivateSpec(FindSpec(ability), targetPos);
+            return result;
         }
 
         public AbilityActivationResult TryActivateAbility(AbilitySpec spec, Vector3 targetPos)
-        {
-            return TryActivateAbility(spec, AbilityTarget.AtPoint(targetPos));
-        }
-
-        /// <summary>Como <see cref="TryActivateAbility(GameplayAbility, in AbilityTarget)"/>, pelo spec; spec de outro ASC dá <c>NotGranted</c>.</summary>
-        public AbilityActivationResult TryActivateAbility(AbilitySpec spec, in AbilityTarget target)
         {
             if (spec == null || !_abilities.Contains(spec))
             {
@@ -439,85 +435,7 @@ namespace SpellBook.GAS.Core
                 OnAbilityFailed?.Invoke(spec?.Ability, result);
                 return result;
             }
-            return TryActivate(spec, spec.Ability, in target);
-        }
-
-        private AbilityActivationResult TryActivate(AbilitySpec spec, GameplayAbility ability, in AbilityTarget target)
-        {
-            if (!CheckActivation(spec, ability, in target, out ActivationFailure failure))
-            {
-                OnAbilityFailed?.Invoke(ability, failure.Result);
-                return failure.Result;
-            }
-
-            ActivateSpec(spec, target.Point);
-            return AbilityActivationResult.Success;
-        }
-
-        // Caminho único das checagens (ADR 0022): pré-requisitos, tags, recarga, custo e regras, nessa ordem. Não escreve estado.
-        private bool CheckActivation(AbilitySpec spec, GameplayAbility ability, in AbilityTarget target, out ActivationFailure failure)
-        {
-            if (ability == null) return Fail(AbilityActivationResult.InvalidAbility, default, out failure);
-            if (spec == null) return Fail(AbilityActivationResult.NotGranted, default, out failure);
-            if (spec.IsActive) return Fail(AbilityActivationResult.AlreadyActive, default, out failure);
-
-            if (TryFindTag(ability.BlockedTags, true, out GameplayTag blocking))
-            {
-                return Fail(AbilityActivationResult.BlockedByTags, blocking, out failure);
-            }
-            if (TryFindTag(ability.RequiredTags, false, out GameplayTag missing))
-            {
-                return Fail(AbilityActivationResult.MissingRequiredTags, missing, out failure);
-            }
-            if (IsBlockedByActiveAbility(ability))
-            {
-                return Fail(AbilityActivationResult.BlockedByActiveAbility, ability.AbilityTag, out failure);
-            }
-            if (IsOnCooldown(ability.CooldownEffect)) return Fail(AbilityActivationResult.OnCooldown, default, out failure);
-            if (!CanAffordCost(ability.CostEffect, ability, spec.Level))
-            {
-                return Fail(AbilityActivationResult.CannotAffordCost, default, out failure);
-            }
-
-            List<ActivationRule> rules = ability.ActivationConditions;
-            if (rules.Count > 0)
-            {
-                var context = new ConditionContext(this, ability, spec.Level, spec, target, null);
-                for (int i = 0; i < rules.Count; i++)
-                {
-                    ActivationRule rule = rules[i];
-                    if (rule?.Condition == null || rule.Condition.Evaluate(in context)) continue;
-
-                    failure = new ActivationFailure(AbilityActivationResult.BlockedByCondition, rule.FailureTag,
-                        rule.EffectiveFailureKey, i, rule);
-                    return false;
-                }
-            }
-
-            failure = new ActivationFailure(AbilityActivationResult.Success);
-            return true;
-        }
-
-        private static bool Fail(AbilityActivationResult result, GameplayTag reasonTag, out ActivationFailure failure)
-        {
-            failure = new ActivationFailure(result, reasonTag);
-            return false;
-        }
-
-        // Primeira tag da lista que o ASC tem (held) ou que falta (!held), por índice, sem alocar
-        private bool TryFindTag(List<GameplayTag> tags, bool held, out GameplayTag found)
-        {
-            if (tags != null)
-            {
-                for (int i = 0; i < tags.Count; i++)
-                {
-                    if (HasTag(tags[i]) != held) continue;
-                    found = tags[i];
-                    return true;
-                }
-            }
-            found = default;
-            return false;
+            return TryActivateAbility(spec.Ability, targetPos);
         }
 
         public bool IsOnCooldown(GameplayEffect cooldownEffect)

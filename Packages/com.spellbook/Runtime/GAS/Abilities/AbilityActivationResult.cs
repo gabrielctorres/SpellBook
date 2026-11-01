@@ -13,8 +13,6 @@ namespace SpellBook.GAS.Abilities
         MissingRequiredTags,     // O ASC não possui todas as RequiredTags
         BlockedByActiveAbility,  // Uma habilidade ativa bloqueia esta via BlockAbilitiesWithTag
         OnCooldown,
-        CannotAffordCost,
-        BlockedByCondition,      // Uma regra de ativação da habilidade falhou (ActivationFailure traz qual e o motivo)
-        NoCharges                // Sem carga disponível
+        CannotAffordCost
     }
 }
