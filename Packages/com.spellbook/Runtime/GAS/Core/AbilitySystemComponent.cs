@@ -1033,14 +1033,19 @@ namespace SpellBook.GAS.Core
         {
             // Periodic modifiers act as instant changes to the base value
             EffectContext context = instance.Context;
-            ApplyModifiersToBase(instance.Effect, instance.Effect.PeriodicModifiers, in context);
+            ApplyModifiersToBase(instance.Effect, instance.Effect.PeriodicModifiers, in context, instance);
         }
 
         /// <summary>
         /// Aplica os modificadores na base (efeitos Instant e tiques periódicos): os que miram o mesmo atributo passam
-        /// pela fórmula única uma vez, partindo da base atual, e o resultado vira a nova base (ADR 0029, item 4).
+        /// pela fórmula única uma vez, partindo da base atual, e o resultado vira a nova base (ADR 0029, item 4). No tique,
+        /// <paramref name="tickInstance"/> avalia cada modificador e guarda o último valor lido do instigador.
         /// </summary>
-        private void ApplyModifiersToBase(GameplayEffect effect, List<AttributeEffectModifier> modifiers, in EffectContext context)
+        private void ApplyModifiersToBase(
+            GameplayEffect effect,
+            List<AttributeEffectModifier> modifiers,
+            in EffectContext context,
+            ActiveEffectInstance tickInstance = null)
         {
             if (modifiers == null || attributeSet == null) return;
 
@@ -1057,7 +1062,10 @@ namespace SpellBook.GAS.Core
                 {
                     AttributeEffectModifier mod = modifiers[j];
                     if (mod == null || !ReferenceEquals(mod.Attribute, first.Attribute)) continue;
-                    accumulator.Accumulate(mod.Operation, mod.ValueSource.Evaluate(in context));
+                    float value = tickInstance != null
+                        ? tickInstance.EvaluateTickModifier(j, mod.ValueSource)
+                        : mod.ValueSource.Evaluate(in context);
+                    accumulator.Accumulate(mod.Operation, value);
                 }
                 state.SetBaseValue(accumulator.Result());
             }

@@ -16,7 +16,9 @@ namespace SpellBook.GAS.Attributes
         {
             Value,
             Attribute,
-            Formula
+            Formula,
+            SetByCaller,
+            TargetAttribute
         }
 
         public SourceType Type;
@@ -35,15 +37,40 @@ namespace SpellBook.GAS.Attributes
         [ShowIf(nameof(Type), SourceType.Formula)]
         public Formula Formula;
 
+        /// <summary>Nome do valor passado por quem aplica (fonte <see cref="SourceType.SetByCaller"/>).</summary>
+        [ShowIf(nameof(Type), SourceType.SetByCaller)]
+        [Tooltip("Nome do valor passado por quem aplica o efeito (SetByCallerValues). Letras, números e sublinhado.")]
+        public string CallerName;
+
+        [ShowIf(nameof(Type), SourceType.SetByCaller)]
+        [Tooltip("Sem o valor do chamador, vale o Caller Default. Desligado, vale 0 com aviso.")]
+        public bool CallerHasDefault;
+
+        [ShowIf(nameof(Type), SourceType.SetByCaller)]
+        public float CallerDefault;
+
+        /// <summary>Atributo lido do alvo do efeito (fonte <see cref="SourceType.TargetAttribute"/>).</summary>
+        [ShowIf(nameof(Type), SourceType.TargetAttribute)]
+        public AttributeDefinition TargetAttributeDefinition;
+
+        [NonSerialized] private bool _warnedMissingCaller;
+
+        /// <summary>A fonte lê o instigador (atributo ou fórmula); com o instigador destruído, o tique usa o último valor.</summary>
+        internal bool ReadsInstigator => Type == SourceType.Attribute || Type == SourceType.Formula;
+
         /// <summary>Valor com <paramref name="source"/> como instigador, no nível 1 e sem tabela.</summary>
         public float GetValue(AbilitySystemComponent source, AbilitySystemComponent target)
         {
             return Evaluate(new EffectContext(source, target, null, 1, false, Vector3.zero, null));
         }
 
+        /// <summary>Valor no <paramref name="context"/>, como o ASC avalia. Para quem está fora do caminho quente.</summary>
+        public float GetValue(in EffectContext context) => Evaluate(in context);
+
         /// <summary>
         /// Valor no <paramref name="context"/>: o <see cref="ScalableFloat"/> no nível e na tabela do contexto; atributo e fórmula
-        /// leem o instigador. Sem alocação.
+        /// leem o instigador; o valor do chamador vem dos <see cref="EffectContext.CallerValues"/>; o atributo do alvo, do
+        /// <see cref="EffectContext.Target"/>. Sem alocação.
         /// </summary>
         internal float Evaluate(in EffectContext context)
         {
@@ -55,9 +82,27 @@ namespace SpellBook.GAS.Attributes
                     return context.Instigator != null ? context.Instigator.AttributeSet.GetValue(Attribute) : 0f;
                 case SourceType.Formula:
                     return Formula != null ? Formula.Calculate(context.Instigator, context.Target) : 0f;
+                case SourceType.SetByCaller:
+                    return EvaluateCaller(in context);
+                case SourceType.TargetAttribute:
+                    return context.Target != null ? context.Target.GetAttributeValue(TargetAttributeDefinition) : 0f;
                 default:
                     return 0f;
             }
+        }
+
+        private float EvaluateCaller(in EffectContext context)
+        {
+            IReadOnlySetByCaller values = context.CallerValues;
+            if (values != null && values.Count > 0 && values.TryGet(CallerName, out float value)) return value;
+            if (CallerHasDefault) return CallerDefault;
+
+            if (!_warnedMissingCaller)
+            {
+                _warnedMissingCaller = true;
+                Debug.LogWarning($"[GAS] SetByCaller '{CallerName}' sem valor do chamador e sem padrão: vale 0.");
+            }
+            return 0f;
         }
 
         void ISerializationCallbackReceiver.OnBeforeSerialize() { }

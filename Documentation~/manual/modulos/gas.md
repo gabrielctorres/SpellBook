@@ -98,8 +98,8 @@ Uma expressão em texto, como `([ATK] * 2) / [DEF]`. Cada token entre colchetes 
 ### 1.3 Gameplay Effects (GE) {#gameplayeffect}
 - **Instant:** modifica o valor base (ex: Dano, Cura).
 - **Duration/Infinite:** adiciona um modificador temporário ou permanente e pode conceder Tags enquanto ativo.
-- **Duração:** `Duration` é um [`ScalableFloat`](#scalablefloat) (constante, array ou curva por nível), e não mais um `float`. Por enquanto o ASC avalia no nível 1: `efeito.Duration = ScalableFloat.Constant(4f)` dura 4 s. Assets 2.x com `Duration: 4` abrem como a constante 4, sem passo manual.
-- **Valor do modificador:** na fonte `Value` (`SourceType.Value`, a antiga `Constant`), o valor é um [`ScalableFloat`](#scalablefloat) em `ValueSource.Value`, avaliado por enquanto no nível 1: `ValueSource.Value = ScalableFloat.Constant(-20f)`. Assets 2.x com `ConstantValue: -20` abrem como a constante -20. Para regravar os assets no formato novo, rode **SpellBook > Migrar assets do GAS (3.0)** (veja [Migração](../regras/migracao-2-para-3.md#valores-por-nivel)).
+- **Duração:** `Duration` é um [`ScalableFloat`](#scalablefloat) (constante, array, curva ou tabela por nível), e não mais um `float`. O ASC avalia no nível e na tabela do [contexto](#effectcontext): `efeito.Duration = ScalableFloat.Constant(4f)` dura 4 s em qualquer nível. Assets 2.x com `Duration: 4` abrem como a constante 4, sem passo manual.
+- **Valor do modificador:** na fonte `Value` (`SourceType.Value`, a antiga `Constant`), o valor é um [`ScalableFloat`](#scalablefloat) em `ValueSource.Value`, avaliado no nível e na tabela do [contexto](#effectcontext): `ValueSource.Value = ScalableFloat.Constant(-20f)`. As outras fontes estão em [Origens do valor](#origens-do-valor). Assets 2.x com `ConstantValue: -20` abrem como a constante -20. Para regravar os assets no formato novo, rode **SpellBook > Migrar assets do GAS (3.0)** (veja [Migração](../regras/migracao-2-para-3.md#valores-por-nivel)).
 - **Modificadores:** `AttributeEffectModifier` é uma classe. Uma entrada nula em `Modifiers` ou `PeriodicModifiers` é ignorada na aplicação, no tique, na remoção e no custo, e os outros modificadores valem.
 - **Nome e ícone:** em **Identidade**, `DisplayName` (texto, vazio por padrão e nunca nulo) e `Icon` (`Sprite`, nulo por padrão) identificam o efeito na UI. A instância ativa não repete os campos: leia `instancia.Effect.DisplayName` e `instancia.Effect.Icon`. Assets antigos abrem com nome vazio e sem ícone.
 - **Metadados:** em **Metadados**, `IsBuff`, `IsDebuff`, `IsHidden` e `IsPurgable` (somente leitura, também na instância ativa: `instancia.IsBuff`) são só dados para a UI e para quem purga efeitos; o ASC não os usa. O padrão, todos desligados, é "neutro, visível e não purgável". `IsBuff` e `IsDebuff` podem coexistir, mas o validador avisa.
@@ -108,6 +108,49 @@ Uma expressão em texto, como `([ATK] * 2) / [DEF]`. Cada token entre colchetes 
 - **Efeitos periódicos:** com `Period` maior que zero, o efeito dá um tique a cada `Period` segundos: aplica os `PeriodicModifiers` no valor base e roda as `OnTickActions`, sempre o mesmo número de vezes. Um efeito com duração dá `Duration / Period` tiques, arredondado para baixo (4 s com período de 0,5 s: 8 tiques; 4 s com período de 1,5 s: 2 tiques, em 1,5 s e 3 s). O tique que cai no fim da duração acontece antes da expiração, e nenhum tique roda depois da remoção, nem quando uma ação do tique remove a própria instância. Cada `Tick` do ASC dá no máximo um tique por efeito; o tempo de um `Tick` que passa do fim da duração não gera tique a mais.
 - **Remoção:** `RemoveEffect(instancia)` roda as ações de limpeza e de `OnRemoval` e devolve as tags e os modificadores do efeito, uma vez só. Chamar de novo com a mesma instância, com `null` ou com uma instância de outro ASC não faz nada. Vale também quando a remoção explícita cai no mesmo quadro da expiração, ou quando uma ação de `OnRemoval` remove a própria instância.
 - **Remoção em grupo:** `RemoveEffectsWithTag(tag)` remove os efeitos que concedem a tag ou uma filha dela, e `RemoveEffects(asset)` remove as instâncias de um `GameplayEffect`. As duas devolvem a soma das pilhas removidas (3 pilhas de veneno: 3) e 0 quando não há nada a remover; tag inválida ou asset `null` também dão 0.
+
+#### Contexto e spec do efeito {#effectcontext}
+Toda aplicação carrega um `EffectContext` (`SpellBook.GAS.Effects`), guardado em `ActiveEffectInstance.Context`:
+
+| Campo | O que é |
+|---|---|
+| `Instigator` | Quem aplicou. Sem origem, o próprio alvo. |
+| `Target` | Quem recebe o efeito. |
+| `Ability` | Habilidade de origem; nula num efeito aplicado sem habilidade. |
+| `Level` | Nível da aplicação: o da habilidade ou, sem ela, o `DefaultLevel` do efeito (padrão 1). |
+| `HasImpactPoint`, `ImpactPoint` | Ponto de impacto, quando existe (o ponto de alvo da habilidade). |
+| `CallerValues` | Valores por nome de quem aplicou (SetByCaller); nulo quando não há. |
+| `Table` | A [tabela de valores](#abilityvalues) da habilidade; nula sem habilidade. |
+
+Duração, modificadores, tiques e custo são avaliados com o nível e a tabela do contexto. Os tiques usam o contexto guardado na instância, e a duração aplicada não muda se o nível da habilidade mudar depois.
+
+Para aplicar com contexto, monte um `EffectSpec` e passe por `in`:
+
+```csharp
+var valores = new SetByCallerValues();   // guarde e reutilize; Clear() não libera a memória
+valores.Set("Dano", 120f);
+EffectSpec spec = EffectSpec.Create(efeito, caster).WithCallerValues(valores);
+target.TryApplyEffect(in spec, out ActiveEffectInstance instancia);
+```
+
+`EffectSpec.Create(efeito, instigador)` monta o spec sem habilidade; `EffectSpec.FromAbility(efeito, contextoDaHabilidade)` usa o instigador, a habilidade, o nível e o ponto de alvo (é o que a `ApplyEffectAction` faz, inclusive no impacto de projétil). `WithCallerValues`, `WithImpactPoint` e `WithDurationOverride` devolvem uma cópia alterada. `ApplyEffect(efeito, origem)` e as outras formas antigas continuam valendo, com o mesmo resultado. Aplicar um spec instantâneo não aloca.
+
+##### Origens do valor {#origens-do-valor}
+O `ValueSource` de um modificador diz de onde vem o valor (`ModifierValueSource.SourceType`):
+
+| Fonte | Valor |
+|---|---|
+| `Value` | Um [`ScalableFloat`](#scalablefloat) no nível e na tabela do contexto. |
+| `Attribute` | Um atributo do **instigador** (quem aplicou). |
+| `Formula` | Uma [fórmula](#formulas) com o instigador como Source e o alvo como Target. |
+| `SetByCaller` | O valor do chamador com o nome `CallerName`. |
+| `TargetAttribute` | O atributo `TargetAttributeDefinition` do **alvo**. |
+
+`SetByCaller` e `TargetAttribute` entraram no fim da lista, então assets antigos abrem com a mesma fonte.
+
+- **SetByCaller:** o nome é texto e vem do código que aplica (letras, números e sublinhado). Sem o valor no spec, vale o `CallerDefault` quando `CallerHasDefault` está ligado; desligado, vale 0 e o Console avisa uma vez por modificador. Num efeito instantâneo, o valor é lido na aplicação. Num efeito com duração, a instância copia na aplicação os valores que os modificadores dela usam: mudar ou limpar o `SetByCallerValues` depois não muda o efeito, nem nos tiques. A busca é feita na aplicação, nunca por tique, e não aloca.
+- **Atributo do instigador nos tiques:** um modificador periódico com fonte `Attribute` ou `Formula` lê o instigador a cada tique ("o tique causa o ataque atual de quem lançou"). Se o instigador foi destruído, o tique usa o último valor lido, ou o da aplicação se ainda não houve tique, sem exceção. Nos efeitos com duração, os `Modifiers` já guardam o valor da aplicação.
+- **Fora do ASC:** `ValueSource.GetValue(in contexto)` avalia como o ASC avalia, por exemplo com `instancia.Context`. `GetValue(origem, alvo)` avalia no nível 1, sem tabela e sem valores do chamador.
 
 #### Resultado da aplicação {#resultado-da-aplicacao}
 `ApplyEffect` devolve só a instância (ou `null`). Para saber o que aconteceu, use `TryApplyEffect(efeito, origem, out instancia)` ou `TryApplyEffect(efeito, duracao, origem, out instancia)`, que aplicam igual e devolvem um `EffectApplicationResult`. As checagens seguem esta ordem:

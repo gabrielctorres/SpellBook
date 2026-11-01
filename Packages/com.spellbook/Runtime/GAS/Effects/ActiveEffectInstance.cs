@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 
 namespace SpellBook.GAS.Effects
@@ -34,12 +35,19 @@ namespace SpellBook.GAS.Effects
         public bool IsActive => !IsRemoved;
 
         private float _timeSinceLastTick;
+
+        // Último valor de cada modificador periódico que lê o instigador; o tique usa este valor se o instigador foi destruído.
+        private readonly float[] _lastTickValues;
         private readonly Dictionary<EffectAction, List<object>> _actionData = new Dictionary<EffectAction, List<object>>();
 
         public event Action<ActiveEffectInstance> OnEffectExpired;
         public event Action<ActiveEffectInstance> OnTick;
 
-        /// <summary>Contexto da aplicação (cópia): instigador, alvo, habilidade, nível e ponto de impacto.</summary>
+        /// <summary>
+        /// Contexto da aplicação (cópia): instigador, alvo, habilidade, nível, ponto de impacto e valores do chamador. Os valores
+        /// do chamador que os modificadores do efeito usam são copiados na aplicação; mudar o objeto de quem chamou depois não
+        /// muda a instância.
+        /// </summary>
         public EffectContext Context { get; private set; }
 
         public ActiveEffectInstance(GameplayEffect effect, AbilitySystemComponent source, AbilitySystemComponent target)
@@ -51,14 +59,70 @@ namespace SpellBook.GAS.Effects
         internal ActiveEffectInstance(GameplayEffect effect, float duration, in EffectContext context)
         {
             Effect = effect;
-            Context = context;
+            Context = context.WithCallerValues(CopyCallerValues(effect, context.CallerValues));
             Source = context.Instigator;
             Target = context.Target;
             AppliedDuration = duration;
             TimeRemaining = duration;
             _timeSinceLastTick = 0;
+            _lastTickValues = CaptureTickValues();
 
             Initialize();
+        }
+
+        // Uma alocação por instância, só quando há valores do chamador que os modificadores do efeito leem (ADR 0030, item 3).
+        private static SetByCallerValues CopyCallerValues(GameplayEffect effect, IReadOnlySetByCaller values)
+        {
+            if (values == null || values.Count == 0) return null;
+            SetByCallerValues copy = null;
+            CopyCallerValues(effect.Modifiers, values, ref copy);
+            CopyCallerValues(effect.PeriodicModifiers, values, ref copy);
+            return copy;
+        }
+
+        private static void CopyCallerValues(List<AttributeEffectModifier> modifiers, IReadOnlySetByCaller values, ref SetByCallerValues copy)
+        {
+            if (modifiers == null) return;
+            foreach (AttributeEffectModifier mod in modifiers)
+            {
+                ModifierValueSource source = mod?.ValueSource;
+                if (source == null || source.Type != ModifierValueSource.SourceType.SetByCaller) continue;
+                if (!values.TryGet(source.CallerName, out float value)) continue;
+                copy ??= new SetByCallerValues();
+                copy.Set(source.CallerName, value);
+            }
+        }
+
+        // O valor na aplicação é o primeiro valor conhecido de cada modificador periódico que lê o instigador.
+        private float[] CaptureTickValues()
+        {
+            List<AttributeEffectModifier> modifiers = Effect.PeriodicModifiers;
+            if (Effect.Period <= 0 || modifiers == null || modifiers.Count == 0) return null;
+
+            var values = new float[modifiers.Count];
+            EffectContext context = Context;
+            for (int i = 0; i < modifiers.Count; i++)
+            {
+                ModifierValueSource source = modifiers[i]?.ValueSource;
+                if (source != null && source.ReadsInstigator) values[i] = source.Evaluate(in context);
+            }
+            return values;
+        }
+
+        /// <summary>
+        /// Valor do modificador periódico <paramref name="index"/> no tique, com o contexto da instância. Se ele lê o instigador
+        /// e o instigador foi destruído, vale o último valor conhecido (P8), sem exceção.
+        /// </summary>
+        internal float EvaluateTickModifier(int index, ModifierValueSource source)
+        {
+            if (source == null) return 0f;
+            EffectContext context = Context;
+            if (_lastTickValues == null || index >= _lastTickValues.Length || !source.ReadsInstigator) return source.Evaluate(in context);
+            if (context.Instigator == null) return _lastTickValues[index];
+
+            float value = source.Evaluate(in context);
+            _lastTickValues[index] = value;
+            return value;
         }
 
         private void Initialize()
