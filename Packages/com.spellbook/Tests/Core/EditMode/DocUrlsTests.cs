@@ -31,6 +31,7 @@ namespace SpellBook.Core.Tests
         [TestCase("Gas", "modulos/gas/")]
         [TestCase("Validator", "ferramentas/validador/")]
         [TestCase("EventDebugger", "ferramentas/event-debugger/")]
+        [TestCase("GasDebugger", "ferramentas/gas-debugger/")]
         [TestCase("Samples", "exemplos/sandbox/")]
         public void DocUrls_PageConstantPointsToPageUnderBase(string constantName, string pagePath)
         {

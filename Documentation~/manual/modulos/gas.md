@@ -353,6 +353,8 @@ Um ouvinte pode aplicar ou remover efeitos dentro desses eventos sem quebrar a r
 
 O ASC não dispara mais evento global; veja a [Migração 2.x → 3.0](../regras/migracao-2-para-3.md#eventos-do-gas).
 
+Para ver esses eventos, os atributos, as tags, os efeitos e as recargas de um ASC em Play, use o [GAS Debugger](../ferramentas/gas-debugger.md).
+
 ### 4.6 Tempo do ASC {#tempo-do-asc}
 Durações de efeitos, ticks periódicos e recargas contam só o tempo que o ASC recebe. O ASC não lê o `Time` da Unity.
 
