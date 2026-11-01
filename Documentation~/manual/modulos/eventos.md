@@ -227,6 +227,37 @@ conhece o GAS. Cada canal tem a sua resposta no seletor da lista **Responses** d
   `new AttributeChangedData(dono, atributo, antigo, novo)` calcula esse valor.
 - Os payloads são structs: disparar não aloca.
 
+## Relay do GAS {#relay-do-gas}
+
+O `AbilitySystemEventRelay` (assembly `SpellBook.GAS.Bridges`) repassa os eventos C# de um ASC
+para [canais do GAS](#canais-do-gas) e para `UnityEvent`s locais. Ponha um por ator, no mesmo
+objeto do `AbilitySystemComponent` ou em outro, com o ASC no campo **Ability System**. Com o campo
+vazio, o relay usa o ASC do próprio objeto; sem ASC, ele avisa uma vez no Console e não repassa
+nada.
+
+Cada evento é um **par** com três campos, todos opcionais. Ligue só o que precisa:
+
+- **Channel:** o canal tipado com os dados completos do evento;
+- **Value Channel:** um canal de valor simples (`VoidEventChannel`, `FloatEventChannel`,
+  `StringEventChannel` ou `GameObjectEventChannel`), com o valor da tabela abaixo;
+- **Response:** um `UnityEvent` deste objeto, chamado depois dos canais.
+
+| Par | Evento do ASC | Float | String | GameObject |
+|---|---|---|---|---|
+| `Effect Applied` | `OnEffectApplied` | pilhas | nome do efeito | alvo |
+| `Effect Removed` | `OnEffectRemoved` (com o `RemovalReason`) | pilhas (0) | nome do efeito | alvo |
+| `Effect Stacks Changed` | `OnEffectStacksChanged` | pilhas | nome do efeito | alvo |
+| `Effect Blocked` | `OnEffectBlocked` (com o `Result`) | pilhas (0) | nome do efeito | alvo |
+| `Blocked` | `OnBlocked` (`ReportBlocked`) | — | nome da tag | dono |
+
+- O `VoidEventChannel` vale para todos os pares: só avisa que o evento aconteceu. Um canal de valor
+  de outro tipo, ou o `FloatEventChannel` no par `Blocked`, não dispara.
+- O relay dispara dentro do evento do ASC, no mesmo quadro. Um ouvinte que aplica um efeito no
+  mesmo ator dentro do callback é seguro.
+- O relay se inscreve ao ser habilitado e se desinscreve ao ser desabilitado ou destruído, em
+  qualquer ordem com o ASC. Ele não guarda estado de gameplay.
+- Os payloads não alocam; o canal de texto aloca, porque lê o `name` do asset.
+
 ## EventListener {#eventlistener}
 
 O `EventListener` é o componente que ouve canais sem código. Adicione-o a um objeto
