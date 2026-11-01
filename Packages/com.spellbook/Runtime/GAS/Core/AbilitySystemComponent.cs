@@ -407,7 +407,7 @@ namespace SpellBook.GAS.Core
             if (!HasAllTags(ability.RequiredTags)) return AbilityActivationResult.MissingRequiredTags;
             if (IsBlockedByActiveAbility(ability)) return AbilityActivationResult.BlockedByActiveAbility;
             if (IsOnCooldown(ability.CooldownEffect)) return AbilityActivationResult.OnCooldown;
-            if (!CanAffordCost(ability.CostEffect)) return AbilityActivationResult.CannotAffordCost;
+            if (!CanAffordCost(ability.CostEffect, ability, spec.Level)) return AbilityActivationResult.CannotAffordCost;
 
             return AbilityActivationResult.Success;
         }
@@ -449,13 +449,20 @@ namespace SpellBook.GAS.Core
         /// </summary>
         public bool CanAffordCost(GameplayEffect costEffect)
         {
+            return CanAffordCost(costEffect, null, costEffect != null ? costEffect.DefaultLevel : 1);
+        }
+
+        /// <summary>Como <see cref="CanAffordCost(GameplayEffect)"/>, avaliando o custo no nível e na tabela da habilidade.</summary>
+        internal bool CanAffordCost(GameplayEffect costEffect, GameplayAbility ability, int level)
+        {
             if (costEffect == null || costEffect.Modifiers == null) return true;
 
+            EffectContext context = EffectSpec.ForAbility(costEffect, this, ability, level).Context.ForApplication(this);
             foreach (var mod in costEffect.Modifiers)
             {
                 if (mod == null || mod.Attribute == null || mod.Operation != ModifierOperation.Add) continue;
 
-                float value = mod.ValueSource.GetValue(this, this);
+                float value = mod.ValueSource.Evaluate(in context);
                 if (value >= 0f) continue;
 
                 if (attributeSet == null || !attributeSet.TryGetState(mod.Attribute, out var state)) return false;
@@ -486,7 +493,8 @@ namespace SpellBook.GAS.Core
             // Commit: cooldown e custo
             if (ability.CooldownEffect != null)
             {
-                ApplyEffect(ability.CooldownEffect, ability.GetCooldownDuration(this));
+                EffectSpec cooldown = EffectSpec.ForAbility(ability.CooldownEffect, this, ability, spec.Level);
+                ApplyEffect(cooldown.WithDurationOverride(ability.GetCooldownDuration(this, spec.Level)));
                 // Recarga instantânea não deixa instância nem tag: não há o que acompanhar
                 if (IsOnCooldown(ability.CooldownEffect))
                 {
@@ -494,7 +502,7 @@ namespace SpellBook.GAS.Core
                     OnCooldownChanged?.Invoke(spec, CooldownChange.Started);
                 }
             }
-            if (ability.CostEffect != null) ApplyEffect(ability.CostEffect);
+            if (ability.CostEffect != null) ApplyEffect(EffectSpec.ForAbility(ability.CostEffect, this, ability, spec.Level));
 
             CancelAbilitiesWithTags(ability.CancelAbilitiesWithTag, spec);
 
@@ -700,14 +708,30 @@ namespace SpellBook.GAS.Core
         #region Gameplay Effects
         public ActiveEffectInstance ApplyEffect(GameplayEffect effect, AbilitySystemComponent source = null)
         {
-            ApplyEffectCore(effect, false, 0f, source, out ActiveEffectInstance instance);
+            ApplyEffectCore(EffectSpec.Create(effect, source), out ActiveEffectInstance instance);
             return instance;
         }
 
         public ActiveEffectInstance ApplyEffect(GameplayEffect effect, float durationOverride, AbilitySystemComponent source = null)
         {
-            ApplyEffectCore(effect, true, durationOverride, source, out ActiveEffectInstance instance);
+            ApplyEffectCore(EffectSpec.Create(effect, source).WithDurationOverride(durationOverride), out ActiveEffectInstance instance);
             return instance;
+        }
+
+        /// <summary>Aplica o <paramref name="spec"/>, avaliando o efeito no nível e na tabela do contexto dele.</summary>
+        public ActiveEffectInstance ApplyEffect(in EffectSpec spec)
+        {
+            ApplyEffectCore(in spec, out ActiveEffectInstance instance);
+            return instance;
+        }
+
+        /// <summary>
+        /// Como <see cref="TryApplyEffect(GameplayEffect, AbilitySystemComponent, out ActiveEffectInstance)"/>, com o nível, a
+        /// tabela e a duração do <paramref name="spec"/>. O caminho instantâneo e os bloqueios não alocam.
+        /// </summary>
+        public EffectApplicationResult TryApplyEffect(in EffectSpec spec, out ActiveEffectInstance instance)
+        {
+            return ApplyEffectCore(in spec, out instance);
         }
 
         /// <summary>
@@ -719,38 +743,43 @@ namespace SpellBook.GAS.Core
         /// </summary>
         public EffectApplicationResult TryApplyEffect(GameplayEffect effect, AbilitySystemComponent source, out ActiveEffectInstance instance)
         {
-            return ApplyEffectCore(effect, false, 0f, source, out instance);
+            return ApplyEffectCore(EffectSpec.Create(effect, source), out instance);
         }
 
         /// <summary>Como <see cref="TryApplyEffect(GameplayEffect, AbilitySystemComponent, out ActiveEffectInstance)"/>, redefinindo a duração.</summary>
         public EffectApplicationResult TryApplyEffect(GameplayEffect effect, float durationOverride, AbilitySystemComponent source, out ActiveEffectInstance instance)
         {
-            return ApplyEffectCore(effect, true, durationOverride, source, out instance);
+            return ApplyEffectCore(EffectSpec.Create(effect, source).WithDurationOverride(durationOverride), out instance);
         }
 
         /// <summary>
         /// Aplicação única de <see cref="ApplyEffect(GameplayEffect, AbilitySystemComponent)"/> e <c>TryApplyEffect</c>. Com
         /// instância ativa, quem passa duração redefine a duração aplicada e quem não passa mantém a da instância.
         /// </summary>
-        private EffectApplicationResult ApplyEffectCore(GameplayEffect effect, bool hasOverride, float durationOverride, AbilitySystemComponent source, out ActiveEffectInstance instance)
+        private EffectApplicationResult ApplyEffectCore(in EffectSpec spec, out ActiveEffectInstance instance)
         {
             instance = null;
+            GameplayEffect effect = spec.Effect;
             if (effect == null) return EffectApplicationResult.Invalid;
-            if (source == null) source = this;
+            EffectContext context = spec.Context.ForApplication(this);
+            AbilitySystemComponent source = context.Instigator;
+            bool hasOverride = spec.HasDurationOverride;
+            float durationOverride = spec.DurationOverride;
 
             if (!HasAllTagsInList(effect.ApplicationRequirements)) return Block(effect, source, EffectApplicationResult.MissingRequirements);
             if (HasAnyTagInList(effect.ApplicationImmunityTags)) return Block(effect, source, EffectApplicationResult.BlockedByImmunity);
 
             if (effect.DurationPolicy == EffectDurationPolicy.Instant)
             {
-                ApplyInstantEffect(effect, source);
+                ApplyInstantEffect(effect, in context);
                 return EffectApplicationResult.AppliedInstant;
             }
 
             ActiveEffectInstance existing = FindActiveInstance(effect);
             if (existing == null)
             {
-                instance = ApplyDurationEffect(effect, hasOverride ? durationOverride : effect.Duration.Evaluate(1), source);
+                float duration = hasOverride ? durationOverride : effect.Duration.Evaluate(context.Level, context.Table);
+                instance = ApplyDurationEffect(effect, duration, in context);
                 return EffectApplicationResult.Applied;
             }
 
@@ -958,20 +987,20 @@ namespace SpellBook.GAS.Core
             return false;
         }
 
-        private void ApplyInstantEffect(GameplayEffect effect, AbilitySystemComponent source)
+        private void ApplyInstantEffect(GameplayEffect effect, in EffectContext context)
         {
             // Trigger Application Actions
             if (effect.OnApplication != null)
             {
-                foreach (var action in effect.OnApplication) action?.Execute(source, this);
+                foreach (var action in effect.OnApplication) action?.Execute(context.Instigator, this);
             }
 
-            ApplyModifiersToBase(effect, effect.Modifiers, source);
+            ApplyModifiersToBase(effect, effect.Modifiers, in context);
         }
 
-        private ActiveEffectInstance ApplyDurationEffect(GameplayEffect effect, float duration, AbilitySystemComponent source)
+        private ActiveEffectInstance ApplyDurationEffect(GameplayEffect effect, float duration, in EffectContext context)
         {
-            var instance = new ActiveEffectInstance(effect, duration, source, this);
+            var instance = new ActiveEffectInstance(effect, duration, in context);
             _activeEffects.Add(instance);
 
             AddTags(effect.GrantedTags);
@@ -981,7 +1010,7 @@ namespace SpellBook.GAS.Core
                 foreach (var mod in effect.Modifiers)
                 {
                     if (!IsModifierValid(effect, mod)) continue;
-                    float value = mod.ValueSource.GetValue(source, this);
+                    float value = mod.ValueSource.Evaluate(in context);
                     attributeSet.AddModifier(mod.Attribute, new AttributeModifier(value, mod.Operation, instance));
                 }
             }
@@ -1003,14 +1032,15 @@ namespace SpellBook.GAS.Core
         private void HandleEffectTick(ActiveEffectInstance instance)
         {
             // Periodic modifiers act as instant changes to the base value
-            ApplyModifiersToBase(instance.Effect, instance.Effect.PeriodicModifiers, instance.Source);
+            EffectContext context = instance.Context;
+            ApplyModifiersToBase(instance.Effect, instance.Effect.PeriodicModifiers, in context);
         }
 
         /// <summary>
         /// Aplica os modificadores na base (efeitos Instant e tiques periódicos): os que miram o mesmo atributo passam
         /// pela fórmula única uma vez, partindo da base atual, e o resultado vira a nova base (ADR 0029, item 4).
         /// </summary>
-        private void ApplyModifiersToBase(GameplayEffect effect, List<AttributeEffectModifier> modifiers, AbilitySystemComponent source)
+        private void ApplyModifiersToBase(GameplayEffect effect, List<AttributeEffectModifier> modifiers, in EffectContext context)
         {
             if (modifiers == null || attributeSet == null) return;
 
@@ -1027,7 +1057,7 @@ namespace SpellBook.GAS.Core
                 {
                     AttributeEffectModifier mod = modifiers[j];
                     if (mod == null || !ReferenceEquals(mod.Attribute, first.Attribute)) continue;
-                    accumulator.Accumulate(mod.Operation, mod.ValueSource.GetValue(source, this));
+                    accumulator.Accumulate(mod.Operation, mod.ValueSource.Evaluate(in context));
                 }
                 state.SetBaseValue(accumulator.Result());
             }

@@ -39,14 +39,21 @@ namespace SpellBook.GAS.Effects
         public event Action<ActiveEffectInstance> OnEffectExpired;
         public event Action<ActiveEffectInstance> OnTick;
 
+        /// <summary>Contexto da aplicação (cópia): instigador, alvo, habilidade, nível e ponto de impacto.</summary>
+        public EffectContext Context { get; private set; }
+
         public ActiveEffectInstance(GameplayEffect effect, AbilitySystemComponent source, AbilitySystemComponent target)
-            : this(effect, effect.Duration.Evaluate(1), source, target) { }
+            : this(effect, effect.Duration.Evaluate(effect.DefaultLevel), source, target) { }
 
         public ActiveEffectInstance(GameplayEffect effect, float duration, AbilitySystemComponent source, AbilitySystemComponent target)
+            : this(effect, duration, new EffectContext(source, target, null, effect.DefaultLevel, false, default, null)) { }
+
+        internal ActiveEffectInstance(GameplayEffect effect, float duration, in EffectContext context)
         {
             Effect = effect;
-            Source = source;
-            Target = target;
+            Context = context;
+            Source = context.Instigator;
+            Target = context.Target;
             AppliedDuration = duration;
             TimeRemaining = duration;
             _timeSinceLastTick = 0;

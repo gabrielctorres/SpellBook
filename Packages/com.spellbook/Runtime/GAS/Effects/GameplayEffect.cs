@@ -61,6 +61,12 @@ namespace SpellBook.GAS.Effects
             set => duration = value;
         }
 
+        [Tooltip("Nível com que o efeito é avaliado quando aplicado sem habilidade (efeitos de partida, ApplyEffect direto).")]
+        [SerializeField, Min(1)] private int defaultLevel = 1;
+
+        /// <summary>Nível da aplicação sem habilidade (pelo menos 1). Sem habilidade não há tabela: o modo Table vale o Fallback.</summary>
+        public int DefaultLevel => defaultLevel < 1 ? 1 : defaultLevel;
+
         [Header("Periodic")]
         [Tooltip("If Period > 0, effect triggers every Period seconds")]
         public float Period = 0f;

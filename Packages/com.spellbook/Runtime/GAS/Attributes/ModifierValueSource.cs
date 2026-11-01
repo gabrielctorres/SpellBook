@@ -3,6 +3,7 @@ using SpellBook.Core.Inspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 using SpellBook.GAS.Core;
+using SpellBook.GAS.Effects;
 using SpellBook.GAS.Values;
 
 namespace SpellBook.GAS.Attributes
@@ -34,16 +35,26 @@ namespace SpellBook.GAS.Attributes
         [ShowIf(nameof(Type), SourceType.Formula)]
         public Formula Formula;
 
+        /// <summary>Valor com <paramref name="source"/> como instigador, no nível 1 e sem tabela.</summary>
         public float GetValue(AbilitySystemComponent source, AbilitySystemComponent target)
+        {
+            return Evaluate(new EffectContext(source, target, null, 1, false, Vector3.zero, null));
+        }
+
+        /// <summary>
+        /// Valor no <paramref name="context"/>: o <see cref="ScalableFloat"/> no nível e na tabela do contexto; atributo e fórmula
+        /// leem o instigador. Sem alocação.
+        /// </summary>
+        internal float Evaluate(in EffectContext context)
         {
             switch (Type)
             {
                 case SourceType.Value:
-                    return Value != null ? Value.Evaluate(1) : 0f;
+                    return Value != null ? Value.Evaluate(context.Level, context.Table) : 0f;
                 case SourceType.Attribute:
-                    return source != null ? source.AttributeSet.GetValue(Attribute) : 0f;
+                    return context.Instigator != null ? context.Instigator.AttributeSet.GetValue(Attribute) : 0f;
                 case SourceType.Formula:
-                    return Formula != null ? Formula.Calculate(source, target) : 0f;
+                    return Formula != null ? Formula.Calculate(context.Instigator, context.Target) : 0f;
                 default:
                     return 0f;
             }
