@@ -204,6 +204,29 @@ componente de que precisa no objeto recebido. Um objeto destruído antes do disp
   `SpellBook.Core`. Num arquivo com `using System;`, escreva `SpellBook.Core.Void` no método do
   ouvinte.
 
+## Canais do GAS {#canais-do-gas}
+
+O assembly `SpellBook.GAS.Bridges` traz canais com os dados dos eventos do GAS. Crie-os em
+**Create > SpellBook > GAS > Events**. Eles ficam no GAS, e não no módulo Events: o Events não
+conhece o GAS. Cada canal tem a sua resposta no seletor da lista **Responses** do
+[`EventListener`](#eventlistener).
+
+| Canal | Payload | Campos | Resposta |
+|---|---|---|---|
+| `EffectEventChannel` | `EffectEventData` | `Owner`, `Source`, `Effect`, `Stacks`, `PreviousStacks`, `RemovalReason`, `Result` | `EffectEventResponse` |
+| `AbilityEventChannel` | `AbilityEventData` | `Owner`, `Ability`, `Level`, `Cancelled`, `FailureReason` | `AbilityEventResponse` |
+| `AttributeChangedEventChannel` | `AttributeChangedData` | `Owner`, `Attribute`, `OldValue`, `NewValue`, `Delta` | `AttributeChangedEventResponse` |
+| `TagChangedEventChannel` | `TagChangedData` | `Owner`, `Tag`, `Added`, `Count` | `TagChangedEventResponse` |
+| `BlockedEventChannel` | `BlockedEventData` | `Owner`, `Reason`, `Source` | `BlockedEventResponse` |
+
+- `Owner` é o ASC do evento. Em efeito, `Source` é quem aplicou; em bloqueio, a origem da ação
+  bloqueada.
+- `RemovalReason` só tem sentido na remoção de efeito; `Result`, na aplicação e no bloqueio.
+  `Cancelled` só tem sentido no fim da habilidade; `FailureReason`, na falha.
+- `Delta` é `NewValue - OldValue`: negativo quando o valor caiu. O construtor
+  `new AttributeChangedData(dono, atributo, antigo, novo)` calcula esse valor.
+- Os payloads são structs: disparar não aloca.
+
 ## EventListener {#eventlistener}
 
 O `EventListener` é o componente que ouve canais sem código. Adicione-o a um objeto
