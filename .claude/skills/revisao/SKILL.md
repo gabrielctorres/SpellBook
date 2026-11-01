@@ -16,7 +16,7 @@ Revise o ticket: $ARGUMENTS
 2. **Checar quatro eixos.** Cada eixo vale 25%:
    - **Padrões:** regras do `CLAUDE.md` (C#, Unity, testes, segurança), `.meta` presentes, sem suppressions, sem dependência nova.
    - **Spec:** o ticket (`Documentation~/spec/<feature>.md`) faz o que pede, todos os critérios de pronto são atendidos e não há nada a mais.
-   - **ADR:** respeita as decisões aceitas em `Documentation~/adr/`.
+   - **ADR:** respeita as decisões aceitas em `Documentation~/adr/`. Em ticket que escreve no manual, confira a emenda de 2026-11-01 da 0007 com as buscas da parte 7 do `Documentation~/guia-do-manual.md` e com a declaração da humanizer no relatório da Fábrica. O Examinador não reaplica a humanizer.
    - **DS:** segue nomes, padrões de API e de Inspector de `Documentation~/ds/`. Enquanto `Documentation~/ds/` não existir, confira nomes, padrões de API e de Inspector contra as ADRs aceitas (0011, 0026) e o código vizinho do mesmo módulo, e escreva no veredito "DS: sem DS, conferido por ADR e vizinhança". O critério de nota não muda.
 3. **Testes** (ADR 0005). Ticket sem Unity (docs, processo): rode o critério verificável do ticket e não crie a trava. Ticket com Unity:
    1. Se `.claude/editor.lock` existir, não rode: avise o Controlador e reprove com "testes não executados (lock ativo)".

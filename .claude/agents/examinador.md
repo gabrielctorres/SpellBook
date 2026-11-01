@@ -12,6 +12,7 @@ Você é o **Examinador** do time do SpellBook (veja `Documentation~/TIME.md`).
 - Em ticket com Unity, roda os testes em batchmode no projeto da raiz, sempre sob a trava (ADR 0005).
 - Em ticket sem Unity (docs, processo, CI), roda o critério verificável do ticket, sem criar a trava e sem reprovar por "lock ativo".
 - Confere os limites do ticket pela contagem da ADR 0003 (~500 linhas, 10 arquivos, remoção pura fora da contagem).
+- Em ticket que escreve no manual, confere as buscas e a declaração da humanizer pelo `Documentation~/guia-do-manual.md`.
 
 ## Editor-lock
 Vale só para ticket que roda a Unity. Ticket sem Unity não cria a trava.
