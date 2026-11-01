@@ -30,7 +30,26 @@ Cada valor tem uma `AttributeDefinition`.
 - **Valor inicial fora do intervalo:** o `AttributeSet` limita o valor inicial ao intervalo e registra um aviso no Console, uma vez por atributo, com o nome do atributo e do objeto. Revise o asset ou o `startingAttributes` apontado pelo aviso.
 
 #### Fórmulas de modificadores {#formulas}
-Os atributos mantêm um histórico de modificadores (Add, Multiply, Override), permitindo cálculos precisos de bônus e penalidades.
+Os atributos mantêm um histórico de modificadores, permitindo cálculos precisos de bônus e penalidades. Há cinco operações (`ModifierOperation`):
+
+| Operação | Efeito |
+|---|---|
+| `Add` | Soma na base. |
+| `Multiply` | Percentual somado aos outros `Multiply` (0,5 = +50 %). Dois `Multiply` de 0,5 dão ×2, não ×2,25. |
+| `MultiplyCompound` | Percentual que compõe com os outros (0,1 e 0,2 = ×1,1 × 1,2). |
+| `AddFinal` | Soma depois de todas as multiplicações. |
+| `Override` | O último aplicado vence, depois da fórmula. |
+
+O valor sai sempre da mesma ordem:
+
+`((base + ΣAdd) × (1 + ΣMultiply)) × Π(1 + MultiplyCompound) + ΣAddFinal`
+
+Depois, se houver `Override`, vale o do último. Por último vem o limite entre o mínimo e o máximo. Exemplo: base 100, `Add` +20, `Multiply` +0,5, `MultiplyCompound` 0,1 e 0,2 e `AddFinal` +5 dão `((100 + 20) × 1,5) × 1,1 × 1,2 + 5 = 242,6`. Com um `Override` de 50 presente, o resultado é 50.
+
+A ordem é a mesma em todos os tipos de efeito:
+
+- **Com duração e infinito:** a fórmula roda sobre todos os modificadores ativos do atributo, partindo da base, a cada recálculo.
+- **Instantâneo e tique periódico:** os modificadores **daquela aplicação** que miram o mesmo atributo passam pela fórmula uma vez, partindo da base atual, e o resultado vira a nova base (limitada). Aplicações sucessivas compõem: duas aplicações de um instantâneo com `Multiply` 0,5 levam 100 a 150 e depois a 225; um só instantâneo com dois `Multiply` 0,5 leva 100 a 200.
 
 Uma fórmula calcula um valor a partir dos atributos de quem aplica (Source) e de quem recebe (Target). Ela serve no `Formula` de um atributo `Derived` e na fonte `Formula` de um modificador.
 

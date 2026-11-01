@@ -922,32 +922,40 @@ namespace SpellBook.GAS.Core
         }
 
         /// <summary>
-        /// Aplica modifiers diretamente no valor base (efeitos Instant e ticks periódicos).
-        /// Add: base + v | Multiply: base * (1 + v) | Override: v
+        /// Aplica os modificadores na base (efeitos Instant e tiques periódicos): os que miram o mesmo atributo passam
+        /// pela fórmula única uma vez, partindo da base atual, e o resultado vira a nova base (ADR 0029, item 4).
         /// </summary>
         private void ApplyModifiersToBase(GameplayEffect effect, List<AttributeEffectModifier> modifiers, AbilitySystemComponent source)
         {
             if (modifiers == null || attributeSet == null) return;
 
-            foreach (var mod in modifiers)
+            // Laços por índice, sem alocação: cada atributo é tratado no primeiro índice que o mira
+            for (int i = 0; i < modifiers.Count; i++)
             {
-                if (!IsModifierValid(effect, mod)) continue;
-                if (!attributeSet.TryGetState(mod.Attribute, out var state)) continue;
+                AttributeEffectModifier first = modifiers[i];
+                if (!IsModifierValid(effect, first)) continue;
+                if (IsAttributeHandledBefore(modifiers, i)) continue;
+                if (!attributeSet.TryGetState(first.Attribute, out var state)) continue;
 
-                float value = mod.ValueSource.GetValue(source, this);
-                switch (mod.Operation)
+                var accumulator = new ModifierAccumulator(state.BaseValue);
+                for (int j = i; j < modifiers.Count; j++)
                 {
-                    case ModifierOperation.Add:
-                        state.SetBaseValue(state.BaseValue + value);
-                        break;
-                    case ModifierOperation.Multiply:
-                        state.SetBaseValue(state.BaseValue * (1f + value));
-                        break;
-                    case ModifierOperation.Override:
-                        state.SetBaseValue(value);
-                        break;
+                    AttributeEffectModifier mod = modifiers[j];
+                    if (!ReferenceEquals(mod.Attribute, first.Attribute)) continue;
+                    accumulator.Accumulate(mod.Operation, mod.ValueSource.GetValue(source, this));
                 }
+                state.SetBaseValue(accumulator.Result());
             }
+        }
+
+        private static bool IsAttributeHandledBefore(List<AttributeEffectModifier> modifiers, int index)
+        {
+            AttributeDefinition attribute = modifiers[index].Attribute;
+            for (int k = 0; k < index; k++)
+            {
+                if (ReferenceEquals(modifiers[k].Attribute, attribute)) return true;
+            }
+            return false;
         }
 
         private static bool IsModifierValid(GameplayEffect effect, AttributeEffectModifier mod)

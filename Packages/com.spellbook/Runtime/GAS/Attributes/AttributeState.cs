@@ -107,38 +107,14 @@ namespace SpellBook.GAS.Attributes
                 baseToUse = Definition.Formula.Calculate(_owner, _owner);
             }
 
-            // Um único for por índice, sem LINQ, para não alocar no recálculo.
-            // Cada categoria soma na ordem da lista, como antes (mesmo resultado em ponto flutuante).
-            float finalValue = baseToUse;
-            float multiplierSum = 1f;
-            bool hasOverride = false;
-            float overrideValue = 0f;
-
+            // Um único for por índice, sem LINQ, para não alocar no recálculo. A fórmula é a do acumulador (ADR 0029)
+            var accumulator = new ModifierAccumulator(baseToUse);
             for (int i = 0; i < _modifiers.Count; i++)
             {
                 AttributeModifier mod = _modifiers[i];
-                switch (mod.Operation)
-                {
-                    case ModifierOperation.Add:
-                        finalValue += mod.Value;
-                        break;
-                    case ModifierOperation.Multiply:
-                        // Percentuais somados: 1 + 0.1 + 0.2 = 1.3x
-                        multiplierSum += mod.Value;
-                        break;
-                    case ModifierOperation.Override:
-                        // O último da lista vence
-                        hasOverride = true;
-                        overrideValue = mod.Value;
-                        break;
-                }
+                accumulator.Accumulate(mod.Operation, mod.Value);
             }
-
-            finalValue *= multiplierSum;
-            if (hasOverride)
-            {
-                finalValue = overrideValue;
-            }
+            float finalValue = accumulator.Result();
 
             CurrentValue = ClampToLimits(finalValue);
 
