@@ -14,12 +14,18 @@ O GAS fica no assembly `SpellBook.GAS`. Um asmdef seu que usa o GAS precisa refe
 
 ### 1.2 Atributos {#attributeset}
 - **O que são:** valores como Vida, Mana e Velocidade, agrupados em um `AttributeSet`.
+- **Leitura sem aviso:** `TryGetValue`, `GetValueOrDefault(def, fallback)`, `HasAttribute` e `GetBaseValue` leem o atributo sem escrever no Console quando ele não está em `startingAttributes` (falso, o `fallback` ou 0). `GetValue` continua avisando uma vez por atributo e devolvendo 0. O ASC tem os mesmos atalhos: `TryGetAttributeValue`, `GetAttributeValueOrDefault`, `HasAttribute` e `GetAttributeBaseValue`. `TryGetValue` não aloca.
+- **Listagem:** `AttributeSet.States` lista os estados na ordem de `startingAttributes`, e `AttributeState.Modifiers` lista os modificadores ativos de cada um, com o `Source` de quem os aplicou. As leituras já funcionam antes do `Awake` do `AttributeSet`, então um componente pode lê-lo no próprio `Awake` ou `OnEnable` sem depender da ordem dos componentes.
+- **Contagem de tags:** `asc.GetTagCount(tag)` devolve quantas fontes concedem a tag exata (sem hierarquia; 0 se ausente ou inválida), e `asc.TagCounts` expõe todas as tags com a contagem de cada uma.
 - **Desempenho:** recalcular um atributo, adicionar ou remover um modificador e remover os modificadores de uma fonte não alocam memória gerenciada depois do primeiro uso. Um efeito periódico com valor constante ou lido de atributo tiqueta sem gerar lixo. Um modificador com `ValueSource` do tipo `Formula` pode alocar, conforme a fórmula.
 
 #### AttributeDefinition {#attributedefinition}
 Cada valor tem uma `AttributeDefinition`.
 
 - **Limites:** `MinValue` e `MaxValue` valem para o valor base e para o valor atual. O valor base nunca sai do intervalo: um dano maior que a vida deixa a base em `MinValue`, e a cura seguinte conta inteira. Isso vale para efeitos instantâneos, tiques periódicos e `SetBaseValue`.
+- **Limite vindo de outro atributo:** com `MinSource` ou `MaxSource` em `Attribute`, o limite é o valor atual (com modificadores) do atributo escolhido em `MinAttribute` ou `MaxAttribute`, no mesmo ASC. Exemplo: a `Vida` com máximo = `VidaMax`; com `VidaMax` em 150, uma cura de 200 para em 150. `AttributeState.MinValue` e `MaxValue` dão o limite efetivo. O dependente se atualiza quando a fonte muda, sem esperar o `Tick`. O padrão é `Constant`, e um asset antigo se comporta como antes.
+- **Política ao mudar o máximo (`OnMaxChange`):** vale quando o máximo vindo de outro atributo muda. Com a `Vida` em 80 de 100 e o máximo subindo para 150: `KeepValue` (padrão) deixa 80, `KeepRatio` mantém a proporção (120) e `AddDelta` soma a diferença (130). Se o novo máximo fica abaixo do valor, o valor vai ao máximo em qualquer política, com uma única notificação de `OnValueChanged`. Mudar o mínimo só limita.
+- **Configuração inválida:** com o mínimo acima do máximo, vale o mínimo. Se o atributo-fonte não está no ASC, ou se as fontes formam um ciclo (A limitado por B e B por A), o limite cortado usa a constante (`MinValue` ou `MaxValue`, que funcionam como reserva) e o `AttributeSet` registra um aviso no Console, uma vez por atributo.
 - **Valor inicial fora do intervalo:** o `AttributeSet` limita o valor inicial ao intervalo e registra um aviso no Console, uma vez por atributo, com o nome do atributo e do objeto. Revise o asset ou o `startingAttributes` apontado pelo aviso.
 
 #### Fórmulas de modificadores {#formulas}
@@ -33,6 +39,19 @@ Um valor base mais a soma de atributos multiplicados (`Base Value` + `Attribute`
 #### ExpressionFormula {#expressionformula}
 Uma expressão em texto, como `([ATK] * 2) / [DEF]`. Cada token entre colchetes é ligado a um atributo da Source ou da Target em `Mappings`. Crie em **Create → GAS → Formulas → Expression Formula**.
 
+#### Valores por nível (ScalableFloat) {#scalablefloat}
+`ScalableFloat` (`SpellBook.GAS.Values`) é um número que pode variar com o nível. Ele tem três modos:
+
+- **Constant:** o mesmo valor em qualquer nível. Crie com `ScalableFloat.Constant(4f)`.
+- **Array:** um valor por nível, e o primeiro é o nível 1. Com `ScalableFloat.FromArray(10, 8, 6, 4)`, o nível 1 vale 10, o 3 vale 6 e o 4 vale 4. Acima do tamanho do array, repete o último (nível 6 vale 4). Array vazio vale 0.
+- **Curve:** uma `AnimationCurve` avaliada no nível inteiro (x = nível). Crie com `ScalableFloat.FromCurve(curva)`. Curva nula vale 0.
+
+`Evaluate(nivel)` devolve o valor; nível 0 ou negativo vale como 1. A avaliação não aloca memória gerenciada. Não há conversão implícita de `float`: o modo fica sempre explícito no código.
+
+`ScalableFloat.TryParse("10 8 6 4", out valores, out erro)` lê o texto de um array. Os valores podem ser separados por espaço, vírgula ou ponto e vírgula, e o separador decimal é sempre o ponto (`1.5`), em qualquer idioma do sistema. Texto inválido devolve `false` e uma mensagem que cita o trecho errado.
+
+`Validate(resultado, caminho)` acusa como erro um array vazio e uma curva não definida. O asset dono do campo repassa a chamada com o nome do campo.
+
 ### 1.3 Gameplay Effects (GE) {#gameplayeffect}
 - **Instant:** modifica o valor base (ex: Dano, Cura).
 - **Duration/Infinite:** adiciona um modificador temporário ou permanente e pode conceder Tags enquanto ativo.
@@ -40,6 +59,56 @@ Uma expressão em texto, como `([ATK] * 2) / [DEF]`. Cada token entre colchetes 
 - **Reaplicação e renovação:** aplicar de novo um efeito com duração ou infinito que já está ativo no ASC nunca cria uma segunda instância; `ApplyEffect` devolve a instância existente. Com `CanStack` ligado, ganha uma pilha (até `MaxStacks`) e, se `RefreshDurationOnStack`, renova a duração. Com `CanStack` desligado, só renova a duração, sempre. A renovação não reaplica modificadores nem tags e não roda `OnApplication` de novo, e o período continua contando de onde estava. A duração da renovação segue a regra **quem passa duração redefine; quem não passa mantém**: `ApplyEffect(efeito, duracao)` renova para `duracao` e a guarda como duração aplicada; `ApplyEffect(efeito)` volta à duração com que a instância foi aplicada (a do asset, se ninguém passou outra). Uma recarga aplicada com redução (ex: 6 s num asset de 8 s) volta a 6 s ao ser reaplicada.
 - **Efeitos periódicos:** com `Period` maior que zero, o efeito dá um tique a cada `Period` segundos: aplica os `PeriodicModifiers` no valor base e roda as `OnTickActions`, sempre o mesmo número de vezes. Um efeito com duração dá `Duration / Period` tiques, arredondado para baixo (4 s com período de 0,5 s: 8 tiques; 4 s com período de 1,5 s: 2 tiques, em 1,5 s e 3 s). O tique que cai no fim da duração acontece antes da expiração, e nenhum tique roda depois da remoção, nem quando uma ação do tique remove a própria instância. Cada `Tick` do ASC dá no máximo um tique por efeito; o tempo de um `Tick` que passa do fim da duração não gera tique a mais.
 - **Remoção:** `RemoveEffect(instancia)` roda as ações de limpeza e de `OnRemoval` e devolve as tags e os modificadores do efeito, uma vez só. Chamar de novo com a mesma instância, com `null` ou com uma instância de outro ASC não faz nada. Vale também quando a remoção explícita cai no mesmo quadro da expiração, ou quando uma ação de `OnRemoval` remove a própria instância.
+- **Remoção em grupo:** `RemoveEffectsWithTag(tag)` remove os efeitos que concedem a tag ou uma filha dela, e `RemoveEffects(asset)` remove as instâncias de um `GameplayEffect`. As duas devolvem a soma das pilhas removidas (3 pilhas de veneno: 3) e 0 quando não há nada a remover; tag inválida ou asset `null` também dão 0.
+
+#### Resultado da aplicação {#resultado-da-aplicacao}
+`ApplyEffect` devolve só a instância (ou `null`). Para saber o que aconteceu, use `TryApplyEffect(efeito, origem, out instancia)` ou `TryApplyEffect(efeito, duracao, origem, out instancia)`, que aplicam igual e devolvem um `EffectApplicationResult`. As checagens seguem esta ordem:
+
+| Resultado | Quando | Instância |
+|---|---|---|
+| `Invalid` | Efeito `null`. Não lança exceção. | `null` |
+| `MissingRequirements` | Falta ao alvo alguma das `ApplicationRequirements`. | `null` |
+| `BlockedByImmunity` | O alvo tem alguma das `ApplicationImmunityTags`. | `null` |
+| `AppliedInstant` | Efeito instantâneo aplicado. | `null` |
+| `Stacked` | Reaplicação com `CanStack`, mesmo em `MaxStacks`. | a existente |
+| `Refreshed` | Reaplicação sem `CanStack` (renovação). | a existente |
+| `Applied` | Instância nova. | a nova |
+
+`ApplyEffect` continua com a mesma assinatura e o mesmo retorno. O resultado e o `out` de `TryApplyEffect` não alocam; o caminho instantâneo e os bloqueios também não. Só `Applied` aloca, porque cria a instância nova, como `ApplyEffect`.
+
+Nos dois bloqueios, o ASC dispara `OnEffectBlocked(efeito, origem, resultado)`, uma vez, com a origem já resolvida (origem `null` vira o próprio ASC). Efeito `null` não dispara. Para bloqueios de regras suas (silêncio, alvo fora de alcance), chame `asc.ReportBlocked(tagDoMotivo, origem)`: dispara `OnBlocked(tag, origem)`, ignora tag inválida e troca origem `null` pelo próprio ASC.
+
+```csharp
+if (target.TryApplyEffect(stun, caster, out _) == EffectApplicationResult.BlockedByImmunity)
+    Debug.Log($"{target.name} é imune a {stun.name}");
+```
+
+#### Efeitos ativos {#efeitos-ativos}
+`asc.ActiveEffects` lista as instâncias ativas na ordem de aplicação, sem cópia. Cada `ActiveEffectInstance` expõe `Effect` (o asset), `Source` e `Target` (os ASCs), `TimeRemaining`, `AppliedDuration` (a duração com que foi aplicada ou renovada, já com a redução de recarga), `CurrentStacks` e `IsActive` (falso depois da remoção). O tempo avança só pelo `Tick` do ASC, e as pilhas mudam pela reaplicação.
+
+Para mudar a duração ou as pilhas de uma instância, chame o ASC alvo ou o atalho da própria instância (`instancia.ExtendDuration(2f)` chama `instancia.Target.ExtendEffectDuration(instancia, 2f)`). Todos devolvem se algo mudou e devolvem `false` para `null`, para instância removida ou de outro ASC.
+
+- `ExtendEffectDuration(instancia, segundos)` soma ao tempo restante (5 s + 2 s = 7 s). `ReduceEffectDuration(instancia, segundos)` subtrai; se o restante chega a 0, o efeito expira na hora, com o motivo `Expired`. Segundos negativos ou `NaN` não mudam nada e geram um aviso no Console (só em build de desenvolvimento).
+- `RestartEffectDuration(instancia)` volta o tempo restante à `AppliedDuration`, e não à `Duration` do asset (uma recarga aplicada com 3 s volta a 3 s). Não mexe no período.
+- As três só valem para efeitos `HasDuration`; nos infinitos devolvem `false`. Nenhuma muda a `AppliedDuration`.
+- `SetEffectStacks(instancia, quantidade)` grava as pilhas, limitadas a `[0, MaxStacks]` (9 num efeito de máximo 5 vira 5), e dispara `OnEffectStacksChanged`. A mesma contagem devolve `false` e não dispara. `RemoveEffectStacks(instancia, quantidade)` tira pilhas; quantidade 0 ou negativa devolve `false`.
+- Pilhas em 0 removem a instância com o motivo `StacksDepleted`: primeiro devolve tags e modificadores, depois dispara `OnEffectStacksChanged(instancia, antes, 0)` e por último `OnEffectRemoved(instancia, StacksDepleted)`.
+- Mudar as pilhas muda só a contagem: as tags e os modificadores continuam um por instância.
+
+Para buscar, passe uma lista sua: o ASC limpa a lista, preenche com as instâncias na ordem de aplicação e devolve a quantidade. As buscas não alocam e lançam `ArgumentNullException` com a lista nula.
+
+- `FindEffectsWithTag(tag, lista)`: efeitos que concedem a tag ou uma filha dela, como `HasTag` (buscar `Status` acha `Status.Burn`). Tag inválida não acha nada.
+- `FindEffectsWithAnyTag(tags, lista)`: efeitos que casam com alguma tag de um `GameplayTagContainer`, lista ou array.
+- `FindEffectsMatching(consulta, lista)`: efeitos cujas tags concedidas satisfazem uma [`GameplayTagQuery`](tags.md#gameplaytagquery).
+- `FindEffects(asset, lista)`: as instâncias de um `GameplayEffect`.
+- `HasEffectWithTag(tag)`: se algum efeito ativo concede a tag ou uma filha dela.
+
+```csharp
+private readonly List<ActiveEffectInstance> _found = new List<ActiveEffectInstance>();
+
+int burns = asc.FindEffectsWithTag(statusBurn, _found);
+for (int i = 0; i < burns; i++) Debug.Log($"{_found[i].Effect.name}: {_found[i].TimeRemaining:0.0} s");
+```
 
 ### 1.4 Gameplay Abilities (GA) {#gameplayability}
 As habilidades são compostas **dentro do próprio arquivo da habilidade**, como uma lista de ações.
@@ -150,6 +219,8 @@ O alvo válido mais próximo do ponto mirado, num raio pequeno. Crie em **Create
 ### 4.1 Concedendo habilidades
 O ASC só ativa habilidades concedidas. Use a lista `startingAbilities` no Inspector ou, via código, `asc.GiveAbility(ability, level)` / `asc.RemoveAbility(ability)`. Cada habilidade concedida vira um `AbilitySpec` (nível, se está ativa e o contexto da execução atual).
 
+`OnAbilityGranted(spec)` dispara quando `GiveAbility` cria o spec, já na lista; conceder de novo a mesma habilidade devolve o spec existente e não dispara. `OnAbilityRemoved(spec)` dispara em `RemoveAbility`, depois do cancelamento e da saída da lista. As habilidades de `startingAbilities` são concedidas no `Awake`, antes de qualquer ouvinte externo existir: quem assina depois lê `asc.Abilities` para pegar as que já estão lá.
+
 ### 4.2 Ativação
 `asc.TryActivateAbility(ability, targetPos)` retorna um `AbilityActivationResult`. Em ordem, as checagens são:
 
@@ -169,6 +240,22 @@ Para consultar sem ativar, use `ability.CanActivate(asc, out var reason)`.
 
 **Consultando a recarga.** `asc.GetCooldownTimeRemaining(cooldownEffect)` devolve o tempo restante e `asc.GetCooldownNormalized(cooldownEffect)`, o valor de 1 a 0 para barras de recarga. Contam a instância do próprio `CooldownEffect` e qualquer efeito ativo que conceda uma tag igual ou **filha** de alguma tag dele, pela mesma regra de `HasTag`: um efeito com `Cooldown.Fire` conta para uma recarga com a tag `Cooldown`, mas um efeito com `Cooldown` não conta para uma recarga com `Cooldown.Fire`. Com vários efeitos casando, vale o de maior tempo restante. O normalizado divide esse tempo pela duração aplicada da mesma instância, e não pela `Duration` do asset: com `CooldownReductionAttribute` em 0,25 sobre 8 s, a recarga aplicada é de 6 s e o normalizado vale 1 logo após ativar, 0,5 com 3 s restantes e 0 com a habilidade pronta. Sem recarga, ou com duração aplicada zero ou negativa, o normalizado é 0.
 
+**Controlando a recarga.** A recarga é um efeito ativo, e o ASC a controla por habilidade, concedida ou não, sobre as mesmas instâncias que contam no tempo restante (o próprio `CooldownEffect` e as de tag filha):
+
+- `asc.ReduceCooldown(ability, segundos)` tira tempo de cada uma; a que chega a 0 expira na hora. Segundos negativos ou `NaN` são ignorados com aviso.
+- `asc.ResetCooldown(ability)` remove todas (motivo `Removed`), e a habilidade volta a ser ativável. Exceção: uma tag de recarga dada fora de efeito, com `AddTag`, continua bloqueando, porque não há instância para remover.
+- `asc.RestartCooldown(ability)` volta cada uma à duração aplicada, e não à `Duration` do asset.
+
+Os três devolvem se algo mudou. Habilidade nula, sem `CooldownEffect` ou pronta: `false`, sem exceção.
+
+**Evento de recarga.** `OnCooldownChanged(spec, mudança)` acompanha a recarga aplicada pela ativação de uma habilidade concedida, com o `CooldownChange`:
+
+- `Started`: a ativação aplicou a recarga (antes do `OnAbilityActivated`);
+- `Changed`: `ReduceCooldown` ou `RestartCooldown` mudou o tempo e a recarga continua;
+- `Ended`: a habilidade ficou pronta, porque as instâncias expiraram, foram reduzidas a 0 ou removidas (inclusive por `ResetCooldown`). Sai depois do `OnEffectRemoved` da instância que faltava.
+
+Recarga aplicada à mão, com `ApplyEffect`, não dispara o evento: ela aparece no tempo restante e em `OnEffectApplied`/`OnEffectRemoved`.
+
 ### 4.3 Custo
 `CostEffect` é um GameplayEffect Instant, normalmente com modifier `Add` negativo (ex: `Mana Add -20`). A ativação falha se algum atributo ficaria abaixo do `MinValue`.
 
@@ -179,6 +266,14 @@ Para consultar sem ativar, use `ability.CanActivate(asc, out var reason)`.
 
 ### 4.5 Eventos do ASC
 `OnAbilityActivated(spec)`, `OnAbilityEnded(spec, cancelled)` e `OnAbilityFailed(ability, result)`, este último útil para feedback de UI ("Sem mana", "Em recarga").
+Para efeitos com duração ou infinitos, por instância:
+
+- `OnEffectApplied(instancia)`: uma instância nova entrou, depois de tags e modificadores. Efeito instantâneo, renovação e pilha não disparam.
+- `OnEffectStacksChanged(instancia, antes, depois)`: a contagem de pilhas mudou de fato. Na reaplicação que empilha, `(instancia, 1, 2)`; em `MaxStacks`, não dispara. Também dispara em `SetEffectStacks` e `RemoveEffectStacks`.
+- `OnEffectRemoved(instancia, motivo)`: a instância saiu, com o `EffectRemovalReason` (`Expired`, `Removed`, `RemovedByTag` ou `StacksDepleted`). Dispara depois de devolver tags e modificadores, uma vez por instância.
+
+Um ouvinte pode aplicar ou remover efeitos dentro desses eventos sem quebrar a remoção em grupo nem perder eventos. Sem ouvintes, disparar não aloca.
+
 O ASC não dispara mais evento global; veja a [Migração 2.x → 3.0](../regras/migracao-2-para-3.md#eventos-do-gas).
 
 ### 4.6 Tempo do ASC {#tempo-do-asc}

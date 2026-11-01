@@ -52,9 +52,15 @@ O validador acusa erro em:
 - uma `RaiseEventAction` sem canal, acusada na habilidade que a contém (veja
   [RaiseEventAction](../modulos/gas.md#raiseeventaction));
 - um `PooledSpawnerAsset` com **Initial Size** negativo;
+- uma linha vazia num `GameplayTagContainer` ou numa lista de um `GameplayTagQuery`, e a mesma tag
+  em duas listas da consulta, nos campos cujo dono repassa a validação (veja
+  [Validação](../modulos/tags.md#validacao) em Tags);
 - uma referência `[SerializeReference]` cujo tipo não existe mais (abaixo);
 - um `MonoBehaviour` ou `ScriptableObject` público e concreto do SpellBook sem `[HelpURL]`, ou com
   `[HelpURL]` fora do manual (abaixo).
+
+E acusa aviso numa tag repetida num conjunto ou numa lista da consulta e numa consulta com as três
+listas vazias.
 
 ## Tipo sem HelpURL {#helpurl}
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using SpellBook.Core;
+using SpellBook.Core.Validation;
 using UnityEngine;
 
 namespace SpellBook.Tags
@@ -92,6 +93,36 @@ namespace SpellBook.Tags
         public bool Remove(GameplayTag tag) => tags.Remove(tag);
 
         public void Clear() => tags.Clear();
+
+        /// <summary>
+        /// Aponta linhas vazias (erro) e tags repetidas (aviso), com o caminho de cada linha. O dono do campo, que
+        /// implementa <see cref="IValidatable"/>, repassa a chamada com o nome do campo em <paramref name="propertyPath"/>.
+        /// </summary>
+        public void Validate(ValidationResult result, string propertyPath)
+        {
+            string listPath = string.IsNullOrEmpty(propertyPath) ? "tags" : propertyPath + ".tags";
+            for (int i = 0; i < tags.Count; i++)
+            {
+                GameplayTag tag = tags[i];
+                if (!tag.IsValid)
+                {
+                    result.AddError($"Tag vazia em {propertyPath} (posição {i}). Escolha uma tag ou remova a linha.",
+                        $"{listPath}.Array.data[{i}]");
+                }
+                else if (IsFirstRepetition(tag, i))
+                {
+                    result.AddWarning($"Tag '{tag.Name}' repetida em {propertyPath}. Remova a repetição.",
+                        $"{listPath}.Array.data[{i}]");
+                }
+            }
+        }
+
+        // Um aviso por tag, na segunda ocorrência dela.
+        private bool IsFirstRepetition(GameplayTag tag, int index)
+        {
+            int first = tags.IndexOf(tag);
+            return first < index && tags.IndexOf(tag, first + 1) == index;
+        }
 
         public Enumerator GetEnumerator() => new Enumerator(tags);
 

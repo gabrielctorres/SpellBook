@@ -2,7 +2,10 @@
     "name": "SpellBook.Tags.Tests.EditMode",
     "rootNamespace": "SpellBook.Tags.Tests",
     "references": [
+        "SpellBook.Core",
+        "SpellBook.Core.Editor",
         "SpellBook.Tags",
+        "SpellBook.Tags.Editor",
         "SpellBook.Time",
         "SpellBook.Testing",
         "UnityEngine.TestRunner",

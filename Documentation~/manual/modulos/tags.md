@@ -144,6 +144,53 @@ query.Matches(new GameplayTagContainer(stunned));                // false: falta
 - **Sem alocação**: `Matches` e `IsEmpty` não geram lixo; pode chamar a cada quadro.
 - A consulta é só dados (três listas), sem texto nem expressão.
 
+## No Inspector {#no-inspector}
+
+Um campo `GameplayTagContainer` aparece no Inspector como uma lista:
+
+- O cabeçalho mostra o nome do campo, a quantidade de linhas e um botão **?**, que abre a seção
+  [GameplayTagContainer](#gameplaytagcontainer) deste manual.
+- Cada linha é um campo de `GameplayTagDefinition`: arraste o asset da tag para ele.
+- O **+** acrescenta uma linha vazia no fim (não copia a última, para não criar uma repetida), e o
+  **-** remove a linha selecionada. Arraste uma linha pela alça para mudar a ordem.
+
+Um campo `GameplayTagQuery` aparece como um grupo que abre e fecha, com o botão **?** da seção
+[GameplayTagQuery](#gameplaytagquery) e as três listas, **Todas**, **Alguma** e **Nenhuma**, cada
+uma desenhada como o conjunto acima.
+
+O Inspector não aponta linhas vazias nem repetidas; quem aponta é o [validador](#validacao). Um
+Inspector antigo em IMGUI (de outro pacote) mostra no lugar do campo o aviso "Este campo precisa do
+Inspector em UI Toolkit".
+
+## Validação {#validacao}
+
+O [validador](../ferramentas/validador.md) aponta os problemas de um `GameplayTagContainer` ou de um
+`GameplayTagQuery`:
+
+| Problema | Gravidade |
+|---|---|
+| Linha vazia num conjunto ou numa lista da consulta | Erro |
+| Tag repetida no mesmo conjunto ou na mesma lista | Aviso |
+| A mesma tag em duas listas da consulta (por exemplo, em **Todas** e em **Nenhuma**) | Erro |
+| Consulta com as três listas vazias | Aviso |
+
+Um pai em **Todas** e um filho em **Nenhuma** não é apontado: a regra compara só a tag exata.
+
+O conjunto e a consulta não são assets nem componentes, então quem valida é o dono do campo. Para
+os seus campos entrarem no validador, implemente `IValidatable` no componente ou asset e repasse a
+chamada com o nome do campo:
+
+```csharp
+public void Validate(ValidationResult result)
+{
+    alvos.Validate(result, nameof(alvos));        // GameplayTagContainer
+    condicao.Validate(result, nameof(condicao));  // GameplayTagQuery
+}
+```
+
+As mensagens saem com o seu objeto (clicável na janela) e o caminho do campo. Veja
+[Validar um tipo seu](../ferramentas/validador.md#ivalidatable).
+
 ## Ferramentas próprias {#ferramentas-proprias}
 
 Uma ferramenta sua, como um painel de debug, pode ler a hierarquia usando só a API pública:

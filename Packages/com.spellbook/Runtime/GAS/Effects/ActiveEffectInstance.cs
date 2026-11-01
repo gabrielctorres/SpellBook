@@ -13,10 +13,13 @@ namespace SpellBook.GAS.Effects
         public AbilitySystemComponent Source { get; private set; }
 
         /// <summary>Duração com que a instância foi aplicada ou renovada pela última vez; a renovação volta a ela.</summary>
-        internal float AppliedDuration { get; private set; }
+        public float AppliedDuration { get; private set; }
 
         /// <summary>Marcado pelo ASC ao remover a instância, antes da limpeza; daí em diante o <see cref="Update"/> não roda nada.</summary>
         internal bool IsRemoved { get; set; }
+
+        /// <summary>A instância ainda está no ASC alvo; falso depois da remoção.</summary>
+        public bool IsActive => !IsRemoved;
 
         private float _timeSinceLastTick;
         private readonly Dictionary<EffectAction, List<object>> _actionData = new Dictionary<EffectAction, List<object>>();
@@ -65,7 +68,28 @@ namespace SpellBook.GAS.Effects
             return false;
         }
 
-        public void AddStack()
+        // Atalhos: a regra e os eventos ficam no ASC alvo. Instância sem alvo ou removida devolve false.
+
+        /// <summary>Atalho de <see cref="AbilitySystemComponent.ExtendEffectDuration"/> no <see cref="Target"/>.</summary>
+        public bool ExtendDuration(float seconds) => IsActive && Target != null && Target.ExtendEffectDuration(this, seconds);
+
+        /// <summary>Atalho de <see cref="AbilitySystemComponent.ReduceEffectDuration"/> no <see cref="Target"/>.</summary>
+        public bool ReduceDuration(float seconds) => IsActive && Target != null && Target.ReduceEffectDuration(this, seconds);
+
+        /// <summary>Atalho de <see cref="AbilitySystemComponent.RestartEffectDuration"/> no <see cref="Target"/>.</summary>
+        public bool RestartDuration() => IsActive && Target != null && Target.RestartEffectDuration(this);
+
+        /// <summary>Atalho de <see cref="AbilitySystemComponent.SetEffectStacks"/> no <see cref="Target"/>.</summary>
+        public bool SetStacks(int count) => IsActive && Target != null && Target.SetEffectStacks(this, count);
+
+        /// <summary>Atalho de <see cref="AbilitySystemComponent.RemoveEffectStacks"/> no <see cref="Target"/>.</summary>
+        public bool RemoveStacks(int count) => IsActive && Target != null && Target.RemoveEffectStacks(this, count);
+
+        internal void SetTimeRemaining(float seconds) => TimeRemaining = seconds;
+
+        internal void SetStackCount(int count) => CurrentStacks = count;
+
+        internal void AddStack()
         {
             if (Effect.CanStack && CurrentStacks < Effect.MaxStacks)
             {
@@ -85,7 +109,7 @@ namespace SpellBook.GAS.Effects
             TimeRemaining = appliedDuration;
         }
 
-        public void Update(float deltaTime)
+        internal void Update(float deltaTime)
         {
             if (IsRemoved) return;
 

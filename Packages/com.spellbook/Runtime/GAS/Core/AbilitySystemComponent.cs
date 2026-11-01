@@ -36,8 +36,20 @@ namespace SpellBook.GAS.Core
         public event Action<AbilitySpec, bool> OnAbilityEnded; // spec, cancelled
         public event Action<GameplayAbility, AbilityActivationResult> OnAbilityFailed;
 
+        /// <summary>Instância nova de efeito com duração, depois de tags e modificadores. Instantâneo, renovação e pilha não disparam.</summary>
+        public event Action<ActiveEffectInstance> OnEffectApplied;
+
+        /// <summary>Instância saiu do ASC, depois de devolver tags e modificadores. Dispara uma vez por instância.</summary>
+        public event Action<ActiveEffectInstance, EffectRemovalReason> OnEffectRemoved;
+
+        /// <summary>Contagem de pilhas mudou de fato (instância, antes, depois).</summary>
+        public event Action<ActiveEffectInstance, int, int> OnEffectStacksChanged;
+
         public AttributeSet AttributeSet => attributeSet;
         public IReadOnlyList<AbilitySpec> Abilities => _abilities;
+
+        /// <summary>Instâncias de efeito ativas, na ordem de aplicação, sem cópia.</summary>
+        public IReadOnlyList<ActiveEffectInstance> ActiveEffects => _activeEffects;
 
         /// <summary>
         /// Fonte de tempo em uso: a dada por <see cref="SetTimeSource"/>, senão a do Inspector, senão
@@ -118,6 +130,32 @@ namespace SpellBook.GAS.Core
             return attributeSet != null ? attributeSet.GetValue(def) : 0f;
         }
 
+        /// <summary>Atalho de <see cref="Attributes.AttributeSet.TryGetValue"/>, sem aviso. Sem <c>AttributeSet</c>: falso e 0.</summary>
+        public bool TryGetAttributeValue(AttributeDefinition def, out float value)
+        {
+            if (attributeSet != null) return attributeSet.TryGetValue(def, out value);
+            value = 0f;
+            return false;
+        }
+
+        /// <summary>Atalho de <see cref="Attributes.AttributeSet.GetValueOrDefault"/>, sem aviso. Sem <c>AttributeSet</c>: <paramref name="fallback"/>.</summary>
+        public float GetAttributeValueOrDefault(AttributeDefinition def, float fallback = 0f)
+        {
+            return attributeSet != null ? attributeSet.GetValueOrDefault(def, fallback) : fallback;
+        }
+
+        /// <summary>Atalho de <see cref="Attributes.AttributeSet.HasAttribute"/>. Sem <c>AttributeSet</c>: falso.</summary>
+        public bool HasAttribute(AttributeDefinition def)
+        {
+            return attributeSet != null && attributeSet.HasAttribute(def);
+        }
+
+        /// <summary>Atalho de <see cref="Attributes.AttributeSet.GetBaseValue"/>, sem aviso. Sem <c>AttributeSet</c>: 0.</summary>
+        public float GetAttributeBaseValue(AttributeDefinition def)
+        {
+            return attributeSet != null ? attributeSet.GetBaseValue(def) : 0f;
+        }
+
         #region Ability Management
         /// <summary>
         /// Concede uma habilidade ao ASC. Se já concedida, retorna o spec existente.
@@ -131,6 +169,7 @@ namespace SpellBook.GAS.Core
 
             var spec = new AbilitySpec(ability, level);
             _abilities.Add(spec);
+            OnAbilityGranted?.Invoke(spec);
             return spec;
         }
 
@@ -143,8 +182,14 @@ namespace SpellBook.GAS.Core
             if (spec == null) return;
 
             CancelAbility(spec);
-            _abilities.Remove(spec);
+            if (_abilities.Remove(spec)) OnAbilityRemoved?.Invoke(spec);
         }
+
+        /// <summary>Habilidade nova concedida, já na lista. Conceder de novo não dispara; as de <c>startingAbilities</c> disparam no <c>Awake</c>.</summary>
+        public event Action<AbilitySpec> OnAbilityGranted;
+
+        /// <summary>Habilidade removida, depois do cancelamento e da saída da lista.</summary>
+        public event Action<AbilitySpec> OnAbilityRemoved;
 
         public AbilitySpec FindSpec(GameplayAbility ability)
         {
@@ -160,6 +205,107 @@ namespace SpellBook.GAS.Core
         {
             var spec = FindSpec(ability);
             return spec != null && spec.IsActive;
+        }
+
+        #endregion
+
+        #region Cooldown Control
+        /// <summary>
+        /// Recarga de uma habilidade concedida começou, mudou por código ou terminou. Só dispara para a recarga aplicada pela
+        /// ativação (<see cref="CooldownChange.Started"/>), até ela terminar.
+        /// </summary>
+        public event Action<AbilitySpec, CooldownChange> OnCooldownChanged;
+
+        /// <summary>
+        /// Tira <paramref name="seconds"/> de toda instância que conta para a recarga da habilidade (o próprio
+        /// <c>CooldownEffect</c> ou uma tag filha); as que chegam a zero expiram. Segundos negativos ou NaN são ignorados com
+        /// aviso. Habilidade nula, sem recarga ou pronta: <c>false</c>.
+        /// </summary>
+        public bool ReduceCooldown(GameplayAbility ability, float seconds)
+        {
+            if (!HasCooldownInstance(ability)) return false;
+            if (!(seconds >= 0f))
+            {
+                if (Debug.isDebugBuild) Debug.LogWarning($"[GAS] {nameof(ReduceCooldown)} ignorado: segundos inválidos ({seconds}) em '{ability.name}'.", this);
+                return false;
+            }
+
+            bool changed = false;
+            GameplayEffect cooldownEffect = ability.CooldownEffect;
+            for (int i = _activeEffects.Count - 1; i >= 0; i--)
+            {
+                // Uma expiração pode disparar ouvintes que mexem na lista
+                if (i >= _activeEffects.Count) continue;
+                ActiveEffectInstance instance = _activeEffects[i];
+                if (IsCooldownMatch(instance.Effect, cooldownEffect)) changed |= ReduceEffectDuration(instance, seconds);
+            }
+            if (changed) RaiseCooldownChanged(ability);
+            return changed;
+        }
+
+        /// <summary>
+        /// Remove toda instância que conta para a recarga da habilidade (motivo <see cref="EffectRemovalReason.Removed"/>).
+        /// Uma tag de recarga dada fora de efeito (<see cref="AddTag"/>) continua bloqueando. Nula, sem recarga ou pronta: <c>false</c>.
+        /// </summary>
+        public bool ResetCooldown(GameplayAbility ability)
+        {
+            if (!HasCooldownInstance(ability)) return false;
+
+            GameplayEffect cooldownEffect = ability.CooldownEffect;
+            for (int i = _activeEffects.Count - 1; i >= 0; i--)
+            {
+                if (i >= _activeEffects.Count) continue;
+                ActiveEffectInstance instance = _activeEffects[i];
+                if (IsCooldownMatch(instance.Effect, cooldownEffect)) RemoveEffectCore(instance, EffectRemovalReason.Removed);
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Volta toda instância que conta para a recarga da habilidade à duração aplicada. Nula, sem recarga ou pronta: <c>false</c>.
+        /// </summary>
+        public bool RestartCooldown(GameplayAbility ability)
+        {
+            if (!HasCooldownInstance(ability)) return false;
+
+            bool changed = false;
+            GameplayEffect cooldownEffect = ability.CooldownEffect;
+            for (int i = _activeEffects.Count - 1; i >= 0; i--)
+            {
+                if (i >= _activeEffects.Count) continue;
+                ActiveEffectInstance instance = _activeEffects[i];
+                if (IsCooldownMatch(instance.Effect, cooldownEffect)) changed |= RestartEffectDuration(instance);
+            }
+            if (changed) RaiseCooldownChanged(ability);
+            return changed;
+        }
+
+        private bool HasCooldownInstance(GameplayAbility ability)
+        {
+            return ability != null && FindCooldownInstance(ability.CooldownEffect, out _) != null;
+        }
+
+        /// <summary><see cref="CooldownChange.Changed"/> só se a recarga acompanhada continua; o fim sai por <see cref="RaiseCooldownsEnded"/>.</summary>
+        private void RaiseCooldownChanged(GameplayAbility ability)
+        {
+            AbilitySpec spec = FindSpec(ability);
+            if (spec == null || !spec.CooldownTracked || !IsOnCooldown(ability.CooldownEffect)) return;
+            OnCooldownChanged?.Invoke(spec, CooldownChange.Changed);
+        }
+
+        /// <summary>Depois de cada remoção de efeito: habilidade acompanhada que ficou pronta dispara <see cref="CooldownChange.Ended"/>.</summary>
+        private void RaiseCooldownsEnded()
+        {
+            for (int i = _abilities.Count - 1; i >= 0; i--)
+            {
+                // Um ouvinte pode remover habilidades
+                if (i >= _abilities.Count) continue;
+                AbilitySpec spec = _abilities[i];
+                if (!spec.CooldownTracked || IsOnCooldown(spec.Ability.CooldownEffect)) continue;
+
+                spec.CooldownTracked = false;
+                OnCooldownChanged?.Invoke(spec, CooldownChange.Ended);
+            }
         }
         #endregion
 
@@ -208,7 +354,8 @@ namespace SpellBook.GAS.Core
         public bool IsOnCooldown(GameplayEffect cooldownEffect)
         {
             if (cooldownEffect == null) return false;
-            if (HasAnyTag(cooldownEffect.GrantedTags)) return true;
+            // Sem o boxing do enumerador: a remoção de efeito consulta a recarga das habilidades acompanhadas
+            if (HasAnyTagInList(cooldownEffect.GrantedTags)) return true;
             return GetCooldownTimeRemaining(cooldownEffect) > 0f;
         }
 
@@ -252,7 +399,16 @@ namespace SpellBook.GAS.Core
             var ability = spec.Ability;
 
             // Commit: cooldown e custo
-            if (ability.CooldownEffect != null) ApplyEffect(ability.CooldownEffect, ability.GetCooldownDuration(this));
+            if (ability.CooldownEffect != null)
+            {
+                ApplyEffect(ability.CooldownEffect, ability.GetCooldownDuration(this));
+                // Recarga instantânea não deixa instância nem tag: não há o que acompanhar
+                if (IsOnCooldown(ability.CooldownEffect))
+                {
+                    spec.CooldownTracked = true;
+                    OnCooldownChanged?.Invoke(spec, CooldownChange.Started);
+                }
+            }
             if (ability.CostEffect != null) ApplyEffect(ability.CostEffect);
 
             CancelAbilitiesWithTags(ability.CancelAbilitiesWithTag, spec);
@@ -421,6 +577,16 @@ namespace SpellBook.GAS.Core
             foreach (var tag in tags) RemoveTag(tag);
         }
 
+        /// <summary>Contagem de referência da tag exata, sem hierarquia. Ausente ou inválida: 0.</summary>
+        public int GetTagCount(GameplayTag tag)
+        {
+            if (!tag.IsValid) return 0;
+            return _activeTags.TryGetValue(tag, out int count) ? count : 0;
+        }
+
+        /// <summary>Tags concedidas ao ASC com a contagem de referência de cada uma, sem cópia.</summary>
+        public IReadOnlyDictionary<GameplayTag, int> TagCounts => _activeTags;
+
         public bool HasTag(GameplayTag tag)
         {
             if (!tag.IsValid) return false;
@@ -449,48 +615,111 @@ namespace SpellBook.GAS.Core
         #region Gameplay Effects
         public ActiveEffectInstance ApplyEffect(GameplayEffect effect, AbilitySystemComponent source = null)
         {
-            return ApplyEffectCore(effect, false, 0f, source);
+            ApplyEffectCore(effect, false, 0f, source, out ActiveEffectInstance instance);
+            return instance;
         }
 
         public ActiveEffectInstance ApplyEffect(GameplayEffect effect, float durationOverride, AbilitySystemComponent source = null)
         {
-            return ApplyEffectCore(effect, true, durationOverride, source);
+            ApplyEffectCore(effect, true, durationOverride, source, out ActiveEffectInstance instance);
+            return instance;
         }
 
         /// <summary>
-        /// Aplicação única dos dois <see cref="ApplyEffect(GameplayEffect, AbilitySystemComponent)"/>. Com instância ativa,
-        /// quem passa duração redefine a duração aplicada e quem não passa mantém a da instância.
+        /// Como <see cref="ApplyEffect(GameplayEffect, AbilitySystemComponent)"/>, com o desfecho exposto. A
+        /// <paramref name="instance"/> vem preenchida só em <see cref="EffectApplicationResult.Applied"/>,
+        /// <see cref="EffectApplicationResult.Stacked"/> e <see cref="EffectApplicationResult.Refreshed"/>. O resultado e o
+        /// <c>out</c> não alocam; o caminho instantâneo e os bloqueios não alocam, mas <see cref="EffectApplicationResult.Applied"/>
+        /// cria a instância nova, como <see cref="ApplyEffect(GameplayEffect, AbilitySystemComponent)"/>.
         /// </summary>
-        private ActiveEffectInstance ApplyEffectCore(GameplayEffect effect, bool hasOverride, float durationOverride, AbilitySystemComponent source)
+        public EffectApplicationResult TryApplyEffect(GameplayEffect effect, AbilitySystemComponent source, out ActiveEffectInstance instance)
         {
-            if (effect == null) return null;
+            return ApplyEffectCore(effect, false, 0f, source, out instance);
+        }
+
+        /// <summary>Como <see cref="TryApplyEffect(GameplayEffect, AbilitySystemComponent, out ActiveEffectInstance)"/>, redefinindo a duração.</summary>
+        public EffectApplicationResult TryApplyEffect(GameplayEffect effect, float durationOverride, AbilitySystemComponent source, out ActiveEffectInstance instance)
+        {
+            return ApplyEffectCore(effect, true, durationOverride, source, out instance);
+        }
+
+        /// <summary>
+        /// Aplicação única de <see cref="ApplyEffect(GameplayEffect, AbilitySystemComponent)"/> e <c>TryApplyEffect</c>. Com
+        /// instância ativa, quem passa duração redefine a duração aplicada e quem não passa mantém a da instância.
+        /// </summary>
+        private EffectApplicationResult ApplyEffectCore(GameplayEffect effect, bool hasOverride, float durationOverride, AbilitySystemComponent source, out ActiveEffectInstance instance)
+        {
+            instance = null;
+            if (effect == null) return EffectApplicationResult.Invalid;
             if (source == null) source = this;
 
-            if (!HasAllTags(effect.ApplicationRequirements)) return null;
-            if (HasAnyTag(effect.ApplicationImmunityTags)) return null;
+            if (!HasAllTagsInList(effect.ApplicationRequirements)) return Block(effect, source, EffectApplicationResult.MissingRequirements);
+            if (HasAnyTagInList(effect.ApplicationImmunityTags)) return Block(effect, source, EffectApplicationResult.BlockedByImmunity);
 
             if (effect.DurationPolicy == EffectDurationPolicy.Instant)
             {
                 ApplyInstantEffect(effect, source);
-                return null;
+                return EffectApplicationResult.AppliedInstant;
             }
 
             ActiveEffectInstance existing = FindActiveInstance(effect);
             if (existing == null)
             {
-                return ApplyDurationEffect(effect, hasOverride ? durationOverride : effect.Duration, source);
+                instance = ApplyDurationEffect(effect, hasOverride ? durationOverride : effect.Duration, source);
+                return EffectApplicationResult.Applied;
             }
 
+            instance = existing;
             if (effect.CanStack)
             {
                 if (hasOverride && effect.RefreshDurationOnStack) existing.Renew(durationOverride);
+                int stacksBefore = existing.CurrentStacks;
                 existing.AddStack();
-                return existing;
+                if (existing.CurrentStacks != stacksBefore) OnEffectStacksChanged?.Invoke(existing, stacksBefore, existing.CurrentStacks);
+                return EffectApplicationResult.Stacked;
             }
 
             // Sem CanStack: renova a instância existente, sem reaplicar modificadores, tags nem OnApplication.
             existing.Renew(hasOverride ? durationOverride : existing.AppliedDuration);
-            return existing;
+            return EffectApplicationResult.Refreshed;
+        }
+
+        // Como HasAllTags e HasAnyTag, sem o boxing do enumerador da lista: a aplicação de efeito não aloca.
+        private bool HasAllTagsInList(List<GameplayTag> tags)
+        {
+            if (tags == null) return true;
+            for (int i = 0; i < tags.Count; i++) if (!HasTag(tags[i])) return false;
+            return true;
+        }
+
+        private bool HasAnyTagInList(List<GameplayTag> tags)
+        {
+            if (tags == null) return false;
+            for (int i = 0; i < tags.Count; i++) if (HasTag(tags[i])) return true;
+            return false;
+        }
+
+        private EffectApplicationResult Block(GameplayEffect effect, AbilitySystemComponent source, EffectApplicationResult reason)
+        {
+            OnEffectBlocked?.Invoke(effect, source, reason);
+            return reason;
+        }
+
+        /// <summary>
+        /// Efeito bloqueado por requisitos ou imunidade (efeito, origem já resolvida, motivo). Efeito nulo não dispara.
+        /// </summary>
+        public event Action<GameplayEffect, AbilitySystemComponent, EffectApplicationResult> OnEffectBlocked;
+
+        /// <summary>Bloqueio genérico informado por <see cref="ReportBlocked"/> (motivo, origem).</summary>
+        public event Action<GameplayTag, AbilitySystemComponent> OnBlocked;
+
+        /// <summary>
+        /// Dispara <see cref="OnBlocked"/> com o <paramref name="reason"/>. Tag inválida é ignorada; origem nula vira este ASC.
+        /// </summary>
+        public void ReportBlocked(GameplayTag reason, AbilitySystemComponent source = null)
+        {
+            if (!reason.IsValid) return;
+            OnBlocked?.Invoke(reason, source != null ? source : this);
         }
 
         private ActiveEffectInstance FindActiveInstance(GameplayEffect effect)
@@ -500,6 +729,93 @@ namespace SpellBook.GAS.Core
                 if (_activeEffects[i].Effect == effect) return _activeEffects[i];
             }
             return null;
+        }
+
+        /// <summary>
+        /// Preenche <paramref name="results"/> (limpa antes) com as instâncias que concedem uma tag igual ou descendente de
+        /// <paramref name="tag"/>, na ordem de aplicação, e devolve a quantidade. Tag inválida não casa. Não aloca.
+        /// </summary>
+        public int FindEffectsWithTag(GameplayTag tag, List<ActiveEffectInstance> results)
+        {
+            if (results == null) throw new ArgumentNullException(nameof(results));
+            results.Clear();
+            for (int i = 0; i < _activeEffects.Count; i++)
+            {
+                if (GrantsTag(_activeEffects[i].Effect, tag)) results.Add(_activeEffects[i]);
+            }
+            return results.Count;
+        }
+
+        /// <summary>
+        /// Como <see cref="FindEffectsWithTag"/>, para instâncias que casam com alguma das <paramref name="tags"/>
+        /// (conjunto, lista ou array; <c>null</c> conta como vazio).
+        /// </summary>
+        public int FindEffectsWithAnyTag(IReadOnlyList<GameplayTag> tags, List<ActiveEffectInstance> results)
+        {
+            if (results == null) throw new ArgumentNullException(nameof(results));
+            results.Clear();
+            if (tags == null) return 0;
+            for (int i = 0; i < _activeEffects.Count; i++)
+            {
+                for (int t = 0; t < tags.Count; t++)
+                {
+                    if (!GrantsTag(_activeEffects[i].Effect, tags[t])) continue;
+                    results.Add(_activeEffects[i]);
+                    break;
+                }
+            }
+            return results.Count;
+        }
+
+        /// <summary>
+        /// Como <see cref="FindEffectsWithTag"/>, para instâncias cujas tags concedidas satisfazem a <paramref name="query"/>.
+        /// Consulta <c>null</c> não casa com nada.
+        /// </summary>
+        public int FindEffectsMatching(GameplayTagQuery query, List<ActiveEffectInstance> results)
+        {
+            if (results == null) throw new ArgumentNullException(nameof(results));
+            results.Clear();
+            if (query == null) return 0;
+            for (int i = 0; i < _activeEffects.Count; i++)
+            {
+                if (query.Matches(_activeEffects[i].Effect.GrantedTags)) results.Add(_activeEffects[i]);
+            }
+            return results.Count;
+        }
+
+        /// <summary>Como <see cref="FindEffectsWithTag"/>, para as instâncias do asset <paramref name="effect"/>.</summary>
+        public int FindEffects(GameplayEffect effect, List<ActiveEffectInstance> results)
+        {
+            if (results == null) throw new ArgumentNullException(nameof(results));
+            results.Clear();
+            if (effect == null) return 0;
+            for (int i = 0; i < _activeEffects.Count; i++)
+            {
+                if (_activeEffects[i].Effect == effect) results.Add(_activeEffects[i]);
+            }
+            return results.Count;
+        }
+
+        /// <summary>Alguma instância ativa concede uma tag igual ou descendente de <paramref name="tag"/>. Tag inválida: falso.</summary>
+        public bool HasEffectWithTag(GameplayTag tag)
+        {
+            for (int i = 0; i < _activeEffects.Count; i++)
+            {
+                if (GrantsTag(_activeEffects[i].Effect, tag)) return true;
+            }
+            return false;
+        }
+
+        /// <summary>O efeito concede uma tag <c>g</c> com <c>g.Matches(tag)</c>, a mesma direção de <see cref="HasTag"/>.</summary>
+        private static bool GrantsTag(GameplayEffect effect, GameplayTag tag)
+        {
+            List<GameplayTag> granted = effect.GrantedTags;
+            if (granted == null || !tag.IsValid) return false;
+            for (int g = 0; g < granted.Count; g++)
+            {
+                if (granted[g].Matches(tag)) return true;
+            }
+            return false;
         }
 
         public float GetCooldownTimeRemaining(GameplayEffect cooldownEffect)
@@ -592,8 +908,10 @@ namespace SpellBook.GAS.Core
 
             if (effect.DurationPolicy == EffectDurationPolicy.HasDuration)
             {
-                instance.OnEffectExpired += RemoveEffect;
+                instance.OnEffectExpired += HandleEffectExpired;
             }
+
+            OnEffectApplied?.Invoke(instance);
             return instance;
         }
 
@@ -645,13 +963,147 @@ namespace SpellBook.GAS.Core
         /// </summary>
         public void RemoveEffect(ActiveEffectInstance instance)
         {
+            RemoveEffectCore(instance, EffectRemovalReason.Removed);
+        }
+
+        /// <summary>
+        /// Remove as instâncias que concedem uma tag igual ou descendente de <paramref name="tag"/> (motivo
+        /// <see cref="EffectRemovalReason.RemovedByTag"/>) e devolve a soma das pilhas removidas. Tag inválida ou nada ativo: 0.
+        /// </summary>
+        public int RemoveEffectsWithTag(GameplayTag tag)
+        {
+            int removedStacks = 0;
+            for (int i = _activeEffects.Count - 1; i >= 0; i--)
+            {
+                // Um ouvinte de OnEffectRemoved pode ter removido outras instâncias
+                if (i >= _activeEffects.Count) continue;
+                ActiveEffectInstance instance = _activeEffects[i];
+                if (!GrantsTag(instance.Effect, tag)) continue;
+
+                removedStacks += instance.CurrentStacks;
+                RemoveEffectCore(instance, EffectRemovalReason.RemovedByTag);
+            }
+            return removedStacks;
+        }
+
+        /// <summary>
+        /// Remove as instâncias do asset <paramref name="effect"/> (motivo <see cref="EffectRemovalReason.Removed"/>) e
+        /// devolve a soma das pilhas removidas. <c>null</c> ou nada ativo: 0.
+        /// </summary>
+        public int RemoveEffects(GameplayEffect effect)
+        {
+            if (effect == null) return 0;
+
+            int removedStacks = 0;
+            for (int i = _activeEffects.Count - 1; i >= 0; i--)
+            {
+                if (i >= _activeEffects.Count) continue;
+                ActiveEffectInstance instance = _activeEffects[i];
+                if (instance.Effect != effect) continue;
+
+                removedStacks += instance.CurrentStacks;
+                RemoveEffectCore(instance, EffectRemovalReason.Removed);
+            }
+            return removedStacks;
+        }
+
+        /// <summary>
+        /// Soma <paramref name="seconds"/> ao tempo restante de um efeito com duração ativo neste ASC. Segundos negativos
+        /// ou NaN são rejeitados com aviso. Devolve se algo mudou; não muda a <c>AppliedDuration</c>.
+        /// </summary>
+        public bool ExtendEffectDuration(ActiveEffectInstance instance, float seconds)
+        {
+            if (!CanMutateDuration(instance, seconds, nameof(ExtendEffectDuration))) return false;
+            instance.SetTimeRemaining(instance.TimeRemaining + seconds);
+            return true;
+        }
+
+        /// <summary>
+        /// Subtrai <paramref name="seconds"/> do tempo restante; se chega a zero, o efeito expira na hora (motivo
+        /// <see cref="EffectRemovalReason.Expired"/>). Mesma validação de <see cref="ExtendEffectDuration"/>.
+        /// </summary>
+        public bool ReduceEffectDuration(ActiveEffectInstance instance, float seconds)
+        {
+            if (!CanMutateDuration(instance, seconds, nameof(ReduceEffectDuration))) return false;
+            instance.SetTimeRemaining(instance.TimeRemaining - seconds);
+            if (instance.TimeRemaining <= 0f) RemoveEffectCore(instance, EffectRemovalReason.Expired);
+            return true;
+        }
+
+        /// <summary>Volta o tempo restante à <c>AppliedDuration</c>, sem mexer no período. Só efeitos com duração.</summary>
+        public bool RestartEffectDuration(ActiveEffectInstance instance)
+        {
+            if (!IsActiveHere(instance) || instance.Effect.DurationPolicy != EffectDurationPolicy.HasDuration) return false;
+            instance.SetTimeRemaining(instance.AppliedDuration);
+            return true;
+        }
+
+        /// <summary>
+        /// Grava a contagem de pilhas, limitada a <c>[0, MaxStacks]</c> (<c>MaxStacks</c> menor que 1 vale 1), e dispara
+        /// <see cref="OnEffectStacksChanged"/>. Zero remove a instância com <see cref="EffectRemovalReason.StacksDepleted"/>,
+        /// depois da limpeza e do evento de pilhas. Só a contagem muda: tags e modificadores seguem um por instância.
+        /// </summary>
+        public bool SetEffectStacks(ActiveEffectInstance instance, int count)
+        {
+            if (!IsActiveHere(instance)) return false;
+
+            int max = Math.Max(1, instance.Effect.MaxStacks);
+            int clamped = Math.Min(Math.Max(count, 0), max);
+            int before = instance.CurrentStacks;
+            if (clamped == before) return false;
+
+            instance.SetStackCount(clamped);
+            if (clamped == 0)
+            {
+                // Remoção sem evento, para disparar as pilhas antes do OnEffectRemoved (estado já final nos dois)
+                RemoveEffectCore(instance, EffectRemovalReason.StacksDepleted, raiseRemoved: false);
+                OnEffectStacksChanged?.Invoke(instance, before, 0);
+                OnEffectRemoved?.Invoke(instance, EffectRemovalReason.StacksDepleted);
+                RaiseCooldownsEnded();
+                return true;
+            }
+
+            OnEffectStacksChanged?.Invoke(instance, before, clamped);
+            return true;
+        }
+
+        /// <summary>Tira <paramref name="count"/> pilhas, como <see cref="SetEffectStacks"/>. <paramref name="count"/> menor ou igual a 0: <c>false</c>.</summary>
+        public bool RemoveEffectStacks(ActiveEffectInstance instance, int count)
+        {
+            if (count <= 0 || !IsActiveHere(instance)) return false;
+            return SetEffectStacks(instance, instance.CurrentStacks - count);
+        }
+
+        private bool IsActiveHere(ActiveEffectInstance instance)
+        {
+            return instance != null && instance.Target == this && instance.IsActive && _activeEffects.Contains(instance);
+        }
+
+        private bool CanMutateDuration(ActiveEffectInstance instance, float seconds, string caller)
+        {
+            if (!IsActiveHere(instance) || instance.Effect.DurationPolicy != EffectDurationPolicy.HasDuration) return false;
+            if (seconds >= 0f) return seconds > 0f;
+
+            // NaN e negativos caem aqui
+            if (Debug.isDebugBuild) Debug.LogWarning($"[GAS] {caller} ignorado: segundos inválidos ({seconds}) no efeito '{instance.Effect.name}'.", this);
+            return false;
+        }
+
+        private void HandleEffectExpired(ActiveEffectInstance instance)
+        {
+            RemoveEffectCore(instance, EffectRemovalReason.Expired);
+        }
+
+        /// <summary>Ponto único de remoção: limpeza, devolução de tags e modificadores e, por último, <see cref="OnEffectRemoved"/>.</summary>
+        private void RemoveEffectCore(ActiveEffectInstance instance, EffectRemovalReason reason, bool raiseRemoved = true)
+        {
             if (instance == null) return;
             // Sai da lista antes da limpeza: uma remoção repetida ou reentrante cai aqui e não refaz nada
             if (!_activeEffects.Remove(instance)) return;
 
             instance.IsRemoved = true;
             instance.Cleanup();
-            instance.OnEffectExpired -= RemoveEffect;
+            instance.OnEffectExpired -= HandleEffectExpired;
             instance.OnTick -= HandleEffectTick;
 
             RemoveTags(instance.Effect.GrantedTags);
@@ -666,6 +1118,10 @@ namespace SpellBook.GAS.Core
                     }
                 }
             }
+
+            if (!raiseRemoved) return;
+            OnEffectRemoved?.Invoke(instance, reason);
+            RaiseCooldownsEnded();
         }
         #endregion
     }
