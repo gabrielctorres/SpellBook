@@ -6,4 +6,8 @@ namespace SpellBook.Core.Editor
     [CustomEditor(typeof(InstantiateSpawnerAsset))]
     [CanEditMultipleObjects]
     internal sealed class InstantiateSpawnerAssetEditor : SpellBookEditor { }
+
+    [CustomEditor(typeof(TextRoleTheme))]
+    [CanEditMultipleObjects]
+    internal sealed class TextRoleThemeEditor : SpellBookEditor { }
 }

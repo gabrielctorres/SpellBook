@@ -29,6 +29,14 @@ Cada valor tem uma `AttributeDefinition`.
 - **Configuração inválida:** com o mínimo acima do máximo, vale o mínimo. Se o atributo-fonte não está no ASC, ou se as fontes formam um ciclo (A limitado por B e B por A), o limite cortado usa a constante (`MinValue` ou `MaxValue`, que funcionam como reserva) e o `AttributeSet` registra um aviso no Console, uma vez por atributo.
 - **Valor inicial fora do intervalo:** o `AttributeSet` limita o valor inicial ao intervalo e registra um aviso no Console, uma vez por atributo, com o nome do atributo e do objeto. Revise o asset ou o `startingAttributes` apontado pelo aviso.
 
+#### TextRoleTheme {#textroletheme}
+Tema de cores por papel de texto, compartilhado pela interface em vez de uma cor por atributo. Fica no `SpellBook.Core` e não conhece o GAS.
+
+- **Papéis (`TextRole`):** `Beneficial`, `Harmful`, `Neutral` e `Value`. `None` usa a cor de `Neutral`.
+- **Leitura:** `theme.GetColor(TextRole.Harmful)` devolve a cor do papel, sem alocar.
+- **Tema próprio:** crie um asset em **Create → SpellBook → Text Role Theme** e ajuste as quatro cores; o código passa a ler as cores novas.
+- **Tema padrão:** `TextRoleTheme.Default` tem as cores do pacote (as mesmas de um tema novo). É criado sob demanda, sem asset em disco.
+
 #### Fórmulas de modificadores {#formulas}
 Os atributos mantêm um histórico de modificadores, permitindo cálculos precisos de bônus e penalidades. Há cinco operações (`ModifierOperation`):
 
