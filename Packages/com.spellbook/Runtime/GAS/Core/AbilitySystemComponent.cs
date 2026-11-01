@@ -30,6 +30,7 @@ namespace SpellBook.GAS.Core
         private readonly Dictionary<GameplayTag, int> _activeTags = new Dictionary<GameplayTag, int>();
         private readonly List<ActiveEffectInstance> _activeEffects = new List<ActiveEffectInstance>();
         private readonly List<AbilitySpec> _abilities = new List<AbilitySpec>();
+        private readonly HashSet<GameplayAbility> _warnedAboveMaxLevel = new HashSet<GameplayAbility>();
 
         public event Action<GameplayTag, bool> OnTagChanged;
         public event Action<AbilitySpec> OnAbilityActivated;
@@ -158,7 +159,8 @@ namespace SpellBook.GAS.Core
 
         #region Ability Management
         /// <summary>
-        /// Concede uma habilidade ao ASC. Se já concedida, retorna o spec existente.
+        /// Concede uma habilidade ao ASC no nível limitado a [1, MaxLevel], como <see cref="SetAbilityLevel"/>.
+        /// Se já concedida, retorna o spec existente sem mudar o nível.
         /// </summary>
         public AbilitySpec GiveAbility(GameplayAbility ability, int level = 1)
         {
@@ -167,7 +169,7 @@ namespace SpellBook.GAS.Core
             var existing = FindSpec(ability);
             if (existing != null) return existing;
 
-            var spec = new AbilitySpec(ability, level);
+            var spec = new AbilitySpec(ability, ClampLevel(ability, level));
             _abilities.Add(spec);
             OnAbilityGranted?.Invoke(spec);
             return spec;
@@ -190,6 +192,50 @@ namespace SpellBook.GAS.Core
 
         /// <summary>Habilidade removida, depois do cancelamento e da saída da lista.</summary>
         public event Action<AbilitySpec> OnAbilityRemoved;
+
+        /// <summary>Nível mudou de fato por <see cref="SetAbilityLevel"/>: (spec, antes, depois).</summary>
+        public event Action<AbilitySpec, int, int> OnAbilityLevelChanged;
+
+        /// <summary>Nível da habilidade concedida, ou 0 se ela não foi concedida.</summary>
+        public int GetAbilityLevel(GameplayAbility ability)
+        {
+            var spec = FindSpec(ability);
+            return spec != null ? spec.Level : 0;
+        }
+
+        /// <summary>
+        /// Muda o nível da habilidade concedida, limitado a [1, MaxLevel] (acima do máximo, um aviso por habilidade).
+        /// Dispara <see cref="OnAbilityLevelChanged"/> só se o nível mudou. Devolve <c>false</c> se não foi concedida.
+        /// </summary>
+        public bool SetAbilityLevel(GameplayAbility ability, int level)
+        {
+            var spec = FindSpec(ability);
+            if (spec == null) return false;
+
+            int before = spec.Level;
+            int after = ClampLevel(ability, level);
+            if (after == before) return true;
+
+            spec.Level = after;
+            OnAbilityLevelChanged?.Invoke(spec, before, after);
+            return true;
+        }
+
+        private int ClampLevel(GameplayAbility ability, int level)
+        {
+            int max = Mathf.Max(1, ability.MaxLevel);
+            if (level > max)
+            {
+                if (_warnedAboveMaxLevel.Add(ability))
+                {
+                    Debug.LogWarning($"[GAS] Nível {level} de '{ability.name}' passa do MaxLevel {max} e foi limitado a {max}.", this);
+                }
+
+                return max;
+            }
+
+            return Mathf.Max(1, level);
+        }
 
         public AbilitySpec FindSpec(GameplayAbility ability)
         {

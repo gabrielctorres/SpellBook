@@ -7,6 +7,7 @@ using SpellBook.GAS.Core;
 using SpellBook.Tags;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Effects;
+using SpellBook.GAS.Values;
 
 namespace SpellBook.GAS.Abilities
 {
@@ -25,6 +26,13 @@ namespace SpellBook.GAS.Abilities
         public GameplayTag AbilityTag;
 
         public AbilityDescription Description;
+
+        [Header("Níveis")]
+        [Tooltip("Nível máximo. O ASC limita o nível concedido a [1, MaxLevel].")]
+        [SerializeField, Min(1)] private int maxLevel = 1;
+
+        [Tooltip("Valores nomeados por nível, lidos pelos ScalableFloat em modo Table dos efeitos desta habilidade.")]
+        [SerializeField] private AbilityValues values = new AbilityValues();
 
         [Header("Ativação")]
         public GameplayEffect CooldownEffect;
@@ -71,6 +79,23 @@ namespace SpellBook.GAS.Abilities
         }
 
         public bool CanActivate(AbilitySystemComponent asc) => CanActivate(asc, out _);
+
+        /// <summary>Nível máximo da habilidade (pelo menos 1).</summary>
+        public int MaxLevel => maxLevel;
+
+        /// <summary>Tabela de valores nomeados por nível da habilidade.</summary>
+        public AbilityValues Values => values;
+
+        /// <summary>Valor <paramref name="name"/> da tabela no <paramref name="level"/>; sem o nome, <c>false</c> e 0, sem aviso.</summary>
+        public bool TryGetValue(string name, int level, out float value)
+        {
+            return values.TryGetValue(name, level, out value);
+        }
+
+        protected virtual void OnValidate()
+        {
+            values?.MarkChanged();
+        }
 
         /// <summary>Política de redução de recarga; nula usa <see cref="CooldownReductionPolicy.ApplyDefault"/>.</summary>
         public CooldownReductionPolicy CooldownReductionPolicy => cooldownReductionPolicy;

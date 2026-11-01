@@ -81,17 +81,18 @@ Um valor base mais a soma de atributos multiplicados (`Base Value` + `Attribute`
 Uma expressão em texto, como `([ATK] * 2) / [DEF]`. Cada token entre colchetes é ligado a um atributo da Source ou da Target em `Mappings`. Crie em **Create → GAS → Formulas → Expression Formula**.
 
 #### Valores por nível (ScalableFloat) {#scalablefloat}
-`ScalableFloat` (`SpellBook.GAS.Values`) é um número que pode variar com o nível. Ele tem três modos:
+`ScalableFloat` (`SpellBook.GAS.Values`) é um número que pode variar com o nível. Ele tem quatro modos:
 
 - **Constant:** o mesmo valor em qualquer nível. Crie com `ScalableFloat.Constant(4f)`.
 - **Array:** um valor por nível, e o primeiro é o nível 1. Com `ScalableFloat.FromArray(10, 8, 6, 4)`, o nível 1 vale 10, o 3 vale 6 e o 4 vale 4. Acima do tamanho do array, repete o último (nível 6 vale 4). Array vazio vale 0.
 - **Curve:** uma `AnimationCurve` avaliada no nível inteiro (x = nível). Crie com `ScalableFloat.FromCurve(curva)`. Curva nula vale 0.
+- **Table:** um valor nomeado da [tabela de valores](#abilityvalues) da habilidade de origem. Crie com `ScalableFloat.FromTable("Damage", fallback)`. Sem tabela (um efeito aplicado sem habilidade), vale o `Fallback` (padrão 0), sem aviso. Com tabela mas sem o nome nela, vale o `Fallback` e mostra um aviso no Console, uma vez por campo.
 
-`Evaluate(nivel)` devolve o valor; nível 0 ou negativo vale como 1. A avaliação não aloca memória gerenciada. Não há conversão implícita de `float`: o modo fica sempre explícito no código.
+`Evaluate(nivel, tabela)` devolve o valor; a tabela é opcional e só o modo `Table` a lê. Nível 0 ou negativo vale como 1. O modo `Table` guarda o índice do nome e só o procura de novo quando a tabela muda (outra tabela ou `Version` nova). A avaliação não aloca memória gerenciada. Não há conversão implícita de `float`: o modo fica sempre explícito no código.
 
 `ScalableFloat.TryParse("10 8 6 4", out valores, out erro)` lê o texto de um array. Os valores podem ser separados por espaço, vírgula ou ponto e vírgula, e o separador decimal é sempre o ponto (`1.5`), em qualquer idioma do sistema. Texto inválido devolve `false` e uma mensagem que cita o trecho errado.
 
-`Validate(resultado, caminho)` acusa como erro um array vazio e uma curva não definida. O asset dono do campo repassa a chamada com o nome do campo.
+`Validate(resultado, caminho)` acusa como erro um array vazio, uma curva não definida e o modo `Table` sem nome. Com `allowTable: false` (dentro da própria tabela), o modo `Table` também é erro. O asset dono do campo repassa a chamada com o nome do campo.
 
 ### 1.3 Gameplay Effects (GE) {#gameplayeffect}
 - **Instant:** modifica o valor base (ex: Dano, Cura).
@@ -157,6 +158,21 @@ for (int i = 0; i < burns; i++) Debug.Log($"{_found[i].Effect.name}: {_found[i].
 ### 1.4 Gameplay Abilities (GA) {#gameplayability}
 As habilidades são compostas **dentro do próprio arquivo da habilidade**, como uma lista de ações.
 Não é preciso criar ScriptableObjects separados para cada ação.
+
+#### Níveis e tabela de valores {#abilityvalues}
+`MaxLevel` (padrão 1) é o nível máximo da habilidade. O ASC limita o nível a `[1, MaxLevel]` em `GiveAbility(habilidade, nivel)` e em `SetAbilityLevel(habilidade, nivel)`; acima do máximo, mostra um aviso no Console, uma vez por habilidade. `GetAbilityLevel(habilidade)` devolve o nível, ou 0 se a habilidade não foi concedida. `AbilitySpec.Level` é só de leitura fora do pacote. `OnAbilityLevelChanged(spec, antes, depois)` dispara só quando o nível muda de fato.
+
+`Values` (`AbilityValues`) é a tabela de valores nomeados da habilidade: cada entrada tem um nome e um [`ScalableFloat`](#scalablefloat). Um `ScalableFloat` em modo `Table` lê a entrada pelo nome, e várias partes da habilidade podem usar o mesmo número (o dano de 50/75/100, por exemplo).
+
+```csharp
+habilidade.Values.Add("Damage", ScalableFloat.FromArray(50, 75, 100));
+habilidade.TryGetValue("Damage", 3, out float dano); // true, 100
+```
+
+- `Add` acrescenta, `Set` troca ou acrescenta e `Remove` tira uma entrada. Toda mudança sobe a `Version` da tabela; editar no Inspector também.
+- O nome diferencia maiúsculas. `TryGetValue` com um nome que não existe devolve `false` e 0, sem aviso.
+- Uma entrada não lê outra: ela é avaliada sem tabela.
+- `Values.Validate` acusa nome vazio, nome com caractere fora de letras, dígitos e `_`, nome repetido e entrada em modo `Table`.
 
 ### 1.5 AbilitySystemComponent (ASC) {#abilitysystemcomponent}
 O `AbilitySystemComponent` é o componente que guarda as habilidades concedidas, os atributos,

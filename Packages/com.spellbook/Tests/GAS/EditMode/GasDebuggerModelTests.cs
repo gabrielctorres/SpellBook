@@ -131,6 +131,9 @@ namespace SpellBook.GAS.Tests
             AbilitySystemComponent asc = CreateAscWithoutAwake();
             GameplayAbility withCooldown = _gas.CreateAbilityWithCooldown(4f);
             GameplayAbility ready = _gas.CreateAbility();
+            var serialized = new UnityEditor.SerializedObject(withCooldown);
+            serialized.FindProperty("maxLevel").intValue = 3; // MaxLevel nasce 1 e limita o nível (VN4)
+            serialized.ApplyModifiedPropertiesWithoutUndo();
             asc.GiveAbility(withCooldown, 3);
             asc.GiveAbility(ready);
             asc.ApplyEffect(withCooldown.CooldownEffect);
