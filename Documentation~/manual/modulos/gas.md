@@ -216,6 +216,8 @@ O alvo válido mais próximo do ponto mirado, num raio pequeno. Crie em **Create
 ### 4.1 Concedendo habilidades
 O ASC só ativa habilidades concedidas. Use a lista `startingAbilities` no Inspector ou, via código, `asc.GiveAbility(ability, level)` / `asc.RemoveAbility(ability)`. Cada habilidade concedida vira um `AbilitySpec` (nível, se está ativa e o contexto da execução atual).
 
+`OnAbilityGranted(spec)` dispara quando `GiveAbility` cria o spec, já na lista; conceder de novo a mesma habilidade devolve o spec existente e não dispara. `OnAbilityRemoved(spec)` dispara em `RemoveAbility`, depois do cancelamento e da saída da lista. As habilidades de `startingAbilities` são concedidas no `Awake`, antes de qualquer ouvinte externo existir: quem assina depois lê `asc.Abilities` para pegar as que já estão lá.
+
 ### 4.2 Ativação
 `asc.TryActivateAbility(ability, targetPos)` retorna um `AbilityActivationResult`. Em ordem, as checagens são:
 
@@ -234,6 +236,22 @@ Em caso de sucesso, o ASC:
 Para consultar sem ativar, use `ability.CanActivate(asc, out var reason)`.
 
 **Consultando a recarga.** `asc.GetCooldownTimeRemaining(cooldownEffect)` devolve o tempo restante e `asc.GetCooldownNormalized(cooldownEffect)`, o valor de 1 a 0 para barras de recarga. Contam a instância do próprio `CooldownEffect` e qualquer efeito ativo que conceda uma tag igual ou **filha** de alguma tag dele, pela mesma regra de `HasTag`: um efeito com `Cooldown.Fire` conta para uma recarga com a tag `Cooldown`, mas um efeito com `Cooldown` não conta para uma recarga com `Cooldown.Fire`. Com vários efeitos casando, vale o de maior tempo restante. O normalizado divide esse tempo pela duração aplicada da mesma instância, e não pela `Duration` do asset: com `CooldownReductionAttribute` em 0,25 sobre 8 s, a recarga aplicada é de 6 s e o normalizado vale 1 logo após ativar, 0,5 com 3 s restantes e 0 com a habilidade pronta. Sem recarga, ou com duração aplicada zero ou negativa, o normalizado é 0.
+
+**Controlando a recarga.** A recarga é um efeito ativo, e o ASC a controla por habilidade, concedida ou não, sobre as mesmas instâncias que contam no tempo restante (o próprio `CooldownEffect` e as de tag filha):
+
+- `asc.ReduceCooldown(ability, segundos)` tira tempo de cada uma; a que chega a 0 expira na hora. Segundos negativos ou `NaN` são ignorados com aviso.
+- `asc.ResetCooldown(ability)` remove todas (motivo `Removed`), e a habilidade volta a ser ativável. Exceção: uma tag de recarga dada fora de efeito, com `AddTag`, continua bloqueando, porque não há instância para remover.
+- `asc.RestartCooldown(ability)` volta cada uma à duração aplicada, e não à `Duration` do asset.
+
+Os três devolvem se algo mudou. Habilidade nula, sem `CooldownEffect` ou pronta: `false`, sem exceção.
+
+**Evento de recarga.** `OnCooldownChanged(spec, mudança)` acompanha a recarga aplicada pela ativação de uma habilidade concedida, com o `CooldownChange`:
+
+- `Started`: a ativação aplicou a recarga (antes do `OnAbilityActivated`);
+- `Changed`: `ReduceCooldown` ou `RestartCooldown` mudou o tempo e a recarga continua;
+- `Ended`: a habilidade ficou pronta, porque as instâncias expiraram, foram reduzidas a 0 ou removidas (inclusive por `ResetCooldown`). Sai depois do `OnEffectRemoved` da instância que faltava.
+
+Recarga aplicada à mão, com `ApplyEffect`, não dispara o evento: ela aparece no tempo restante e em `OnEffectApplied`/`OnEffectRemoved`.
 
 ### 4.3 Custo
 `CostEffect` é um GameplayEffect Instant, normalmente com modifier `Add` negativo (ex: `Mana Add -20`). A ativação falha se algum atributo ficaria abaixo do `MinValue`.

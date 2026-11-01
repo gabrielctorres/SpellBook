@@ -169,6 +169,7 @@ namespace SpellBook.GAS.Core
 
             var spec = new AbilitySpec(ability, level);
             _abilities.Add(spec);
+            OnAbilityGranted?.Invoke(spec);
             return spec;
         }
 
@@ -181,8 +182,14 @@ namespace SpellBook.GAS.Core
             if (spec == null) return;
 
             CancelAbility(spec);
-            _abilities.Remove(spec);
+            if (_abilities.Remove(spec)) OnAbilityRemoved?.Invoke(spec);
         }
+
+        /// <summary>Habilidade nova concedida, já na lista. Conceder de novo não dispara; as de <c>startingAbilities</c> disparam no <c>Awake</c>.</summary>
+        public event Action<AbilitySpec> OnAbilityGranted;
+
+        /// <summary>Habilidade removida, depois do cancelamento e da saída da lista.</summary>
+        public event Action<AbilitySpec> OnAbilityRemoved;
 
         public AbilitySpec FindSpec(GameplayAbility ability)
         {
@@ -198,6 +205,107 @@ namespace SpellBook.GAS.Core
         {
             var spec = FindSpec(ability);
             return spec != null && spec.IsActive;
+        }
+
+        #endregion
+
+        #region Cooldown Control
+        /// <summary>
+        /// Recarga de uma habilidade concedida começou, mudou por código ou terminou. Só dispara para a recarga aplicada pela
+        /// ativação (<see cref="CooldownChange.Started"/>), até ela terminar.
+        /// </summary>
+        public event Action<AbilitySpec, CooldownChange> OnCooldownChanged;
+
+        /// <summary>
+        /// Tira <paramref name="seconds"/> de toda instância que conta para a recarga da habilidade (o próprio
+        /// <c>CooldownEffect</c> ou uma tag filha); as que chegam a zero expiram. Segundos negativos ou NaN são ignorados com
+        /// aviso. Habilidade nula, sem recarga ou pronta: <c>false</c>.
+        /// </summary>
+        public bool ReduceCooldown(GameplayAbility ability, float seconds)
+        {
+            if (!HasCooldownInstance(ability)) return false;
+            if (!(seconds >= 0f))
+            {
+                if (Debug.isDebugBuild) Debug.LogWarning($"[GAS] {nameof(ReduceCooldown)} ignorado: segundos inválidos ({seconds}) em '{ability.name}'.", this);
+                return false;
+            }
+
+            bool changed = false;
+            GameplayEffect cooldownEffect = ability.CooldownEffect;
+            for (int i = _activeEffects.Count - 1; i >= 0; i--)
+            {
+                // Uma expiração pode disparar ouvintes que mexem na lista
+                if (i >= _activeEffects.Count) continue;
+                ActiveEffectInstance instance = _activeEffects[i];
+                if (IsCooldownMatch(instance.Effect, cooldownEffect)) changed |= ReduceEffectDuration(instance, seconds);
+            }
+            if (changed) RaiseCooldownChanged(ability);
+            return changed;
+        }
+
+        /// <summary>
+        /// Remove toda instância que conta para a recarga da habilidade (motivo <see cref="EffectRemovalReason.Removed"/>).
+        /// Uma tag de recarga dada fora de efeito (<see cref="AddTag"/>) continua bloqueando. Nula, sem recarga ou pronta: <c>false</c>.
+        /// </summary>
+        public bool ResetCooldown(GameplayAbility ability)
+        {
+            if (!HasCooldownInstance(ability)) return false;
+
+            GameplayEffect cooldownEffect = ability.CooldownEffect;
+            for (int i = _activeEffects.Count - 1; i >= 0; i--)
+            {
+                if (i >= _activeEffects.Count) continue;
+                ActiveEffectInstance instance = _activeEffects[i];
+                if (IsCooldownMatch(instance.Effect, cooldownEffect)) RemoveEffectCore(instance, EffectRemovalReason.Removed);
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Volta toda instância que conta para a recarga da habilidade à duração aplicada. Nula, sem recarga ou pronta: <c>false</c>.
+        /// </summary>
+        public bool RestartCooldown(GameplayAbility ability)
+        {
+            if (!HasCooldownInstance(ability)) return false;
+
+            bool changed = false;
+            GameplayEffect cooldownEffect = ability.CooldownEffect;
+            for (int i = _activeEffects.Count - 1; i >= 0; i--)
+            {
+                if (i >= _activeEffects.Count) continue;
+                ActiveEffectInstance instance = _activeEffects[i];
+                if (IsCooldownMatch(instance.Effect, cooldownEffect)) changed |= RestartEffectDuration(instance);
+            }
+            if (changed) RaiseCooldownChanged(ability);
+            return changed;
+        }
+
+        private bool HasCooldownInstance(GameplayAbility ability)
+        {
+            return ability != null && FindCooldownInstance(ability.CooldownEffect, out _) != null;
+        }
+
+        /// <summary><see cref="CooldownChange.Changed"/> só se a recarga acompanhada continua; o fim sai por <see cref="RaiseCooldownsEnded"/>.</summary>
+        private void RaiseCooldownChanged(GameplayAbility ability)
+        {
+            AbilitySpec spec = FindSpec(ability);
+            if (spec == null || !spec.CooldownTracked || !IsOnCooldown(ability.CooldownEffect)) return;
+            OnCooldownChanged?.Invoke(spec, CooldownChange.Changed);
+        }
+
+        /// <summary>Depois de cada remoção de efeito: habilidade acompanhada que ficou pronta dispara <see cref="CooldownChange.Ended"/>.</summary>
+        private void RaiseCooldownsEnded()
+        {
+            for (int i = _abilities.Count - 1; i >= 0; i--)
+            {
+                // Um ouvinte pode remover habilidades
+                if (i >= _abilities.Count) continue;
+                AbilitySpec spec = _abilities[i];
+                if (!spec.CooldownTracked || IsOnCooldown(spec.Ability.CooldownEffect)) continue;
+
+                spec.CooldownTracked = false;
+                OnCooldownChanged?.Invoke(spec, CooldownChange.Ended);
+            }
         }
         #endregion
 
@@ -246,7 +354,8 @@ namespace SpellBook.GAS.Core
         public bool IsOnCooldown(GameplayEffect cooldownEffect)
         {
             if (cooldownEffect == null) return false;
-            if (HasAnyTag(cooldownEffect.GrantedTags)) return true;
+            // Sem o boxing do enumerador: a remoção de efeito consulta a recarga das habilidades acompanhadas
+            if (HasAnyTagInList(cooldownEffect.GrantedTags)) return true;
             return GetCooldownTimeRemaining(cooldownEffect) > 0f;
         }
 
@@ -290,7 +399,16 @@ namespace SpellBook.GAS.Core
             var ability = spec.Ability;
 
             // Commit: cooldown e custo
-            if (ability.CooldownEffect != null) ApplyEffect(ability.CooldownEffect, ability.GetCooldownDuration(this));
+            if (ability.CooldownEffect != null)
+            {
+                ApplyEffect(ability.CooldownEffect, ability.GetCooldownDuration(this));
+                // Recarga instantânea não deixa instância nem tag: não há o que acompanhar
+                if (IsOnCooldown(ability.CooldownEffect))
+                {
+                    spec.CooldownTracked = true;
+                    OnCooldownChanged?.Invoke(spec, CooldownChange.Started);
+                }
+            }
             if (ability.CostEffect != null) ApplyEffect(ability.CostEffect);
 
             CancelAbilitiesWithTags(ability.CancelAbilitiesWithTag, spec);
@@ -941,6 +1059,7 @@ namespace SpellBook.GAS.Core
                 RemoveEffectCore(instance, EffectRemovalReason.StacksDepleted, raiseRemoved: false);
                 OnEffectStacksChanged?.Invoke(instance, before, 0);
                 OnEffectRemoved?.Invoke(instance, EffectRemovalReason.StacksDepleted);
+                RaiseCooldownsEnded();
                 return true;
             }
 
@@ -1000,7 +1119,9 @@ namespace SpellBook.GAS.Core
                 }
             }
 
-            if (raiseRemoved) OnEffectRemoved?.Invoke(instance, reason);
+            if (!raiseRemoved) return;
+            OnEffectRemoved?.Invoke(instance, reason);
+            RaiseCooldownsEnded();
         }
         #endregion
     }

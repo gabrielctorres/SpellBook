@@ -14,6 +14,9 @@ namespace SpellBook.GAS.Abilities
         public bool IsActive { get; internal set; }
         public AbilityContext ActiveContext { get; internal set; }
 
+        /// <summary>A ativação aplicou a recarga e o <c>Ended</c> ainda não saiu.</summary>
+        internal bool CooldownTracked;
+
         internal Coroutine Routine;
         internal readonly List<Coroutine> ChildRoutines = new List<Coroutine>();
 
