@@ -74,7 +74,7 @@ Documentation~/
   README.md        índice dos documentos e donos
   TIME.md          este arquivo
   backlog.md       porta de entrada de toda ideia, bug ou pendência
-  gdd/             visão do pacote e dos sistemas
+  gdd/             visão do pacote e dos sistemas (ainda não criada)
   ds/              Design System (padrões de API, nomes, UX do Inspector)
   prd/             um PRD por feature
   spec/            uma Spec por feature, com os tickets

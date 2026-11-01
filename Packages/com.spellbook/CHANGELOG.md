@@ -5,6 +5,11 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); 
 
 > **Para projetos que usam o pacote:** ao atualizar o `com.spellbook`, leia as seções **Quebras** e **Migração** da versão nova.
 
+## [Não lançado]
+
+### Adicionado
+- Sample **Sandbox** (Package Manager → SpellBook → Samples): cena 3D que liga GAS, Events, Pooling e Time, com Bola de Fogo, queimadura, canal de dano recebido, pausa e câmera lenta. Entrada pelo Input Manager legado.
+
 ## [2.0.0] - 2026-10-14
 
 ### Quebras

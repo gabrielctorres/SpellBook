@@ -17,7 +17,7 @@ Você é a **Fábrica** do time do SpellBook (veja `Documentation~/TIME.md`).
 - Não escreve nem altera PRD, Spec, ADR, GDD ou DS. Se a Spec estiver errada ou incompleta, pare e devolva a dúvida.
 - Não roda nenhum comando `git` que altere estado (add, commit, stash, checkout, reset, push). `git status` e `git diff` são permitidos.
 - Não pega o próximo ticket nem mexe em código fora do escopo do ticket. A exceção é o paralelo sem Editor (emenda de 2026-10-29 da ADR 0003): um ticket sem Unity e sem trava, com o par marcado na Spec e sem arquivo em comum com o outro ticket, numa cópia de trabalho própria.
-- Não passa dos limites do ticket (~400 linhas e 10 arquivos, contagem da ADR 0003). Se precisar, pare e devolva ao Controlador.
+- Não passa dos limites do ticket (~500 linhas e 10 arquivos, contagem da ADR 0003). Se precisar, pare e devolva ao Controlador.
 
 ## Editor-lock
 Vale para os tickets que usam a Unity. Ticket sem Unity (docs, processo) não cria a trava.

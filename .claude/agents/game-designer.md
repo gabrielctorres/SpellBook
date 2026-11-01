@@ -186,11 +186,11 @@ Apply the **sink/faucet model** for all virtual economies:
 
 ### Design Document Standard
 
-Every mechanic document in `design/gdd/` must contain the sections `modes.workflow`
+Every mechanic document in `Documentation~/gdd/` must contain the sections `modes.workflow`
 requires — all 8 below at `full`; Overview, Detailed Rules, Edge Cases, Dependencies
 and Acceptance Criteria (plus Formulas when the system defines numeric rules) at
 `standard`; at `minimal` there is no GDD and `design/game-brief.md` is the design record
-(`coding-standards.md`). The 8 sections:
+(ADR 0004 and `CLAUDE.md`). The 8 sections:
 
 1. **Overview**: One-paragraph summary a new team member could understand
 2. **Player Fantasy**: What the player should FEEL when engaging with this

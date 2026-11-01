@@ -86,9 +86,8 @@ If you cannot verify an API for that version, say so and mark it unverified rath
 
 ### UI Code Principles
 
-- Build with the project's engine UI toolkit and language — `engine.name` and
-  `engine.language` from `project.yaml`, else `.claude/docs/technical-preferences.md`;
-  if neither names one, ask. Never another engine's UI code
+- Build with the project's engine UI toolkit and language — Unity, C#
+  (fixed for this project). Never another engine's UI code
 - Implement every state the UX spec lists (empty, loading, error, disabled …);
   where the spec is ambiguous, ask `ux-designer` by name, with the specific
   question — never implement a guess

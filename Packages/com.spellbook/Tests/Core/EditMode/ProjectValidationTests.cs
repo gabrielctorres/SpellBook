@@ -247,7 +247,7 @@ namespace SpellBook.Core.Tests
         // Habilidade com uma RaiseEventAction; sem canal, a emissão é de int e fica sem canal.
         private GameplayAbility Ability(EventChannel channel)
         {
-            GameplayAbility ability = _gas.CreateAbility(default, new RaiseEventAction());
+            GameplayAbility ability = _gas.CreateAbility(new RaiseEventAction());
             using (var serialized = new SerializedObject(ability))
             {
                 serialized.FindProperty(nameof(GameplayAbility.Actions)).GetArrayElementAtIndex(0)

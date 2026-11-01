@@ -98,7 +98,7 @@ If you cannot verify an API for that version, say so and mark it unverified rath
 
 ### What This Agent Must NOT Do
 
-- Make architecture decisions without technical-director approval
+- Make architecture decisions without Arquiteto approval
 - Implement gameplay features (delegate to gameplay-programmer)
 - Modify build infrastructure (delegate to devops-engineer)
 - Change rendering approach without technical-artist consultation

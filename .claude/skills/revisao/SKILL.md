@@ -7,7 +7,7 @@ argument-hint: <spec> <ticket>
 Revise o ticket: $ARGUMENTS
 
 1. **Diff.** `git diff` (e `git diff --stat`) contra o último commit da `main`. Confirme que só os arquivos do escopo do ticket mudaram e que o diff cabe nos limites da ADR 0003:
-   - até ~400 linhas: adicionadas mais removidas no diff de código (`.cs`, `.asmdef`, `.json`, `.yml` de CI, `package.json`);
+   - até ~500 linhas: adicionadas mais removidas no diff de código (`.cs`, `.asmdef`, `.json`, `.yml` de CI, `package.json`);
    - até 10 arquivos: caminhos distintos no diff, e um arquivo movido conta uma vez;
    - `.meta` não conta; páginas de `Documentation~/manual/` e fixtures contam só nos arquivos;
    - remoção pura (arquivo apagado por inteiro, sem substituto no mesmo ticket) não conta em nenhum dos dois, mas é revisada pela lista de caminhos.
@@ -17,11 +17,11 @@ Revise o ticket: $ARGUMENTS
    - **Padrões:** regras do `CLAUDE.md` (C#, Unity, testes, segurança), `.meta` presentes, sem suppressions, sem dependência nova.
    - **Spec:** o ticket (`Documentation~/spec/<feature>.md`) faz o que pede, todos os critérios de pronto são atendidos e não há nada a mais.
    - **ADR:** respeita as decisões aceitas em `Documentation~/adr/`.
-   - **DS:** segue nomes, padrões de API e de Inspector de `Documentation~/ds/`.
+   - **DS:** segue nomes, padrões de API e de Inspector de `Documentation~/ds/`. Enquanto `Documentation~/ds/` não existir, confira nomes, padrões de API e de Inspector contra as ADRs aceitas (0011, 0026) e o código vizinho do mesmo módulo, e escreva no veredito "DS: sem DS, conferido por ADR e vizinhança". O critério de nota não muda.
 3. **Testes** (ADR 0005). Ticket sem Unity (docs, processo): rode o critério verificável do ticket e não crie a trava. Ticket com Unity:
    1. Se `.claude/editor.lock` existir, não rode: avise o Controlador e reprove com "testes não executados (lock ativo)".
    2. Senão, crie a trava com uma linha `examinador; <ticket>; <horário ISO-8601>; <caminho do host>`.
-   3. Rode os testes em batchmode no projeto da raiz, como em `/implementar`, e cole o resumo (total, passou, falhou). Não abra o Editor interativo e não altere assets.
+   3. Rode os testes em batchmode no projeto da raiz, como em `/implementar` (o timeout de 600 s do PlayMode e a limpeza de `Assets/InitTestScene*` valem aqui também), e cole o resumo (total, passou, falhou). Não abra o Editor interativo e não altere assets.
    4. Remova a trava, também em caso de erro.
 4. **Veredito.**
 

@@ -50,7 +50,7 @@ namespace SpellBook.GAS.Tests
         [UnityTest]
         public IEnumerator WaitAction_FinishesByAscTicks_NotRealTime()
         {
-            GameplayAbility ability = _gas.CreateAbility(default, new WaitAction { Duration = 0.2f });
+            GameplayAbility ability = _gas.CreateAbility(new WaitAction { Duration = 0.2f });
             AbilitySystemComponent asc = CreateManualAsc(ability);
 
             asc.TryActivateAbility(ability, Vector3.zero);
@@ -72,7 +72,7 @@ namespace SpellBook.GAS.Tests
         {
             foreach (float duration in new[] { 0f, -1f })
             {
-                GameplayAbility ability = _gas.CreateAbility(default, new WaitAction { Duration = duration });
+                GameplayAbility ability = _gas.CreateAbility(new WaitAction { Duration = duration });
                 AbilitySystemComponent asc = CreateManualAsc(ability);
 
                 asc.TryActivateAbility(ability, Vector3.zero);
@@ -91,7 +91,7 @@ namespace SpellBook.GAS.Tests
             var counter = new CountingAction();
             var repeat = new RepeatAction { Count = 2, Interval = 1f };
             repeat.Actions.Add(counter);
-            GameplayAbility ability = _gas.CreateAbility(default, repeat);
+            GameplayAbility ability = _gas.CreateAbility(repeat);
             AbilitySystemComponent asc = CreateManualAsc(ability);
 
             asc.TryActivateAbility(ability, Vector3.zero);
@@ -122,7 +122,7 @@ namespace SpellBook.GAS.Tests
                 ProjectileCount = 2,
                 DelayBetweenShots = 1f,
             };
-            GameplayAbility ability = _gas.CreateAbility(default, shoot);
+            GameplayAbility ability = _gas.CreateAbility(shoot);
             AbilitySystemComponent asc = CreateManualAsc(ability);
 
             asc.TryActivateAbility(ability, new Vector3(0f, 0f, 10f));

@@ -37,6 +37,17 @@ Para fixar uma versão, acrescente `#<tag>` ao final da URL. Por exemplo, para a
 
 Depois da instalação, o projeto deve compilar sem erros vindos do SpellBook.
 
+## Importar o Sample {#importar-o-sample}
+
+O pacote traz o Sample **Sandbox**, uma cena de teste manual dos módulos.
+
+1. Em **Window > Package Manager**, selecione **Spell Book**.
+2. Na aba **Samples**, clique em **Import** ao lado de **Sandbox**.
+3. Abra `Assets/Samples/Spell Book/<versão>/Sandbox/Scenes/Sandbox.unity` e entre em Play.
+
+O Sample usa o Input Manager legado (**Active Input Handling** em **Input Manager (Old)** ou **Both**). Os controles
+e o passo a passo estão em [Sample Sandbox](../exemplos/sandbox.md).
+
 ## Inspector {#inspector}
 
 O Inspector do pacote é feito em UI Toolkit, que já vem com a Unity. Não é preciso instalar

@@ -62,6 +62,28 @@ namespace SpellBook.Time.Tests
         }
 
         [Test]
+        public void Manual_NaNAdvance_ThrowsWithoutChangingState()
+        {
+            ManualTimeSource source = CreateManual();
+            source.Advance(1f);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => source.Advance(float.NaN));
+            Assert.That(source.ElapsedTime, Is.EqualTo(1d));
+            Assert.That(source.DeltaTime, Is.EqualTo(1f));
+        }
+
+        [Test]
+        public void Manual_NegativeAdvance_MessageMentionsNaN()
+        {
+            ManualTimeSource source = CreateManual();
+
+            ArgumentOutOfRangeException exception =
+                Assert.Throws<ArgumentOutOfRangeException>(() => source.Advance(-1f));
+
+            Assert.That(exception.Message, Does.Contain("NaN"));
+        }
+
+        [Test]
         public void Manual_ResetOnSessionStart()
         {
             ManualTimeSource source = CreateManual();

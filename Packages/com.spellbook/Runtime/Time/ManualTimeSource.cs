@@ -23,7 +23,7 @@ namespace SpellBook.Time
         {
             if (!(seconds >= 0f))
             {
-                throw new ArgumentOutOfRangeException(nameof(seconds), seconds, "O avanço não pode ser negativo.");
+                throw new ArgumentOutOfRangeException(nameof(seconds), seconds, "O avanço não pode ser negativo nem NaN.");
             }
 
             _elapsedTime += seconds;

@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5365bee9afc0c7419466cd6d10ea317, type: 3}
+  m_Name: GA_BolaDeFogo
+  m_EditorClassIdentifier: SpellBook.GAS::SpellBook.GAS.Abilities.GameplayAbility
+  Icon: {fileID: 0}
+  DisplayName: 
+  AbilityTag:
+    definition: {fileID: 0}
+  Description:
+    Elements: []
+  CooldownEffect: {fileID: 11400000, guid: bb8bfb3f377ca29458a51cbb2bd049ab, type: 2}
+  CooldownReductionAttribute: {fileID: 0}
+  CostEffect: {fileID: 11400000, guid: 585a1ac1850adaf43994b6466ccd2ce5, type: 2}
+  BlockedTags: []
+  RequiredTags: []
+  ActivationOwnedTags: []
+  CancelAbilitiesWithTag: []
+  BlockAbilitiesWithTag: []
+  CancelledByTags: []
+  Actions:
+  - rid: 3572287606204923904
+  references:
+    version: 2
+    RefIds:
+    - rid: 3572287606204923904
+      type: {class: SpawnProjectileAction, ns: SpellBook.GAS.Abilities.Actions, asm: SpellBook.GAS}
+      data:
+        ProjectilePrefab: {fileID: 1361941884754687197, guid: 0828333217fdef24092acd45ae76889e, type: 3}
+        Spawner: {fileID: 11400000, guid: dfb5d9ca0f699ca42930bd2360d839c0, type: 2}
+        OnHitActions:
+        - rid: 3572287606204923905
+        - rid: 3572287606204923906
+        SpawnMode: 0
+        ProjectileCount: 1
+        SpreadAngle: 0
+        DelayBetweenShots: 0
+        SpawnOffset: {x: 0, y: 1.2, z: 1}
+        HomeInOnTargets: 0
+        HomingTurnSpeed: 10
+    - rid: 3572287606204923905
+      type: {class: ApplyEffectAction, ns: SpellBook.GAS.Abilities.Actions, asm: SpellBook.GAS}
+      data:
+        Effects:
+        - {fileID: 11400000, guid: ec6971ff71d4ead4eb319c4a99908b15, type: 2}
+        - {fileID: 11400000, guid: b60a31fea48cb244ca3d131b46987b4e, type: 2}
+        ApplyToSource: 0
+    - rid: 3572287606204923906
+      type: {class: RaiseEventAction, ns: SpellBook.GAS.Bridges, asm: SpellBook.GAS.Bridges}
+      data:
+        emission:
+          rid: 3572287606204923907
+    - rid: 3572287606204923907
+      type: {class: 'EventEmission`1[[SpellBook.Core.Void, SpellBook.Core]]', ns: SpellBook.Events, asm: SpellBook.Events}
+      data:
+        channel: {fileID: 11400000, guid: 7ddd831673517bc4bbbfc0af2b8faf03, type: 2}

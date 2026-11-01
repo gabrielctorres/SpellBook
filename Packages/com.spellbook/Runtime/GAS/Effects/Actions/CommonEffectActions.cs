@@ -43,6 +43,12 @@ namespace SpellBook.GAS.Effects
             SpawnerAsset spawner = SpawnerAsset.OrDefault(Spawner);
             // A posição é de mundo também com parent, como o SetParent da 2.x
             GameObject vfxInstance = spawner.Spawn(Prefab, parent.position + Offset, parent.rotation, ParentToTarget ? parent : null);
+            if (vfxInstance == null)
+            {
+                // Spawner sem instância (ex.: pool vazio que não cresce): falha de configuração, não exceção
+                Debug.LogWarning($"[SpawnVFXEffectAction] O spawner '{spawner.name}' não criou uma instância de '{Prefab.name}'.", spawner);
+                return;
+            }
 
             if (DestroyOnRemoval && instance != null)
             {

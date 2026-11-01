@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using SpellBook.Core;
 using SpellBook.GAS.Abilities;
@@ -9,6 +10,7 @@ using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
 using SpellBook.Testing;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace SpellBook.GAS.Tests
 {
@@ -100,11 +102,101 @@ namespace SpellBook.GAS.Tests
             Assert.That(spawner.Released, Is.EqualTo(new[] { go }));
         }
 
+        [Test]
+        public void SpawnProjectile_SpawnerReturnsNull_SkipsShotsWithWarning()
+        {
+            NullSpawner spawner = CreateNullSpawner(nullCalls: int.MaxValue);
+            GameObject prefab = _spawn.CreatePrefab("Projectile_Test");
+            prefab.AddComponent<Projectile>();
+            var action = new SpawnProjectileAction { ProjectilePrefab = prefab, Spawner = spawner, ProjectileCount = 2 };
+            AbilityContext context = GasFactory.CreateAbilityContext(_gas.CreateAsc(), new Vector3(0f, 0f, 10f));
+            LogAssert.Expect(LogType.Warning, SpawnFailedWarning(spawner, prefab));
+            LogAssert.Expect(LogType.Warning, SpawnFailedWarning(spawner, prefab));
+
+            Assert.DoesNotThrow(() => RunToEnd(action.Execute(context)));
+
+            Assert.That(spawner.SpawnCalls, Is.EqualTo(2), "cada tiro da rajada deveria pedir uma instância ao spawner");
+        }
+
+        [Test]
+        public void SpawnProjectile_SpawnerReturnsNullOnce_NextShotStillSpawns()
+        {
+            NullSpawner spawner = CreateNullSpawner(nullCalls: 1);
+            GameObject prefab = _spawn.CreatePrefab("Projectile_Test");
+            prefab.AddComponent<Projectile>();
+            AbilitySystemComponent caster = _gas.CreateAsc();
+            var action = new SpawnProjectileAction { ProjectilePrefab = prefab, Spawner = spawner, ProjectileCount = 2 };
+            AbilityContext context = GasFactory.CreateAbilityContext(caster, new Vector3(0f, 0f, 10f));
+            LogAssert.Expect(LogType.Warning, SpawnFailedWarning(spawner, prefab));
+
+            RunToEnd(action.Execute(context));
+
+            Assert.That(spawner.Spawned, Has.Count.EqualTo(1), "o segundo tiro deveria sair depois do primeiro falhar");
+            Projectile projectile = spawner.Spawned[0].GetComponent<Projectile>();
+            Assert.That(projectile.Source, Is.SameAs(caster), "o projétil do segundo tiro deveria receber o Setup");
+        }
+
+        [Test]
+        public void SpawnVfx_SpawnerReturnsNull_WarnsWithoutException()
+        {
+            NullSpawner spawner = CreateNullSpawner(nullCalls: int.MaxValue);
+            GameObject prefab = _spawn.CreatePrefab("Vfx_Test");
+            var action = new SpawnVFXEffectAction
+            {
+                Prefab = prefab,
+                AttachPointName = string.Empty,
+                DestroyOnRemoval = false,
+                Spawner = spawner,
+            };
+            AbilitySystemComponent target = _gas.CreateAsc();
+            LogAssert.Expect(LogType.Warning, SpawnFailedWarning(spawner, prefab));
+
+            Assert.DoesNotThrow(() => action.Execute(target, target, null));
+        }
+
+        [Test]
+        public void SpawnVfx_SpawnerReturnsNull_RemovalReleasesNothing()
+        {
+            NullSpawner spawner = CreateNullSpawner(nullCalls: int.MaxValue);
+            GameObject prefab = _spawn.CreatePrefab("Vfx_Test");
+            var action = new SpawnVFXEffectAction
+            {
+                Prefab = prefab,
+                AttachPointName = string.Empty,
+                DestroyOnRemoval = true,
+                Spawner = spawner,
+            };
+            GameplayEffect effect = _gas.CreateDurationEffect(2f);
+            effect.OnApplication = new List<EffectAction> { action };
+            AbilitySystemComponent target = _gas.CreateAsc();
+            LogAssert.Expect(LogType.Warning, SpawnFailedWarning(spawner, prefab));
+            ActiveEffectInstance instance = target.ApplyEffect(effect);
+
+            target.RemoveEffect(instance);
+
+            Assert.That(spawner.ReleaseCalls, Is.EqualTo(0), "sem instância criada, a remoção não deveria devolver nada");
+        }
+
         private RecordingSpawner CreateRecordingSpawner()
         {
             var spawner = _spawn.Track(ScriptableObject.CreateInstance<RecordingSpawner>());
             spawner.Factory = _spawn;
             return spawner;
+        }
+
+        private NullSpawner CreateNullSpawner(int nullCalls)
+        {
+            var spawner = _spawn.Track(ScriptableObject.CreateInstance<NullSpawner>());
+            spawner.name = "Null_Spawner";
+            spawner.Factory = _spawn;
+            spawner.NullCalls = nullCalls;
+            return spawner;
+        }
+
+        /// <summary>Aviso de spawn sem instância, que cita o spawner e o prefab.</summary>
+        private static Regex SpawnFailedWarning(SpawnerAsset spawner, GameObject prefab)
+        {
+            return new Regex($"{Regex.Escape(spawner.name)}.*{Regex.Escape(prefab.name)}");
         }
 
         /// <summary>
@@ -152,6 +244,34 @@ namespace SpellBook.GAS.Tests
             public override void Release(GameObject instance)
             {
                 Released.Add(instance);
+            }
+        }
+
+        /// <summary>
+        /// Spawner que devolve <c>null</c> nas primeiras <see cref="NullCalls"/> chamadas, como um pool vazio que não cresce,
+        /// e depois cria por <c>Instantiate</c>. Conta as chamadas de <c>Release</c>.
+        /// </summary>
+        private sealed class NullSpawner : SpawnerAsset
+        {
+            public readonly List<GameObject> Spawned = new List<GameObject>();
+            public SpawnFactory Factory;
+            public int NullCalls;
+            public int SpawnCalls;
+            public int ReleaseCalls;
+
+            public override GameObject Spawn(GameObject prefab, Vector3 position, Quaternion rotation, Transform parent = null)
+            {
+                SpawnCalls++;
+                if (SpawnCalls <= NullCalls) return null;
+
+                GameObject instance = Factory.Track(Instantiate(prefab, position, rotation, parent));
+                Spawned.Add(instance);
+                return instance;
+            }
+
+            public override void Release(GameObject instance)
+            {
+                ReleaseCalls++;
             }
         }
     }

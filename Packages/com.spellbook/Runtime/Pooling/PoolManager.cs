@@ -16,6 +16,8 @@ namespace SpellBook.Pooling
         [Header("Pre-warm Configurations")]
         [SerializeField] private List<PoolConfiguration> _startingPools;
 
+        private const int DynamicInitialSize = 5;
+
         private Dictionary<GameObject, ComponentPooler> _activePools = new Dictionary<GameObject, ComponentPooler>();
 
         private void Awake()
@@ -52,12 +54,9 @@ namespace SpellBook.Pooling
 
             if (!_activePools.TryGetValue(prefab, out var pooler))
             {
-                // Fallback: Cria um pooler dinâmico se não houver configuração prévia
-                var dynamicConfig = ScriptableObject.CreateInstance<PoolConfiguration>();
-                dynamicConfig.Prefab = prefab;
-                dynamicConfig.InitialSize = 5;
-                dynamicConfig.CanExpand = true;
-                pooler = CreatePooler(dynamicConfig);
+                // Fallback: cria um pooler dinâmico, sem asset de configuração, se não houver configuração prévia
+                pooler = CreatePooler(prefab);
+                pooler.Initialize(prefab, DynamicInitialSize, true);
             }
 
             return pooler.Get(position, rotation);
@@ -67,11 +66,17 @@ namespace SpellBook.Pooling
         {
             if (_activePools.ContainsKey(config.Prefab)) return _activePools[config.Prefab];
 
-            GameObject go = new GameObject($"Pool_{config.Prefab.name}");
+            ComponentPooler pooler = CreatePooler(config.Prefab);
+            pooler.Initialize(config);
+            return pooler;
+        }
+
+        private ComponentPooler CreatePooler(GameObject prefab)
+        {
+            GameObject go = new GameObject($"Pool_{prefab.name}");
             go.transform.SetParent(this.transform);
             var pooler = go.AddComponent<ComponentPooler>();
-            pooler.Initialize(config);
-            _activePools.Add(config.Prefab, pooler);
+            _activePools.Add(prefab, pooler);
             return pooler;
         }
 
