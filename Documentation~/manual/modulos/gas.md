@@ -151,8 +151,28 @@ O `ValueSource` de um modificador diz de onde vem o valor (`ModifierValueSource.
 `SetByCaller` e `TargetAttribute` entraram no fim da lista, então assets antigos abrem com a mesma fonte.
 
 - **SetByCaller:** o nome é texto e vem do código que aplica (letras, números e sublinhado). Sem o valor no spec, vale o `CallerDefault` quando `CallerHasDefault` está ligado; desligado, vale 0 e o Console avisa uma vez por modificador. Num efeito instantâneo, o valor é lido na aplicação. Num efeito com duração, a instância copia na aplicação os valores que os modificadores dela usam: mudar ou limpar o `SetByCallerValues` depois não muda o efeito, nem nos tiques. A busca é feita na aplicação, nunca por tique, e não aloca.
-- **Atributo do instigador nos tiques:** um modificador periódico com fonte `Attribute` ou `Formula` lê o instigador a cada tique ("o tique causa o ataque atual de quem lançou"). Se o instigador foi destruído, o tique usa o último valor lido, ou o da aplicação se ainda não houve tique, sem exceção. Nos efeitos com duração, os `Modifiers` já guardam o valor da aplicação.
+- **Atributo do instigador nos tiques:** um modificador periódico com fonte `Attribute` ou `Formula` lê o instigador a cada tique ("o tique causa o ataque atual de quem lançou"). Se o instigador foi destruído, o tique usa o último valor lido, ou o da aplicação se ainda não houve tique, sem exceção. Nos efeitos com duração, os `Modifiers` em [Snapshot](#magnitude-ao-vivo) já guardam o valor da aplicação.
 - **Fora do ASC:** `ValueSource.GetValue(in contexto)` avalia como o ASC avalia, por exemplo com `instancia.Context`. `GetValue(origem, alvo)` avalia no nível 1, sem tabela e sem valores do chamador.
+
+##### Snapshot ou ao vivo {#magnitude-ao-vivo}
+Cada modificador de `Modifiers` num efeito com duração ou infinito escolhe em `Mode` (`MagnitudeMode`) quando o valor é calculado:
+
+| Modo | Valor |
+|---|---|
+| `Snapshot` (padrão) | Calculado uma vez, na aplicação. Assets antigos abrem assim, com os mesmos valores. |
+| `Live` | Recalculado quando muda algo de que ele depende, na hora e sem esperar o `Tick`. |
+
+Um buff "+100 % do ataque de quem lançou" (fonte `Attribute`) em `Snapshot` fica com o ataque da aplicação; em `Live`, acompanha o ataque do instigador enquanto durar. O modo ao vivo assina eventos, sem verificar nada por quadro, e um modificador em `Snapshot` não assina nada (`instancia.LiveBindingCount` é 0). O que dispara o recálculo depende da fonte:
+
+- `Attribute`: o `OnValueChanged` do atributo no instigador, mesmo em outro ASC;
+- `TargetAttribute`: o `OnValueChanged` do atributo no alvo;
+- `Formula`: os atributos do instigador que a fórmula declara em `GetSourceDependencies()`;
+- `Value` com `ScalableFloat` em `Array`, `Curve` ou `Table`, num efeito aplicado por habilidade: o `OnAbilityLevelChanged` do instigador para essa habilidade. Ao subir o nível, o modificador passa ao valor do nível novo e o `Context.Level` da instância é atualizado; em `Snapshot`, nada muda. A duração aplicada não muda em nenhum dos modos.
+
+`Value` constante e `SetByCaller` não dependem de nada que muda e não criam ligação. O recálculo não aloca, multiplica pelas pilhas como o valor da aplicação e dispara o `OnValueChanged` do atributo alterado. Com o instigador destruído, o modificador fica com o último valor. Remover o efeito desfaz as ligações.
+
+- **Ciclos:** se dois modificadores ao vivo se leem (A depende de B e B de A) ou um lê o atributo que ele mesmo altera, a segunda reavaliação no mesmo ciclo é cortada: o modificador fica com o último valor e o Console avisa uma vez por modificador, sem laço infinito.
+- **Onde não vale:** `Mode` não tem efeito em efeito instantâneo nem em `PeriodicModifiers`. Os tiques sempre avaliam o valor no tique, com o contexto da instância.
 
 #### Resultado da aplicação {#resultado-da-aplicacao}
 `ApplyEffect` devolve só a instância (ou `null`). Para saber o que aconteceu, use `TryApplyEffect(efeito, origem, out instancia)` ou `TryApplyEffect(efeito, duracao, origem, out instancia)`, que aplicam igual e devolvem um `EffectApplicationResult`. As checagens seguem esta ordem:

@@ -127,6 +127,8 @@ namespace SpellBook.GAS.Core
         {
             OnTagChanged -= HandleTagChangedForCancellation;
             CancelAllAbilities();
+            // Ligações ao vivo em outro ASC (o instigador) prenderiam este ASC e o recalculariam depois de destruído
+            for (int i = 0; i < _activeEffects.Count; i++) _activeEffects[i].DisposeLiveBindings();
         }
 
         private void Update()
@@ -1018,8 +1020,9 @@ namespace SpellBook.GAS.Core
                     // O valor avaliado é o de uma pilha; a instância grava o valor multiplicado pelas pilhas (ADR 0029, item 2)
                     float unitValue = mod.ValueSource.Evaluate(in context);
                     var modifier = new AttributeModifier(unitValue, mod.Operation, instance);
-                    instance.TrackModifier(modifier, unitValue, state);
+                    int trackedIndex = instance.TrackModifier(modifier, unitValue, state);
                     state.AddModifier(modifier);
+                    if (mod.Mode == MagnitudeMode.Live) instance.BindLiveModifier(trackedIndex, mod.ValueSource);
                 }
             }
 
@@ -1245,6 +1248,7 @@ namespace SpellBook.GAS.Core
             if (!_activeEffects.Remove(instance)) return;
 
             instance.IsRemoved = true;
+            instance.DisposeLiveBindings();
             instance.Cleanup();
             instance.OnEffectExpired -= HandleEffectExpired;
             instance.OnTick -= HandleEffectTick;

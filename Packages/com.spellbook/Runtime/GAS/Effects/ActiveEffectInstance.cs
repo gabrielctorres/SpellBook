@@ -43,6 +43,12 @@ namespace SpellBook.GAS.Effects
         // Modificadores persistentes com o valor de uma pilha; nulo em efeito sem modificador persistente
         private List<TrackedModifier> _trackedModifiers;
 
+        // Ligações dos modificadores ao vivo; nulo sem nenhuma (Snapshot não assina nada)
+        private List<LiveModifierBinding> _liveBindings;
+
+        /// <summary>Quantos modificadores ao vivo estão ligados às suas fontes. Zero em Snapshot e depois da remoção.</summary>
+        public int LiveBindingCount => _liveBindings?.Count ?? 0;
+
         private readonly struct TrackedModifier
         {
             public readonly AttributeModifier Modifier;
@@ -191,12 +197,59 @@ namespace SpellBook.GAS.Effects
         /// <summary>
         /// Guarda o modificador persistente criado pelo ASC, o valor de uma pilha e o atributo que ele afeta, e grava o valor
         /// já multiplicado pelo <see cref="StackFactor"/>. Não recalcula: o ASC adiciona o modificador ao atributo depois.
+        /// Devolve o índice do modificador guardado.
         /// </summary>
-        internal void TrackModifier(AttributeModifier modifier, float unitValue, AttributeState state)
+        internal int TrackModifier(AttributeModifier modifier, float unitValue, AttributeState state)
         {
             _trackedModifiers ??= new List<TrackedModifier>();
             _trackedModifiers.Add(new TrackedModifier(modifier, unitValue, state));
             modifier.Value = unitValue * StackFactor;
+            return _trackedModifiers.Count - 1;
+        }
+
+        /// <summary>
+        /// Liga o modificador guardado em <paramref name="trackedIndex"/> às fontes de <paramref name="source"/> (modo ao vivo).
+        /// Valor que não depende de nada que muda não cria ligação.
+        /// </summary>
+        internal void BindLiveModifier(int trackedIndex, ModifierValueSource source)
+        {
+            LiveModifierBinding binding = LiveModifierBinding.Create(this, trackedIndex, source);
+            if (binding == null) return;
+            _liveBindings ??= new List<LiveModifierBinding>();
+            _liveBindings.Add(binding);
+        }
+
+        /// <summary>Desfaz todas as ligações ao vivo. O ASC chama na remoção.</summary>
+        internal void DisposeLiveBindings()
+        {
+            if (_liveBindings == null) return;
+            for (int i = 0; i < _liveBindings.Count; i++) _liveBindings[i].Dispose();
+            _liveBindings.Clear();
+        }
+
+        /// <summary>
+        /// Reavalia o modificador ao vivo <paramref name="trackedIndex"/> com o contexto da instância e, se o valor de uma pilha
+        /// mudou, grava o novo valor (vezes o fator de pilhas) e recalcula o atributo. Sem alocação.
+        /// </summary>
+        internal void RecalculateLiveModifier(int trackedIndex, ModifierValueSource source)
+        {
+            if (IsRemoved || _trackedModifiers == null || trackedIndex >= _trackedModifiers.Count) return;
+
+            EffectContext context = Context;
+            float unitValue = source.Evaluate(in context);
+            TrackedModifier tracked = _trackedModifiers[trackedIndex];
+            if (unitValue == tracked.UnitValue) return;
+
+            _trackedModifiers[trackedIndex] = new TrackedModifier(tracked.Modifier, unitValue, tracked.State);
+            tracked.Modifier.Value = unitValue * StackFactor;
+            tracked.State.Recalculate();
+        }
+
+        /// <summary>Atualiza o nível guardado no contexto. Só o modificador ao vivo que depende do nível chama (P12).</summary>
+        internal void SetContextLevel(int level)
+        {
+            EffectContext c = Context;
+            Context = new EffectContext(c.Instigator, c.Target, c.Ability, level, c.HasImpactPoint, c.ImpactPoint, c.CallerValues);
         }
 
         /// <summary>

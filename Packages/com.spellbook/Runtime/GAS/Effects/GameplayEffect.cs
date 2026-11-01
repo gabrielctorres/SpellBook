@@ -18,6 +18,16 @@ namespace SpellBook.GAS.Effects
         HasDuration
     }
 
+    /// <summary>Quando o valor de um modificador persistente é calculado (ADR 0021, item 1).</summary>
+    public enum MagnitudeMode
+    {
+        /// <summary>Uma vez, na aplicação. Padrão.</summary>
+        Snapshot,
+
+        /// <summary>De novo a cada mudança do que o valor lê (atributo do instigador ou do alvo, nível), sem polling.</summary>
+        Live
+    }
+
     /// <summary>Um modificador do efeito. É classe: entradas nulas nas listas do efeito são ignoradas.</summary>
     [Serializable]
     public class AttributeEffectModifier
@@ -25,6 +35,9 @@ namespace SpellBook.GAS.Effects
         public AttributeDefinition Attribute;
         public ModifierOperation Operation;
         public ModifierValueSource ValueSource = new ModifierValueSource();
+
+        [Tooltip("Snapshot: calculado na aplicação. Live: recalculado quando muda o que o valor lê. Só vale nos Modifiers de efeito com duração ou infinito.")]
+        public MagnitudeMode Mode;
     }
 
     [CreateAssetMenu(fileName = "GE_NewEffect", menuName = "GAS/Gameplay Effect")]
