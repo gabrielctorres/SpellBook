@@ -12,6 +12,18 @@ namespace SpellBook.GAS.Effects
         public AbilitySystemComponent Target { get; private set; }
         public AbilitySystemComponent Source { get; private set; }
 
+        /// <summary>Repasse de <see cref="GameplayEffect.IsBuff"/>.</summary>
+        public bool IsBuff => Effect.IsBuff;
+
+        /// <summary>Repasse de <see cref="GameplayEffect.IsDebuff"/>.</summary>
+        public bool IsDebuff => Effect.IsDebuff;
+
+        /// <summary>Repasse de <see cref="GameplayEffect.IsHidden"/>.</summary>
+        public bool IsHidden => Effect.IsHidden;
+
+        /// <summary>Repasse de <see cref="GameplayEffect.IsPurgable"/>.</summary>
+        public bool IsPurgable => Effect.IsPurgable;
+
         /// <summary>Duração com que a instância foi aplicada ou renovada pela última vez; a renovação volta a ela.</summary>
         public float AppliedDuration { get; private set; }
 

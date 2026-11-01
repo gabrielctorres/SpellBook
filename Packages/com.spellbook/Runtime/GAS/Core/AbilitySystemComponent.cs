@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using SpellBook.Core;
+using SpellBook.Core.Validation;
 using SpellBook.Tags;
 using SpellBook.Time;
 using SpellBook.GAS.Attributes;
@@ -12,11 +13,13 @@ namespace SpellBook.GAS.Core
 {
     [RequireComponent(typeof(AttributeSet))]
     [HelpURL(DocUrls.Gas + "#abilitysystemcomponent")]
-    public class AbilitySystemComponent : MonoBehaviour
+    public class AbilitySystemComponent : MonoBehaviour, IValidatable
     {
         [SerializeField] private AttributeSet attributeSet;
         [Tooltip("Habilidades concedidas automaticamente no Awake.")]
         [SerializeField] private List<GameplayAbility> startingAbilities = new List<GameplayAbility>();
+        [Tooltip("Efeitos aplicados no Awake, na ordem da lista, depois do AttributeSet e das habilidades, com o próprio ASC como origem.")]
+        [SerializeField] private List<GameplayEffect> startingEffects = new List<GameplayEffect>();
         [Tooltip("Fonte de tempo de efeitos e recargas. Vazio usa o tempo escalado da Unity.")]
         [SerializeField] private TimeSourceAsset timeSource;
         [Tooltip("Avança sozinho no Update pela fonte de tempo. Desligado, só avança por Tick.")]
@@ -75,6 +78,42 @@ namespace SpellBook.GAS.Core
             if (startingAbilities != null)
             {
                 foreach (var ability in startingAbilities) GiveAbility(ability);
+            }
+
+            ApplyStartingEffects();
+        }
+
+        // Ouvintes externos ainda não existem aqui: quem assina depois lê ActiveEffects.
+        private void ApplyStartingEffects()
+        {
+            if (startingEffects == null) return;
+            if (attributeSet != null) attributeSet.EnsureInitialized();
+
+            for (int i = 0; i < startingEffects.Count; i++)
+            {
+                GameplayEffect effect = startingEffects[i];
+                if (effect == null) continue;
+
+                EffectApplicationResult result = TryApplyEffect(effect, this, out _);
+                bool failed = result == EffectApplicationResult.BlockedByImmunity
+                    || result == EffectApplicationResult.MissingRequirements
+                    || result == EffectApplicationResult.Invalid;
+                if (failed && Debug.isDebugBuild)
+                {
+                    Debug.LogWarning($"[GAS] Efeito de partida '{effect.name}' de '{name}' não foi aplicado: {result}.", this);
+                }
+            }
+        }
+
+        public void Validate(ValidationResult result)
+        {
+            if (startingEffects == null) return;
+            for (int i = 0; i < startingEffects.Count; i++)
+            {
+                if (startingEffects[i] == null)
+                {
+                    result.AddError($"Starting Effects tem uma entrada vazia (elemento {i}).", $"{nameof(startingEffects)}.Array.data[{i}]");
+                }
             }
         }
 
