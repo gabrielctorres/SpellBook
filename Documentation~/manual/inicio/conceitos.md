@@ -73,6 +73,25 @@ public sealed class MyAndCondition : AndConditionBase<MyContext> { }
 
 Um campo `[SerializeReference] Condition<MyContext>` oferece só as condições desse contexto.
 
+Para o Inspector mostrar a condição numa linha, use o `Line` do `[TypeCategory]`. `{Campo}` mostra o
+valor do campo serializado e `{Campo?texto}` mostra o texto quando o `bool` é verdadeiro:
+
+```csharp
+[Serializable]
+[TypeCategory("Exemplo", Line = "Vida abaixo de {Threshold}{Percent?%}")]
+public sealed class LowHealthCondition : Condition<MyContext>
+{
+    [SerializeField] private float threshold = 30f;
+    [SerializeField] private bool percent = true;
+
+    public override bool Evaluate(in MyContext context)
+    {
+        float health = percent ? context.Health / context.MaxHealth * 100f : context.Health;
+        return health < threshold;
+    }
+}
+```
+
 ### `Void` {#void}
 
 `Void` é uma struct vazia e serializável. Serve de payload para um evento que não carrega dado,
