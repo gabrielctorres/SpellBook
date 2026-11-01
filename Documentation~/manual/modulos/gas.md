@@ -29,6 +29,19 @@ Cada valor tem uma `AttributeDefinition`.
 - **Configuração inválida:** com o mínimo acima do máximo, vale o mínimo. Se o atributo-fonte não está no ASC, ou se as fontes formam um ciclo (A limitado por B e B por A), o limite cortado usa a constante (`MinValue` ou `MaxValue`, que funcionam como reserva) e o `AttributeSet` registra um aviso no Console, uma vez por atributo.
 - **Valor inicial fora do intervalo:** o `AttributeSet` limita o valor inicial ao intervalo e registra um aviso no Console, uma vez por atributo, com o nome do atributo e do objeto. Revise o asset ou o `startingAttributes` apontado pelo aviso.
 
+#### AttributeDisplay {#attributedisplay}
+O campo `Display` do `AttributeDefinition` diz como o valor aparece na interface. Um asset antigo abre como `Flat`, 0 casas, visível e "mais é melhor".
+
+- **Tipo (`Kind`, `ValueKind`):** `Flat` (número puro), `Percent` (fração: 0,25 vira "25%"), `PercentPoints` (25 vira "25%"), `Multiplier` (2 vira "x2") e `Seconds` (1,5 vira "1,5 s").
+- **Casas, prefixo e sufixo:** `Decimals` (de 0 a 6; acima de 6 vale 6), `Prefix` e `Suffix` envolvem o texto: `Flat`, 2 casas, prefixo "PV " e sufixo " pts" dão "PV 1234,50 pts" em pt-BR.
+- **`Format(valor, cultura)`:** devolve o texto do valor. A cultura é parâmetro; nula usa a cultura invariante ("1.5 s"), sem configuração global. O jogo passa a cultura dele, por exemplo `CultureInfo.GetCultureInfo("pt-BR")`.
+- **`Format(valor, operação, cultura)`:** texto de um modificador. `Add` e `AddFinal` levam sinal ("+10", "-5"); `Multiply` e `MultiplyCompound` saem em porcentagem com sinal (0,5 vira "+50%"), sem prefixo nem sufixo; `Override` sai sem sinal, como o `Format` simples.
+- **Direção boa:** `LowerIsBetter` ligado marca atributos em que menos é melhor, como tempo de recarga; `HigherIsBetter` é o contrário. `IsBeneficial(delta, operação)` diz se a variação é boa para o jogador (-10 numa recarga é benéfico) e `GetDeltaRole(delta)` devolve o `TextRole` (`Beneficial`, `Harmful` ou `Neutral` no zero) para a cor do [tema](#textroletheme). Os dois não alocam.
+- **Interface:** `Order` ordena os atributos, `Hidden` os esconde da interface, `Category` aponta a [categoria](#attributecategory) e `Role` é o papel de cor do valor. O `AttributeDefinition` também expõe a categoria em `Category`, somente leitura.
+
+#### AttributeCategory {#attributecategory}
+Asset que agrupa atributos na interface, como "Ofensivo" e "Defensivo". Crie em **Create → GAS → Attribute Category**, preencha `DisplayName` e `Order` (menor vem primeiro) e escolha a categoria no `Display.Category` do atributo.
+
 #### TextRoleTheme {#textroletheme}
 Tema de cores por papel de texto, compartilhado pela interface em vez de uma cor por atributo. Fica no `SpellBook.Core` e não conhece o GAS.
 
