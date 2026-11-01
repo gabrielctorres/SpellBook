@@ -1,4 +1,5 @@
 using System;
+using SpellBook.Core.Validation;
 using SpellBook.Events;
 using UnityEngine;
 using UnityEngine.Events;
@@ -29,6 +30,38 @@ namespace SpellBook.GAS.Bridges
             if (channel != null) channel.Raise(data, sender);
             if (valueChannel != null) RaiseValue(in data, sender, values);
             response?.Invoke(data);
+        }
+
+        /// <summary>
+        /// Acusa canal de valor de tipo fora da lista e chamada do <c>UnityEvent</c> sem alvo ou sem método. O
+        /// <paramref name="path"/> é o nome do campo do par no relay.
+        /// </summary>
+        internal void Validate(ValidationResult result, string path)
+        {
+            if (valueChannel != null && !IsSupportedValueChannel(valueChannel))
+            {
+                result.AddError($"{path}: canal de valor de {valueChannel.PayloadType.Name} não é suportado; use Void, " +
+                    "Float, String ou GameObject.", path + ".valueChannel");
+            }
+
+            if (response == null) return;
+            for (int i = 0; i < response.GetPersistentEventCount(); i++)
+            {
+                if (response.GetPersistentTarget(i) == null)
+                {
+                    result.AddError($"{path}: chamada {i} sem alvo: escolha o objeto ou remova a chamada.", path + ".response");
+                }
+                else if (string.IsNullOrEmpty(response.GetPersistentMethodName(i)))
+                {
+                    result.AddError($"{path}: chamada {i} sem método: escolha a função ou remova a chamada.", path + ".response");
+                }
+            }
+        }
+
+        private static bool IsSupportedValueChannel(EventChannel candidate)
+        {
+            return candidate is EventChannel<Void> || candidate is EventChannel<float> || candidate is EventChannel<string>
+                || candidate is EventChannel<GameObject>;
         }
 
         // Teste de tipo, sem alocação. Tipo fora da lista, ou valor que o evento não tem, não dispara.

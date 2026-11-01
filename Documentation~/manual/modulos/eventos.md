@@ -274,6 +274,47 @@ Cada evento é um **par** com três campos, todos opcionais. Ligue só o que pre
   qualquer ordem com o ASC. Ele não guarda estado de gameplay.
 - Os payloads não alocam; o canal de texto aloca, porque lê o `name` do asset.
 
+### Inspector e validação do relay {#relay-inspector}
+
+O Inspector mostra o campo **Ability System** e, abaixo, os pares em cinco grupos recolhidos:
+**Efeitos**, **Habilidades**, **Atributos** (com o **Decreased Attribute**), **Tags** e
+**Bloqueio**. Abra só o grupo do evento que vai ligar.
+
+O validador acusa erro, no topo do Inspector e na janela do
+[validador](../ferramentas/validador.md), em:
+
+- um relay sem ASC no campo **Ability System** nem no próprio objeto;
+- um **Value Channel** de tipo fora da lista (`Void`, `Float`, `String` ou `GameObject`), por
+  exemplo um `IntEventChannel`;
+- uma chamada do **Response** sem objeto, ou com objeto e sem função (**No Function**).
+
+## Ligar o GAS ao Events {#ligar-gas-events}
+
+Para que um evento do GAS chegue a outro objeto sem código, ponha um
+[relay](#relay-do-gas) no ator e ligue o par do evento a um canal. Qualquer objeto ouve o canal
+com um [`EventListener`](#eventlistener).
+
+### Exemplo: som ao ser imune {#exemplo-som-imune}
+
+O efeito de veneno tem a tag `Imune.Veneno` em **Application Immunity Tags**, e o personagem tem
+essa tag. Quando alguém aplica o veneno nele, a aplicação é bloqueada (`BlockedByImmunity`) e um
+som toca em outro objeto.
+
+1. Crie o canal: **Create > SpellBook > Events > Void Channel**, com o nome `Imune`.
+2. No personagem, o objeto com o `AbilitySystemComponent`, use **Add Component >
+   AbilitySystemEventRelay**. Deixe o **Ability System** vazio: o relay usa o ASC do objeto.
+3. Abra o grupo **Efeitos** e, no par **Effect Blocked**, arraste o canal `Imune` para o
+   **Value Channel**.
+4. No objeto do som, com um `AudioSource` que tem o clipe, use **Add Component >
+   EventListener**. Em **Responses**, adicione uma resposta `Void` e escolha o canal `Imune`.
+5. No **Escape** da resposta, adicione uma chamada, arraste o objeto do som e escolha
+   **AudioSource > Play ()**.
+6. Entre em Play e aplique o veneno no personagem: o som toca.
+
+O par **Effect Blocked** dispara também quando faltam as tags exigidas pelo efeito
+(`MissingRequirements`). Para separar os dois casos, use o `EffectEventChannel` no **Channel**:
+o campo `Result` diz `BlockedByImmunity` ou `MissingRequirements`.
+
 ## EventListener {#eventlistener}
 
 O `EventListener` é o componente que ouve canais sem código. Adicione-o a um objeto

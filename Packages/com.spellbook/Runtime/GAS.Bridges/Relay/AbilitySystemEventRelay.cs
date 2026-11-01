@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SpellBook.Core;
+using SpellBook.Core.Validation;
 using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
@@ -16,7 +17,7 @@ namespace SpellBook.GAS.Bridges
     /// </summary>
     [DefaultExecutionOrder(100)]
     [HelpURL(DocUrls.Events + "#relay-do-gas")]
-    public sealed class AbilitySystemEventRelay : MonoBehaviour
+    public sealed class AbilitySystemEventRelay : MonoBehaviour, IValidatable
     {
         [SerializeField, Tooltip("ASC observado. Vazio: o do mesmo objeto.")]
         private AbilitySystemComponent abilitySystem;
@@ -69,6 +70,60 @@ namespace SpellBook.GAS.Bridges
         private Action<GameplayTag, bool> _onTagChanged;
         private List<AttributeSubscription> _attributeSubscriptions;
 
+#if UNITY_EDITOR
+        /// <summary>Um disparo recente: o par que disparou e o quadro. Só no Editor, para o Inspector.</summary>
+        public readonly struct RelayFiring
+        {
+            public readonly string Pair;
+            public readonly int Frame;
+
+            public RelayFiring(string pair, int frame)
+            {
+                Pair = pair;
+                Frame = frame;
+            }
+        }
+
+        private const int RecentCapacity = 10;
+        private readonly RelayFiring[] _recent = new RelayFiring[RecentCapacity];
+        private int _recentStart;
+        private int _recentCount;
+
+        /// <summary>Quantos disparos recentes estão guardados (até 10).</summary>
+        public int RecentFiringCount => _recentCount;
+
+        /// <summary>Disparo recente, do mais antigo (0) ao mais novo.</summary>
+        public RelayFiring GetRecentFiring(int index)
+        {
+            if (index < 0 || index >= _recentCount) throw new ArgumentOutOfRangeException(nameof(index));
+            return _recent[(_recentStart + index) % RecentCapacity];
+        }
+
+        // Buffer circular: cheio, o novo ocupa o lugar do mais antigo.
+        private void RecordFiring(string pair)
+        {
+            var firing = new RelayFiring(pair, UnityEngine.Time.frameCount);
+            if (_recentCount < RecentCapacity)
+            {
+                _recent[(_recentStart + _recentCount) % RecentCapacity] = firing;
+                _recentCount++;
+                return;
+            }
+
+            _recent[_recentStart] = firing;
+            _recentStart = (_recentStart + 1) % RecentCapacity;
+        }
+#endif
+
+        // Todo par dispara por aqui, para o Editor guardar os últimos disparos.
+        private void Raise<T>(RelayPair<T> pair, string name, in T data, RelayValueSelector<T> values)
+        {
+#if UNITY_EDITOR
+            RecordFiring(name);
+#endif
+            pair.Raise(in data, this, values);
+        }
+
         private void Awake()
         {
             _onEffectApplied = HandleEffectApplied;
@@ -96,6 +151,34 @@ namespace SpellBook.GAS.Bridges
             if (ReferenceEquals(ResolveAsc(), _subscribed)) return;
             Unsubscribe();
             Subscribe();
+        }
+
+        /// <summary>
+        /// Acusa relay sem ASC no campo nem no objeto, canal de valor de tipo fora da lista e <c>UnityEvent</c> com
+        /// chamada sem alvo ou sem método (R19).
+        /// </summary>
+        public void Validate(ValidationResult result)
+        {
+            if (ResolveAsc() == null)
+            {
+                result.AddError("Relay sem ASC: escolha o Ability System ou adicione um AbilitySystemComponent ao objeto.",
+                    nameof(abilitySystem));
+            }
+
+            effectApplied.Validate(result, nameof(effectApplied));
+            effectRemoved.Validate(result, nameof(effectRemoved));
+            effectStacksChanged.Validate(result, nameof(effectStacksChanged));
+            effectBlocked.Validate(result, nameof(effectBlocked));
+            abilityActivated.Validate(result, nameof(abilityActivated));
+            abilityEnded.Validate(result, nameof(abilityEnded));
+            abilityFailed.Validate(result, nameof(abilityFailed));
+            abilityGranted.Validate(result, nameof(abilityGranted));
+            abilityRemoved.Validate(result, nameof(abilityRemoved));
+            attributeChanged.Validate(result, nameof(attributeChanged));
+            attributeDecreased.Validate(result, nameof(attributeDecreased));
+            tagAdded.Validate(result, nameof(tagAdded));
+            tagRemoved.Validate(result, nameof(tagRemoved));
+            blocked.Validate(result, nameof(blocked));
         }
 
         private AbilitySystemComponent ResolveAsc() => abilitySystem != null ? abilitySystem : GetComponent<AbilitySystemComponent>();
@@ -171,45 +254,45 @@ namespace SpellBook.GAS.Bridges
         {
             EffectEventData data = EffectData(instance, instance.CurrentStacks, 0);
             data.Result = EffectApplicationResult.Applied;
-            effectApplied.Raise(in data, this, EffectSelector);
+            Raise(effectApplied, nameof(effectApplied), in data, EffectSelector);
         }
 
         private void HandleEffectRemoved(ActiveEffectInstance instance, EffectRemovalReason reason)
         {
             EffectEventData data = EffectData(instance, 0, instance.CurrentStacks);
             data.RemovalReason = reason;
-            effectRemoved.Raise(in data, this, EffectSelector);
+            Raise(effectRemoved, nameof(effectRemoved), in data, EffectSelector);
         }
 
         private void HandleEffectStacksChanged(ActiveEffectInstance instance, int before, int after)
         {
             EffectEventData data = EffectData(instance, after, before);
-            effectStacksChanged.Raise(in data, this, EffectSelector);
+            Raise(effectStacksChanged, nameof(effectStacksChanged), in data, EffectSelector);
         }
 
         private void HandleEffectBlocked(GameplayEffect effect, AbilitySystemComponent source, EffectApplicationResult result)
         {
             var data = new EffectEventData { Owner = _subscribed, Source = source, Effect = effect, Result = result };
-            effectBlocked.Raise(in data, this, EffectSelector);
+            Raise(effectBlocked, nameof(effectBlocked), in data, EffectSelector);
         }
 
         private void HandleBlocked(GameplayTag reason, AbilitySystemComponent source)
         {
             var data = new BlockedEventData { Owner = _subscribed, Reason = reason, Source = source };
-            blocked.Raise(in data, this, BlockedSelector);
+            Raise(blocked, nameof(blocked), in data, BlockedSelector);
         }
 
         private void HandleAbilityActivated(AbilitySpec spec)
         {
             AbilityEventData data = AbilityData(spec.Ability, spec.Level);
-            abilityActivated.Raise(in data, this, AbilitySelector);
+            Raise(abilityActivated, nameof(abilityActivated), in data, AbilitySelector);
         }
 
         private void HandleAbilityEnded(AbilitySpec spec, bool cancelled)
         {
             AbilityEventData data = AbilityData(spec.Ability, spec.Level);
             data.Cancelled = cancelled;
-            abilityEnded.Raise(in data, this, AbilitySelector);
+            Raise(abilityEnded, nameof(abilityEnded), in data, AbilitySelector);
         }
 
         // A falha não traz o spec: o nível é o da concessão, 0 se a habilidade não foi concedida.
@@ -217,35 +300,36 @@ namespace SpellBook.GAS.Bridges
         {
             AbilityEventData data = AbilityData(ability, _subscribed.GetAbilityLevel(ability));
             data.FailureReason = result;
-            abilityFailed.Raise(in data, this, AbilitySelector);
+            Raise(abilityFailed, nameof(abilityFailed), in data, AbilitySelector);
         }
 
         private void HandleAbilityGranted(AbilitySpec spec)
         {
             AbilityEventData data = AbilityData(spec.Ability, spec.Level);
-            abilityGranted.Raise(in data, this, AbilitySelector);
+            Raise(abilityGranted, nameof(abilityGranted), in data, AbilitySelector);
         }
 
         private void HandleAbilityRemoved(AbilitySpec spec)
         {
             AbilityEventData data = AbilityData(spec.Ability, spec.Level);
-            abilityRemoved.Raise(in data, this, AbilitySelector);
+            Raise(abilityRemoved, nameof(abilityRemoved), in data, AbilitySelector);
         }
 
         private void HandleAttributeChanged(AttributeDefinition attribute, float oldValue, float newValue)
         {
             var data = new AttributeChangedData(_subscribed, attribute, oldValue, newValue);
-            attributeChanged.Raise(in data, this, AttributeSelector);
+            Raise(attributeChanged, nameof(attributeChanged), in data, AttributeSelector);
             if (newValue >= oldValue) return;
             if (decreasedAttribute != null && decreasedAttribute != attribute) return;
-            attributeDecreased.Raise(in data, this, DecreasedSelector);
+            Raise(attributeDecreased, nameof(attributeDecreased), in data, DecreasedSelector);
         }
 
         // Contagem lida depois da mudança: 1 ao entrar e 0 ao sair.
         private void HandleTagChanged(GameplayTag tag, bool added)
         {
             var data = new TagChangedData { Owner = _subscribed, Tag = tag, Added = added, Count = _subscribed.GetTagCount(tag) };
-            (added ? tagAdded : tagRemoved).Raise(in data, this, TagSelector);
+            if (added) Raise(tagAdded, nameof(tagAdded), in data, TagSelector);
+            else Raise(tagRemoved, nameof(tagRemoved), in data, TagSelector);
         }
 
         private EffectEventData EffectData(ActiveEffectInstance instance, int stacks, int previousStacks)

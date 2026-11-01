@@ -382,6 +382,43 @@ namespace SpellBook.GAS.Bridges.Tests
             Assert.That(removedOwner.LastPayload, Is.SameAs(asc.gameObject), "o canal de objeto não recebeu o dono");
         }
 
+#if UNITY_EDITOR
+        [UnityTest]
+        public IEnumerator RecentFirings_KeepsLastTen_OldestLeaves()
+        {
+            GameplayTag burning = _gas.CreateTag("Estado.Queimando");
+            AbilitySystemComponent asc = _gas.CreateAsc();
+            AbilitySystemEventRelay relay = CreateRelay(asc, _ => { });
+            yield return null;
+            asc.AddTag(burning);
+            yield return null;
+            int frame = UnityEngine.Time.frameCount;
+
+            for (int i = 0; i < 5; i++)
+            {
+                asc.RemoveTag(burning);
+                asc.AddTag(burning);
+            }
+
+            var pairs = new List<string>();
+            var frames = new List<int>();
+            for (int i = 0; i < relay.RecentFiringCount; i++)
+            {
+                AbilitySystemEventRelay.RelayFiring firing = relay.GetRecentFiring(i);
+                pairs.Add(firing.Pair);
+                frames.Add(firing.Frame);
+            }
+
+            Assert.That(relay.RecentFiringCount, Is.EqualTo(10));
+            for (int i = 0; i < pairs.Count; i++)
+            {
+                Assert.That(pairs[i], Is.EqualTo(i % 2 == 0 ? "tagRemoved" : "tagAdded"), "disparo " + i);
+            }
+
+            Assert.That(frames, Has.All.EqualTo(frame), "o disparo mais antigo, do quadro anterior, não saiu");
+        }
+#endif
+
         private static AttributeState State(AbilitySystemComponent asc, AttributeDefinition attribute)
         {
             Assert.That(asc.AttributeSet.TryGetState(attribute, out AttributeState state), Is.True);

@@ -49,6 +49,9 @@ O validador acusa erro em:
   uma reação pronta com campo obrigatório vazio (veja [Validação](../modulos/eventos.md#validacao)
   em Eventos);
 - um `EventEmitter` sem canal;
+- um `AbilitySystemEventRelay` sem ASC no campo nem no objeto, com **Value Channel** de tipo fora
+  da lista ou com chamada do **Response** sem objeto ou sem função (veja
+  [Inspector e validação do relay](../modulos/eventos.md#relay-inspector) em Eventos);
 - uma `RaiseEventAction` sem canal, acusada na habilidade que a contém (veja
   [RaiseEventAction](../modulos/gas.md#raiseeventaction));
 - um `PooledSpawnerAsset` com **Initial Size** negativo;
