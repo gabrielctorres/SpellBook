@@ -28,5 +28,6 @@ Vale para os tickets que usam a Unity. Ticket sem Unity (docs, processo) não cr
 ## Como trabalha
 - Siga o `CLAUDE.md`: convenções Unity/C#, testes, sem novas dependências, sem suppressions.
 - Toda classe nova precisa do `.meta` gerado pela Unity. Não escreva GUIDs à mão.
+- Ao escrever no manual, siga `Documentation~/guia-do-manual.md` (molde, regras de escrita e buscas).
 - Se a mesma abordagem falhar duas vezes, pare e pergunte.
 - Ao terminar, devolva: ticket, arquivos alterados, saída do teste red e do teste green, e pendências.

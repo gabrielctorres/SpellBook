@@ -18,10 +18,6 @@ namespace SpellBook.GAS.Editor
     [CanEditMultipleObjects]
     internal sealed class AttributeSetEditor : SpellBookEditor { }
 
-    [CustomEditor(typeof(GameplayAbility))]
-    [CanEditMultipleObjects]
-    internal sealed class GameplayAbilityEditor : SpellBookEditor { }
-
     [CustomEditor(typeof(CooldownReductionPolicy))]
     [CanEditMultipleObjects]
     internal sealed class CooldownReductionPolicyEditor : SpellBookEditor { }

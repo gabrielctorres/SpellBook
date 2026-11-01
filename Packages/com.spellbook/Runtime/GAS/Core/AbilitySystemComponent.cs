@@ -9,6 +9,7 @@ using SpellBook.Time;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Effects;
 using SpellBook.GAS.Abilities;
+using SpellBook.GAS.Conditions;
 namespace SpellBook.GAS.Core
 {
     [RequireComponent(typeof(AttributeSet))]
@@ -38,7 +39,11 @@ namespace SpellBook.GAS.Core
         public event Action<GameplayTag, bool> OnTagChanged;
         public event Action<AbilitySpec> OnAbilityActivated;
         public event Action<AbilitySpec, bool> OnAbilityEnded; // spec, cancelled
-        public event Action<GameplayAbility, AbilityActivationResult> OnAbilityFailed;
+        /// <summary>
+        /// Ativação recusada por <c>TryActivateAbility</c>: a habilidade e a <see cref="ActivationFailure"/> da checagem, igual à
+        /// de <see cref="GetActivationResult(GameplayAbility, in AbilityTarget, out ActivationFailure)"/>. A consulta não dispara.
+        /// </summary>
+        public event Action<GameplayAbility, ActivationFailure> OnAbilityFailed;
 
         /// <summary>Instância nova de efeito com duração, depois de tags e modificadores. Instantâneo, renovação e pilha não disparam.</summary>
         public event Action<ActiveEffectInstance> OnEffectApplied;
@@ -127,6 +132,8 @@ namespace SpellBook.GAS.Core
         {
             OnTagChanged -= HandleTagChangedForCancellation;
             CancelAllAbilities();
+            // Ligações ao vivo em outro ASC (o instigador) prenderiam este ASC e o recalculariam depois de destruído
+            for (int i = 0; i < _activeEffects.Count; i++) _activeEffects[i].DisposeLiveBindings();
         }
 
         private void Update()
@@ -395,45 +402,128 @@ namespace SpellBook.GAS.Core
         #endregion
 
         #region Ability Activation
+        /// <summary>Resultado da ativação sem alvo (<see cref="AbilityTarget.None"/>), sem ativar nem mudar estado.</summary>
         public AbilityActivationResult GetActivationResult(GameplayAbility ability)
         {
-            if (ability == null) return AbilityActivationResult.InvalidAbility;
+            return GetActivationResult(ability, AbilityTarget.None, out _);
+        }
 
-            var spec = FindSpec(ability);
-            if (spec == null) return AbilityActivationResult.NotGranted;
-            if (spec.IsActive) return AbilityActivationResult.AlreadyActive;
-
-            if (HasAnyTag(ability.BlockedTags)) return AbilityActivationResult.BlockedByTags;
-            if (!HasAllTags(ability.RequiredTags)) return AbilityActivationResult.MissingRequiredTags;
-            if (IsBlockedByActiveAbility(ability)) return AbilityActivationResult.BlockedByActiveAbility;
-            if (IsOnCooldown(ability.CooldownEffect)) return AbilityActivationResult.OnCooldown;
-            if (!CanAffordCost(ability.CostEffect, ability, spec.Level)) return AbilityActivationResult.CannotAffordCost;
-
-            return AbilityActivationResult.Success;
+        /// <summary>
+        /// Resultado da ativação com o <paramref name="target"/>, e o motivo em <paramref name="failure"/>, pelo mesmo caminho de
+        /// <see cref="TryActivateAbility(GameplayAbility, in AbilityTarget)"/>, sem ativar, sem evento e sem alocar.
+        /// </summary>
+        public AbilityActivationResult GetActivationResult(GameplayAbility ability, in AbilityTarget target, out ActivationFailure failure)
+        {
+            CheckActivation(ability != null ? FindSpec(ability) : null, ability, in target, out failure);
+            return failure.Result;
         }
 
         public AbilityActivationResult TryActivateAbility(GameplayAbility ability, Vector3 targetPos)
         {
-            var result = GetActivationResult(ability);
-            if (result != AbilityActivationResult.Success)
-            {
-                OnAbilityFailed?.Invoke(ability, result);
-                return result;
-            }
+            return TryActivateAbility(ability, AbilityTarget.AtPoint(targetPos));
+        }
 
-            ActivateSpec(FindSpec(ability), targetPos);
-            return result;
+        /// <summary>Checa (<see cref="GetActivationResult(GameplayAbility, in AbilityTarget, out ActivationFailure)"/>) e, se passou, ativa.</summary>
+        public AbilityActivationResult TryActivateAbility(GameplayAbility ability, in AbilityTarget target)
+        {
+            return TryActivate(ability != null ? FindSpec(ability) : null, ability, in target);
         }
 
         public AbilityActivationResult TryActivateAbility(AbilitySpec spec, Vector3 targetPos)
         {
+            return TryActivateAbility(spec, AbilityTarget.AtPoint(targetPos));
+        }
+
+        /// <summary>Como <see cref="TryActivateAbility(GameplayAbility, in AbilityTarget)"/>, pelo spec; spec de outro ASC dá <c>NotGranted</c>.</summary>
+        public AbilityActivationResult TryActivateAbility(AbilitySpec spec, in AbilityTarget target)
+        {
             if (spec == null || !_abilities.Contains(spec))
             {
-                var result = spec == null ? AbilityActivationResult.InvalidAbility : AbilityActivationResult.NotGranted;
-                OnAbilityFailed?.Invoke(spec?.Ability, result);
-                return result;
+                var failure = new ActivationFailure(spec == null
+                    ? AbilityActivationResult.InvalidAbility
+                    : AbilityActivationResult.NotGranted);
+                OnAbilityFailed?.Invoke(spec?.Ability, failure);
+                return failure.Result;
             }
-            return TryActivateAbility(spec.Ability, targetPos);
+            return TryActivate(spec, spec.Ability, in target);
+        }
+
+        private AbilityActivationResult TryActivate(AbilitySpec spec, GameplayAbility ability, in AbilityTarget target)
+        {
+            if (!CheckActivation(spec, ability, in target, out ActivationFailure failure))
+            {
+                OnAbilityFailed?.Invoke(ability, failure);
+                return failure.Result;
+            }
+
+            ActivateSpec(spec, target.Point);
+            return AbilityActivationResult.Success;
+        }
+
+        // Caminho único das checagens (ADR 0022): pré-requisitos, tags, recarga, custo e regras, nessa ordem. Não escreve estado.
+        private bool CheckActivation(AbilitySpec spec, GameplayAbility ability, in AbilityTarget target, out ActivationFailure failure)
+        {
+            if (ability == null) return Fail(AbilityActivationResult.InvalidAbility, default, out failure);
+            if (spec == null) return Fail(AbilityActivationResult.NotGranted, default, out failure);
+            if (spec.IsActive) return Fail(AbilityActivationResult.AlreadyActive, default, out failure);
+
+            if (TryFindTag(ability.BlockedTags, true, out GameplayTag blocking))
+            {
+                return Fail(AbilityActivationResult.BlockedByTags, blocking, out failure);
+            }
+            if (TryFindTag(ability.RequiredTags, false, out GameplayTag missing))
+            {
+                return Fail(AbilityActivationResult.MissingRequiredTags, missing, out failure);
+            }
+            if (IsBlockedByActiveAbility(ability))
+            {
+                return Fail(AbilityActivationResult.BlockedByActiveAbility, ability.AbilityTag, out failure);
+            }
+            if (IsOnCooldown(ability.CooldownEffect)) return Fail(AbilityActivationResult.OnCooldown, default, out failure);
+            if (!CanAffordCost(ability.CostEffect, ability, spec.Level))
+            {
+                return Fail(AbilityActivationResult.CannotAffordCost, default, out failure);
+            }
+
+            List<ActivationRule> rules = ability.ActivationConditions;
+            if (rules.Count > 0)
+            {
+                var context = new ConditionContext(this, ability, spec.Level, spec, target, null);
+                for (int i = 0; i < rules.Count; i++)
+                {
+                    ActivationRule rule = rules[i];
+                    if (rule?.Condition == null || rule.Condition.Evaluate(in context)) continue;
+
+                    failure = new ActivationFailure(AbilityActivationResult.BlockedByCondition, rule.FailureTag,
+                        rule.EffectiveFailureKey, i, rule);
+                    return false;
+                }
+            }
+
+            failure = new ActivationFailure(AbilityActivationResult.Success);
+            return true;
+        }
+
+        private static bool Fail(AbilityActivationResult result, GameplayTag reasonTag, out ActivationFailure failure)
+        {
+            failure = new ActivationFailure(result, reasonTag);
+            return false;
+        }
+
+        // Primeira tag da lista que o ASC tem (held) ou que falta (!held), por índice, sem alocar
+        private bool TryFindTag(List<GameplayTag> tags, bool held, out GameplayTag found)
+        {
+            if (tags != null)
+            {
+                for (int i = 0; i < tags.Count; i++)
+                {
+                    if (HasTag(tags[i]) != held) continue;
+                    found = tags[i];
+                    return true;
+                }
+            }
+            found = default;
+            return false;
         }
 
         public bool IsOnCooldown(GameplayEffect cooldownEffect)
@@ -703,6 +793,34 @@ namespace SpellBook.GAS.Core
             foreach (var tag in tags) if (HasTag(tag)) return true;
             return false;
         }
+
+        /// <summary>
+        /// As tags ativas satisfazem a <paramref name="query"/> (todas, alguma e nenhuma), com a regra de
+        /// <see cref="HasTag"/>: a tag ativa filha satisfaz o pai. Consulta vazia casa; nula não casa. Não aloca.
+        /// </summary>
+        public bool HasMatching(GameplayTagQuery query)
+        {
+            if (query == null) return false;
+            if (!HasAll(query.All)) return false;
+            if (!query.Any.IsEmpty && !HasAny(query.Any)) return false;
+            return !HasAny(query.None);
+        }
+
+        /// <summary>O ASC tem todas as <paramref name="tags"/> (hierárquico). Nula ou vazia: verdadeiro; tag inválida não casa. Não aloca.</summary>
+        public bool HasAll(IReadOnlyList<GameplayTag> tags)
+        {
+            if (tags == null) return true;
+            for (int i = 0; i < tags.Count; i++) if (!HasTag(tags[i])) return false;
+            return true;
+        }
+
+        /// <summary>O ASC tem alguma das <paramref name="tags"/> (hierárquico). Nula ou vazia: falso; tag inválida não casa. Não aloca.</summary>
+        public bool HasAny(IReadOnlyList<GameplayTag> tags)
+        {
+            if (tags == null) return false;
+            for (int i = 0; i < tags.Count; i++) if (HasTag(tags[i])) return true;
+            return false;
+        }
         #endregion
 
         #region Gameplay Effects
@@ -789,7 +907,11 @@ namespace SpellBook.GAS.Core
                 if (hasOverride && effect.RefreshDurationOnStack) existing.Renew(durationOverride);
                 int stacksBefore = existing.CurrentStacks;
                 existing.AddStack();
-                if (existing.CurrentStacks != stacksBefore) OnEffectStacksChanged?.Invoke(existing, stacksBefore, existing.CurrentStacks);
+                if (existing.CurrentStacks != stacksBefore)
+                {
+                    existing.RefreshMagnitudes();
+                    OnEffectStacksChanged?.Invoke(existing, stacksBefore, existing.CurrentStacks);
+                }
                 return EffectApplicationResult.Stacked;
             }
 
@@ -1010,8 +1132,13 @@ namespace SpellBook.GAS.Core
                 foreach (var mod in effect.Modifiers)
                 {
                     if (!IsModifierValid(effect, mod)) continue;
-                    float value = mod.ValueSource.Evaluate(in context);
-                    attributeSet.AddModifier(mod.Attribute, new AttributeModifier(value, mod.Operation, instance));
+                    if (!attributeSet.TryGetState(mod.Attribute, out var state)) continue;
+                    // O valor avaliado é o de uma pilha; a instância grava o valor multiplicado pelas pilhas (ADR 0029, item 2)
+                    float unitValue = mod.ValueSource.Evaluate(in context);
+                    var modifier = new AttributeModifier(unitValue, mod.Operation, instance);
+                    int trackedIndex = instance.TrackModifier(modifier, unitValue, state);
+                    state.AddModifier(modifier);
+                    if (mod.Mode == MagnitudeMode.Live) instance.BindLiveModifier(trackedIndex, mod.ValueSource);
                 }
             }
 
@@ -1033,14 +1160,19 @@ namespace SpellBook.GAS.Core
         {
             // Periodic modifiers act as instant changes to the base value
             EffectContext context = instance.Context;
-            ApplyModifiersToBase(instance.Effect, instance.Effect.PeriodicModifiers, in context);
+            ApplyModifiersToBase(instance.Effect, instance.Effect.PeriodicModifiers, in context, instance);
         }
 
         /// <summary>
         /// Aplica os modificadores na base (efeitos Instant e tiques periódicos): os que miram o mesmo atributo passam
-        /// pela fórmula única uma vez, partindo da base atual, e o resultado vira a nova base (ADR 0029, item 4).
+        /// pela fórmula única uma vez, partindo da base atual, e o resultado vira a nova base (ADR 0029, item 4). No tique,
+        /// <paramref name="tickInstance"/> avalia cada modificador e guarda o último valor lido do instigador.
         /// </summary>
-        private void ApplyModifiersToBase(GameplayEffect effect, List<AttributeEffectModifier> modifiers, in EffectContext context)
+        private void ApplyModifiersToBase(
+            GameplayEffect effect,
+            List<AttributeEffectModifier> modifiers,
+            in EffectContext context,
+            ActiveEffectInstance tickInstance = null)
         {
             if (modifiers == null || attributeSet == null) return;
 
@@ -1057,7 +1189,10 @@ namespace SpellBook.GAS.Core
                 {
                     AttributeEffectModifier mod = modifiers[j];
                     if (mod == null || !ReferenceEquals(mod.Attribute, first.Attribute)) continue;
-                    accumulator.Accumulate(mod.Operation, mod.ValueSource.Evaluate(in context));
+                    float value = tickInstance != null
+                        ? tickInstance.EvaluateTickModifier(j, mod.ValueSource) * tickInstance.StackFactor
+                        : mod.ValueSource.Evaluate(in context);
+                    accumulator.Accumulate(mod.Operation, value);
                 }
                 state.SetBaseValue(accumulator.Result());
             }
@@ -1166,7 +1301,8 @@ namespace SpellBook.GAS.Core
         /// <summary>
         /// Grava a contagem de pilhas, limitada a <c>[0, MaxStacks]</c> (<c>MaxStacks</c> menor que 1 vale 1), e dispara
         /// <see cref="OnEffectStacksChanged"/>. Zero remove a instância com <see cref="EffectRemovalReason.StacksDepleted"/>,
-        /// depois da limpeza e do evento de pilhas. Só a contagem muda: tags e modificadores seguem um por instância.
+        /// depois da limpeza e do evento de pilhas. Tags e modificadores seguem um por instância; com
+        /// <see cref="GameplayEffect.StacksMultiplyMagnitude"/>, o valor de cada modificador acompanha as pilhas.
         /// </summary>
         public bool SetEffectStacks(ActiveEffectInstance instance, int count)
         {
@@ -1188,6 +1324,7 @@ namespace SpellBook.GAS.Core
                 return true;
             }
 
+            instance.RefreshMagnitudes();
             OnEffectStacksChanged?.Invoke(instance, before, clamped);
             return true;
         }
@@ -1227,6 +1364,7 @@ namespace SpellBook.GAS.Core
             if (!_activeEffects.Remove(instance)) return;
 
             instance.IsRemoved = true;
+            instance.DisposeLiveBindings();
             instance.Cleanup();
             instance.OnEffectExpired -= HandleEffectExpired;
             instance.OnTick -= HandleEffectTick;

@@ -18,5 +18,11 @@ namespace SpellBook.Core.Inspector
 
         /// <summary>Resumo de uma linha, mostrado como dica.</summary>
         public string Summary { get; set; }
+
+        /// <summary>
+        /// Modelo do resumo de uma linha da instância no Inspector: <c>{Campo}</c> mostra o campo serializado e
+        /// <c>{Campo?texto}</c> mostra o texto quando o <c>bool</c> é verdadeiro. Exemplo: <c>"{Attribute} {Comparison} {Value}"</c>.
+        /// </summary>
+        public string Line { get; set; }
     }
 }

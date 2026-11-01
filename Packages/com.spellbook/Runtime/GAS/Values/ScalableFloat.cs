@@ -45,6 +45,9 @@ namespace SpellBook.GAS.Values
         /// <summary>Valor no modo <c>Table</c> sem tabela ou sem o nome nela.</summary>
         public float Fallback => fallback;
 
+        /// <summary>Tamanho do array de valores por nível (0 fora do modo <c>Array</c> ou com o array vazio).</summary>
+        internal int ArrayLength => mode == ScalableMode.Array && values != null ? values.Length : 0;
+
         /// <summary>Mesmo valor em qualquer nível.</summary>
         public static ScalableFloat Constant(float value)
         {

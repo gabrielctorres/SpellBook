@@ -26,7 +26,13 @@ Os agentes do time leem estes arquivos em vez de depender de memória ou de conv
 
 ## Projeto de desenvolvimento
 
-A raiz do repositório é o projeto Unity de desenvolvimento (ADR 0027), e o pacote fica embutido em `Packages/com.spellbook/`. O `README.md` da raiz é curto e manda quem quer instalar para o README do pacote.
+A raiz do repositório é o projeto Unity de desenvolvimento (ADR 0027), e o pacote fica embutido em `Packages/com.spellbook/`. O `README.md` da raiz é a apresentação do SpellBook - Unity Tools, com a instalação e o link do manual; as informações para quem desenvolve ficam aqui.
+
+Layout do repositório:
+
+- `Packages/com.spellbook/`: o pacote (`com.spellbook`), com `Runtime/`, `Editor/`, `Tests/`, `package.json` e o `CHANGELOG.md`. É só isso que chega a quem instala.
+- Raiz (`Assets/`, `ProjectSettings/`, `Packages/manifest.json`): o projeto Unity de desenvolvimento, que embute o pacote e roda os testes dele.
+- `Documentation~/`: manual, PRD, Spec, ADRs e documentos internos do time. Fica fora do pacote.
 
 - Versão: a de `ProjectSettings/ProjectVersion.txt` (6000.3.13f1, decisão D5 da Spec da modularização).
 - `Packages/manifest.json` traz o pacote embutido e em `testables`, para os testes do pacote rodarem aqui.

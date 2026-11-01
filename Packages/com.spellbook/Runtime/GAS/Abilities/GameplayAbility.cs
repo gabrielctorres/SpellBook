@@ -45,6 +45,12 @@ namespace SpellBook.GAS.Abilities
         [Tooltip("Efeito Instant aplicado ao ativar (ex: Mana Add -20). A ativação falha se o atributo ficaria abaixo do MinValue.")]
         public GameplayEffect CostEffect;
 
+        [Tooltip("Alcance da habilidade por nível, lido pela CastRangeCondition. 0 ou menos: sem limite.")]
+        [SerializeField] private ScalableFloat castRange = ScalableFloat.Constant(0f);
+
+        [Tooltip("Regras avaliadas na ordem, depois das tags, da recarga e do custo. A primeira que falha decide o motivo.")]
+        [SerializeField] private List<ActivationRule> activationConditions = new List<ActivationRule>();
+
         [Header("Tags")]
         [Tooltip("Não ativa se o dono tiver alguma destas tags.")]
         public List<GameplayTag> BlockedTags;
@@ -80,6 +86,23 @@ namespace SpellBook.GAS.Abilities
 
         public bool CanActivate(AbilitySystemComponent asc) => CanActivate(asc, out _);
 
+        /// <summary>
+        /// Como <see cref="CanActivate(AbilitySystemComponent, out AbilityActivationResult)"/>, com o alvo das regras de
+        /// ativação e o motivo detalhado da falha. Mesmo caminho de <see cref="AbilitySystemComponent.TryActivateAbility(GameplayAbility, in AbilityTarget)"/>.
+        /// </summary>
+        public bool CanActivate(AbilitySystemComponent asc, in AbilityTarget target, out ActivationFailure failure)
+        {
+            if (asc == null)
+            {
+                failure = new ActivationFailure(AbilityActivationResult.InvalidAbility);
+                return false;
+            }
+            return asc.GetActivationResult(this, in target, out failure) == AbilityActivationResult.Success;
+        }
+
+        /// <summary>Regras de ativação, avaliadas na ordem depois do custo. Entradas nulas ou sem condição são puladas.</summary>
+        public List<ActivationRule> ActivationConditions => activationConditions ??= new List<ActivationRule>();
+
         /// <summary>Nível máximo da habilidade (pelo menos 1).</summary>
         public int MaxLevel => maxLevel;
 
@@ -95,6 +118,16 @@ namespace SpellBook.GAS.Abilities
         protected virtual void OnValidate()
         {
             values?.MarkChanged();
+        }
+
+        /// <summary>
+        /// Alcance por nível, avaliado com a tabela <see cref="Values"/> (fonte única do alcance). 0 ou menos é "sem limite".
+        /// Atribuir nulo volta ao alcance 0.
+        /// </summary>
+        public ScalableFloat CastRange
+        {
+            get => castRange ??= ScalableFloat.Constant(0f);
+            set => castRange = value ?? ScalableFloat.Constant(0f);
         }
 
         /// <summary>Política de redução de recarga; nula usa <see cref="CooldownReductionPolicy.ApplyDefault"/>.</summary>
@@ -127,11 +160,24 @@ namespace SpellBook.GAS.Abilities
         }
 
         /// <summary>
-        /// Avisa da política de redução sem atributo de redução e repassa a validação a cada ação da lista.
-        /// Ações vazias são ignoradas.
+        /// Acusa <c>MaxLevel</c> menor que 1, a tabela de valores (nomes e valores), a política de redução sem atributo de
+        /// redução, cada nome do modo Table que um efeito usado pela habilidade lê e não está na tabela (recarga, custo e
+        /// <see cref="AbilityAction.CollectEffects"/>), e <c>MaxLevel</c> acima do tamanho de um array da tabela (aviso).
+        /// Repassa a validação a cada ação da lista; ações vazias são ignoradas.
         /// </summary>
         public virtual void Validate(ValidationResult result)
         {
+            if (maxLevel < 1)
+            {
+                result.AddError($"Max Level é {maxLevel}: o nível mínimo é 1.", nameof(maxLevel));
+            }
+
+            if (values != null)
+            {
+                values.Validate(result, nameof(values));
+                ValidateArraySizes(result);
+            }
+
             if (cooldownReductionPolicy != null && CooldownReductionAttribute == null)
             {
                 result.AddWarning(
@@ -139,11 +185,49 @@ namespace SpellBook.GAS.Abilities
                     nameof(cooldownReductionPolicy));
             }
 
+            ValidateEffectTableNames(result);
+
             if (Actions == null) return;
 
             for (int i = 0; i < Actions.Count; i++)
             {
                 Actions[i]?.Validate(result);
+            }
+        }
+
+        private void ValidateArraySizes(ValidationResult result)
+        {
+            for (int i = 0; i < values.Count; i++)
+            {
+                AbilityValues.Entry entry = values.GetEntry(i);
+                int size = entry?.Value != null ? entry.Value.ArrayLength : 0;
+                if (size == 0 || size >= maxLevel) continue;
+
+                result.AddWarning(
+                    $"O valor \"{entry.Name}\" tem {size} níveis e o Max Level é {maxLevel}: acima do nível {size}, repete o último.",
+                    $"{nameof(values)}.entries.Array.data[{i}].value");
+            }
+        }
+
+        private void ValidateEffectTableNames(ValidationResult result)
+        {
+            var effects = new List<GameplayEffect>();
+            if (CooldownEffect != null) effects.Add(CooldownEffect);
+            if (CostEffect != null) effects.Add(CostEffect);
+            if (Actions != null)
+            {
+                for (int i = 0; i < Actions.Count; i++)
+                {
+                    Actions[i]?.CollectEffects(effects);
+                }
+            }
+
+            for (int i = 0; i < effects.Count; i++)
+            {
+                GameplayEffect effect = effects[i];
+                // Um efeito usado em mais de um lugar é conferido uma vez
+                if (effect == null || effects.IndexOf(effect) != i) continue;
+                effect.ValidateTableNames(result, values, nameof(values));
             }
         }
 

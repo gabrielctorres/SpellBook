@@ -1,6 +1,6 @@
 # Site do manual público do SpellBook (ADR 0025). Só a pasta manual/ vira site.
 # Ferramenta: MkDocs com o tema Material, versões travadas em requirements-docs.txt.
-# Sem nav: a navegação lista só as páginas que existem (ADR 0007, I26).
+# Com nav explícito: o build falha se uma página ficar fora do nav ou se o nav apontar para página que não existe (ADR 0007, I26, emenda de 2026-11-01).
 # Build: mkdocs build --strict -f Documentation~/mkdocs.yml
 site_name: SpellBook
 site_url: https://gabrielctorres.github.io/SpellBook/
@@ -12,9 +12,46 @@ use_directory_urls: true
 theme:
   name: material
   language: pt-BR
+  features:
+    - navigation.sections
+    - navigation.footer
+
+nav:
+  - Começar:
+      - index.md
+      - inicio/instalacao.md
+  - Sistemas de habilidade:
+      - modulos/gas.md
+  - Sistemas de apoio:
+      - modulos/eventos.md
+      - modulos/tags.md
+      - modulos/tempo.md
+      - modulos/pooling.md
+  - Editor e ferramentas:
+      - inicio/inspector.md
+      - ferramentas/validador.md
+      - ferramentas/gas-debugger.md
+      - ferramentas/event-debugger.md
+  - Exemplos:
+      - exemplos/sandbox.md
+  - Referência:
+      - inicio/conceitos.md
+      - regras/migracao-2-para-3.md
+
+validation:
+  nav:
+    omitted_files: warn
+    not_found: warn
+  links:
+    not_found: warn
+    anchors: warn
 
 markdown_extensions:
   - attr_list
   - admonition
   - toc
-  - fenced_code
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format

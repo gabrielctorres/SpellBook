@@ -61,6 +61,20 @@ O validador acusa erro em:
   [AttributeDefinition](../modulos/gas.md#attributedefinition));
 - um `AbilitySystemComponent` com entrada vazia em **Starting Effects** (veja
   [Efeitos de partida](../modulos/gas.md#starting-effects));
+- uma habilidade com **Max Level** menor que 1, com nome vazio, inválido ou repetido na tabela
+  **Values**, ou com uma entrada da tabela que lê outra (modo `Table`) (veja
+  [Níveis e tabela de valores](../modulos/gas.md#abilityvalues));
+- uma habilidade que usa um efeito cujo valor em modo `Table` tem um nome que não está na tabela
+  dela. A mensagem cita o efeito e o nome, e selecionar a linha seleciona a habilidade. A habilidade
+  confere a recarga, o custo e os efeitos de cada `ApplyEffectAction`, inclusive dentro de
+  `RepeatAction`, `ParallelAction`, `ConditionalAction` e das **On Hit Actions** do
+  `SpawnProjectileAction`. Uma ação sua que aplica efeitos entra na conferência ao sobrescrever
+  `AbilityAction.CollectEffects`;
+- um `GameplayEffect` com valor por nível inválido (array vazio, curva sem definir ou modo `Table`
+  sem nome) na duração ou num modificador, com nome de **SetByCaller** vazio ou fora de letras,
+  dígitos e `_`, ou com modificadores **Live** em ciclo, em que um atributo depende do outro (veja
+  [Valores por nível](../modulos/gas.md#scalablefloat) e
+  [Snapshot ou ao vivo](../modulos/gas.md#magnitude-ao-vivo));
 - uma `CooldownReductionPolicy` com **Min Duration** negativo ou **Max Reduction** fora de 0 a 1
   (veja [CooldownReductionPolicy](../modulos/gas.md#cooldownreductionpolicy));
 - uma linha vazia num `GameplayTagContainer` ou numa lista de um `GameplayTagQuery`, e a mesma tag
@@ -72,9 +86,11 @@ O validador acusa erro em:
 
 E acusa aviso numa tag repetida num conjunto ou numa lista da consulta, numa consulta com as três
 listas vazias, num `AttributeDefinition` com **Hidden** sem **Category**, num `GameplayEffect` com **Is Buff** e
-**Is Debuff** ligados juntos (veja [Gameplay Effects](../modulos/gas.md#gameplayeffect)) e numa habilidade com
-**Cooldown Reduction Policy** sem **Cooldown Reduction
-Attribute**.
+**Is Debuff** ligados juntos (veja [Gameplay Effects](../modulos/gas.md#gameplayeffect)), num `GameplayEffect`
+com **SetByCaller** sem padrão (sem o valor do chamador, vale 0), com modo **Live** em efeito `Instant` ou
+em modificador periódico, onde o modo não tem efeito, numa habilidade com **Cooldown Reduction Policy** sem
+**Cooldown Reduction Attribute** e numa habilidade com **Max Level** acima do tamanho de um array da tabela
+(acima dele, o array repete o último valor).
 
 ## Tipo sem HelpURL {#helpurl}
 

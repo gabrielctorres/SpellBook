@@ -16,7 +16,7 @@ um pode referenciar; nenhum outro é permitido.
 
 | Assembly | O que tem | Referencia |
 |---|---|---|
-| `SpellBook.Core` | Seletor de tipo e `[ShowIf]` do Inspector, validação, `Void`, `RuntimeSet<T>`, `MathTools` e os assets de spawn (`SpawnerAsset`). | — |
+| `SpellBook.Core` | Seletor de tipo e `[ShowIf]` do Inspector, validação, a base das condições, `Void`, `RuntimeSet<T>`, `MathTools` e os assets de spawn (`SpawnerAsset`). | — |
 | `SpellBook.Time` | [Fontes de tempo](../modulos/tempo.md) trocáveis. | Core |
 | `SpellBook.Tags` | [Tags](../modulos/tags.md) hierárquicas de gameplay. | Core |
 | `SpellBook.Pooling` | [Reaproveitamento de objetos](../modulos/pooling.md). | Core |
@@ -35,8 +35,62 @@ Um projeto que usa só o pooling, por exemplo, tem um asmdef que referencia o `S
 
 ## Core {#core}
 
-Além do Inspector e da validação, o `SpellBook.Core` tem três utilidades que os outros módulos
-e o seu projeto podem usar.
+Além do Inspector e da validação, o `SpellBook.Core` tem a base das condições e três utilidades
+que os outros módulos e o seu projeto podem usar.
+
+### Condições {#condicoes}
+
+Uma condição é uma pergunta de sim ou não feita sobre um contexto, como "o personagem tem a tag
+Atordoado?". A base é `Condition<TContext>`, do namespace `SpellBook.Core.Conditions`. Cada módulo
+que usa condições define o próprio contexto, uma `struct`, e as condições dele herdam
+`Condition<ContextoDoModulo>`. O Core não conhece nenhum contexto: ele só traz a base e a lógica de
+composição.
+
+| Membro | O que faz |
+|---|---|
+| `Evaluate(in context)` | Devolve `true` se a condição vale no contexto. Não pode alterar estado nem alocar memória. |
+| `DefaultFailureKey` | Chave de texto do motivo padrão quando a condição falha, ou `null`. Nunca é texto pronto. |
+| `Validate(result, propertyPath)` | Acrescenta erros e avisos de configuração no caminho do campo. |
+
+Uma condição é um predicado puro: não guarda motivo de falha, estado nem cache. O motivo fica em
+quem usa a condição, como a regra de ativação de uma habilidade.
+
+O Core traz três bases de composição, que avaliam as filhas em ordem e sem alocar:
+
+| Base | Resultado | Lista vazia ou condição nula |
+|---|---|---|
+| `AndConditionBase<TContext>` | Verdadeira se todas as filhas são. | Lista vazia é verdadeira; filha nula é ignorada. |
+| `OrConditionBase<TContext>` | Verdadeira se alguma filha é. | Lista vazia é falsa, com aviso na validação; filha nula é ignorada. |
+| `NotConditionBase<TContext>` | Inverte a filha. | Sem filha é falsa, com erro na validação. |
+
+O seletor de tipo do Inspector só oferece tipos concretos e não genéricos. Por isso cada módulo fecha
+as três bases sobre o próprio contexto, com classes como esta:
+
+```csharp
+[Serializable]
+public sealed class MyAndCondition : AndConditionBase<MyContext> { }
+```
+
+Um campo `[SerializeReference] Condition<MyContext>` oferece só as condições desse contexto.
+
+Para o Inspector mostrar a condição numa linha, use o `Line` do `[TypeCategory]`. `{Campo}` mostra o
+valor do campo serializado e `{Campo?texto}` mostra o texto quando o `bool` é verdadeiro:
+
+```csharp
+[Serializable]
+[TypeCategory("Exemplo", Line = "Vida abaixo de {Threshold}{Percent?%}")]
+public sealed class LowHealthCondition : Condition<MyContext>
+{
+    [SerializeField] private float threshold = 30f;
+    [SerializeField] private bool percent = true;
+
+    public override bool Evaluate(in MyContext context)
+    {
+        float health = percent ? context.Health / context.MaxHealth * 100f : context.Health;
+        return health < threshold;
+    }
+}
+```
 
 ### `Void` {#void}
 

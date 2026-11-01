@@ -98,16 +98,81 @@ Uma expressão em texto, como `([ATK] * 2) / [DEF]`. Cada token entre colchetes 
 ### 1.3 Gameplay Effects (GE) {#gameplayeffect}
 - **Instant:** modifica o valor base (ex: Dano, Cura).
 - **Duration/Infinite:** adiciona um modificador temporário ou permanente e pode conceder Tags enquanto ativo.
-- **Duração:** `Duration` é um [`ScalableFloat`](#scalablefloat) (constante, array ou curva por nível), e não mais um `float`. Por enquanto o ASC avalia no nível 1: `efeito.Duration = ScalableFloat.Constant(4f)` dura 4 s. Assets 2.x com `Duration: 4` abrem como a constante 4, sem passo manual.
-- **Valor do modificador:** na fonte `Value` (`SourceType.Value`, a antiga `Constant`), o valor é um [`ScalableFloat`](#scalablefloat) em `ValueSource.Value`, avaliado por enquanto no nível 1: `ValueSource.Value = ScalableFloat.Constant(-20f)`. Assets 2.x com `ConstantValue: -20` abrem como a constante -20. Para regravar os assets no formato novo, rode **SpellBook > Migrar assets do GAS (3.0)** (veja [Migração](../regras/migracao-2-para-3.md#valores-por-nivel)).
+- **Duração:** `Duration` é um [`ScalableFloat`](#scalablefloat) (constante, array, curva ou tabela por nível), e não mais um `float`. O ASC avalia no nível e na tabela do [contexto](#effectcontext): `efeito.Duration = ScalableFloat.Constant(4f)` dura 4 s em qualquer nível. Assets 2.x com `Duration: 4` abrem como a constante 4, sem passo manual.
+- **Valor do modificador:** na fonte `Value` (`SourceType.Value`, a antiga `Constant`), o valor é um [`ScalableFloat`](#scalablefloat) em `ValueSource.Value`, avaliado no nível e na tabela do [contexto](#effectcontext): `ValueSource.Value = ScalableFloat.Constant(-20f)`. As outras fontes estão em [Origens do valor](#origens-do-valor). Assets 2.x com `ConstantValue: -20` abrem como a constante -20. Para regravar os assets no formato novo, rode **SpellBook > Migrar assets do GAS (3.0)** (veja [Migração](../regras/migracao-2-para-3.md#valores-por-nivel)).
 - **Modificadores:** `AttributeEffectModifier` é uma classe. Uma entrada nula em `Modifiers` ou `PeriodicModifiers` é ignorada na aplicação, no tique, na remoção e no custo, e os outros modificadores valem.
 - **Nome e ícone:** em **Identidade**, `DisplayName` (texto, vazio por padrão e nunca nulo) e `Icon` (`Sprite`, nulo por padrão) identificam o efeito na UI. A instância ativa não repete os campos: leia `instancia.Effect.DisplayName` e `instancia.Effect.Icon`. Assets antigos abrem com nome vazio e sem ícone.
 - **Metadados:** em **Metadados**, `IsBuff`, `IsDebuff`, `IsHidden` e `IsPurgable` (somente leitura, também na instância ativa: `instancia.IsBuff`) são só dados para a UI e para quem purga efeitos; o ASC não os usa. O padrão, todos desligados, é "neutro, visível e não purgável". `IsBuff` e `IsDebuff` podem coexistir, mas o validador avisa.
 - **Stacking:** suporta acúmulo de instâncias (ex: Veneno que acumula até 5 vezes).
+- **Pilhas multiplicam a magnitude:** com `StacksMultiplyMagnitude` ligado (padrão), cada modificador do efeito, persistente ou do tique, vale o valor de uma pilha vezes `CurrentStacks`: `+5` de ataque com 3 pilhas vale `+15`. A multiplicação vem antes da [ordem de composição](#formulas), então três pilhas de `Multiply` 0,1 somam 0,3 no grupo `Multiply`: base 100 com `Add` 5 e `Multiply` 0,1 em 3 pilhas dá `(100 + 15) × 1,3 = 149,5`. Mudar as pilhas (reaplicação, `SetEffectStacks`, `RemoveEffectStacks`) recalcula o atributo e dispara o `OnValueChanged` dele antes do `OnEffectStacksChanged`. Desligue a opção quando a pilha só conta (para renovar a duração ou alimentar outra regra): o modificador vale uma pilha só.
+  > **Migração (3.0):** efeitos empilháveis existentes abrem com a opção ligada e passam a multiplicar. Para manter o valor da 2.x, desligue **Stacks Multiply Magnitude** nesses efeitos.
 - **Reaplicação e renovação:** aplicar de novo um efeito com duração ou infinito que já está ativo no ASC nunca cria uma segunda instância; `ApplyEffect` devolve a instância existente. Com `CanStack` ligado, ganha uma pilha (até `MaxStacks`) e, se `RefreshDurationOnStack`, renova a duração. Com `CanStack` desligado, só renova a duração, sempre. A renovação não reaplica modificadores nem tags e não roda `OnApplication` de novo, e o período continua contando de onde estava. A duração da renovação segue a regra **quem passa duração redefine; quem não passa mantém**: `ApplyEffect(efeito, duracao)` renova para `duracao` e a guarda como duração aplicada; `ApplyEffect(efeito)` volta à duração com que a instância foi aplicada (a do asset, se ninguém passou outra). Uma recarga aplicada com redução (ex: 6 s num asset de 8 s) volta a 6 s ao ser reaplicada.
 - **Efeitos periódicos:** com `Period` maior que zero, o efeito dá um tique a cada `Period` segundos: aplica os `PeriodicModifiers` no valor base e roda as `OnTickActions`, sempre o mesmo número de vezes. Um efeito com duração dá `Duration / Period` tiques, arredondado para baixo (4 s com período de 0,5 s: 8 tiques; 4 s com período de 1,5 s: 2 tiques, em 1,5 s e 3 s). O tique que cai no fim da duração acontece antes da expiração, e nenhum tique roda depois da remoção, nem quando uma ação do tique remove a própria instância. Cada `Tick` do ASC dá no máximo um tique por efeito; o tempo de um `Tick` que passa do fim da duração não gera tique a mais.
 - **Remoção:** `RemoveEffect(instancia)` roda as ações de limpeza e de `OnRemoval` e devolve as tags e os modificadores do efeito, uma vez só. Chamar de novo com a mesma instância, com `null` ou com uma instância de outro ASC não faz nada. Vale também quando a remoção explícita cai no mesmo quadro da expiração, ou quando uma ação de `OnRemoval` remove a própria instância.
 - **Remoção em grupo:** `RemoveEffectsWithTag(tag)` remove os efeitos que concedem a tag ou uma filha dela, e `RemoveEffects(asset)` remove as instâncias de um `GameplayEffect`. As duas devolvem a soma das pilhas removidas (3 pilhas de veneno: 3) e 0 quando não há nada a remover; tag inválida ou asset `null` também dão 0.
+
+#### Contexto e spec do efeito {#effectcontext}
+Toda aplicação carrega um `EffectContext` (`SpellBook.GAS.Effects`), guardado em `ActiveEffectInstance.Context`:
+
+| Campo | O que é |
+|---|---|
+| `Instigator` | Quem aplicou. Sem origem, o próprio alvo. |
+| `Target` | Quem recebe o efeito. |
+| `Ability` | Habilidade de origem; nula num efeito aplicado sem habilidade. |
+| `Level` | Nível da aplicação: o da habilidade ou, sem ela, o `DefaultLevel` do efeito (padrão 1). |
+| `HasImpactPoint`, `ImpactPoint` | Ponto de impacto, quando existe (o ponto de alvo da habilidade). |
+| `CallerValues` | Valores por nome de quem aplicou (SetByCaller); nulo quando não há. |
+| `Table` | A [tabela de valores](#abilityvalues) da habilidade; nula sem habilidade. |
+
+Duração, modificadores, tiques e custo são avaliados com o nível e a tabela do contexto. Os tiques usam o contexto guardado na instância, e a duração aplicada não muda se o nível da habilidade mudar depois.
+
+Para aplicar com contexto, monte um `EffectSpec` e passe por `in`:
+
+```csharp
+var valores = new SetByCallerValues();   // guarde e reutilize; Clear() não libera a memória
+valores.Set("Dano", 120f);
+EffectSpec spec = EffectSpec.Create(efeito, caster).WithCallerValues(valores);
+target.TryApplyEffect(in spec, out ActiveEffectInstance instancia);
+```
+
+`EffectSpec.Create(efeito, instigador)` monta o spec sem habilidade; `EffectSpec.FromAbility(efeito, contextoDaHabilidade)` usa o instigador, a habilidade, o nível e o ponto de alvo (é o que a `ApplyEffectAction` faz, inclusive no impacto de projétil). `WithCallerValues`, `WithImpactPoint` e `WithDurationOverride` devolvem uma cópia alterada. `ApplyEffect(efeito, origem)` e as outras formas antigas continuam valendo, com o mesmo resultado. Aplicar um spec instantâneo não aloca.
+
+##### Origens do valor {#origens-do-valor}
+O `ValueSource` de um modificador diz de onde vem o valor (`ModifierValueSource.SourceType`):
+
+| Fonte | Valor |
+|---|---|
+| `Value` | Um [`ScalableFloat`](#scalablefloat) no nível e na tabela do contexto. |
+| `Attribute` | Um atributo do **instigador** (quem aplicou). |
+| `Formula` | Uma [fórmula](#formulas) com o instigador como Source e o alvo como Target. |
+| `SetByCaller` | O valor do chamador com o nome `CallerName`. |
+| `TargetAttribute` | O atributo `TargetAttributeDefinition` do **alvo**. |
+
+`SetByCaller` e `TargetAttribute` entraram no fim da lista, então assets antigos abrem com a mesma fonte.
+
+- **SetByCaller:** o nome é texto e vem do código que aplica (letras, números e sublinhado). Sem o valor no spec, vale o `CallerDefault` quando `CallerHasDefault` está ligado; desligado, vale 0 e o Console avisa uma vez por modificador. Num efeito instantâneo, o valor é lido na aplicação. Num efeito com duração, a instância copia na aplicação os valores que os modificadores dela usam: mudar ou limpar o `SetByCallerValues` depois não muda o efeito, nem nos tiques. A busca é feita na aplicação, nunca por tique, e não aloca.
+- **Atributo do instigador nos tiques:** um modificador periódico com fonte `Attribute` ou `Formula` lê o instigador a cada tique ("o tique causa o ataque atual de quem lançou"). Se o instigador foi destruído, o tique usa o último valor lido, ou o da aplicação se ainda não houve tique, sem exceção. Nos efeitos com duração, os `Modifiers` em [Snapshot](#magnitude-ao-vivo) já guardam o valor da aplicação.
+- **Fora do ASC:** `ValueSource.GetValue(in contexto)` avalia como o ASC avalia, por exemplo com `instancia.Context`. `GetValue(origem, alvo)` avalia no nível 1, sem tabela e sem valores do chamador.
+
+##### Snapshot ou ao vivo {#magnitude-ao-vivo}
+Cada modificador de `Modifiers` num efeito com duração ou infinito escolhe em `Mode` (`MagnitudeMode`) quando o valor é calculado:
+
+| Modo | Valor |
+|---|---|
+| `Snapshot` (padrão) | Calculado uma vez, na aplicação. Assets antigos abrem assim, com os mesmos valores. |
+| `Live` | Recalculado quando muda algo de que ele depende, na hora e sem esperar o `Tick`. |
+
+Um buff "+100 % do ataque de quem lançou" (fonte `Attribute`) em `Snapshot` fica com o ataque da aplicação; em `Live`, acompanha o ataque do instigador enquanto durar. O modo ao vivo assina eventos, sem verificar nada por quadro, e um modificador em `Snapshot` não assina nada (`instancia.LiveBindingCount` é 0). O que dispara o recálculo depende da fonte:
+
+- `Attribute`: o `OnValueChanged` do atributo no instigador, mesmo em outro ASC;
+- `TargetAttribute`: o `OnValueChanged` do atributo no alvo;
+- `Formula`: os atributos do instigador que a fórmula declara em `GetSourceDependencies()`;
+- `Value` com `ScalableFloat` em `Array`, `Curve` ou `Table`, num efeito aplicado por habilidade: o `OnAbilityLevelChanged` do instigador para essa habilidade. Ao subir o nível, o modificador passa ao valor do nível novo e o `Context.Level` da instância é atualizado; em `Snapshot`, nada muda. A duração aplicada não muda em nenhum dos modos.
+
+`Value` constante e `SetByCaller` não dependem de nada que muda e não criam ligação. O recálculo não aloca, multiplica pelas pilhas como o valor da aplicação e dispara o `OnValueChanged` do atributo alterado. Com o instigador destruído, o modificador fica com o último valor. Remover o efeito desfaz as ligações.
+
+- **Ciclos:** se dois modificadores ao vivo se leem (A depende de B e B de A) ou um lê o atributo que ele mesmo altera, a segunda reavaliação no mesmo ciclo é cortada: o modificador fica com o último valor e o Console avisa uma vez por modificador, sem laço infinito.
+- **Onde não vale:** `Mode` não tem efeito em efeito instantâneo nem em `PeriodicModifiers`. Os tiques sempre avaliam o valor no tique, com o contexto da instância.
 
 #### Resultado da aplicação {#resultado-da-aplicacao}
 `ApplyEffect` devolve só a instância (ou `null`). Para saber o que aconteceu, use `TryApplyEffect(efeito, origem, out instancia)` ou `TryApplyEffect(efeito, duracao, origem, out instancia)`, que aplicam igual e devolvem um `EffectApplicationResult`. As checagens seguem esta ordem:
@@ -141,7 +206,7 @@ Para mudar a duração ou as pilhas de uma instância, chame o ASC alvo ou o ata
 - As três só valem para efeitos `HasDuration`; nos infinitos devolvem `false`. Nenhuma muda a `AppliedDuration`.
 - `SetEffectStacks(instancia, quantidade)` grava as pilhas, limitadas a `[0, MaxStacks]` (9 num efeito de máximo 5 vira 5), e dispara `OnEffectStacksChanged`. A mesma contagem devolve `false` e não dispara. `RemoveEffectStacks(instancia, quantidade)` tira pilhas; quantidade 0 ou negativa devolve `false`.
 - Pilhas em 0 removem a instância com o motivo `StacksDepleted`: primeiro devolve tags e modificadores, depois dispara `OnEffectStacksChanged(instancia, antes, 0)` e por último `OnEffectRemoved(instancia, StacksDepleted)`.
-- Mudar as pilhas muda só a contagem: as tags e os modificadores continuam um por instância.
+- As tags e os modificadores continuam um por instância. Com `StacksMultiplyMagnitude`, o valor de cada modificador acompanha a contagem, e o atributo é recalculado antes do `OnEffectStacksChanged`.
 
 Para buscar, passe uma lista sua: o ASC limpa a lista, preenche com as instâncias na ordem de aplicação e devolve a quantidade. As buscas não alocam e lançam `ArgumentNullException` com a lista nula.
 
@@ -176,6 +241,62 @@ habilidade.TryGetValue("Damage", 3, out float dano); // true, 100
 - O nome diferencia maiúsculas. `TryGetValue` com um nome que não existe devolve `false` e 0, sem aviso.
 - Uma entrada não lê outra: ela é avaliada sem tabela.
 - `Values.Validate` acusa nome vazio, nome com caractere fora de letras, dígitos e `_`, nome repetido e entrada em modo `Table`.
+
+##### Exemplo: Fireball com `damage` e `cooldown` {#exemplo-fireball}
+A Fireball tem `MaxLevel = 4` e duas entradas na tabela: `damage = 50 75 100 125` e `cooldown = 8 7 6 5`. A duração do efeito de recarga está em modo `Table` com o nome `cooldown`, e o valor do modificador de dano, em modo `Table` com o nome `damage`. Concedida em nível 3, a recarga aplicada é de 6 s e o dano é 100. Ao subir para o nível 4, a próxima recarga é de 5 s e o próximo dano, 125.
+
+```csharp
+fireball.Values.Add("damage", ScalableFloat.FromArray(50, 75, 100, 125));
+fireball.Values.Add("cooldown", ScalableFloat.FromArray(8, 7, 6, 5));
+fireball.CooldownEffect.Duration = ScalableFloat.FromTable("cooldown");
+asc.GiveAbility(fireball, 3); // recarga de 6 s, dano 100
+```
+
+##### No Inspector {#scalablefloat-inspector}
+Todo campo `ScalableFloat` aparece como um grupo com o seletor **Modo** e, abaixo, só os campos do modo escolhido:
+
+- **Constant:** o **Valor**.
+- **Array:** o texto **Valores por nível** ("10 8 6 4", com espaço, vírgula ou ponto e vírgula, e ponto como separador decimal) e a **Lista** dos mesmos valores, para editar um a um. O texto é aplicado ao sair do campo ou ao apertar Enter. Texto inválido mostra o erro abaixo do campo e não apaga os valores salvos, que continuam os últimos válidos.
+- **Curve:** a **Curva**.
+- **Table:** o **Nome**, escolhido numa lista, e o **Fallback**. Não há campo de texto para o nome. A lista traz os nomes das tabelas das habilidades do projeto que usam o efeito (recarga, custo ou efeito aplicado por uma ação). Se nenhuma habilidade usa o efeito, a lista fica vazia e um aviso explica o motivo. A lista é refeita quando os assets do projeto mudam.
+
+No fim do grupo, a **Prévia** mostra uma linha "nível → valor" do nível 1 até o maior `MaxLevel` das habilidades que usam o efeito. Sem habilidade, ela vai até o tamanho do array. No modo `Table`, a prévia lê a tabela da primeira dessas habilidades.
+
+No Inspector da habilidade, depois dos campos, o **Nível de prévia** (limitado a `[1, MaxLevel]`) mostra cada valor da tabela e a recarga nesse nível, sem a redução do atributo. Na Fireball, em nível 3, a prévia mostra `damage = 100`, `cooldown = 6` e `Recarga = 6 s`.
+
+#### Condições {#condicoes}
+As condições do GAS herdam `Condition<ConditionContext>` (veja [Condições](../inicio/conceitos.md#condicoes) no Core) e ficam no namespace `SpellBook.GAS.Conditions`. São perguntas de sim ou não: não mudam o ASC, não guardam motivo de falha e não alocam ao avaliar.
+
+O `ConditionContext` é o mesmo para toda condição do GAS e é somente leitura:
+
+| Campo | O que é |
+|---|---|
+| `Owner` | ASC que avalia a condição. |
+| `Ability` e `Level` | Habilidade em avaliação e o nível dela. A habilidade pode ser nula. |
+| `Spec` | `AbilitySpec` da habilidade concedida, ou nulo. |
+| `Target` | `AbilityTarget`: o ponto do alvo (`HasPoint` e `Point`), ou `AbilityTarget.None`. |
+| `Targets` | Unidades-alvo. Nunca é nulo: sem alvos, é uma lista vazia. |
+
+Condições prontas:
+
+| Condição | Verdadeira quando | Chave padrão do motivo |
+|---|---|---|
+| `TagQueryCondition` | As tags ativas do `Owner` satisfazem a **Query** (todas, alguma e nenhuma, como a [`GameplayTagQuery`](tags.md#gameplaytagquery)). Sem `Owner`, é falsa. | `gas.activation.tag_query` |
+| `HasTargetsCondition` | Há ao menos um alvo em `Targets`. Alvos destruídos não contam. | `gas.activation.has_targets` |
+| `AttributeThresholdCondition` | O valor atual do **Attribute** no `Owner` compara com o **Value** pela **Comparison** (`Greater`, `GreaterOrEqual`, `Less`, `LessOrEqual` ou `Equal`, com tolerância de 0,0001). Com **Use Ratio**, compara o valor dividido pelo máximo efetivo do atributo; máximo 0 ou menor dá falso. Atributo ausente no `Owner`, ou sem `Owner`, dá falso, sem aviso. | `gas.activation.attribute_threshold` |
+| `HasTargetPointCondition` | A ativação tem um ponto-alvo (`Target.HasPoint`). | `gas.activation.no_target` |
+| `CastRangeCondition` | O ponto-alvo está a até `CastRange` da habilidade, medido da posição do `Owner`. Com `CastRange` 0 ou menor, ou sem habilidade, é verdadeira, com ou sem ponto. Com alcance maior que 0 e sem ponto, é falsa. | `gas.activation.cast_range` |
+| `AndCondition` | Todas as filhas são verdadeiras. Lista vazia é verdadeira. | — |
+| `OrCondition` | Alguma filha é verdadeira. Lista vazia é falsa. | — |
+| `NotCondition` | A filha é falsa. Sem filha, é falsa. | — |
+
+O **Value** da `AttributeThresholdCondition` é uma fonte de valor, como a de um modificador: um valor por nível (inclusive `%nome` da tabela da habilidade), um atributo ou uma fórmula. Ele é avaliado com o `Owner` como instigador e alvo, na habilidade e no nível do contexto. Com a Mana em 30, "Mana `GreaterOrEqual` 20" passa e, com a Mana em 10, falha.
+
+O alcance mora na habilidade: o campo **Cast Range** da `GameplayAbility` (`CastRange`, um `ScalableFloat` avaliado no nível e na tabela da habilidade) nasce 0, "sem limite". A `CastRangeCondition` mede a distância em 3D até o ponto: com alcance 5, um ponto a 3 m passa e um a 8 m falha. Para que a falta de ponto tenha motivo próprio (`no_target`) em vez de `cast_range`, ponha a `HasTargetPointCondition` antes da `CastRangeCondition`.
+
+Filhas nulas nas composições são ignoradas. No Inspector, um campo `[SerializeReference] Condition<ConditionContext>` só oferece essas condições e as suas, e cada uma aparece numa linha, como "Alguma (2)" ou "Não Tem alvos".
+
+Para consultar as tags do ASC no código, sem alocar, use `asc.HasMatching(query)`, `asc.HasAll(tags)` e `asc.HasAny(tags)`. Os dois últimos aceitam um `GameplayTagContainer`, uma lista ou um array. Valem as regras de `HasTag`: a tag ativa filha satisfaz o pai e uma tag inválida não casa. A consulta vazia casa com qualquer ASC e a consulta nula não casa.
 
 ### 1.5 AbilitySystemComponent (ASC) {#abilitysystemcomponent}
 O `AbilitySystemComponent` é o componente que guarda as habilidades concedidas, os atributos,
@@ -309,7 +430,23 @@ O ASC só ativa habilidades concedidas. Use a lista `startingAbilities` no Inspe
 2. `BlockedTags` (`BlockedByTags`) e `RequiredTags` (`MissingRequiredTags`);
 3. `BlockAbilitiesWithTag` de habilidades ativas (`BlockedByActiveAbility`);
 4. cooldown (`OnCooldown`), pelas tags do `CooldownEffect` **ou** por uma instância ativa dele;
-5. custo (`CannotAffordCost`).
+5. custo (`CannotAffordCost`), só checado, sem aplicar;
+6. regras de ativação (`BlockedByCondition`), na ordem da lista; a primeira que falha decide.
+
+Nada é gasto antes do fim das checagens: a recarga e o custo saem só depois que todas passam. `NoCharges` fica reservado para as cargas.
+
+**Regras de ativação.** A lista **Activation Conditions** da habilidade (`ActivationConditions`) tem uma `ActivationRule` por entrada: uma [condição](#condicoes) e o motivo da falha, com **Failure Tag** (uma `GameplayTag`, opcional) e **Failure Key** (chave de texto). Com a chave vazia, vale a chave padrão da condição. Entradas vazias ou sem condição são puladas. As condições recebem o alvo da ativação no `ConditionContext.Target`.
+
+**Alvo e motivo.** `asc.TryActivateAbility(ability, alvo)` recebe um `AbilityTarget` (`AbilityTarget.AtPoint(ponto)` ou `AbilityTarget.None`); a forma com `Vector3` usa `AtPoint`. Para consultar sem ativar, `asc.GetActivationResult(ability, alvo, out ActivationFailure falha)` passa pelas mesmas checagens, na mesma ordem, sem mudar o ASC, sem disparar evento e sem alocar; `GetActivationResult(ability)` consulta sem alvo. O `ActivationFailure` traz:
+
+| Campo | O que é |
+|---|---|
+| `Result` e `IsSuccess` | O `AbilityActivationResult` e se a checagem passou. |
+| `ReasonTag` | Nas falhas de tag, a tag que decidiu: a de `BlockedTags` que o ASC tem, a de `RequiredTags` que falta ou o `AbilityTag` bloqueado por uma habilidade ativa. Nas de regra, a **Failure Tag**. Inválida quando não há. |
+| `ReasonKey` | A chave de texto da regra que falhou; nula nas outras falhas (a UI mapeia o `Result`). |
+| `ConditionIndex` e `Rule` | Índice e regra que falharam; -1 e nula fora das regras. |
+
+Com a regra "Mana `GreaterOrEqual` 20" e a tag `Fail.LowMana`, a Mana em 10 devolve `BlockedByCondition` com `ReasonTag` `Fail.LowMana`; em 30, a habilidade ativa.
 
 Em caso de sucesso, o ASC:
 
@@ -317,7 +454,7 @@ Em caso de sucesso, o ASC:
 - cancela as habilidades cujo `AbilityTag` está em `CancelAbilitiesWithTag`;
 - concede as `ActivationOwnedTags` enquanto a habilidade roda.
 
-Para consultar sem ativar, use `ability.CanActivate(asc, out var reason)`.
+Para consultar sem ativar, use `ability.CanActivate(asc, out var reason)` ou, com alvo e motivo, `ability.CanActivate(asc, alvo, out var falha)`.
 
 **Consultando a recarga.** `asc.GetCooldownTimeRemaining(cooldownEffect)` devolve o tempo restante e `asc.GetCooldownNormalized(cooldownEffect)`, o valor de 1 a 0 para barras de recarga. Contam a instância do próprio `CooldownEffect` e qualquer efeito ativo que conceda uma tag igual ou **filha** de alguma tag dele, pela mesma regra de `HasTag`: um efeito com `Cooldown.Fire` conta para uma recarga com a tag `Cooldown`, mas um efeito com `Cooldown` não conta para uma recarga com `Cooldown.Fire`. Com vários efeitos casando, vale o de maior tempo restante. O normalizado divide esse tempo pela duração aplicada da mesma instância, e não pela `Duration` do asset: com `CooldownReductionAttribute` em 0,25 sobre 8 s, a recarga aplicada é de 6 s e o normalizado vale 1 logo após ativar, 0,5 com 3 s restantes e 0 com a habilidade pronta. Sem recarga, ou com duração aplicada zero ou negativa, o normalizado é 0.
 
@@ -357,7 +494,7 @@ Sem política, a habilidade usa `CooldownReductionPolicy.ApplyDefault`: piso de 
 - Desativar o GameObject do ASC cancela todas as habilidades ativas.
 
 ### 4.5 Eventos do ASC
-`OnAbilityActivated(spec)`, `OnAbilityEnded(spec, cancelled)` e `OnAbilityFailed(ability, result)`, este último útil para feedback de UI ("Sem mana", "Em recarga").
+`OnAbilityActivated(spec)`, `OnAbilityEnded(spec, cancelled)` e `OnAbilityFailed(ability, falha)`, este último útil para feedback de UI ("Sem mana", "Em recarga"). A `falha` é a mesma `ActivationFailure` que `GetActivationResult(ability, alvo, out falha)` devolveria, com o `Result` e o motivo (`ReasonTag`, `ReasonKey`). Só `TryActivateAbility` dispara o evento; a consulta não.
 Para efeitos com duração ou infinitos, por instância:
 
 - `OnEffectApplied(instancia)`: uma instância nova entrou, depois de tags e modificadores. Efeito instantâneo, renovação e pilha não disparam.
@@ -409,7 +546,7 @@ public class PlayerCombat : MonoBehaviour {
 
     void Start() {
         asc.GiveAbility(fireball);
-        asc.OnAbilityFailed += (ability, reason) => Debug.Log($"{ability.DisplayName}: {reason}");
+        asc.OnAbilityFailed += (ability, falha) => Debug.Log($"{ability.DisplayName}: {falha.ReasonKey ?? falha.Result.ToString()}");
     }
 
     void Update() {
