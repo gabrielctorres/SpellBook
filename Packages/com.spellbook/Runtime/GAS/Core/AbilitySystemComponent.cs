@@ -504,35 +504,57 @@ namespace SpellBook.GAS.Core
 
         public float GetCooldownTimeRemaining(GameplayEffect cooldownEffect)
         {
-            if (cooldownEffect == null) return 0;
-
-            float maxTime = 0;
-            foreach (var instance in _activeEffects)
-            {
-                if (instance.Effect == cooldownEffect)
-                {
-                    maxTime = Mathf.Max(maxTime, instance.TimeRemaining);
-                }
-                else if (cooldownEffect.GrantedTags != null && instance.Effect.GrantedTags != null)
-                {
-                    // Check if any of the tags match
-                    foreach (var tag in cooldownEffect.GrantedTags)
-                    {
-                        if (instance.Effect.GrantedTags.Contains(tag))
-                        {
-                            maxTime = Mathf.Max(maxTime, instance.TimeRemaining);
-                        }
-                    }
-                }
-            }
-            return maxTime;
+            FindCooldownInstance(cooldownEffect, out float remaining);
+            return remaining;
         }
 
+        /// <summary>Tempo restante dividido pela duração aplicada da instância que define esse tempo; 0 sem recarga ou com duração aplicada não positiva.</summary>
         public float GetCooldownNormalized(GameplayEffect cooldownEffect)
         {
-            if (cooldownEffect == null || cooldownEffect.Duration <= 0) return 0;
-            float remaining = GetCooldownTimeRemaining(cooldownEffect);
-            return Mathf.Clamp01(remaining / cooldownEffect.Duration);
+            ActiveEffectInstance instance = FindCooldownInstance(cooldownEffect, out float remaining);
+            if (instance == null || instance.AppliedDuration <= 0f) return 0f;
+            return Mathf.Clamp01(remaining / instance.AppliedDuration);
+        }
+
+        /// <summary>
+        /// Instância de maior tempo restante entre a do próprio <paramref name="cooldownEffect"/> e as que concedem uma tag igual
+        /// ou descendente de alguma tag dele (mesma direção de <see cref="HasTag"/>). Empate fica com a primeira; sem casamento, null e 0.
+        /// </summary>
+        private ActiveEffectInstance FindCooldownInstance(GameplayEffect cooldownEffect, out float remaining)
+        {
+            remaining = 0f;
+            if (cooldownEffect == null) return null;
+
+            ActiveEffectInstance longest = null;
+            for (int i = 0; i < _activeEffects.Count; i++)
+            {
+                ActiveEffectInstance instance = _activeEffects[i];
+                if (!IsCooldownMatch(instance.Effect, cooldownEffect)) continue;
+                if (longest != null && instance.TimeRemaining <= remaining) continue;
+
+                longest = instance;
+                remaining = instance.TimeRemaining;
+            }
+            if (remaining < 0f) remaining = 0f;
+            return longest;
+        }
+
+        private static bool IsCooldownMatch(GameplayEffect effect, GameplayEffect cooldownEffect)
+        {
+            if (effect == cooldownEffect) return true;
+
+            List<GameplayTag> granted = effect.GrantedTags;
+            List<GameplayTag> cooldownTags = cooldownEffect.GrantedTags;
+            if (granted == null || cooldownTags == null) return false;
+
+            for (int g = 0; g < granted.Count; g++)
+            {
+                for (int c = 0; c < cooldownTags.Count; c++)
+                {
+                    if (granted[g].Matches(cooldownTags[c])) return true;
+                }
+            }
+            return false;
         }
 
         private void ApplyInstantEffect(GameplayEffect effect, AbilitySystemComponent source)
