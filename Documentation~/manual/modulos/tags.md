@@ -65,6 +65,115 @@ O `AbilitySystemComponent` usa a mesma regra: `HasTag(State)` é `true` quando o
 `State.Stunned`. Assim, uma habilidade com `State` em **Blocked Tags** fica bloqueada por
 qualquer estado filho.
 
+## GameplayTagContainer {#gameplaytagcontainer}
+
+Um `GameplayTagContainer` é um conjunto de tags sem repetição, que guarda as tags na ordem em que
+foram adicionadas. Use-o quando um campo ou uma variável precisa de várias tags e de perguntas como
+"tem alguma destas?".
+
+```csharp
+using SpellBook.Tags;
+
+var tags = new GameplayTagContainer(fireFlame, stunned);   // repetidas e inválidas são ignoradas
+tags.Add(slowed);      // true: entrou no fim
+tags.Add(slowed);      // false: já estava
+tags.Remove(stunned);  // true: saiu (só a tag exata; filhas dela ficam)
+
+bool burning = tags.HasTag(fire);   // true se o conjunto tem Elemento.Fogo ou uma filha dele
+```
+
+Todas as perguntas usam a mesma regra do [Matches](#matches): uma tag do conjunto casa com a tag
+perguntada se é ela ou descende dela. A exceção é `HasTagExact`, que compara sem hierarquia.
+
+Exemplo com um conjunto que tem só `Elemento.Fogo.Chama`:
+
+| Pergunta | Resposta |
+|---|---|
+| `HasTag(Elemento.Fogo.Chama)` | `true` |
+| `HasTag(Elemento.Fogo)` | `true` (o pai casa) |
+| `HasTag(Elemento)` | `true` |
+| `HasTag(Elemento.Gelo)` | `false` |
+| `HasTagExact(Elemento.Fogo)` | `false` (sem hierarquia) |
+
+`HasAny(lista)` é `true` se o conjunto tem alguma tag da lista, e `HasAll(lista)` se tem todas.
+Com um conjunto `{A, B}`: `HasAny({B, C})` é `true`, `HasAll({B, C})` é `false` e
+`HasAll({A, B})` é `true`. Com a lista vazia (ou `null`), `HasAll` é `true` e `HasAny` é `false`.
+A lista pode ser outro conjunto, uma `List<GameplayTag>` ou um array, como os campos de tag do GAS.
+
+- **Tag inválida nunca casa**: `Add` a recusa, e uma tag inválida na pergunta dá `false`.
+- **Sem alocação**: as perguntas e o `foreach` não geram lixo; pode chamar a cada quadro.
+- **Igualdade**: `==` compara a referência do conjunto, não o conteúdo. Para comparar conteúdo,
+  use `a.HasAll(b) && b.HasAll(a)`.
+- Dados editados à mão podem ter linhas vazias ou repetidas. O conjunto não as corrige sozinho:
+  a linha vazia nunca casa, e `Count` conta o que está guardado.
+
+## GameplayTagQuery {#gameplaytagquery}
+
+Um `GameplayTagQuery` é uma consulta sobre um conjunto de tags, montada com três listas:
+
+- **Todas** (`All`): o conjunto precisa ter todas estas tags.
+- **Alguma** (`Any`): o conjunto precisa ter pelo menos uma destas tags.
+- **Nenhuma** (`None`): o conjunto não pode ter nenhuma destas tags.
+
+`query.Matches(tags)` é `true` quando as três condições valem ao mesmo tempo. Uma lista vazia não
+restringe; por isso, uma consulta com as três listas vazias (`IsEmpty` é `true`) casa com qualquer
+conjunto, até com o vazio. As listas usam a mesma regra do [Matches](#matches): uma tag filha
+satisfaz **Todas** e **Alguma** pelo pai, e é barrada por **Nenhuma** pelo pai.
+
+Exemplo: atacar só um alvo atordoado, com fogo ou gelo, e que não seja imune.
+
+```csharp
+using SpellBook.Tags;
+
+var query = new GameplayTagQuery();
+query.All.Add(stunned);
+query.Any.Add(fire);
+query.Any.Add(ice);
+query.None.Add(immune);
+
+query.Matches(new GameplayTagContainer(stunned, ice));           // true
+query.Matches(new GameplayTagContainer(stunned, ice, immune));   // false: tem Imune
+query.Matches(new GameplayTagContainer(stunned));                // false: falta fogo ou gelo
+```
+
+- `Matches` aceita um `GameplayTagContainer`, uma `List<GameplayTag>` ou um array (`null` conta
+  como vazio). `Matches(tag)` pergunta por uma tag só, sem montar um conjunto.
+- **Tag inválida nunca casa**: no conjunto perguntado ela não satisfaz nada, numa linha vazia de
+  **Todas** ou **Alguma** ela não é satisfeita por nada, e numa linha vazia de **Nenhuma** ela não
+  barra nada.
+- **Sem alocação**: `Matches` e `IsEmpty` não geram lixo; pode chamar a cada quadro.
+- A consulta é só dados (três listas), sem texto nem expressão.
+
+## Ferramentas próprias {#ferramentas-proprias}
+
+Uma ferramenta sua, como um painel de debug, pode ler a hierarquia usando só a API pública:
+
+- `tag.GetDefinition()` devolve o asset `GameplayTagDefinition` da tag, ou `null` se a tag é
+  inválida.
+- `definition.Parent` devolve a tag pai, ou `null` na raiz.
+
+Exemplo: escrever no Console o nome de uma tag e a cadeia de pais dela.
+
+```csharp
+using System.Text;
+using SpellBook.Tags;
+using UnityEngine;
+
+public static class TagDebug
+{
+    public static void LogChain(GameplayTag tag)
+    {
+        var text = new StringBuilder(tag.Name);
+        for (GameplayTagDefinition parent = tag.GetDefinition()?.Parent; parent != null; parent = parent.Parent)
+        {
+            text.Append(" → ").Append(parent.name);
+        }
+
+        Debug.Log(text.ToString());   // State.Debuff.Slowed → State.Debuff → State
+    }
+}
+```
+
 ## Armadilhas {#armadilhas}
 
 - **Uma tag é um asset.** Duas definições com o mesmo nome são duas tags diferentes. Crie cada tag

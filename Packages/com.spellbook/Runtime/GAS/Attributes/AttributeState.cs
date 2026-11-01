@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using SpellBook.GAS.Core;
 
@@ -19,7 +18,7 @@ namespace SpellBook.GAS.Attributes
         public AttributeState(AttributeDefinition definition, float baseValue, AbilitySystemComponent owner)
         {
             Definition = definition;
-            BaseValue = baseValue;
+            BaseValue = ClampToLimits(baseValue);
             _owner = owner;
             Recalculate();
         }
@@ -30,7 +29,7 @@ namespace SpellBook.GAS.Attributes
             {
                 Debug.LogWarning($"Trying to set base value of a Derived attribute: {Definition.DisplayName}. This will be overwritten by formula.");
             }
-            BaseValue = newValue;
+            BaseValue = ClampToLimits(newValue);
             Recalculate();
         }
 
@@ -48,7 +47,14 @@ namespace SpellBook.GAS.Attributes
 
         public void RemoveModifiersFromSource(object source)
         {
-            _modifiers.RemoveAll(m => m.Source == source);
+            // De trás para frente com RemoveAt: sem lambda, sem alocação
+            for (int i = _modifiers.Count - 1; i >= 0; i--)
+            {
+                if (ReferenceEquals(_modifiers[i].Source, source))
+                {
+                    _modifiers.RemoveAt(i);
+                }
+            }
             Recalculate();
         }
 
@@ -62,35 +68,51 @@ namespace SpellBook.GAS.Attributes
                 baseToUse = Definition.Formula.Calculate(_owner, _owner);
             }
 
+            // Um único for por índice, sem LINQ, para não alocar no recálculo.
+            // Cada categoria soma na ordem da lista, como antes (mesmo resultado em ponto flutuante).
             float finalValue = baseToUse;
             float multiplierSum = 1f;
+            bool hasOverride = false;
+            float overrideValue = 0f;
 
-            // 1. Additive Modifiers
-            foreach (var mod in _modifiers.Where(m => m.Operation == ModifierOperation.Add))
+            for (int i = 0; i < _modifiers.Count; i++)
             {
-                finalValue += mod.Value;
+                AttributeModifier mod = _modifiers[i];
+                switch (mod.Operation)
+                {
+                    case ModifierOperation.Add:
+                        finalValue += mod.Value;
+                        break;
+                    case ModifierOperation.Multiply:
+                        // Percentuais somados: 1 + 0.1 + 0.2 = 1.3x
+                        multiplierSum += mod.Value;
+                        break;
+                    case ModifierOperation.Override:
+                        // O último da lista vence
+                        hasOverride = true;
+                        overrideValue = mod.Value;
+                        break;
+                }
             }
 
-            // 2. Multiplicative Modifiers (Summing percentages first: 1 + 0.1 + 0.2 = 1.3x)
-            foreach (var mod in _modifiers.Where(m => m.Operation == ModifierOperation.Multiply))
-            {
-                multiplierSum += mod.Value;
-            }
             finalValue *= multiplierSum;
-
-            // 3. Override Modifiers (Last applied wins)
-            var overrideMod = _modifiers.LastOrDefault(m => m.Operation == ModifierOperation.Override);
-            if (overrideMod != null)
+            if (hasOverride)
             {
-                finalValue = overrideMod.Value;
+                finalValue = overrideValue;
             }
 
-            CurrentValue = Mathf.Clamp(finalValue, Definition.MinValue, Definition.MaxValue);
+            CurrentValue = ClampToLimits(finalValue);
 
             if (!Mathf.Approximately(oldVal, CurrentValue))
             {
                 OnValueChanged?.Invoke(oldVal, CurrentValue);
             }
+        }
+
+        // Único ponto que aplica os limites da definição, na base e no valor atual
+        private float ClampToLimits(float value)
+        {
+            return Mathf.Clamp(value, Definition.MinValue, Definition.MaxValue);
         }
     }
 }

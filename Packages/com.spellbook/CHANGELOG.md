@@ -7,8 +7,24 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); 
 
 ## [Não lançado]
 
+### Quebras
+- **Base limitada:** `AttributeState.BaseValue` nunca sai de `[MinValue, MaxValue]`. Quem contava com a "dívida" de vida abaixo de 0 vê as curas valerem na hora. Valor inicial fora do intervalo nasce limitado e gera um aviso no Console, uma vez por atributo.
+- **Reaplicar sem `CanStack` renova** a instância existente em vez de criar outra. Quem empilhava "na marra" com `CanStack` desligado passa a ter uma instância só; para empilhar, ligue `CanStack`.
+- **Renovação pela duração aplicada:** a renovação de um efeito (pilha com `RefreshDurationOnStack` ou reaplicação sem `CanStack`) volta à duração com que ele foi aplicado, e não mais à `Duration` do asset. `ApplyEffect` com duração passada redefine essa duração.
+- **Recarga normalizada pela duração aplicada:** `GetCooldownNormalized` divide o tempo restante pela duração com que a recarga foi aplicada, e não mais pela `Duration` do asset; com redução de recarga, vai de 1 a 0 em vez de começar abaixo de 1.
+- **Recarga com tags hierárquicas:** `GetCooldownTimeRemaining` (e, com ele, `GetCooldownNormalized`) passa a contar efeitos que concedem tags filhas das tags da recarga, como `HasTag`; antes só a tag igual contava. Com vários efeitos casando, vale o de maior tempo restante.
+- **Último tique antes da expiração:** o tique que cai no fim da duração acontece antes da expiração. Com `Duration` múltiplo de `Period`, os modificadores periódicos passam a ser aplicados uma vez a mais (4 s com período de 0,5 s: 8 em vez de 7), o mesmo número das `OnTickActions`. As `OnTickActions` deixam de rodar depois da remoção do efeito. Com `Duration` que não é múltiplo de `Period`, a contagem não muda.
+- **`CreateDerived` copia o `CustomData`:** o contexto derivado (como o do impacto de projétil) recebe uma cópia rasa dos dados customizados, com o mesmo comparador; antes nascia vazio. Chaves acrescentadas num contexto não aparecem no outro, e valores que são objetos continuam compartilhados.
+
 ### Adicionado
+- **`GameplayTagQuery`:** consulta de tags com três listas, `All` (todas), `Any` (alguma) e `None` (nenhuma), com hierarquia. `Matches` aceita um conjunto, `List<GameplayTag>`, array ou uma tag só; lista vazia não restringe e a consulta vazia (`IsEmpty`) casa com qualquer conjunto. `Matches` não aloca.
+- **`GameplayTagContainer`:** conjunto de tags sem repetição, na ordem de inserção, com `HasTag` (hierárquico), `HasTagExact`, `HasAny` e `HasAll` (aceitam outro conjunto, `List<GameplayTag>` ou array), `Add`, `Remove` e `Clear`. As consultas e o `foreach` não alocam.
+- **Tags para ferramentas próprias:** `GameplayTag.GetDefinition()` passa a ser público (devolve `null` para tag inválida) e `GameplayTagDefinition` ganha a propriedade `Parent` (nula na raiz), para percorrer a cadeia de pais só com API pública.
 - Sample **Sandbox** (Package Manager → SpellBook → Samples): cena 3D que liga GAS, Events, Pooling e Time, com Bola de Fogo, queimadura, canal de dano recebido, pausa e câmera lenta. Entrada pelo Input Manager legado.
+
+### Corrigido
+- **Recálculo e tique sem alocação:** `AttributeState.Recalculate`, `AddModifier`, `RemoveModifier` e `RemoveModifiersFromSource` não alocam mais memória gerenciada depois do primeiro uso, e o `Tick` do ASC com um efeito periódico de valor constante ou por atributo deixa de gerar lixo a cada quadro. Os valores calculados não mudam.
+- **`RemoveEffect` idempotente:** ignora `null` e instâncias que não estão ativas no ASC. Antes, `null` lançava `NullReferenceException` e uma segunda chamada (ou a remoção no mesmo quadro da expiração) rodava de novo a limpeza e as ações de `OnRemoval` e devolvia as tags outra vez.
 
 ## [2.0.0] - 2026-10-14
 

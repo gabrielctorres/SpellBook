@@ -23,8 +23,8 @@ namespace SpellBook.Tags
         public static bool operator !=(GameplayTag a, GameplayTag b) => !a.Equals(b);
         public override string ToString() => Name;
         
-        // Acesso interno à definição, usado por Matches.
-        internal GameplayTagDefinition GetDefinition() => definition;
+        /// <summary>Definição da tag; <c>null</c> se a tag é inválida.</summary>
+        public GameplayTagDefinition GetDefinition() => definition;
     }
 }
 

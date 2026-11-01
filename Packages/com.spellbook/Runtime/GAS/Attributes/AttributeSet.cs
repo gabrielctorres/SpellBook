@@ -22,6 +22,7 @@ namespace SpellBook.GAS.Attributes
 
         private AbilitySystemComponent _owner;
         private HashSet<AttributeDefinition> _warnedMissing;
+        private HashSet<AttributeDefinition> _warnedClamped;
 
         private void Awake()
         {
@@ -33,7 +34,12 @@ namespace SpellBook.GAS.Attributes
             {
                 if (attr.Definition != null)
                 {
-                    _attributeMap[attr.Definition] = new AttributeState(attr.Definition, attr.InitialValue, _owner);
+                    var state = new AttributeState(attr.Definition, attr.InitialValue, _owner);
+                    _attributeMap[attr.Definition] = state;
+                    if (attr.Definition.Type == AttributeType.Primary && state.BaseValue != attr.InitialValue)
+                    {
+                        WarnClamped(attr.Definition, attr.InitialValue, state.BaseValue);
+                    }
                 }
             }
 
@@ -78,6 +84,14 @@ namespace SpellBook.GAS.Attributes
             if (_warnedMissing == null) _warnedMissing = new HashSet<AttributeDefinition>();
             if (!_warnedMissing.Add(def)) return;
             Debug.LogWarning($"[GAS] Atributo '{def.name}' não está em startingAttributes de '{name}'. Retornando 0.", this);
+        }
+
+        // Avisa uma única vez por atributo, mesmo que ele apareça repetido em startingAttributes
+        private void WarnClamped(AttributeDefinition def, float initialValue, float clampedValue)
+        {
+            if (_warnedClamped == null) _warnedClamped = new HashSet<AttributeDefinition>();
+            if (!_warnedClamped.Add(def)) return;
+            Debug.LogWarning($"[GAS] Valor inicial {initialValue} de '{def.name}' em '{name}' está fora de [{def.MinValue}, {def.MaxValue}] e foi limitado para {clampedValue}.", this);
         }
 
         public void AddModifier(AttributeDefinition def, AttributeModifier mod)

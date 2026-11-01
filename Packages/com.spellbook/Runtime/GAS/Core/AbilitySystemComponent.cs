@@ -107,6 +107,8 @@ namespace SpellBook.GAS.Core
             _tickedTime += deltaTime;
             for (int i = _activeEffects.Count - 1; i >= 0; i--)
             {
+                // Uma remoção no Update de uma instância pode tirar outras da lista
+                if (i >= _activeEffects.Count) continue;
                 _activeEffects[i].Update(deltaTime);
             }
         }
@@ -447,10 +449,19 @@ namespace SpellBook.GAS.Core
         #region Gameplay Effects
         public ActiveEffectInstance ApplyEffect(GameplayEffect effect, AbilitySystemComponent source = null)
         {
-            return ApplyEffect(effect, effect.Duration, source);
+            return ApplyEffectCore(effect, false, 0f, source);
         }
 
         public ActiveEffectInstance ApplyEffect(GameplayEffect effect, float durationOverride, AbilitySystemComponent source = null)
+        {
+            return ApplyEffectCore(effect, true, durationOverride, source);
+        }
+
+        /// <summary>
+        /// Aplicação única dos dois <see cref="ApplyEffect(GameplayEffect, AbilitySystemComponent)"/>. Com instância ativa,
+        /// quem passa duração redefine a duração aplicada e quem não passa mantém a da instância.
+        /// </summary>
+        private ActiveEffectInstance ApplyEffectCore(GameplayEffect effect, bool hasOverride, float durationOverride, AbilitySystemComponent source)
         {
             if (effect == null) return null;
             if (source == null) source = this;
@@ -463,51 +474,87 @@ namespace SpellBook.GAS.Core
                 ApplyInstantEffect(effect, source);
                 return null;
             }
-            else
-            {
-                // Handle Stacking
-                var existing = _activeEffects.Find(e => e.Effect == effect);
-                if (existing != null && effect.CanStack)
-                {
-                    existing.AddStack();
-                    return existing;
-                }
 
-                return ApplyDurationEffect(effect, durationOverride, source);
+            ActiveEffectInstance existing = FindActiveInstance(effect);
+            if (existing == null)
+            {
+                return ApplyDurationEffect(effect, hasOverride ? durationOverride : effect.Duration, source);
             }
+
+            if (effect.CanStack)
+            {
+                if (hasOverride && effect.RefreshDurationOnStack) existing.Renew(durationOverride);
+                existing.AddStack();
+                return existing;
+            }
+
+            // Sem CanStack: renova a instância existente, sem reaplicar modificadores, tags nem OnApplication.
+            existing.Renew(hasOverride ? durationOverride : existing.AppliedDuration);
+            return existing;
+        }
+
+        private ActiveEffectInstance FindActiveInstance(GameplayEffect effect)
+        {
+            for (int i = 0; i < _activeEffects.Count; i++)
+            {
+                if (_activeEffects[i].Effect == effect) return _activeEffects[i];
+            }
+            return null;
         }
 
         public float GetCooldownTimeRemaining(GameplayEffect cooldownEffect)
         {
-            if (cooldownEffect == null) return 0;
-
-            float maxTime = 0;
-            foreach (var instance in _activeEffects)
-            {
-                if (instance.Effect == cooldownEffect)
-                {
-                    maxTime = Mathf.Max(maxTime, instance.TimeRemaining);
-                }
-                else if (cooldownEffect.GrantedTags != null && instance.Effect.GrantedTags != null)
-                {
-                    // Check if any of the tags match
-                    foreach (var tag in cooldownEffect.GrantedTags)
-                    {
-                        if (instance.Effect.GrantedTags.Contains(tag))
-                        {
-                            maxTime = Mathf.Max(maxTime, instance.TimeRemaining);
-                        }
-                    }
-                }
-            }
-            return maxTime;
+            FindCooldownInstance(cooldownEffect, out float remaining);
+            return remaining;
         }
 
+        /// <summary>Tempo restante dividido pela duração aplicada da instância que define esse tempo; 0 sem recarga ou com duração aplicada não positiva.</summary>
         public float GetCooldownNormalized(GameplayEffect cooldownEffect)
         {
-            if (cooldownEffect == null || cooldownEffect.Duration <= 0) return 0;
-            float remaining = GetCooldownTimeRemaining(cooldownEffect);
-            return Mathf.Clamp01(remaining / cooldownEffect.Duration);
+            ActiveEffectInstance instance = FindCooldownInstance(cooldownEffect, out float remaining);
+            if (instance == null || instance.AppliedDuration <= 0f) return 0f;
+            return Mathf.Clamp01(remaining / instance.AppliedDuration);
+        }
+
+        /// <summary>
+        /// Instância de maior tempo restante entre a do próprio <paramref name="cooldownEffect"/> e as que concedem uma tag igual
+        /// ou descendente de alguma tag dele (mesma direção de <see cref="HasTag"/>). Empate fica com a primeira; sem casamento, null e 0.
+        /// </summary>
+        private ActiveEffectInstance FindCooldownInstance(GameplayEffect cooldownEffect, out float remaining)
+        {
+            remaining = 0f;
+            if (cooldownEffect == null) return null;
+
+            ActiveEffectInstance longest = null;
+            for (int i = 0; i < _activeEffects.Count; i++)
+            {
+                ActiveEffectInstance instance = _activeEffects[i];
+                if (!IsCooldownMatch(instance.Effect, cooldownEffect)) continue;
+                if (longest != null && instance.TimeRemaining <= remaining) continue;
+
+                longest = instance;
+                remaining = instance.TimeRemaining;
+            }
+            if (remaining < 0f) remaining = 0f;
+            return longest;
+        }
+
+        private static bool IsCooldownMatch(GameplayEffect effect, GameplayEffect cooldownEffect)
+        {
+            if (effect == cooldownEffect) return true;
+
+            List<GameplayTag> granted = effect.GrantedTags;
+            List<GameplayTag> cooldownTags = cooldownEffect.GrantedTags;
+            if (granted == null || cooldownTags == null) return false;
+
+            for (int g = 0; g < granted.Count; g++)
+            {
+                for (int c = 0; c < cooldownTags.Count; c++)
+                {
+                    if (granted[g].Matches(cooldownTags[c])) return true;
+                }
+            }
+            return false;
         }
 
         private void ApplyInstantEffect(GameplayEffect effect, AbilitySystemComponent source)
@@ -592,12 +639,20 @@ namespace SpellBook.GAS.Core
             return false;
         }
 
+        /// <summary>
+        /// Remove a instância ativa: roda a limpeza e as ações de remoção e devolve tags e modificadores.
+        /// Ignora <c>null</c> e instâncias que não estão ativas neste ASC (já removidas, de outro ASC ou nunca aplicadas).
+        /// </summary>
         public void RemoveEffect(ActiveEffectInstance instance)
         {
+            if (instance == null) return;
+            // Sai da lista antes da limpeza: uma remoção repetida ou reentrante cai aqui e não refaz nada
+            if (!_activeEffects.Remove(instance)) return;
+
+            instance.IsRemoved = true;
             instance.Cleanup();
             instance.OnEffectExpired -= RemoveEffect;
             instance.OnTick -= HandleEffectTick;
-            _activeEffects.Remove(instance);
 
             RemoveTags(instance.Effect.GrantedTags);
 
