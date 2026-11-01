@@ -13,14 +13,34 @@ MonoBehaviour:
   m_Name: GE_BolaDeFogo_Dano
   m_EditorClassIdentifier: SpellBook.GAS::SpellBook.GAS.Effects.GameplayEffect
   DurationPolicy: 0
-  Duration: 0
+  duration:
+    mode: 0
+    constant: 0
+    values: []
+    curve:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  legacyDuration: NaN
   Period: 0
   Modifiers:
   - Attribute: {fileID: 11400000, guid: 9e242287da19ef24897717e50ec580eb, type: 2}
     Operation: 0
     ValueSource:
       Type: 0
-      ConstantValue: -20
+      Value:
+        mode: 0
+        constant: -20
+        values: []
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      legacyConstant: NaN
       Attribute: {fileID: 0}
       Formula: {fileID: 0}
   PeriodicModifiers: []

@@ -13,7 +13,17 @@ MonoBehaviour:
   m_Name: GE_Queimadura
   m_EditorClassIdentifier: SpellBook.GAS::SpellBook.GAS.Effects.GameplayEffect
   DurationPolicy: 2
-  Duration: 4
+  duration:
+    mode: 0
+    constant: 4
+    values: []
+    curve:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  legacyDuration: NaN
   Period: 0.5
   Modifiers: []
   PeriodicModifiers:
@@ -21,7 +31,17 @@ MonoBehaviour:
     Operation: 0
     ValueSource:
       Type: 0
-      ConstantValue: -5
+      Value:
+        mode: 0
+        constant: -5
+        values: []
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      legacyConstant: NaN
       Attribute: {fileID: 0}
       Formula: {fileID: 0}
   OnApplication: []

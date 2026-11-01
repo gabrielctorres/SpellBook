@@ -13,7 +13,17 @@ MonoBehaviour:
   m_Name: GE_BolaDeFogo_Recarga
   m_EditorClassIdentifier: SpellBook.GAS::SpellBook.GAS.Effects.GameplayEffect
   DurationPolicy: 2
-  Duration: 1.5
+  duration:
+    mode: 0
+    constant: 1.5
+    values: []
+    curve:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  legacyDuration: NaN
   Period: 0
   Modifiers: []
   PeriodicModifiers: []
