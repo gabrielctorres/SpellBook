@@ -449,10 +449,19 @@ namespace SpellBook.GAS.Core
         #region Gameplay Effects
         public ActiveEffectInstance ApplyEffect(GameplayEffect effect, AbilitySystemComponent source = null)
         {
-            return ApplyEffect(effect, effect.Duration, source);
+            return ApplyEffectCore(effect, false, 0f, source);
         }
 
         public ActiveEffectInstance ApplyEffect(GameplayEffect effect, float durationOverride, AbilitySystemComponent source = null)
+        {
+            return ApplyEffectCore(effect, true, durationOverride, source);
+        }
+
+        /// <summary>
+        /// Aplicação única dos dois <see cref="ApplyEffect(GameplayEffect, AbilitySystemComponent)"/>. Com instância ativa,
+        /// quem passa duração redefine a duração aplicada e quem não passa mantém a da instância.
+        /// </summary>
+        private ActiveEffectInstance ApplyEffectCore(GameplayEffect effect, bool hasOverride, float durationOverride, AbilitySystemComponent source)
         {
             if (effect == null) return null;
             if (source == null) source = this;
@@ -465,18 +474,32 @@ namespace SpellBook.GAS.Core
                 ApplyInstantEffect(effect, source);
                 return null;
             }
-            else
-            {
-                // Handle Stacking
-                var existing = _activeEffects.Find(e => e.Effect == effect);
-                if (existing != null && effect.CanStack)
-                {
-                    existing.AddStack();
-                    return existing;
-                }
 
-                return ApplyDurationEffect(effect, durationOverride, source);
+            ActiveEffectInstance existing = FindActiveInstance(effect);
+            if (existing == null)
+            {
+                return ApplyDurationEffect(effect, hasOverride ? durationOverride : effect.Duration, source);
             }
+
+            if (effect.CanStack)
+            {
+                if (hasOverride && effect.RefreshDurationOnStack) existing.Renew(durationOverride);
+                existing.AddStack();
+                return existing;
+            }
+
+            // Sem CanStack: renova a instância existente, sem reaplicar modificadores, tags nem OnApplication.
+            existing.Renew(hasOverride ? durationOverride : existing.AppliedDuration);
+            return existing;
+        }
+
+        private ActiveEffectInstance FindActiveInstance(GameplayEffect effect)
+        {
+            for (int i = 0; i < _activeEffects.Count; i++)
+            {
+                if (_activeEffects[i].Effect == effect) return _activeEffects[i];
+            }
+            return null;
         }
 
         public float GetCooldownTimeRemaining(GameplayEffect cooldownEffect)

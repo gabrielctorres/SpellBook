@@ -12,6 +12,9 @@ namespace SpellBook.GAS.Effects
         public AbilitySystemComponent Target { get; private set; }
         public AbilitySystemComponent Source { get; private set; }
 
+        /// <summary>Duração com que a instância foi aplicada ou renovada pela última vez; a renovação volta a ela.</summary>
+        internal float AppliedDuration { get; private set; }
+
         private float _timeSinceLastTick;
         private readonly Dictionary<EffectAction, List<object>> _actionData = new Dictionary<EffectAction, List<object>>();
 
@@ -26,6 +29,7 @@ namespace SpellBook.GAS.Effects
             Effect = effect;
             Source = source;
             Target = target;
+            AppliedDuration = duration;
             TimeRemaining = duration;
             _timeSinceLastTick = 0;
 
@@ -67,8 +71,15 @@ namespace SpellBook.GAS.Effects
 
             if (Effect.RefreshDurationOnStack)
             {
-                TimeRemaining = Effect.Duration;
+                TimeRemaining = AppliedDuration;
             }
+        }
+
+        /// <summary>Volta o tempo restante para <paramref name="appliedDuration"/>, que passa a ser a duração aplicada. Não mexe em pilhas, no período nem roda ações.</summary>
+        internal void Renew(float appliedDuration)
+        {
+            AppliedDuration = appliedDuration;
+            TimeRemaining = appliedDuration;
         }
 
         public void Update(float deltaTime)

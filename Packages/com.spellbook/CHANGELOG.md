@@ -9,6 +9,8 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); 
 
 ### Quebras
 - **Base limitada:** `AttributeState.BaseValue` nunca sai de `[MinValue, MaxValue]`. Quem contava com a "dívida" de vida abaixo de 0 vê as curas valerem na hora. Valor inicial fora do intervalo nasce limitado e gera um aviso no Console, uma vez por atributo.
+- **Reaplicar sem `CanStack` renova** a instância existente em vez de criar outra. Quem empilhava "na marra" com `CanStack` desligado passa a ter uma instância só; para empilhar, ligue `CanStack`.
+- **Renovação pela duração aplicada:** a renovação de um efeito (pilha com `RefreshDurationOnStack` ou reaplicação sem `CanStack`) volta à duração com que ele foi aplicado, e não mais à `Duration` do asset. `ApplyEffect` com duração passada redefine essa duração.
 
 ### Adicionado
 - Sample **Sandbox** (Package Manager → SpellBook → Samples): cena 3D que liga GAS, Events, Pooling e Time, com Bola de Fogo, queimadura, canal de dano recebido, pausa e câmera lenta. Entrada pelo Input Manager legado.
