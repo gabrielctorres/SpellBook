@@ -65,6 +65,36 @@ O `AbilitySystemComponent` usa a mesma regra: `HasTag(State)` é `true` quando o
 `State.Stunned`. Assim, uma habilidade com `State` em **Blocked Tags** fica bloqueada por
 qualquer estado filho.
 
+## Ferramentas próprias {#ferramentas-proprias}
+
+Uma ferramenta sua, como um painel de debug, pode ler a hierarquia usando só a API pública:
+
+- `tag.GetDefinition()` devolve o asset `GameplayTagDefinition` da tag, ou `null` se a tag é
+  inválida.
+- `definition.Parent` devolve a tag pai, ou `null` na raiz.
+
+Exemplo: escrever no Console o nome de uma tag e a cadeia de pais dela.
+
+```csharp
+using System.Text;
+using SpellBook.Tags;
+using UnityEngine;
+
+public static class TagDebug
+{
+    public static void LogChain(GameplayTag tag)
+    {
+        var text = new StringBuilder(tag.Name);
+        for (GameplayTagDefinition parent = tag.GetDefinition()?.Parent; parent != null; parent = parent.Parent)
+        {
+            text.Append(" → ").Append(parent.name);
+        }
+
+        Debug.Log(text.ToString());   // State.Debuff.Slowed → State.Debuff → State
+    }
+}
+```
+
 ## Armadilhas {#armadilhas}
 
 - **Uma tag é um asset.** Duas definições com o mesmo nome são duas tags diferentes. Crie cada tag

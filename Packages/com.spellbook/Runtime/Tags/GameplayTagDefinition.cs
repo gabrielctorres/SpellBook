@@ -9,6 +9,9 @@ namespace SpellBook.Tags
     {
         [SerializeField] private GameplayTagDefinition parent;
 
+        /// <summary>Tag pai; <c>null</c> na raiz da hierarquia.</summary>
+        public GameplayTagDefinition Parent => parent;
+
         public bool Matches(GameplayTagDefinition other)
         {
             if (this == other) return true;
