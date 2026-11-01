@@ -242,6 +242,28 @@ habilidade.TryGetValue("Damage", 3, out float dano); // true, 100
 - Uma entrada não lê outra: ela é avaliada sem tabela.
 - `Values.Validate` acusa nome vazio, nome com caractere fora de letras, dígitos e `_`, nome repetido e entrada em modo `Table`.
 
+##### Exemplo: Fireball com `damage` e `cooldown` {#exemplo-fireball}
+A Fireball tem `MaxLevel = 4` e duas entradas na tabela: `damage = 50 75 100 125` e `cooldown = 8 7 6 5`. A duração do efeito de recarga está em modo `Table` com o nome `cooldown`, e o valor do modificador de dano, em modo `Table` com o nome `damage`. Concedida em nível 3, a recarga aplicada é de 6 s e o dano é 100. Ao subir para o nível 4, a próxima recarga é de 5 s e o próximo dano, 125.
+
+```csharp
+fireball.Values.Add("damage", ScalableFloat.FromArray(50, 75, 100, 125));
+fireball.Values.Add("cooldown", ScalableFloat.FromArray(8, 7, 6, 5));
+fireball.CooldownEffect.Duration = ScalableFloat.FromTable("cooldown");
+asc.GiveAbility(fireball, 3); // recarga de 6 s, dano 100
+```
+
+##### No Inspector {#scalablefloat-inspector}
+Todo campo `ScalableFloat` aparece como um grupo com o seletor **Modo** e, abaixo, só os campos do modo escolhido:
+
+- **Constant:** o **Valor**.
+- **Array:** o texto **Valores por nível** ("10 8 6 4", com espaço, vírgula ou ponto e vírgula, e ponto como separador decimal) e a **Lista** dos mesmos valores, para editar um a um. O texto é aplicado ao sair do campo ou ao apertar Enter. Texto inválido mostra o erro abaixo do campo e não apaga os valores salvos, que continuam os últimos válidos.
+- **Curve:** a **Curva**.
+- **Table:** o **Nome**, escolhido numa lista, e o **Fallback**. Não há campo de texto para o nome. A lista traz os nomes das tabelas das habilidades do projeto que usam o efeito (recarga, custo ou efeito aplicado por uma ação). Se nenhuma habilidade usa o efeito, a lista fica vazia e um aviso explica o motivo. A lista é refeita quando os assets do projeto mudam.
+
+No fim do grupo, a **Prévia** mostra uma linha "nível → valor" do nível 1 até o maior `MaxLevel` das habilidades que usam o efeito. Sem habilidade, ela vai até o tamanho do array. No modo `Table`, a prévia lê a tabela da primeira dessas habilidades.
+
+No Inspector da habilidade, depois dos campos, o **Nível de prévia** (limitado a `[1, MaxLevel]`) mostra cada valor da tabela e a recarga nesse nível, sem a redução do atributo. Na Fireball, em nível 3, a prévia mostra `damage = 100`, `cooldown = 6` e `Recarga = 6 s`.
+
 ### 1.5 AbilitySystemComponent (ASC) {#abilitysystemcomponent}
 O `AbilitySystemComponent` é o componente que guarda as habilidades concedidas, os atributos,
 os efeitos ativos e as tags de um personagem. Veja a seção [Ciclo de vida](#ciclo-de-vida).
