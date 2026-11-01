@@ -33,6 +33,19 @@ Um valor base mais a soma de atributos multiplicados (`Base Value` + `Attribute`
 #### ExpressionFormula {#expressionformula}
 Uma expressão em texto, como `([ATK] * 2) / [DEF]`. Cada token entre colchetes é ligado a um atributo da Source ou da Target em `Mappings`. Crie em **Create → GAS → Formulas → Expression Formula**.
 
+#### Valores por nível (ScalableFloat) {#scalablefloat}
+`ScalableFloat` (`SpellBook.GAS.Values`) é um número que pode variar com o nível. Ele tem três modos:
+
+- **Constant:** o mesmo valor em qualquer nível. Crie com `ScalableFloat.Constant(4f)`.
+- **Array:** um valor por nível, e o primeiro é o nível 1. Com `ScalableFloat.FromArray(10, 8, 6, 4)`, o nível 1 vale 10, o 3 vale 6 e o 4 vale 4. Acima do tamanho do array, repete o último (nível 6 vale 4). Array vazio vale 0.
+- **Curve:** uma `AnimationCurve` avaliada no nível inteiro (x = nível). Crie com `ScalableFloat.FromCurve(curva)`. Curva nula vale 0.
+
+`Evaluate(nivel)` devolve o valor; nível 0 ou negativo vale como 1. A avaliação não aloca memória gerenciada. Não há conversão implícita de `float`: o modo fica sempre explícito no código.
+
+`ScalableFloat.TryParse("10 8 6 4", out valores, out erro)` lê o texto de um array. Os valores podem ser separados por espaço, vírgula ou ponto e vírgula, e o separador decimal é sempre o ponto (`1.5`), em qualquer idioma do sistema. Texto inválido devolve `false` e uma mensagem que cita o trecho errado.
+
+`Validate(resultado, caminho)` acusa como erro um array vazio e uma curva não definida. O asset dono do campo repassa a chamada com o nome do campo.
+
 ### 1.3 Gameplay Effects (GE) {#gameplayeffect}
 - **Instant:** modifica o valor base (ex: Dano, Cura).
 - **Duration/Infinite:** adiciona um modificador temporário ou permanente e pode conceder Tags enquanto ativo.
