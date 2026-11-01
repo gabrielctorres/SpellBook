@@ -61,6 +61,13 @@ namespace SpellBook.GAS.Attributes
         [ShowIf(nameof(MaxSource), LimitSource.Attribute)]
         [Tooltip("O que acontece com o valor base quando o máximo muda")]
         public MaxChangePolicy OnMaxChange = MaxChangePolicy.KeepValue;
+
+        [Header("Display")]
+        [Tooltip("Como o valor aparece na interface: tipo, casas, prefixo, sufixo, direção boa, ordem, visibilidade e categoria")]
+        public AttributeDisplay Display;
+
+        /// <summary>A categoria do atributo, de <see cref="AttributeDisplay.Category"/> (R18).</summary>
+        public AttributeCategory Category => Display.Category;
     }
 }
 

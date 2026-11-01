@@ -82,25 +82,25 @@ namespace SpellBook.Core.Tests.Inspector
         }
 
         [Test]
-        public void NestedStructInList_UsesSiblingInSameElement()
+        public void ShowIf_ValueVisibleOnlyForValueType()
         {
             var effect = ScriptableObject.CreateInstance<GameplayEffect>();
             _created.Add(effect);
             effect.Modifiers = new List<AttributeEffectModifier>
             {
-                new AttributeEffectModifier { ValueSource = new ModifierValueSource { Type = ModifierValueSource.SourceType.Constant } },
+                new AttributeEffectModifier { ValueSource = new ModifierValueSource { Type = ModifierValueSource.SourceType.Value } },
                 new AttributeEffectModifier { ValueSource = new ModifierValueSource { Type = ModifierValueSource.SourceType.Attribute } },
             };
             var so = new SerializedObject(effect);
-            ShowIfAttribute constantIf = GasShowIf(nameof(ModifierValueSource.ConstantValue));
+            ShowIfAttribute valueIf = GasShowIf(nameof(ModifierValueSource.Value));
             ShowIfAttribute attributeIf = GasShowIf(nameof(ModifierValueSource.Attribute));
 
-            bool constantInFirst = ShowIfRule.IsVisible(ValueSourceField(so, 0, nameof(ModifierValueSource.ConstantValue)), constantIf);
+            bool valueInFirst = ShowIfRule.IsVisible(ValueSourceField(so, 0, nameof(ModifierValueSource.Value)), valueIf);
             bool attributeInFirst = ShowIfRule.IsVisible(ValueSourceField(so, 0, nameof(ModifierValueSource.Attribute)), attributeIf);
-            bool constantInSecond = ShowIfRule.IsVisible(ValueSourceField(so, 1, nameof(ModifierValueSource.ConstantValue)), constantIf);
+            bool valueInSecond = ShowIfRule.IsVisible(ValueSourceField(so, 1, nameof(ModifierValueSource.Value)), valueIf);
             bool attributeInSecond = ShowIfRule.IsVisible(ValueSourceField(so, 1, nameof(ModifierValueSource.Attribute)), attributeIf);
 
-            Assert.That(new[] { constantInFirst, attributeInFirst, constantInSecond, attributeInSecond },
+            Assert.That(new[] { valueInFirst, attributeInFirst, valueInSecond, attributeInSecond },
                 Is.EqualTo(new[] { true, false, false, true }));
         }
 

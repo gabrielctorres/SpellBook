@@ -30,6 +30,8 @@ namespace SpellBook.GAS.Attributes
         private bool _limitsBound;
         private float _lastMax;
         private bool _updatingLimits;
+        private bool _atMin;
+        private bool _atMax;
 
         internal AttributeState MinSourceState => _minSource;
         internal AttributeState MaxSourceState => _maxSource;
@@ -40,12 +42,24 @@ namespace SpellBook.GAS.Attributes
 
         public event Action<float, float> OnValueChanged; // OldValue, NewValue
 
+        /// <summary>
+        /// O valor atual entrou no mínimo vindo de fora dele (dano ou limite que mudou). Ficar no mínimo não repete;
+        /// sair e voltar dispara de novo. Não dispara na criação. Vem depois do <see cref="OnValueChanged"/>.
+        /// </summary>
+        public event Action<AttributeState> OnDepleted;
+
+        /// <summary>O valor atual entrou no máximo, com as mesmas regras do <see cref="OnDepleted"/>. Vem depois dele.</summary>
+        public event Action<AttributeState> OnReachedMax;
+
         public AttributeState(AttributeDefinition definition, float baseValue, AbilitySystemComponent owner)
         {
             Definition = definition;
             BaseValue = ClampToLimits(baseValue);
             _owner = owner;
             Recalculate();
+            // Quem nasce no limite não dispara: os indicadores partem do valor inicial
+            _atMin = CurrentValue <= MinValue;
+            _atMax = CurrentValue >= MaxValue;
         }
 
         public void SetBaseValue(float newValue)
@@ -93,45 +107,33 @@ namespace SpellBook.GAS.Attributes
                 baseToUse = Definition.Formula.Calculate(_owner, _owner);
             }
 
-            // Um único for por índice, sem LINQ, para não alocar no recálculo.
-            // Cada categoria soma na ordem da lista, como antes (mesmo resultado em ponto flutuante).
-            float finalValue = baseToUse;
-            float multiplierSum = 1f;
-            bool hasOverride = false;
-            float overrideValue = 0f;
-
+            // Um único for por índice, sem LINQ, para não alocar no recálculo. A fórmula é a do acumulador (ADR 0029)
+            var accumulator = new ModifierAccumulator(baseToUse);
             for (int i = 0; i < _modifiers.Count; i++)
             {
                 AttributeModifier mod = _modifiers[i];
-                switch (mod.Operation)
-                {
-                    case ModifierOperation.Add:
-                        finalValue += mod.Value;
-                        break;
-                    case ModifierOperation.Multiply:
-                        // Percentuais somados: 1 + 0.1 + 0.2 = 1.3x
-                        multiplierSum += mod.Value;
-                        break;
-                    case ModifierOperation.Override:
-                        // O último da lista vence
-                        hasOverride = true;
-                        overrideValue = mod.Value;
-                        break;
-                }
+                accumulator.Accumulate(mod.Operation, mod.Value);
             }
-
-            finalValue *= multiplierSum;
-            if (hasOverride)
-            {
-                finalValue = overrideValue;
-            }
+            float finalValue = accumulator.Result();
 
             CurrentValue = ClampToLimits(finalValue);
 
-            if (!Mathf.Approximately(oldVal, CurrentValue))
+            // O Clamp devolve o limite exato. As transições ficam em locais e os indicadores são gravados antes
+            // dos eventos: um ouvinte que muda o atributo roda um recálculo inteiro, e este só dispara o que decidiu
+            float newVal = CurrentValue;
+            bool atMin = newVal <= MinValue;
+            bool atMax = newVal >= MaxValue;
+            bool depleted = atMin && !_atMin;
+            bool reachedMax = atMax && !_atMax;
+            _atMin = atMin;
+            _atMax = atMax;
+
+            if (!Mathf.Approximately(oldVal, newVal))
             {
-                OnValueChanged?.Invoke(oldVal, CurrentValue);
+                OnValueChanged?.Invoke(oldVal, newVal);
             }
+            if (depleted) OnDepleted?.Invoke(this);
+            if (reachedMax) OnReachedMax?.Invoke(this);
         }
 
         /// <summary>

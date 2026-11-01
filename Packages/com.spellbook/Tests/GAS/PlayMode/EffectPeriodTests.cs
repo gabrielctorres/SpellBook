@@ -3,6 +3,7 @@ using NUnit.Framework;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
+using SpellBook.GAS.Values;
 using SpellBook.Tags;
 using SpellBook.Testing;
 
@@ -175,7 +176,7 @@ namespace SpellBook.GAS.Tests
             {
                 Attribute = attribute,
                 Operation = ModifierOperation.Add,
-                ValueSource = new ModifierValueSource { Type = ModifierValueSource.SourceType.Constant, ConstantValue = 1f },
+                ValueSource = new ModifierValueSource { Type = ModifierValueSource.SourceType.Value, Value = ScalableFloat.Constant(1f) },
             });
             return effect;
         }

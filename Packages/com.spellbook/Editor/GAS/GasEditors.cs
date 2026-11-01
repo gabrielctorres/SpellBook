@@ -22,6 +22,10 @@ namespace SpellBook.GAS.Editor
     [CanEditMultipleObjects]
     internal sealed class GameplayAbilityEditor : SpellBookEditor { }
 
+    [CustomEditor(typeof(CooldownReductionPolicy))]
+    [CanEditMultipleObjects]
+    internal sealed class CooldownReductionPolicyEditor : SpellBookEditor { }
+
     [CustomEditor(typeof(GameplayEffect))]
     [CanEditMultipleObjects]
     internal sealed class GameplayEffectEditor : SpellBookEditor { }
@@ -29,6 +33,10 @@ namespace SpellBook.GAS.Editor
     [CustomEditor(typeof(AttributeDefinition))]
     [CanEditMultipleObjects]
     internal sealed class AttributeDefinitionEditor : SpellBookEditor { }
+
+    [CustomEditor(typeof(AttributeCategory))]
+    [CanEditMultipleObjects]
+    internal sealed class AttributeCategoryEditor : SpellBookEditor { }
 
     [CustomEditor(typeof(Formula), true)]
     [CanEditMultipleObjects]

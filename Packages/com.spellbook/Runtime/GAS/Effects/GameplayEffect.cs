@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 using SpellBook.Tags;
 using SpellBook.GAS.Attributes;
+using SpellBook.GAS.Values;
 
 namespace SpellBook.GAS.Effects
 {
@@ -15,23 +17,35 @@ namespace SpellBook.GAS.Effects
         HasDuration
     }
 
+    /// <summary>Um modificador do efeito. É classe: entradas nulas nas listas do efeito são ignoradas.</summary>
     [Serializable]
-    public struct AttributeEffectModifier
+    public class AttributeEffectModifier
     {
         public AttributeDefinition Attribute;
         public ModifierOperation Operation;
-        public ModifierValueSource ValueSource;
+        public ModifierValueSource ValueSource = new ModifierValueSource();
     }
 
     [CreateAssetMenu(fileName = "GE_NewEffect", menuName = "GAS/Gameplay Effect")]
     [HelpURL(DocUrls.Gas + "#gameplayeffect")]
-    public class GameplayEffect : ScriptableObject
+    public class GameplayEffect : ScriptableObject, ISerializationCallbackReceiver
     {
         [Header("Duration")]
         public EffectDurationPolicy DurationPolicy;
         
         [ShowIf(nameof(DurationPolicy), EffectDurationPolicy.HasDuration)]
-        public float Duration;
+        [SerializeField] private ScalableFloat duration = ScalableFloat.Constant(0f);
+
+        // Só leitura do formato 2.x ("Duration: 4"); convertido em OnAfterDeserialize (ADR 0009). Sai antes da 3.0 final.
+        [FormerlySerializedAs("Duration")]
+        [SerializeField, HideInInspector] private float legacyDuration = float.NaN;
+
+        /// <summary>Duração em segundos por nível (HasDuration). Sem habilidade, vale o nível 1.</summary>
+        public ScalableFloat Duration
+        {
+            get => duration;
+            set => duration = value;
+        }
 
         [Header("Periodic")]
         [Tooltip("If Period > 0, effect triggers every Period seconds")]
@@ -67,6 +81,15 @@ namespace SpellBook.GAS.Effects
         public bool CanStack;
         public int MaxStacks = 1;
         public bool RefreshDurationOnStack = true;
+
+        void ISerializationCallbackReceiver.OnBeforeSerialize() { }
+
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            if (float.IsNaN(legacyDuration)) return;
+            duration = ScalableFloat.Constant(legacyDuration);
+            legacyDuration = float.NaN;
+        }
     }
 }
 

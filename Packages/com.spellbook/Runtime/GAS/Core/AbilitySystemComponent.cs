@@ -30,6 +30,7 @@ namespace SpellBook.GAS.Core
         private readonly Dictionary<GameplayTag, int> _activeTags = new Dictionary<GameplayTag, int>();
         private readonly List<ActiveEffectInstance> _activeEffects = new List<ActiveEffectInstance>();
         private readonly List<AbilitySpec> _abilities = new List<AbilitySpec>();
+        private readonly HashSet<GameplayAbility> _warnedAboveMaxLevel = new HashSet<GameplayAbility>();
 
         public event Action<GameplayTag, bool> OnTagChanged;
         public event Action<AbilitySpec> OnAbilityActivated;
@@ -158,7 +159,8 @@ namespace SpellBook.GAS.Core
 
         #region Ability Management
         /// <summary>
-        /// Concede uma habilidade ao ASC. Se já concedida, retorna o spec existente.
+        /// Concede uma habilidade ao ASC no nível limitado a [1, MaxLevel], como <see cref="SetAbilityLevel"/>.
+        /// Se já concedida, retorna o spec existente sem mudar o nível.
         /// </summary>
         public AbilitySpec GiveAbility(GameplayAbility ability, int level = 1)
         {
@@ -167,7 +169,7 @@ namespace SpellBook.GAS.Core
             var existing = FindSpec(ability);
             if (existing != null) return existing;
 
-            var spec = new AbilitySpec(ability, level);
+            var spec = new AbilitySpec(ability, ClampLevel(ability, level));
             _abilities.Add(spec);
             OnAbilityGranted?.Invoke(spec);
             return spec;
@@ -190,6 +192,50 @@ namespace SpellBook.GAS.Core
 
         /// <summary>Habilidade removida, depois do cancelamento e da saída da lista.</summary>
         public event Action<AbilitySpec> OnAbilityRemoved;
+
+        /// <summary>Nível mudou de fato por <see cref="SetAbilityLevel"/>: (spec, antes, depois).</summary>
+        public event Action<AbilitySpec, int, int> OnAbilityLevelChanged;
+
+        /// <summary>Nível da habilidade concedida, ou 0 se ela não foi concedida.</summary>
+        public int GetAbilityLevel(GameplayAbility ability)
+        {
+            var spec = FindSpec(ability);
+            return spec != null ? spec.Level : 0;
+        }
+
+        /// <summary>
+        /// Muda o nível da habilidade concedida, limitado a [1, MaxLevel] (acima do máximo, um aviso por habilidade).
+        /// Dispara <see cref="OnAbilityLevelChanged"/> só se o nível mudou. Devolve <c>false</c> se não foi concedida.
+        /// </summary>
+        public bool SetAbilityLevel(GameplayAbility ability, int level)
+        {
+            var spec = FindSpec(ability);
+            if (spec == null) return false;
+
+            int before = spec.Level;
+            int after = ClampLevel(ability, level);
+            if (after == before) return true;
+
+            spec.Level = after;
+            OnAbilityLevelChanged?.Invoke(spec, before, after);
+            return true;
+        }
+
+        private int ClampLevel(GameplayAbility ability, int level)
+        {
+            int max = Mathf.Max(1, ability.MaxLevel);
+            if (level > max)
+            {
+                if (_warnedAboveMaxLevel.Add(ability))
+                {
+                    Debug.LogWarning($"[GAS] Nível {level} de '{ability.name}' passa do MaxLevel {max} e foi limitado a {max}.", this);
+                }
+
+                return max;
+            }
+
+            return Mathf.Max(1, level);
+        }
 
         public AbilitySpec FindSpec(GameplayAbility ability)
         {
@@ -368,7 +414,7 @@ namespace SpellBook.GAS.Core
 
             foreach (var mod in costEffect.Modifiers)
             {
-                if (mod.Attribute == null || mod.Operation != ModifierOperation.Add) continue;
+                if (mod == null || mod.Attribute == null || mod.Operation != ModifierOperation.Add) continue;
 
                 float value = mod.ValueSource.GetValue(this, this);
                 if (value >= 0f) continue;
@@ -665,7 +711,7 @@ namespace SpellBook.GAS.Core
             ActiveEffectInstance existing = FindActiveInstance(effect);
             if (existing == null)
             {
-                instance = ApplyDurationEffect(effect, hasOverride ? durationOverride : effect.Duration, source);
+                instance = ApplyDurationEffect(effect, hasOverride ? durationOverride : effect.Duration.Evaluate(1), source);
                 return EffectApplicationResult.Applied;
             }
 
@@ -922,36 +968,46 @@ namespace SpellBook.GAS.Core
         }
 
         /// <summary>
-        /// Aplica modifiers diretamente no valor base (efeitos Instant e ticks periódicos).
-        /// Add: base + v | Multiply: base * (1 + v) | Override: v
+        /// Aplica os modificadores na base (efeitos Instant e tiques periódicos): os que miram o mesmo atributo passam
+        /// pela fórmula única uma vez, partindo da base atual, e o resultado vira a nova base (ADR 0029, item 4).
         /// </summary>
         private void ApplyModifiersToBase(GameplayEffect effect, List<AttributeEffectModifier> modifiers, AbilitySystemComponent source)
         {
             if (modifiers == null || attributeSet == null) return;
 
-            foreach (var mod in modifiers)
+            // Laços por índice, sem alocação: cada atributo é tratado no primeiro índice que o mira
+            for (int i = 0; i < modifiers.Count; i++)
             {
-                if (!IsModifierValid(effect, mod)) continue;
-                if (!attributeSet.TryGetState(mod.Attribute, out var state)) continue;
+                AttributeEffectModifier first = modifiers[i];
+                if (!IsModifierValid(effect, first)) continue;
+                if (IsAttributeHandledBefore(modifiers, i)) continue;
+                if (!attributeSet.TryGetState(first.Attribute, out var state)) continue;
 
-                float value = mod.ValueSource.GetValue(source, this);
-                switch (mod.Operation)
+                var accumulator = new ModifierAccumulator(state.BaseValue);
+                for (int j = i; j < modifiers.Count; j++)
                 {
-                    case ModifierOperation.Add:
-                        state.SetBaseValue(state.BaseValue + value);
-                        break;
-                    case ModifierOperation.Multiply:
-                        state.SetBaseValue(state.BaseValue * (1f + value));
-                        break;
-                    case ModifierOperation.Override:
-                        state.SetBaseValue(value);
-                        break;
+                    AttributeEffectModifier mod = modifiers[j];
+                    if (mod == null || !ReferenceEquals(mod.Attribute, first.Attribute)) continue;
+                    accumulator.Accumulate(mod.Operation, mod.ValueSource.GetValue(source, this));
                 }
+                state.SetBaseValue(accumulator.Result());
             }
+        }
+
+        private static bool IsAttributeHandledBefore(List<AttributeEffectModifier> modifiers, int index)
+        {
+            AttributeDefinition attribute = modifiers[index].Attribute;
+            for (int k = 0; k < index; k++)
+            {
+                if (modifiers[k] != null && ReferenceEquals(modifiers[k].Attribute, attribute)) return true;
+            }
+            return false;
         }
 
         private static bool IsModifierValid(GameplayEffect effect, AttributeEffectModifier mod)
         {
+            // Entrada nula na lista é ignorada sem aviso
+            if (mod == null) return false;
             if (mod.Attribute != null) return true;
             Debug.LogWarning($"[GAS] Modifier sem atributo ignorado no efeito '{(effect != null ? effect.name : "null")}'.", effect);
             return false;
@@ -1112,7 +1168,7 @@ namespace SpellBook.GAS.Core
             {
                 foreach (var mod in instance.Effect.Modifiers)
                 {
-                    if (attributeSet.TryGetState(mod.Attribute, out var state))
+                    if (mod != null && attributeSet.TryGetState(mod.Attribute, out var state))
                     {
                         state.RemoveModifiersFromSource(instance);
                     }

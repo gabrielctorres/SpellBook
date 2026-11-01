@@ -10,7 +10,8 @@ namespace SpellBook.GAS.Abilities
     public class AbilitySpec
     {
         public GameplayAbility Ability { get; }
-        public int Level { get; set; }
+        /// <summary>Nível atual, em [1, MaxLevel]. Muda por <c>AbilitySystemComponent.SetAbilityLevel</c>.</summary>
+        public int Level { get; internal set; }
         public bool IsActive { get; internal set; }
         public AbilityContext ActiveContext { get; internal set; }
 

@@ -25,11 +25,52 @@ Cada valor tem uma `AttributeDefinition`.
 - **Limites:** `MinValue` e `MaxValue` valem para o valor base e para o valor atual. O valor base nunca sai do intervalo: um dano maior que a vida deixa a base em `MinValue`, e a cura seguinte conta inteira. Isso vale para efeitos instantâneos, tiques periódicos e `SetBaseValue`.
 - **Limite vindo de outro atributo:** com `MinSource` ou `MaxSource` em `Attribute`, o limite é o valor atual (com modificadores) do atributo escolhido em `MinAttribute` ou `MaxAttribute`, no mesmo ASC. Exemplo: a `Vida` com máximo = `VidaMax`; com `VidaMax` em 150, uma cura de 200 para em 150. `AttributeState.MinValue` e `MaxValue` dão o limite efetivo. O dependente se atualiza quando a fonte muda, sem esperar o `Tick`. O padrão é `Constant`, e um asset antigo se comporta como antes.
 - **Política ao mudar o máximo (`OnMaxChange`):** vale quando o máximo vindo de outro atributo muda. Com a `Vida` em 80 de 100 e o máximo subindo para 150: `KeepValue` (padrão) deixa 80, `KeepRatio` mantém a proporção (120) e `AddDelta` soma a diferença (130). Se o novo máximo fica abaixo do valor, o valor vai ao máximo em qualquer política, com uma única notificação de `OnValueChanged`. Mudar o mínimo só limita.
+- **Eventos de limite:** `AttributeState.OnDepleted` dispara quando o valor atual entra no mínimo e `OnReachedMax`, quando entra no máximo; os dois recebem o próprio `AttributeState`. Disparam só na transição: um dano que leva a `Vida` a 0 dispara `OnDepleted` uma vez, mais dano em 0 não repete, e curar e voltar a 0 dispara de novo. Um limite que muda e deixa o valor no limite também dispara (o máximo cai de 100 para 80 com a `Mana` em 80); quem já estava no limite e continua nele, não. O atributo que nasce no limite não dispara. A ordem é `OnValueChanged`, `OnDepleted` e `OnReachedMax`, e um ouvinte pode mudar o próprio atributo dentro do evento. Disparar os eventos não aloca.
 - **Configuração inválida:** com o mínimo acima do máximo, vale o mínimo. Se o atributo-fonte não está no ASC, ou se as fontes formam um ciclo (A limitado por B e B por A), o limite cortado usa a constante (`MinValue` ou `MaxValue`, que funcionam como reserva) e o `AttributeSet` registra um aviso no Console, uma vez por atributo.
 - **Valor inicial fora do intervalo:** o `AttributeSet` limita o valor inicial ao intervalo e registra um aviso no Console, uma vez por atributo, com o nome do atributo e do objeto. Revise o asset ou o `startingAttributes` apontado pelo aviso.
 
+#### AttributeDisplay {#attributedisplay}
+O campo `Display` do `AttributeDefinition` diz como o valor aparece na interface. Um asset antigo abre como `Flat`, 0 casas, visível e "mais é melhor".
+
+- **Tipo (`Kind`, `ValueKind`):** `Flat` (número puro), `Percent` (fração: 0,25 vira "25%"), `PercentPoints` (25 vira "25%"), `Multiplier` (2 vira "x2") e `Seconds` (1,5 vira "1,5 s").
+- **Casas, prefixo e sufixo:** `Decimals` (de 0 a 6; acima de 6 vale 6), `Prefix` e `Suffix` envolvem o texto: `Flat`, 2 casas, prefixo "PV " e sufixo " pts" dão "PV 1234,50 pts" em pt-BR.
+- **`Format(valor, cultura)`:** devolve o texto do valor. A cultura é parâmetro; nula usa a cultura invariante ("1.5 s"), sem configuração global. O jogo passa a cultura dele, por exemplo `CultureInfo.GetCultureInfo("pt-BR")`.
+- **`Format(valor, operação, cultura)`:** texto de um modificador. `Add` e `AddFinal` levam sinal ("+10", "-5"); `Multiply` e `MultiplyCompound` saem em porcentagem com sinal (0,5 vira "+50%"), sem prefixo nem sufixo; `Override` sai sem sinal, como o `Format` simples.
+- **Direção boa:** `LowerIsBetter` ligado marca atributos em que menos é melhor, como tempo de recarga; `HigherIsBetter` é o contrário. `IsBeneficial(delta, operação)` diz se a variação é boa para o jogador (-10 numa recarga é benéfico) e `GetDeltaRole(delta)` devolve o `TextRole` (`Beneficial`, `Harmful` ou `Neutral` no zero) para a cor do [tema](#textroletheme). Os dois não alocam.
+- **Interface:** `Order` ordena os atributos, `Hidden` os esconde da interface, `Category` aponta a [categoria](#attributecategory) e `Role` é o papel de cor do valor. O `AttributeDefinition` também expõe a categoria em `Category`, somente leitura.
+
+#### AttributeCategory {#attributecategory}
+Asset que agrupa atributos na interface, como "Ofensivo" e "Defensivo". Crie em **Create → GAS → Attribute Category**, preencha `DisplayName` e `Order` (menor vem primeiro) e escolha a categoria no `Display.Category` do atributo.
+
+#### TextRoleTheme {#textroletheme}
+Tema de cores por papel de texto, compartilhado pela interface em vez de uma cor por atributo. Fica no `SpellBook.Core` e não conhece o GAS.
+
+- **Papéis (`TextRole`):** `Beneficial`, `Harmful`, `Neutral` e `Value`. `None` usa a cor de `Neutral`.
+- **Leitura:** `theme.GetColor(TextRole.Harmful)` devolve a cor do papel, sem alocar.
+- **Tema próprio:** crie um asset em **Create → SpellBook → Text Role Theme** e ajuste as quatro cores; o código passa a ler as cores novas.
+- **Tema padrão:** `TextRoleTheme.Default` tem as cores do pacote (as mesmas de um tema novo). É criado sob demanda, sem asset em disco.
+
 #### Fórmulas de modificadores {#formulas}
-Os atributos mantêm um histórico de modificadores (Add, Multiply, Override), permitindo cálculos precisos de bônus e penalidades.
+Os atributos mantêm um histórico de modificadores, permitindo cálculos precisos de bônus e penalidades. Há cinco operações (`ModifierOperation`):
+
+| Operação | Efeito |
+|---|---|
+| `Add` | Soma na base. |
+| `Multiply` | Percentual somado aos outros `Multiply` (0,5 = +50 %). Dois `Multiply` de 0,5 dão ×2, não ×2,25. |
+| `MultiplyCompound` | Percentual que compõe com os outros (0,1 e 0,2 = ×1,1 × 1,2). |
+| `AddFinal` | Soma depois de todas as multiplicações. |
+| `Override` | O último aplicado vence, depois da fórmula. |
+
+O valor sai sempre da mesma ordem:
+
+`((base + ΣAdd) × (1 + ΣMultiply)) × Π(1 + MultiplyCompound) + ΣAddFinal`
+
+Depois, se houver `Override`, vale o do último. Por último vem o limite entre o mínimo e o máximo. Exemplo: base 100, `Add` +20, `Multiply` +0,5, `MultiplyCompound` 0,1 e 0,2 e `AddFinal` +5 dão `((100 + 20) × 1,5) × 1,1 × 1,2 + 5 = 242,6`. Com um `Override` de 50 presente, o resultado é 50.
+
+A ordem é a mesma em todos os tipos de efeito:
+
+- **Com duração e infinito:** a fórmula roda sobre todos os modificadores ativos do atributo, partindo da base, a cada recálculo.
+- **Instantâneo e tique periódico:** os modificadores **daquela aplicação** que miram o mesmo atributo passam pela fórmula uma vez, partindo da base atual, e o resultado vira a nova base (limitada). Aplicações sucessivas compõem: duas aplicações de um instantâneo com `Multiply` 0,5 levam 100 a 150 e depois a 225; um só instantâneo com dois `Multiply` 0,5 leva 100 a 200.
 
 Uma fórmula calcula um valor a partir dos atributos de quem aplica (Source) e de quem recebe (Target). Ela serve no `Formula` de um atributo `Derived` e na fonte `Formula` de um modificador.
 
@@ -40,21 +81,25 @@ Um valor base mais a soma de atributos multiplicados (`Base Value` + `Attribute`
 Uma expressão em texto, como `([ATK] * 2) / [DEF]`. Cada token entre colchetes é ligado a um atributo da Source ou da Target em `Mappings`. Crie em **Create → GAS → Formulas → Expression Formula**.
 
 #### Valores por nível (ScalableFloat) {#scalablefloat}
-`ScalableFloat` (`SpellBook.GAS.Values`) é um número que pode variar com o nível. Ele tem três modos:
+`ScalableFloat` (`SpellBook.GAS.Values`) é um número que pode variar com o nível. Ele tem quatro modos:
 
 - **Constant:** o mesmo valor em qualquer nível. Crie com `ScalableFloat.Constant(4f)`.
 - **Array:** um valor por nível, e o primeiro é o nível 1. Com `ScalableFloat.FromArray(10, 8, 6, 4)`, o nível 1 vale 10, o 3 vale 6 e o 4 vale 4. Acima do tamanho do array, repete o último (nível 6 vale 4). Array vazio vale 0.
 - **Curve:** uma `AnimationCurve` avaliada no nível inteiro (x = nível). Crie com `ScalableFloat.FromCurve(curva)`. Curva nula vale 0.
+- **Table:** um valor nomeado da [tabela de valores](#abilityvalues) da habilidade de origem. Crie com `ScalableFloat.FromTable("Damage", fallback)`. Sem tabela (um efeito aplicado sem habilidade), vale o `Fallback` (padrão 0), sem aviso. Com tabela mas sem o nome nela, vale o `Fallback` e mostra um aviso no Console, uma vez por campo.
 
-`Evaluate(nivel)` devolve o valor; nível 0 ou negativo vale como 1. A avaliação não aloca memória gerenciada. Não há conversão implícita de `float`: o modo fica sempre explícito no código.
+`Evaluate(nivel, tabela)` devolve o valor; a tabela é opcional e só o modo `Table` a lê. Nível 0 ou negativo vale como 1. O modo `Table` guarda o índice do nome e só o procura de novo quando a tabela muda (outra tabela ou `Version` nova). A avaliação não aloca memória gerenciada. Não há conversão implícita de `float`: o modo fica sempre explícito no código.
 
 `ScalableFloat.TryParse("10 8 6 4", out valores, out erro)` lê o texto de um array. Os valores podem ser separados por espaço, vírgula ou ponto e vírgula, e o separador decimal é sempre o ponto (`1.5`), em qualquer idioma do sistema. Texto inválido devolve `false` e uma mensagem que cita o trecho errado.
 
-`Validate(resultado, caminho)` acusa como erro um array vazio e uma curva não definida. O asset dono do campo repassa a chamada com o nome do campo.
+`Validate(resultado, caminho)` acusa como erro um array vazio, uma curva não definida e o modo `Table` sem nome. Com `allowTable: false` (dentro da própria tabela), o modo `Table` também é erro. O asset dono do campo repassa a chamada com o nome do campo.
 
 ### 1.3 Gameplay Effects (GE) {#gameplayeffect}
 - **Instant:** modifica o valor base (ex: Dano, Cura).
 - **Duration/Infinite:** adiciona um modificador temporário ou permanente e pode conceder Tags enquanto ativo.
+- **Duração:** `Duration` é um [`ScalableFloat`](#scalablefloat) (constante, array ou curva por nível), e não mais um `float`. Por enquanto o ASC avalia no nível 1: `efeito.Duration = ScalableFloat.Constant(4f)` dura 4 s. Assets 2.x com `Duration: 4` abrem como a constante 4, sem passo manual.
+- **Valor do modificador:** na fonte `Value` (`SourceType.Value`, a antiga `Constant`), o valor é um [`ScalableFloat`](#scalablefloat) em `ValueSource.Value`, avaliado por enquanto no nível 1: `ValueSource.Value = ScalableFloat.Constant(-20f)`. Assets 2.x com `ConstantValue: -20` abrem como a constante -20. Para regravar os assets no formato novo, rode **SpellBook > Migrar assets do GAS (3.0)** (veja [Migração](../regras/migracao-2-para-3.md#valores-por-nivel)).
+- **Modificadores:** `AttributeEffectModifier` é uma classe. Uma entrada nula em `Modifiers` ou `PeriodicModifiers` é ignorada na aplicação, no tique, na remoção e no custo, e os outros modificadores valem.
 - **Stacking:** suporta acúmulo de instâncias (ex: Veneno que acumula até 5 vezes).
 - **Reaplicação e renovação:** aplicar de novo um efeito com duração ou infinito que já está ativo no ASC nunca cria uma segunda instância; `ApplyEffect` devolve a instância existente. Com `CanStack` ligado, ganha uma pilha (até `MaxStacks`) e, se `RefreshDurationOnStack`, renova a duração. Com `CanStack` desligado, só renova a duração, sempre. A renovação não reaplica modificadores nem tags e não roda `OnApplication` de novo, e o período continua contando de onde estava. A duração da renovação segue a regra **quem passa duração redefine; quem não passa mantém**: `ApplyEffect(efeito, duracao)` renova para `duracao` e a guarda como duração aplicada; `ApplyEffect(efeito)` volta à duração com que a instância foi aplicada (a do asset, se ninguém passou outra). Uma recarga aplicada com redução (ex: 6 s num asset de 8 s) volta a 6 s ao ser reaplicada.
 - **Efeitos periódicos:** com `Period` maior que zero, o efeito dá um tique a cada `Period` segundos: aplica os `PeriodicModifiers` no valor base e roda as `OnTickActions`, sempre o mesmo número de vezes. Um efeito com duração dá `Duration / Period` tiques, arredondado para baixo (4 s com período de 0,5 s: 8 tiques; 4 s com período de 1,5 s: 2 tiques, em 1,5 s e 3 s). O tique que cai no fim da duração acontece antes da expiração, e nenhum tique roda depois da remoção, nem quando uma ação do tique remove a própria instância. Cada `Tick` do ASC dá no máximo um tique por efeito; o tempo de um `Tick` que passa do fim da duração não gera tique a mais.
@@ -113,6 +158,21 @@ for (int i = 0; i < burns; i++) Debug.Log($"{_found[i].Effect.name}: {_found[i].
 ### 1.4 Gameplay Abilities (GA) {#gameplayability}
 As habilidades são compostas **dentro do próprio arquivo da habilidade**, como uma lista de ações.
 Não é preciso criar ScriptableObjects separados para cada ação.
+
+#### Níveis e tabela de valores {#abilityvalues}
+`MaxLevel` (padrão 1) é o nível máximo da habilidade. O ASC limita o nível a `[1, MaxLevel]` em `GiveAbility(habilidade, nivel)` e em `SetAbilityLevel(habilidade, nivel)`; acima do máximo, mostra um aviso no Console, uma vez por habilidade. `GetAbilityLevel(habilidade)` devolve o nível, ou 0 se a habilidade não foi concedida. `AbilitySpec.Level` é só de leitura fora do pacote. `OnAbilityLevelChanged(spec, antes, depois)` dispara só quando o nível muda de fato.
+
+`Values` (`AbilityValues`) é a tabela de valores nomeados da habilidade: cada entrada tem um nome e um [`ScalableFloat`](#scalablefloat). Um `ScalableFloat` em modo `Table` lê a entrada pelo nome, e várias partes da habilidade podem usar o mesmo número (o dano de 50/75/100, por exemplo).
+
+```csharp
+habilidade.Values.Add("Damage", ScalableFloat.FromArray(50, 75, 100));
+habilidade.TryGetValue("Damage", 3, out float dano); // true, 100
+```
+
+- `Add` acrescenta, `Set` troca ou acrescenta e `Remove` tira uma entrada. Toda mudança sobe a `Version` da tabela; editar no Inspector também.
+- O nome diferencia maiúsculas. `TryGetValue` com um nome que não existe devolve `false` e 0, sem aviso.
+- Uma entrada não lê outra: ela é avaliada sem tabela.
+- `Values.Validate` acusa nome vazio, nome com caractere fora de letras, dígitos e `_`, nome repetido e entrada em modo `Table`.
 
 ### 1.5 AbilitySystemComponent (ASC) {#abilitysystemcomponent}
 O `AbilitySystemComponent` é o componente que guarda as habilidades concedidas, os atributos,
@@ -255,6 +315,17 @@ Os três devolvem se algo mudou. Habilidade nula, sem `CooldownEffect` ou pronta
 - `Ended`: a habilidade ficou pronta, porque as instâncias expiraram, foram reduzidas a 0 ou removidas (inclusive por `ResetCooldown`). Sai depois do `OnEffectRemoved` da instância que faltava.
 
 Recarga aplicada à mão, com `ApplyEffect`, não dispara o evento: ela aparece no tempo restante e em `OnEffectApplied`/`OnEffectRemoved`.
+
+#### CooldownReductionPolicy {#cooldownreductionpolicy}
+A `CooldownReductionPolicy` diz como o valor do `CooldownReductionAttribute` vira duração de recarga. Crie o asset por *Create > GAS > Cooldown Reduction Policy* e escolha-o no campo **Cooldown Reduction Policy** da habilidade. A política só vale com um `CooldownReductionAttribute`; sem ele, a recarga usa a `Duration` do asset e o validador avisa.
+
+- **Min Duration:** piso da recarga, em segundos (padrão 0,1).
+- **Max Reduction:** teto da redução, de 0 a 1 (padrão 1, ou 100 %).
+- **Mode:** `Percent` lê o atributo como fração de redução (0,2 = 20 %). `Haste` lê o atributo como velocidade extra: a redução é `1 - 1 / (1 + haste)`, então haste 1 dobra a velocidade e corta a recarga pela metade. Nos dois modos, valor negativo conta como 0 e a redução para no **Max Reduction**.
+
+A duração é `max(Min Duration, duração × (1 - redução))`. Exemplo: com **Min Duration** 1 s e **Max Reduction** 0,5, uma recarga de 8 s com redução de 0,9 dura 4 s, porque o teto vale. Com **Max Reduction** 1 e redução de 0,99, o piso de 1 s vale.
+
+Sem política, a habilidade usa `CooldownReductionPolicy.ApplyDefault`: piso de 0,1 s, redução limitada a [0, 1] e modo `Percent`, a mesma regra de antes da política. O validador acusa erro em **Min Duration** negativo e em **Max Reduction** fora de 0 a 1.
 
 ### 4.3 Custo
 `CostEffect` é um GameplayEffect Instant, normalmente com modifier `Add` negativo (ex: `Mana Add -20`). A ativação falha se algum atributo ficaria abaixo do `MinValue`.

@@ -4,6 +4,7 @@ using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
+using SpellBook.GAS.Values;
 using SpellBook.Tags;
 using SpellBook.Testing;
 using SpellBook.Time;
@@ -112,7 +113,7 @@ namespace SpellBook.GAS.Tests
             {
                 Attribute = health,
                 Operation = ModifierOperation.Add,
-                ValueSource = new ModifierValueSource { Type = ModifierValueSource.SourceType.Constant, ConstantValue = -5f },
+                ValueSource = new ModifierValueSource { Type = ModifierValueSource.SourceType.Value, Value = ScalableFloat.Constant(-5f) },
             });
             GameplayEffect haste = _gas.CreateDurationEffect(1.5f, hasted);
             float[] ticks = { 0.3f, 0.25f, 0.6f, 0.1f };

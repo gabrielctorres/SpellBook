@@ -5,6 +5,7 @@ using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
+using SpellBook.GAS.Values;
 using SpellBook.Tags;
 using UnityEngine;
 using UnityEditor;
@@ -78,7 +79,7 @@ namespace SpellBook.Testing
         {
             var effect = Track(ScriptableObject.CreateInstance<GameplayEffect>(), "GE_Test");
             effect.DurationPolicy = durationPolicy;
-            effect.Duration = duration;
+            effect.Duration = ScalableFloat.Constant(duration);
             effect.Modifiers = new List<AttributeEffectModifier>();
             effect.PeriodicModifiers = new List<AttributeEffectModifier>();
             effect.GrantedTags = new List<GameplayTag>(grantedTags);
@@ -150,6 +151,24 @@ namespace SpellBook.Testing
         public static void SetAutoTick(AbilitySystemComponent asc, bool autoTick)
         {
             Modify(asc, so => so.FindProperty("autoTick").boolValue = autoTick);
+        }
+
+        /// <summary>
+        /// Grava <paramref name="value"/> no campo privado serializado <paramref name="field"/> de <paramref name="target"/>,
+        /// como o Inspector faria. Lança <see cref="ArgumentException"/> se o campo não existir.
+        /// </summary>
+        public static void SetObjectField(Object target, string field, Object value)
+        {
+            Modify(target, so =>
+            {
+                SerializedProperty property = so.FindProperty(field);
+                if (property == null)
+                {
+                    throw new ArgumentException($"O campo '{field}' não existe em {target.GetType().Name}.", nameof(field));
+                }
+
+                property.objectReferenceValue = value;
+            });
         }
 
         public void Dispose()
