@@ -283,9 +283,16 @@ Condições prontas:
 |---|---|---|
 | `TagQueryCondition` | As tags ativas do `Owner` satisfazem a **Query** (todas, alguma e nenhuma, como a [`GameplayTagQuery`](tags.md#gameplaytagquery)). Sem `Owner`, é falsa. | `gas.activation.tag_query` |
 | `HasTargetsCondition` | Há ao menos um alvo em `Targets`. Alvos destruídos não contam. | `gas.activation.has_targets` |
+| `AttributeThresholdCondition` | O valor atual do **Attribute** no `Owner` compara com o **Value** pela **Comparison** (`Greater`, `GreaterOrEqual`, `Less`, `LessOrEqual` ou `Equal`, com tolerância de 0,0001). Com **Use Ratio**, compara o valor dividido pelo máximo efetivo do atributo; máximo 0 ou menor dá falso. Atributo ausente no `Owner`, ou sem `Owner`, dá falso, sem aviso. | `gas.activation.attribute_threshold` |
+| `HasTargetPointCondition` | A ativação tem um ponto-alvo (`Target.HasPoint`). | `gas.activation.no_target` |
+| `CastRangeCondition` | O ponto-alvo está a até `CastRange` da habilidade, medido da posição do `Owner`. Com `CastRange` 0 ou menor, ou sem habilidade, é verdadeira, com ou sem ponto. Com alcance maior que 0 e sem ponto, é falsa. | `gas.activation.cast_range` |
 | `AndCondition` | Todas as filhas são verdadeiras. Lista vazia é verdadeira. | — |
 | `OrCondition` | Alguma filha é verdadeira. Lista vazia é falsa. | — |
 | `NotCondition` | A filha é falsa. Sem filha, é falsa. | — |
+
+O **Value** da `AttributeThresholdCondition` é uma fonte de valor, como a de um modificador: um valor por nível (inclusive `%nome` da tabela da habilidade), um atributo ou uma fórmula. Ele é avaliado com o `Owner` como instigador e alvo, na habilidade e no nível do contexto. Com a Mana em 30, "Mana `GreaterOrEqual` 20" passa e, com a Mana em 10, falha.
+
+O alcance mora na habilidade: o campo **Cast Range** da `GameplayAbility` (`CastRange`, um `ScalableFloat` avaliado no nível e na tabela da habilidade) nasce 0, "sem limite". A `CastRangeCondition` mede a distância em 3D até o ponto: com alcance 5, um ponto a 3 m passa e um a 8 m falha. Para que a falta de ponto tenha motivo próprio (`no_target`) em vez de `cast_range`, ponha a `HasTargetPointCondition` antes da `CastRangeCondition`.
 
 Filhas nulas nas composições são ignoradas. No Inspector, um campo `[SerializeReference] Condition<ConditionContext>` só oferece essas condições e as suas, e cada uma aparece numa linha, como "Alguma (2)" ou "Não Tem alvos".
 

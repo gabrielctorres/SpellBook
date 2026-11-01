@@ -45,6 +45,9 @@ namespace SpellBook.GAS.Abilities
         [Tooltip("Efeito Instant aplicado ao ativar (ex: Mana Add -20). A ativação falha se o atributo ficaria abaixo do MinValue.")]
         public GameplayEffect CostEffect;
 
+        [Tooltip("Alcance da habilidade por nível, lido pela CastRangeCondition. 0 ou menos: sem limite.")]
+        [SerializeField] private ScalableFloat castRange = ScalableFloat.Constant(0f);
+
         [Header("Tags")]
         [Tooltip("Não ativa se o dono tiver alguma destas tags.")]
         public List<GameplayTag> BlockedTags;
@@ -95,6 +98,16 @@ namespace SpellBook.GAS.Abilities
         protected virtual void OnValidate()
         {
             values?.MarkChanged();
+        }
+
+        /// <summary>
+        /// Alcance por nível, avaliado com a tabela <see cref="Values"/> (fonte única do alcance). 0 ou menos é "sem limite".
+        /// Atribuir nulo volta ao alcance 0.
+        /// </summary>
+        public ScalableFloat CastRange
+        {
+            get => castRange ??= ScalableFloat.Constant(0f);
+            set => castRange = value ?? ScalableFloat.Constant(0f);
         }
 
         /// <summary>Política de redução de recarga; nula usa <see cref="CooldownReductionPolicy.ApplyDefault"/>.</summary>
