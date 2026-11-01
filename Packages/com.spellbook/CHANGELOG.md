@@ -13,6 +13,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); 
 - **Renovação pela duração aplicada:** a renovação de um efeito (pilha com `RefreshDurationOnStack` ou reaplicação sem `CanStack`) volta à duração com que ele foi aplicado, e não mais à `Duration` do asset. `ApplyEffect` com duração passada redefine essa duração.
 - **Recarga normalizada pela duração aplicada:** `GetCooldownNormalized` divide o tempo restante pela duração com que a recarga foi aplicada, e não mais pela `Duration` do asset; com redução de recarga, vai de 1 a 0 em vez de começar abaixo de 1.
 - **Recarga com tags hierárquicas:** `GetCooldownTimeRemaining` (e, com ele, `GetCooldownNormalized`) passa a contar efeitos que concedem tags filhas das tags da recarga, como `HasTag`; antes só a tag igual contava. Com vários efeitos casando, vale o de maior tempo restante.
+- **`CreateDerived` copia o `CustomData`:** o contexto derivado (como o do impacto de projétil) recebe uma cópia rasa dos dados customizados, com o mesmo comparador; antes nascia vazio. Chaves acrescentadas num contexto não aparecem no outro, e valores que são objetos continuam compartilhados.
 
 ### Adicionado
 - Sample **Sandbox** (Package Manager → SpellBook → Samples): cena 3D que liga GAS, Events, Pooling e Time, com Bola de Fogo, queimadura, canal de dano recebido, pausa e câmera lenta. Entrada pelo Input Manager legado.

@@ -92,7 +92,7 @@ O `Duration` da `WaitAction`, o `Interval` da `RepeatAction` e o `DelayBetweenSh
 Numa ação própria, espere com `yield return context.WaitSeconds(segundos)`, e não com `WaitForSeconds`.
 
 #### Projéteis {#projectile}
-A `SpawnProjectileAction` dispara projéteis: cria o `ProjectilePrefab` pelo campo `Spawner` e chama `Setup` no componente `Projectile`. As `OnHitActions` rodam no impacto com um contexto derivado (mesma habilidade e nível).
+A `SpawnProjectileAction` dispara projéteis: cria o `ProjectilePrefab` pelo campo `Spawner` e chama `Setup` no componente `Projectile`. As `OnHitActions` rodam no impacto com um contexto derivado (mesma habilidade e nível) que recebe uma cópia rasa do `CustomData`: enxerga as chaves gravadas antes do disparo (como `"crit"`), mas o que o impacto grava não volta ao contexto original, e vice-versa. Valores que são objetos continuam sendo as mesmas referências.
 
 - **`Setup(SpawnerAsset spawner, AbilityContext parentContext, List<AbilityAction> onHitActions)`** guarda o spawner que criou o projétil. Há uma sobrecarga com `AbilitySystemComponent` no lugar do contexto.
 - **`ReturnToPool()`** devolve o projétil por esse mesmo spawner (`spawner.Release`). Sem spawner, ele volta pelo `SpawnerAsset.Default`, que destrói a instância.

@@ -29,10 +29,18 @@ namespace SpellBook.GAS.Abilities
 
         /// <summary>
         /// Cria um contexto novo (ex: ponto de impacto) herdando habilidade e nível, mas sem vínculo de cancelamento.
+        /// O <see cref="CustomData"/> é copiado raso: dicionário novo, com o mesmo comparador e as mesmas referências de valor.
         /// </summary>
         public AbilityContext CreateDerived(Vector3 targetPosition)
         {
-            return new AbilityContext(Source, targetPosition) { Ability = Ability, Level = Level };
+            return new AbilityContext(Source, targetPosition)
+            {
+                Ability = Ability,
+                Level = Level,
+                CustomData = CustomData != null
+                    ? new Dictionary<string, object>(CustomData, CustomData.Comparer)
+                    : new Dictionary<string, object>()
+            };
         }
 
         /// <summary>
