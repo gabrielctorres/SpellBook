@@ -20,12 +20,40 @@ namespace SpellBook.GAS.Attributes
         private readonly Dictionary<AttributeDefinition, AttributeState> _attributeMap = 
             new Dictionary<AttributeDefinition, AttributeState>();
 
+        private readonly List<AttributeState> _states = new List<AttributeState>();
+
         private AbilitySystemComponent _owner;
+        private bool _initialized;
         private HashSet<AttributeDefinition> _warnedMissing;
         private HashSet<AttributeDefinition> _warnedClamped;
 
+        /// <summary>
+        /// Estados dos atributos na ordem de <c>startingAttributes</c>, sem cópia. Uma definição repetida aparece uma vez,
+        /// na posição da primeira entrada, com o mesmo estado que <see cref="TryGetState"/> devolve.
+        /// </summary>
+        public IReadOnlyList<AttributeState> States
+        {
+            get
+            {
+                EnsureInitialized();
+                return _states;
+            }
+        }
+
         private void Awake()
         {
+            EnsureInitialized();
+        }
+
+        /// <summary>
+        /// Cria os estados uma única vez. O <c>Awake</c> chama, e as leituras também, para que um componente que lê o
+        /// <see cref="AttributeSet"/> no próprio <c>Awake</c> ou <c>OnEnable</c> não dependa da ordem dos componentes.
+        /// </summary>
+        internal void EnsureInitialized()
+        {
+            if (_initialized) return;
+            _initialized = true;
+
             _owner = GetComponent<AbilitySystemComponent>();
 
             // 1. Create all states
@@ -35,6 +63,15 @@ namespace SpellBook.GAS.Attributes
                 if (attr.Definition != null)
                 {
                     var state = new AttributeState(attr.Definition, attr.InitialValue, _owner);
+                    if (_attributeMap.TryGetValue(attr.Definition, out var previous))
+                    {
+                        // O mapa fica com a última entrada repetida; a lista a mantém na posição da primeira
+                        _states[_states.IndexOf(previous)] = state;
+                    }
+                    else
+                    {
+                        _states.Add(state);
+                    }
                     _attributeMap[attr.Definition] = state;
                     if (attr.Definition.Type == AttributeType.Primary && state.BaseValue != attr.InitialValue)
                     {
@@ -66,12 +103,45 @@ namespace SpellBook.GAS.Attributes
                 state = null;
                 return false;
             }
+            EnsureInitialized();
             return _attributeMap.TryGetValue(def, out state);
         }
 
+        /// <summary>Valor atual do atributo, sem aviso quando ele não existe. <paramref name="def"/> nulo ou ausente: falso e 0.</summary>
+        public bool TryGetValue(AttributeDefinition def, out float value)
+        {
+            if (TryGetState(def, out var state))
+            {
+                value = state.CurrentValue;
+                return true;
+            }
+            value = 0f;
+            return false;
+        }
+
+        /// <summary>Valor atual do atributo, ou <paramref name="fallback"/> sem aviso quando ele não existe ou <paramref name="def"/> é nulo.</summary>
+        public float GetValueOrDefault(AttributeDefinition def, float fallback = 0f)
+        {
+            return TryGetState(def, out var state) ? state.CurrentValue : fallback;
+        }
+
+        /// <summary>Se o atributo está em <c>startingAttributes</c>. Sem aviso; <paramref name="def"/> nulo: falso.</summary>
+        public bool HasAttribute(AttributeDefinition def)
+        {
+            return TryGetState(def, out _);
+        }
+
+        /// <summary>Valor base do atributo, sem modificadores. Sem aviso; ausente ou <paramref name="def"/> nulo: 0.</summary>
+        public float GetBaseValue(AttributeDefinition def)
+        {
+            return TryGetState(def, out var state) ? state.BaseValue : 0f;
+        }
+
+        /// <summary>Valor atual do atributo. Ausente: avisa uma vez no Console e devolve 0.</summary>
         public float GetValue(AttributeDefinition def)
         {
             if (def == null) return 0f;
+            EnsureInitialized();
             if (_attributeMap.TryGetValue(def, out var state)) return state.CurrentValue;
 
             WarnMissing(def);

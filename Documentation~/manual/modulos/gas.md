@@ -14,6 +14,9 @@ O GAS fica no assembly `SpellBook.GAS`. Um asmdef seu que usa o GAS precisa refe
 
 ### 1.2 Atributos {#attributeset}
 - **O que são:** valores como Vida, Mana e Velocidade, agrupados em um `AttributeSet`.
+- **Leitura sem aviso:** `TryGetValue`, `GetValueOrDefault(def, fallback)`, `HasAttribute` e `GetBaseValue` leem o atributo sem escrever no Console quando ele não está em `startingAttributes` (falso, o `fallback` ou 0). `GetValue` continua avisando uma vez por atributo e devolvendo 0. O ASC tem os mesmos atalhos: `TryGetAttributeValue`, `GetAttributeValueOrDefault`, `HasAttribute` e `GetAttributeBaseValue`. `TryGetValue` não aloca.
+- **Listagem:** `AttributeSet.States` lista os estados na ordem de `startingAttributes`, e `AttributeState.Modifiers` lista os modificadores ativos de cada um, com o `Source` de quem os aplicou. As leituras já funcionam antes do `Awake` do `AttributeSet`, então um componente pode lê-lo no próprio `Awake` ou `OnEnable` sem depender da ordem dos componentes.
+- **Contagem de tags:** `asc.GetTagCount(tag)` devolve quantas fontes concedem a tag exata (sem hierarquia; 0 se ausente ou inválida), e `asc.TagCounts` expõe todas as tags com a contagem de cada uma.
 - **Desempenho:** recalcular um atributo, adicionar ou remover um modificador e remover os modificadores de uma fonte não alocam memória gerenciada depois do primeiro uso. Um efeito periódico com valor constante ou lido de atributo tiqueta sem gerar lixo. Um modificador com `ValueSource` do tipo `Formula` pode alocar, conforme a fórmula.
 
 #### AttributeDefinition {#attributedefinition}

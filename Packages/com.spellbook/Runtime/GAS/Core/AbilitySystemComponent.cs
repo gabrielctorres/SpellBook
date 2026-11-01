@@ -118,6 +118,32 @@ namespace SpellBook.GAS.Core
             return attributeSet != null ? attributeSet.GetValue(def) : 0f;
         }
 
+        /// <summary>Atalho de <see cref="Attributes.AttributeSet.TryGetValue"/>, sem aviso. Sem <c>AttributeSet</c>: falso e 0.</summary>
+        public bool TryGetAttributeValue(AttributeDefinition def, out float value)
+        {
+            if (attributeSet != null) return attributeSet.TryGetValue(def, out value);
+            value = 0f;
+            return false;
+        }
+
+        /// <summary>Atalho de <see cref="Attributes.AttributeSet.GetValueOrDefault"/>, sem aviso. Sem <c>AttributeSet</c>: <paramref name="fallback"/>.</summary>
+        public float GetAttributeValueOrDefault(AttributeDefinition def, float fallback = 0f)
+        {
+            return attributeSet != null ? attributeSet.GetValueOrDefault(def, fallback) : fallback;
+        }
+
+        /// <summary>Atalho de <see cref="Attributes.AttributeSet.HasAttribute"/>. Sem <c>AttributeSet</c>: falso.</summary>
+        public bool HasAttribute(AttributeDefinition def)
+        {
+            return attributeSet != null && attributeSet.HasAttribute(def);
+        }
+
+        /// <summary>Atalho de <see cref="Attributes.AttributeSet.GetBaseValue"/>, sem aviso. Sem <c>AttributeSet</c>: 0.</summary>
+        public float GetAttributeBaseValue(AttributeDefinition def)
+        {
+            return attributeSet != null ? attributeSet.GetBaseValue(def) : 0f;
+        }
+
         #region Ability Management
         /// <summary>
         /// Concede uma habilidade ao ASC. Se já concedida, retorna o spec existente.
@@ -420,6 +446,16 @@ namespace SpellBook.GAS.Core
             if (tags == null) return;
             foreach (var tag in tags) RemoveTag(tag);
         }
+
+        /// <summary>Contagem de referência da tag exata, sem hierarquia. Ausente ou inválida: 0.</summary>
+        public int GetTagCount(GameplayTag tag)
+        {
+            if (!tag.IsValid) return 0;
+            return _activeTags.TryGetValue(tag, out int count) ? count : 0;
+        }
+
+        /// <summary>Tags concedidas ao ASC com a contagem de referência de cada uma, sem cópia.</summary>
+        public IReadOnlyDictionary<GameplayTag, int> TagCounts => _activeTags;
 
         public bool HasTag(GameplayTag tag)
         {

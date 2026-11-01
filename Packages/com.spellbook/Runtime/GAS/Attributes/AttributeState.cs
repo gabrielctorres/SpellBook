@@ -13,6 +13,10 @@ namespace SpellBook.GAS.Attributes
 
         private readonly List<AttributeModifier> _modifiers = new List<AttributeModifier>();
         private readonly AbilitySystemComponent _owner;
+
+        /// <summary>Modificadores ativos na ordem em que entraram, sem cópia. O <c>Source</c> diz quem aplicou cada um.</summary>
+        public IReadOnlyList<AttributeModifier> Modifiers => _modifiers;
+
         public event Action<float, float> OnValueChanged; // OldValue, NewValue
 
         public AttributeState(AttributeDefinition definition, float baseValue, AbilitySystemComponent owner)
