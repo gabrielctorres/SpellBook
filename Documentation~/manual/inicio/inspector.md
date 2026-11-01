@@ -176,9 +176,12 @@ public class MinhaConfigComAlias : UnityEngine.ScriptableObject
 
 ## Limite de um drawer por campo {#um-drawer-por-campo}
 
-A Unity usa um único drawer por campo. Um campo com `[TypePicker]` já tem o drawer do
-seletor, então não combine esse atributo com outro atributo de drawer no mesmo campo, como
+A Unity usa um único drawer de atributo por campo. Um campo com `[TypePicker]` já tem o drawer
+do seletor, então não combine esse atributo com outro atributo de drawer no mesmo campo, como
 `[ShowIf]`: só um deles vale, e o outro é ignorado.
+
+O limite vale para atributos. O drawer do tipo escolhido continua valendo abaixo do seletor
+(veja [Inspectors dos seus tipos](#inspectors-dos-seus-tipos)).
 
 `[TypePicker]` vale só para campos `[SerializeReference]`, simples ou em lista.
 
@@ -222,6 +225,31 @@ using UnityEditor;
 
 [CustomEditor(typeof(MinhaBase), true)]
 public sealed class MinhaBaseEditor : SpellBookEditor { }
+```
+
+**Drawer do seu tipo sob o seletor.** Um `[CustomPropertyDrawer(typeof(MinhaAcao))]` também
+vale dentro de um campo `[TypePicker]`: abaixo do botão do tipo, o seletor mostra o que o
+`CreatePropertyGUI` do seu drawer devolve, no lugar dos campos um a um. Vale primeiro o drawer do
+tipo exato, depois o da base mais próxima declarado com `true` no segundo argumento. Ao trocar o
+tipo, o seletor procura de novo. O drawer recebe a propriedade do campo, mas sob o seletor
+`fieldInfo` e `attribute` ficam nulos, então não dependa deles. Um drawer só IMGUI, que não
+sobrescreve `CreatePropertyGUI`, é ignorado, e os campos aparecem um a um.
+
+```csharp
+using UnityEditor;
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
+
+[CustomPropertyDrawer(typeof(MinhaAcao), true)]
+public sealed class MinhaAcaoDrawer : PropertyDrawer
+{
+    public override VisualElement CreatePropertyGUI(SerializedProperty property)
+    {
+        var root = new VisualElement();
+        root.Add(new PropertyField(property.FindPropertyRelative("alvo")));
+        return root;
+    }
+}
 ```
 
 **Conflito com um Inspector seu.** Se você escrever um `[CustomEditor]` para um tipo do

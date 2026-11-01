@@ -40,6 +40,11 @@ namespace SpellBook.Core.Editor.Inspector
         private static readonly Dictionary<Type, IReadOnlyList<TypePickerEntry>> Cache =
             new Dictionary<Type, IReadOnlyList<TypePickerEntry>>();
 
+        private static readonly Dictionary<Type, Type> DrawerCache = new Dictionary<Type, Type>();
+
+        private static readonly Lazy<List<TypeDrawerEntry>> TypeDrawers =
+            new Lazy<List<TypeDrawerEntry>>(CollectTypeDrawers);
+
         /// <summary>
         /// Tipos que o seletor oferece para o tipo base: o próprio tipo base e os derivados que são concretos, não genéricos,
         /// <c>[Serializable]</c>, com construtor sem parâmetros e fora de <c>UnityEngine.Object</c>. O resultado fica em cache.
@@ -128,6 +133,33 @@ namespace SpellBook.Core.Editor.Inspector
             return false;
         }
 
+        /// <summary>
+        /// Drawer de tipo (<c>[CustomPropertyDrawer]</c>) do tipo concreto, ou <c>null</c> se não há (ADR 0026, emenda de
+        /// 2026-11-01). Vale primeiro o drawer do tipo exato, depois o da base mais próxima com <c>useForChildren</c>. Drawers
+        /// de <see cref="UnityEngine.PropertyAttribute"/> ficam de fora; no empate, vence o de nome completo menor (ordinal).
+        /// O resultado fica em cache até a recarga de domínio.
+        /// </summary>
+        public static Type FindTypeDrawer(Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (!DrawerCache.TryGetValue(type, out Type drawer))
+            {
+                drawer = PickDrawer(type, false);
+                for (Type current = type.BaseType; drawer == null && current != null; current = current.BaseType)
+                {
+                    drawer = PickDrawer(current, true);
+                }
+
+                DrawerCache[type] = drawer;
+            }
+
+            return drawer;
+        }
+
         private static bool IsCandidate(Type type)
         {
             return !type.IsAbstract && !type.IsInterface && !type.IsGenericType && !type.ContainsGenericParameters
@@ -140,6 +172,59 @@ namespace SpellBook.Core.Editor.Inspector
             var category = type.GetCustomAttribute<TypeCategoryAttribute>(false);
             return new TypePickerEntry(type, ObjectNames.NicifyVariableName(type.Name),
                 category?.Path ?? string.Empty, category?.Summary ?? string.Empty);
+        }
+
+        private static Type PickDrawer(Type target, bool childrenOnly)
+        {
+            return TypeDrawers.Value
+                .Where(d => d.Target == target && (!childrenOnly || d.UseForChildren))
+                .Select(d => d.Drawer)
+                .OrderBy(d => d.FullName, StringComparer.Ordinal)
+                .FirstOrDefault();
+        }
+
+        private static List<TypeDrawerEntry> CollectTypeDrawers()
+        {
+            var entries = new List<TypeDrawerEntry>();
+            foreach (Type drawer in TypeCache.GetTypesWithAttribute<CustomPropertyDrawer>())
+            {
+                if (drawer.IsAbstract || !typeof(PropertyDrawer).IsAssignableFrom(drawer))
+                {
+                    continue;
+                }
+
+                foreach (CustomAttributeData data in drawer.GetCustomAttributesData()
+                             .Where(a => a.AttributeType == typeof(CustomPropertyDrawer)))
+                {
+                    IList<CustomAttributeTypedArgument> args = data.ConstructorArguments;
+                    if (args.Count == 0 || !(args[0].Value is Type target)
+                        || typeof(UnityEngine.PropertyAttribute).IsAssignableFrom(target))
+                    {
+                        continue;
+                    }
+
+                    bool useForChildren = args.Count > 1 && args[1].Value is bool children && children;
+                    entries.Add(new TypeDrawerEntry(target, drawer, useForChildren));
+                }
+            }
+
+            return entries;
+        }
+
+        private readonly struct TypeDrawerEntry
+        {
+            public TypeDrawerEntry(Type target, Type drawer, bool useForChildren)
+            {
+                Target = target;
+                Drawer = drawer;
+                UseForChildren = useForChildren;
+            }
+
+            public Type Target { get; }
+
+            public Type Drawer { get; }
+
+            public bool UseForChildren { get; }
         }
 
         private static bool Contains(string text, string query)

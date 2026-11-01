@@ -53,6 +53,9 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); 
 - **Tags para ferramentas próprias:** `GameplayTag.GetDefinition()` passa a ser público (devolve `null` para tag inválida) e `GameplayTagDefinition` ganha a propriedade `Parent` (nula na raiz), para percorrer a cadeia de pais só com API pública.
 - Sample **Sandbox** (Package Manager → SpellBook → Samples): cena 3D que liga GAS, Events, Pooling e Time, com Bola de Fogo, queimadura, canal de dano recebido, pausa e câmera lenta. Entrada pelo Input Manager legado.
 
+### Alterado
+- **O seletor de tipo usa o drawer do tipo concreto:** num campo `[SerializeReference, TypePicker]`, o corpo abaixo do botão do tipo vem do `[CustomPropertyDrawer]` do tipo escolhido, quando existe (primeiro o do tipo exato, depois o da base mais próxima com `useForChildren`); sem drawer, ou com drawer só IMGUI, continua um campo por filho. Um drawer de tipo seu que antes era ignorado sob o seletor passa a ser usado; sob o seletor, `fieldInfo` e `attribute` do drawer ficam nulos. Não muda API nem dados. `TypePickerCatalog.FindTypeDrawer(tipo)` devolve o drawer escolhido.
+
 ### Corrigido
 - **Recálculo e tique sem alocação:** `AttributeState.Recalculate`, `AddModifier`, `RemoveModifier` e `RemoveModifiersFromSource` não alocam mais memória gerenciada depois do primeiro uso, e o `Tick` do ASC com um efeito periódico de valor constante ou por atributo deixa de gerar lixo a cada quadro. Os valores calculados não mudam.
 - **`RemoveEffect` idempotente:** ignora `null` e instâncias que não estão ativas no ASC. Antes, `null` lançava `NullReferenceException` e uma segunda chamada (ou a remoção no mesmo quadro da expiração) rodava de novo a limpeza e as ações de `OnRemoval` e devolvia as tags outra vez.
