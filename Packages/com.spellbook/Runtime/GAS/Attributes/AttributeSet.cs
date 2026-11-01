@@ -26,6 +26,7 @@ namespace SpellBook.GAS.Attributes
         private bool _initialized;
         private HashSet<AttributeDefinition> _warnedMissing;
         private HashSet<AttributeDefinition> _warnedClamped;
+        private HashSet<AttributeDefinition> _warnedLimits;
 
         /// <summary>
         /// Estados dos atributos na ordem de <c>startingAttributes</c>, sem cópia. Uma definição repetida aparece uma vez,
@@ -58,6 +59,7 @@ namespace SpellBook.GAS.Attributes
 
             // 1. Create all states
             if (startingAttributes == null) startingAttributes = new List<InitialAttribute>();
+            Dictionary<AttributeDefinition, float> dynamicInitial = null; // Limite por atributo: o aviso espera a ligação
             foreach (var attr in startingAttributes)
             {
                 if (attr.Definition != null)
@@ -73,9 +75,14 @@ namespace SpellBook.GAS.Attributes
                         _states.Add(state);
                     }
                     _attributeMap[attr.Definition] = state;
-                    if (attr.Definition.Type == AttributeType.Primary && state.BaseValue != attr.InitialValue)
+                    if (HasDynamicLimit(attr.Definition))
                     {
-                        WarnClamped(attr.Definition, attr.InitialValue, state.BaseValue);
+                        if (dynamicInitial == null) dynamicInitial = new Dictionary<AttributeDefinition, float>();
+                        dynamicInitial[attr.Definition] = attr.InitialValue;
+                    }
+                    else if (attr.Definition.Type == AttributeType.Primary && state.BaseValue != attr.InitialValue)
+                    {
+                        WarnClamped(state, attr.InitialValue);
                     }
                 }
             }
@@ -94,6 +101,76 @@ namespace SpellBook.GAS.Attributes
                     }
                 }
             }
+
+            // 3. Limites por atributo (R1 a R6): só com alguma definição que os use
+            if (dynamicInitial == null) return;
+            var visiting = new HashSet<AttributeState>();
+            var bound = new List<AttributeState>();
+            for (int i = 0; i < _states.Count; i++)
+            {
+                BindLimits(_states[i], visiting, bound);
+            }
+
+            // Assina depois de ligar tudo, para que a ligação não aplique a política do máximo
+            for (int i = 0; i < bound.Count; i++)
+            {
+                AttributeState dependent = bound[i];
+                AttributeState min = dependent.MinSourceState;
+                AttributeState max = dependent.MaxSourceState;
+                if (min != null) min.OnValueChanged += (oldVal, newVal) => dependent.OnLimitSourceChanged();
+                if (max != null && max != min) max.OnValueChanged += (oldVal, newVal) => dependent.OnLimitSourceChanged();
+            }
+
+            foreach (var pair in dynamicInitial)
+            {
+                AttributeState state = _attributeMap[pair.Key];
+                if (pair.Key.Type == AttributeType.Primary && state.BaseValue != pair.Value) WarnClamped(state, pair.Value);
+            }
+        }
+
+        private static bool HasDynamicLimit(AttributeDefinition def)
+        {
+            return def.MinSource == LimitSource.Attribute || def.MaxSource == LimitSource.Attribute;
+        }
+
+        // Busca em profundidade: liga as fontes antes do dependente e corta a aresta que fecha um ciclo
+        private void BindLimits(AttributeState state, HashSet<AttributeState> visiting, List<AttributeState> bound)
+        {
+            if (state.LimitsBound || !visiting.Add(state)) return;
+            AttributeDefinition def = state.Definition;
+            AttributeState min = ResolveLimitSource(state, def.MinSource, def.MinAttribute, "mínimo", visiting, bound);
+            AttributeState max = ResolveLimitSource(state, def.MaxSource, def.MaxAttribute, "máximo", visiting, bound);
+            visiting.Remove(state);
+            state.BindLimitSources(min, max);
+            if (min != null || max != null) bound.Add(state);
+        }
+
+        private AttributeState ResolveLimitSource(AttributeState state, LimitSource source, AttributeDefinition sourceDef,
+            string limit, HashSet<AttributeState> visiting, List<AttributeState> bound)
+        {
+            if (source != LimitSource.Attribute) return null;
+            AttributeDefinition def = state.Definition;
+            if (sourceDef == null || !_attributeMap.TryGetValue(sourceDef, out var sourceState))
+            {
+                string sourceName = sourceDef != null ? sourceDef.name : "(vazio)";
+                WarnLimit(def, $"[GAS] Fonte do {limit} '{sourceName}' de '{def.name}' não está em startingAttributes de '{name}'. Usando a constante.");
+                return null;
+            }
+            if (visiting.Contains(sourceState))
+            {
+                WarnLimit(def, $"[GAS] Ciclo nas fontes de limite de '{def.name}' em '{name}': o {limit} usa a constante.");
+                return null;
+            }
+            BindLimits(sourceState, visiting, bound);
+            return sourceState;
+        }
+
+        // Avisa uma única vez por definição, mesmo com o mínimo e o máximo afetados
+        private void WarnLimit(AttributeDefinition def, string message)
+        {
+            if (_warnedLimits == null) _warnedLimits = new HashSet<AttributeDefinition>();
+            if (!_warnedLimits.Add(def)) return;
+            Debug.LogWarning(message, this);
         }
 
         public bool TryGetState(AttributeDefinition def, out AttributeState state)
@@ -157,11 +234,12 @@ namespace SpellBook.GAS.Attributes
         }
 
         // Avisa uma única vez por atributo, mesmo que ele apareça repetido em startingAttributes
-        private void WarnClamped(AttributeDefinition def, float initialValue, float clampedValue)
+        private void WarnClamped(AttributeState state, float initialValue)
         {
+            AttributeDefinition def = state.Definition;
             if (_warnedClamped == null) _warnedClamped = new HashSet<AttributeDefinition>();
             if (!_warnedClamped.Add(def)) return;
-            Debug.LogWarning($"[GAS] Valor inicial {initialValue} de '{def.name}' em '{name}' está fora de [{def.MinValue}, {def.MaxValue}] e foi limitado para {clampedValue}.", this);
+            Debug.LogWarning($"[GAS] Valor inicial {initialValue} de '{def.name}' em '{name}' está fora de [{state.MinValue}, {state.MaxValue}] e foi limitado para {state.BaseValue}.", this);
         }
 
         public void AddModifier(AttributeDefinition def, AttributeModifier mod)

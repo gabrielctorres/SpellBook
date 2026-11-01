@@ -23,6 +23,9 @@ O GAS fica no assembly `SpellBook.GAS`. Um asmdef seu que usa o GAS precisa refe
 Cada valor tem uma `AttributeDefinition`.
 
 - **Limites:** `MinValue` e `MaxValue` valem para o valor base e para o valor atual. O valor base nunca sai do intervalo: um dano maior que a vida deixa a base em `MinValue`, e a cura seguinte conta inteira. Isso vale para efeitos instantâneos, tiques periódicos e `SetBaseValue`.
+- **Limite vindo de outro atributo:** com `MinSource` ou `MaxSource` em `Attribute`, o limite é o valor atual (com modificadores) do atributo escolhido em `MinAttribute` ou `MaxAttribute`, no mesmo ASC. Exemplo: a `Vida` com máximo = `VidaMax`; com `VidaMax` em 150, uma cura de 200 para em 150. `AttributeState.MinValue` e `MaxValue` dão o limite efetivo. O dependente se atualiza quando a fonte muda, sem esperar o `Tick`. O padrão é `Constant`, e um asset antigo se comporta como antes.
+- **Política ao mudar o máximo (`OnMaxChange`):** vale quando o máximo vindo de outro atributo muda. Com a `Vida` em 80 de 100 e o máximo subindo para 150: `KeepValue` (padrão) deixa 80, `KeepRatio` mantém a proporção (120) e `AddDelta` soma a diferença (130). Se o novo máximo fica abaixo do valor, o valor vai ao máximo em qualquer política, com uma única notificação de `OnValueChanged`. Mudar o mínimo só limita.
+- **Configuração inválida:** com o mínimo acima do máximo, vale o mínimo. Se o atributo-fonte não está no ASC, ou se as fontes formam um ciclo (A limitado por B e B por A), o limite cortado usa a constante (`MinValue` ou `MaxValue`, que funcionam como reserva) e o `AttributeSet` registra um aviso no Console, uma vez por atributo.
 - **Valor inicial fora do intervalo:** o `AttributeSet` limita o valor inicial ao intervalo e registra um aviso no Console, uma vez por atributo, com o nome do atributo e do objeto. Revise o asset ou o `startingAttributes` apontado pelo aviso.
 
 #### Fórmulas de modificadores {#formulas}

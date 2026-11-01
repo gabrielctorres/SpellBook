@@ -11,8 +11,29 @@ namespace SpellBook.GAS.Attributes
         public float BaseValue { get; private set; }
         public float CurrentValue { get; private set; }
 
+        /// <summary>
+        /// Mínimo efetivo: o valor atual do atributo-fonte quando ligado, senão a constante da definição.
+        /// Antes da ligação pelo <see cref="AttributeSet"/>, um lado vindo de atributo ainda não limita.
+        /// </summary>
+        public float MinValue => _minSource != null ? _minSource.CurrentValue
+            : _limitsBound || Definition.MinSource == LimitSource.Constant ? Definition.MinValue : float.NegativeInfinity;
+
+        /// <summary>Máximo efetivo, com a mesma regra do <see cref="MinValue"/>.</summary>
+        public float MaxValue => _maxSource != null ? _maxSource.CurrentValue
+            : _limitsBound || Definition.MaxSource == LimitSource.Constant ? Definition.MaxValue : float.PositiveInfinity;
+
         private readonly List<AttributeModifier> _modifiers = new List<AttributeModifier>();
         private readonly AbilitySystemComponent _owner;
+
+        private AttributeState _minSource;
+        private AttributeState _maxSource;
+        private bool _limitsBound;
+        private float _lastMax;
+        private bool _updatingLimits;
+
+        internal AttributeState MinSourceState => _minSource;
+        internal AttributeState MaxSourceState => _maxSource;
+        internal bool LimitsBound => _limitsBound;
 
         /// <summary>Modificadores ativos na ordem em que entraram, sem cópia. O <c>Source</c> diz quem aplicou cada um.</summary>
         public IReadOnlyList<AttributeModifier> Modifiers => _modifiers;
@@ -113,10 +134,63 @@ namespace SpellBook.GAS.Attributes
             }
         }
 
-        // Único ponto que aplica os limites da definição, na base e no valor atual
+        /// <summary>
+        /// Liga as fontes dos limites (nulas: a constante vale) e limita a base aos limites efetivos.
+        /// O <see cref="AttributeSet"/> chama uma vez, com as fontes já ligadas, e depois assina o <see cref="OnValueChanged"/> delas.
+        /// </summary>
+        internal void BindLimitSources(AttributeState minSource, AttributeState maxSource)
+        {
+            _minSource = minSource;
+            _maxSource = maxSource;
+            _limitsBound = true;
+            _lastMax = MaxValue;
+            BaseValue = ClampToLimits(BaseValue);
+            Recalculate();
+        }
+
+        /// <summary>Um limite ligado a outro atributo mudou: aplica a política do máximo à base e recalcula uma vez.</summary>
+        internal void OnLimitSourceChanged()
+        {
+            // Segunda barreira contra ciclos, além do corte na ligação
+            if (_updatingLimits) return;
+            _updatingLimits = true;
+            try
+            {
+                float oldMax = _lastMax;
+                float newMax = MaxValue;
+                _lastMax = newMax;
+
+                // Base acima do novo máximo vai ao máximo pelo limite, qualquer que seja a política
+                if (newMax != oldMax && BaseValue <= newMax)
+                {
+                    float min = MinValue;
+                    switch (Definition.OnMaxChange)
+                    {
+                        case MaxChangePolicy.KeepRatio:
+                            if (oldMax - min > 0f) BaseValue = min + (BaseValue - min) * (newMax - min) / (oldMax - min);
+                            break;
+                        case MaxChangePolicy.AddDelta:
+                            BaseValue += newMax - oldMax;
+                            break;
+                    }
+                }
+
+                BaseValue = ClampToLimits(BaseValue);
+                Recalculate();
+            }
+            finally
+            {
+                _updatingLimits = false;
+            }
+        }
+
+        // Único ponto que aplica os limites efetivos, na base e no valor atual. Mínimo acima do máximo: vale o mínimo
         private float ClampToLimits(float value)
         {
-            return Mathf.Clamp(value, Definition.MinValue, Definition.MaxValue);
+            float min = MinValue;
+            float max = MaxValue;
+            if (min > max) return min;
+            return Mathf.Clamp(value, min, max);
         }
     }
 }

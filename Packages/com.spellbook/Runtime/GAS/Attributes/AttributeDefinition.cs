@@ -10,6 +10,21 @@ namespace SpellBook.GAS.Attributes
         Derived  // Calculated entirely from a formula
     }
 
+    /// <summary>De onde vem um limite do atributo: a constante da definição ou o valor atual de outro atributo.</summary>
+    public enum LimitSource
+    {
+        Constant,
+        Attribute
+    }
+
+    /// <summary>O que acontece com o valor base quando o máximo vindo de outro atributo muda.</summary>
+    public enum MaxChangePolicy
+    {
+        KeepValue, // A base fica, limitada ao novo máximo
+        KeepRatio, // A base mantém a proporção entre o mínimo e o máximo
+        AddDelta   // A base soma a diferença do máximo
+    }
+
     [CreateAssetMenu(fileName = "NewAttribute", menuName = "GAS/Attribute Definition")]
     [HelpURL(DocUrls.Gas + "#attributedefinition")]
     public class AttributeDefinition : ScriptableObject
@@ -25,9 +40,27 @@ namespace SpellBook.GAS.Attributes
         public Formula Formula;
 
         [Header("Limits")]
+        public LimitSource MinSource = LimitSource.Constant;
+
+        [ShowIf(nameof(MinSource), LimitSource.Attribute)]
+        [Tooltip("Atributo do mesmo ASC cujo valor atual é o mínimo")]
+        public AttributeDefinition MinAttribute;
+
+        [Tooltip("Mínimo constante; com MinSource = Attribute, é o valor reserva quando a fonte falta ou fecha um ciclo")]
         public float MinValue = 0f;
 
+        public LimitSource MaxSource = LimitSource.Constant;
+
+        [ShowIf(nameof(MaxSource), LimitSource.Attribute)]
+        [Tooltip("Atributo do mesmo ASC cujo valor atual é o máximo")]
+        public AttributeDefinition MaxAttribute;
+
+        [Tooltip("Máximo constante; com MaxSource = Attribute, é o valor reserva quando a fonte falta ou fecha um ciclo")]
         public float MaxValue = 9999f;
+
+        [ShowIf(nameof(MaxSource), LimitSource.Attribute)]
+        [Tooltip("O que acontece com o valor base quando o máximo muda")]
+        public MaxChangePolicy OnMaxChange = MaxChangePolicy.KeepValue;
     }
 }
 
