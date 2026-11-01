@@ -8,6 +8,8 @@
         "SpellBook.GAS",
         "SpellBook.Events",
         "SpellBook.GAS.Bridges",
+        "SpellBook.Core.Editor",
+        "SpellBook.GAS.Bridges.Editor",
         "SpellBook.Testing",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"

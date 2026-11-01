@@ -49,9 +49,18 @@ O validador acusa erro em:
   uma reação pronta com campo obrigatório vazio (veja [Validação](../modulos/eventos.md#validacao)
   em Eventos);
 - um `EventEmitter` sem canal;
+- um `AbilitySystemEventRelay` sem ASC no campo nem no objeto, com **Value Channel** de tipo fora
+  da lista ou com chamada do **Response** sem objeto ou sem função (veja
+  [Inspector e validação do relay](../modulos/eventos.md#relay-inspector) em Eventos);
 - uma `RaiseEventAction` sem canal, acusada na habilidade que a contém (veja
   [RaiseEventAction](../modulos/gas.md#raiseeventaction));
 - um `PooledSpawnerAsset` com **Initial Size** negativo;
+- um `AttributeDefinition` com **Min Value** acima de **Max Value** (constantes), com fonte de limite
+  `Attribute` sem atributo, apontando para o próprio atributo, fechando um ciclo de fontes ou
+  derivada de uma fórmula que lê o atributo, ou com **Decimals** negativo no **Display** (veja
+  [AttributeDefinition](../modulos/gas.md#attributedefinition));
+- um `AbilitySystemComponent` com entrada vazia em **Starting Effects** (veja
+  [Efeitos de partida](../modulos/gas.md#starting-effects));
 - uma `CooldownReductionPolicy` com **Min Duration** negativo ou **Max Reduction** fora de 0 a 1
   (veja [CooldownReductionPolicy](../modulos/gas.md#cooldownreductionpolicy));
 - uma linha vazia num `GameplayTagContainer` ou numa lista de um `GameplayTagQuery`, e a mesma tag
@@ -62,7 +71,9 @@ O validador acusa erro em:
   `[HelpURL]` fora do manual (abaixo).
 
 E acusa aviso numa tag repetida num conjunto ou numa lista da consulta, numa consulta com as três
-listas vazias e numa habilidade com **Cooldown Reduction Policy** sem **Cooldown Reduction
+listas vazias, num `AttributeDefinition` com **Hidden** sem **Category**, num `GameplayEffect` com **Is Buff** e
+**Is Debuff** ligados juntos (veja [Gameplay Effects](../modulos/gas.md#gameplayeffect)) e numa habilidade com
+**Cooldown Reduction Policy** sem **Cooldown Reduction
 Attribute**.
 
 ## Tipo sem HelpURL {#helpurl}

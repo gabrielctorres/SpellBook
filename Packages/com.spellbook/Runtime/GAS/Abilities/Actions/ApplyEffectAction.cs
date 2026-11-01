@@ -6,6 +6,7 @@ using SpellBook.GAS.Effects;
 
 namespace SpellBook.GAS.Abilities.Actions
 {
+    /// <summary>Aplica os efeitos com a habilidade, o nível e o ponto de alvo do contexto (<see cref="EffectSpec.FromAbility"/>).</summary>
     [Serializable]
     public class ApplyEffectAction : AbilityAction
     {
@@ -18,7 +19,7 @@ namespace SpellBook.GAS.Abilities.Actions
 
             if (ApplyToSource)
             {
-                foreach (var effect in Effects) context.Source.ApplyEffect(effect, context.Source);
+                foreach (var effect in Effects) context.Source.ApplyEffect(EffectSpec.FromAbility(effect, context));
             }
 
             // Cópia: aplicar um efeito pode disparar ações que alteram a lista de alvos
@@ -26,7 +27,7 @@ namespace SpellBook.GAS.Abilities.Actions
             foreach (var target in targets)
             {
                 if (target == null) continue;
-                foreach (var effect in Effects) target.ApplyEffect(effect, context.Source);
+                foreach (var effect in Effects) target.ApplyEffect(EffectSpec.FromAbility(effect, context));
             }
 
             yield return null;

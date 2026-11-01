@@ -204,6 +204,117 @@ componente de que precisa no objeto recebido. Um objeto destruído antes do disp
   `SpellBook.Core`. Num arquivo com `using System;`, escreva `SpellBook.Core.Void` no método do
   ouvinte.
 
+## Canais do GAS {#canais-do-gas}
+
+O assembly `SpellBook.GAS.Bridges` traz canais com os dados dos eventos do GAS. Crie-os em
+**Create > SpellBook > GAS > Events**. Eles ficam no GAS, e não no módulo Events: o Events não
+conhece o GAS. Cada canal tem a sua resposta no seletor da lista **Responses** do
+[`EventListener`](#eventlistener).
+
+| Canal | Payload | Campos | Resposta |
+|---|---|---|---|
+| `EffectEventChannel` | `EffectEventData` | `Owner`, `Source`, `Effect`, `Stacks`, `PreviousStacks`, `RemovalReason`, `Result` | `EffectEventResponse` |
+| `AbilityEventChannel` | `AbilityEventData` | `Owner`, `Ability`, `Level`, `Cancelled`, `FailureReason` | `AbilityEventResponse` |
+| `AttributeChangedEventChannel` | `AttributeChangedData` | `Owner`, `Attribute`, `OldValue`, `NewValue`, `Delta` | `AttributeChangedEventResponse` |
+| `TagChangedEventChannel` | `TagChangedData` | `Owner`, `Tag`, `Added`, `Count` | `TagChangedEventResponse` |
+| `BlockedEventChannel` | `BlockedEventData` | `Owner`, `Reason`, `Source` | `BlockedEventResponse` |
+
+- `Owner` é o ASC do evento. Em efeito, `Source` é quem aplicou; em bloqueio, a origem da ação
+  bloqueada.
+- `RemovalReason` só tem sentido na remoção de efeito; `Result`, na aplicação e no bloqueio.
+  `Cancelled` só tem sentido no fim da habilidade; `FailureReason`, na falha.
+- `Delta` é `NewValue - OldValue`: negativo quando o valor caiu. O construtor
+  `new AttributeChangedData(dono, atributo, antigo, novo)` calcula esse valor.
+- Os payloads são structs: disparar não aloca.
+
+## Relay do GAS {#relay-do-gas}
+
+O `AbilitySystemEventRelay` (assembly `SpellBook.GAS.Bridges`) repassa os eventos C# de um ASC
+para [canais do GAS](#canais-do-gas) e para `UnityEvent`s locais. Ponha um por ator, no mesmo
+objeto do `AbilitySystemComponent` ou em outro, com o ASC no campo **Ability System**. Com o campo
+vazio, o relay usa o ASC do próprio objeto; sem ASC, ele avisa uma vez no Console e não repassa
+nada.
+
+Cada evento é um **par** com três campos, todos opcionais. Ligue só o que precisa:
+
+- **Channel:** o canal tipado com os dados completos do evento;
+- **Value Channel:** um canal de valor simples (`VoidEventChannel`, `FloatEventChannel`,
+  `StringEventChannel` ou `GameObjectEventChannel`), com o valor da tabela abaixo;
+- **Response:** um `UnityEvent` deste objeto, chamado depois dos canais.
+
+| Par | Evento do ASC | Float | String | GameObject |
+|---|---|---|---|---|
+| `Effect Applied` | `OnEffectApplied` | pilhas | nome do efeito | alvo |
+| `Effect Removed` | `OnEffectRemoved` (com o `RemovalReason`) | pilhas (0) | nome do efeito | alvo |
+| `Effect Stacks Changed` | `OnEffectStacksChanged` | pilhas | nome do efeito | alvo |
+| `Effect Blocked` | `OnEffectBlocked` (com o `Result`) | pilhas (0) | nome do efeito | alvo |
+| `Ability Activated` | `OnAbilityActivated` | nível | nome da habilidade | dono |
+| `Ability Ended` | `OnAbilityEnded` (com o `Cancelled`) | nível | nome da habilidade | dono |
+| `Ability Failed` | `OnAbilityFailed` (com o `FailureReason`) | nível (0 se não concedida) | nome da habilidade | dono |
+| `Ability Granted` | `OnAbilityGranted` | nível | nome da habilidade | dono |
+| `Ability Removed` | `OnAbilityRemoved` | nível | nome da habilidade | dono |
+| `Attribute Changed` | `OnValueChanged` de cada atributo | valor novo | nome do atributo | dono |
+| `Attribute Decreased` | `OnValueChanged`, só quando o valor cai | variação (negativa) | nome do atributo | dono |
+| `Tag Added` | `OnTagChanged`, ao entrar | contagem (1) | nome da tag | dono |
+| `Tag Removed` | `OnTagChanged`, ao sair | contagem (0) | nome da tag | dono |
+| `Blocked` | `OnBlocked` (`ReportBlocked`) | — | nome da tag | dono |
+
+- O `VoidEventChannel` vale para todos os pares: só avisa que o evento aconteceu. Um canal de valor
+  de outro tipo, ou o `FloatEventChannel` no par `Blocked`, não dispara.
+- Os atributos usam o `AttributeChangedEventChannel`, com o valor antigo, o novo e o `Delta`
+  (novo − antigo). `Attribute Changed` dispara em toda mudança; filtre o atributo na reação.
+  `Attribute Decreased` dispara só quando o valor cai e, com o campo **Decreased Attribute**
+  preenchido, só para aquele atributo. Ele serve para "dano recebido": o `Delta` é negativo.
+- As tags usam o `TagChangedEventChannel`. A tag entra na primeira concessão e sai na última
+  remoção; concessões repetidas da mesma tag não disparam de novo.
+- O relay acompanha os atributos que o `AttributeSet` tem ao ser habilitado.
+- O relay dispara dentro do evento do ASC, no mesmo quadro. Um ouvinte que aplica um efeito no
+  mesmo ator dentro do callback é seguro.
+- O relay se inscreve ao ser habilitado e se desinscreve ao ser desabilitado ou destruído, em
+  qualquer ordem com o ASC. Ele não guarda estado de gameplay.
+- Os payloads não alocam; o canal de texto aloca, porque lê o `name` do asset.
+
+### Inspector e validação do relay {#relay-inspector}
+
+O Inspector mostra o campo **Ability System** e, abaixo, os pares em cinco grupos recolhidos:
+**Efeitos**, **Habilidades**, **Atributos** (com o **Decreased Attribute**), **Tags** e
+**Bloqueio**. Abra só o grupo do evento que vai ligar.
+
+O validador acusa erro, no topo do Inspector e na janela do
+[validador](../ferramentas/validador.md), em:
+
+- um relay sem ASC no campo **Ability System** nem no próprio objeto;
+- um **Value Channel** de tipo fora da lista (`Void`, `Float`, `String` ou `GameObject`), por
+  exemplo um `IntEventChannel`;
+- uma chamada do **Response** sem objeto, ou com objeto e sem função (**No Function**).
+
+## Ligar o GAS ao Events {#ligar-gas-events}
+
+Para que um evento do GAS chegue a outro objeto sem código, ponha um
+[relay](#relay-do-gas) no ator e ligue o par do evento a um canal. Qualquer objeto ouve o canal
+com um [`EventListener`](#eventlistener).
+
+### Exemplo: som ao ser imune {#exemplo-som-imune}
+
+O efeito de veneno tem a tag `Imune.Veneno` em **Application Immunity Tags**, e o personagem tem
+essa tag. Quando alguém aplica o veneno nele, a aplicação é bloqueada (`BlockedByImmunity`) e um
+som toca em outro objeto.
+
+1. Crie o canal: **Create > SpellBook > Events > Void Channel**, com o nome `Imune`.
+2. No personagem, o objeto com o `AbilitySystemComponent`, use **Add Component >
+   AbilitySystemEventRelay**. Deixe o **Ability System** vazio: o relay usa o ASC do objeto.
+3. Abra o grupo **Efeitos** e, no par **Effect Blocked**, arraste o canal `Imune` para o
+   **Value Channel**.
+4. No objeto do som, com um `AudioSource` que tem o clipe, use **Add Component >
+   EventListener**. Em **Responses**, adicione uma resposta `Void` e escolha o canal `Imune`.
+5. No **Escape** da resposta, adicione uma chamada, arraste o objeto do som e escolha
+   **AudioSource > Play ()**.
+6. Entre em Play e aplique o veneno no personagem: o som toca.
+
+O par **Effect Blocked** dispara também quando faltam as tags exigidas pelo efeito
+(`MissingRequirements`). Para separar os dois casos, use o `EffectEventChannel` no **Channel**:
+o campo `Result` diz `BlockedByImmunity` ou `MissingRequirements`.
+
 ## EventListener {#eventlistener}
 
 O `EventListener` é o componente que ouve canais sem código. Adicione-o a um objeto

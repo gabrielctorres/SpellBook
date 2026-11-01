@@ -101,14 +101,21 @@ namespace SpellBook.GAS.Abilities
         public CooldownReductionPolicy CooldownReductionPolicy => cooldownReductionPolicy;
 
         /// <summary>
-        /// Duração do cooldown já considerando o atributo de redução (CDR 0.20 = 20% de redução), pela
+        /// Duração do cooldown no nível da habilidade no <paramref name="asc"/> (não concedida: nível 1), avaliada
+        /// com a tabela <see cref="Values"/>, já considerando o atributo de redução (CDR 0.20 = 20% de redução), pela
         /// <see cref="CooldownReductionPolicy"/> ou, sem ela, pela regra padrão.
         /// </summary>
         public float GetCooldownDuration(AbilitySystemComponent asc)
         {
+            return GetCooldownDuration(asc, asc != null ? asc.GetAbilityLevel(this) : 1);
+        }
+
+        // Conta única da recarga: usada pelo método público e pela ativação no ASC (EA6)
+        internal float GetCooldownDuration(AbilitySystemComponent asc, int level)
+        {
             if (CooldownEffect == null) return 0f;
 
-            float duration = CooldownEffect.Duration.Evaluate(1);
+            float duration = CooldownEffect.Duration.Evaluate(level, values);
             if (CooldownReductionAttribute != null && asc != null)
             {
                 float cdr = asc.GetAttributeValue(CooldownReductionAttribute);

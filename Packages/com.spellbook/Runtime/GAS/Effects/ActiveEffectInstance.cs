@@ -12,6 +12,18 @@ namespace SpellBook.GAS.Effects
         public AbilitySystemComponent Target { get; private set; }
         public AbilitySystemComponent Source { get; private set; }
 
+        /// <summary>Repasse de <see cref="GameplayEffect.IsBuff"/>.</summary>
+        public bool IsBuff => Effect.IsBuff;
+
+        /// <summary>Repasse de <see cref="GameplayEffect.IsDebuff"/>.</summary>
+        public bool IsDebuff => Effect.IsDebuff;
+
+        /// <summary>Repasse de <see cref="GameplayEffect.IsHidden"/>.</summary>
+        public bool IsHidden => Effect.IsHidden;
+
+        /// <summary>Repasse de <see cref="GameplayEffect.IsPurgable"/>.</summary>
+        public bool IsPurgable => Effect.IsPurgable;
+
         /// <summary>Duração com que a instância foi aplicada ou renovada pela última vez; a renovação volta a ela.</summary>
         public float AppliedDuration { get; private set; }
 
@@ -27,14 +39,21 @@ namespace SpellBook.GAS.Effects
         public event Action<ActiveEffectInstance> OnEffectExpired;
         public event Action<ActiveEffectInstance> OnTick;
 
+        /// <summary>Contexto da aplicação (cópia): instigador, alvo, habilidade, nível e ponto de impacto.</summary>
+        public EffectContext Context { get; private set; }
+
         public ActiveEffectInstance(GameplayEffect effect, AbilitySystemComponent source, AbilitySystemComponent target)
-            : this(effect, effect.Duration.Evaluate(1), source, target) { }
+            : this(effect, effect.Duration.Evaluate(effect.DefaultLevel), source, target) { }
 
         public ActiveEffectInstance(GameplayEffect effect, float duration, AbilitySystemComponent source, AbilitySystemComponent target)
+            : this(effect, duration, new EffectContext(source, target, null, effect.DefaultLevel, false, default, null)) { }
+
+        internal ActiveEffectInstance(GameplayEffect effect, float duration, in EffectContext context)
         {
             Effect = effect;
-            Source = source;
-            Target = target;
+            Context = context;
+            Source = context.Instigator;
+            Target = context.Target;
             AppliedDuration = duration;
             TimeRemaining = duration;
             _timeSinceLastTick = 0;

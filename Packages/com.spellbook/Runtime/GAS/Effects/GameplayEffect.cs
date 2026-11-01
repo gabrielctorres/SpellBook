@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using UnityEngine;
 using UnityEngine.Serialization;
 using SpellBook.Tags;
@@ -28,8 +29,21 @@ namespace SpellBook.GAS.Effects
 
     [CreateAssetMenu(fileName = "GE_NewEffect", menuName = "GAS/Gameplay Effect")]
     [HelpURL(DocUrls.Gas + "#gameplayeffect")]
-    public class GameplayEffect : ScriptableObject, ISerializationCallbackReceiver
+    public class GameplayEffect : ScriptableObject, ISerializationCallbackReceiver, IValidatable
     {
+        [Header("Identidade")]
+        [Tooltip("Nome exibido do efeito (lista de buffs, tooltip). Vazio por padrão.")]
+        [SerializeField] private string displayName;
+
+        [Tooltip("Ícone do efeito. Opcional.")]
+        [SerializeField] private Sprite icon;
+
+        /// <summary>Nome exibido; vazio por padrão, nunca nulo.</summary>
+        public string DisplayName => displayName ?? string.Empty;
+
+        /// <summary>Ícone do efeito; nulo por padrão.</summary>
+        public Sprite Icon => icon;
+
         [Header("Duration")]
         public EffectDurationPolicy DurationPolicy;
         
@@ -47,6 +61,12 @@ namespace SpellBook.GAS.Effects
             set => duration = value;
         }
 
+        [Tooltip("Nível com que o efeito é avaliado quando aplicado sem habilidade (efeitos de partida, ApplyEffect direto).")]
+        [SerializeField, Min(1)] private int defaultLevel = 1;
+
+        /// <summary>Nível da aplicação sem habilidade (pelo menos 1). Sem habilidade não há tabela: o modo Table vale o Fallback.</summary>
+        public int DefaultLevel => defaultLevel < 1 ? 1 : defaultLevel;
+
         [Header("Periodic")]
         [Tooltip("If Period > 0, effect triggers every Period seconds")]
         public float Period = 0f;
@@ -57,6 +77,24 @@ namespace SpellBook.GAS.Effects
         [Header("Periodic Modifiers (Tick)")]
         [Tooltip("Usado só quando Period > 0")]
         public List<AttributeEffectModifier> PeriodicModifiers;
+
+        [Header("Metadados")]
+        [Tooltip("Efeito benéfico para o alvo. Pode coexistir com Is Debuff, com aviso do validador.")]
+        [SerializeField] private bool isBuff;
+
+        [Tooltip("Efeito prejudicial para o alvo.")]
+        [SerializeField] private bool isDebuff;
+
+        [Tooltip("Não aparece em listas de efeitos da UI.")]
+        [SerializeField] private bool isHidden;
+
+        [Tooltip("Pode ser removido por uma ação de purga.")]
+        [SerializeField] private bool isPurgable;
+
+        public bool IsBuff => isBuff;
+        public bool IsDebuff => isDebuff;
+        public bool IsHidden => isHidden;
+        public bool IsPurgable => isPurgable;
 
         [Header("Actions")]
         [SerializeReference]
@@ -81,6 +119,14 @@ namespace SpellBook.GAS.Effects
         public bool CanStack;
         public int MaxStacks = 1;
         public bool RefreshDurationOnStack = true;
+
+        public void Validate(ValidationResult result)
+        {
+            if (isBuff && isDebuff)
+            {
+                result.AddWarning("Efeito marcado como Is Buff e Is Debuff ao mesmo tempo.", nameof(isDebuff));
+            }
+        }
 
         void ISerializationCallbackReceiver.OnBeforeSerialize() { }
 

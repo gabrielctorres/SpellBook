@@ -28,6 +28,7 @@ Cada valor tem uma `AttributeDefinition`.
 - **Eventos de limite:** `AttributeState.OnDepleted` dispara quando o valor atual entra no mínimo e `OnReachedMax`, quando entra no máximo; os dois recebem o próprio `AttributeState`. Disparam só na transição: um dano que leva a `Vida` a 0 dispara `OnDepleted` uma vez, mais dano em 0 não repete, e curar e voltar a 0 dispara de novo. Um limite que muda e deixa o valor no limite também dispara (o máximo cai de 100 para 80 com a `Mana` em 80); quem já estava no limite e continua nele, não. O atributo que nasce no limite não dispara. A ordem é `OnValueChanged`, `OnDepleted` e `OnReachedMax`, e um ouvinte pode mudar o próprio atributo dentro do evento. Disparar os eventos não aloca.
 - **Configuração inválida:** com o mínimo acima do máximo, vale o mínimo. Se o atributo-fonte não está no ASC, ou se as fontes formam um ciclo (A limitado por B e B por A), o limite cortado usa a constante (`MinValue` ou `MaxValue`, que funcionam como reserva) e o `AttributeSet` registra um aviso no Console, uma vez por atributo.
 - **Valor inicial fora do intervalo:** o `AttributeSet` limita o valor inicial ao intervalo e registra um aviso no Console, uma vez por atributo, com o nome do atributo e do objeto. Revise o asset ou o `startingAttributes` apontado pelo aviso.
+- **Validação e Inspector:** o [validador](../ferramentas/validador.md#regras) acusa erro no mínimo constante acima do máximo constante, na fonte `Attribute` sem atributo, na fonte que é o próprio atributo, no ciclo de fontes (A limitado por B e B por A), na fonte derivada cuja fórmula lê este atributo e no `Display.Decimals` negativo, e avisa do atributo `Hidden` sem categoria. Depois dos campos, o Inspector mostra um **Valor de exemplo** editável e o texto dele pelo `Display.Format`, na cultura do Editor, refeito ao mudar o exemplo ou o `Display`.
 
 #### AttributeDisplay {#attributedisplay}
 O campo `Display` do `AttributeDefinition` diz como o valor aparece na interface. Um asset antigo abre como `Flat`, 0 casas, visível e "mais é melhor".
@@ -100,6 +101,8 @@ Uma expressão em texto, como `([ATK] * 2) / [DEF]`. Cada token entre colchetes 
 - **Duração:** `Duration` é um [`ScalableFloat`](#scalablefloat) (constante, array ou curva por nível), e não mais um `float`. Por enquanto o ASC avalia no nível 1: `efeito.Duration = ScalableFloat.Constant(4f)` dura 4 s. Assets 2.x com `Duration: 4` abrem como a constante 4, sem passo manual.
 - **Valor do modificador:** na fonte `Value` (`SourceType.Value`, a antiga `Constant`), o valor é um [`ScalableFloat`](#scalablefloat) em `ValueSource.Value`, avaliado por enquanto no nível 1: `ValueSource.Value = ScalableFloat.Constant(-20f)`. Assets 2.x com `ConstantValue: -20` abrem como a constante -20. Para regravar os assets no formato novo, rode **SpellBook > Migrar assets do GAS (3.0)** (veja [Migração](../regras/migracao-2-para-3.md#valores-por-nivel)).
 - **Modificadores:** `AttributeEffectModifier` é uma classe. Uma entrada nula em `Modifiers` ou `PeriodicModifiers` é ignorada na aplicação, no tique, na remoção e no custo, e os outros modificadores valem.
+- **Nome e ícone:** em **Identidade**, `DisplayName` (texto, vazio por padrão e nunca nulo) e `Icon` (`Sprite`, nulo por padrão) identificam o efeito na UI. A instância ativa não repete os campos: leia `instancia.Effect.DisplayName` e `instancia.Effect.Icon`. Assets antigos abrem com nome vazio e sem ícone.
+- **Metadados:** em **Metadados**, `IsBuff`, `IsDebuff`, `IsHidden` e `IsPurgable` (somente leitura, também na instância ativa: `instancia.IsBuff`) são só dados para a UI e para quem purga efeitos; o ASC não os usa. O padrão, todos desligados, é "neutro, visível e não purgável". `IsBuff` e `IsDebuff` podem coexistir, mas o validador avisa.
 - **Stacking:** suporta acúmulo de instâncias (ex: Veneno que acumula até 5 vezes).
 - **Reaplicação e renovação:** aplicar de novo um efeito com duração ou infinito que já está ativo no ASC nunca cria uma segunda instância; `ApplyEffect` devolve a instância existente. Com `CanStack` ligado, ganha uma pilha (até `MaxStacks`) e, se `RefreshDurationOnStack`, renova a duração. Com `CanStack` desligado, só renova a duração, sempre. A renovação não reaplica modificadores nem tags e não roda `OnApplication` de novo, e o período continua contando de onde estava. A duração da renovação segue a regra **quem passa duração redefine; quem não passa mantém**: `ApplyEffect(efeito, duracao)` renova para `duracao` e a guarda como duração aplicada; `ApplyEffect(efeito)` volta à duração com que a instância foi aplicada (a do asset, se ninguém passou outra). Uma recarga aplicada com redução (ex: 6 s num asset de 8 s) volta a 6 s ao ser reaplicada.
 - **Efeitos periódicos:** com `Period` maior que zero, o efeito dá um tique a cada `Period` segundos: aplica os `PeriodicModifiers` no valor base e roda as `OnTickActions`, sempre o mesmo número de vezes. Um efeito com duração dá `Duration / Period` tiques, arredondado para baixo (4 s com período de 0,5 s: 8 tiques; 4 s com período de 1,5 s: 2 tiques, em 1,5 s e 3 s). O tique que cai no fim da duração acontece antes da expiração, e nenhum tique roda depois da remoção, nem quando uma ação do tique remove a própria instância. Cada `Tick` do ASC dá no máximo um tique por efeito; o tempo de um `Tick` que passa do fim da duração não gera tique a mais.
@@ -178,6 +181,9 @@ habilidade.TryGetValue("Damage", 3, out float dano); // true, 100
 O `AbilitySystemComponent` é o componente que guarda as habilidades concedidas, os atributos,
 os efeitos ativos e as tags de um personagem. Veja a seção [Ciclo de vida](#ciclo-de-vida).
 
+#### Efeitos de partida {#starting-effects}
+A lista **Starting Effects** do ASC aplica cada efeito no `Awake`, na ordem da lista, depois do `AttributeSet` e das `startingAbilities`, com o próprio ASC como origem e sem nível (por enquanto, nível 1). Vale para efeitos instantâneos, com duração e infinitos: uma regeneração infinita periódica sobe a vida sem script. Uma entrada vazia é pulada (e o validador acusa erro); um efeito bloqueado por imunidade ou requisito, ou inválido, gera um aviso no Console em build de desenvolvimento e não impede os seguintes. Esses efeitos são aplicados antes de qualquer ouvinte externo existir: quem assina `OnEffectApplied` depois lê `asc.ActiveEffects`.
+
 ---
 
 ## 2. Guia de criação de habilidades {#criacao}
@@ -248,7 +254,22 @@ A ação guarda uma **emissão**, o mesmo campo do [`EventEmitter`](eventos.md#e
 - Cada passagem pela ação dispara o canal uma vez, e a ação termina no mesmo quadro. O ASC que conjurou aparece como quem disparou no log do canal.
 - Sem emissão ou sem canal, a ação não faz nada, e o validador acusa o erro na habilidade.
 
-O payload é sempre o valor fixo do Inspector. Um payload calculado na hora (o alvo, o dano causado) ainda não existe.
+O campo **Payload Source** escolhe de onde vem o payload. O padrão, `Fixed`, envia o valor fixo da emissão e serve para qualquer canal. As outras fontes leem a habilidade na hora do disparo e ignoram o payload fixo:
+
+| Fonte | Canal | Valor enviado |
+|---|---|---|
+| `Fixed` | qualquer | o payload fixo da emissão |
+| `AttributeValue` | Float | valor atual do **Attribute** no conjurador |
+| `AbilityName` | String | nome do asset da habilidade |
+| `SourceObject` | GameObject | objeto do conjurador |
+| `TargetObject` | GameObject | objeto do primeiro alvo válido |
+| `EventData` | `AbilityEventData` | dono, habilidade, nível e se a habilidade foi cancelada |
+
+- Fonte que não serve para o tipo do canal não dispara nada, sem exceção, e o validador acusa o erro. `AttributeValue` sem **Attribute** também é erro.
+- Sem valor para enviar (conjurador sem o atributo, nenhum alvo válido), a ação não dispara.
+- Em código, `GasPayloadSourceUtility.Supports(fonte, tipoDoPayload)` diz se a fonte serve para um tipo de canal.
+- No Inspector, inclusive na lista de ações da habilidade, o campo **Payload Source** lista só as fontes que servem para o tipo do canal escolhido. Se a fonte atual não serve (o canal mudou depois), ela continua na lista com a marca "não serve para este canal". O campo **Attribute** só aparece com `AttributeValue`, e um aviso lembra que o payload fixo é ignorado quando a fonte não é `Fixed`.
+- As fontes do lado do efeito (a magnitude de um modificador, as pilhas, o nome do efeito e o `EffectEventData`) ainda não existem.
 
 ### 3.1 Criando ações próprias {#acoes-proprias}
 Herde de `AbilityAction` e implemente `IEnumerator Execute(AbilityContext context)`.
@@ -346,6 +367,8 @@ Para efeitos com duração ou infinitos, por instância:
 Um ouvinte pode aplicar ou remover efeitos dentro desses eventos sem quebrar a remoção em grupo nem perder eventos. Sem ouvintes, disparar não aloca.
 
 O ASC não dispara mais evento global; veja a [Migração 2.x → 3.0](../regras/migracao-2-para-3.md#eventos-do-gas).
+
+Para ver esses eventos, os atributos, as tags, os efeitos e as recargas de um ASC em Play, use o [GAS Debugger](../ferramentas/gas-debugger.md).
 
 ### 4.6 Tempo do ASC {#tempo-do-asc}
 Durações de efeitos, ticks periódicos e recargas contam só o tempo que o ASC recebe. O ASC não lê o `Time` da Unity.
