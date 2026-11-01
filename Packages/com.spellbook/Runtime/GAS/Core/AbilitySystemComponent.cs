@@ -39,11 +39,7 @@ namespace SpellBook.GAS.Core
         public event Action<GameplayTag, bool> OnTagChanged;
         public event Action<AbilitySpec> OnAbilityActivated;
         public event Action<AbilitySpec, bool> OnAbilityEnded; // spec, cancelled
-        /// <summary>
-        /// Ativação recusada por <c>TryActivateAbility</c>: a habilidade e a <see cref="ActivationFailure"/> da checagem, igual à
-        /// de <see cref="GetActivationResult(GameplayAbility, in AbilityTarget, out ActivationFailure)"/>. A consulta não dispara.
-        /// </summary>
-        public event Action<GameplayAbility, ActivationFailure> OnAbilityFailed;
+        public event Action<GameplayAbility, AbilityActivationResult> OnAbilityFailed;
 
         /// <summary>Instância nova de efeito com duração, depois de tags e modificadores. Instantâneo, renovação e pilha não disparam.</summary>
         public event Action<ActiveEffectInstance> OnEffectApplied;
@@ -439,11 +435,9 @@ namespace SpellBook.GAS.Core
         {
             if (spec == null || !_abilities.Contains(spec))
             {
-                var failure = new ActivationFailure(spec == null
-                    ? AbilityActivationResult.InvalidAbility
-                    : AbilityActivationResult.NotGranted);
-                OnAbilityFailed?.Invoke(spec?.Ability, failure);
-                return failure.Result;
+                var result = spec == null ? AbilityActivationResult.InvalidAbility : AbilityActivationResult.NotGranted;
+                OnAbilityFailed?.Invoke(spec?.Ability, result);
+                return result;
             }
             return TryActivate(spec, spec.Ability, in target);
         }
@@ -452,7 +446,7 @@ namespace SpellBook.GAS.Core
         {
             if (!CheckActivation(spec, ability, in target, out ActivationFailure failure))
             {
-                OnAbilityFailed?.Invoke(ability, failure);
+                OnAbilityFailed?.Invoke(ability, failure.Result);
                 return failure.Result;
             }
 

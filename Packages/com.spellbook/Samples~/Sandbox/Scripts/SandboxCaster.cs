@@ -8,7 +8,7 @@ namespace SpellBook.Samples.Sandbox
 {
     /// <summary>
     /// Mira com o mouse num plano horizontal e conjura a habilidade com uma tecla. Escreve no Console quando a
-    /// habilidade é conjurada e o motivo de cada falha (recarga, mana, ou a chave ou a tag do motivo).
+    /// habilidade é conjurada e o motivo de cada falha (recarga, mana).
     /// </summary>
     [RequireComponent(typeof(AbilitySystemComponent))]
     [HelpURL(DocUrls.Samples + "#sandboxcaster")]
@@ -89,14 +89,14 @@ namespace SpellBook.Samples.Sandbox
             }
         }
 
-        private void HandleFailed(GameplayAbility failed, ActivationFailure failure)
+        private void HandleFailed(GameplayAbility failed, AbilityActivationResult result)
         {
             if (failed != ability)
             {
                 return;
             }
 
-            switch (failure.Result)
+            switch (result)
             {
                 case AbilityActivationResult.OnCooldown:
                     float remaining = _asc.GetCooldownTimeRemaining(ability.CooldownEffect);
@@ -106,20 +106,9 @@ namespace SpellBook.Samples.Sandbox
                     Debug.Log("Sem mana para a Bola de Fogo", this);
                     break;
                 default:
-                    Debug.Log($"Bola de Fogo não disparou: {Reason(in failure)}", this);
+                    Debug.Log($"Bola de Fogo não disparou: {result}", this);
                     break;
             }
-        }
-
-        // Chave do motivo; sem chave, a tag; sem as duas, o resultado.
-        private static string Reason(in ActivationFailure failure)
-        {
-            if (!string.IsNullOrEmpty(failure.ReasonKey))
-            {
-                return failure.ReasonKey;
-            }
-
-            return failure.ReasonTag.IsValid ? failure.ReasonTag.Name : failure.Result.ToString();
         }
     }
 }

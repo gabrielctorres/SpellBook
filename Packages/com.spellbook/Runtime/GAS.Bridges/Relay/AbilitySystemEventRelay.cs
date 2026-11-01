@@ -64,7 +64,7 @@ namespace SpellBook.GAS.Bridges
         private Action<GameplayTag, AbilitySystemComponent> _onBlocked;
         private Action<AbilitySpec> _onAbilityActivated;
         private Action<AbilitySpec, bool> _onAbilityEnded;
-        private Action<GameplayAbility, ActivationFailure> _onAbilityFailed;
+        private Action<GameplayAbility, AbilityActivationResult> _onAbilityFailed;
         private Action<AbilitySpec> _onAbilityGranted;
         private Action<AbilitySpec> _onAbilityRemoved;
         private Action<GameplayTag, bool> _onTagChanged;
@@ -296,12 +296,10 @@ namespace SpellBook.GAS.Bridges
         }
 
         // A falha não traz o spec: o nível é o da concessão, 0 se a habilidade não foi concedida.
-        private void HandleAbilityFailed(GameplayAbility ability, ActivationFailure failure)
+        private void HandleAbilityFailed(GameplayAbility ability, AbilityActivationResult result)
         {
             AbilityEventData data = AbilityData(ability, _subscribed.GetAbilityLevel(ability));
-            data.FailureReason = failure.Result;
-            data.FailureTag = failure.ReasonTag;
-            data.FailureKey = failure.ReasonKey;
+            data.FailureReason = result;
             Raise(abilityFailed, nameof(abilityFailed), in data, AbilitySelector);
         }
 

@@ -41,10 +41,6 @@ namespace SpellBook.GAS.Bridges
         public bool Cancelled;
         /// <summary>Motivo da falha; só tem sentido no evento de falha.</summary>
         public AbilityActivationResult FailureReason;
-        /// <summary>Tag do motivo da falha (<see cref="ActivationFailure.ReasonTag"/>); inválida quando não há.</summary>
-        public GameplayTag FailureTag;
-        /// <summary>Chave de texto do motivo da falha (<see cref="ActivationFailure.ReasonKey"/>); nula quando não há.</summary>
-        public string FailureKey;
     }
 
     /// <summary>Dados da mudança do valor atual de um atributo.</summary>
