@@ -104,7 +104,10 @@ Os valores abaixo são os dos assets do Sample e podem ser ajustados no playtest
 A Bola de Fogo dispara "Bola de Fogo Acertou" pela ponte GAS → Events do pacote (`RaiseEventAction`), mas essa
 ação tem payload fixo e não alcança a queimadura, que é um efeito. Por isso o `DamageTakenRelay` ouve a Vida
 do próprio boneco e dispara "Dano Recebido" com o valor real. Ele é um substituto local do relay de
-eventos do ASC (B-004), que o pacote ainda não tem. Quando o B-004 entrar, o Sample troca o relay pelo do pacote.
+eventos do ASC. O pacote já tem esse relay: o par **Attribute Decreased** do
+[`AbilitySystemEventRelay`](../modulos/eventos.md#relay-do-gas), com o filtro na Vida, cobre o dano imediato e
+cada tique da queimadura. O Sample pode trocar o `DamageTakenRelay` por ele; a diferença é o sinal, porque o
+par entrega a variação negativa e o `DamageTakenRelay`, o valor perdido.
 
 ## Renovação da queimadura {#renovacao-da-queimadura}
 

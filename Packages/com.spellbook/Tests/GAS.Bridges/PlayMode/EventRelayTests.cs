@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using SpellBook.Events;
+using SpellBook.GAS.Abilities;
+using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
 using SpellBook.Tags;
@@ -16,8 +18,8 @@ using Object = UnityEngine.Object;
 namespace SpellBook.GAS.Bridges.Tests
 {
     /// <summary>
-    /// <see cref="AbilitySystemEventRelay"/>: pares de efeito e de bloqueio, ciclo de vida e reentrada (CA11, CA12, CA17,
-    /// CA18 e a parte de efeito do CA19).
+    /// <see cref="AbilitySystemEventRelay"/>: pares de efeito, bloqueio, habilidade, atributo e tag, ciclo de vida e
+    /// reentrada (CA11 a CA19).
     /// </summary>
     public class EventRelayTests
     {
@@ -201,6 +203,189 @@ namespace SpellBook.GAS.Bridges.Tests
 
             Assert.That(received, Is.EqualTo(new[] { first, second }), "o relay repetiu ou perdeu um disparo");
             LogAssert.NoUnexpectedReceived();
+        }
+
+        [UnityTest]
+        public IEnumerator AttributeChanged_RaisesFloatWithNewValue()
+        {
+            AttributeDefinition health = _gas.CreateAttribute("Vida");
+            var changed = _events.CreateChannel<AttributeChangedEventChannel>();
+            var values = _events.CreateChannel<FloatEventChannel>();
+            AbilitySystemComponent asc = _gas.CreateAsc((health, 100f));
+            CreateRelay(asc, so => SetPair(so, "attributeChanged", changed, values));
+            yield return null;
+
+            State(asc, health).SetBaseValue(70f);
+
+            AttributeChangedData data = changed.LastPayload;
+            Assert.That(data.Owner, Is.SameAs(asc));
+            Assert.That(data.Attribute, Is.SameAs(health));
+            Assert.That(data.OldValue, Is.EqualTo(100f));
+            Assert.That(data.NewValue, Is.EqualTo(70f));
+            Assert.That(data.Delta, Is.EqualTo(-30f));
+            Assert.That(values.LastPayload, Is.EqualTo(70f), "o canal de valor não recebeu o valor novo");
+        }
+
+        [UnityTest]
+        public IEnumerator AttributeDecreased_OnlyOnDrop_NegativeDelta_FilterIgnoresOthers()
+        {
+            AttributeDefinition health = _gas.CreateAttribute("Vida");
+            AttributeDefinition mana = _gas.CreateAttribute("Mana");
+            var decreased = _events.CreateChannel<AttributeChangedEventChannel>();
+            var deltas = _events.CreateChannel<FloatEventChannel>();
+            var unfiltered = _events.CreateChannel<AttributeChangedEventChannel>();
+            AbilitySystemComponent asc = _gas.CreateAsc((health, 100f), (mana, 50f));
+            CreateRelay(asc, so =>
+            {
+                SetPair(so, "attributeDecreased", decreased, deltas);
+                so.FindProperty("decreasedAttribute").objectReferenceValue = health;
+            });
+            AbilitySystemComponent other = _gas.CreateAsc((health, 100f), (mana, 50f));
+            CreateRelay(other, so => SetPair(so, "attributeDecreased", unfiltered));
+            var drops = new List<float>();
+            Action<AttributeChangedData> onDecreased = data => drops.Add(data.Delta);
+            decreased.Raised += onDecreased;
+            int unfilteredRaises = 0;
+            Action<AttributeChangedData> onUnfiltered = _ => unfilteredRaises++;
+            unfiltered.Raised += onUnfiltered;
+            yield return null;
+
+            State(asc, health).SetBaseValue(70f);
+            State(asc, health).SetBaseValue(80f);
+            State(asc, mana).SetBaseValue(20f);
+            State(other, health).SetBaseValue(90f);
+            State(other, mana).SetBaseValue(40f);
+            State(other, mana).SetBaseValue(45f);
+            decreased.Raised -= onDecreased;
+            unfiltered.Raised -= onUnfiltered;
+
+            Assert.That(drops, Is.EqualTo(new[] { -30f }), "o filtro deixou passar outro atributo ou uma subida");
+            Assert.That(decreased.LastPayload.Attribute, Is.SameAs(health));
+            Assert.That(deltas.LastPayload, Is.EqualTo(-30f), "o canal de valor não recebeu a variação negativa");
+            Assert.That(unfilteredRaises, Is.EqualTo(2), "sem filtro, o par não disparou nas duas quedas");
+        }
+
+        [UnityTest]
+        public IEnumerator TagAddedRemoved_WithCount()
+        {
+            GameplayTag burning = _gas.CreateTag("Estado.Queimando");
+            var added = _events.CreateChannel<TagChangedEventChannel>();
+            var addedCount = _events.CreateChannel<FloatEventChannel>();
+            var removed = _events.CreateChannel<TagChangedEventChannel>();
+            var removedName = _events.CreateChannel<StringEventChannel>();
+            AbilitySystemComponent asc = _gas.CreateAsc();
+            CreateRelay(asc, so =>
+            {
+                SetPair(so, "tagAdded", added, addedCount);
+                SetPair(so, "tagRemoved", removed, removedName);
+            });
+            int addedRaises = 0;
+            int removedRaises = 0;
+            Action<TagChangedData> onAdded = _ => addedRaises++;
+            Action<TagChangedData> onRemoved = _ => removedRaises++;
+            added.Raised += onAdded;
+            removed.Raised += onRemoved;
+            yield return null;
+
+            asc.AddTag(burning);
+            TagChangedData afterAdd = added.LastPayload;
+            asc.AddTag(burning);
+            asc.RemoveTag(burning);
+            asc.RemoveTag(burning);
+            added.Raised -= onAdded;
+            removed.Raised -= onRemoved;
+
+            Assert.That(addedRaises, Is.EqualTo(1));
+            Assert.That(removedRaises, Is.EqualTo(1));
+            Assert.That(afterAdd.Owner, Is.SameAs(asc));
+            Assert.That(afterAdd.Tag, Is.EqualTo(burning));
+            Assert.That(afterAdd.Added, Is.True);
+            Assert.That(afterAdd.Count, Is.EqualTo(1));
+            Assert.That(addedCount.LastPayload, Is.EqualTo(1f), "o canal de valor não recebeu a contagem");
+            Assert.That(removed.LastPayload.Added, Is.False);
+            Assert.That(removed.LastPayload.Count, Is.EqualTo(0));
+            Assert.That(removedName.LastPayload, Is.EqualTo(burning.Name), "o canal de texto não recebeu o nome da tag");
+        }
+
+        [UnityTest]
+        public IEnumerator AbilityActivatedEndedFailed_OnceEach_WithResult()
+        {
+            GameplayAbility ability = _gas.CreateAbility();
+            GameplayAbility notGranted = _gas.CreateAbility();
+            var activated = _events.CreateChannel<AbilityEventChannel>();
+            var activatedLevel = _events.CreateChannel<FloatEventChannel>();
+            var ended = _events.CreateChannel<AbilityEventChannel>();
+            var failed = _events.CreateChannel<AbilityEventChannel>();
+            AbilitySystemComponent asc = _gas.CreateAsc();
+            asc.GiveAbility(ability);
+            CreateRelay(asc, so =>
+            {
+                SetPair(so, "abilityActivated", activated, activatedLevel);
+                SetPair(so, "abilityEnded", ended);
+                SetPair(so, "abilityFailed", failed);
+            });
+            var order = new List<string>();
+            Action<AbilityEventData> onActivated = _ => order.Add("activated");
+            Action<AbilityEventData> onEnded = _ => order.Add("ended");
+            Action<AbilityEventData> onFailed = _ => order.Add("failed");
+            activated.Raised += onActivated;
+            ended.Raised += onEnded;
+            failed.Raised += onFailed;
+            yield return null;
+
+            AbilityActivationResult success = asc.TryActivateAbility(ability, Vector3.zero);
+            yield return null; // a sequência vazia termina na rotina, no quadro seguinte
+            AbilityActivationResult failure = asc.TryActivateAbility(notGranted, Vector3.zero);
+            activated.Raised -= onActivated;
+            ended.Raised -= onEnded;
+            failed.Raised -= onFailed;
+
+            Assert.That(success, Is.EqualTo(AbilityActivationResult.Success));
+            Assert.That(failure, Is.EqualTo(AbilityActivationResult.NotGranted));
+            Assert.That(order, Is.EqualTo(new[] { "activated", "ended", "failed" }));
+            Assert.That(activated.LastPayload.Owner, Is.SameAs(asc));
+            Assert.That(activated.LastPayload.Ability, Is.SameAs(ability));
+            Assert.That(activated.LastPayload.Level, Is.EqualTo(1));
+            Assert.That(activatedLevel.LastPayload, Is.EqualTo(1f), "o canal de valor não recebeu o nível");
+            Assert.That(ended.LastPayload.Ability, Is.SameAs(ability));
+            Assert.That(ended.LastPayload.Cancelled, Is.False);
+            Assert.That(failed.LastPayload.Ability, Is.SameAs(notGranted));
+            Assert.That(failed.LastPayload.FailureReason, Is.EqualTo(AbilityActivationResult.NotGranted));
+            Assert.That(failed.LastPayload.Level, Is.EqualTo(0));
+        }
+
+        [UnityTest]
+        public IEnumerator AbilityGrantedRemoved_Relayed()
+        {
+            GameplayAbility ability = _gas.CreateAbility();
+            ability.name = "Bola de Fogo";
+            var granted = _events.CreateChannel<AbilityEventChannel>();
+            var grantedName = _events.CreateChannel<StringEventChannel>();
+            var removed = _events.CreateChannel<AbilityEventChannel>();
+            var removedOwner = _events.CreateChannel<GameObjectEventChannel>();
+            AbilitySystemComponent asc = _gas.CreateAsc();
+            CreateRelay(asc, so =>
+            {
+                SetPair(so, "abilityGranted", granted, grantedName);
+                SetPair(so, "abilityRemoved", removed, removedOwner);
+            });
+            yield return null;
+
+            asc.GiveAbility(ability);
+            asc.RemoveAbility(ability);
+
+            Assert.That(granted.LastPayload.Owner, Is.SameAs(asc));
+            Assert.That(granted.LastPayload.Ability, Is.SameAs(ability));
+            Assert.That(granted.LastPayload.Level, Is.EqualTo(1));
+            Assert.That(grantedName.LastPayload, Is.EqualTo("Bola de Fogo"), "o canal de texto não recebeu o nome da habilidade");
+            Assert.That(removed.LastPayload.Ability, Is.SameAs(ability));
+            Assert.That(removedOwner.LastPayload, Is.SameAs(asc.gameObject), "o canal de objeto não recebeu o dono");
+        }
+
+        private static AttributeState State(AbilitySystemComponent asc, AttributeDefinition attribute)
+        {
+            Assert.That(asc.AttributeSet.TryGetState(attribute, out AttributeState state), Is.True);
+            return state;
         }
 
         private GameObject CreateObject(string name)

@@ -248,10 +248,26 @@ Cada evento é um **par** com três campos, todos opcionais. Ligue só o que pre
 | `Effect Removed` | `OnEffectRemoved` (com o `RemovalReason`) | pilhas (0) | nome do efeito | alvo |
 | `Effect Stacks Changed` | `OnEffectStacksChanged` | pilhas | nome do efeito | alvo |
 | `Effect Blocked` | `OnEffectBlocked` (com o `Result`) | pilhas (0) | nome do efeito | alvo |
+| `Ability Activated` | `OnAbilityActivated` | nível | nome da habilidade | dono |
+| `Ability Ended` | `OnAbilityEnded` (com o `Cancelled`) | nível | nome da habilidade | dono |
+| `Ability Failed` | `OnAbilityFailed` (com o `FailureReason`) | nível (0 se não concedida) | nome da habilidade | dono |
+| `Ability Granted` | `OnAbilityGranted` | nível | nome da habilidade | dono |
+| `Ability Removed` | `OnAbilityRemoved` | nível | nome da habilidade | dono |
+| `Attribute Changed` | `OnValueChanged` de cada atributo | valor novo | nome do atributo | dono |
+| `Attribute Decreased` | `OnValueChanged`, só quando o valor cai | variação (negativa) | nome do atributo | dono |
+| `Tag Added` | `OnTagChanged`, ao entrar | contagem (1) | nome da tag | dono |
+| `Tag Removed` | `OnTagChanged`, ao sair | contagem (0) | nome da tag | dono |
 | `Blocked` | `OnBlocked` (`ReportBlocked`) | — | nome da tag | dono |
 
 - O `VoidEventChannel` vale para todos os pares: só avisa que o evento aconteceu. Um canal de valor
   de outro tipo, ou o `FloatEventChannel` no par `Blocked`, não dispara.
+- Os atributos usam o `AttributeChangedEventChannel`, com o valor antigo, o novo e o `Delta`
+  (novo − antigo). `Attribute Changed` dispara em toda mudança; filtre o atributo na reação.
+  `Attribute Decreased` dispara só quando o valor cai e, com o campo **Decreased Attribute**
+  preenchido, só para aquele atributo. Ele serve para "dano recebido": o `Delta` é negativo.
+- As tags usam o `TagChangedEventChannel`. A tag entra na primeira concessão e sai na última
+  remoção; concessões repetidas da mesma tag não disparam de novo.
+- O relay acompanha os atributos que o `AttributeSet` tem ao ser habilitado.
 - O relay dispara dentro do evento do ASC, no mesmo quadro. Um ouvinte que aplica um efeito no
   mesmo ator dentro do callback é seguro.
 - O relay se inscreve ao ser habilitado e se desinscreve ao ser desabilitado ou destruído, em
