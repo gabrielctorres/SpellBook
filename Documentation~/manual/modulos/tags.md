@@ -144,6 +144,24 @@ query.Matches(new GameplayTagContainer(stunned));                // false: falta
 - **Sem alocação**: `Matches` e `IsEmpty` não geram lixo; pode chamar a cada quadro.
 - A consulta é só dados (três listas), sem texto nem expressão.
 
+## No Inspector {#no-inspector}
+
+Um campo `GameplayTagContainer` aparece no Inspector como uma lista:
+
+- O cabeçalho mostra o nome do campo, a quantidade de linhas e um botão **?**, que abre a seção
+  [GameplayTagContainer](#gameplaytagcontainer) deste manual.
+- Cada linha é um campo de `GameplayTagDefinition`: arraste o asset da tag para ele.
+- O **+** acrescenta uma linha vazia no fim (não copia a última, para não criar uma repetida), e o
+  **-** remove a linha selecionada. Arraste uma linha pela alça para mudar a ordem.
+
+Um campo `GameplayTagQuery` aparece como um grupo que abre e fecha, com o botão **?** da seção
+[GameplayTagQuery](#gameplaytagquery) e as três listas, **Todas**, **Alguma** e **Nenhuma**, cada
+uma desenhada como o conjunto acima.
+
+O Inspector não aponta linhas vazias nem repetidas; quem aponta é o [validador](#validacao). Um
+Inspector antigo em IMGUI (de outro pacote) mostra no lugar do campo o aviso "Este campo precisa do
+Inspector em UI Toolkit".
+
 ## Validação {#validacao}
 
 O [validador](../ferramentas/validador.md) aponta os problemas de um `GameplayTagContainer` ou de um
