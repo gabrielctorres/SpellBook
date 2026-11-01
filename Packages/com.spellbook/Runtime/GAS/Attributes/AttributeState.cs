@@ -30,6 +30,8 @@ namespace SpellBook.GAS.Attributes
         private bool _limitsBound;
         private float _lastMax;
         private bool _updatingLimits;
+        private bool _atMin;
+        private bool _atMax;
 
         internal AttributeState MinSourceState => _minSource;
         internal AttributeState MaxSourceState => _maxSource;
@@ -40,12 +42,24 @@ namespace SpellBook.GAS.Attributes
 
         public event Action<float, float> OnValueChanged; // OldValue, NewValue
 
+        /// <summary>
+        /// O valor atual entrou no mínimo vindo de fora dele (dano ou limite que mudou). Ficar no mínimo não repete;
+        /// sair e voltar dispara de novo. Não dispara na criação. Vem depois do <see cref="OnValueChanged"/>.
+        /// </summary>
+        public event Action<AttributeState> OnDepleted;
+
+        /// <summary>O valor atual entrou no máximo, com as mesmas regras do <see cref="OnDepleted"/>. Vem depois dele.</summary>
+        public event Action<AttributeState> OnReachedMax;
+
         public AttributeState(AttributeDefinition definition, float baseValue, AbilitySystemComponent owner)
         {
             Definition = definition;
             BaseValue = ClampToLimits(baseValue);
             _owner = owner;
             Recalculate();
+            // Quem nasce no limite não dispara: os indicadores partem do valor inicial
+            _atMin = CurrentValue <= MinValue;
+            _atMax = CurrentValue >= MaxValue;
         }
 
         public void SetBaseValue(float newValue)
@@ -128,10 +142,22 @@ namespace SpellBook.GAS.Attributes
 
             CurrentValue = ClampToLimits(finalValue);
 
-            if (!Mathf.Approximately(oldVal, CurrentValue))
+            // O Clamp devolve o limite exato. As transições ficam em locais e os indicadores são gravados antes
+            // dos eventos: um ouvinte que muda o atributo roda um recálculo inteiro, e este só dispara o que decidiu
+            float newVal = CurrentValue;
+            bool atMin = newVal <= MinValue;
+            bool atMax = newVal >= MaxValue;
+            bool depleted = atMin && !_atMin;
+            bool reachedMax = atMax && !_atMax;
+            _atMin = atMin;
+            _atMax = atMax;
+
+            if (!Mathf.Approximately(oldVal, newVal))
             {
-                OnValueChanged?.Invoke(oldVal, CurrentValue);
+                OnValueChanged?.Invoke(oldVal, newVal);
             }
+            if (depleted) OnDepleted?.Invoke(this);
+            if (reachedMax) OnReachedMax?.Invoke(this);
         }
 
         /// <summary>
