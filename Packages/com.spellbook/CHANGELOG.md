@@ -13,6 +13,9 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); 
 ### Adicionado
 - Sample **Sandbox** (Package Manager → SpellBook → Samples): cena 3D que liga GAS, Events, Pooling e Time, com Bola de Fogo, queimadura, canal de dano recebido, pausa e câmera lenta. Entrada pelo Input Manager legado.
 
+### Corrigido
+- **Recálculo e tique sem alocação:** `AttributeState.Recalculate`, `AddModifier`, `RemoveModifier` e `RemoveModifiersFromSource` não alocam mais memória gerenciada depois do primeiro uso, e o `Tick` do ASC com um efeito periódico de valor constante ou por atributo deixa de gerar lixo a cada quadro. Os valores calculados não mudam.
+
 ## [2.0.0] - 2026-10-14
 
 ### Quebras

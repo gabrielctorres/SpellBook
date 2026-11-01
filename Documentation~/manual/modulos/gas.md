@@ -14,6 +14,7 @@ O GAS fica no assembly `SpellBook.GAS`. Um asmdef seu que usa o GAS precisa refe
 
 ### 1.2 Atributos {#attributeset}
 - **O que são:** valores como Vida, Mana e Velocidade, agrupados em um `AttributeSet`.
+- **Desempenho:** recalcular um atributo, adicionar ou remover um modificador e remover os modificadores de uma fonte não alocam memória gerenciada depois do primeiro uso. Um efeito periódico com valor constante ou lido de atributo tiqueta sem gerar lixo. Um modificador com `ValueSource` do tipo `Formula` pode alocar, conforme a fórmula.
 
 #### AttributeDefinition {#attributedefinition}
 Cada valor tem uma `AttributeDefinition`.
