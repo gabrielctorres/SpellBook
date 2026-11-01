@@ -36,6 +36,15 @@ namespace SpellBook.GAS.Core
         public event Action<AbilitySpec, bool> OnAbilityEnded; // spec, cancelled
         public event Action<GameplayAbility, AbilityActivationResult> OnAbilityFailed;
 
+        /// <summary>Instância nova de efeito com duração, depois de tags e modificadores. Instantâneo, renovação e pilha não disparam.</summary>
+        public event Action<ActiveEffectInstance> OnEffectApplied;
+
+        /// <summary>Instância saiu do ASC, depois de devolver tags e modificadores. Dispara uma vez por instância.</summary>
+        public event Action<ActiveEffectInstance, EffectRemovalReason> OnEffectRemoved;
+
+        /// <summary>Contagem de pilhas mudou de fato (instância, antes, depois).</summary>
+        public event Action<ActiveEffectInstance, int, int> OnEffectStacksChanged;
+
         public AttributeSet AttributeSet => attributeSet;
         public IReadOnlyList<AbilitySpec> Abilities => _abilities;
 
@@ -523,7 +532,9 @@ namespace SpellBook.GAS.Core
             if (effect.CanStack)
             {
                 if (hasOverride && effect.RefreshDurationOnStack) existing.Renew(durationOverride);
+                int stacksBefore = existing.CurrentStacks;
                 existing.AddStack();
+                if (existing.CurrentStacks != stacksBefore) OnEffectStacksChanged?.Invoke(existing, stacksBefore, existing.CurrentStacks);
                 return existing;
             }
 
@@ -718,8 +729,10 @@ namespace SpellBook.GAS.Core
 
             if (effect.DurationPolicy == EffectDurationPolicy.HasDuration)
             {
-                instance.OnEffectExpired += RemoveEffect;
+                instance.OnEffectExpired += HandleEffectExpired;
             }
+
+            OnEffectApplied?.Invoke(instance);
             return instance;
         }
 
@@ -771,13 +784,65 @@ namespace SpellBook.GAS.Core
         /// </summary>
         public void RemoveEffect(ActiveEffectInstance instance)
         {
+            RemoveEffectCore(instance, EffectRemovalReason.Removed);
+        }
+
+        /// <summary>
+        /// Remove as instâncias que concedem uma tag igual ou descendente de <paramref name="tag"/> (motivo
+        /// <see cref="EffectRemovalReason.RemovedByTag"/>) e devolve a soma das pilhas removidas. Tag inválida ou nada ativo: 0.
+        /// </summary>
+        public int RemoveEffectsWithTag(GameplayTag tag)
+        {
+            int removedStacks = 0;
+            for (int i = _activeEffects.Count - 1; i >= 0; i--)
+            {
+                // Um ouvinte de OnEffectRemoved pode ter removido outras instâncias
+                if (i >= _activeEffects.Count) continue;
+                ActiveEffectInstance instance = _activeEffects[i];
+                if (!GrantsTag(instance.Effect, tag)) continue;
+
+                removedStacks += instance.CurrentStacks;
+                RemoveEffectCore(instance, EffectRemovalReason.RemovedByTag);
+            }
+            return removedStacks;
+        }
+
+        /// <summary>
+        /// Remove as instâncias do asset <paramref name="effect"/> (motivo <see cref="EffectRemovalReason.Removed"/>) e
+        /// devolve a soma das pilhas removidas. <c>null</c> ou nada ativo: 0.
+        /// </summary>
+        public int RemoveEffects(GameplayEffect effect)
+        {
+            if (effect == null) return 0;
+
+            int removedStacks = 0;
+            for (int i = _activeEffects.Count - 1; i >= 0; i--)
+            {
+                if (i >= _activeEffects.Count) continue;
+                ActiveEffectInstance instance = _activeEffects[i];
+                if (instance.Effect != effect) continue;
+
+                removedStacks += instance.CurrentStacks;
+                RemoveEffectCore(instance, EffectRemovalReason.Removed);
+            }
+            return removedStacks;
+        }
+
+        private void HandleEffectExpired(ActiveEffectInstance instance)
+        {
+            RemoveEffectCore(instance, EffectRemovalReason.Expired);
+        }
+
+        /// <summary>Ponto único de remoção: limpeza, devolução de tags e modificadores e, por último, <see cref="OnEffectRemoved"/>.</summary>
+        private void RemoveEffectCore(ActiveEffectInstance instance, EffectRemovalReason reason)
+        {
             if (instance == null) return;
             // Sai da lista antes da limpeza: uma remoção repetida ou reentrante cai aqui e não refaz nada
             if (!_activeEffects.Remove(instance)) return;
 
             instance.IsRemoved = true;
             instance.Cleanup();
-            instance.OnEffectExpired -= RemoveEffect;
+            instance.OnEffectExpired -= HandleEffectExpired;
             instance.OnTick -= HandleEffectTick;
 
             RemoveTags(instance.Effect.GrantedTags);
@@ -792,6 +857,8 @@ namespace SpellBook.GAS.Core
                     }
                 }
             }
+
+            OnEffectRemoved?.Invoke(instance, reason);
         }
         #endregion
     }
