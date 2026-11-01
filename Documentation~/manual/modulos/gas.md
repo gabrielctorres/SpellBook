@@ -494,7 +494,7 @@ Sem política, a habilidade usa `CooldownReductionPolicy.ApplyDefault`: piso de 
 - Desativar o GameObject do ASC cancela todas as habilidades ativas.
 
 ### 4.5 Eventos do ASC
-`OnAbilityActivated(spec)`, `OnAbilityEnded(spec, cancelled)` e `OnAbilityFailed(ability, result)`, este último útil para feedback de UI ("Sem mana", "Em recarga").
+`OnAbilityActivated(spec)`, `OnAbilityEnded(spec, cancelled)` e `OnAbilityFailed(ability, falha)`, este último útil para feedback de UI ("Sem mana", "Em recarga"). A `falha` é a mesma `ActivationFailure` que `GetActivationResult(ability, alvo, out falha)` devolveria, com o `Result` e o motivo (`ReasonTag`, `ReasonKey`). Só `TryActivateAbility` dispara o evento; a consulta não.
 Para efeitos com duração ou infinitos, por instância:
 
 - `OnEffectApplied(instancia)`: uma instância nova entrou, depois de tags e modificadores. Efeito instantâneo, renovação e pilha não disparam.
@@ -546,7 +546,7 @@ public class PlayerCombat : MonoBehaviour {
 
     void Start() {
         asc.GiveAbility(fireball);
-        asc.OnAbilityFailed += (ability, reason) => Debug.Log($"{ability.DisplayName}: {reason}");
+        asc.OnAbilityFailed += (ability, falha) => Debug.Log($"{ability.DisplayName}: {falha.ReasonKey ?? falha.Result.ToString()}");
     }
 
     void Update() {

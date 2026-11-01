@@ -214,7 +214,7 @@ conhece o GAS. Cada canal tem a sua resposta no seletor da lista **Responses** d
 | Canal | Payload | Campos | Resposta |
 |---|---|---|---|
 | `EffectEventChannel` | `EffectEventData` | `Owner`, `Source`, `Effect`, `Stacks`, `PreviousStacks`, `RemovalReason`, `Result` | `EffectEventResponse` |
-| `AbilityEventChannel` | `AbilityEventData` | `Owner`, `Ability`, `Level`, `Cancelled`, `FailureReason` | `AbilityEventResponse` |
+| `AbilityEventChannel` | `AbilityEventData` | `Owner`, `Ability`, `Level`, `Cancelled`, `FailureReason`, `FailureTag`, `FailureKey` | `AbilityEventResponse` |
 | `AttributeChangedEventChannel` | `AttributeChangedData` | `Owner`, `Attribute`, `OldValue`, `NewValue`, `Delta` | `AttributeChangedEventResponse` |
 | `TagChangedEventChannel` | `TagChangedData` | `Owner`, `Tag`, `Added`, `Count` | `TagChangedEventResponse` |
 | `BlockedEventChannel` | `BlockedEventData` | `Owner`, `Reason`, `Source` | `BlockedEventResponse` |
@@ -222,7 +222,9 @@ conhece o GAS. Cada canal tem a sua resposta no seletor da lista **Responses** d
 - `Owner` é o ASC do evento. Em efeito, `Source` é quem aplicou; em bloqueio, a origem da ação
   bloqueada.
 - `RemovalReason` só tem sentido na remoção de efeito; `Result`, na aplicação e no bloqueio.
-  `Cancelled` só tem sentido no fim da habilidade; `FailureReason`, na falha.
+  `Cancelled` só tem sentido no fim da habilidade; `FailureReason`, `FailureTag` e `FailureKey`, na falha.
+  `FailureTag` e `FailureKey` são a `ReasonTag` e a `ReasonKey` da `ActivationFailure`: inválida e nula
+  quando a falha não tem esse motivo.
 - `Delta` é `NewValue - OldValue`: negativo quando o valor caiu. O construtor
   `new AttributeChangedData(dono, atributo, antigo, novo)` calcula esse valor.
 - Os payloads são structs: disparar não aloca.
@@ -250,7 +252,7 @@ Cada evento é um **par** com três campos, todos opcionais. Ligue só o que pre
 | `Effect Blocked` | `OnEffectBlocked` (com o `Result`) | pilhas (0) | nome do efeito | alvo |
 | `Ability Activated` | `OnAbilityActivated` | nível | nome da habilidade | dono |
 | `Ability Ended` | `OnAbilityEnded` (com o `Cancelled`) | nível | nome da habilidade | dono |
-| `Ability Failed` | `OnAbilityFailed` (com o `FailureReason`) | nível (0 se não concedida) | nome da habilidade | dono |
+| `Ability Failed` | `OnAbilityFailed` (com o `FailureReason`, a `FailureTag` e a `FailureKey`) | nível (0 se não concedida) | nome da habilidade | dono |
 | `Ability Granted` | `OnAbilityGranted` | nível | nome da habilidade | dono |
 | `Ability Removed` | `OnAbilityRemoved` | nível | nome da habilidade | dono |
 | `Attribute Changed` | `OnValueChanged` de cada atributo | valor novo | nome do atributo | dono |
