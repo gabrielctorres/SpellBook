@@ -31,6 +31,9 @@ namespace SpellBook.GAS.Abilities
 
         public AttributeDefinition CooldownReductionAttribute;
 
+        [Tooltip("Como a redução vira duração (piso, teto e modo). Vazio: piso de 0,1 s e redução limitada a 100 %.")]
+        [SerializeField] private CooldownReductionPolicy cooldownReductionPolicy;
+
         [Tooltip("Efeito Instant aplicado ao ativar (ex: Mana Add -20). A ativação falha se o atributo ficaria abaixo do MinValue.")]
         public GameplayEffect CostEffect;
 
@@ -69,8 +72,12 @@ namespace SpellBook.GAS.Abilities
 
         public bool CanActivate(AbilitySystemComponent asc) => CanActivate(asc, out _);
 
+        /// <summary>Política de redução de recarga; nula usa <see cref="CooldownReductionPolicy.ApplyDefault"/>.</summary>
+        public CooldownReductionPolicy CooldownReductionPolicy => cooldownReductionPolicy;
+
         /// <summary>
-        /// Duração do cooldown já considerando o atributo de redução (CDR 0.20 = 20% de redução).
+        /// Duração do cooldown já considerando o atributo de redução (CDR 0.20 = 20% de redução), pela
+        /// <see cref="CooldownReductionPolicy"/> ou, sem ela, pela regra padrão.
         /// </summary>
         public float GetCooldownDuration(AbilitySystemComponent asc)
         {
@@ -80,14 +87,26 @@ namespace SpellBook.GAS.Abilities
             if (CooldownReductionAttribute != null && asc != null)
             {
                 float cdr = asc.GetAttributeValue(CooldownReductionAttribute);
-                duration = Mathf.Max(0.1f, duration * (1f - Mathf.Clamp01(cdr)));
+                duration = cooldownReductionPolicy != null
+                    ? cooldownReductionPolicy.Apply(duration, cdr)
+                    : CooldownReductionPolicy.ApplyDefault(duration, cdr);
             }
             return duration;
         }
 
-        /// <summary>Repassa a validação a cada ação da lista. Ações vazias são ignoradas.</summary>
+        /// <summary>
+        /// Avisa da política de redução sem atributo de redução e repassa a validação a cada ação da lista.
+        /// Ações vazias são ignoradas.
+        /// </summary>
         public virtual void Validate(ValidationResult result)
         {
+            if (cooldownReductionPolicy != null && CooldownReductionAttribute == null)
+            {
+                result.AddWarning(
+                    "Cooldown Reduction Policy sem Cooldown Reduction Attribute: a política não tem efeito.",
+                    nameof(cooldownReductionPolicy));
+            }
+
             if (Actions == null) return;
 
             for (int i = 0; i < Actions.Count; i++)

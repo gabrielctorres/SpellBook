@@ -152,6 +152,24 @@ namespace SpellBook.Testing
             Modify(asc, so => so.FindProperty("autoTick").boolValue = autoTick);
         }
 
+        /// <summary>
+        /// Grava <paramref name="value"/> no campo privado serializado <paramref name="field"/> de <paramref name="target"/>,
+        /// como o Inspector faria. Lança <see cref="ArgumentException"/> se o campo não existir.
+        /// </summary>
+        public static void SetObjectField(Object target, string field, Object value)
+        {
+            Modify(target, so =>
+            {
+                SerializedProperty property = so.FindProperty(field);
+                if (property == null)
+                {
+                    throw new ArgumentException($"O campo '{field}' não existe em {target.GetType().Name}.", nameof(field));
+                }
+
+                property.objectReferenceValue = value;
+            });
+        }
+
         public void Dispose()
         {
             for (int i = _created.Count - 1; i >= 0; i--)

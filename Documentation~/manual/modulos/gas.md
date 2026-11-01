@@ -257,6 +257,17 @@ Os três devolvem se algo mudou. Habilidade nula, sem `CooldownEffect` ou pronta
 
 Recarga aplicada à mão, com `ApplyEffect`, não dispara o evento: ela aparece no tempo restante e em `OnEffectApplied`/`OnEffectRemoved`.
 
+#### CooldownReductionPolicy {#cooldownreductionpolicy}
+A `CooldownReductionPolicy` diz como o valor do `CooldownReductionAttribute` vira duração de recarga. Crie o asset por *Create > GAS > Cooldown Reduction Policy* e escolha-o no campo **Cooldown Reduction Policy** da habilidade. A política só vale com um `CooldownReductionAttribute`; sem ele, a recarga usa a `Duration` do asset e o validador avisa.
+
+- **Min Duration:** piso da recarga, em segundos (padrão 0,1).
+- **Max Reduction:** teto da redução, de 0 a 1 (padrão 1, ou 100 %).
+- **Mode:** `Percent` lê o atributo como fração de redução (0,2 = 20 %). `Haste` lê o atributo como velocidade extra: a redução é `1 - 1 / (1 + haste)`, então haste 1 dobra a velocidade e corta a recarga pela metade. Nos dois modos, valor negativo conta como 0 e a redução para no **Max Reduction**.
+
+A duração é `max(Min Duration, duração × (1 - redução))`. Exemplo: com **Min Duration** 1 s e **Max Reduction** 0,5, uma recarga de 8 s com redução de 0,9 dura 4 s, porque o teto vale. Com **Max Reduction** 1 e redução de 0,99, o piso de 1 s vale.
+
+Sem política, a habilidade usa `CooldownReductionPolicy.ApplyDefault`: piso de 0,1 s, redução limitada a [0, 1] e modo `Percent`, a mesma regra de antes da política. O validador acusa erro em **Min Duration** negativo e em **Max Reduction** fora de 0 a 1.
+
 ### 4.3 Custo
 `CostEffect` é um GameplayEffect Instant, normalmente com modifier `Add` negativo (ex: `Mana Add -20`). A ativação falha se algum atributo ficaria abaixo do `MinValue`.
 

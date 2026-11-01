@@ -3,6 +3,7 @@
     "rootNamespace": "SpellBook.GAS.Tests",
     "references": [
         "SpellBook.Core",
+        "SpellBook.Core.Editor",
         "SpellBook.GAS",
         "SpellBook.Tags",
         "SpellBook.Time",
