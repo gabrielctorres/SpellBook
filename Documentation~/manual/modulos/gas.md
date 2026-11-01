@@ -83,6 +83,15 @@ if (target.TryApplyEffect(stun, caster, out _) == EffectApplicationResult.Blocke
 #### Efeitos ativos {#efeitos-ativos}
 `asc.ActiveEffects` lista as instâncias ativas na ordem de aplicação, sem cópia. Cada `ActiveEffectInstance` expõe `Effect` (o asset), `Source` e `Target` (os ASCs), `TimeRemaining`, `AppliedDuration` (a duração com que foi aplicada ou renovada, já com a redução de recarga), `CurrentStacks` e `IsActive` (falso depois da remoção). O tempo avança só pelo `Tick` do ASC, e as pilhas mudam pela reaplicação.
 
+Para mudar a duração ou as pilhas de uma instância, chame o ASC alvo ou o atalho da própria instância (`instancia.ExtendDuration(2f)` chama `instancia.Target.ExtendEffectDuration(instancia, 2f)`). Todos devolvem se algo mudou e devolvem `false` para `null`, para instância removida ou de outro ASC.
+
+- `ExtendEffectDuration(instancia, segundos)` soma ao tempo restante (5 s + 2 s = 7 s). `ReduceEffectDuration(instancia, segundos)` subtrai; se o restante chega a 0, o efeito expira na hora, com o motivo `Expired`. Segundos negativos ou `NaN` não mudam nada e geram um aviso no Console (só em build de desenvolvimento).
+- `RestartEffectDuration(instancia)` volta o tempo restante à `AppliedDuration`, e não à `Duration` do asset (uma recarga aplicada com 3 s volta a 3 s). Não mexe no período.
+- As três só valem para efeitos `HasDuration`; nos infinitos devolvem `false`. Nenhuma muda a `AppliedDuration`.
+- `SetEffectStacks(instancia, quantidade)` grava as pilhas, limitadas a `[0, MaxStacks]` (9 num efeito de máximo 5 vira 5), e dispara `OnEffectStacksChanged`. A mesma contagem devolve `false` e não dispara. `RemoveEffectStacks(instancia, quantidade)` tira pilhas; quantidade 0 ou negativa devolve `false`.
+- Pilhas em 0 removem a instância com o motivo `StacksDepleted`: primeiro devolve tags e modificadores, depois dispara `OnEffectStacksChanged(instancia, antes, 0)` e por último `OnEffectRemoved(instancia, StacksDepleted)`.
+- Mudar as pilhas muda só a contagem: as tags e os modificadores continuam um por instância.
+
 Para buscar, passe uma lista sua: o ASC limpa a lista, preenche com as instâncias na ordem de aplicação e devolve a quantidade. As buscas não alocam e lançam `ArgumentNullException` com a lista nula.
 
 - `FindEffectsWithTag(tag, lista)`: efeitos que concedem a tag ou uma filha dela, como `HasTag` (buscar `Status` acha `Status.Burn`). Tag inválida não acha nada.
@@ -239,7 +248,7 @@ Para consultar sem ativar, use `ability.CanActivate(asc, out var reason)`.
 Para efeitos com duração ou infinitos, por instância:
 
 - `OnEffectApplied(instancia)`: uma instância nova entrou, depois de tags e modificadores. Efeito instantâneo, renovação e pilha não disparam.
-- `OnEffectStacksChanged(instancia, antes, depois)`: a contagem de pilhas mudou de fato. Na reaplicação que empilha, `(instancia, 1, 2)`; em `MaxStacks`, não dispara.
+- `OnEffectStacksChanged(instancia, antes, depois)`: a contagem de pilhas mudou de fato. Na reaplicação que empilha, `(instancia, 1, 2)`; em `MaxStacks`, não dispara. Também dispara em `SetEffectStacks` e `RemoveEffectStacks`.
 - `OnEffectRemoved(instancia, motivo)`: a instância saiu, com o `EffectRemovalReason` (`Expired`, `Removed`, `RemovedByTag` ou `StacksDepleted`). Dispara depois de devolver tags e modificadores, uma vez por instância.
 
 Um ouvinte pode aplicar ou remover efeitos dentro desses eventos sem quebrar a remoção em grupo nem perder eventos. Sem ouvintes, disparar não aloca.

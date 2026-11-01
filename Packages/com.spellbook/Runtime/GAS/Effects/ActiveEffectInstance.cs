@@ -68,6 +68,27 @@ namespace SpellBook.GAS.Effects
             return false;
         }
 
+        // Atalhos: a regra e os eventos ficam no ASC alvo. Instância sem alvo ou removida devolve false.
+
+        /// <summary>Atalho de <see cref="AbilitySystemComponent.ExtendEffectDuration"/> no <see cref="Target"/>.</summary>
+        public bool ExtendDuration(float seconds) => IsActive && Target != null && Target.ExtendEffectDuration(this, seconds);
+
+        /// <summary>Atalho de <see cref="AbilitySystemComponent.ReduceEffectDuration"/> no <see cref="Target"/>.</summary>
+        public bool ReduceDuration(float seconds) => IsActive && Target != null && Target.ReduceEffectDuration(this, seconds);
+
+        /// <summary>Atalho de <see cref="AbilitySystemComponent.RestartEffectDuration"/> no <see cref="Target"/>.</summary>
+        public bool RestartDuration() => IsActive && Target != null && Target.RestartEffectDuration(this);
+
+        /// <summary>Atalho de <see cref="AbilitySystemComponent.SetEffectStacks"/> no <see cref="Target"/>.</summary>
+        public bool SetStacks(int count) => IsActive && Target != null && Target.SetEffectStacks(this, count);
+
+        /// <summary>Atalho de <see cref="AbilitySystemComponent.RemoveEffectStacks"/> no <see cref="Target"/>.</summary>
+        public bool RemoveStacks(int count) => IsActive && Target != null && Target.RemoveEffectStacks(this, count);
+
+        internal void SetTimeRemaining(float seconds) => TimeRemaining = seconds;
+
+        internal void SetStackCount(int count) => CurrentStacks = count;
+
         internal void AddStack()
         {
             if (Effect.CanStack && CurrentStacks < Effect.MaxStacks)

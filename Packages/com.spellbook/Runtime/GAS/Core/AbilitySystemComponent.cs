@@ -889,13 +889,94 @@ namespace SpellBook.GAS.Core
             return removedStacks;
         }
 
+        /// <summary>
+        /// Soma <paramref name="seconds"/> ao tempo restante de um efeito com duração ativo neste ASC. Segundos negativos
+        /// ou NaN são rejeitados com aviso. Devolve se algo mudou; não muda a <c>AppliedDuration</c>.
+        /// </summary>
+        public bool ExtendEffectDuration(ActiveEffectInstance instance, float seconds)
+        {
+            if (!CanMutateDuration(instance, seconds, nameof(ExtendEffectDuration))) return false;
+            instance.SetTimeRemaining(instance.TimeRemaining + seconds);
+            return true;
+        }
+
+        /// <summary>
+        /// Subtrai <paramref name="seconds"/> do tempo restante; se chega a zero, o efeito expira na hora (motivo
+        /// <see cref="EffectRemovalReason.Expired"/>). Mesma validação de <see cref="ExtendEffectDuration"/>.
+        /// </summary>
+        public bool ReduceEffectDuration(ActiveEffectInstance instance, float seconds)
+        {
+            if (!CanMutateDuration(instance, seconds, nameof(ReduceEffectDuration))) return false;
+            instance.SetTimeRemaining(instance.TimeRemaining - seconds);
+            if (instance.TimeRemaining <= 0f) RemoveEffectCore(instance, EffectRemovalReason.Expired);
+            return true;
+        }
+
+        /// <summary>Volta o tempo restante à <c>AppliedDuration</c>, sem mexer no período. Só efeitos com duração.</summary>
+        public bool RestartEffectDuration(ActiveEffectInstance instance)
+        {
+            if (!IsActiveHere(instance) || instance.Effect.DurationPolicy != EffectDurationPolicy.HasDuration) return false;
+            instance.SetTimeRemaining(instance.AppliedDuration);
+            return true;
+        }
+
+        /// <summary>
+        /// Grava a contagem de pilhas, limitada a <c>[0, MaxStacks]</c> (<c>MaxStacks</c> menor que 1 vale 1), e dispara
+        /// <see cref="OnEffectStacksChanged"/>. Zero remove a instância com <see cref="EffectRemovalReason.StacksDepleted"/>,
+        /// depois da limpeza e do evento de pilhas. Só a contagem muda: tags e modificadores seguem um por instância.
+        /// </summary>
+        public bool SetEffectStacks(ActiveEffectInstance instance, int count)
+        {
+            if (!IsActiveHere(instance)) return false;
+
+            int max = Math.Max(1, instance.Effect.MaxStacks);
+            int clamped = Math.Min(Math.Max(count, 0), max);
+            int before = instance.CurrentStacks;
+            if (clamped == before) return false;
+
+            instance.SetStackCount(clamped);
+            if (clamped == 0)
+            {
+                // Remoção sem evento, para disparar as pilhas antes do OnEffectRemoved (estado já final nos dois)
+                RemoveEffectCore(instance, EffectRemovalReason.StacksDepleted, raiseRemoved: false);
+                OnEffectStacksChanged?.Invoke(instance, before, 0);
+                OnEffectRemoved?.Invoke(instance, EffectRemovalReason.StacksDepleted);
+                return true;
+            }
+
+            OnEffectStacksChanged?.Invoke(instance, before, clamped);
+            return true;
+        }
+
+        /// <summary>Tira <paramref name="count"/> pilhas, como <see cref="SetEffectStacks"/>. <paramref name="count"/> menor ou igual a 0: <c>false</c>.</summary>
+        public bool RemoveEffectStacks(ActiveEffectInstance instance, int count)
+        {
+            if (count <= 0 || !IsActiveHere(instance)) return false;
+            return SetEffectStacks(instance, instance.CurrentStacks - count);
+        }
+
+        private bool IsActiveHere(ActiveEffectInstance instance)
+        {
+            return instance != null && instance.Target == this && instance.IsActive && _activeEffects.Contains(instance);
+        }
+
+        private bool CanMutateDuration(ActiveEffectInstance instance, float seconds, string caller)
+        {
+            if (!IsActiveHere(instance) || instance.Effect.DurationPolicy != EffectDurationPolicy.HasDuration) return false;
+            if (seconds >= 0f) return seconds > 0f;
+
+            // NaN e negativos caem aqui
+            if (Debug.isDebugBuild) Debug.LogWarning($"[GAS] {caller} ignorado: segundos inválidos ({seconds}) no efeito '{instance.Effect.name}'.", this);
+            return false;
+        }
+
         private void HandleEffectExpired(ActiveEffectInstance instance)
         {
             RemoveEffectCore(instance, EffectRemovalReason.Expired);
         }
 
         /// <summary>Ponto único de remoção: limpeza, devolução de tags e modificadores e, por último, <see cref="OnEffectRemoved"/>.</summary>
-        private void RemoveEffectCore(ActiveEffectInstance instance, EffectRemovalReason reason)
+        private void RemoveEffectCore(ActiveEffectInstance instance, EffectRemovalReason reason, bool raiseRemoved = true)
         {
             if (instance == null) return;
             // Sai da lista antes da limpeza: uma remoção repetida ou reentrante cai aqui e não refaz nada
@@ -919,7 +1000,7 @@ namespace SpellBook.GAS.Core
                 }
             }
 
-            OnEffectRemoved?.Invoke(instance, reason);
+            if (raiseRemoved) OnEffectRemoved?.Invoke(instance, reason);
         }
         #endregion
     }
