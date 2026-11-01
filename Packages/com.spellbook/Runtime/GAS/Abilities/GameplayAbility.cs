@@ -48,6 +48,9 @@ namespace SpellBook.GAS.Abilities
         [Tooltip("Alcance da habilidade por nível, lido pela CastRangeCondition. 0 ou menos: sem limite.")]
         [SerializeField] private ScalableFloat castRange = ScalableFloat.Constant(0f);
 
+        [Tooltip("Regras avaliadas na ordem, depois das tags, da recarga e do custo. A primeira que falha decide o motivo.")]
+        [SerializeField] private List<ActivationRule> activationConditions = new List<ActivationRule>();
+
         [Header("Tags")]
         [Tooltip("Não ativa se o dono tiver alguma destas tags.")]
         public List<GameplayTag> BlockedTags;
@@ -82,6 +85,23 @@ namespace SpellBook.GAS.Abilities
         }
 
         public bool CanActivate(AbilitySystemComponent asc) => CanActivate(asc, out _);
+
+        /// <summary>
+        /// Como <see cref="CanActivate(AbilitySystemComponent, out AbilityActivationResult)"/>, com o alvo das regras de
+        /// ativação e o motivo detalhado da falha. Mesmo caminho de <see cref="AbilitySystemComponent.TryActivateAbility(GameplayAbility, in AbilityTarget)"/>.
+        /// </summary>
+        public bool CanActivate(AbilitySystemComponent asc, in AbilityTarget target, out ActivationFailure failure)
+        {
+            if (asc == null)
+            {
+                failure = new ActivationFailure(AbilityActivationResult.InvalidAbility);
+                return false;
+            }
+            return asc.GetActivationResult(this, in target, out failure) == AbilityActivationResult.Success;
+        }
+
+        /// <summary>Regras de ativação, avaliadas na ordem depois do custo. Entradas nulas ou sem condição são puladas.</summary>
+        public List<ActivationRule> ActivationConditions => activationConditions ??= new List<ActivationRule>();
 
         /// <summary>Nível máximo da habilidade (pelo menos 1).</summary>
         public int MaxLevel => maxLevel;

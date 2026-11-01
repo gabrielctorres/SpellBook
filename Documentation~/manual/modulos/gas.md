@@ -430,7 +430,23 @@ O ASC só ativa habilidades concedidas. Use a lista `startingAbilities` no Inspe
 2. `BlockedTags` (`BlockedByTags`) e `RequiredTags` (`MissingRequiredTags`);
 3. `BlockAbilitiesWithTag` de habilidades ativas (`BlockedByActiveAbility`);
 4. cooldown (`OnCooldown`), pelas tags do `CooldownEffect` **ou** por uma instância ativa dele;
-5. custo (`CannotAffordCost`).
+5. custo (`CannotAffordCost`), só checado, sem aplicar;
+6. regras de ativação (`BlockedByCondition`), na ordem da lista; a primeira que falha decide.
+
+Nada é gasto antes do fim das checagens: a recarga e o custo saem só depois que todas passam. `NoCharges` fica reservado para as cargas.
+
+**Regras de ativação.** A lista **Activation Conditions** da habilidade (`ActivationConditions`) tem uma `ActivationRule` por entrada: uma [condição](#condicoes) e o motivo da falha, com **Failure Tag** (uma `GameplayTag`, opcional) e **Failure Key** (chave de texto). Com a chave vazia, vale a chave padrão da condição. Entradas vazias ou sem condição são puladas. As condições recebem o alvo da ativação no `ConditionContext.Target`.
+
+**Alvo e motivo.** `asc.TryActivateAbility(ability, alvo)` recebe um `AbilityTarget` (`AbilityTarget.AtPoint(ponto)` ou `AbilityTarget.None`); a forma com `Vector3` usa `AtPoint`. Para consultar sem ativar, `asc.GetActivationResult(ability, alvo, out ActivationFailure falha)` passa pelas mesmas checagens, na mesma ordem, sem mudar o ASC, sem disparar evento e sem alocar; `GetActivationResult(ability)` consulta sem alvo. O `ActivationFailure` traz:
+
+| Campo | O que é |
+|---|---|
+| `Result` e `IsSuccess` | O `AbilityActivationResult` e se a checagem passou. |
+| `ReasonTag` | Nas falhas de tag, a tag que decidiu: a de `BlockedTags` que o ASC tem, a de `RequiredTags` que falta ou o `AbilityTag` bloqueado por uma habilidade ativa. Nas de regra, a **Failure Tag**. Inválida quando não há. |
+| `ReasonKey` | A chave de texto da regra que falhou; nula nas outras falhas (a UI mapeia o `Result`). |
+| `ConditionIndex` e `Rule` | Índice e regra que falharam; -1 e nula fora das regras. |
+
+Com a regra "Mana `GreaterOrEqual` 20" e a tag `Fail.LowMana`, a Mana em 10 devolve `BlockedByCondition` com `ReasonTag` `Fail.LowMana`; em 30, a habilidade ativa.
 
 Em caso de sucesso, o ASC:
 
@@ -438,7 +454,7 @@ Em caso de sucesso, o ASC:
 - cancela as habilidades cujo `AbilityTag` está em `CancelAbilitiesWithTag`;
 - concede as `ActivationOwnedTags` enquanto a habilidade roda.
 
-Para consultar sem ativar, use `ability.CanActivate(asc, out var reason)`.
+Para consultar sem ativar, use `ability.CanActivate(asc, out var reason)` ou, com alvo e motivo, `ability.CanActivate(asc, alvo, out var falha)`.
 
 **Consultando a recarga.** `asc.GetCooldownTimeRemaining(cooldownEffect)` devolve o tempo restante e `asc.GetCooldownNormalized(cooldownEffect)`, o valor de 1 a 0 para barras de recarga. Contam a instância do próprio `CooldownEffect` e qualquer efeito ativo que conceda uma tag igual ou **filha** de alguma tag dele, pela mesma regra de `HasTag`: um efeito com `Cooldown.Fire` conta para uma recarga com a tag `Cooldown`, mas um efeito com `Cooldown` não conta para uma recarga com `Cooldown.Fire`. Com vários efeitos casando, vale o de maior tempo restante. O normalizado divide esse tempo pela duração aplicada da mesma instância, e não pela `Duration` do asset: com `CooldownReductionAttribute` em 0,25 sobre 8 s, a recarga aplicada é de 6 s e o normalizado vale 1 logo após ativar, 0,5 com 3 s restantes e 0 com a habilidade pronta. Sem recarga, ou com duração aplicada zero ou negativa, o normalizado é 0.
 
