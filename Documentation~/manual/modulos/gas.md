@@ -58,6 +58,28 @@ Uma expressão em texto, como `([ATK] * 2) / [DEF]`. Cada token entre colchetes 
 - **Remoção:** `RemoveEffect(instancia)` roda as ações de limpeza e de `OnRemoval` e devolve as tags e os modificadores do efeito, uma vez só. Chamar de novo com a mesma instância, com `null` ou com uma instância de outro ASC não faz nada. Vale também quando a remoção explícita cai no mesmo quadro da expiração, ou quando uma ação de `OnRemoval` remove a própria instância.
 - **Remoção em grupo:** `RemoveEffectsWithTag(tag)` remove os efeitos que concedem a tag ou uma filha dela, e `RemoveEffects(asset)` remove as instâncias de um `GameplayEffect`. As duas devolvem a soma das pilhas removidas (3 pilhas de veneno: 3) e 0 quando não há nada a remover; tag inválida ou asset `null` também dão 0.
 
+#### Resultado da aplicação {#resultado-da-aplicacao}
+`ApplyEffect` devolve só a instância (ou `null`). Para saber o que aconteceu, use `TryApplyEffect(efeito, origem, out instancia)` ou `TryApplyEffect(efeito, duracao, origem, out instancia)`, que aplicam igual e devolvem um `EffectApplicationResult`. As checagens seguem esta ordem:
+
+| Resultado | Quando | Instância |
+|---|---|---|
+| `Invalid` | Efeito `null`. Não lança exceção. | `null` |
+| `MissingRequirements` | Falta ao alvo alguma das `ApplicationRequirements`. | `null` |
+| `BlockedByImmunity` | O alvo tem alguma das `ApplicationImmunityTags`. | `null` |
+| `AppliedInstant` | Efeito instantâneo aplicado. | `null` |
+| `Stacked` | Reaplicação com `CanStack`, mesmo em `MaxStacks`. | a existente |
+| `Refreshed` | Reaplicação sem `CanStack` (renovação). | a existente |
+| `Applied` | Instância nova. | a nova |
+
+`ApplyEffect` continua com a mesma assinatura e o mesmo retorno. O resultado e o `out` de `TryApplyEffect` não alocam; o caminho instantâneo e os bloqueios também não. Só `Applied` aloca, porque cria a instância nova, como `ApplyEffect`.
+
+Nos dois bloqueios, o ASC dispara `OnEffectBlocked(efeito, origem, resultado)`, uma vez, com a origem já resolvida (origem `null` vira o próprio ASC). Efeito `null` não dispara. Para bloqueios de regras suas (silêncio, alvo fora de alcance), chame `asc.ReportBlocked(tagDoMotivo, origem)`: dispara `OnBlocked(tag, origem)`, ignora tag inválida e troca origem `null` pelo próprio ASC.
+
+```csharp
+if (target.TryApplyEffect(stun, caster, out _) == EffectApplicationResult.BlockedByImmunity)
+    Debug.Log($"{target.name} é imune a {stun.name}");
+```
+
 #### Efeitos ativos {#efeitos-ativos}
 `asc.ActiveEffects` lista as instâncias ativas na ordem de aplicação, sem cópia. Cada `ActiveEffectInstance` expõe `Effect` (o asset), `Source` e `Target` (os ASCs), `TimeRemaining`, `AppliedDuration` (a duração com que foi aplicada ou renovada, já com a redução de recarga), `CurrentStacks` e `IsActive` (falso depois da remoção). O tempo avança só pelo `Tick` do ASC, e as pilhas mudam pela reaplicação.
 

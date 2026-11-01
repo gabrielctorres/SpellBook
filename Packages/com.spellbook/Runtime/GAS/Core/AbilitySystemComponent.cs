@@ -497,50 +497,111 @@ namespace SpellBook.GAS.Core
         #region Gameplay Effects
         public ActiveEffectInstance ApplyEffect(GameplayEffect effect, AbilitySystemComponent source = null)
         {
-            return ApplyEffectCore(effect, false, 0f, source);
+            ApplyEffectCore(effect, false, 0f, source, out ActiveEffectInstance instance);
+            return instance;
         }
 
         public ActiveEffectInstance ApplyEffect(GameplayEffect effect, float durationOverride, AbilitySystemComponent source = null)
         {
-            return ApplyEffectCore(effect, true, durationOverride, source);
+            ApplyEffectCore(effect, true, durationOverride, source, out ActiveEffectInstance instance);
+            return instance;
         }
 
         /// <summary>
-        /// Aplicação única dos dois <see cref="ApplyEffect(GameplayEffect, AbilitySystemComponent)"/>. Com instância ativa,
-        /// quem passa duração redefine a duração aplicada e quem não passa mantém a da instância.
+        /// Como <see cref="ApplyEffect(GameplayEffect, AbilitySystemComponent)"/>, com o desfecho exposto. A
+        /// <paramref name="instance"/> vem preenchida só em <see cref="EffectApplicationResult.Applied"/>,
+        /// <see cref="EffectApplicationResult.Stacked"/> e <see cref="EffectApplicationResult.Refreshed"/>. O resultado e o
+        /// <c>out</c> não alocam; o caminho instantâneo e os bloqueios não alocam, mas <see cref="EffectApplicationResult.Applied"/>
+        /// cria a instância nova, como <see cref="ApplyEffect(GameplayEffect, AbilitySystemComponent)"/>.
         /// </summary>
-        private ActiveEffectInstance ApplyEffectCore(GameplayEffect effect, bool hasOverride, float durationOverride, AbilitySystemComponent source)
+        public EffectApplicationResult TryApplyEffect(GameplayEffect effect, AbilitySystemComponent source, out ActiveEffectInstance instance)
         {
-            if (effect == null) return null;
+            return ApplyEffectCore(effect, false, 0f, source, out instance);
+        }
+
+        /// <summary>Como <see cref="TryApplyEffect(GameplayEffect, AbilitySystemComponent, out ActiveEffectInstance)"/>, redefinindo a duração.</summary>
+        public EffectApplicationResult TryApplyEffect(GameplayEffect effect, float durationOverride, AbilitySystemComponent source, out ActiveEffectInstance instance)
+        {
+            return ApplyEffectCore(effect, true, durationOverride, source, out instance);
+        }
+
+        /// <summary>
+        /// Aplicação única de <see cref="ApplyEffect(GameplayEffect, AbilitySystemComponent)"/> e <c>TryApplyEffect</c>. Com
+        /// instância ativa, quem passa duração redefine a duração aplicada e quem não passa mantém a da instância.
+        /// </summary>
+        private EffectApplicationResult ApplyEffectCore(GameplayEffect effect, bool hasOverride, float durationOverride, AbilitySystemComponent source, out ActiveEffectInstance instance)
+        {
+            instance = null;
+            if (effect == null) return EffectApplicationResult.Invalid;
             if (source == null) source = this;
 
-            if (!HasAllTags(effect.ApplicationRequirements)) return null;
-            if (HasAnyTag(effect.ApplicationImmunityTags)) return null;
+            if (!HasAllTagsInList(effect.ApplicationRequirements)) return Block(effect, source, EffectApplicationResult.MissingRequirements);
+            if (HasAnyTagInList(effect.ApplicationImmunityTags)) return Block(effect, source, EffectApplicationResult.BlockedByImmunity);
 
             if (effect.DurationPolicy == EffectDurationPolicy.Instant)
             {
                 ApplyInstantEffect(effect, source);
-                return null;
+                return EffectApplicationResult.AppliedInstant;
             }
 
             ActiveEffectInstance existing = FindActiveInstance(effect);
             if (existing == null)
             {
-                return ApplyDurationEffect(effect, hasOverride ? durationOverride : effect.Duration, source);
+                instance = ApplyDurationEffect(effect, hasOverride ? durationOverride : effect.Duration, source);
+                return EffectApplicationResult.Applied;
             }
 
+            instance = existing;
             if (effect.CanStack)
             {
                 if (hasOverride && effect.RefreshDurationOnStack) existing.Renew(durationOverride);
                 int stacksBefore = existing.CurrentStacks;
                 existing.AddStack();
                 if (existing.CurrentStacks != stacksBefore) OnEffectStacksChanged?.Invoke(existing, stacksBefore, existing.CurrentStacks);
-                return existing;
+                return EffectApplicationResult.Stacked;
             }
 
             // Sem CanStack: renova a instância existente, sem reaplicar modificadores, tags nem OnApplication.
             existing.Renew(hasOverride ? durationOverride : existing.AppliedDuration);
-            return existing;
+            return EffectApplicationResult.Refreshed;
+        }
+
+        // Como HasAllTags e HasAnyTag, sem o boxing do enumerador da lista: a aplicação de efeito não aloca.
+        private bool HasAllTagsInList(List<GameplayTag> tags)
+        {
+            if (tags == null) return true;
+            for (int i = 0; i < tags.Count; i++) if (!HasTag(tags[i])) return false;
+            return true;
+        }
+
+        private bool HasAnyTagInList(List<GameplayTag> tags)
+        {
+            if (tags == null) return false;
+            for (int i = 0; i < tags.Count; i++) if (HasTag(tags[i])) return true;
+            return false;
+        }
+
+        private EffectApplicationResult Block(GameplayEffect effect, AbilitySystemComponent source, EffectApplicationResult reason)
+        {
+            OnEffectBlocked?.Invoke(effect, source, reason);
+            return reason;
+        }
+
+        /// <summary>
+        /// Efeito bloqueado por requisitos ou imunidade (efeito, origem já resolvida, motivo). Efeito nulo não dispara.
+        /// </summary>
+        public event Action<GameplayEffect, AbilitySystemComponent, EffectApplicationResult> OnEffectBlocked;
+
+        /// <summary>Bloqueio genérico informado por <see cref="ReportBlocked"/> (motivo, origem).</summary>
+        public event Action<GameplayTag, AbilitySystemComponent> OnBlocked;
+
+        /// <summary>
+        /// Dispara <see cref="OnBlocked"/> com o <paramref name="reason"/>. Tag inválida é ignorada; origem nula vira este ASC.
+        /// </summary>
+        public void ReportBlocked(GameplayTag reason, AbilitySystemComponent source = null)
+        {
+            if (!reason.IsValid) return;
+            OnBlocked?.Invoke(reason, source != null ? source : this);
         }
 
         private ActiveEffectInstance FindActiveInstance(GameplayEffect effect)
