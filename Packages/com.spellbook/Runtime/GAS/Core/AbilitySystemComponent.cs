@@ -705,6 +705,34 @@ namespace SpellBook.GAS.Core
             foreach (var tag in tags) if (HasTag(tag)) return true;
             return false;
         }
+
+        /// <summary>
+        /// As tags ativas satisfazem a <paramref name="query"/> (todas, alguma e nenhuma), com a regra de
+        /// <see cref="HasTag"/>: a tag ativa filha satisfaz o pai. Consulta vazia casa; nula não casa. Não aloca.
+        /// </summary>
+        public bool HasMatching(GameplayTagQuery query)
+        {
+            if (query == null) return false;
+            if (!HasAll(query.All)) return false;
+            if (!query.Any.IsEmpty && !HasAny(query.Any)) return false;
+            return !HasAny(query.None);
+        }
+
+        /// <summary>O ASC tem todas as <paramref name="tags"/> (hierárquico). Nula ou vazia: verdadeiro; tag inválida não casa. Não aloca.</summary>
+        public bool HasAll(IReadOnlyList<GameplayTag> tags)
+        {
+            if (tags == null) return true;
+            for (int i = 0; i < tags.Count; i++) if (!HasTag(tags[i])) return false;
+            return true;
+        }
+
+        /// <summary>O ASC tem alguma das <paramref name="tags"/> (hierárquico). Nula ou vazia: falso; tag inválida não casa. Não aloca.</summary>
+        public bool HasAny(IReadOnlyList<GameplayTag> tags)
+        {
+            if (tags == null) return false;
+            for (int i = 0; i < tags.Count; i++) if (HasTag(tags[i])) return true;
+            return false;
+        }
         #endregion
 
         #region Gameplay Effects

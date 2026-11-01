@@ -264,6 +264,33 @@ No fim do grupo, a **Prévia** mostra uma linha "nível → valor" do nível 1 a
 
 No Inspector da habilidade, depois dos campos, o **Nível de prévia** (limitado a `[1, MaxLevel]`) mostra cada valor da tabela e a recarga nesse nível, sem a redução do atributo. Na Fireball, em nível 3, a prévia mostra `damage = 100`, `cooldown = 6` e `Recarga = 6 s`.
 
+#### Condições {#condicoes}
+As condições do GAS herdam `Condition<ConditionContext>` (veja [Condições](../inicio/conceitos.md#condicoes) no Core) e ficam no namespace `SpellBook.GAS.Conditions`. São perguntas de sim ou não: não mudam o ASC, não guardam motivo de falha e não alocam ao avaliar.
+
+O `ConditionContext` é o mesmo para toda condição do GAS e é somente leitura:
+
+| Campo | O que é |
+|---|---|
+| `Owner` | ASC que avalia a condição. |
+| `Ability` e `Level` | Habilidade em avaliação e o nível dela. A habilidade pode ser nula. |
+| `Spec` | `AbilitySpec` da habilidade concedida, ou nulo. |
+| `Target` | `AbilityTarget`: o ponto do alvo (`HasPoint` e `Point`), ou `AbilityTarget.None`. |
+| `Targets` | Unidades-alvo. Nunca é nulo: sem alvos, é uma lista vazia. |
+
+Condições prontas:
+
+| Condição | Verdadeira quando | Chave padrão do motivo |
+|---|---|---|
+| `TagQueryCondition` | As tags ativas do `Owner` satisfazem a **Query** (todas, alguma e nenhuma, como a [`GameplayTagQuery`](tags.md#gameplaytagquery)). Sem `Owner`, é falsa. | `gas.activation.tag_query` |
+| `HasTargetsCondition` | Há ao menos um alvo em `Targets`. Alvos destruídos não contam. | `gas.activation.has_targets` |
+| `AndCondition` | Todas as filhas são verdadeiras. Lista vazia é verdadeira. | — |
+| `OrCondition` | Alguma filha é verdadeira. Lista vazia é falsa. | — |
+| `NotCondition` | A filha é falsa. Sem filha, é falsa. | — |
+
+Filhas nulas nas composições são ignoradas. No Inspector, um campo `[SerializeReference] Condition<ConditionContext>` só oferece essas condições e as suas, e cada uma aparece numa linha, como "Alguma (2)" ou "Não Tem alvos".
+
+Para consultar as tags do ASC no código, sem alocar, use `asc.HasMatching(query)`, `asc.HasAll(tags)` e `asc.HasAny(tags)`. Os dois últimos aceitam um `GameplayTagContainer`, uma lista ou um array. Valem as regras de `HasTag`: a tag ativa filha satisfaz o pai e uma tag inválida não casa. A consulta vazia casa com qualquer ASC e a consulta nula não casa.
+
 ### 1.5 AbilitySystemComponent (ASC) {#abilitysystemcomponent}
 O `AbilitySystemComponent` é o componente que guarda as habilidades concedidas, os atributos,
 os efeitos ativos e as tags de um personagem. Veja a seção [Ciclo de vida](#ciclo-de-vida).
