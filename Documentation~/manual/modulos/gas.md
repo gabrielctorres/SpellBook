@@ -57,6 +57,24 @@ Uma expressão em texto, como `([ATK] * 2) / [DEF]`. Cada token entre colchetes 
 - **Efeitos periódicos:** com `Period` maior que zero, o efeito dá um tique a cada `Period` segundos: aplica os `PeriodicModifiers` no valor base e roda as `OnTickActions`, sempre o mesmo número de vezes. Um efeito com duração dá `Duration / Period` tiques, arredondado para baixo (4 s com período de 0,5 s: 8 tiques; 4 s com período de 1,5 s: 2 tiques, em 1,5 s e 3 s). O tique que cai no fim da duração acontece antes da expiração, e nenhum tique roda depois da remoção, nem quando uma ação do tique remove a própria instância. Cada `Tick` do ASC dá no máximo um tique por efeito; o tempo de um `Tick` que passa do fim da duração não gera tique a mais.
 - **Remoção:** `RemoveEffect(instancia)` roda as ações de limpeza e de `OnRemoval` e devolve as tags e os modificadores do efeito, uma vez só. Chamar de novo com a mesma instância, com `null` ou com uma instância de outro ASC não faz nada. Vale também quando a remoção explícita cai no mesmo quadro da expiração, ou quando uma ação de `OnRemoval` remove a própria instância.
 
+#### Efeitos ativos {#efeitos-ativos}
+`asc.ActiveEffects` lista as instâncias ativas na ordem de aplicação, sem cópia. Cada `ActiveEffectInstance` expõe `Effect` (o asset), `Source` e `Target` (os ASCs), `TimeRemaining`, `AppliedDuration` (a duração com que foi aplicada ou renovada, já com a redução de recarga), `CurrentStacks` e `IsActive` (falso depois da remoção). O tempo avança só pelo `Tick` do ASC, e as pilhas mudam pela reaplicação.
+
+Para buscar, passe uma lista sua: o ASC limpa a lista, preenche com as instâncias na ordem de aplicação e devolve a quantidade. As buscas não alocam e lançam `ArgumentNullException` com a lista nula.
+
+- `FindEffectsWithTag(tag, lista)`: efeitos que concedem a tag ou uma filha dela, como `HasTag` (buscar `Status` acha `Status.Burn`). Tag inválida não acha nada.
+- `FindEffectsWithAnyTag(tags, lista)`: efeitos que casam com alguma tag de um `GameplayTagContainer`, lista ou array.
+- `FindEffectsMatching(consulta, lista)`: efeitos cujas tags concedidas satisfazem uma [`GameplayTagQuery`](tags.md#gameplaytagquery).
+- `FindEffects(asset, lista)`: as instâncias de um `GameplayEffect`.
+- `HasEffectWithTag(tag)`: se algum efeito ativo concede a tag ou uma filha dela.
+
+```csharp
+private readonly List<ActiveEffectInstance> _found = new List<ActiveEffectInstance>();
+
+int burns = asc.FindEffectsWithTag(statusBurn, _found);
+for (int i = 0; i < burns; i++) Debug.Log($"{_found[i].Effect.name}: {_found[i].TimeRemaining:0.0} s");
+```
+
 ### 1.4 Gameplay Abilities (GA) {#gameplayability}
 As habilidades são compostas **dentro do próprio arquivo da habilidade**, como uma lista de ações.
 Não é preciso criar ScriptableObjects separados para cada ação.

@@ -39,6 +39,9 @@ namespace SpellBook.GAS.Core
         public AttributeSet AttributeSet => attributeSet;
         public IReadOnlyList<AbilitySpec> Abilities => _abilities;
 
+        /// <summary>Instâncias de efeito ativas, na ordem de aplicação, sem cópia.</summary>
+        public IReadOnlyList<ActiveEffectInstance> ActiveEffects => _activeEffects;
+
         /// <summary>
         /// Fonte de tempo em uso: a dada por <see cref="SetTimeSource"/>, senão a do Inspector, senão
         /// <see cref="TimeSourceAsset.Scaled"/>.
@@ -536,6 +539,93 @@ namespace SpellBook.GAS.Core
                 if (_activeEffects[i].Effect == effect) return _activeEffects[i];
             }
             return null;
+        }
+
+        /// <summary>
+        /// Preenche <paramref name="results"/> (limpa antes) com as instâncias que concedem uma tag igual ou descendente de
+        /// <paramref name="tag"/>, na ordem de aplicação, e devolve a quantidade. Tag inválida não casa. Não aloca.
+        /// </summary>
+        public int FindEffectsWithTag(GameplayTag tag, List<ActiveEffectInstance> results)
+        {
+            if (results == null) throw new ArgumentNullException(nameof(results));
+            results.Clear();
+            for (int i = 0; i < _activeEffects.Count; i++)
+            {
+                if (GrantsTag(_activeEffects[i].Effect, tag)) results.Add(_activeEffects[i]);
+            }
+            return results.Count;
+        }
+
+        /// <summary>
+        /// Como <see cref="FindEffectsWithTag"/>, para instâncias que casam com alguma das <paramref name="tags"/>
+        /// (conjunto, lista ou array; <c>null</c> conta como vazio).
+        /// </summary>
+        public int FindEffectsWithAnyTag(IReadOnlyList<GameplayTag> tags, List<ActiveEffectInstance> results)
+        {
+            if (results == null) throw new ArgumentNullException(nameof(results));
+            results.Clear();
+            if (tags == null) return 0;
+            for (int i = 0; i < _activeEffects.Count; i++)
+            {
+                for (int t = 0; t < tags.Count; t++)
+                {
+                    if (!GrantsTag(_activeEffects[i].Effect, tags[t])) continue;
+                    results.Add(_activeEffects[i]);
+                    break;
+                }
+            }
+            return results.Count;
+        }
+
+        /// <summary>
+        /// Como <see cref="FindEffectsWithTag"/>, para instâncias cujas tags concedidas satisfazem a <paramref name="query"/>.
+        /// Consulta <c>null</c> não casa com nada.
+        /// </summary>
+        public int FindEffectsMatching(GameplayTagQuery query, List<ActiveEffectInstance> results)
+        {
+            if (results == null) throw new ArgumentNullException(nameof(results));
+            results.Clear();
+            if (query == null) return 0;
+            for (int i = 0; i < _activeEffects.Count; i++)
+            {
+                if (query.Matches(_activeEffects[i].Effect.GrantedTags)) results.Add(_activeEffects[i]);
+            }
+            return results.Count;
+        }
+
+        /// <summary>Como <see cref="FindEffectsWithTag"/>, para as instâncias do asset <paramref name="effect"/>.</summary>
+        public int FindEffects(GameplayEffect effect, List<ActiveEffectInstance> results)
+        {
+            if (results == null) throw new ArgumentNullException(nameof(results));
+            results.Clear();
+            if (effect == null) return 0;
+            for (int i = 0; i < _activeEffects.Count; i++)
+            {
+                if (_activeEffects[i].Effect == effect) results.Add(_activeEffects[i]);
+            }
+            return results.Count;
+        }
+
+        /// <summary>Alguma instância ativa concede uma tag igual ou descendente de <paramref name="tag"/>. Tag inválida: falso.</summary>
+        public bool HasEffectWithTag(GameplayTag tag)
+        {
+            for (int i = 0; i < _activeEffects.Count; i++)
+            {
+                if (GrantsTag(_activeEffects[i].Effect, tag)) return true;
+            }
+            return false;
+        }
+
+        /// <summary>O efeito concede uma tag <c>g</c> com <c>g.Matches(tag)</c>, a mesma direção de <see cref="HasTag"/>.</summary>
+        private static bool GrantsTag(GameplayEffect effect, GameplayTag tag)
+        {
+            List<GameplayTag> granted = effect.GrantedTags;
+            if (granted == null || !tag.IsValid) return false;
+            for (int g = 0; g < granted.Count; g++)
+            {
+                if (granted[g].Matches(tag)) return true;
+            }
+            return false;
         }
 
         public float GetCooldownTimeRemaining(GameplayEffect cooldownEffect)
