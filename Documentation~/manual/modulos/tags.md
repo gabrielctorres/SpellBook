@@ -107,6 +107,43 @@ A lista pode ser outro conjunto, uma `List<GameplayTag>` ou um array, como os ca
 - Dados editados à mão podem ter linhas vazias ou repetidas. O conjunto não as corrige sozinho:
   a linha vazia nunca casa, e `Count` conta o que está guardado.
 
+## GameplayTagQuery {#gameplaytagquery}
+
+Um `GameplayTagQuery` é uma consulta sobre um conjunto de tags, montada com três listas:
+
+- **Todas** (`All`): o conjunto precisa ter todas estas tags.
+- **Alguma** (`Any`): o conjunto precisa ter pelo menos uma destas tags.
+- **Nenhuma** (`None`): o conjunto não pode ter nenhuma destas tags.
+
+`query.Matches(tags)` é `true` quando as três condições valem ao mesmo tempo. Uma lista vazia não
+restringe; por isso, uma consulta com as três listas vazias (`IsEmpty` é `true`) casa com qualquer
+conjunto, até com o vazio. As listas usam a mesma regra do [Matches](#matches): uma tag filha
+satisfaz **Todas** e **Alguma** pelo pai, e é barrada por **Nenhuma** pelo pai.
+
+Exemplo: atacar só um alvo atordoado, com fogo ou gelo, e que não seja imune.
+
+```csharp
+using SpellBook.Tags;
+
+var query = new GameplayTagQuery();
+query.All.Add(stunned);
+query.Any.Add(fire);
+query.Any.Add(ice);
+query.None.Add(immune);
+
+query.Matches(new GameplayTagContainer(stunned, ice));           // true
+query.Matches(new GameplayTagContainer(stunned, ice, immune));   // false: tem Imune
+query.Matches(new GameplayTagContainer(stunned));                // false: falta fogo ou gelo
+```
+
+- `Matches` aceita um `GameplayTagContainer`, uma `List<GameplayTag>` ou um array (`null` conta
+  como vazio). `Matches(tag)` pergunta por uma tag só, sem montar um conjunto.
+- **Tag inválida nunca casa**: no conjunto perguntado ela não satisfaz nada, numa linha vazia de
+  **Todas** ou **Alguma** ela não é satisfeita por nada, e numa linha vazia de **Nenhuma** ela não
+  barra nada.
+- **Sem alocação**: `Matches` e `IsEmpty` não geram lixo; pode chamar a cada quadro.
+- A consulta é só dados (três listas), sem texto nem expressão.
+
 ## Ferramentas próprias {#ferramentas-proprias}
 
 Uma ferramenta sua, como um painel de debug, pode ler a hierarquia usando só a API pública:

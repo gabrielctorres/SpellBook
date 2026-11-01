@@ -17,6 +17,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); 
 - **`CreateDerived` copia o `CustomData`:** o contexto derivado (como o do impacto de projétil) recebe uma cópia rasa dos dados customizados, com o mesmo comparador; antes nascia vazio. Chaves acrescentadas num contexto não aparecem no outro, e valores que são objetos continuam compartilhados.
 
 ### Adicionado
+- **`GameplayTagQuery`:** consulta de tags com três listas, `All` (todas), `Any` (alguma) e `None` (nenhuma), com hierarquia. `Matches` aceita um conjunto, `List<GameplayTag>`, array ou uma tag só; lista vazia não restringe e a consulta vazia (`IsEmpty`) casa com qualquer conjunto. `Matches` não aloca.
 - **`GameplayTagContainer`:** conjunto de tags sem repetição, na ordem de inserção, com `HasTag` (hierárquico), `HasTagExact`, `HasAny` e `HasAll` (aceitam outro conjunto, `List<GameplayTag>` ou array), `Add`, `Remove` e `Clear`. As consultas e o `foreach` não alocam.
 - **Tags para ferramentas próprias:** `GameplayTag.GetDefinition()` passa a ser público (devolve `null` para tag inválida) e `GameplayTagDefinition` ganha a propriedade `Parent` (nula na raiz), para percorrer a cadeia de pais só com API pública.
 - Sample **Sandbox** (Package Manager → SpellBook → Samples): cena 3D que liga GAS, Events, Pooling e Time, com Bola de Fogo, queimadura, canal de dano recebido, pausa e câmera lenta. Entrada pelo Input Manager legado.
