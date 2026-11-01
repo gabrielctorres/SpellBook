@@ -109,6 +109,12 @@ namespace SpellBook.GAS.Values
             return true;
         }
 
+        /// <summary>Entrada no índice (pode ser nula, vinda do Inspector). Usado pelo validador da habilidade.</summary>
+        internal Entry GetEntry(int index)
+        {
+            return entries[index];
+        }
+
         /// <summary>Avisa a tabela de uma mudança feita fora da API (Inspector).</summary>
         internal void MarkChanged()
         {
@@ -139,7 +145,8 @@ namespace SpellBook.GAS.Values
             }
         }
 
-        private static bool IsIdentifier(string name)
+        /// <summary>Nome só com letras ASCII, dígitos e <c>_</c>, não vazio. Também vale para o nome do SetByCaller.</summary>
+        internal static bool IsIdentifier(string name)
         {
             if (string.IsNullOrEmpty(name)) return false;
 

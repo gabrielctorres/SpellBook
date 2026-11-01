@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using SpellBook.Core.Inspector;
 using UnityEngine;
 using SpellBook.Tags;
+using SpellBook.GAS.Effects;
 
 namespace SpellBook.GAS.Abilities.Actions
 {
@@ -29,6 +30,11 @@ namespace SpellBook.GAS.Abilities.Actions
 
                 if (Interval > 0f && i < Count - 1) yield return context.WaitSeconds(Interval);
             }
+        }
+
+        public override void CollectEffects(List<GameplayEffect> effects)
+        {
+            CollectEffects(Actions, effects);
         }
     }
 
@@ -67,6 +73,11 @@ namespace SpellBook.GAS.Abilities.Actions
             yield return Run(action, context);
             pending[0]--;
         }
+
+        public override void CollectEffects(List<GameplayEffect> effects)
+        {
+            CollectEffects(Actions, effects);
+        }
     }
 
     /// <summary>
@@ -97,6 +108,12 @@ namespace SpellBook.GAS.Abilities.Actions
         public override IEnumerator Execute(AbilityContext context)
         {
             yield return RunSequence(Evaluate(context) ? Then : Else, context);
+        }
+
+        public override void CollectEffects(List<GameplayEffect> effects)
+        {
+            CollectEffects(Then, effects);
+            CollectEffects(Else, effects);
         }
 
         private bool Evaluate(AbilityContext context)

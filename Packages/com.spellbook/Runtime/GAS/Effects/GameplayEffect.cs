@@ -146,12 +146,161 @@ namespace SpellBook.GAS.Effects
             set => stacksMultiplyMagnitude = value;
         }
 
+        /// <summary>
+        /// Acusa Is Buff com Is Debuff, cada <see cref="ScalableFloat"/> inválido (duração e valores), SetByCaller sem nome
+        /// válido (erro) ou sem padrão (aviso), modo Live onde não tem efeito (aviso) e ciclo ao vivo entre atributos (erro).
+        /// Os nomes do modo Table são conferidos pela habilidade que usa o efeito.
+        /// </summary>
         public void Validate(ValidationResult result)
         {
             if (isBuff && isDebuff)
             {
                 result.AddWarning("Efeito marcado como Is Buff e Is Debuff ao mesmo tempo.", nameof(isDebuff));
             }
+
+            if (DurationPolicy == EffectDurationPolicy.HasDuration) duration?.Validate(result, nameof(duration));
+
+            bool liveHasEffect = DurationPolicy != EffectDurationPolicy.Instant;
+            ValidateModifiers(result, Modifiers, nameof(Modifiers), liveHasEffect,
+                "Modo Live em efeito Instant não tem efeito: o valor é calculado uma vez.");
+            ValidateModifiers(result, PeriodicModifiers, nameof(PeriodicModifiers), false,
+                "Modo Live em modificador periódico não tem efeito: o tique já calcula o valor de novo.");
+
+            if (liveHasEffect && HasLiveCycle())
+            {
+                result.AddError(
+                    "Os modificadores Live formam um ciclo entre atributos (um depende do outro). Em runtime o ciclo é cortado e mantém o último valor.",
+                    nameof(Modifiers));
+            }
+        }
+
+        private static void ValidateModifiers(ValidationResult result, List<AttributeEffectModifier> modifiers, string listPath,
+            bool liveHasEffect, string liveWarning)
+        {
+            if (modifiers == null) return;
+
+            for (int i = 0; i < modifiers.Count; i++)
+            {
+                AttributeEffectModifier modifier = modifiers[i];
+                if (modifier == null) continue;
+
+                string path = $"{listPath}.Array.data[{i}]";
+                ModifierValueSource source = modifier.ValueSource;
+                if (source != null && source.Type == ModifierValueSource.SourceType.Value)
+                {
+                    source.Value?.Validate(result, path + ".ValueSource.Value");
+                }
+                else if (source != null && source.Type == ModifierValueSource.SourceType.SetByCaller)
+                {
+                    if (!AbilityValues.IsIdentifier(source.CallerName))
+                    {
+                        result.AddError($"O nome do SetByCaller \"{source.CallerName}\" é inválido: use só letras, dígitos e _.",
+                            path + ".ValueSource.CallerName");
+                    }
+                    else if (!source.CallerHasDefault)
+                    {
+                        result.AddWarning($"O SetByCaller \"{source.CallerName}\" não tem padrão: sem o valor do chamador, vale 0.",
+                            path + ".ValueSource.CallerHasDefault");
+                    }
+                }
+
+                if (modifier.Mode == MagnitudeMode.Live && !liveHasEffect)
+                {
+                    result.AddWarning(liveWarning, path + ".Mode");
+                }
+            }
+        }
+
+        // Ciclo visível no asset: cada modificador Live liga o atributo que altera aos atributos que o valor lê.
+        private bool HasLiveCycle()
+        {
+            if (Modifiers == null) return false;
+
+            var visited = new HashSet<AttributeDefinition>();
+            var pending = new Stack<AttributeDefinition>();
+            for (int i = 0; i < Modifiers.Count; i++)
+            {
+                AttributeEffectModifier start = Modifiers[i];
+                if (!IsLive(start)) continue;
+
+                visited.Clear();
+                pending.Clear();
+                PushReadAttributes(pending, start.ValueSource);
+                while (pending.Count > 0)
+                {
+                    AttributeDefinition read = pending.Pop();
+                    if (read == start.Attribute) return true;
+                    if (!visited.Add(read)) continue;
+
+                    // Quem altera o atributo lido também depende do que o seu valor lê
+                    for (int j = 0; j < Modifiers.Count; j++)
+                    {
+                        if (IsLive(Modifiers[j]) && Modifiers[j].Attribute == read) PushReadAttributes(pending, Modifiers[j].ValueSource);
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsLive(AttributeEffectModifier modifier)
+        {
+            return modifier != null && modifier.Mode == MagnitudeMode.Live && modifier.Attribute != null && modifier.ValueSource != null;
+        }
+
+        private static void PushReadAttributes(Stack<AttributeDefinition> pending, ModifierValueSource source)
+        {
+            switch (source.Type)
+            {
+                case ModifierValueSource.SourceType.Attribute:
+                    if (source.Attribute != null) pending.Push(source.Attribute);
+                    break;
+                case ModifierValueSource.SourceType.TargetAttribute:
+                    if (source.TargetAttributeDefinition != null) pending.Push(source.TargetAttributeDefinition);
+                    break;
+                case ModifierValueSource.SourceType.Formula:
+                    if (source.Formula == null) break;
+                    foreach (AttributeDefinition dependency in source.Formula.GetSourceDependencies())
+                    {
+                        if (dependency != null) pending.Push(dependency);
+                    }
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Acusa, no <paramref name="result"/> da habilidade, cada <see cref="ScalableFloat"/> em modo Table usado pelo efeito
+        /// (duração, modificadores e periódicos) cujo nome não está na <paramref name="table"/>, citando o efeito e o nome.
+        /// </summary>
+        internal void ValidateTableNames(ValidationResult result, AbilityValues table, string propertyPath)
+        {
+            if (DurationPolicy == EffectDurationPolicy.HasDuration) ValidateTableName(result, duration, table, propertyPath);
+            ValidateTableNames(result, Modifiers, table, propertyPath);
+            if (Period > 0f) ValidateTableNames(result, PeriodicModifiers, table, propertyPath);
+        }
+
+        private void ValidateTableNames(ValidationResult result, List<AttributeEffectModifier> modifiers, AbilityValues table,
+            string propertyPath)
+        {
+            if (modifiers == null) return;
+
+            for (int i = 0; i < modifiers.Count; i++)
+            {
+                ModifierValueSource source = modifiers[i]?.ValueSource;
+                if (source != null && source.Type == ModifierValueSource.SourceType.Value)
+                {
+                    ValidateTableName(result, source.Value, table, propertyPath);
+                }
+            }
+        }
+
+        private void ValidateTableName(ValidationResult result, ScalableFloat value, AbilityValues table, string propertyPath)
+        {
+            if (value == null || value.Mode != ScalableFloat.ScalableMode.Table || string.IsNullOrEmpty(value.TableName)) return;
+            if (table != null && table.IndexOf(value.TableName) >= 0) return;
+
+            result.AddError($"O efeito \"{name}\" lê o valor \"{value.TableName}\" da tabela, que não existe nesta habilidade.",
+                propertyPath);
         }
 
         void ISerializationCallbackReceiver.OnBeforeSerialize() { }

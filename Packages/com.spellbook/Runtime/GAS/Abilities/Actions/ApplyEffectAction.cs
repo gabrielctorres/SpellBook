@@ -32,5 +32,10 @@ namespace SpellBook.GAS.Abilities.Actions
 
             yield return null;
         }
+
+        public override void CollectEffects(List<GameplayEffect> effects)
+        {
+            if (Effects != null) effects.AddRange(Effects);
+        }
     }
 }

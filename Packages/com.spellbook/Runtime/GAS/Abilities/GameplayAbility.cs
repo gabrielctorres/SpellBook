@@ -127,11 +127,24 @@ namespace SpellBook.GAS.Abilities
         }
 
         /// <summary>
-        /// Avisa da política de redução sem atributo de redução e repassa a validação a cada ação da lista.
-        /// Ações vazias são ignoradas.
+        /// Acusa <c>MaxLevel</c> menor que 1, a tabela de valores (nomes e valores), a política de redução sem atributo de
+        /// redução, cada nome do modo Table que um efeito usado pela habilidade lê e não está na tabela (recarga, custo e
+        /// <see cref="AbilityAction.CollectEffects"/>), e <c>MaxLevel</c> acima do tamanho de um array da tabela (aviso).
+        /// Repassa a validação a cada ação da lista; ações vazias são ignoradas.
         /// </summary>
         public virtual void Validate(ValidationResult result)
         {
+            if (maxLevel < 1)
+            {
+                result.AddError($"Max Level é {maxLevel}: o nível mínimo é 1.", nameof(maxLevel));
+            }
+
+            if (values != null)
+            {
+                values.Validate(result, nameof(values));
+                ValidateArraySizes(result);
+            }
+
             if (cooldownReductionPolicy != null && CooldownReductionAttribute == null)
             {
                 result.AddWarning(
@@ -139,11 +152,49 @@ namespace SpellBook.GAS.Abilities
                     nameof(cooldownReductionPolicy));
             }
 
+            ValidateEffectTableNames(result);
+
             if (Actions == null) return;
 
             for (int i = 0; i < Actions.Count; i++)
             {
                 Actions[i]?.Validate(result);
+            }
+        }
+
+        private void ValidateArraySizes(ValidationResult result)
+        {
+            for (int i = 0; i < values.Count; i++)
+            {
+                AbilityValues.Entry entry = values.GetEntry(i);
+                int size = entry?.Value != null ? entry.Value.ArrayLength : 0;
+                if (size == 0 || size >= maxLevel) continue;
+
+                result.AddWarning(
+                    $"O valor \"{entry.Name}\" tem {size} níveis e o Max Level é {maxLevel}: acima do nível {size}, repete o último.",
+                    $"{nameof(values)}.entries.Array.data[{i}].value");
+            }
+        }
+
+        private void ValidateEffectTableNames(ValidationResult result)
+        {
+            var effects = new List<GameplayEffect>();
+            if (CooldownEffect != null) effects.Add(CooldownEffect);
+            if (CostEffect != null) effects.Add(CostEffect);
+            if (Actions != null)
+            {
+                for (int i = 0; i < Actions.Count; i++)
+                {
+                    Actions[i]?.CollectEffects(effects);
+                }
+            }
+
+            for (int i = 0; i < effects.Count; i++)
+            {
+                GameplayEffect effect = effects[i];
+                // Um efeito usado em mais de um lugar é conferido uma vez
+                if (effect == null || effects.IndexOf(effect) != i) continue;
+                effect.ValidateTableNames(result, values, nameof(values));
             }
         }
 

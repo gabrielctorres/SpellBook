@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using SpellBook.Core.Validation;
+using SpellBook.GAS.Effects;
 using UnityEngine;
 
 namespace SpellBook.GAS.Abilities
@@ -26,6 +27,23 @@ namespace SpellBook.GAS.Abilities
         /// Chamado pelo <see cref="GameplayAbility"/> que contém a ação.
         /// </summary>
         public virtual void Validate(ValidationResult result) { }
+
+        /// <summary>
+        /// Acrescenta a <paramref name="effects"/> os efeitos que a ação aplica, inclusive os das ações filhas. Usado pelo
+        /// validador da habilidade para conferir os nomes da tabela de valores. O padrão não acrescenta nada.
+        /// </summary>
+        public virtual void CollectEffects(List<GameplayEffect> effects) { }
+
+        /// <summary>Repassa <see cref="CollectEffects"/> a cada ação não nula da lista.</summary>
+        protected static void CollectEffects(IList<AbilityAction> actions, List<GameplayEffect> effects)
+        {
+            if (actions == null) return;
+
+            for (int i = 0; i < actions.Count; i++)
+            {
+                actions[i]?.CollectEffects(effects);
+            }
+        }
 
         /// <summary>
         /// Executa uma ação registrando-a como em execução no contexto.
