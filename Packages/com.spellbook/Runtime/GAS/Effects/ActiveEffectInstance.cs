@@ -15,6 +15,9 @@ namespace SpellBook.GAS.Effects
         /// <summary>Duração com que a instância foi aplicada ou renovada pela última vez; a renovação volta a ela.</summary>
         internal float AppliedDuration { get; private set; }
 
+        /// <summary>Marcado pelo ASC ao remover a instância, antes da limpeza; daí em diante o <see cref="Update"/> não roda nada.</summary>
+        internal bool IsRemoved { get; set; }
+
         private float _timeSinceLastTick;
         private readonly Dictionary<EffectAction, List<object>> _actionData = new Dictionary<EffectAction, List<object>>();
 
@@ -84,20 +87,14 @@ namespace SpellBook.GAS.Effects
 
         public void Update(float deltaTime)
         {
-            // Handle Duration
-            if (Effect.DurationPolicy == EffectDurationPolicy.HasDuration)
-            {
-                TimeRemaining -= deltaTime;
-                if (TimeRemaining <= 0)
-                {
-                    OnEffectExpired?.Invoke(this);
-                }
-            }
+            if (IsRemoved) return;
 
-            // Handle Periodic Ticks
+            bool hasDuration = Effect.DurationPolicy == EffectDurationPolicy.HasDuration;
+
+            // O tique que cabe dentro da duração acontece antes da expiração; o que sobra do quadro depois do fim não gera tique
             if (Effect.Period > 0)
             {
-                _timeSinceLastTick += deltaTime;
+                _timeSinceLastTick += hasDuration ? Math.Min(deltaTime, Math.Max(TimeRemaining, 0f)) : deltaTime;
                 if (_timeSinceLastTick >= Effect.Period)
                 {
                     _timeSinceLastTick -= Effect.Period;
@@ -106,8 +103,24 @@ namespace SpellBook.GAS.Effects
                     // Trigger Periodic Actions
                     if (Effect.OnTickActions != null)
                     {
-                        foreach (var action in Effect.OnTickActions) action?.Execute(Source, Target, this);
+                        foreach (var action in Effect.OnTickActions)
+                        {
+                            if (IsRemoved) break;
+                            action?.Execute(Source, Target, this);
+                        }
                     }
+
+                    // Um ouvinte ou uma ação do tique removeu a instância
+                    if (IsRemoved) return;
+                }
+            }
+
+            if (hasDuration)
+            {
+                TimeRemaining -= deltaTime;
+                if (TimeRemaining <= 0)
+                {
+                    OnEffectExpired?.Invoke(this);
                 }
             }
         }

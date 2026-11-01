@@ -649,6 +649,7 @@ namespace SpellBook.GAS.Core
             // Sai da lista antes da limpeza: uma remoção repetida ou reentrante cai aqui e não refaz nada
             if (!_activeEffects.Remove(instance)) return;
 
+            instance.IsRemoved = true;
             instance.Cleanup();
             instance.OnEffectExpired -= RemoveEffect;
             instance.OnTick -= HandleEffectTick;
