@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SpellBook.Core;
+using SpellBook.Core.Validation;
 using UnityEngine;
 
 namespace SpellBook.Tags
@@ -15,6 +16,10 @@ namespace SpellBook.Tags
     [HelpURL(DocUrls.Tags + "#gameplaytagquery")]
     public sealed class GameplayTagQuery
     {
+        private const string AllLabel = "Todas";
+        private const string AnyLabel = "Alguma";
+        private const string NoneLabel = "Nenhuma";
+
         [SerializeField] private GameplayTagContainer all = new GameplayTagContainer();
         [SerializeField] private GameplayTagContainer any = new GameplayTagContainer();
         [SerializeField] private GameplayTagContainer none = new GameplayTagContainer();
@@ -53,6 +58,52 @@ namespace SpellBook.Tags
 
             if (!any.IsEmpty && !MatchesSome(tag, any)) return false;
             return !MatchesSome(tag, none);
+        }
+
+        /// <summary>
+        /// Valida as três listas como conjuntos (caminhos <c>.all</c>, <c>.any</c> e <c>.none</c>), aponta a mesma tag
+        /// em duas listas (erro; pai e filho em listas diferentes é legítimo) e a consulta vazia (aviso). O dono do
+        /// campo repassa a chamada com o nome do campo em <paramref name="propertyPath"/>.
+        /// </summary>
+        public void Validate(ValidationResult result, string propertyPath)
+        {
+            string prefix = string.IsNullOrEmpty(propertyPath) ? string.Empty : propertyPath + ".";
+            all.Validate(result, prefix + "all");
+            any.Validate(result, prefix + "any");
+            none.Validate(result, prefix + "none");
+
+            ReportShared(result, propertyPath, all, AllLabel, any, AnyLabel);
+            ReportShared(result, propertyPath, all, AllLabel, none, NoneLabel);
+            ReportShared(result, propertyPath, any, AnyLabel, none, NoneLabel);
+
+            if (IsEmpty)
+            {
+                result.AddWarning($"A consulta {propertyPath} está vazia e casa com qualquer conjunto.", propertyPath);
+            }
+        }
+
+        private static void ReportShared(ValidationResult result, string propertyPath,
+            GameplayTagContainer first, string firstLabel, GameplayTagContainer second, string secondLabel)
+        {
+            for (int i = 0; i < first.Count; i++)
+            {
+                GameplayTag tag = first[i];
+                if (second.HasTagExact(tag) && IndexOfExact(first, tag) == i)
+                {
+                    result.AddError($"Tag '{tag.Name}' está em {firstLabel} e {secondLabel} de {propertyPath}.", propertyPath);
+                }
+            }
+        }
+
+        // Primeira posição da tag, para um erro só quando a lista tem a tag repetida.
+        private static int IndexOfExact(GameplayTagContainer container, GameplayTag tag)
+        {
+            for (int i = 0; i < container.Count; i++)
+            {
+                if (container[i] == tag) return i;
+            }
+
+            return -1;
         }
 
         private static bool AnyMatchesSome(IReadOnlyList<GameplayTag> tags, GameplayTagContainer conditions)

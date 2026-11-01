@@ -144,6 +144,35 @@ query.Matches(new GameplayTagContainer(stunned));                // false: falta
 - **Sem alocação**: `Matches` e `IsEmpty` não geram lixo; pode chamar a cada quadro.
 - A consulta é só dados (três listas), sem texto nem expressão.
 
+## Validação {#validacao}
+
+O [validador](../ferramentas/validador.md) aponta os problemas de um `GameplayTagContainer` ou de um
+`GameplayTagQuery`:
+
+| Problema | Gravidade |
+|---|---|
+| Linha vazia num conjunto ou numa lista da consulta | Erro |
+| Tag repetida no mesmo conjunto ou na mesma lista | Aviso |
+| A mesma tag em duas listas da consulta (por exemplo, em **Todas** e em **Nenhuma**) | Erro |
+| Consulta com as três listas vazias | Aviso |
+
+Um pai em **Todas** e um filho em **Nenhuma** não é apontado: a regra compara só a tag exata.
+
+O conjunto e a consulta não são assets nem componentes, então quem valida é o dono do campo. Para
+os seus campos entrarem no validador, implemente `IValidatable` no componente ou asset e repasse a
+chamada com o nome do campo:
+
+```csharp
+public void Validate(ValidationResult result)
+{
+    alvos.Validate(result, nameof(alvos));        // GameplayTagContainer
+    condicao.Validate(result, nameof(condicao));  // GameplayTagQuery
+}
+```
+
+As mensagens saem com o seu objeto (clicável na janela) e o caminho do campo. Veja
+[Validar um tipo seu](../ferramentas/validador.md#ivalidatable).
+
 ## Ferramentas próprias {#ferramentas-proprias}
 
 Uma ferramenta sua, como um painel de debug, pode ler a hierarquia usando só a API pública:
