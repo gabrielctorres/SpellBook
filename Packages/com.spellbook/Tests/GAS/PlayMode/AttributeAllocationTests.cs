@@ -2,6 +2,7 @@ using NUnit.Framework;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
+using SpellBook.GAS.Values;
 using SpellBook.Testing;
 using SpellBook.Time;
 using UnityEngine.TestTools.Constraints;
@@ -44,7 +45,7 @@ namespace SpellBook.GAS.Tests
             {
                 Attribute = mana,
                 Operation = ModifierOperation.Add,
-                ValueSource = new ModifierValueSource { Type = ModifierValueSource.SourceType.Constant, ConstantValue = 1f },
+                ValueSource = new ModifierValueSource { Type = ModifierValueSource.SourceType.Value, Value = ScalableFloat.Constant(1f) },
             });
             asc.ApplyEffect(regen);
             for (int i = 0; i < 12; i++) asc.Tick(1f / 60f); // aquecimento, com ao menos um tique

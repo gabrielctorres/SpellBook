@@ -4,6 +4,7 @@ using NUnit.Framework;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
+using SpellBook.GAS.Values;
 using SpellBook.Tags;
 using SpellBook.Testing;
 using UnityEngine.TestTools.Constraints;
@@ -401,7 +402,7 @@ namespace SpellBook.GAS.Tests
             {
                 Attribute = attribute,
                 Operation = ModifierOperation.Add,
-                ValueSource = new ModifierValueSource { Type = ModifierValueSource.SourceType.Constant, ConstantValue = value },
+                ValueSource = new ModifierValueSource { Type = ModifierValueSource.SourceType.Value, Value = ScalableFloat.Constant(value) },
             });
             return effect;
         }

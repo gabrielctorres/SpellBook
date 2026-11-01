@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using NUnit.Framework;
 using SpellBook.GAS.Attributes;
@@ -63,6 +64,74 @@ namespace SpellBook.GAS.Tests
         }
 
         [Test]
+        public void LegacyYaml_ConstantValue_LoadsAsValueConstant()
+        {
+            GameplayEffect effect = LoadLegacyEffect("GE_LegacyConstant",
+                "  Modifiers:\n" +
+                "  - Attribute: {fileID: 0}\n" +
+                "    Operation: 0\n" +
+                "    ValueSource:\n" +
+                "      Type: 0\n" +
+                "      ConstantValue: -7.5\n" +
+                "      Attribute: {fileID: 0}\n" +
+                "      Formula: {fileID: 0}\n");
+
+            ModifierValueSource source = effect.Modifiers[0].ValueSource;
+            Assert.That(source.Type, Is.EqualTo(ModifierValueSource.SourceType.Value));
+            Assert.That(source.Value.Mode, Is.EqualTo(ScalableFloat.ScalableMode.Constant));
+            Assert.That(source.Value.Evaluate(1), Is.EqualTo(-7.5f));
+            Assert.That(source.Value.Evaluate(4), Is.EqualTo(-7.5f));
+            Assert.That(ModifierLegacyConstant(effect, 0), Is.NaN);
+        }
+
+        [Test]
+        public void LegacyAttributeSource_KeepsTypeAndAttribute()
+        {
+            EnsureTempFolder();
+            var mana = ScriptableObject.CreateInstance<AttributeDefinition>();
+            string attributePath = TempFolder + "/Attr_Mana.asset";
+            AssetDatabase.CreateAsset(mana, attributePath);
+            string attributeGuid = AssetDatabase.AssetPathToGUID(attributePath);
+
+            GameplayEffect effect = LoadLegacyEffect("GE_LegacyAttribute",
+                "  Modifiers:\n" +
+                "  - Attribute: {fileID: 0}\n" +
+                "    Operation: 0\n" +
+                "    ValueSource:\n" +
+                "      Type: 1\n" +
+                "      ConstantValue: 0\n" +
+                $"      Attribute: {{fileID: 11400000, guid: {attributeGuid}, type: 2}}\n" +
+                "      Formula: {fileID: 0}\n");
+
+            ModifierValueSource source = effect.Modifiers[0].ValueSource;
+            Assert.That(source.Type, Is.EqualTo(ModifierValueSource.SourceType.Attribute));
+            Assert.That(source.Attribute, Is.SameAs(AssetDatabase.LoadAssetAtPath<AttributeDefinition>(attributePath)));
+        }
+
+        [Test]
+        public void NewModifier_SavesWithoutLegacyConstant()
+        {
+            var effect = ScriptableObject.CreateInstance<GameplayEffect>();
+            effect.Modifiers = new List<AttributeEffectModifier>
+            {
+                new AttributeEffectModifier
+                {
+                    ValueSource = new ModifierValueSource { Type = ModifierValueSource.SourceType.Value, Value = ScalableFloat.FromArray(3f, 2f) }
+                }
+            };
+            string path = TempFolder + "/GE_NewModifier.asset";
+            EnsureTempFolder();
+
+            AssetDatabase.CreateAsset(effect, path);
+            AssetDatabase.SaveAssets();
+            string yaml = File.ReadAllText(path);
+
+            Assert.That(ModifierLegacyConstant(effect, 0), Is.NaN);
+            Assert.That(yaml, Does.Contain("legacyConstant: NaN"));
+            Assert.That(yaml, Does.Not.Contain("ConstantValue:"));
+        }
+
+        [Test]
         public void NullModifierEntry_Ignored()
         {
             AttributeDefinition health = _gas.CreateAttribute("Health");
@@ -108,13 +177,20 @@ namespace SpellBook.GAS.Tests
             return asc;
         }
 
+        private static float ModifierLegacyConstant(GameplayEffect effect, int index)
+        {
+            return new SerializedObject(effect)
+                .FindProperty($"{nameof(GameplayEffect.Modifiers)}.Array.data[{index}].{nameof(AttributeEffectModifier.ValueSource)}.legacyConstant")
+                .floatValue;
+        }
+
         private static AttributeEffectModifier Add(AttributeDefinition attribute, float value)
         {
             return new AttributeEffectModifier
             {
                 Attribute = attribute,
                 Operation = ModifierOperation.Add,
-                ValueSource = new ModifierValueSource { Type = ModifierValueSource.SourceType.Constant, ConstantValue = value }
+                ValueSource = new ModifierValueSource { Type = ModifierValueSource.SourceType.Value, Value = ScalableFloat.Constant(value) }
             };
         }
 
