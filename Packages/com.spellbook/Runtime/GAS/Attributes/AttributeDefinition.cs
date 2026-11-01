@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using UnityEngine;
 
 namespace SpellBook.GAS.Attributes
@@ -27,7 +29,7 @@ namespace SpellBook.GAS.Attributes
 
     [CreateAssetMenu(fileName = "NewAttribute", menuName = "GAS/Attribute Definition")]
     [HelpURL(DocUrls.Gas + "#attributedefinition")]
-    public class AttributeDefinition : ScriptableObject
+    public class AttributeDefinition : ScriptableObject, IValidatable
     {
         public Sprite Icon;
 
@@ -68,6 +70,86 @@ namespace SpellBook.GAS.Attributes
 
         /// <summary>A categoria do atributo, de <see cref="AttributeDisplay.Category"/> (R18).</summary>
         public AttributeCategory Category => Display.Category;
+
+        /// <summary>
+        /// Erros: mínimo constante acima do máximo constante, fonte de limite sem atributo, apontando para o próprio
+        /// atributo, fechando um ciclo de fontes ou derivada de uma fórmula que lê este atributo, e <c>Decimals</c>
+        /// negativo. Aviso: <c>Hidden</c> sem categoria (R26).
+        /// </summary>
+        public void Validate(ValidationResult result)
+        {
+            if (MinSource == LimitSource.Constant && MaxSource == LimitSource.Constant && MinValue > MaxValue)
+            {
+                result.AddError($"Min Value ({MinValue}) acima de Max Value ({MaxValue}): vale o mínimo.", nameof(MinValue));
+            }
+
+            ValidateSource(result, MinSource, MinAttribute, nameof(MinAttribute));
+            ValidateSource(result, MaxSource, MaxAttribute, nameof(MaxAttribute));
+
+            if (Display.Decimals < 0)
+            {
+                result.AddError($"Decimals negativo ({Display.Decimals}).", nameof(Display) + "." + nameof(AttributeDisplay.Decimals));
+            }
+
+            if (Display.Hidden && Display.Category == null)
+            {
+                result.AddWarning("Atributo oculto sem categoria.", nameof(Display) + "." + nameof(AttributeDisplay.Category));
+            }
+        }
+
+        private void ValidateSource(ValidationResult result, LimitSource source, AttributeDefinition attribute, string path)
+        {
+            if (source != LimitSource.Attribute)
+            {
+                return;
+            }
+
+            if (attribute == null)
+            {
+                result.AddError("Fonte de limite Attribute sem atributo.", path);
+            }
+            else if (attribute == this)
+            {
+                result.AddError("A fonte de limite é o próprio atributo.", path);
+            }
+            else if (ReachesThis(attribute, new HashSet<AttributeDefinition>()))
+            {
+                result.AddError($"Ciclo de fontes de limite: {name} → {attribute.name} → ... → {name}.", path);
+            }
+            else if (DerivesFromThis(attribute))
+            {
+                result.AddError($"A fonte de limite {attribute.name} é derivada de uma fórmula que lê {name}.", path);
+            }
+        }
+
+        private bool ReachesThis(AttributeDefinition node, HashSet<AttributeDefinition> visited)
+        {
+            if (node == null || !visited.Add(node))
+            {
+                return false;
+            }
+
+            return (node.MinSource == LimitSource.Attribute && (node.MinAttribute == this || ReachesThis(node.MinAttribute, visited)))
+                || (node.MaxSource == LimitSource.Attribute && (node.MaxAttribute == this || ReachesThis(node.MaxAttribute, visited)));
+        }
+
+        private bool DerivesFromThis(AttributeDefinition source)
+        {
+            if (source.Type != AttributeType.Derived || source.Formula == null)
+            {
+                return false;
+            }
+
+            foreach (AttributeDefinition dependency in source.Formula.GetSourceDependencies())
+            {
+                if (dependency == this)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }
 

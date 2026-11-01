@@ -5,6 +5,7 @@
         "SpellBook.Core",
         "SpellBook.Core.Editor",
         "SpellBook.GAS",
+        "SpellBook.GAS.Editor",
         "SpellBook.Tags",
         "SpellBook.Time",
         "SpellBook.Testing",
