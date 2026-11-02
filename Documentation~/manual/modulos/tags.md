@@ -42,9 +42,8 @@ asset `GameplayTagDefinition` da tag. Um `GameplayTag` sem definição é uma ta
 Em código, crie um `GameplayTag` a partir da definição:
 
 ```csharp
-using SpellBook.Tags;
-
-var stunned = new GameplayTag(stunnedDefinition);
+--8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-tags"
+--8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:create-tag"
 ```
 
 ## Matches {#matches}
@@ -72,14 +71,8 @@ foram adicionadas. Use-o quando um campo ou uma variável precisa de várias tag
 "tem alguma destas?".
 
 ```csharp
-using SpellBook.Tags;
-
-var tags = new GameplayTagContainer(fireFlame, stunned);   // repetidas e inválidas são ignoradas
-tags.Add(slowed);      // true: entrou no fim
-tags.Add(slowed);      // false: já estava
-tags.Remove(stunned);  // true: saiu (só a tag exata; filhas dela ficam)
-
-bool burning = tags.HasTag(fire);   // true se o conjunto tem Elemento.Fogo ou uma filha dele
+--8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-tags"
+--8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:container"
 ```
 
 Todas as perguntas usam a mesma regra do [Matches](#matches): uma tag do conjunto casa com a tag
@@ -123,17 +116,8 @@ satisfaz **Todas** e **Alguma** pelo pai, e é barrada por **Nenhuma** pelo pai.
 Exemplo: atacar só um alvo atordoado, com fogo ou gelo, e que não seja imune.
 
 ```csharp
-using SpellBook.Tags;
-
-var query = new GameplayTagQuery();
-query.All.Add(stunned);
-query.Any.Add(fire);
-query.Any.Add(ice);
-query.None.Add(immune);
-
-query.Matches(new GameplayTagContainer(stunned, ice));           // true
-query.Matches(new GameplayTagContainer(stunned, ice, immune));   // false: tem Imune
-query.Matches(new GameplayTagContainer(stunned));                // false: falta fogo ou gelo
+--8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-tags"
+--8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:query"
 ```
 
 - `Matches` aceita um `GameplayTagContainer`, uma `List<GameplayTag>` ou um array (`null` conta
@@ -181,11 +165,7 @@ os seus campos entrarem no validador, implemente `IValidatable` no componente ou
 chamada com o nome do campo:
 
 ```csharp
-public void Validate(ValidationResult result)
-{
-    alvos.Validate(result, nameof(alvos));        // GameplayTagContainer
-    condicao.Validate(result, nameof(condicao));  // GameplayTagQuery
-}
+--8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:validate"
 ```
 
 As mensagens saem com o seu objeto (clicável na janela) e o caminho do campo. Veja
@@ -202,23 +182,10 @@ Uma ferramenta sua, como um painel de debug, pode ler a hierarquia usando só a 
 Exemplo: escrever no Console o nome de uma tag e a cadeia de pais dela.
 
 ```csharp
-using System.Text;
-using SpellBook.Tags;
-using UnityEngine;
-
-public static class TagDebug
-{
-    public static void LogChain(GameplayTag tag)
-    {
-        var text = new StringBuilder(tag.Name);
-        for (GameplayTagDefinition parent = tag.GetDefinition()?.Parent; parent != null; parent = parent.Parent)
-        {
-            text.Append(" → ").Append(parent.name);
-        }
-
-        Debug.Log(text.ToString());   // State.Debuff.Slowed → State.Debuff → State
-    }
-}
+--8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-system-text"
+--8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-tags"
+--8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-unityengine"
+--8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:tag-debug"
 ```
 
 ## Armadilhas {#armadilhas}

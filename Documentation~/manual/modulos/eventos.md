@@ -41,33 +41,17 @@ O tipo do evento é um `struct` que implementa `IEvent`. A interface é vazia: e
 como evento.
 
 ```csharp
-using SpellBook.Events;
-
-public struct PartidaComecou : IEvent
-{
-    public int Fase;
-}
+--8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-events"
+--8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:partida-comecou"
 ```
 
 ### Inscrever, desinscrever e disparar {#eventbus-uso}
 
 ```csharp
-using SpellBook.Events;
-using UnityEngine;
-
-public sealed class Placar : MonoBehaviour
-{
-    private void OnEnable()  { EventBus<PartidaComecou>.Subscribe(AoComecar); }
-    private void OnDisable() { EventBus<PartidaComecou>.Unsubscribe(AoComecar); }
-
-    private void AoComecar(PartidaComecou evento)
-    {
-        Debug.Log($"Fase {evento.Fase}");
-    }
-}
-
-// Em qualquer outro sistema:
-EventBus<PartidaComecou>.Raise(new PartidaComecou { Fase = 2 });
+--8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-events"
+--8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-unityengine"
+--8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:placar"
+--8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:placar-raise"
 ```
 
 - `Subscribe(Action<T>)` inscreve o ouvinte. Inscrever duas vezes o mesmo método não faz ele ser
@@ -127,24 +111,10 @@ Abaixo dos campos, o Inspector do canal mostra:
 Todo canal herda de `EventChannel<T>`, em que `T` é o tipo do dado que o disparo leva.
 
 ```csharp
-using SpellBook.Events;
-using UnityEngine;
-
-public sealed class BarraDeVida : MonoBehaviour
-{
-    [SerializeField] private IntEventChannel vidaMudou;
-
-    private void OnEnable()  { vidaMudou.Raised += AoMudar; }
-    private void OnDisable() { vidaMudou.Raised -= AoMudar; }
-
-    private void AoMudar(int vida)
-    {
-        Debug.Log($"Vida: {vida}");
-    }
-}
-
-// Em quem dispara, com o mesmo asset no campo:
-vidaMudou.Raise(80);
+--8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-events"
+--8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-unityengine"
+--8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:barra-de-vida"
+--8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:barra-de-vida-raise"
 ```
 
 - `Raised` é um `event` C#: `+=` inscreve e `-=` desinscreve. Inscrever duas vezes o mesmo método
@@ -372,20 +342,10 @@ Uma reação sua herda de `Reaction` e sobrescreve `Execute(EventListener)`, ou
 `Execute<T>(EventListener, in T)` quando precisa do payload:
 
 ```csharp
-using System;
-using SpellBook.Events;
-using UnityEngine;
-
-[Serializable]
-public sealed class TocarSom : Reaction
-{
-    [SerializeField] private AudioSource fonte;
-
-    public override void Execute(EventListener listener)
-    {
-        fonte.Play();
-    }
-}
+--8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-system"
+--8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-events"
+--8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-unityengine"
+--8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:tocar-som"
 ```
 
 ### Escolher o canal {#escolher-canal}
@@ -486,26 +446,10 @@ Para um canal com um dado seu, crie o struct, o canal e a resposta. As classes d
 resposta não precisam de corpo.
 
 ```csharp
-using System;
-using SpellBook.Events;
-using UnityEngine;
-
-[Serializable]
-public struct Dano
-{
-    public int Valor;
-    public Vector3 Ponto;
-}
-
-[CreateAssetMenu(menuName = "Jogo/Events/Dano Channel")]
-public sealed class DanoEventChannel : EventChannel<Dano>
-{
-}
-
-[Serializable]
-public sealed class DanoEventResponse : EventResponse<Dano>
-{
-}
+--8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-system"
+--8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-events"
+--8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-unityengine"
+--8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:dano"
 ```
 
 - O canal (`DanoEventChannel.cs`) fica num arquivo com o nome da classe, porque é um asset.
