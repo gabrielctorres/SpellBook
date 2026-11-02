@@ -21,8 +21,6 @@ namespace SpellBook.Core.Tests
         private static readonly string[] PendingPages =
         {
             "modulos/gas.md",
-            "modulos/pooling.md",
-            "modulos/tempo.md",
             "modulos/dano-escudo-e-morte.md",
             "regras/migracao-2-para-3.md",
         };

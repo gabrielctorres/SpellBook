@@ -16,12 +16,9 @@ campo do Inspector e pedem a ele a instância. Assim, você troca a estratégia 
 Addressables) trocando o asset do campo, sem mexer no sistema. E nenhum sistema depende de um
 `PoolManager` na cena.
 
-O contrato tem dois métodos:
-
-```csharp
-public abstract GameObject Spawn(GameObject prefab, Vector3 position, Quaternion rotation, Transform parent = null);
-public abstract void Release(GameObject instance);
-```
+O contrato tem dois métodos abstratos. O `Spawn` recebe o prefab, a posição, a rotação e um
+`parent` opcional e devolve a instância criada. O `Release` recebe a instância de volta. As
+assinaturas estão na [página do `SpawnerAsset` na API](https://gabrielctorres.github.io/SpellBook/api/SpellBook.Core.SpawnerAsset.html).
 
 ### Padrão por Instantiate {#instantiate}
 
@@ -37,11 +34,9 @@ sob demanda e que não é salvo em disco. Em código, use `SpawnerAsset.OrDefaul
 ter o spawner do campo ou o padrão:
 
 ```csharp
-using SpellBook.Core;
-
-[SerializeField] private SpawnerAsset spawner;
-
-GameObject vfx = SpawnerAsset.OrDefault(spawner).Spawn(prefab, position, rotation);
+--8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:using-core"
+--8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:campo-spawner"
+--8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:or-default"
 ```
 
 ### Criar o seu próprio spawner {#proprio-spawner}
@@ -50,27 +45,9 @@ Herde de `SpawnerAsset` e implemente os dois métodos. Adicione um `[CreateAsset
 o asset pelo menu:
 
 ```csharp
-using SpellBook.Core;
-using UnityEngine;
-
-[CreateAssetMenu(menuName = "MeuJogo/Spawner com contagem")]
-public class CountingSpawnerAsset : SpawnerAsset
-{
-    public int Alive { get; private set; }
-
-    public override GameObject Spawn(GameObject prefab, Vector3 position, Quaternion rotation, Transform parent = null)
-    {
-        Alive++;
-        return Instantiate(prefab, position, rotation, parent);
-    }
-
-    public override void Release(GameObject instance)
-    {
-        if (instance == null) return;
-        Alive--;
-        Destroy(instance);
-    }
-}
+--8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:using-core"
+--8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:using-unityengine"
+--8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:counting-spawner"
 ```
 
 ### Quem devolve {#quem-devolve}
@@ -85,9 +62,7 @@ Para uma partícula sem dono, que só precisa sumir quando acabar, chame
 `ReleaseWhenParticlesStop` logo depois do `Spawn`:
 
 ```csharp
-SpawnerAsset vfxSpawner = SpawnerAsset.OrDefault(spawner);
-GameObject vfx = vfxSpawner.Spawn(prefab, position, rotation);
-vfxSpawner.ReleaseWhenParticlesStop(vfx);
+--8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:release-when-particles-stop"
 ```
 
 O método troca o **Stop Action** do `ParticleSystem` da raiz da instância para **Callback** e
@@ -118,14 +93,10 @@ Como funciona:
 - Ao entrar em Play, o asset esquece os pools da sessão anterior, mesmo sem domain reload.
 
 ```csharp
-using SpellBook.Core;
-using UnityEngine;
-
-[SerializeField] private SpawnerAsset spawner; // arraste um PooledSpawnerAsset aqui
-
-GameObject bullet = spawner.Spawn(prefab, position, rotation);
-// ...quando o objeto não serve mais:
-spawner.Release(bullet);
+--8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:using-core"
+--8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:using-unityengine"
+--8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:campo-pooled-spawner"
+--8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:pooled-spawn-release"
 ```
 
 O validador acusa erro se **Initial Size** for negativo.
@@ -153,14 +124,9 @@ Para reiniciar o estado de um objeto ao sair e ao voltar do pool, implemente `IP
 componente da raiz do prefab:
 
 ```csharp
-using SpellBook.Pooling;
-using UnityEngine;
-
-public class Bullet : MonoBehaviour, IPoolable
-{
-    public void OnSpawnFromPool() { /* reinicia vida, velocidade... */ }
-    public void OnReturnToPool() { /* para efeitos, limpa alvos... */ }
-}
+--8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:using-pooling"
+--8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:using-unityengine"
+--8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:bullet"
 ```
 
 Se o objeto também pode nascer por `Instantiate`, prefira reiniciar no `OnEnable`, que roda nos
