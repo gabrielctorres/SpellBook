@@ -11,6 +11,7 @@ items:
   - SpellBook.Core.Editor.Documentation.TypeCatalog
   - SpellBook.Core.Editor.Documentation.TypeCatalogPage
   - SpellBook.Core.Editor.Documentation.TypeCatalogSection
+  - SpellBook.Core.Editor.Documentation.UnityXrefMap
   langs:
   - csharp
   - vb
@@ -61,3 +62,9 @@ references:
   name: TypeCatalogPage
   nameWithType: TypeCatalogPage
   fullName: SpellBook.Core.Editor.Documentation.TypeCatalogPage
+- uid: SpellBook.Core.Editor.Documentation.UnityXrefMap
+  commentId: T:SpellBook.Core.Editor.Documentation.UnityXrefMap
+  href: SpellBook.Core.Editor.Documentation.UnityXrefMap.html
+  name: UnityXrefMap
+  nameWithType: UnityXrefMap
+  fullName: SpellBook.Core.Editor.Documentation.UnityXrefMap

@@ -62,6 +62,8 @@
   "SpellBook.Core.Editor.Documentation.TypeCatalogSection.BaseType": "SpellBook.Core.Editor.Documentation.TypeCatalogSection.yml",
   "SpellBook.Core.Editor.Documentation.TypeCatalogSection.Entries": "SpellBook.Core.Editor.Documentation.TypeCatalogSection.yml",
   "SpellBook.Core.Editor.Documentation.TypeCatalogSection.Fields": "SpellBook.Core.Editor.Documentation.TypeCatalogSection.yml",
+  "SpellBook.Core.Editor.Documentation.UnityXrefMap": "SpellBook.Core.Editor.Documentation.UnityXrefMap.yml",
+  "SpellBook.Core.Editor.Documentation.UnityXrefMap.Render(System.String)": "SpellBook.Core.Editor.Documentation.UnityXrefMap.yml",
   "SpellBook.Core.Editor.HelpUrlRule": "SpellBook.Core.Editor.HelpUrlRule.yml",
   "SpellBook.Core.Editor.HelpUrlRule.FindViolations(System.Collections.Generic.IEnumerable{System.Reflection.Assembly})": "SpellBook.Core.Editor.HelpUrlRule.yml",
   "SpellBook.Core.Editor.HelpUrlRule.MissingReason": "SpellBook.Core.Editor.HelpUrlRule.yml",

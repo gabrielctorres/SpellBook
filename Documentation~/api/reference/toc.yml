@@ -88,6 +88,9 @@ items:
   - uid: SpellBook.Core.Editor.Documentation.TypeCatalogSection
     name: TypeCatalogSection
     type: Class
+  - uid: SpellBook.Core.Editor.Documentation.UnityXrefMap
+    name: UnityXrefMap
+    type: Class
 - uid: SpellBook.Core.Editor.Inspector
   name: SpellBook.Core.Editor.Inspector
   type: Namespace
