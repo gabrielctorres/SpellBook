@@ -1,0 +1,102 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Attributes.MaxChangePolicy
+  commentId: T:SpellBook.GAS.Attributes.MaxChangePolicy
+  id: MaxChangePolicy
+  parent: SpellBook.GAS.Attributes
+  children:
+  - SpellBook.GAS.Attributes.MaxChangePolicy.AddDelta
+  - SpellBook.GAS.Attributes.MaxChangePolicy.KeepRatio
+  - SpellBook.GAS.Attributes.MaxChangePolicy.KeepValue
+  langs:
+  - csharp
+  - vb
+  name: MaxChangePolicy
+  nameWithType: MaxChangePolicy
+  fullName: SpellBook.GAS.Attributes.MaxChangePolicy
+  type: Enum
+  namespace: SpellBook.GAS.Attributes
+  summary: O que acontece com o valor base quando o máximo vindo de outro atributo muda.
+  example: []
+  syntax:
+    content: public enum MaxChangePolicy
+    content.vb: Public Enum MaxChangePolicy
+- uid: SpellBook.GAS.Attributes.MaxChangePolicy.KeepValue
+  commentId: F:SpellBook.GAS.Attributes.MaxChangePolicy.KeepValue
+  id: KeepValue
+  parent: SpellBook.GAS.Attributes.MaxChangePolicy
+  langs:
+  - csharp
+  - vb
+  name: KeepValue
+  nameWithType: MaxChangePolicy.KeepValue
+  fullName: SpellBook.GAS.Attributes.MaxChangePolicy.KeepValue
+  type: Field
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: KeepValue = 0
+    return:
+      type: SpellBook.GAS.Attributes.MaxChangePolicy
+- uid: SpellBook.GAS.Attributes.MaxChangePolicy.KeepRatio
+  commentId: F:SpellBook.GAS.Attributes.MaxChangePolicy.KeepRatio
+  id: KeepRatio
+  parent: SpellBook.GAS.Attributes.MaxChangePolicy
+  langs:
+  - csharp
+  - vb
+  name: KeepRatio
+  nameWithType: MaxChangePolicy.KeepRatio
+  fullName: SpellBook.GAS.Attributes.MaxChangePolicy.KeepRatio
+  type: Field
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: KeepRatio = 1
+    return:
+      type: SpellBook.GAS.Attributes.MaxChangePolicy
+- uid: SpellBook.GAS.Attributes.MaxChangePolicy.AddDelta
+  commentId: F:SpellBook.GAS.Attributes.MaxChangePolicy.AddDelta
+  id: AddDelta
+  parent: SpellBook.GAS.Attributes.MaxChangePolicy
+  langs:
+  - csharp
+  - vb
+  name: AddDelta
+  nameWithType: MaxChangePolicy.AddDelta
+  fullName: SpellBook.GAS.Attributes.MaxChangePolicy.AddDelta
+  type: Field
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: AddDelta = 2
+    return:
+      type: SpellBook.GAS.Attributes.MaxChangePolicy
+references:
+- uid: SpellBook.GAS.Attributes
+  commentId: N:SpellBook.GAS.Attributes
+  name: SpellBook.GAS.Attributes
+  nameWithType: SpellBook.GAS.Attributes
+  fullName: SpellBook.GAS.Attributes
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Attributes
+    name: Attributes
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Attributes
+    name: Attributes
+- uid: SpellBook.GAS.Attributes.MaxChangePolicy
+  commentId: T:SpellBook.GAS.Attributes.MaxChangePolicy
+  parent: SpellBook.GAS.Attributes
+  href: SpellBook.GAS.Attributes.MaxChangePolicy.html
+  name: MaxChangePolicy
+  nameWithType: MaxChangePolicy
+  fullName: SpellBook.GAS.Attributes.MaxChangePolicy

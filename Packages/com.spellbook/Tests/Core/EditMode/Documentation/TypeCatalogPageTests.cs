@@ -97,6 +97,28 @@ namespace SpellBook.Core.Tests.Documentation
                 + "| Tipo | Categoria | Resumo |\n|---|---|---|\n"));
         }
 
+        [Test]
+        public void Render_ClosedGenericBase_TitleInCSharpForm()
+        {
+            string text = TypeCatalogPage.Render(new[] { GenericSection() });
+
+            Assert.That(text, Does.Contain("\n## `PageGenericBase<PageBase>` {#"));
+        }
+
+        [Test]
+        public void Render_ClosedGenericBase_AnchorWithoutAssembly()
+        {
+            string text = TypeCatalogPage.Render(new[] { GenericSection() });
+
+            string heading = text.Substring(text.IndexOf("\n## ", StringComparison.Ordinal) + 1);
+            heading = heading.Substring(0, heading.IndexOf('\n'));
+            string anchor = heading.Substring(heading.IndexOf("{#", StringComparison.Ordinal));
+            Assert.That(anchor, Is.EqualTo(
+                "{#spellbook-core-tests-documentation-pagegenericbase-spellbook-core-tests-documentation-pagebase}"));
+            Assert.That(anchor, Does.Not.Contain("`").And.Not.Contain("[").And.Not.Contain(",")
+                .And.Not.Contain("=").And.Not.Contain("version"));
+        }
+
         private static TypePickerEntry Entry(string category = "Fluxo", string summary = "Faz algo.")
         {
             return new TypePickerEntry(typeof(PageEntry), "Page Entry", category, summary);
@@ -112,6 +134,12 @@ namespace SpellBook.Core.Tests.Documentation
         {
             return new TypeCatalogSection(typeof(NestedBase), new[] { "Holder > Nested" },
                 new[] { new TypePickerEntry(typeof(NestedEntry), "Nested Entry", "", "") });
+        }
+
+        private static TypeCatalogSection GenericSection()
+        {
+            return new TypeCatalogSection(typeof(PageGenericBase<PageBase>), new[] { "Holder > Generic" },
+                new[] { new TypePickerEntry(typeof(PageGenericEntry), "Page Generic Entry", "", "") });
         }
 
         private abstract class NestedBase
@@ -130,6 +158,15 @@ namespace SpellBook.Core.Tests.Documentation
 
     [Serializable]
     internal sealed class PageEntry : PageBase
+    {
+    }
+
+    internal abstract class PageGenericBase<T>
+    {
+    }
+
+    [Serializable]
+    internal sealed class PageGenericEntry : PageGenericBase<PageBase>
     {
     }
 }

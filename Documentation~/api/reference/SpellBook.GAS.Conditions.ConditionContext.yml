@@ -1,0 +1,676 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Conditions.ConditionContext
+  commentId: T:SpellBook.GAS.Conditions.ConditionContext
+  id: ConditionContext
+  parent: SpellBook.GAS.Conditions
+  children:
+  - SpellBook.GAS.Conditions.ConditionContext.#ctor(SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Abilities.GameplayAbility,System.Int32,SpellBook.GAS.Abilities.AbilitySpec,SpellBook.GAS.Abilities.AbilityTarget,System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Core.AbilitySystemComponent})
+  - SpellBook.GAS.Conditions.ConditionContext.Ability
+  - SpellBook.GAS.Conditions.ConditionContext.Level
+  - SpellBook.GAS.Conditions.ConditionContext.Owner
+  - SpellBook.GAS.Conditions.ConditionContext.Spec
+  - SpellBook.GAS.Conditions.ConditionContext.Target
+  - SpellBook.GAS.Conditions.ConditionContext.Targets
+  langs:
+  - csharp
+  - vb
+  name: ConditionContext
+  nameWithType: ConditionContext
+  fullName: SpellBook.GAS.Conditions.ConditionContext
+  type: Struct
+  namespace: SpellBook.GAS.Conditions
+  summary: >-
+    Contexto único das condições do GAS (ADR 0032, item 2): quem avalia, a habilidade, o nível e os alvos.
+
+    Somente leitura; as condições não podem mudar o estado do <xref href="SpellBook.GAS.Conditions.ConditionContext.Owner" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public readonly struct ConditionContext
+    content.vb: Public Structure ConditionContext
+  inheritedMembers:
+  - System.ValueType.Equals(System.Object)
+  - System.ValueType.GetHashCode
+  - System.ValueType.ToString
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetType
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+- uid: SpellBook.GAS.Conditions.ConditionContext.#ctor(SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Abilities.GameplayAbility,System.Int32,SpellBook.GAS.Abilities.AbilitySpec,SpellBook.GAS.Abilities.AbilityTarget,System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Core.AbilitySystemComponent})
+  commentId: M:SpellBook.GAS.Conditions.ConditionContext.#ctor(SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Abilities.GameplayAbility,System.Int32,SpellBook.GAS.Abilities.AbilitySpec,SpellBook.GAS.Abilities.AbilityTarget,System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Core.AbilitySystemComponent})
+  id: '#ctor(SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Abilities.GameplayAbility,System.Int32,SpellBook.GAS.Abilities.AbilitySpec,SpellBook.GAS.Abilities.AbilityTarget,System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Core.AbilitySystemComponent})'
+  parent: SpellBook.GAS.Conditions.ConditionContext
+  langs:
+  - csharp
+  - vb
+  name: ConditionContext(AbilitySystemComponent, GameplayAbility, int, AbilitySpec, AbilityTarget, IReadOnlyList<AbilitySystemComponent>)
+  nameWithType: ConditionContext.ConditionContext(AbilitySystemComponent, GameplayAbility, int, AbilitySpec, AbilityTarget, IReadOnlyList<AbilitySystemComponent>)
+  fullName: SpellBook.GAS.Conditions.ConditionContext.ConditionContext(SpellBook.GAS.Core.AbilitySystemComponent, SpellBook.GAS.Abilities.GameplayAbility, int, SpellBook.GAS.Abilities.AbilitySpec, SpellBook.GAS.Abilities.AbilityTarget, System.Collections.Generic.IReadOnlyList<SpellBook.GAS.Core.AbilitySystemComponent>)
+  type: Constructor
+  namespace: SpellBook.GAS.Conditions
+  syntax:
+    content: public ConditionContext(AbilitySystemComponent owner, GameplayAbility ability, int level, AbilitySpec spec, AbilityTarget target, IReadOnlyList<AbilitySystemComponent> targets)
+    parameters:
+    - id: owner
+      type: SpellBook.GAS.Core.AbilitySystemComponent
+    - id: ability
+      type: SpellBook.GAS.Abilities.GameplayAbility
+    - id: level
+      type: System.Int32
+    - id: spec
+      type: SpellBook.GAS.Abilities.AbilitySpec
+    - id: target
+      type: SpellBook.GAS.Abilities.AbilityTarget
+    - id: targets
+      type: System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Core.AbilitySystemComponent}
+    content.vb: Public Sub New(owner As AbilitySystemComponent, ability As GameplayAbility, level As Integer, spec As AbilitySpec, target As AbilityTarget, targets As IReadOnlyList(Of AbilitySystemComponent))
+  overload: SpellBook.GAS.Conditions.ConditionContext.#ctor*
+  nameWithType.vb: ConditionContext.New(AbilitySystemComponent, GameplayAbility, Integer, AbilitySpec, AbilityTarget, IReadOnlyList(Of AbilitySystemComponent))
+  fullName.vb: SpellBook.GAS.Conditions.ConditionContext.New(SpellBook.GAS.Core.AbilitySystemComponent, SpellBook.GAS.Abilities.GameplayAbility, Integer, SpellBook.GAS.Abilities.AbilitySpec, SpellBook.GAS.Abilities.AbilityTarget, System.Collections.Generic.IReadOnlyList(Of SpellBook.GAS.Core.AbilitySystemComponent))
+  name.vb: New(AbilitySystemComponent, GameplayAbility, Integer, AbilitySpec, AbilityTarget, IReadOnlyList(Of AbilitySystemComponent))
+- uid: SpellBook.GAS.Conditions.ConditionContext.Owner
+  commentId: P:SpellBook.GAS.Conditions.ConditionContext.Owner
+  id: Owner
+  parent: SpellBook.GAS.Conditions.ConditionContext
+  langs:
+  - csharp
+  - vb
+  name: Owner
+  nameWithType: ConditionContext.Owner
+  fullName: SpellBook.GAS.Conditions.ConditionContext.Owner
+  type: Property
+  namespace: SpellBook.GAS.Conditions
+  summary: ASC que avalia a condição.
+  example: []
+  syntax:
+    content: public AbilitySystemComponent Owner { get; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Core.AbilitySystemComponent
+    content.vb: Public ReadOnly Property Owner As AbilitySystemComponent
+  overload: SpellBook.GAS.Conditions.ConditionContext.Owner*
+- uid: SpellBook.GAS.Conditions.ConditionContext.Ability
+  commentId: P:SpellBook.GAS.Conditions.ConditionContext.Ability
+  id: Ability
+  parent: SpellBook.GAS.Conditions.ConditionContext
+  langs:
+  - csharp
+  - vb
+  name: Ability
+  nameWithType: ConditionContext.Ability
+  fullName: SpellBook.GAS.Conditions.ConditionContext.Ability
+  type: Property
+  namespace: SpellBook.GAS.Conditions
+  summary: Habilidade em avaliação; pode ser nula fora de uma habilidade.
+  example: []
+  syntax:
+    content: public GameplayAbility Ability { get; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Abilities.GameplayAbility
+    content.vb: Public ReadOnly Property Ability As GameplayAbility
+  overload: SpellBook.GAS.Conditions.ConditionContext.Ability*
+- uid: SpellBook.GAS.Conditions.ConditionContext.Level
+  commentId: P:SpellBook.GAS.Conditions.ConditionContext.Level
+  id: Level
+  parent: SpellBook.GAS.Conditions.ConditionContext
+  langs:
+  - csharp
+  - vb
+  name: Level
+  nameWithType: ConditionContext.Level
+  fullName: SpellBook.GAS.Conditions.ConditionContext.Level
+  type: Property
+  namespace: SpellBook.GAS.Conditions
+  summary: Nível da habilidade usado na avaliação.
+  example: []
+  syntax:
+    content: public int Level { get; }
+    parameters: []
+    return:
+      type: System.Int32
+    content.vb: Public ReadOnly Property Level As Integer
+  overload: SpellBook.GAS.Conditions.ConditionContext.Level*
+- uid: SpellBook.GAS.Conditions.ConditionContext.Spec
+  commentId: P:SpellBook.GAS.Conditions.ConditionContext.Spec
+  id: Spec
+  parent: SpellBook.GAS.Conditions.ConditionContext
+  langs:
+  - csharp
+  - vb
+  name: Spec
+  nameWithType: ConditionContext.Spec
+  fullName: SpellBook.GAS.Conditions.ConditionContext.Spec
+  type: Property
+  namespace: SpellBook.GAS.Conditions
+  summary: Spec da habilidade concedida; pode ser nulo.
+  example: []
+  syntax:
+    content: public AbilitySpec Spec { get; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Abilities.AbilitySpec
+    content.vb: Public ReadOnly Property Spec As AbilitySpec
+  overload: SpellBook.GAS.Conditions.ConditionContext.Spec*
+- uid: SpellBook.GAS.Conditions.ConditionContext.Target
+  commentId: P:SpellBook.GAS.Conditions.ConditionContext.Target
+  id: Target
+  parent: SpellBook.GAS.Conditions.ConditionContext
+  langs:
+  - csharp
+  - vb
+  name: Target
+  nameWithType: ConditionContext.Target
+  fullName: SpellBook.GAS.Conditions.ConditionContext.Target
+  type: Property
+  namespace: SpellBook.GAS.Conditions
+  summary: Alvo da ativação; <xref href="SpellBook.GAS.Abilities.AbilityTarget.None" data-throw-if-not-resolved="false"></xref> sem ponto.
+  example: []
+  syntax:
+    content: public AbilityTarget Target { get; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Abilities.AbilityTarget
+    content.vb: Public ReadOnly Property Target As AbilityTarget
+  overload: SpellBook.GAS.Conditions.ConditionContext.Target*
+- uid: SpellBook.GAS.Conditions.ConditionContext.Targets
+  commentId: P:SpellBook.GAS.Conditions.ConditionContext.Targets
+  id: Targets
+  parent: SpellBook.GAS.Conditions.ConditionContext
+  langs:
+  - csharp
+  - vb
+  name: Targets
+  nameWithType: ConditionContext.Targets
+  fullName: SpellBook.GAS.Conditions.ConditionContext.Targets
+  type: Property
+  namespace: SpellBook.GAS.Conditions
+  summary: Unidades-alvo; nunca nulo (lista vazia sem alvos). Pode conter ASCs destruídos.
+  example: []
+  syntax:
+    content: public IReadOnlyList<AbilitySystemComponent> Targets { get; }
+    parameters: []
+    return:
+      type: System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Core.AbilitySystemComponent}
+    content.vb: Public ReadOnly Property Targets As IReadOnlyList(Of AbilitySystemComponent)
+  overload: SpellBook.GAS.Conditions.ConditionContext.Targets*
+references:
+- uid: SpellBook.GAS.Conditions.ConditionContext.Owner
+  commentId: P:SpellBook.GAS.Conditions.ConditionContext.Owner
+  href: SpellBook.GAS.Conditions.ConditionContext.html#SpellBook_GAS_Conditions_ConditionContext_Owner
+  name: Owner
+  nameWithType: ConditionContext.Owner
+  fullName: SpellBook.GAS.Conditions.ConditionContext.Owner
+- uid: SpellBook.GAS.Conditions
+  commentId: N:SpellBook.GAS.Conditions
+  name: SpellBook.GAS.Conditions
+  nameWithType: SpellBook.GAS.Conditions
+  fullName: SpellBook.GAS.Conditions
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Conditions
+    name: Conditions
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Conditions
+    name: Conditions
+- uid: System.ValueType.Equals(System.Object)
+  commentId: M:System.ValueType.Equals(System.Object)
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  name: Equals(object)
+  nameWithType: ValueType.Equals(object)
+  fullName: System.ValueType.Equals(object)
+  nameWithType.vb: ValueType.Equals(Object)
+  fullName.vb: System.ValueType.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.ValueType.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.ValueType.GetHashCode
+  commentId: M:System.ValueType.GetHashCode
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  name: GetHashCode()
+  nameWithType: ValueType.GetHashCode()
+  fullName: System.ValueType.GetHashCode()
+  spec.csharp:
+  - uid: System.ValueType.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  - name: (
+  - name: )
+- uid: System.ValueType.ToString
+  commentId: M:System.ValueType.ToString
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  name: ToString()
+  nameWithType: ValueType.ToString()
+  fullName: System.ValueType.ToString()
+  spec.csharp:
+  - uid: System.ValueType.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  - name: (
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.ValueType
+  commentId: T:System.ValueType
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype
+  name: ValueType
+  nameWithType: ValueType
+  fullName: System.ValueType
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: SpellBook.GAS.Conditions.ConditionContext.#ctor*
+  commentId: Overload:SpellBook.GAS.Conditions.ConditionContext.#ctor
+  href: SpellBook.GAS.Conditions.ConditionContext.html#SpellBook_GAS_Conditions_ConditionContext__ctor_SpellBook_GAS_Core_AbilitySystemComponent_SpellBook_GAS_Abilities_GameplayAbility_System_Int32_SpellBook_GAS_Abilities_AbilitySpec_SpellBook_GAS_Abilities_AbilityTarget_System_Collections_Generic_IReadOnlyList_SpellBook_GAS_Core_AbilitySystemComponent__
+  name: ConditionContext
+  nameWithType: ConditionContext.ConditionContext
+  fullName: SpellBook.GAS.Conditions.ConditionContext.ConditionContext
+  nameWithType.vb: ConditionContext.New
+  fullName.vb: SpellBook.GAS.Conditions.ConditionContext.New
+  name.vb: New
+- uid: SpellBook.GAS.Core.AbilitySystemComponent
+  commentId: T:SpellBook.GAS.Core.AbilitySystemComponent
+  parent: SpellBook.GAS.Core
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  name: AbilitySystemComponent
+  nameWithType: AbilitySystemComponent
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent
+- uid: SpellBook.GAS.Abilities.GameplayAbility
+  commentId: T:SpellBook.GAS.Abilities.GameplayAbility
+  parent: SpellBook.GAS.Abilities
+  href: SpellBook.GAS.Abilities.GameplayAbility.html
+  name: GameplayAbility
+  nameWithType: GameplayAbility
+  fullName: SpellBook.GAS.Abilities.GameplayAbility
+- uid: System.Int32
+  commentId: T:System.Int32
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.int32
+  name: int
+  nameWithType: int
+  fullName: int
+  nameWithType.vb: Integer
+  fullName.vb: Integer
+  name.vb: Integer
+- uid: SpellBook.GAS.Abilities.AbilitySpec
+  commentId: T:SpellBook.GAS.Abilities.AbilitySpec
+  parent: SpellBook.GAS.Abilities
+  href: SpellBook.GAS.Abilities.AbilitySpec.html
+  name: AbilitySpec
+  nameWithType: AbilitySpec
+  fullName: SpellBook.GAS.Abilities.AbilitySpec
+- uid: SpellBook.GAS.Abilities.AbilityTarget
+  commentId: T:SpellBook.GAS.Abilities.AbilityTarget
+  parent: SpellBook.GAS.Abilities
+  href: SpellBook.GAS.Abilities.AbilityTarget.html
+  name: AbilityTarget
+  nameWithType: AbilityTarget
+  fullName: SpellBook.GAS.Abilities.AbilityTarget
+- uid: System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Core.AbilitySystemComponent}
+  commentId: T:System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Core.AbilitySystemComponent}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IReadOnlyList`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  name: IReadOnlyList<AbilitySystemComponent>
+  nameWithType: IReadOnlyList<AbilitySystemComponent>
+  fullName: System.Collections.Generic.IReadOnlyList<SpellBook.GAS.Core.AbilitySystemComponent>
+  nameWithType.vb: IReadOnlyList(Of AbilitySystemComponent)
+  fullName.vb: System.Collections.Generic.IReadOnlyList(Of SpellBook.GAS.Core.AbilitySystemComponent)
+  name.vb: IReadOnlyList(Of AbilitySystemComponent)
+  spec.csharp:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: <
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent
+    name: AbilitySystemComponent
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent
+    name: AbilitySystemComponent
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  - name: )
+- uid: SpellBook.GAS.Core
+  commentId: N:SpellBook.GAS.Core
+  name: SpellBook.GAS.Core
+  nameWithType: SpellBook.GAS.Core
+  fullName: SpellBook.GAS.Core
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Core
+    name: Core
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Core
+    name: Core
+- uid: SpellBook.GAS.Abilities
+  commentId: N:SpellBook.GAS.Abilities
+  name: SpellBook.GAS.Abilities
+  nameWithType: SpellBook.GAS.Abilities
+  fullName: SpellBook.GAS.Abilities
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+- uid: System.Collections.Generic.IReadOnlyList`1
+  commentId: T:System.Collections.Generic.IReadOnlyList`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  name: IReadOnlyList<T>
+  nameWithType: IReadOnlyList<T>
+  fullName: System.Collections.Generic.IReadOnlyList<T>
+  nameWithType.vb: IReadOnlyList(Of T)
+  fullName.vb: System.Collections.Generic.IReadOnlyList(Of T)
+  name.vb: IReadOnlyList(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic
+  commentId: N:System.Collections.Generic
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Collections.Generic
+  nameWithType: System.Collections.Generic
+  fullName: System.Collections.Generic
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+- uid: SpellBook.GAS.Conditions.ConditionContext.Owner*
+  commentId: Overload:SpellBook.GAS.Conditions.ConditionContext.Owner
+  href: SpellBook.GAS.Conditions.ConditionContext.html#SpellBook_GAS_Conditions_ConditionContext_Owner
+  name: Owner
+  nameWithType: ConditionContext.Owner
+  fullName: SpellBook.GAS.Conditions.ConditionContext.Owner
+- uid: SpellBook.GAS.Conditions.ConditionContext.Ability*
+  commentId: Overload:SpellBook.GAS.Conditions.ConditionContext.Ability
+  href: SpellBook.GAS.Conditions.ConditionContext.html#SpellBook_GAS_Conditions_ConditionContext_Ability
+  name: Ability
+  nameWithType: ConditionContext.Ability
+  fullName: SpellBook.GAS.Conditions.ConditionContext.Ability
+- uid: SpellBook.GAS.Conditions.ConditionContext.Level*
+  commentId: Overload:SpellBook.GAS.Conditions.ConditionContext.Level
+  href: SpellBook.GAS.Conditions.ConditionContext.html#SpellBook_GAS_Conditions_ConditionContext_Level
+  name: Level
+  nameWithType: ConditionContext.Level
+  fullName: SpellBook.GAS.Conditions.ConditionContext.Level
+- uid: SpellBook.GAS.Conditions.ConditionContext.Spec*
+  commentId: Overload:SpellBook.GAS.Conditions.ConditionContext.Spec
+  href: SpellBook.GAS.Conditions.ConditionContext.html#SpellBook_GAS_Conditions_ConditionContext_Spec
+  name: Spec
+  nameWithType: ConditionContext.Spec
+  fullName: SpellBook.GAS.Conditions.ConditionContext.Spec
+- uid: SpellBook.GAS.Abilities.AbilityTarget.None
+  commentId: P:SpellBook.GAS.Abilities.AbilityTarget.None
+  href: SpellBook.GAS.Abilities.AbilityTarget.html#SpellBook_GAS_Abilities_AbilityTarget_None
+  name: None
+  nameWithType: AbilityTarget.None
+  fullName: SpellBook.GAS.Abilities.AbilityTarget.None
+- uid: SpellBook.GAS.Conditions.ConditionContext.Target*
+  commentId: Overload:SpellBook.GAS.Conditions.ConditionContext.Target
+  href: SpellBook.GAS.Conditions.ConditionContext.html#SpellBook_GAS_Conditions_ConditionContext_Target
+  name: Target
+  nameWithType: ConditionContext.Target
+  fullName: SpellBook.GAS.Conditions.ConditionContext.Target
+- uid: SpellBook.GAS.Conditions.ConditionContext.Targets*
+  commentId: Overload:SpellBook.GAS.Conditions.ConditionContext.Targets
+  href: SpellBook.GAS.Conditions.ConditionContext.html#SpellBook_GAS_Conditions_ConditionContext_Targets
+  name: Targets
+  nameWithType: ConditionContext.Targets
+  fullName: SpellBook.GAS.Conditions.ConditionContext.Targets

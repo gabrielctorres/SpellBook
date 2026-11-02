@@ -1,0 +1,610 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Attributes.AttributeChangeReport
+  commentId: T:SpellBook.GAS.Attributes.AttributeChangeReport
+  id: AttributeChangeReport
+  parent: SpellBook.GAS.Attributes
+  children:
+  - SpellBook.GAS.Attributes.AttributeChangeReport.#ctor(SpellBook.GAS.Attributes.AttributeChange@,System.Single,SpellBook.GAS.Effects.EffectContext@)
+  - SpellBook.GAS.Attributes.AttributeChangeReport.Applied
+  - SpellBook.GAS.Attributes.AttributeChangeReport.Attribute
+  - SpellBook.GAS.Attributes.AttributeChangeReport.Context
+  - SpellBook.GAS.Attributes.AttributeChangeReport.Effect
+  - SpellBook.GAS.Attributes.AttributeChangeReport.Final
+  - SpellBook.GAS.Attributes.AttributeChangeReport.IsValid
+  - SpellBook.GAS.Attributes.AttributeChangeReport.RedirectedFrom
+  - SpellBook.GAS.Attributes.AttributeChangeReport.Requested
+  langs:
+  - csharp
+  - vb
+  name: AttributeChangeReport
+  nameWithType: AttributeChangeReport
+  fullName: SpellBook.GAS.Attributes.AttributeChangeReport
+  type: Struct
+  namespace: SpellBook.GAS.Attributes
+  summary: >-
+    O que aconteceu com uma alteração aplicada: pedida, final (depois dos processadores) e aplicada (depois dos limites).
+
+    Um relatório <code>default</code> tem <xref href="SpellBook.GAS.Attributes.AttributeChangeReport.IsValid" data-throw-if-not-resolved="false"></xref> falso.
+  example: []
+  syntax:
+    content: public readonly struct AttributeChangeReport
+    content.vb: Public Structure AttributeChangeReport
+  inheritedMembers:
+  - System.ValueType.Equals(System.Object)
+  - System.ValueType.GetHashCode
+  - System.ValueType.ToString
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetType
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+- uid: SpellBook.GAS.Attributes.AttributeChangeReport.#ctor(SpellBook.GAS.Attributes.AttributeChange@,System.Single,SpellBook.GAS.Effects.EffectContext@)
+  commentId: M:SpellBook.GAS.Attributes.AttributeChangeReport.#ctor(SpellBook.GAS.Attributes.AttributeChange@,System.Single,SpellBook.GAS.Effects.EffectContext@)
+  id: '#ctor(SpellBook.GAS.Attributes.AttributeChange@,System.Single,SpellBook.GAS.Effects.EffectContext@)'
+  parent: SpellBook.GAS.Attributes.AttributeChangeReport
+  langs:
+  - csharp
+  - vb
+  name: AttributeChangeReport(in AttributeChange, float, in EffectContext)
+  nameWithType: AttributeChangeReport.AttributeChangeReport(in AttributeChange, float, in EffectContext)
+  fullName: SpellBook.GAS.Attributes.AttributeChangeReport.AttributeChangeReport(in SpellBook.GAS.Attributes.AttributeChange, float, in SpellBook.GAS.Effects.EffectContext)
+  type: Constructor
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: public AttributeChangeReport(in AttributeChange change, float applied, in EffectContext context)
+    parameters:
+    - id: change
+      type: SpellBook.GAS.Attributes.AttributeChange
+    - id: applied
+      type: System.Single
+    - id: context
+      type: SpellBook.GAS.Effects.EffectContext
+    content.vb: Public Sub New(change As AttributeChange, applied As Single, context As EffectContext)
+  overload: SpellBook.GAS.Attributes.AttributeChangeReport.#ctor*
+  nameWithType.vb: AttributeChangeReport.New(AttributeChange, Single, EffectContext)
+  fullName.vb: SpellBook.GAS.Attributes.AttributeChangeReport.New(SpellBook.GAS.Attributes.AttributeChange, Single, SpellBook.GAS.Effects.EffectContext)
+  name.vb: New(AttributeChange, Single, EffectContext)
+- uid: SpellBook.GAS.Attributes.AttributeChangeReport.Attribute
+  commentId: P:SpellBook.GAS.Attributes.AttributeChangeReport.Attribute
+  id: Attribute
+  parent: SpellBook.GAS.Attributes.AttributeChangeReport
+  langs:
+  - csharp
+  - vb
+  name: Attribute
+  nameWithType: AttributeChangeReport.Attribute
+  fullName: SpellBook.GAS.Attributes.AttributeChangeReport.Attribute
+  type: Property
+  namespace: SpellBook.GAS.Attributes
+  summary: Atributo que recebeu a alteração.
+  example: []
+  syntax:
+    content: public AttributeDefinition Attribute { get; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Attributes.AttributeDefinition
+    content.vb: Public ReadOnly Property Attribute As AttributeDefinition
+  overload: SpellBook.GAS.Attributes.AttributeChangeReport.Attribute*
+- uid: SpellBook.GAS.Attributes.AttributeChangeReport.Requested
+  commentId: P:SpellBook.GAS.Attributes.AttributeChangeReport.Requested
+  id: Requested
+  parent: SpellBook.GAS.Attributes.AttributeChangeReport
+  langs:
+  - csharp
+  - vb
+  name: Requested
+  nameWithType: AttributeChangeReport.Requested
+  fullName: SpellBook.GAS.Attributes.AttributeChangeReport.Requested
+  type: Property
+  namespace: SpellBook.GAS.Attributes
+  summary: Variação pedida, antes dos processadores.
+  example: []
+  syntax:
+    content: public float Requested { get; }
+    parameters: []
+    return:
+      type: System.Single
+    content.vb: Public ReadOnly Property Requested As Single
+  overload: SpellBook.GAS.Attributes.AttributeChangeReport.Requested*
+- uid: SpellBook.GAS.Attributes.AttributeChangeReport.Final
+  commentId: P:SpellBook.GAS.Attributes.AttributeChangeReport.Final
+  id: Final
+  parent: SpellBook.GAS.Attributes.AttributeChangeReport
+  langs:
+  - csharp
+  - vb
+  name: Final
+  nameWithType: AttributeChangeReport.Final
+  fullName: SpellBook.GAS.Attributes.AttributeChangeReport.Final
+  type: Property
+  namespace: SpellBook.GAS.Attributes
+  summary: Variação depois dos processadores.
+  example: []
+  syntax:
+    content: public float Final { get; }
+    parameters: []
+    return:
+      type: System.Single
+    content.vb: Public ReadOnly Property Final As Single
+  overload: SpellBook.GAS.Attributes.AttributeChangeReport.Final*
+- uid: SpellBook.GAS.Attributes.AttributeChangeReport.Applied
+  commentId: P:SpellBook.GAS.Attributes.AttributeChangeReport.Applied
+  id: Applied
+  parent: SpellBook.GAS.Attributes.AttributeChangeReport
+  langs:
+  - csharp
+  - vb
+  name: Applied
+  nameWithType: AttributeChangeReport.Applied
+  fullName: SpellBook.GAS.Attributes.AttributeChangeReport.Applied
+  type: Property
+  namespace: SpellBook.GAS.Attributes
+  summary: Quanto a base mudou de fato, depois dos limites do atributo.
+  example: []
+  syntax:
+    content: public float Applied { get; }
+    parameters: []
+    return:
+      type: System.Single
+    content.vb: Public ReadOnly Property Applied As Single
+  overload: SpellBook.GAS.Attributes.AttributeChangeReport.Applied*
+- uid: SpellBook.GAS.Attributes.AttributeChangeReport.Effect
+  commentId: P:SpellBook.GAS.Attributes.AttributeChangeReport.Effect
+  id: Effect
+  parent: SpellBook.GAS.Attributes.AttributeChangeReport
+  langs:
+  - csharp
+  - vb
+  name: Effect
+  nameWithType: AttributeChangeReport.Effect
+  fullName: SpellBook.GAS.Attributes.AttributeChangeReport.Effect
+  type: Property
+  namespace: SpellBook.GAS.Attributes
+  summary: Efeito de origem; nulo numa alteração feita por código.
+  example: []
+  syntax:
+    content: public GameplayEffect Effect { get; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Effects.GameplayEffect
+    content.vb: Public ReadOnly Property Effect As GameplayEffect
+  overload: SpellBook.GAS.Attributes.AttributeChangeReport.Effect*
+- uid: SpellBook.GAS.Attributes.AttributeChangeReport.Context
+  commentId: P:SpellBook.GAS.Attributes.AttributeChangeReport.Context
+  id: Context
+  parent: SpellBook.GAS.Attributes.AttributeChangeReport
+  langs:
+  - csharp
+  - vb
+  name: Context
+  nameWithType: AttributeChangeReport.Context
+  fullName: SpellBook.GAS.Attributes.AttributeChangeReport.Context
+  type: Property
+  namespace: SpellBook.GAS.Attributes
+  summary: Contexto da aplicação; vazio numa alteração feita por código sem contexto.
+  example: []
+  syntax:
+    content: public EffectContext Context { get; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Effects.EffectContext
+    content.vb: Public ReadOnly Property Context As EffectContext
+  overload: SpellBook.GAS.Attributes.AttributeChangeReport.Context*
+- uid: SpellBook.GAS.Attributes.AttributeChangeReport.RedirectedFrom
+  commentId: P:SpellBook.GAS.Attributes.AttributeChangeReport.RedirectedFrom
+  id: RedirectedFrom
+  parent: SpellBook.GAS.Attributes.AttributeChangeReport
+  langs:
+  - csharp
+  - vb
+  name: RedirectedFrom
+  nameWithType: AttributeChangeReport.RedirectedFrom
+  fullName: SpellBook.GAS.Attributes.AttributeChangeReport.RedirectedFrom
+  type: Property
+  namespace: SpellBook.GAS.Attributes
+  summary: Atributo cujo processador gerou esta alteração; nulo na alteração original.
+  example: []
+  syntax:
+    content: public AttributeDefinition RedirectedFrom { get; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Attributes.AttributeDefinition
+    content.vb: Public ReadOnly Property RedirectedFrom As AttributeDefinition
+  overload: SpellBook.GAS.Attributes.AttributeChangeReport.RedirectedFrom*
+- uid: SpellBook.GAS.Attributes.AttributeChangeReport.IsValid
+  commentId: P:SpellBook.GAS.Attributes.AttributeChangeReport.IsValid
+  id: IsValid
+  parent: SpellBook.GAS.Attributes.AttributeChangeReport
+  langs:
+  - csharp
+  - vb
+  name: IsValid
+  nameWithType: AttributeChangeReport.IsValid
+  fullName: SpellBook.GAS.Attributes.AttributeChangeReport.IsValid
+  type: Property
+  namespace: SpellBook.GAS.Attributes
+  summary: Falso no relatório <code>default</code>, que não veio de uma alteração.
+  example: []
+  syntax:
+    content: public bool IsValid { get; }
+    parameters: []
+    return:
+      type: System.Boolean
+    content.vb: Public ReadOnly Property IsValid As Boolean
+  overload: SpellBook.GAS.Attributes.AttributeChangeReport.IsValid*
+references:
+- uid: SpellBook.GAS.Attributes.AttributeChangeReport.IsValid
+  commentId: P:SpellBook.GAS.Attributes.AttributeChangeReport.IsValid
+  href: SpellBook.GAS.Attributes.AttributeChangeReport.html#SpellBook_GAS_Attributes_AttributeChangeReport_IsValid
+  name: IsValid
+  nameWithType: AttributeChangeReport.IsValid
+  fullName: SpellBook.GAS.Attributes.AttributeChangeReport.IsValid
+- uid: SpellBook.GAS.Attributes
+  commentId: N:SpellBook.GAS.Attributes
+  name: SpellBook.GAS.Attributes
+  nameWithType: SpellBook.GAS.Attributes
+  fullName: SpellBook.GAS.Attributes
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Attributes
+    name: Attributes
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Attributes
+    name: Attributes
+- uid: System.ValueType.Equals(System.Object)
+  commentId: M:System.ValueType.Equals(System.Object)
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  name: Equals(object)
+  nameWithType: ValueType.Equals(object)
+  fullName: System.ValueType.Equals(object)
+  nameWithType.vb: ValueType.Equals(Object)
+  fullName.vb: System.ValueType.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.ValueType.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.ValueType.GetHashCode
+  commentId: M:System.ValueType.GetHashCode
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  name: GetHashCode()
+  nameWithType: ValueType.GetHashCode()
+  fullName: System.ValueType.GetHashCode()
+  spec.csharp:
+  - uid: System.ValueType.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  - name: (
+  - name: )
+- uid: System.ValueType.ToString
+  commentId: M:System.ValueType.ToString
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  name: ToString()
+  nameWithType: ValueType.ToString()
+  fullName: System.ValueType.ToString()
+  spec.csharp:
+  - uid: System.ValueType.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  - name: (
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.ValueType
+  commentId: T:System.ValueType
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype
+  name: ValueType
+  nameWithType: ValueType
+  fullName: System.ValueType
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: SpellBook.GAS.Attributes.AttributeChangeReport.#ctor*
+  commentId: Overload:SpellBook.GAS.Attributes.AttributeChangeReport.#ctor
+  href: SpellBook.GAS.Attributes.AttributeChangeReport.html#SpellBook_GAS_Attributes_AttributeChangeReport__ctor_SpellBook_GAS_Attributes_AttributeChange__System_Single_SpellBook_GAS_Effects_EffectContext__
+  name: AttributeChangeReport
+  nameWithType: AttributeChangeReport.AttributeChangeReport
+  fullName: SpellBook.GAS.Attributes.AttributeChangeReport.AttributeChangeReport
+  nameWithType.vb: AttributeChangeReport.New
+  fullName.vb: SpellBook.GAS.Attributes.AttributeChangeReport.New
+  name.vb: New
+- uid: SpellBook.GAS.Attributes.AttributeChange
+  commentId: T:SpellBook.GAS.Attributes.AttributeChange
+  parent: SpellBook.GAS.Attributes
+  href: SpellBook.GAS.Attributes.AttributeChange.html
+  name: AttributeChange
+  nameWithType: AttributeChange
+  fullName: SpellBook.GAS.Attributes.AttributeChange
+- uid: System.Single
+  commentId: T:System.Single
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.single
+  name: float
+  nameWithType: float
+  fullName: float
+  nameWithType.vb: Single
+  fullName.vb: Single
+  name.vb: Single
+- uid: SpellBook.GAS.Effects.EffectContext
+  commentId: T:SpellBook.GAS.Effects.EffectContext
+  parent: SpellBook.GAS.Effects
+  href: SpellBook.GAS.Effects.EffectContext.html
+  name: EffectContext
+  nameWithType: EffectContext
+  fullName: SpellBook.GAS.Effects.EffectContext
+- uid: SpellBook.GAS.Effects
+  commentId: N:SpellBook.GAS.Effects
+  name: SpellBook.GAS.Effects
+  nameWithType: SpellBook.GAS.Effects
+  fullName: SpellBook.GAS.Effects
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Effects
+    name: Effects
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Effects
+    name: Effects
+- uid: SpellBook.GAS.Attributes.AttributeChangeReport.Attribute*
+  commentId: Overload:SpellBook.GAS.Attributes.AttributeChangeReport.Attribute
+  href: SpellBook.GAS.Attributes.AttributeChangeReport.html#SpellBook_GAS_Attributes_AttributeChangeReport_Attribute
+  name: Attribute
+  nameWithType: AttributeChangeReport.Attribute
+  fullName: SpellBook.GAS.Attributes.AttributeChangeReport.Attribute
+- uid: SpellBook.GAS.Attributes.AttributeDefinition
+  commentId: T:SpellBook.GAS.Attributes.AttributeDefinition
+  parent: SpellBook.GAS.Attributes
+  href: SpellBook.GAS.Attributes.AttributeDefinition.html
+  name: AttributeDefinition
+  nameWithType: AttributeDefinition
+  fullName: SpellBook.GAS.Attributes.AttributeDefinition
+- uid: SpellBook.GAS.Attributes.AttributeChangeReport.Requested*
+  commentId: Overload:SpellBook.GAS.Attributes.AttributeChangeReport.Requested
+  href: SpellBook.GAS.Attributes.AttributeChangeReport.html#SpellBook_GAS_Attributes_AttributeChangeReport_Requested
+  name: Requested
+  nameWithType: AttributeChangeReport.Requested
+  fullName: SpellBook.GAS.Attributes.AttributeChangeReport.Requested
+- uid: SpellBook.GAS.Attributes.AttributeChangeReport.Final*
+  commentId: Overload:SpellBook.GAS.Attributes.AttributeChangeReport.Final
+  href: SpellBook.GAS.Attributes.AttributeChangeReport.html#SpellBook_GAS_Attributes_AttributeChangeReport_Final
+  name: Final
+  nameWithType: AttributeChangeReport.Final
+  fullName: SpellBook.GAS.Attributes.AttributeChangeReport.Final
+- uid: SpellBook.GAS.Attributes.AttributeChangeReport.Applied*
+  commentId: Overload:SpellBook.GAS.Attributes.AttributeChangeReport.Applied
+  href: SpellBook.GAS.Attributes.AttributeChangeReport.html#SpellBook_GAS_Attributes_AttributeChangeReport_Applied
+  name: Applied
+  nameWithType: AttributeChangeReport.Applied
+  fullName: SpellBook.GAS.Attributes.AttributeChangeReport.Applied
+- uid: SpellBook.GAS.Attributes.AttributeChangeReport.Effect*
+  commentId: Overload:SpellBook.GAS.Attributes.AttributeChangeReport.Effect
+  href: SpellBook.GAS.Attributes.AttributeChangeReport.html#SpellBook_GAS_Attributes_AttributeChangeReport_Effect
+  name: Effect
+  nameWithType: AttributeChangeReport.Effect
+  fullName: SpellBook.GAS.Attributes.AttributeChangeReport.Effect
+- uid: SpellBook.GAS.Effects.GameplayEffect
+  commentId: T:SpellBook.GAS.Effects.GameplayEffect
+  parent: SpellBook.GAS.Effects
+  href: SpellBook.GAS.Effects.GameplayEffect.html
+  name: GameplayEffect
+  nameWithType: GameplayEffect
+  fullName: SpellBook.GAS.Effects.GameplayEffect
+- uid: SpellBook.GAS.Attributes.AttributeChangeReport.Context*
+  commentId: Overload:SpellBook.GAS.Attributes.AttributeChangeReport.Context
+  href: SpellBook.GAS.Attributes.AttributeChangeReport.html#SpellBook_GAS_Attributes_AttributeChangeReport_Context
+  name: Context
+  nameWithType: AttributeChangeReport.Context
+  fullName: SpellBook.GAS.Attributes.AttributeChangeReport.Context
+- uid: SpellBook.GAS.Attributes.AttributeChangeReport.RedirectedFrom*
+  commentId: Overload:SpellBook.GAS.Attributes.AttributeChangeReport.RedirectedFrom
+  href: SpellBook.GAS.Attributes.AttributeChangeReport.html#SpellBook_GAS_Attributes_AttributeChangeReport_RedirectedFrom
+  name: RedirectedFrom
+  nameWithType: AttributeChangeReport.RedirectedFrom
+  fullName: SpellBook.GAS.Attributes.AttributeChangeReport.RedirectedFrom
+- uid: SpellBook.GAS.Attributes.AttributeChangeReport.IsValid*
+  commentId: Overload:SpellBook.GAS.Attributes.AttributeChangeReport.IsValid
+  href: SpellBook.GAS.Attributes.AttributeChangeReport.html#SpellBook_GAS_Attributes_AttributeChangeReport_IsValid
+  name: IsValid
+  nameWithType: AttributeChangeReport.IsValid
+  fullName: SpellBook.GAS.Attributes.AttributeChangeReport.IsValid
+- uid: System.Boolean
+  commentId: T:System.Boolean
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.boolean
+  name: bool
+  nameWithType: bool
+  fullName: bool
+  nameWithType.vb: Boolean
+  fullName.vb: Boolean
+  name.vb: Boolean

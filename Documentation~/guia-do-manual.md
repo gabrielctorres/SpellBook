@@ -140,3 +140,19 @@ Quem implementa e quem revisa rodam estas conferências a partir da raiz do repo
 - Diagrama sem legenda: todo bloco ```` ```mermaid ```` tem uma linha de legenda logo abaixo do fechamento.
 - Build: `mkdocs build --strict -f Documentation~/mkdocs.yml`, com o site gerado fora do repositório (`-d` para uma pasta temporária).
 - Diagrama novo: abra a página no site gerado, porque o `--strict` confere o Markdown e o navegador é que desenha o Mermaid.
+
+## 8. Catálogo e referência da API gerados
+
+O catálogo (`manual/referencia/catalogo.md`), os YAML da API (`api/reference/`) e a impressão digital (`api/reference.sha256`) saem do código, pela Unity, e vão para o repositório (0040). Não edite esses arquivos à mão.
+
+Quem muda um `.cs` do pacote:
+
+1. Rode **SpellBook > Documentação > Gerar referência** na Unity, com o SDK do .NET instalado. Em batchmode, a mesma geração roda com `-executeMethod SpellBook.Core.Editor.Documentation.ReferenceGenerator.GenerateFromCommandLine` e sai com 0 se deu certo ou 1 se falhou.
+2. Commite o catálogo, a pasta `api/reference/` e o `api/reference.sha256` no mesmo diff. Sem isso, o `ReferenceUpToDateTests` falha.
+
+Para ver o site sem a Unity, rode dentro de `Documentation~/`:
+
+1. `mkdocs build --strict -f mkdocs.yml`, no venv do manual;
+2. `dotnet tool restore` e `dotnet docfx build api/docfx.json --warningsAsErrors`.
+
+A versão do DocFX fica travada em `.config/dotnet-tools.json`. Se você trocar essa versão, a impressão digital muda e a geração precisa rodar de novo.

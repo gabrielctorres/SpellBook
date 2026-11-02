@@ -1,0 +1,900 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Diagnostics.GasDebuggerModel
+  commentId: T:SpellBook.GAS.Diagnostics.GasDebuggerModel
+  id: GasDebuggerModel
+  parent: SpellBook.GAS.Diagnostics
+  children:
+  - SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildAbilityRows(SpellBook.GAS.Core.AbilitySystemComponent,System.Collections.Generic.List{SpellBook.GAS.Diagnostics.AbilityRow})
+  - SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildAttributeRows(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Attributes.AttributeState},System.Collections.Generic.List{SpellBook.GAS.Diagnostics.AttributeRow})
+  - SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildEffectRows(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Effects.ActiveEffectInstance},System.Collections.Generic.List{SpellBook.GAS.Diagnostics.EffectRow})
+  - SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildTagRows(System.Collections.Generic.IReadOnlyDictionary{SpellBook.Tags.GameplayTag,System.Int32},System.Collections.Generic.List{SpellBook.GAS.Diagnostics.TagRow})
+  - SpellBook.GAS.Diagnostics.GasDebuggerModel.Log
+  langs:
+  - csharp
+  - vb
+  name: GasDebuggerModel
+  nameWithType: GasDebuggerModel
+  fullName: SpellBook.GAS.Diagnostics.GasDebuggerModel
+  type: Class
+  namespace: SpellBook.GAS.Diagnostics
+  summary: >-
+    Modelo do GAS Debugger (R16 a R18): monta linhas a partir da API pública do ASC, em listas do chamador que são
+
+    limpas e reutilizadas, sem alocar depois do aquecimento. As linhas guardam referências (definição, instância, asset,
+
+    fonte do modificador); quem desenha lê os nomes. Só lê: não muda o ASC. Fica no runtime para o overlay de debug.
+  example: []
+  syntax:
+    content: public sealed class GasDebuggerModel
+    content.vb: Public NotInheritable Class GasDebuggerModel
+  inheritance:
+  - System.Object
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+- uid: SpellBook.GAS.Diagnostics.GasDebuggerModel.Log
+  commentId: P:SpellBook.GAS.Diagnostics.GasDebuggerModel.Log
+  id: Log
+  parent: SpellBook.GAS.Diagnostics.GasDebuggerModel
+  langs:
+  - csharp
+  - vb
+  name: Log
+  nameWithType: GasDebuggerModel.Log
+  fullName: SpellBook.GAS.Diagnostics.GasDebuggerModel.Log
+  type: Property
+  namespace: SpellBook.GAS.Diagnostics
+  summary: Log dos eventos do ASC inspecionado. A janela chama <xref href="SpellBook.GAS.Diagnostics.EventLog.Attach(SpellBook.GAS.Core.AbilitySystemComponent)" data-throw-if-not-resolved="false"></xref> ao trocar de ASC.
+  example: []
+  syntax:
+    content: public EventLog Log { get; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Diagnostics.EventLog
+    content.vb: Public ReadOnly Property Log As EventLog
+  overload: SpellBook.GAS.Diagnostics.GasDebuggerModel.Log*
+- uid: SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildAttributeRows(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Attributes.AttributeState},System.Collections.Generic.List{SpellBook.GAS.Diagnostics.AttributeRow})
+  commentId: M:SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildAttributeRows(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Attributes.AttributeState},System.Collections.Generic.List{SpellBook.GAS.Diagnostics.AttributeRow})
+  id: BuildAttributeRows(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Attributes.AttributeState},System.Collections.Generic.List{SpellBook.GAS.Diagnostics.AttributeRow})
+  parent: SpellBook.GAS.Diagnostics.GasDebuggerModel
+  langs:
+  - csharp
+  - vb
+  name: BuildAttributeRows(IReadOnlyList<AttributeState>, List<AttributeRow>)
+  nameWithType: GasDebuggerModel.BuildAttributeRows(IReadOnlyList<AttributeState>, List<AttributeRow>)
+  fullName: SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildAttributeRows(System.Collections.Generic.IReadOnlyList<SpellBook.GAS.Attributes.AttributeState>, System.Collections.Generic.List<SpellBook.GAS.Diagnostics.AttributeRow>)
+  type: Method
+  namespace: SpellBook.GAS.Diagnostics
+  summary: >-
+    Uma linha por atributo, seguida de uma linha por modificador dele (<xref href="SpellBook.GAS.Diagnostics.AttributeRow.IsModifier" data-throw-if-not-resolved="false"></xref>), na
+
+    ordem de <code class="paramref">states</code> e de <xref href="SpellBook.GAS.Attributes.AttributeState.Modifiers" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public void BuildAttributeRows(IReadOnlyList<AttributeState> states, List<AttributeRow> rows)
+    parameters:
+    - id: states
+      type: System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Attributes.AttributeState}
+    - id: rows
+      type: System.Collections.Generic.List{SpellBook.GAS.Diagnostics.AttributeRow}
+    content.vb: Public Sub BuildAttributeRows(states As IReadOnlyList(Of AttributeState), rows As List(Of AttributeRow))
+  overload: SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildAttributeRows*
+  nameWithType.vb: GasDebuggerModel.BuildAttributeRows(IReadOnlyList(Of AttributeState), List(Of AttributeRow))
+  fullName.vb: SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildAttributeRows(System.Collections.Generic.IReadOnlyList(Of SpellBook.GAS.Attributes.AttributeState), System.Collections.Generic.List(Of SpellBook.GAS.Diagnostics.AttributeRow))
+  name.vb: BuildAttributeRows(IReadOnlyList(Of AttributeState), List(Of AttributeRow))
+- uid: SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildTagRows(System.Collections.Generic.IReadOnlyDictionary{SpellBook.Tags.GameplayTag,System.Int32},System.Collections.Generic.List{SpellBook.GAS.Diagnostics.TagRow})
+  commentId: M:SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildTagRows(System.Collections.Generic.IReadOnlyDictionary{SpellBook.Tags.GameplayTag,System.Int32},System.Collections.Generic.List{SpellBook.GAS.Diagnostics.TagRow})
+  id: BuildTagRows(System.Collections.Generic.IReadOnlyDictionary{SpellBook.Tags.GameplayTag,System.Int32},System.Collections.Generic.List{SpellBook.GAS.Diagnostics.TagRow})
+  parent: SpellBook.GAS.Diagnostics.GasDebuggerModel
+  langs:
+  - csharp
+  - vb
+  name: BuildTagRows(IReadOnlyDictionary<GameplayTag, int>, List<TagRow>)
+  nameWithType: GasDebuggerModel.BuildTagRows(IReadOnlyDictionary<GameplayTag, int>, List<TagRow>)
+  fullName: SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildTagRows(System.Collections.Generic.IReadOnlyDictionary<SpellBook.Tags.GameplayTag, int>, System.Collections.Generic.List<SpellBook.GAS.Diagnostics.TagRow>)
+  type: Method
+  namespace: SpellBook.GAS.Diagnostics
+  summary: >-
+    Uma linha por tag com contagem, em ordem alfabética (ordinal) do nome da definição, lido na primeira vez que a tag
+
+    aparece. Com o
+
+    <xref href="SpellBook.GAS.Core.AbilitySystemComponent.TagCounts" data-throw-if-not-resolved="false"></xref> (um <code>Dictionary</code>), não aloca.
+  example: []
+  syntax:
+    content: public void BuildTagRows(IReadOnlyDictionary<GameplayTag, int> tagCounts, List<TagRow> rows)
+    parameters:
+    - id: tagCounts
+      type: System.Collections.Generic.IReadOnlyDictionary{SpellBook.Tags.GameplayTag,System.Int32}
+    - id: rows
+      type: System.Collections.Generic.List{SpellBook.GAS.Diagnostics.TagRow}
+    content.vb: Public Sub BuildTagRows(tagCounts As IReadOnlyDictionary(Of GameplayTag, Integer), rows As List(Of TagRow))
+  overload: SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildTagRows*
+  nameWithType.vb: GasDebuggerModel.BuildTagRows(IReadOnlyDictionary(Of GameplayTag, Integer), List(Of TagRow))
+  fullName.vb: SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildTagRows(System.Collections.Generic.IReadOnlyDictionary(Of SpellBook.Tags.GameplayTag, Integer), System.Collections.Generic.List(Of SpellBook.GAS.Diagnostics.TagRow))
+  name.vb: BuildTagRows(IReadOnlyDictionary(Of GameplayTag, Integer), List(Of TagRow))
+- uid: SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildEffectRows(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Effects.ActiveEffectInstance},System.Collections.Generic.List{SpellBook.GAS.Diagnostics.EffectRow})
+  commentId: M:SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildEffectRows(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Effects.ActiveEffectInstance},System.Collections.Generic.List{SpellBook.GAS.Diagnostics.EffectRow})
+  id: BuildEffectRows(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Effects.ActiveEffectInstance},System.Collections.Generic.List{SpellBook.GAS.Diagnostics.EffectRow})
+  parent: SpellBook.GAS.Diagnostics.GasDebuggerModel
+  langs:
+  - csharp
+  - vb
+  name: BuildEffectRows(IReadOnlyList<ActiveEffectInstance>, List<EffectRow>)
+  nameWithType: GasDebuggerModel.BuildEffectRows(IReadOnlyList<ActiveEffectInstance>, List<EffectRow>)
+  fullName: SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildEffectRows(System.Collections.Generic.IReadOnlyList<SpellBook.GAS.Effects.ActiveEffectInstance>, System.Collections.Generic.List<SpellBook.GAS.Diagnostics.EffectRow>)
+  type: Method
+  namespace: SpellBook.GAS.Diagnostics
+  summary: Uma linha por instância, na ordem de <code class="paramref">effects</code> (a de aplicação, em <xref href="SpellBook.GAS.Core.AbilitySystemComponent.ActiveEffects" data-throw-if-not-resolved="false"></xref>).
+  example: []
+  syntax:
+    content: public void BuildEffectRows(IReadOnlyList<ActiveEffectInstance> effects, List<EffectRow> rows)
+    parameters:
+    - id: effects
+      type: System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Effects.ActiveEffectInstance}
+    - id: rows
+      type: System.Collections.Generic.List{SpellBook.GAS.Diagnostics.EffectRow}
+    content.vb: Public Sub BuildEffectRows(effects As IReadOnlyList(Of ActiveEffectInstance), rows As List(Of EffectRow))
+  overload: SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildEffectRows*
+  nameWithType.vb: GasDebuggerModel.BuildEffectRows(IReadOnlyList(Of ActiveEffectInstance), List(Of EffectRow))
+  fullName.vb: SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildEffectRows(System.Collections.Generic.IReadOnlyList(Of SpellBook.GAS.Effects.ActiveEffectInstance), System.Collections.Generic.List(Of SpellBook.GAS.Diagnostics.EffectRow))
+  name.vb: BuildEffectRows(IReadOnlyList(Of ActiveEffectInstance), List(Of EffectRow))
+- uid: SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildAbilityRows(SpellBook.GAS.Core.AbilitySystemComponent,System.Collections.Generic.List{SpellBook.GAS.Diagnostics.AbilityRow})
+  commentId: M:SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildAbilityRows(SpellBook.GAS.Core.AbilitySystemComponent,System.Collections.Generic.List{SpellBook.GAS.Diagnostics.AbilityRow})
+  id: BuildAbilityRows(SpellBook.GAS.Core.AbilitySystemComponent,System.Collections.Generic.List{SpellBook.GAS.Diagnostics.AbilityRow})
+  parent: SpellBook.GAS.Diagnostics.GasDebuggerModel
+  langs:
+  - csharp
+  - vb
+  name: BuildAbilityRows(AbilitySystemComponent, List<AbilityRow>)
+  nameWithType: GasDebuggerModel.BuildAbilityRows(AbilitySystemComponent, List<AbilityRow>)
+  fullName: SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildAbilityRows(SpellBook.GAS.Core.AbilitySystemComponent, System.Collections.Generic.List<SpellBook.GAS.Diagnostics.AbilityRow>)
+  type: Method
+  namespace: SpellBook.GAS.Diagnostics
+  summary: Uma linha por habilidade concedida, na ordem de <xref href="SpellBook.GAS.Core.AbilitySystemComponent.Abilities" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public void BuildAbilityRows(AbilitySystemComponent asc, List<AbilityRow> rows)
+    parameters:
+    - id: asc
+      type: SpellBook.GAS.Core.AbilitySystemComponent
+    - id: rows
+      type: System.Collections.Generic.List{SpellBook.GAS.Diagnostics.AbilityRow}
+    content.vb: Public Sub BuildAbilityRows(asc As AbilitySystemComponent, rows As List(Of AbilityRow))
+  overload: SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildAbilityRows*
+  nameWithType.vb: GasDebuggerModel.BuildAbilityRows(AbilitySystemComponent, List(Of AbilityRow))
+  fullName.vb: SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildAbilityRows(SpellBook.GAS.Core.AbilitySystemComponent, System.Collections.Generic.List(Of SpellBook.GAS.Diagnostics.AbilityRow))
+  name.vb: BuildAbilityRows(AbilitySystemComponent, List(Of AbilityRow))
+references:
+- uid: SpellBook.GAS.Diagnostics
+  commentId: N:SpellBook.GAS.Diagnostics
+  name: SpellBook.GAS.Diagnostics
+  nameWithType: SpellBook.GAS.Diagnostics
+  fullName: SpellBook.GAS.Diagnostics
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Diagnostics
+    name: Diagnostics
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Diagnostics
+    name: Diagnostics
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: SpellBook.GAS.Diagnostics.EventLog.Attach(SpellBook.GAS.Core.AbilitySystemComponent)
+  commentId: M:SpellBook.GAS.Diagnostics.EventLog.Attach(SpellBook.GAS.Core.AbilitySystemComponent)
+  href: SpellBook.GAS.Diagnostics.EventLog.html#SpellBook_GAS_Diagnostics_EventLog_Attach_SpellBook_GAS_Core_AbilitySystemComponent_
+  name: Attach(AbilitySystemComponent)
+  nameWithType: EventLog.Attach(AbilitySystemComponent)
+  fullName: SpellBook.GAS.Diagnostics.EventLog.Attach(SpellBook.GAS.Core.AbilitySystemComponent)
+  spec.csharp:
+  - uid: SpellBook.GAS.Diagnostics.EventLog.Attach(SpellBook.GAS.Core.AbilitySystemComponent)
+    name: Attach
+    href: SpellBook.GAS.Diagnostics.EventLog.html#SpellBook_GAS_Diagnostics_EventLog_Attach_SpellBook_GAS_Core_AbilitySystemComponent_
+  - name: (
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent
+    name: AbilitySystemComponent
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  - name: )
+  spec.vb:
+  - uid: SpellBook.GAS.Diagnostics.EventLog.Attach(SpellBook.GAS.Core.AbilitySystemComponent)
+    name: Attach
+    href: SpellBook.GAS.Diagnostics.EventLog.html#SpellBook_GAS_Diagnostics_EventLog_Attach_SpellBook_GAS_Core_AbilitySystemComponent_
+  - name: (
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent
+    name: AbilitySystemComponent
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  - name: )
+- uid: SpellBook.GAS.Diagnostics.GasDebuggerModel.Log*
+  commentId: Overload:SpellBook.GAS.Diagnostics.GasDebuggerModel.Log
+  href: SpellBook.GAS.Diagnostics.GasDebuggerModel.html#SpellBook_GAS_Diagnostics_GasDebuggerModel_Log
+  name: Log
+  nameWithType: GasDebuggerModel.Log
+  fullName: SpellBook.GAS.Diagnostics.GasDebuggerModel.Log
+- uid: SpellBook.GAS.Diagnostics.EventLog
+  commentId: T:SpellBook.GAS.Diagnostics.EventLog
+  parent: SpellBook.GAS.Diagnostics
+  href: SpellBook.GAS.Diagnostics.EventLog.html
+  name: EventLog
+  nameWithType: EventLog
+  fullName: SpellBook.GAS.Diagnostics.EventLog
+- uid: SpellBook.GAS.Diagnostics.AttributeRow.IsModifier
+  commentId: F:SpellBook.GAS.Diagnostics.AttributeRow.IsModifier
+  href: SpellBook.GAS.Diagnostics.AttributeRow.html#SpellBook_GAS_Diagnostics_AttributeRow_IsModifier
+  name: IsModifier
+  nameWithType: AttributeRow.IsModifier
+  fullName: SpellBook.GAS.Diagnostics.AttributeRow.IsModifier
+- uid: SpellBook.GAS.Attributes.AttributeState.Modifiers
+  commentId: P:SpellBook.GAS.Attributes.AttributeState.Modifiers
+  href: SpellBook.GAS.Attributes.AttributeState.html#SpellBook_GAS_Attributes_AttributeState_Modifiers
+  name: Modifiers
+  nameWithType: AttributeState.Modifiers
+  fullName: SpellBook.GAS.Attributes.AttributeState.Modifiers
+- uid: SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildAttributeRows*
+  commentId: Overload:SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildAttributeRows
+  href: SpellBook.GAS.Diagnostics.GasDebuggerModel.html#SpellBook_GAS_Diagnostics_GasDebuggerModel_BuildAttributeRows_System_Collections_Generic_IReadOnlyList_SpellBook_GAS_Attributes_AttributeState__System_Collections_Generic_List_SpellBook_GAS_Diagnostics_AttributeRow__
+  name: BuildAttributeRows
+  nameWithType: GasDebuggerModel.BuildAttributeRows
+  fullName: SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildAttributeRows
+- uid: System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Attributes.AttributeState}
+  commentId: T:System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Attributes.AttributeState}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IReadOnlyList`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  name: IReadOnlyList<AttributeState>
+  nameWithType: IReadOnlyList<AttributeState>
+  fullName: System.Collections.Generic.IReadOnlyList<SpellBook.GAS.Attributes.AttributeState>
+  nameWithType.vb: IReadOnlyList(Of AttributeState)
+  fullName.vb: System.Collections.Generic.IReadOnlyList(Of SpellBook.GAS.Attributes.AttributeState)
+  name.vb: IReadOnlyList(Of AttributeState)
+  spec.csharp:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: <
+  - uid: SpellBook.GAS.Attributes.AttributeState
+    name: AttributeState
+    href: SpellBook.GAS.Attributes.AttributeState.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: SpellBook.GAS.Attributes.AttributeState
+    name: AttributeState
+    href: SpellBook.GAS.Attributes.AttributeState.html
+  - name: )
+- uid: System.Collections.Generic.List{SpellBook.GAS.Diagnostics.AttributeRow}
+  commentId: T:System.Collections.Generic.List{SpellBook.GAS.Diagnostics.AttributeRow}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.List`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  name: List<AttributeRow>
+  nameWithType: List<AttributeRow>
+  fullName: System.Collections.Generic.List<SpellBook.GAS.Diagnostics.AttributeRow>
+  nameWithType.vb: List(Of AttributeRow)
+  fullName.vb: System.Collections.Generic.List(Of SpellBook.GAS.Diagnostics.AttributeRow)
+  name.vb: List(Of AttributeRow)
+  spec.csharp:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: <
+  - uid: SpellBook.GAS.Diagnostics.AttributeRow
+    name: AttributeRow
+    href: SpellBook.GAS.Diagnostics.AttributeRow.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: SpellBook.GAS.Diagnostics.AttributeRow
+    name: AttributeRow
+    href: SpellBook.GAS.Diagnostics.AttributeRow.html
+  - name: )
+- uid: System.Collections.Generic.IReadOnlyList`1
+  commentId: T:System.Collections.Generic.IReadOnlyList`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  name: IReadOnlyList<T>
+  nameWithType: IReadOnlyList<T>
+  fullName: System.Collections.Generic.IReadOnlyList<T>
+  nameWithType.vb: IReadOnlyList(Of T)
+  fullName.vb: System.Collections.Generic.IReadOnlyList(Of T)
+  name.vb: IReadOnlyList(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic
+  commentId: N:System.Collections.Generic
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Collections.Generic
+  nameWithType: System.Collections.Generic
+  fullName: System.Collections.Generic
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+- uid: System.Collections.Generic.List`1
+  commentId: T:System.Collections.Generic.List`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  name: List<T>
+  nameWithType: List<T>
+  fullName: System.Collections.Generic.List<T>
+  nameWithType.vb: List(Of T)
+  fullName.vb: System.Collections.Generic.List(Of T)
+  name.vb: List(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.TagCounts
+  commentId: P:SpellBook.GAS.Core.AbilitySystemComponent.TagCounts
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_TagCounts
+  name: TagCounts
+  nameWithType: AbilitySystemComponent.TagCounts
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.TagCounts
+- uid: SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildTagRows*
+  commentId: Overload:SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildTagRows
+  href: SpellBook.GAS.Diagnostics.GasDebuggerModel.html#SpellBook_GAS_Diagnostics_GasDebuggerModel_BuildTagRows_System_Collections_Generic_IReadOnlyDictionary_SpellBook_Tags_GameplayTag_System_Int32__System_Collections_Generic_List_SpellBook_GAS_Diagnostics_TagRow__
+  name: BuildTagRows
+  nameWithType: GasDebuggerModel.BuildTagRows
+  fullName: SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildTagRows
+- uid: System.Collections.Generic.IReadOnlyDictionary{SpellBook.Tags.GameplayTag,System.Int32}
+  commentId: T:System.Collections.Generic.IReadOnlyDictionary{SpellBook.Tags.GameplayTag,System.Int32}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IReadOnlyDictionary`2
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlydictionary-2
+  name: IReadOnlyDictionary<GameplayTag, int>
+  nameWithType: IReadOnlyDictionary<GameplayTag, int>
+  fullName: System.Collections.Generic.IReadOnlyDictionary<SpellBook.Tags.GameplayTag, int>
+  nameWithType.vb: IReadOnlyDictionary(Of GameplayTag, Integer)
+  fullName.vb: System.Collections.Generic.IReadOnlyDictionary(Of SpellBook.Tags.GameplayTag, Integer)
+  name.vb: IReadOnlyDictionary(Of GameplayTag, Integer)
+  spec.csharp:
+  - uid: System.Collections.Generic.IReadOnlyDictionary`2
+    name: IReadOnlyDictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlydictionary-2
+  - name: <
+  - uid: SpellBook.Tags.GameplayTag
+    name: GameplayTag
+    href: SpellBook.Tags.GameplayTag.html
+  - name: ','
+  - name: " "
+  - uid: System.Int32
+    name: int
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IReadOnlyDictionary`2
+    name: IReadOnlyDictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlydictionary-2
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: SpellBook.Tags.GameplayTag
+    name: GameplayTag
+    href: SpellBook.Tags.GameplayTag.html
+  - name: ','
+  - name: " "
+  - uid: System.Int32
+    name: Integer
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: )
+- uid: System.Collections.Generic.List{SpellBook.GAS.Diagnostics.TagRow}
+  commentId: T:System.Collections.Generic.List{SpellBook.GAS.Diagnostics.TagRow}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.List`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  name: List<TagRow>
+  nameWithType: List<TagRow>
+  fullName: System.Collections.Generic.List<SpellBook.GAS.Diagnostics.TagRow>
+  nameWithType.vb: List(Of TagRow)
+  fullName.vb: System.Collections.Generic.List(Of SpellBook.GAS.Diagnostics.TagRow)
+  name.vb: List(Of TagRow)
+  spec.csharp:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: <
+  - uid: SpellBook.GAS.Diagnostics.TagRow
+    name: TagRow
+    href: SpellBook.GAS.Diagnostics.TagRow.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: SpellBook.GAS.Diagnostics.TagRow
+    name: TagRow
+    href: SpellBook.GAS.Diagnostics.TagRow.html
+  - name: )
+- uid: System.Collections.Generic.IReadOnlyDictionary`2
+  commentId: T:System.Collections.Generic.IReadOnlyDictionary`2
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlydictionary-2
+  name: IReadOnlyDictionary<TKey, TValue>
+  nameWithType: IReadOnlyDictionary<TKey, TValue>
+  fullName: System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>
+  nameWithType.vb: IReadOnlyDictionary(Of TKey, TValue)
+  fullName.vb: System.Collections.Generic.IReadOnlyDictionary(Of TKey, TValue)
+  name.vb: IReadOnlyDictionary(Of TKey, TValue)
+  spec.csharp:
+  - uid: System.Collections.Generic.IReadOnlyDictionary`2
+    name: IReadOnlyDictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlydictionary-2
+  - name: <
+  - name: TKey
+  - name: ','
+  - name: " "
+  - name: TValue
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IReadOnlyDictionary`2
+    name: IReadOnlyDictionary
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlydictionary-2
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TKey
+  - name: ','
+  - name: " "
+  - name: TValue
+  - name: )
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.ActiveEffects
+  commentId: P:SpellBook.GAS.Core.AbilitySystemComponent.ActiveEffects
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_ActiveEffects
+  name: ActiveEffects
+  nameWithType: AbilitySystemComponent.ActiveEffects
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.ActiveEffects
+- uid: SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildEffectRows*
+  commentId: Overload:SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildEffectRows
+  href: SpellBook.GAS.Diagnostics.GasDebuggerModel.html#SpellBook_GAS_Diagnostics_GasDebuggerModel_BuildEffectRows_System_Collections_Generic_IReadOnlyList_SpellBook_GAS_Effects_ActiveEffectInstance__System_Collections_Generic_List_SpellBook_GAS_Diagnostics_EffectRow__
+  name: BuildEffectRows
+  nameWithType: GasDebuggerModel.BuildEffectRows
+  fullName: SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildEffectRows
+- uid: System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Effects.ActiveEffectInstance}
+  commentId: T:System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Effects.ActiveEffectInstance}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IReadOnlyList`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  name: IReadOnlyList<ActiveEffectInstance>
+  nameWithType: IReadOnlyList<ActiveEffectInstance>
+  fullName: System.Collections.Generic.IReadOnlyList<SpellBook.GAS.Effects.ActiveEffectInstance>
+  nameWithType.vb: IReadOnlyList(Of ActiveEffectInstance)
+  fullName.vb: System.Collections.Generic.IReadOnlyList(Of SpellBook.GAS.Effects.ActiveEffectInstance)
+  name.vb: IReadOnlyList(Of ActiveEffectInstance)
+  spec.csharp:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: <
+  - uid: SpellBook.GAS.Effects.ActiveEffectInstance
+    name: ActiveEffectInstance
+    href: SpellBook.GAS.Effects.ActiveEffectInstance.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: SpellBook.GAS.Effects.ActiveEffectInstance
+    name: ActiveEffectInstance
+    href: SpellBook.GAS.Effects.ActiveEffectInstance.html
+  - name: )
+- uid: System.Collections.Generic.List{SpellBook.GAS.Diagnostics.EffectRow}
+  commentId: T:System.Collections.Generic.List{SpellBook.GAS.Diagnostics.EffectRow}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.List`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  name: List<EffectRow>
+  nameWithType: List<EffectRow>
+  fullName: System.Collections.Generic.List<SpellBook.GAS.Diagnostics.EffectRow>
+  nameWithType.vb: List(Of EffectRow)
+  fullName.vb: System.Collections.Generic.List(Of SpellBook.GAS.Diagnostics.EffectRow)
+  name.vb: List(Of EffectRow)
+  spec.csharp:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: <
+  - uid: SpellBook.GAS.Diagnostics.EffectRow
+    name: EffectRow
+    href: SpellBook.GAS.Diagnostics.EffectRow.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: SpellBook.GAS.Diagnostics.EffectRow
+    name: EffectRow
+    href: SpellBook.GAS.Diagnostics.EffectRow.html
+  - name: )
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.Abilities
+  commentId: P:SpellBook.GAS.Core.AbilitySystemComponent.Abilities
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_Abilities
+  name: Abilities
+  nameWithType: AbilitySystemComponent.Abilities
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.Abilities
+- uid: SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildAbilityRows*
+  commentId: Overload:SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildAbilityRows
+  href: SpellBook.GAS.Diagnostics.GasDebuggerModel.html#SpellBook_GAS_Diagnostics_GasDebuggerModel_BuildAbilityRows_SpellBook_GAS_Core_AbilitySystemComponent_System_Collections_Generic_List_SpellBook_GAS_Diagnostics_AbilityRow__
+  name: BuildAbilityRows
+  nameWithType: GasDebuggerModel.BuildAbilityRows
+  fullName: SpellBook.GAS.Diagnostics.GasDebuggerModel.BuildAbilityRows
+- uid: SpellBook.GAS.Core.AbilitySystemComponent
+  commentId: T:SpellBook.GAS.Core.AbilitySystemComponent
+  parent: SpellBook.GAS.Core
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  name: AbilitySystemComponent
+  nameWithType: AbilitySystemComponent
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent
+- uid: System.Collections.Generic.List{SpellBook.GAS.Diagnostics.AbilityRow}
+  commentId: T:System.Collections.Generic.List{SpellBook.GAS.Diagnostics.AbilityRow}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.List`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  name: List<AbilityRow>
+  nameWithType: List<AbilityRow>
+  fullName: System.Collections.Generic.List<SpellBook.GAS.Diagnostics.AbilityRow>
+  nameWithType.vb: List(Of AbilityRow)
+  fullName.vb: System.Collections.Generic.List(Of SpellBook.GAS.Diagnostics.AbilityRow)
+  name.vb: List(Of AbilityRow)
+  spec.csharp:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: <
+  - uid: SpellBook.GAS.Diagnostics.AbilityRow
+    name: AbilityRow
+    href: SpellBook.GAS.Diagnostics.AbilityRow.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: SpellBook.GAS.Diagnostics.AbilityRow
+    name: AbilityRow
+    href: SpellBook.GAS.Diagnostics.AbilityRow.html
+  - name: )
+- uid: SpellBook.GAS.Core
+  commentId: N:SpellBook.GAS.Core
+  name: SpellBook.GAS.Core
+  nameWithType: SpellBook.GAS.Core
+  fullName: SpellBook.GAS.Core
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Core
+    name: Core
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Core
+    name: Core

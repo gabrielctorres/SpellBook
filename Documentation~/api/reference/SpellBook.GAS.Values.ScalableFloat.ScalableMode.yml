@@ -1,0 +1,133 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Values.ScalableFloat.ScalableMode
+  commentId: T:SpellBook.GAS.Values.ScalableFloat.ScalableMode
+  id: ScalableFloat.ScalableMode
+  parent: SpellBook.GAS.Values
+  children:
+  - SpellBook.GAS.Values.ScalableFloat.ScalableMode.Array
+  - SpellBook.GAS.Values.ScalableFloat.ScalableMode.Constant
+  - SpellBook.GAS.Values.ScalableFloat.ScalableMode.Curve
+  - SpellBook.GAS.Values.ScalableFloat.ScalableMode.Table
+  langs:
+  - csharp
+  - vb
+  name: ScalableFloat.ScalableMode
+  nameWithType: ScalableFloat.ScalableMode
+  fullName: SpellBook.GAS.Values.ScalableFloat.ScalableMode
+  type: Enum
+  namespace: SpellBook.GAS.Values
+  syntax:
+    content: public enum ScalableFloat.ScalableMode
+    content.vb: Public Enum ScalableFloat.ScalableMode
+- uid: SpellBook.GAS.Values.ScalableFloat.ScalableMode.Constant
+  commentId: F:SpellBook.GAS.Values.ScalableFloat.ScalableMode.Constant
+  id: Constant
+  parent: SpellBook.GAS.Values.ScalableFloat.ScalableMode
+  langs:
+  - csharp
+  - vb
+  name: Constant
+  nameWithType: ScalableFloat.ScalableMode.Constant
+  fullName: SpellBook.GAS.Values.ScalableFloat.ScalableMode.Constant
+  type: Field
+  namespace: SpellBook.GAS.Values
+  syntax:
+    content: Constant = 0
+    return:
+      type: SpellBook.GAS.Values.ScalableFloat.ScalableMode
+- uid: SpellBook.GAS.Values.ScalableFloat.ScalableMode.Array
+  commentId: F:SpellBook.GAS.Values.ScalableFloat.ScalableMode.Array
+  id: Array
+  parent: SpellBook.GAS.Values.ScalableFloat.ScalableMode
+  langs:
+  - csharp
+  - vb
+  name: Array
+  nameWithType: ScalableFloat.ScalableMode.Array
+  fullName: SpellBook.GAS.Values.ScalableFloat.ScalableMode.Array
+  type: Field
+  namespace: SpellBook.GAS.Values
+  syntax:
+    content: Array = 1
+    return:
+      type: SpellBook.GAS.Values.ScalableFloat.ScalableMode
+- uid: SpellBook.GAS.Values.ScalableFloat.ScalableMode.Curve
+  commentId: F:SpellBook.GAS.Values.ScalableFloat.ScalableMode.Curve
+  id: Curve
+  parent: SpellBook.GAS.Values.ScalableFloat.ScalableMode
+  langs:
+  - csharp
+  - vb
+  name: Curve
+  nameWithType: ScalableFloat.ScalableMode.Curve
+  fullName: SpellBook.GAS.Values.ScalableFloat.ScalableMode.Curve
+  type: Field
+  namespace: SpellBook.GAS.Values
+  syntax:
+    content: Curve = 2
+    return:
+      type: SpellBook.GAS.Values.ScalableFloat.ScalableMode
+- uid: SpellBook.GAS.Values.ScalableFloat.ScalableMode.Table
+  commentId: F:SpellBook.GAS.Values.ScalableFloat.ScalableMode.Table
+  id: Table
+  parent: SpellBook.GAS.Values.ScalableFloat.ScalableMode
+  langs:
+  - csharp
+  - vb
+  name: Table
+  nameWithType: ScalableFloat.ScalableMode.Table
+  fullName: SpellBook.GAS.Values.ScalableFloat.ScalableMode.Table
+  type: Field
+  namespace: SpellBook.GAS.Values
+  syntax:
+    content: Table = 3
+    return:
+      type: SpellBook.GAS.Values.ScalableFloat.ScalableMode
+references:
+- uid: SpellBook.GAS.Values
+  commentId: N:SpellBook.GAS.Values
+  name: SpellBook.GAS.Values
+  nameWithType: SpellBook.GAS.Values
+  fullName: SpellBook.GAS.Values
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Values
+    name: Values
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Values
+    name: Values
+- uid: SpellBook.GAS.Values.ScalableFloat.ScalableMode
+  commentId: T:SpellBook.GAS.Values.ScalableFloat.ScalableMode
+  parent: SpellBook.GAS.Values
+  href: SpellBook.GAS.Values.ScalableFloat.html
+  name: ScalableFloat.ScalableMode
+  nameWithType: ScalableFloat.ScalableMode
+  fullName: SpellBook.GAS.Values.ScalableFloat.ScalableMode
+  spec.csharp:
+  - uid: SpellBook.GAS.Values.ScalableFloat
+    name: ScalableFloat
+    href: SpellBook.GAS.Values.ScalableFloat.html
+  - name: .
+  - uid: SpellBook.GAS.Values.ScalableFloat.ScalableMode
+    name: ScalableMode
+    href: SpellBook.GAS.Values.ScalableFloat.ScalableMode.html
+  spec.vb:
+  - uid: SpellBook.GAS.Values.ScalableFloat
+    name: ScalableFloat
+    href: SpellBook.GAS.Values.ScalableFloat.html
+  - name: .
+  - uid: SpellBook.GAS.Values.ScalableFloat.ScalableMode
+    name: ScalableMode
+    href: SpellBook.GAS.Values.ScalableFloat.ScalableMode.html

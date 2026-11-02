@@ -1,0 +1,401 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.Core.Editor.HelpUrlViolation
+  commentId: T:SpellBook.Core.Editor.HelpUrlViolation
+  id: HelpUrlViolation
+  parent: SpellBook.Core.Editor
+  children:
+  - SpellBook.Core.Editor.HelpUrlViolation.#ctor(System.Type,System.String)
+  - SpellBook.Core.Editor.HelpUrlViolation.Reason
+  - SpellBook.Core.Editor.HelpUrlViolation.ToString
+  - SpellBook.Core.Editor.HelpUrlViolation.Type
+  langs:
+  - csharp
+  - vb
+  name: HelpUrlViolation
+  nameWithType: HelpUrlViolation
+  fullName: SpellBook.Core.Editor.HelpUrlViolation
+  type: Struct
+  namespace: SpellBook.Core.Editor
+  summary: Um tipo que fere a regra de <code>[HelpURL]</code> e o motivo.
+  example: []
+  syntax:
+    content: public readonly struct HelpUrlViolation
+    content.vb: Public Structure HelpUrlViolation
+  inheritedMembers:
+  - System.ValueType.Equals(System.Object)
+  - System.ValueType.GetHashCode
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetType
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+- uid: SpellBook.Core.Editor.HelpUrlViolation.#ctor(System.Type,System.String)
+  commentId: M:SpellBook.Core.Editor.HelpUrlViolation.#ctor(System.Type,System.String)
+  id: '#ctor(System.Type,System.String)'
+  parent: SpellBook.Core.Editor.HelpUrlViolation
+  langs:
+  - csharp
+  - vb
+  name: HelpUrlViolation(Type, string)
+  nameWithType: HelpUrlViolation.HelpUrlViolation(Type, string)
+  fullName: SpellBook.Core.Editor.HelpUrlViolation.HelpUrlViolation(System.Type, string)
+  type: Constructor
+  namespace: SpellBook.Core.Editor
+  syntax:
+    content: public HelpUrlViolation(Type type, string reason)
+    parameters:
+    - id: type
+      type: System.Type
+    - id: reason
+      type: System.String
+    content.vb: Public Sub New(type As Type, reason As String)
+  overload: SpellBook.Core.Editor.HelpUrlViolation.#ctor*
+  nameWithType.vb: HelpUrlViolation.New(Type, String)
+  fullName.vb: SpellBook.Core.Editor.HelpUrlViolation.New(System.Type, String)
+  name.vb: New(Type, String)
+- uid: SpellBook.Core.Editor.HelpUrlViolation.Type
+  commentId: P:SpellBook.Core.Editor.HelpUrlViolation.Type
+  id: Type
+  parent: SpellBook.Core.Editor.HelpUrlViolation
+  langs:
+  - csharp
+  - vb
+  name: Type
+  nameWithType: HelpUrlViolation.Type
+  fullName: SpellBook.Core.Editor.HelpUrlViolation.Type
+  type: Property
+  namespace: SpellBook.Core.Editor
+  syntax:
+    content: public Type Type { get; }
+    parameters: []
+    return:
+      type: System.Type
+    content.vb: Public ReadOnly Property Type As Type
+  overload: SpellBook.Core.Editor.HelpUrlViolation.Type*
+- uid: SpellBook.Core.Editor.HelpUrlViolation.Reason
+  commentId: P:SpellBook.Core.Editor.HelpUrlViolation.Reason
+  id: Reason
+  parent: SpellBook.Core.Editor.HelpUrlViolation
+  langs:
+  - csharp
+  - vb
+  name: Reason
+  nameWithType: HelpUrlViolation.Reason
+  fullName: SpellBook.Core.Editor.HelpUrlViolation.Reason
+  type: Property
+  namespace: SpellBook.Core.Editor
+  syntax:
+    content: public string Reason { get; }
+    parameters: []
+    return:
+      type: System.String
+    content.vb: Public ReadOnly Property Reason As String
+  overload: SpellBook.Core.Editor.HelpUrlViolation.Reason*
+- uid: SpellBook.Core.Editor.HelpUrlViolation.ToString
+  commentId: M:SpellBook.Core.Editor.HelpUrlViolation.ToString
+  id: ToString
+  parent: SpellBook.Core.Editor.HelpUrlViolation
+  langs:
+  - csharp
+  - vb
+  name: ToString()
+  nameWithType: HelpUrlViolation.ToString()
+  fullName: SpellBook.Core.Editor.HelpUrlViolation.ToString()
+  type: Method
+  namespace: SpellBook.Core.Editor
+  summary: Returns the fully qualified type name of this instance.
+  example: []
+  syntax:
+    content: public override string ToString()
+    return:
+      type: System.String
+      description: The fully qualified type name.
+    content.vb: Public Overrides Function ToString() As String
+  overridden: System.ValueType.ToString
+  overload: SpellBook.Core.Editor.HelpUrlViolation.ToString*
+references:
+- uid: SpellBook.Core.Editor
+  commentId: N:SpellBook.Core.Editor
+  name: SpellBook.Core.Editor
+  nameWithType: SpellBook.Core.Editor
+  fullName: SpellBook.Core.Editor
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Editor
+    name: Editor
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Editor
+    name: Editor
+- uid: System.ValueType.Equals(System.Object)
+  commentId: M:System.ValueType.Equals(System.Object)
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  name: Equals(object)
+  nameWithType: ValueType.Equals(object)
+  fullName: System.ValueType.Equals(object)
+  nameWithType.vb: ValueType.Equals(Object)
+  fullName.vb: System.ValueType.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.ValueType.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.ValueType.GetHashCode
+  commentId: M:System.ValueType.GetHashCode
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  name: GetHashCode()
+  nameWithType: ValueType.GetHashCode()
+  fullName: System.ValueType.GetHashCode()
+  spec.csharp:
+  - uid: System.ValueType.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.ValueType
+  commentId: T:System.ValueType
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype
+  name: ValueType
+  nameWithType: ValueType
+  fullName: System.ValueType
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: SpellBook.Core.Editor.HelpUrlViolation.#ctor*
+  commentId: Overload:SpellBook.Core.Editor.HelpUrlViolation.#ctor
+  href: SpellBook.Core.Editor.HelpUrlViolation.html#SpellBook_Core_Editor_HelpUrlViolation__ctor_System_Type_System_String_
+  name: HelpUrlViolation
+  nameWithType: HelpUrlViolation.HelpUrlViolation
+  fullName: SpellBook.Core.Editor.HelpUrlViolation.HelpUrlViolation
+  nameWithType.vb: HelpUrlViolation.New
+  fullName.vb: SpellBook.Core.Editor.HelpUrlViolation.New
+  name.vb: New
+- uid: System.Type
+  commentId: T:System.Type
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.type
+  name: Type
+  nameWithType: Type
+  fullName: System.Type
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: SpellBook.Core.Editor.HelpUrlViolation.Type*
+  commentId: Overload:SpellBook.Core.Editor.HelpUrlViolation.Type
+  href: SpellBook.Core.Editor.HelpUrlViolation.html#SpellBook_Core_Editor_HelpUrlViolation_Type
+  name: Type
+  nameWithType: HelpUrlViolation.Type
+  fullName: SpellBook.Core.Editor.HelpUrlViolation.Type
+- uid: SpellBook.Core.Editor.HelpUrlViolation.Reason*
+  commentId: Overload:SpellBook.Core.Editor.HelpUrlViolation.Reason
+  href: SpellBook.Core.Editor.HelpUrlViolation.html#SpellBook_Core_Editor_HelpUrlViolation_Reason
+  name: Reason
+  nameWithType: HelpUrlViolation.Reason
+  fullName: SpellBook.Core.Editor.HelpUrlViolation.Reason
+- uid: System.ValueType.ToString
+  commentId: M:System.ValueType.ToString
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  name: ToString()
+  nameWithType: ValueType.ToString()
+  fullName: System.ValueType.ToString()
+  spec.csharp:
+  - uid: System.ValueType.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  - name: (
+  - name: )
+- uid: SpellBook.Core.Editor.HelpUrlViolation.ToString*
+  commentId: Overload:SpellBook.Core.Editor.HelpUrlViolation.ToString
+  href: SpellBook.Core.Editor.HelpUrlViolation.html#SpellBook_Core_Editor_HelpUrlViolation_ToString
+  name: ToString
+  nameWithType: HelpUrlViolation.ToString
+  fullName: SpellBook.Core.Editor.HelpUrlViolation.ToString

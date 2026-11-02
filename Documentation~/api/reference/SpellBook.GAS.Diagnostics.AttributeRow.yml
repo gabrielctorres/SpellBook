@@ -1,0 +1,605 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Diagnostics.AttributeRow
+  commentId: T:SpellBook.GAS.Diagnostics.AttributeRow
+  id: AttributeRow
+  parent: SpellBook.GAS.Diagnostics
+  children:
+  - SpellBook.GAS.Diagnostics.AttributeRow.#ctor(SpellBook.GAS.Attributes.AttributeDefinition,SpellBook.GAS.Attributes.ModifierOperation,System.Single,System.Object)
+  - SpellBook.GAS.Diagnostics.AttributeRow.#ctor(SpellBook.GAS.Attributes.AttributeDefinition,System.Single,System.Single,System.Single,System.Single)
+  - SpellBook.GAS.Diagnostics.AttributeRow.BaseValue
+  - SpellBook.GAS.Diagnostics.AttributeRow.CurrentValue
+  - SpellBook.GAS.Diagnostics.AttributeRow.Definition
+  - SpellBook.GAS.Diagnostics.AttributeRow.IsModifier
+  - SpellBook.GAS.Diagnostics.AttributeRow.MaxValue
+  - SpellBook.GAS.Diagnostics.AttributeRow.MinValue
+  - SpellBook.GAS.Diagnostics.AttributeRow.ModifierValue
+  - SpellBook.GAS.Diagnostics.AttributeRow.Operation
+  - SpellBook.GAS.Diagnostics.AttributeRow.Source
+  langs:
+  - csharp
+  - vb
+  name: AttributeRow
+  nameWithType: AttributeRow
+  fullName: SpellBook.GAS.Diagnostics.AttributeRow
+  type: Struct
+  namespace: SpellBook.GAS.Diagnostics
+  summary: >-
+    Linha de atributo ou, com <xref href="SpellBook.GAS.Diagnostics.AttributeRow.IsModifier" data-throw-if-not-resolved="false"></xref>, de um modificador do atributo <xref href="SpellBook.GAS.Diagnostics.AttributeRow.Definition" data-throw-if-not-resolved="false"></xref>. Os
+
+    valores de atributo só valem na linha de atributo; operação, valor e fonte, só na de modificador.
+  example: []
+  syntax:
+    content: public readonly struct AttributeRow
+    content.vb: Public Structure AttributeRow
+  inheritedMembers:
+  - System.ValueType.Equals(System.Object)
+  - System.ValueType.GetHashCode
+  - System.ValueType.ToString
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetType
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+- uid: SpellBook.GAS.Diagnostics.AttributeRow.Definition
+  commentId: F:SpellBook.GAS.Diagnostics.AttributeRow.Definition
+  id: Definition
+  parent: SpellBook.GAS.Diagnostics.AttributeRow
+  langs:
+  - csharp
+  - vb
+  name: Definition
+  nameWithType: AttributeRow.Definition
+  fullName: SpellBook.GAS.Diagnostics.AttributeRow.Definition
+  type: Field
+  namespace: SpellBook.GAS.Diagnostics
+  syntax:
+    content: public readonly AttributeDefinition Definition
+    return:
+      type: SpellBook.GAS.Attributes.AttributeDefinition
+    content.vb: Public ReadOnly Definition As AttributeDefinition
+- uid: SpellBook.GAS.Diagnostics.AttributeRow.IsModifier
+  commentId: F:SpellBook.GAS.Diagnostics.AttributeRow.IsModifier
+  id: IsModifier
+  parent: SpellBook.GAS.Diagnostics.AttributeRow
+  langs:
+  - csharp
+  - vb
+  name: IsModifier
+  nameWithType: AttributeRow.IsModifier
+  fullName: SpellBook.GAS.Diagnostics.AttributeRow.IsModifier
+  type: Field
+  namespace: SpellBook.GAS.Diagnostics
+  syntax:
+    content: public readonly bool IsModifier
+    return:
+      type: System.Boolean
+    content.vb: Public ReadOnly IsModifier As Boolean
+- uid: SpellBook.GAS.Diagnostics.AttributeRow.BaseValue
+  commentId: F:SpellBook.GAS.Diagnostics.AttributeRow.BaseValue
+  id: BaseValue
+  parent: SpellBook.GAS.Diagnostics.AttributeRow
+  langs:
+  - csharp
+  - vb
+  name: BaseValue
+  nameWithType: AttributeRow.BaseValue
+  fullName: SpellBook.GAS.Diagnostics.AttributeRow.BaseValue
+  type: Field
+  namespace: SpellBook.GAS.Diagnostics
+  syntax:
+    content: public readonly float BaseValue
+    return:
+      type: System.Single
+    content.vb: Public ReadOnly BaseValue As Single
+- uid: SpellBook.GAS.Diagnostics.AttributeRow.CurrentValue
+  commentId: F:SpellBook.GAS.Diagnostics.AttributeRow.CurrentValue
+  id: CurrentValue
+  parent: SpellBook.GAS.Diagnostics.AttributeRow
+  langs:
+  - csharp
+  - vb
+  name: CurrentValue
+  nameWithType: AttributeRow.CurrentValue
+  fullName: SpellBook.GAS.Diagnostics.AttributeRow.CurrentValue
+  type: Field
+  namespace: SpellBook.GAS.Diagnostics
+  syntax:
+    content: public readonly float CurrentValue
+    return:
+      type: System.Single
+    content.vb: Public ReadOnly CurrentValue As Single
+- uid: SpellBook.GAS.Diagnostics.AttributeRow.MinValue
+  commentId: F:SpellBook.GAS.Diagnostics.AttributeRow.MinValue
+  id: MinValue
+  parent: SpellBook.GAS.Diagnostics.AttributeRow
+  langs:
+  - csharp
+  - vb
+  name: MinValue
+  nameWithType: AttributeRow.MinValue
+  fullName: SpellBook.GAS.Diagnostics.AttributeRow.MinValue
+  type: Field
+  namespace: SpellBook.GAS.Diagnostics
+  syntax:
+    content: public readonly float MinValue
+    return:
+      type: System.Single
+    content.vb: Public ReadOnly MinValue As Single
+- uid: SpellBook.GAS.Diagnostics.AttributeRow.MaxValue
+  commentId: F:SpellBook.GAS.Diagnostics.AttributeRow.MaxValue
+  id: MaxValue
+  parent: SpellBook.GAS.Diagnostics.AttributeRow
+  langs:
+  - csharp
+  - vb
+  name: MaxValue
+  nameWithType: AttributeRow.MaxValue
+  fullName: SpellBook.GAS.Diagnostics.AttributeRow.MaxValue
+  type: Field
+  namespace: SpellBook.GAS.Diagnostics
+  syntax:
+    content: public readonly float MaxValue
+    return:
+      type: System.Single
+    content.vb: Public ReadOnly MaxValue As Single
+- uid: SpellBook.GAS.Diagnostics.AttributeRow.Operation
+  commentId: F:SpellBook.GAS.Diagnostics.AttributeRow.Operation
+  id: Operation
+  parent: SpellBook.GAS.Diagnostics.AttributeRow
+  langs:
+  - csharp
+  - vb
+  name: Operation
+  nameWithType: AttributeRow.Operation
+  fullName: SpellBook.GAS.Diagnostics.AttributeRow.Operation
+  type: Field
+  namespace: SpellBook.GAS.Diagnostics
+  syntax:
+    content: public readonly ModifierOperation Operation
+    return:
+      type: SpellBook.GAS.Attributes.ModifierOperation
+    content.vb: Public ReadOnly Operation As ModifierOperation
+- uid: SpellBook.GAS.Diagnostics.AttributeRow.ModifierValue
+  commentId: F:SpellBook.GAS.Diagnostics.AttributeRow.ModifierValue
+  id: ModifierValue
+  parent: SpellBook.GAS.Diagnostics.AttributeRow
+  langs:
+  - csharp
+  - vb
+  name: ModifierValue
+  nameWithType: AttributeRow.ModifierValue
+  fullName: SpellBook.GAS.Diagnostics.AttributeRow.ModifierValue
+  type: Field
+  namespace: SpellBook.GAS.Diagnostics
+  syntax:
+    content: public readonly float ModifierValue
+    return:
+      type: System.Single
+    content.vb: Public ReadOnly ModifierValue As Single
+- uid: SpellBook.GAS.Diagnostics.AttributeRow.Source
+  commentId: F:SpellBook.GAS.Diagnostics.AttributeRow.Source
+  id: Source
+  parent: SpellBook.GAS.Diagnostics.AttributeRow
+  langs:
+  - csharp
+  - vb
+  name: Source
+  nameWithType: AttributeRow.Source
+  fullName: SpellBook.GAS.Diagnostics.AttributeRow.Source
+  type: Field
+  namespace: SpellBook.GAS.Diagnostics
+  summary: 'Quem aplicou o modificador: a <xref href="SpellBook.GAS.Effects.ActiveEffectInstance" data-throw-if-not-resolved="false"></xref> num modificador de efeito, ou o objeto dado por código.'
+  example: []
+  syntax:
+    content: public readonly object Source
+    return:
+      type: System.Object
+    content.vb: Public ReadOnly Source As Object
+- uid: SpellBook.GAS.Diagnostics.AttributeRow.#ctor(SpellBook.GAS.Attributes.AttributeDefinition,System.Single,System.Single,System.Single,System.Single)
+  commentId: M:SpellBook.GAS.Diagnostics.AttributeRow.#ctor(SpellBook.GAS.Attributes.AttributeDefinition,System.Single,System.Single,System.Single,System.Single)
+  id: '#ctor(SpellBook.GAS.Attributes.AttributeDefinition,System.Single,System.Single,System.Single,System.Single)'
+  parent: SpellBook.GAS.Diagnostics.AttributeRow
+  langs:
+  - csharp
+  - vb
+  name: AttributeRow(AttributeDefinition, float, float, float, float)
+  nameWithType: AttributeRow.AttributeRow(AttributeDefinition, float, float, float, float)
+  fullName: SpellBook.GAS.Diagnostics.AttributeRow.AttributeRow(SpellBook.GAS.Attributes.AttributeDefinition, float, float, float, float)
+  type: Constructor
+  namespace: SpellBook.GAS.Diagnostics
+  syntax:
+    content: public AttributeRow(AttributeDefinition definition, float baseValue, float currentValue, float minValue, float maxValue)
+    parameters:
+    - id: definition
+      type: SpellBook.GAS.Attributes.AttributeDefinition
+    - id: baseValue
+      type: System.Single
+    - id: currentValue
+      type: System.Single
+    - id: minValue
+      type: System.Single
+    - id: maxValue
+      type: System.Single
+    content.vb: Public Sub New(definition As AttributeDefinition, baseValue As Single, currentValue As Single, minValue As Single, maxValue As Single)
+  overload: SpellBook.GAS.Diagnostics.AttributeRow.#ctor*
+  nameWithType.vb: AttributeRow.New(AttributeDefinition, Single, Single, Single, Single)
+  fullName.vb: SpellBook.GAS.Diagnostics.AttributeRow.New(SpellBook.GAS.Attributes.AttributeDefinition, Single, Single, Single, Single)
+  name.vb: New(AttributeDefinition, Single, Single, Single, Single)
+- uid: SpellBook.GAS.Diagnostics.AttributeRow.#ctor(SpellBook.GAS.Attributes.AttributeDefinition,SpellBook.GAS.Attributes.ModifierOperation,System.Single,System.Object)
+  commentId: M:SpellBook.GAS.Diagnostics.AttributeRow.#ctor(SpellBook.GAS.Attributes.AttributeDefinition,SpellBook.GAS.Attributes.ModifierOperation,System.Single,System.Object)
+  id: '#ctor(SpellBook.GAS.Attributes.AttributeDefinition,SpellBook.GAS.Attributes.ModifierOperation,System.Single,System.Object)'
+  parent: SpellBook.GAS.Diagnostics.AttributeRow
+  langs:
+  - csharp
+  - vb
+  name: AttributeRow(AttributeDefinition, ModifierOperation, float, object)
+  nameWithType: AttributeRow.AttributeRow(AttributeDefinition, ModifierOperation, float, object)
+  fullName: SpellBook.GAS.Diagnostics.AttributeRow.AttributeRow(SpellBook.GAS.Attributes.AttributeDefinition, SpellBook.GAS.Attributes.ModifierOperation, float, object)
+  type: Constructor
+  namespace: SpellBook.GAS.Diagnostics
+  syntax:
+    content: public AttributeRow(AttributeDefinition definition, ModifierOperation operation, float modifierValue, object source)
+    parameters:
+    - id: definition
+      type: SpellBook.GAS.Attributes.AttributeDefinition
+    - id: operation
+      type: SpellBook.GAS.Attributes.ModifierOperation
+    - id: modifierValue
+      type: System.Single
+    - id: source
+      type: System.Object
+    content.vb: Public Sub New(definition As AttributeDefinition, operation As ModifierOperation, modifierValue As Single, source As Object)
+  overload: SpellBook.GAS.Diagnostics.AttributeRow.#ctor*
+  nameWithType.vb: AttributeRow.New(AttributeDefinition, ModifierOperation, Single, Object)
+  fullName.vb: SpellBook.GAS.Diagnostics.AttributeRow.New(SpellBook.GAS.Attributes.AttributeDefinition, SpellBook.GAS.Attributes.ModifierOperation, Single, Object)
+  name.vb: New(AttributeDefinition, ModifierOperation, Single, Object)
+references:
+- uid: SpellBook.GAS.Diagnostics.AttributeRow.IsModifier
+  commentId: F:SpellBook.GAS.Diagnostics.AttributeRow.IsModifier
+  href: SpellBook.GAS.Diagnostics.AttributeRow.html#SpellBook_GAS_Diagnostics_AttributeRow_IsModifier
+  name: IsModifier
+  nameWithType: AttributeRow.IsModifier
+  fullName: SpellBook.GAS.Diagnostics.AttributeRow.IsModifier
+- uid: SpellBook.GAS.Diagnostics.AttributeRow.Definition
+  commentId: F:SpellBook.GAS.Diagnostics.AttributeRow.Definition
+  href: SpellBook.GAS.Diagnostics.AttributeRow.html#SpellBook_GAS_Diagnostics_AttributeRow_Definition
+  name: Definition
+  nameWithType: AttributeRow.Definition
+  fullName: SpellBook.GAS.Diagnostics.AttributeRow.Definition
+- uid: SpellBook.GAS.Diagnostics
+  commentId: N:SpellBook.GAS.Diagnostics
+  name: SpellBook.GAS.Diagnostics
+  nameWithType: SpellBook.GAS.Diagnostics
+  fullName: SpellBook.GAS.Diagnostics
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Diagnostics
+    name: Diagnostics
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Diagnostics
+    name: Diagnostics
+- uid: System.ValueType.Equals(System.Object)
+  commentId: M:System.ValueType.Equals(System.Object)
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  name: Equals(object)
+  nameWithType: ValueType.Equals(object)
+  fullName: System.ValueType.Equals(object)
+  nameWithType.vb: ValueType.Equals(Object)
+  fullName.vb: System.ValueType.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.ValueType.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.ValueType.GetHashCode
+  commentId: M:System.ValueType.GetHashCode
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  name: GetHashCode()
+  nameWithType: ValueType.GetHashCode()
+  fullName: System.ValueType.GetHashCode()
+  spec.csharp:
+  - uid: System.ValueType.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  - name: (
+  - name: )
+- uid: System.ValueType.ToString
+  commentId: M:System.ValueType.ToString
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  name: ToString()
+  nameWithType: ValueType.ToString()
+  fullName: System.ValueType.ToString()
+  spec.csharp:
+  - uid: System.ValueType.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  - name: (
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.ValueType
+  commentId: T:System.ValueType
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype
+  name: ValueType
+  nameWithType: ValueType
+  fullName: System.ValueType
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: SpellBook.GAS.Attributes.AttributeDefinition
+  commentId: T:SpellBook.GAS.Attributes.AttributeDefinition
+  parent: SpellBook.GAS.Attributes
+  href: SpellBook.GAS.Attributes.AttributeDefinition.html
+  name: AttributeDefinition
+  nameWithType: AttributeDefinition
+  fullName: SpellBook.GAS.Attributes.AttributeDefinition
+- uid: SpellBook.GAS.Attributes
+  commentId: N:SpellBook.GAS.Attributes
+  name: SpellBook.GAS.Attributes
+  nameWithType: SpellBook.GAS.Attributes
+  fullName: SpellBook.GAS.Attributes
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Attributes
+    name: Attributes
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Attributes
+    name: Attributes
+- uid: System.Boolean
+  commentId: T:System.Boolean
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.boolean
+  name: bool
+  nameWithType: bool
+  fullName: bool
+  nameWithType.vb: Boolean
+  fullName.vb: Boolean
+  name.vb: Boolean
+- uid: System.Single
+  commentId: T:System.Single
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.single
+  name: float
+  nameWithType: float
+  fullName: float
+  nameWithType.vb: Single
+  fullName.vb: Single
+  name.vb: Single
+- uid: SpellBook.GAS.Attributes.ModifierOperation
+  commentId: T:SpellBook.GAS.Attributes.ModifierOperation
+  parent: SpellBook.GAS.Attributes
+  href: SpellBook.GAS.Attributes.ModifierOperation.html
+  name: ModifierOperation
+  nameWithType: ModifierOperation
+  fullName: SpellBook.GAS.Attributes.ModifierOperation
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance
+  commentId: T:SpellBook.GAS.Effects.ActiveEffectInstance
+  parent: SpellBook.GAS.Effects
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html
+  name: ActiveEffectInstance
+  nameWithType: ActiveEffectInstance
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance
+- uid: SpellBook.GAS.Effects
+  commentId: N:SpellBook.GAS.Effects
+  name: SpellBook.GAS.Effects
+  nameWithType: SpellBook.GAS.Effects
+  fullName: SpellBook.GAS.Effects
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Effects
+    name: Effects
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Effects
+    name: Effects
+- uid: SpellBook.GAS.Diagnostics.AttributeRow.#ctor*
+  commentId: Overload:SpellBook.GAS.Diagnostics.AttributeRow.#ctor
+  href: SpellBook.GAS.Diagnostics.AttributeRow.html#SpellBook_GAS_Diagnostics_AttributeRow__ctor_SpellBook_GAS_Attributes_AttributeDefinition_System_Single_System_Single_System_Single_System_Single_
+  name: AttributeRow
+  nameWithType: AttributeRow.AttributeRow
+  fullName: SpellBook.GAS.Diagnostics.AttributeRow.AttributeRow
+  nameWithType.vb: AttributeRow.New
+  fullName.vb: SpellBook.GAS.Diagnostics.AttributeRow.New
+  name.vb: New

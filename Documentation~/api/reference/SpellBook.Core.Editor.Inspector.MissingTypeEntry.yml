@@ -1,0 +1,458 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.Core.Editor.Inspector.MissingTypeEntry
+  commentId: T:SpellBook.Core.Editor.Inspector.MissingTypeEntry
+  id: MissingTypeEntry
+  parent: SpellBook.Core.Editor.Inspector
+  children:
+  - SpellBook.Core.Editor.Inspector.MissingTypeEntry.#ctor(System.Int64,System.String,System.String,System.String)
+  - SpellBook.Core.Editor.Inspector.MissingTypeEntry.AssemblyName
+  - SpellBook.Core.Editor.Inspector.MissingTypeEntry.FullTypeName
+  - SpellBook.Core.Editor.Inspector.MissingTypeEntry.ReferenceId
+  langs:
+  - csharp
+  - vb
+  name: MissingTypeEntry
+  nameWithType: MissingTypeEntry
+  fullName: SpellBook.Core.Editor.Inspector.MissingTypeEntry
+  type: Struct
+  namespace: SpellBook.Core.Editor.Inspector
+  summary: Uma referência <code>[SerializeReference]</code> cujo tipo não existe mais (Spec, seção 4.10, D6).
+  example: []
+  syntax:
+    content: public readonly struct MissingTypeEntry
+    content.vb: Public Structure MissingTypeEntry
+  inheritedMembers:
+  - System.ValueType.Equals(System.Object)
+  - System.ValueType.GetHashCode
+  - System.ValueType.ToString
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetType
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+- uid: SpellBook.Core.Editor.Inspector.MissingTypeEntry.#ctor(System.Int64,System.String,System.String,System.String)
+  commentId: M:SpellBook.Core.Editor.Inspector.MissingTypeEntry.#ctor(System.Int64,System.String,System.String,System.String)
+  id: '#ctor(System.Int64,System.String,System.String,System.String)'
+  parent: SpellBook.Core.Editor.Inspector.MissingTypeEntry
+  langs:
+  - csharp
+  - vb
+  name: MissingTypeEntry(long, string, string, string)
+  nameWithType: MissingTypeEntry.MissingTypeEntry(long, string, string, string)
+  fullName: SpellBook.Core.Editor.Inspector.MissingTypeEntry.MissingTypeEntry(long, string, string, string)
+  type: Constructor
+  namespace: SpellBook.Core.Editor.Inspector
+  syntax:
+    content: public MissingTypeEntry(long referenceId, string assemblyName, string namespaceName, string className)
+    parameters:
+    - id: referenceId
+      type: System.Int64
+    - id: assemblyName
+      type: System.String
+    - id: namespaceName
+      type: System.String
+    - id: className
+      type: System.String
+    content.vb: Public Sub New(referenceId As Long, assemblyName As String, namespaceName As String, className As String)
+  overload: SpellBook.Core.Editor.Inspector.MissingTypeEntry.#ctor*
+  nameWithType.vb: MissingTypeEntry.New(Long, String, String, String)
+  fullName.vb: SpellBook.Core.Editor.Inspector.MissingTypeEntry.New(Long, String, String, String)
+  name.vb: New(Long, String, String, String)
+- uid: SpellBook.Core.Editor.Inspector.MissingTypeEntry.ReferenceId
+  commentId: P:SpellBook.Core.Editor.Inspector.MissingTypeEntry.ReferenceId
+  id: ReferenceId
+  parent: SpellBook.Core.Editor.Inspector.MissingTypeEntry
+  langs:
+  - csharp
+  - vb
+  name: ReferenceId
+  nameWithType: MissingTypeEntry.ReferenceId
+  fullName: SpellBook.Core.Editor.Inspector.MissingTypeEntry.ReferenceId
+  type: Property
+  namespace: SpellBook.Core.Editor.Inspector
+  summary: Id da referência no objeto; é o que <xref href="SpellBook.Core.Editor.Inspector.MissingReferenceTypes.Clear(UnityEngine.Object%2cSystem.Int64)" data-throw-if-not-resolved="false"></xref> recebe.
+  example: []
+  syntax:
+    content: public long ReferenceId { get; }
+    parameters: []
+    return:
+      type: System.Int64
+    content.vb: Public ReadOnly Property ReferenceId As Long
+  overload: SpellBook.Core.Editor.Inspector.MissingTypeEntry.ReferenceId*
+- uid: SpellBook.Core.Editor.Inspector.MissingTypeEntry.AssemblyName
+  commentId: P:SpellBook.Core.Editor.Inspector.MissingTypeEntry.AssemblyName
+  id: AssemblyName
+  parent: SpellBook.Core.Editor.Inspector.MissingTypeEntry
+  langs:
+  - csharp
+  - vb
+  name: AssemblyName
+  nameWithType: MissingTypeEntry.AssemblyName
+  fullName: SpellBook.Core.Editor.Inspector.MissingTypeEntry.AssemblyName
+  type: Property
+  namespace: SpellBook.Core.Editor.Inspector
+  summary: Assembly gravado no asset.
+  example: []
+  syntax:
+    content: public string AssemblyName { get; }
+    parameters: []
+    return:
+      type: System.String
+    content.vb: Public ReadOnly Property AssemblyName As String
+  overload: SpellBook.Core.Editor.Inspector.MissingTypeEntry.AssemblyName*
+- uid: SpellBook.Core.Editor.Inspector.MissingTypeEntry.FullTypeName
+  commentId: P:SpellBook.Core.Editor.Inspector.MissingTypeEntry.FullTypeName
+  id: FullTypeName
+  parent: SpellBook.Core.Editor.Inspector.MissingTypeEntry
+  langs:
+  - csharp
+  - vb
+  name: FullTypeName
+  nameWithType: MissingTypeEntry.FullTypeName
+  fullName: SpellBook.Core.Editor.Inspector.MissingTypeEntry.FullTypeName
+  type: Property
+  namespace: SpellBook.Core.Editor.Inspector
+  summary: <code>namespace.Classe</code>, ou só <code>Classe</code> quando o namespace é vazio.
+  example: []
+  syntax:
+    content: public string FullTypeName { get; }
+    parameters: []
+    return:
+      type: System.String
+    content.vb: Public ReadOnly Property FullTypeName As String
+  overload: SpellBook.Core.Editor.Inspector.MissingTypeEntry.FullTypeName*
+references:
+- uid: SpellBook.Core.Editor.Inspector
+  commentId: N:SpellBook.Core.Editor.Inspector
+  name: SpellBook.Core.Editor.Inspector
+  nameWithType: SpellBook.Core.Editor.Inspector
+  fullName: SpellBook.Core.Editor.Inspector
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Editor
+    name: Editor
+  - name: .
+  - uid: SpellBook.Core.Editor.Inspector
+    name: Inspector
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Editor
+    name: Editor
+  - name: .
+  - uid: SpellBook.Core.Editor.Inspector
+    name: Inspector
+- uid: System.ValueType.Equals(System.Object)
+  commentId: M:System.ValueType.Equals(System.Object)
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  name: Equals(object)
+  nameWithType: ValueType.Equals(object)
+  fullName: System.ValueType.Equals(object)
+  nameWithType.vb: ValueType.Equals(Object)
+  fullName.vb: System.ValueType.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.ValueType.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.ValueType.GetHashCode
+  commentId: M:System.ValueType.GetHashCode
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  name: GetHashCode()
+  nameWithType: ValueType.GetHashCode()
+  fullName: System.ValueType.GetHashCode()
+  spec.csharp:
+  - uid: System.ValueType.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  - name: (
+  - name: )
+- uid: System.ValueType.ToString
+  commentId: M:System.ValueType.ToString
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  name: ToString()
+  nameWithType: ValueType.ToString()
+  fullName: System.ValueType.ToString()
+  spec.csharp:
+  - uid: System.ValueType.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  - name: (
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.ValueType
+  commentId: T:System.ValueType
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype
+  name: ValueType
+  nameWithType: ValueType
+  fullName: System.ValueType
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: SpellBook.Core.Editor.Inspector.MissingTypeEntry.#ctor*
+  commentId: Overload:SpellBook.Core.Editor.Inspector.MissingTypeEntry.#ctor
+  href: SpellBook.Core.Editor.Inspector.MissingTypeEntry.html#SpellBook_Core_Editor_Inspector_MissingTypeEntry__ctor_System_Int64_System_String_System_String_System_String_
+  name: MissingTypeEntry
+  nameWithType: MissingTypeEntry.MissingTypeEntry
+  fullName: SpellBook.Core.Editor.Inspector.MissingTypeEntry.MissingTypeEntry
+  nameWithType.vb: MissingTypeEntry.New
+  fullName.vb: SpellBook.Core.Editor.Inspector.MissingTypeEntry.New
+  name.vb: New
+- uid: System.Int64
+  commentId: T:System.Int64
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.int64
+  name: long
+  nameWithType: long
+  fullName: long
+  nameWithType.vb: Long
+  fullName.vb: Long
+  name.vb: Long
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: SpellBook.Core.Editor.Inspector.MissingReferenceTypes.Clear(UnityEngine.Object,System.Int64)
+  commentId: M:SpellBook.Core.Editor.Inspector.MissingReferenceTypes.Clear(UnityEngine.Object,System.Int64)
+  isExternal: true
+  href: SpellBook.Core.Editor.Inspector.MissingReferenceTypes.html#SpellBook_Core_Editor_Inspector_MissingReferenceTypes_Clear_UnityEngine_Object_System_Int64_
+  name: Clear(Object, long)
+  nameWithType: MissingReferenceTypes.Clear(Object, long)
+  fullName: SpellBook.Core.Editor.Inspector.MissingReferenceTypes.Clear(UnityEngine.Object, long)
+  nameWithType.vb: MissingReferenceTypes.Clear(Object, Long)
+  fullName.vb: SpellBook.Core.Editor.Inspector.MissingReferenceTypes.Clear(UnityEngine.Object, Long)
+  name.vb: Clear(Object, Long)
+  spec.csharp:
+  - uid: SpellBook.Core.Editor.Inspector.MissingReferenceTypes.Clear(UnityEngine.Object,System.Int64)
+    name: Clear
+    href: SpellBook.Core.Editor.Inspector.MissingReferenceTypes.html#SpellBook_Core_Editor_Inspector_MissingReferenceTypes_Clear_UnityEngine_Object_System_Int64_
+  - name: (
+  - uid: UnityEngine.Object
+    name: Object
+    isExternal: true
+  - name: ','
+  - name: " "
+  - uid: System.Int64
+    name: long
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int64
+  - name: )
+  spec.vb:
+  - uid: SpellBook.Core.Editor.Inspector.MissingReferenceTypes.Clear(UnityEngine.Object,System.Int64)
+    name: Clear
+    href: SpellBook.Core.Editor.Inspector.MissingReferenceTypes.html#SpellBook_Core_Editor_Inspector_MissingReferenceTypes_Clear_UnityEngine_Object_System_Int64_
+  - name: (
+  - uid: UnityEngine.Object
+    name: Object
+    isExternal: true
+  - name: ','
+  - name: " "
+  - uid: System.Int64
+    name: Long
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int64
+  - name: )
+- uid: SpellBook.Core.Editor.Inspector.MissingTypeEntry.ReferenceId*
+  commentId: Overload:SpellBook.Core.Editor.Inspector.MissingTypeEntry.ReferenceId
+  href: SpellBook.Core.Editor.Inspector.MissingTypeEntry.html#SpellBook_Core_Editor_Inspector_MissingTypeEntry_ReferenceId
+  name: ReferenceId
+  nameWithType: MissingTypeEntry.ReferenceId
+  fullName: SpellBook.Core.Editor.Inspector.MissingTypeEntry.ReferenceId
+- uid: SpellBook.Core.Editor.Inspector.MissingTypeEntry.AssemblyName*
+  commentId: Overload:SpellBook.Core.Editor.Inspector.MissingTypeEntry.AssemblyName
+  href: SpellBook.Core.Editor.Inspector.MissingTypeEntry.html#SpellBook_Core_Editor_Inspector_MissingTypeEntry_AssemblyName
+  name: AssemblyName
+  nameWithType: MissingTypeEntry.AssemblyName
+  fullName: SpellBook.Core.Editor.Inspector.MissingTypeEntry.AssemblyName
+- uid: SpellBook.Core.Editor.Inspector.MissingTypeEntry.FullTypeName*
+  commentId: Overload:SpellBook.Core.Editor.Inspector.MissingTypeEntry.FullTypeName
+  href: SpellBook.Core.Editor.Inspector.MissingTypeEntry.html#SpellBook_Core_Editor_Inspector_MissingTypeEntry_FullTypeName
+  name: FullTypeName
+  nameWithType: MissingTypeEntry.FullTypeName
+  fullName: SpellBook.Core.Editor.Inspector.MissingTypeEntry.FullTypeName

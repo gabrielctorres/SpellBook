@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 using SpellBook.Core.Editor.Inspector;
 
 namespace SpellBook.Core.Editor.Documentation
@@ -46,7 +47,7 @@ namespace SpellBook.Core.Editor.Documentation
         private static void RenderSection(StringBuilder text, TypeCatalogSection section)
         {
             Line(text, string.Empty);
-            Line(text, $"## `{section.BaseType.Name}` {{#{Anchor(section.BaseType)}}}");
+            Line(text, $"## `{Title(section.BaseType)}` {{#{Anchor(section.BaseType)}}}");
             Line(text, string.Empty);
             Line(text, $"Aparece em: `{string.Join("`, `", section.Fields)}`.");
             Line(text, string.Empty);
@@ -59,9 +60,47 @@ namespace SpellBook.Core.Editor.Documentation
             }
         }
 
+        private static string Title(Type type)
+        {
+            if (!type.IsConstructedGenericType)
+            {
+                return type.Name;
+            }
+
+            var title = new StringBuilder(WithoutArity(type.Name)).Append('<');
+            Type[] arguments = type.GetGenericArguments();
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                title.Append(i == 0 ? string.Empty : ", ").Append(Title(arguments[i]));
+            }
+
+            return title.Append('>').ToString();
+        }
+
         private static string Anchor(Type type)
         {
-            return type.FullName.ToLowerInvariant().Replace('.', '-').Replace('+', '-');
+            if (!type.IsConstructedGenericType)
+            {
+                return AnchorOfName(type.FullName);
+            }
+
+            var anchor = new StringBuilder(AnchorOfName(WithoutArity(type.GetGenericTypeDefinition().FullName)));
+            foreach (Type argument in type.GetGenericArguments())
+            {
+                anchor.Append('-').Append(Anchor(argument));
+            }
+
+            return anchor.ToString();
+        }
+
+        private static string AnchorOfName(string fullName)
+        {
+            return fullName.ToLowerInvariant().Replace('.', '-').Replace('+', '-');
+        }
+
+        private static string WithoutArity(string name)
+        {
+            return Regex.Replace(name, "`[0-9]+", string.Empty);
         }
 
         private static string ApiUrl(Type type)

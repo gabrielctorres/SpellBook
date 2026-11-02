@@ -1,0 +1,125 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Conditions
+  commentId: N:SpellBook.GAS.Conditions
+  id: SpellBook.GAS.Conditions
+  children:
+  - SpellBook.GAS.Conditions.AndCondition
+  - SpellBook.GAS.Conditions.AttributeThresholdCondition
+  - SpellBook.GAS.Conditions.AttributeThresholdCondition.Comparison
+  - SpellBook.GAS.Conditions.CastRangeCondition
+  - SpellBook.GAS.Conditions.ConditionContext
+  - SpellBook.GAS.Conditions.HasTargetPointCondition
+  - SpellBook.GAS.Conditions.HasTargetsCondition
+  - SpellBook.GAS.Conditions.NotCondition
+  - SpellBook.GAS.Conditions.OrCondition
+  - SpellBook.GAS.Conditions.TagQueryCondition
+  langs:
+  - csharp
+  - vb
+  name: SpellBook.GAS.Conditions
+  nameWithType: SpellBook.GAS.Conditions
+  fullName: SpellBook.GAS.Conditions
+  type: Namespace
+references:
+- uid: SpellBook.GAS.Conditions.AttributeThresholdCondition
+  commentId: T:SpellBook.GAS.Conditions.AttributeThresholdCondition
+  href: SpellBook.GAS.Conditions.AttributeThresholdCondition.html
+  name: AttributeThresholdCondition
+  nameWithType: AttributeThresholdCondition
+  fullName: SpellBook.GAS.Conditions.AttributeThresholdCondition
+- uid: SpellBook.GAS.Conditions.AttributeThresholdCondition.Comparison
+  commentId: T:SpellBook.GAS.Conditions.AttributeThresholdCondition.Comparison
+  parent: SpellBook.GAS.Conditions
+  href: SpellBook.GAS.Conditions.AttributeThresholdCondition.html
+  name: AttributeThresholdCondition.Comparison
+  nameWithType: AttributeThresholdCondition.Comparison
+  fullName: SpellBook.GAS.Conditions.AttributeThresholdCondition.Comparison
+  spec.csharp:
+  - uid: SpellBook.GAS.Conditions.AttributeThresholdCondition
+    name: AttributeThresholdCondition
+    href: SpellBook.GAS.Conditions.AttributeThresholdCondition.html
+  - name: .
+  - uid: SpellBook.GAS.Conditions.AttributeThresholdCondition.Comparison
+    name: Comparison
+    href: SpellBook.GAS.Conditions.AttributeThresholdCondition.Comparison.html
+  spec.vb:
+  - uid: SpellBook.GAS.Conditions.AttributeThresholdCondition
+    name: AttributeThresholdCondition
+    href: SpellBook.GAS.Conditions.AttributeThresholdCondition.html
+  - name: .
+  - uid: SpellBook.GAS.Conditions.AttributeThresholdCondition.Comparison
+    name: Comparison
+    href: SpellBook.GAS.Conditions.AttributeThresholdCondition.Comparison.html
+- uid: SpellBook.GAS.Conditions.CastRangeCondition
+  commentId: T:SpellBook.GAS.Conditions.CastRangeCondition
+  href: SpellBook.GAS.Conditions.CastRangeCondition.html
+  name: CastRangeCondition
+  nameWithType: CastRangeCondition
+  fullName: SpellBook.GAS.Conditions.CastRangeCondition
+- uid: SpellBook.GAS.Conditions.ConditionContext
+  commentId: T:SpellBook.GAS.Conditions.ConditionContext
+  parent: SpellBook.GAS.Conditions
+  href: SpellBook.GAS.Conditions.ConditionContext.html
+  name: ConditionContext
+  nameWithType: ConditionContext
+  fullName: SpellBook.GAS.Conditions.ConditionContext
+- uid: SpellBook.GAS.Conditions.AndCondition
+  commentId: T:SpellBook.GAS.Conditions.AndCondition
+  href: SpellBook.GAS.Conditions.AndCondition.html
+  name: AndCondition
+  nameWithType: AndCondition
+  fullName: SpellBook.GAS.Conditions.AndCondition
+- uid: SpellBook.GAS.Conditions.OrCondition
+  commentId: T:SpellBook.GAS.Conditions.OrCondition
+  href: SpellBook.GAS.Conditions.OrCondition.html
+  name: OrCondition
+  nameWithType: OrCondition
+  fullName: SpellBook.GAS.Conditions.OrCondition
+- uid: SpellBook.GAS.Conditions.NotCondition
+  commentId: T:SpellBook.GAS.Conditions.NotCondition
+  href: SpellBook.GAS.Conditions.NotCondition.html
+  name: NotCondition
+  nameWithType: NotCondition
+  fullName: SpellBook.GAS.Conditions.NotCondition
+- uid: SpellBook.GAS.Conditions.HasTargetPointCondition
+  commentId: T:SpellBook.GAS.Conditions.HasTargetPointCondition
+  href: SpellBook.GAS.Conditions.HasTargetPointCondition.html
+  name: HasTargetPointCondition
+  nameWithType: HasTargetPointCondition
+  fullName: SpellBook.GAS.Conditions.HasTargetPointCondition
+- uid: SpellBook.GAS.Conditions.HasTargetsCondition
+  commentId: T:SpellBook.GAS.Conditions.HasTargetsCondition
+  href: SpellBook.GAS.Conditions.HasTargetsCondition.html
+  name: HasTargetsCondition
+  nameWithType: HasTargetsCondition
+  fullName: SpellBook.GAS.Conditions.HasTargetsCondition
+- uid: SpellBook.GAS.Conditions.TagQueryCondition
+  commentId: T:SpellBook.GAS.Conditions.TagQueryCondition
+  href: SpellBook.GAS.Conditions.TagQueryCondition.html
+  name: TagQueryCondition
+  nameWithType: TagQueryCondition
+  fullName: SpellBook.GAS.Conditions.TagQueryCondition
+- uid: SpellBook.GAS.Conditions
+  commentId: N:SpellBook.GAS.Conditions
+  name: SpellBook.GAS.Conditions
+  nameWithType: SpellBook.GAS.Conditions
+  fullName: SpellBook.GAS.Conditions
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Conditions
+    name: Conditions
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Conditions
+    name: Conditions

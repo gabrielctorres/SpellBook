@@ -45,19 +45,47 @@ namespace SpellBook.Core.Editor.Documentation
         }
 
         /// <summary>
-        /// Texto do <c>docfx.metadata.json</c>. As fontes ficam relativas a <paramref name="configDir"/>; as referências são
-        /// as DLLs dos assemblies do pacote, sem as saídas deles. Listas em ordem ordinal, barras <c>/</c> e quebras <c>\n</c>.
+        /// Pastas da biblioteca base do .NET da Unity para os níveis de compatibilidade dos assemblies do pacote, em caminho completo.
         /// </summary>
-        public static string Render(IEnumerable<DocfxAssembly> assemblies, string configDir)
+        /// <remarks>
+        /// Cada assembly entra com dois níveis: o da API (<see cref="ScriptCompilerOptions.ApiCompatibilityLevel"/>) e o dos
+        /// assemblies de Editor (<see cref="ScriptCompilerOptions.EditorAssembliesCompatibilityLevel"/>).
+        /// </remarks>
+        public static IReadOnlyList<string> ReadSystemAssemblyDirectories()
+        {
+            return CompilationPipeline.GetAssemblies(AssembliesType.Editor)
+                .Where(a => TypeCatalog.IsPackageAssembly(a.name))
+                .SelectMany(a => new[]
+                {
+                    a.compilerOptions.ApiCompatibilityLevel,
+                    ToApiLevel(a.compilerOptions.EditorAssembliesCompatibilityLevel),
+                })
+                .Distinct()
+                .SelectMany(CompilationPipeline.GetSystemAssemblyDirectories)
+                .Select(Path.GetFullPath)
+                .Distinct(StringComparer.Ordinal)
+                .OrderBy(d => d, StringComparer.Ordinal)
+                .ToList();
+        }
+
+        /// <summary>
+        /// Texto do <c>docfx.metadata.json</c>. As fontes ficam relativas a <paramref name="configDir"/>; as referências são
+        /// as DLLs dos assemblies do pacote, sem as saídas deles e sem as que estão em <paramref name="systemAssemblyDirectories"/>,
+        /// porque o DocFX já traz a biblioteca base do .NET. Listas em ordem ordinal, barras <c>/</c> e quebras <c>\n</c>.
+        /// </summary>
+        public static string Render(IEnumerable<DocfxAssembly> assemblies, IReadOnlyCollection<string> systemAssemblyDirectories,
+            string configDir)
         {
             List<DocfxAssembly> package = assemblies.Where(a => TypeCatalog.IsPackageAssembly(a.Name)).ToList();
             var outputs = new HashSet<string>(package.Select(a => a.Name), StringComparer.Ordinal);
+            List<string> systemFolders = systemAssemblyDirectories.Select(d => Slashes(Path.GetFullPath(d)).TrimEnd('/') + "/").ToList();
 
             IEnumerable<string> sources = package.SelectMany(a => a.Sources)
                 .Select(s => Slashes(Path.GetRelativePath(configDir, s)));
             IEnumerable<string> references = package.SelectMany(a => a.References)
                 .Where(r => !outputs.Contains(Path.GetFileNameWithoutExtension(r)))
-                .Select(r => Slashes(Path.GetFullPath(r)));
+                .Select(r => Slashes(Path.GetFullPath(r)))
+                .Where(r => !systemFolders.Any(d => r.StartsWith(d, StringComparison.OrdinalIgnoreCase)));
 
             var text = new StringBuilder();
             text.Append("{\n  \"metadata\": [\n    {\n");
@@ -89,6 +117,22 @@ namespace SpellBook.Core.Editor.Documentation
             }
 
             text.Append(folders.Count > 0 ? "\n      ]" : "]");
+        }
+
+        // Default equivale a NET_Unity_4_8. Um nível novo lança exceção em vez de sumir do filtro.
+        private static ApiCompatibilityLevel ToApiLevel(EditorAssembliesCompatibilityLevel level)
+        {
+            switch (level)
+            {
+                case EditorAssembliesCompatibilityLevel.Default:
+                case EditorAssembliesCompatibilityLevel.NET_Unity_4_8:
+                    return ApiCompatibilityLevel.NET_Unity_4_8;
+                case EditorAssembliesCompatibilityLevel.NET_Standard:
+                    return ApiCompatibilityLevel.NET_Standard;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(level), level,
+                        "Nível de compatibilidade de Editor desconhecido: " + level + ".");
+            }
         }
 
         private static string Slashes(string path)

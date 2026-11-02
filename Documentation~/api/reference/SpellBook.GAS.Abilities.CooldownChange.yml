@@ -1,0 +1,108 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Abilities.CooldownChange
+  commentId: T:SpellBook.GAS.Abilities.CooldownChange
+  id: CooldownChange
+  parent: SpellBook.GAS.Abilities
+  children:
+  - SpellBook.GAS.Abilities.CooldownChange.Changed
+  - SpellBook.GAS.Abilities.CooldownChange.Ended
+  - SpellBook.GAS.Abilities.CooldownChange.Started
+  langs:
+  - csharp
+  - vb
+  name: CooldownChange
+  nameWithType: CooldownChange
+  fullName: SpellBook.GAS.Abilities.CooldownChange
+  type: Enum
+  namespace: SpellBook.GAS.Abilities
+  summary: Motivo de <code>AbilitySystemComponent.OnCooldownChanged</code>. Valores novos só no fim.
+  example: []
+  syntax:
+    content: public enum CooldownChange
+    content.vb: Public Enum CooldownChange
+- uid: SpellBook.GAS.Abilities.CooldownChange.Started
+  commentId: F:SpellBook.GAS.Abilities.CooldownChange.Started
+  id: Started
+  parent: SpellBook.GAS.Abilities.CooldownChange
+  langs:
+  - csharp
+  - vb
+  name: Started
+  nameWithType: CooldownChange.Started
+  fullName: SpellBook.GAS.Abilities.CooldownChange.Started
+  type: Field
+  namespace: SpellBook.GAS.Abilities
+  summary: A ativação aplicou a recarga.
+  example: []
+  syntax:
+    content: Started = 0
+    return:
+      type: SpellBook.GAS.Abilities.CooldownChange
+- uid: SpellBook.GAS.Abilities.CooldownChange.Changed
+  commentId: F:SpellBook.GAS.Abilities.CooldownChange.Changed
+  id: Changed
+  parent: SpellBook.GAS.Abilities.CooldownChange
+  langs:
+  - csharp
+  - vb
+  name: Changed
+  nameWithType: CooldownChange.Changed
+  fullName: SpellBook.GAS.Abilities.CooldownChange.Changed
+  type: Field
+  namespace: SpellBook.GAS.Abilities
+  summary: O tempo restante mudou por código (<code>ReduceCooldown</code> ou <code>RestartCooldown</code>) e a recarga continua.
+  example: []
+  syntax:
+    content: Changed = 1
+    return:
+      type: SpellBook.GAS.Abilities.CooldownChange
+- uid: SpellBook.GAS.Abilities.CooldownChange.Ended
+  commentId: F:SpellBook.GAS.Abilities.CooldownChange.Ended
+  id: Ended
+  parent: SpellBook.GAS.Abilities.CooldownChange
+  langs:
+  - csharp
+  - vb
+  name: Ended
+  nameWithType: CooldownChange.Ended
+  fullName: SpellBook.GAS.Abilities.CooldownChange.Ended
+  type: Field
+  namespace: SpellBook.GAS.Abilities
+  summary: 'A habilidade ficou pronta: a recarga expirou ou foi removida.'
+  example: []
+  syntax:
+    content: Ended = 2
+    return:
+      type: SpellBook.GAS.Abilities.CooldownChange
+references:
+- uid: SpellBook.GAS.Abilities
+  commentId: N:SpellBook.GAS.Abilities
+  name: SpellBook.GAS.Abilities
+  nameWithType: SpellBook.GAS.Abilities
+  fullName: SpellBook.GAS.Abilities
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+- uid: SpellBook.GAS.Abilities.CooldownChange
+  commentId: T:SpellBook.GAS.Abilities.CooldownChange
+  parent: SpellBook.GAS.Abilities
+  href: SpellBook.GAS.Abilities.CooldownChange.html
+  name: CooldownChange
+  nameWithType: CooldownChange
+  fullName: SpellBook.GAS.Abilities.CooldownChange

@@ -1,0 +1,371 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Attributes.ExpressionFormula.VariableMapping
+  commentId: T:SpellBook.GAS.Attributes.ExpressionFormula.VariableMapping
+  id: ExpressionFormula.VariableMapping
+  parent: SpellBook.GAS.Attributes
+  children:
+  - SpellBook.GAS.Attributes.ExpressionFormula.VariableMapping.Attribute
+  - SpellBook.GAS.Attributes.ExpressionFormula.VariableMapping.Source
+  - SpellBook.GAS.Attributes.ExpressionFormula.VariableMapping.Token
+  langs:
+  - csharp
+  - vb
+  name: ExpressionFormula.VariableMapping
+  nameWithType: ExpressionFormula.VariableMapping
+  fullName: SpellBook.GAS.Attributes.ExpressionFormula.VariableMapping
+  type: Struct
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: >-
+      [Serializable]
+
+      public struct ExpressionFormula.VariableMapping
+    content.vb: >-
+      <Serializable>
+
+      Public Structure ExpressionFormula.VariableMapping
+  inheritedMembers:
+  - System.ValueType.Equals(System.Object)
+  - System.ValueType.GetHashCode
+  - System.ValueType.ToString
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetType
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  attributes:
+  - type: System.SerializableAttribute
+    ctor: System.SerializableAttribute.#ctor
+    arguments: []
+- uid: SpellBook.GAS.Attributes.ExpressionFormula.VariableMapping.Token
+  commentId: F:SpellBook.GAS.Attributes.ExpressionFormula.VariableMapping.Token
+  id: Token
+  parent: SpellBook.GAS.Attributes.ExpressionFormula.VariableMapping
+  langs:
+  - csharp
+  - vb
+  name: Token
+  nameWithType: ExpressionFormula.VariableMapping.Token
+  fullName: SpellBook.GAS.Attributes.ExpressionFormula.VariableMapping.Token
+  type: Field
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: public string Token
+    return:
+      type: System.String
+    content.vb: Public Token As String
+- uid: SpellBook.GAS.Attributes.ExpressionFormula.VariableMapping.Attribute
+  commentId: F:SpellBook.GAS.Attributes.ExpressionFormula.VariableMapping.Attribute
+  id: Attribute
+  parent: SpellBook.GAS.Attributes.ExpressionFormula.VariableMapping
+  langs:
+  - csharp
+  - vb
+  name: Attribute
+  nameWithType: ExpressionFormula.VariableMapping.Attribute
+  fullName: SpellBook.GAS.Attributes.ExpressionFormula.VariableMapping.Attribute
+  type: Field
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: public AttributeDefinition Attribute
+    return:
+      type: SpellBook.GAS.Attributes.AttributeDefinition
+    content.vb: Public Attribute As AttributeDefinition
+- uid: SpellBook.GAS.Attributes.ExpressionFormula.VariableMapping.Source
+  commentId: F:SpellBook.GAS.Attributes.ExpressionFormula.VariableMapping.Source
+  id: Source
+  parent: SpellBook.GAS.Attributes.ExpressionFormula.VariableMapping
+  langs:
+  - csharp
+  - vb
+  name: Source
+  nameWithType: ExpressionFormula.VariableMapping.Source
+  fullName: SpellBook.GAS.Attributes.ExpressionFormula.VariableMapping.Source
+  type: Field
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: public ExpressionFormula.TargetSource Source
+    return:
+      type: SpellBook.GAS.Attributes.ExpressionFormula.TargetSource
+    content.vb: Public Source As ExpressionFormula.TargetSource
+references:
+- uid: SpellBook.GAS.Attributes
+  commentId: N:SpellBook.GAS.Attributes
+  name: SpellBook.GAS.Attributes
+  nameWithType: SpellBook.GAS.Attributes
+  fullName: SpellBook.GAS.Attributes
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Attributes
+    name: Attributes
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Attributes
+    name: Attributes
+- uid: System.ValueType.Equals(System.Object)
+  commentId: M:System.ValueType.Equals(System.Object)
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  name: Equals(object)
+  nameWithType: ValueType.Equals(object)
+  fullName: System.ValueType.Equals(object)
+  nameWithType.vb: ValueType.Equals(Object)
+  fullName.vb: System.ValueType.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.ValueType.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.ValueType.GetHashCode
+  commentId: M:System.ValueType.GetHashCode
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  name: GetHashCode()
+  nameWithType: ValueType.GetHashCode()
+  fullName: System.ValueType.GetHashCode()
+  spec.csharp:
+  - uid: System.ValueType.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  - name: (
+  - name: )
+- uid: System.ValueType.ToString
+  commentId: M:System.ValueType.ToString
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  name: ToString()
+  nameWithType: ValueType.ToString()
+  fullName: System.ValueType.ToString()
+  spec.csharp:
+  - uid: System.ValueType.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  - name: (
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.ValueType
+  commentId: T:System.ValueType
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype
+  name: ValueType
+  nameWithType: ValueType
+  fullName: System.ValueType
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: SpellBook.GAS.Attributes.AttributeDefinition
+  commentId: T:SpellBook.GAS.Attributes.AttributeDefinition
+  parent: SpellBook.GAS.Attributes
+  href: SpellBook.GAS.Attributes.AttributeDefinition.html
+  name: AttributeDefinition
+  nameWithType: AttributeDefinition
+  fullName: SpellBook.GAS.Attributes.AttributeDefinition
+- uid: SpellBook.GAS.Attributes.ExpressionFormula.TargetSource
+  commentId: T:SpellBook.GAS.Attributes.ExpressionFormula.TargetSource
+  parent: SpellBook.GAS.Attributes
+  href: SpellBook.GAS.Attributes.ExpressionFormula.html
+  name: ExpressionFormula.TargetSource
+  nameWithType: ExpressionFormula.TargetSource
+  fullName: SpellBook.GAS.Attributes.ExpressionFormula.TargetSource
+  spec.csharp:
+  - uid: SpellBook.GAS.Attributes.ExpressionFormula
+    name: ExpressionFormula
+    href: SpellBook.GAS.Attributes.ExpressionFormula.html
+  - name: .
+  - uid: SpellBook.GAS.Attributes.ExpressionFormula.TargetSource
+    name: TargetSource
+    href: SpellBook.GAS.Attributes.ExpressionFormula.TargetSource.html
+  spec.vb:
+  - uid: SpellBook.GAS.Attributes.ExpressionFormula
+    name: ExpressionFormula
+    href: SpellBook.GAS.Attributes.ExpressionFormula.html
+  - name: .
+  - uid: SpellBook.GAS.Attributes.ExpressionFormula.TargetSource
+    name: TargetSource
+    href: SpellBook.GAS.Attributes.ExpressionFormula.TargetSource.html

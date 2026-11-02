@@ -1,0 +1,236 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Effects.EffectApplicationResult
+  commentId: T:SpellBook.GAS.Effects.EffectApplicationResult
+  id: EffectApplicationResult
+  parent: SpellBook.GAS.Effects
+  children:
+  - SpellBook.GAS.Effects.EffectApplicationResult.Applied
+  - SpellBook.GAS.Effects.EffectApplicationResult.AppliedInstant
+  - SpellBook.GAS.Effects.EffectApplicationResult.BlockedByImmunity
+  - SpellBook.GAS.Effects.EffectApplicationResult.Invalid
+  - SpellBook.GAS.Effects.EffectApplicationResult.MissingRequirements
+  - SpellBook.GAS.Effects.EffectApplicationResult.Refreshed
+  - SpellBook.GAS.Effects.EffectApplicationResult.Stacked
+  langs:
+  - csharp
+  - vb
+  name: EffectApplicationResult
+  nameWithType: EffectApplicationResult
+  fullName: SpellBook.GAS.Effects.EffectApplicationResult
+  type: Enum
+  namespace: SpellBook.GAS.Effects
+  summary: >-
+    Desfecho de <xref href="SpellBook.GAS.Core.AbilitySystemComponent.TryApplyEffect(SpellBook.GAS.Effects.GameplayEffect%2cSpellBook.GAS.Core.AbilitySystemComponent%2cSpellBook.GAS.Effects.ActiveEffectInstance%40)" data-throw-if-not-resolved="false"></xref>.
+
+    Valores novos entram só no fim.
+  example: []
+  syntax:
+    content: public enum EffectApplicationResult
+    content.vb: Public Enum EffectApplicationResult
+- uid: SpellBook.GAS.Effects.EffectApplicationResult.Applied
+  commentId: F:SpellBook.GAS.Effects.EffectApplicationResult.Applied
+  id: Applied
+  parent: SpellBook.GAS.Effects.EffectApplicationResult
+  langs:
+  - csharp
+  - vb
+  name: Applied
+  nameWithType: EffectApplicationResult.Applied
+  fullName: SpellBook.GAS.Effects.EffectApplicationResult.Applied
+  type: Field
+  namespace: SpellBook.GAS.Effects
+  summary: Instância nova de efeito com duração ou infinito.
+  example: []
+  syntax:
+    content: Applied = 0
+    return:
+      type: SpellBook.GAS.Effects.EffectApplicationResult
+- uid: SpellBook.GAS.Effects.EffectApplicationResult.Stacked
+  commentId: F:SpellBook.GAS.Effects.EffectApplicationResult.Stacked
+  id: Stacked
+  parent: SpellBook.GAS.Effects.EffectApplicationResult
+  langs:
+  - csharp
+  - vb
+  name: Stacked
+  nameWithType: EffectApplicationResult.Stacked
+  fullName: SpellBook.GAS.Effects.EffectApplicationResult.Stacked
+  type: Field
+  namespace: SpellBook.GAS.Effects
+  summary: Reaplicação de efeito com <code>CanStack</code>, mesmo em <code>MaxStacks</code>.
+  example: []
+  syntax:
+    content: Stacked = 1
+    return:
+      type: SpellBook.GAS.Effects.EffectApplicationResult
+- uid: SpellBook.GAS.Effects.EffectApplicationResult.AppliedInstant
+  commentId: F:SpellBook.GAS.Effects.EffectApplicationResult.AppliedInstant
+  id: AppliedInstant
+  parent: SpellBook.GAS.Effects.EffectApplicationResult
+  langs:
+  - csharp
+  - vb
+  name: AppliedInstant
+  nameWithType: EffectApplicationResult.AppliedInstant
+  fullName: SpellBook.GAS.Effects.EffectApplicationResult.AppliedInstant
+  type: Field
+  namespace: SpellBook.GAS.Effects
+  summary: Efeito instantâneo aplicado; não há instância.
+  example: []
+  syntax:
+    content: AppliedInstant = 2
+    return:
+      type: SpellBook.GAS.Effects.EffectApplicationResult
+- uid: SpellBook.GAS.Effects.EffectApplicationResult.BlockedByImmunity
+  commentId: F:SpellBook.GAS.Effects.EffectApplicationResult.BlockedByImmunity
+  id: BlockedByImmunity
+  parent: SpellBook.GAS.Effects.EffectApplicationResult
+  langs:
+  - csharp
+  - vb
+  name: BlockedByImmunity
+  nameWithType: EffectApplicationResult.BlockedByImmunity
+  fullName: SpellBook.GAS.Effects.EffectApplicationResult.BlockedByImmunity
+  type: Field
+  namespace: SpellBook.GAS.Effects
+  summary: O alvo tem uma das <code>ApplicationImmunityTags</code>.
+  example: []
+  syntax:
+    content: BlockedByImmunity = 3
+    return:
+      type: SpellBook.GAS.Effects.EffectApplicationResult
+- uid: SpellBook.GAS.Effects.EffectApplicationResult.MissingRequirements
+  commentId: F:SpellBook.GAS.Effects.EffectApplicationResult.MissingRequirements
+  id: MissingRequirements
+  parent: SpellBook.GAS.Effects.EffectApplicationResult
+  langs:
+  - csharp
+  - vb
+  name: MissingRequirements
+  nameWithType: EffectApplicationResult.MissingRequirements
+  fullName: SpellBook.GAS.Effects.EffectApplicationResult.MissingRequirements
+  type: Field
+  namespace: SpellBook.GAS.Effects
+  summary: Falta ao alvo alguma das <code>ApplicationRequirements</code>.
+  example: []
+  syntax:
+    content: MissingRequirements = 4
+    return:
+      type: SpellBook.GAS.Effects.EffectApplicationResult
+- uid: SpellBook.GAS.Effects.EffectApplicationResult.Invalid
+  commentId: F:SpellBook.GAS.Effects.EffectApplicationResult.Invalid
+  id: Invalid
+  parent: SpellBook.GAS.Effects.EffectApplicationResult
+  langs:
+  - csharp
+  - vb
+  name: Invalid
+  nameWithType: EffectApplicationResult.Invalid
+  fullName: SpellBook.GAS.Effects.EffectApplicationResult.Invalid
+  type: Field
+  namespace: SpellBook.GAS.Effects
+  summary: Efeito nulo.
+  example: []
+  syntax:
+    content: Invalid = 5
+    return:
+      type: SpellBook.GAS.Effects.EffectApplicationResult
+- uid: SpellBook.GAS.Effects.EffectApplicationResult.Refreshed
+  commentId: F:SpellBook.GAS.Effects.EffectApplicationResult.Refreshed
+  id: Refreshed
+  parent: SpellBook.GAS.Effects.EffectApplicationResult
+  langs:
+  - csharp
+  - vb
+  name: Refreshed
+  nameWithType: EffectApplicationResult.Refreshed
+  fullName: SpellBook.GAS.Effects.EffectApplicationResult.Refreshed
+  type: Field
+  namespace: SpellBook.GAS.Effects
+  summary: 'Reaplicação de efeito sem <code>CanStack</code>: a instância existente foi renovada.'
+  example: []
+  syntax:
+    content: Refreshed = 6
+    return:
+      type: SpellBook.GAS.Effects.EffectApplicationResult
+references:
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.TryApplyEffect(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Effects.ActiveEffectInstance@)
+  commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.TryApplyEffect(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Effects.ActiveEffectInstance@)
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_TryApplyEffect_SpellBook_GAS_Effects_GameplayEffect_SpellBook_GAS_Core_AbilitySystemComponent_SpellBook_GAS_Effects_ActiveEffectInstance__
+  name: TryApplyEffect(GameplayEffect, AbilitySystemComponent, out ActiveEffectInstance)
+  nameWithType: AbilitySystemComponent.TryApplyEffect(GameplayEffect, AbilitySystemComponent, out ActiveEffectInstance)
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.TryApplyEffect(SpellBook.GAS.Effects.GameplayEffect, SpellBook.GAS.Core.AbilitySystemComponent, out SpellBook.GAS.Effects.ActiveEffectInstance)
+  nameWithType.vb: AbilitySystemComponent.TryApplyEffect(GameplayEffect, AbilitySystemComponent, ActiveEffectInstance)
+  fullName.vb: SpellBook.GAS.Core.AbilitySystemComponent.TryApplyEffect(SpellBook.GAS.Effects.GameplayEffect, SpellBook.GAS.Core.AbilitySystemComponent, SpellBook.GAS.Effects.ActiveEffectInstance)
+  name.vb: TryApplyEffect(GameplayEffect, AbilitySystemComponent, ActiveEffectInstance)
+  spec.csharp:
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent.TryApplyEffect(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Effects.ActiveEffectInstance@)
+    name: TryApplyEffect
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_TryApplyEffect_SpellBook_GAS_Effects_GameplayEffect_SpellBook_GAS_Core_AbilitySystemComponent_SpellBook_GAS_Effects_ActiveEffectInstance__
+  - name: (
+  - uid: SpellBook.GAS.Effects.GameplayEffect
+    name: GameplayEffect
+    href: SpellBook.GAS.Effects.GameplayEffect.html
+  - name: ','
+  - name: " "
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent
+    name: AbilitySystemComponent
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  - name: ','
+  - name: " "
+  - name: out
+  - name: " "
+  - uid: SpellBook.GAS.Effects.ActiveEffectInstance
+    name: ActiveEffectInstance
+    href: SpellBook.GAS.Effects.ActiveEffectInstance.html
+  - name: )
+  spec.vb:
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent.TryApplyEffect(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Effects.ActiveEffectInstance@)
+    name: TryApplyEffect
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_TryApplyEffect_SpellBook_GAS_Effects_GameplayEffect_SpellBook_GAS_Core_AbilitySystemComponent_SpellBook_GAS_Effects_ActiveEffectInstance__
+  - name: (
+  - uid: SpellBook.GAS.Effects.GameplayEffect
+    name: GameplayEffect
+    href: SpellBook.GAS.Effects.GameplayEffect.html
+  - name: ','
+  - name: " "
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent
+    name: AbilitySystemComponent
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  - name: ','
+  - name: " "
+  - uid: SpellBook.GAS.Effects.ActiveEffectInstance
+    name: ActiveEffectInstance
+    href: SpellBook.GAS.Effects.ActiveEffectInstance.html
+  - name: )
+- uid: SpellBook.GAS.Effects
+  commentId: N:SpellBook.GAS.Effects
+  name: SpellBook.GAS.Effects
+  nameWithType: SpellBook.GAS.Effects
+  fullName: SpellBook.GAS.Effects
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Effects
+    name: Effects
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Effects
+    name: Effects
+- uid: SpellBook.GAS.Effects.EffectApplicationResult
+  commentId: T:SpellBook.GAS.Effects.EffectApplicationResult
+  parent: SpellBook.GAS.Effects
+  href: SpellBook.GAS.Effects.EffectApplicationResult.html
+  name: EffectApplicationResult
+  nameWithType: EffectApplicationResult
+  fullName: SpellBook.GAS.Effects.EffectApplicationResult

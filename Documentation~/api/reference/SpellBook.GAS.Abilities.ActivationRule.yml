@@ -1,0 +1,639 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Abilities.ActivationRule
+  commentId: T:SpellBook.GAS.Abilities.ActivationRule
+  id: ActivationRule
+  parent: SpellBook.GAS.Abilities
+  children:
+  - SpellBook.GAS.Abilities.ActivationRule.#ctor
+  - SpellBook.GAS.Abilities.ActivationRule.#ctor(SpellBook.Core.Conditions.Condition{SpellBook.GAS.Conditions.ConditionContext},SpellBook.Tags.GameplayTag,System.String)
+  - SpellBook.GAS.Abilities.ActivationRule.Condition
+  - SpellBook.GAS.Abilities.ActivationRule.EffectiveFailureKey
+  - SpellBook.GAS.Abilities.ActivationRule.FailureKey
+  - SpellBook.GAS.Abilities.ActivationRule.FailureTag
+  - SpellBook.GAS.Abilities.ActivationRule.Validate(SpellBook.Core.Validation.ValidationResult,System.String)
+  langs:
+  - csharp
+  - vb
+  name: ActivationRule
+  nameWithType: ActivationRule
+  fullName: SpellBook.GAS.Abilities.ActivationRule
+  type: Class
+  namespace: SpellBook.GAS.Abilities
+  summary: >-
+    Regra de ativação de uma <xref href="SpellBook.GAS.Abilities.GameplayAbility" data-throw-if-not-resolved="false"></xref> (ADR 0032, item 4): uma condição e o motivo informado quando
+
+    ela falha. A condição continua pura; o motivo (tag e chave de texto) fica aqui.
+  example: []
+  syntax:
+    content: >-
+      [Serializable]
+
+      public sealed class ActivationRule
+    content.vb: >-
+      <Serializable>
+
+      Public NotInheritable Class ActivationRule
+  inheritance:
+  - System.Object
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+  attributes:
+  - type: System.SerializableAttribute
+    ctor: System.SerializableAttribute.#ctor
+    arguments: []
+- uid: SpellBook.GAS.Abilities.ActivationRule.#ctor
+  commentId: M:SpellBook.GAS.Abilities.ActivationRule.#ctor
+  id: '#ctor'
+  parent: SpellBook.GAS.Abilities.ActivationRule
+  langs:
+  - csharp
+  - vb
+  name: ActivationRule()
+  nameWithType: ActivationRule.ActivationRule()
+  fullName: SpellBook.GAS.Abilities.ActivationRule.ActivationRule()
+  type: Constructor
+  namespace: SpellBook.GAS.Abilities
+  syntax:
+    content: public ActivationRule()
+    content.vb: Public Sub New()
+  overload: SpellBook.GAS.Abilities.ActivationRule.#ctor*
+  nameWithType.vb: ActivationRule.New()
+  fullName.vb: SpellBook.GAS.Abilities.ActivationRule.New()
+  name.vb: New()
+- uid: SpellBook.GAS.Abilities.ActivationRule.#ctor(SpellBook.Core.Conditions.Condition{SpellBook.GAS.Conditions.ConditionContext},SpellBook.Tags.GameplayTag,System.String)
+  commentId: M:SpellBook.GAS.Abilities.ActivationRule.#ctor(SpellBook.Core.Conditions.Condition{SpellBook.GAS.Conditions.ConditionContext},SpellBook.Tags.GameplayTag,System.String)
+  id: '#ctor(SpellBook.Core.Conditions.Condition{SpellBook.GAS.Conditions.ConditionContext},SpellBook.Tags.GameplayTag,System.String)'
+  parent: SpellBook.GAS.Abilities.ActivationRule
+  langs:
+  - csharp
+  - vb
+  name: ActivationRule(Condition<ConditionContext>, GameplayTag, string)
+  nameWithType: ActivationRule.ActivationRule(Condition<ConditionContext>, GameplayTag, string)
+  fullName: SpellBook.GAS.Abilities.ActivationRule.ActivationRule(SpellBook.Core.Conditions.Condition<SpellBook.GAS.Conditions.ConditionContext>, SpellBook.Tags.GameplayTag, string)
+  type: Constructor
+  namespace: SpellBook.GAS.Abilities
+  syntax:
+    content: public ActivationRule(Condition<ConditionContext> condition, GameplayTag failureTag = default, string failureKey = null)
+    parameters:
+    - id: condition
+      type: SpellBook.Core.Conditions.Condition{SpellBook.GAS.Conditions.ConditionContext}
+    - id: failureTag
+      type: SpellBook.Tags.GameplayTag
+    - id: failureKey
+      type: System.String
+    content.vb: Public Sub New(condition As Condition(Of ConditionContext), failureTag As GameplayTag = Nothing, failureKey As String = Nothing)
+  overload: SpellBook.GAS.Abilities.ActivationRule.#ctor*
+  nameWithType.vb: ActivationRule.New(Condition(Of ConditionContext), GameplayTag, String)
+  fullName.vb: SpellBook.GAS.Abilities.ActivationRule.New(SpellBook.Core.Conditions.Condition(Of SpellBook.GAS.Conditions.ConditionContext), SpellBook.Tags.GameplayTag, String)
+  name.vb: New(Condition(Of ConditionContext), GameplayTag, String)
+- uid: SpellBook.GAS.Abilities.ActivationRule.Condition
+  commentId: P:SpellBook.GAS.Abilities.ActivationRule.Condition
+  id: Condition
+  parent: SpellBook.GAS.Abilities.ActivationRule
+  langs:
+  - csharp
+  - vb
+  name: Condition
+  nameWithType: ActivationRule.Condition
+  fullName: SpellBook.GAS.Abilities.ActivationRule.Condition
+  type: Property
+  namespace: SpellBook.GAS.Abilities
+  summary: Condição avaliada; nula, a regra é pulada.
+  example: []
+  syntax:
+    content: public Condition<ConditionContext> Condition { get; set; }
+    parameters: []
+    return:
+      type: SpellBook.Core.Conditions.Condition{SpellBook.GAS.Conditions.ConditionContext}
+    content.vb: Public Property Condition As Condition(Of ConditionContext)
+  overload: SpellBook.GAS.Abilities.ActivationRule.Condition*
+- uid: SpellBook.GAS.Abilities.ActivationRule.FailureTag
+  commentId: P:SpellBook.GAS.Abilities.ActivationRule.FailureTag
+  id: FailureTag
+  parent: SpellBook.GAS.Abilities.ActivationRule
+  langs:
+  - csharp
+  - vb
+  name: FailureTag
+  nameWithType: ActivationRule.FailureTag
+  fullName: SpellBook.GAS.Abilities.ActivationRule.FailureTag
+  type: Property
+  namespace: SpellBook.GAS.Abilities
+  summary: Tag do motivo da falha; inválida se a regra não define uma.
+  example: []
+  syntax:
+    content: public GameplayTag FailureTag { get; set; }
+    parameters: []
+    return:
+      type: SpellBook.Tags.GameplayTag
+    content.vb: Public Property FailureTag As GameplayTag
+  overload: SpellBook.GAS.Abilities.ActivationRule.FailureTag*
+- uid: SpellBook.GAS.Abilities.ActivationRule.FailureKey
+  commentId: P:SpellBook.GAS.Abilities.ActivationRule.FailureKey
+  id: FailureKey
+  parent: SpellBook.GAS.Abilities.ActivationRule
+  langs:
+  - csharp
+  - vb
+  name: FailureKey
+  nameWithType: ActivationRule.FailureKey
+  fullName: SpellBook.GAS.Abilities.ActivationRule.FailureKey
+  type: Property
+  namespace: SpellBook.GAS.Abilities
+  summary: Chave de texto configurada na regra; pode ser vazia.
+  example: []
+  syntax:
+    content: public string FailureKey { get; set; }
+    parameters: []
+    return:
+      type: System.String
+    content.vb: Public Property FailureKey As String
+  overload: SpellBook.GAS.Abilities.ActivationRule.FailureKey*
+- uid: SpellBook.GAS.Abilities.ActivationRule.EffectiveFailureKey
+  commentId: P:SpellBook.GAS.Abilities.ActivationRule.EffectiveFailureKey
+  id: EffectiveFailureKey
+  parent: SpellBook.GAS.Abilities.ActivationRule
+  langs:
+  - csharp
+  - vb
+  name: EffectiveFailureKey
+  nameWithType: ActivationRule.EffectiveFailureKey
+  fullName: SpellBook.GAS.Abilities.ActivationRule.EffectiveFailureKey
+  type: Property
+  namespace: SpellBook.GAS.Abilities
+  summary: 'Chave efetiva do motivo: a da regra ou, vazia, a <xref href="SpellBook.Core.Conditions.Condition%601.DefaultFailureKey" data-throw-if-not-resolved="false"></xref>.'
+  example: []
+  syntax:
+    content: public string EffectiveFailureKey { get; }
+    parameters: []
+    return:
+      type: System.String
+    content.vb: Public ReadOnly Property EffectiveFailureKey As String
+  overload: SpellBook.GAS.Abilities.ActivationRule.EffectiveFailureKey*
+- uid: SpellBook.GAS.Abilities.ActivationRule.Validate(SpellBook.Core.Validation.ValidationResult,System.String)
+  commentId: M:SpellBook.GAS.Abilities.ActivationRule.Validate(SpellBook.Core.Validation.ValidationResult,System.String)
+  id: Validate(SpellBook.Core.Validation.ValidationResult,System.String)
+  parent: SpellBook.GAS.Abilities.ActivationRule
+  langs:
+  - csharp
+  - vb
+  name: Validate(ValidationResult, string)
+  nameWithType: ActivationRule.Validate(ValidationResult, string)
+  fullName: SpellBook.GAS.Abilities.ActivationRule.Validate(SpellBook.Core.Validation.ValidationResult, string)
+  type: Method
+  namespace: SpellBook.GAS.Abilities
+  summary: Acusa a regra sem condição e repassa a validação à condição. O caminho é o da regra.
+  example: []
+  syntax:
+    content: public void Validate(ValidationResult result, string propertyPath)
+    parameters:
+    - id: result
+      type: SpellBook.Core.Validation.ValidationResult
+    - id: propertyPath
+      type: System.String
+    content.vb: Public Sub Validate(result As ValidationResult, propertyPath As String)
+  overload: SpellBook.GAS.Abilities.ActivationRule.Validate*
+  nameWithType.vb: ActivationRule.Validate(ValidationResult, String)
+  fullName.vb: SpellBook.GAS.Abilities.ActivationRule.Validate(SpellBook.Core.Validation.ValidationResult, String)
+  name.vb: Validate(ValidationResult, String)
+references:
+- uid: SpellBook.GAS.Abilities.GameplayAbility
+  commentId: T:SpellBook.GAS.Abilities.GameplayAbility
+  parent: SpellBook.GAS.Abilities
+  href: SpellBook.GAS.Abilities.GameplayAbility.html
+  name: GameplayAbility
+  nameWithType: GameplayAbility
+  fullName: SpellBook.GAS.Abilities.GameplayAbility
+- uid: SpellBook.GAS.Abilities
+  commentId: N:SpellBook.GAS.Abilities
+  name: SpellBook.GAS.Abilities
+  nameWithType: SpellBook.GAS.Abilities
+  fullName: SpellBook.GAS.Abilities
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: SpellBook.GAS.Abilities.ActivationRule.#ctor*
+  commentId: Overload:SpellBook.GAS.Abilities.ActivationRule.#ctor
+  href: SpellBook.GAS.Abilities.ActivationRule.html#SpellBook_GAS_Abilities_ActivationRule__ctor
+  name: ActivationRule
+  nameWithType: ActivationRule.ActivationRule
+  fullName: SpellBook.GAS.Abilities.ActivationRule.ActivationRule
+  nameWithType.vb: ActivationRule.New
+  fullName.vb: SpellBook.GAS.Abilities.ActivationRule.New
+  name.vb: New
+- uid: SpellBook.Core.Conditions.Condition{SpellBook.GAS.Conditions.ConditionContext}
+  commentId: T:SpellBook.Core.Conditions.Condition{SpellBook.GAS.Conditions.ConditionContext}
+  parent: SpellBook.Core.Conditions
+  definition: SpellBook.Core.Conditions.Condition`1
+  href: SpellBook.Core.Conditions.Condition-1.html
+  name: Condition<ConditionContext>
+  nameWithType: Condition<ConditionContext>
+  fullName: SpellBook.Core.Conditions.Condition<SpellBook.GAS.Conditions.ConditionContext>
+  nameWithType.vb: Condition(Of ConditionContext)
+  fullName.vb: SpellBook.Core.Conditions.Condition(Of SpellBook.GAS.Conditions.ConditionContext)
+  name.vb: Condition(Of ConditionContext)
+  spec.csharp:
+  - uid: SpellBook.Core.Conditions.Condition`1
+    name: Condition
+    href: SpellBook.Core.Conditions.Condition-1.html
+  - name: <
+  - uid: SpellBook.GAS.Conditions.ConditionContext
+    name: ConditionContext
+    href: SpellBook.GAS.Conditions.ConditionContext.html
+  - name: '>'
+  spec.vb:
+  - uid: SpellBook.Core.Conditions.Condition`1
+    name: Condition
+    href: SpellBook.Core.Conditions.Condition-1.html
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: SpellBook.GAS.Conditions.ConditionContext
+    name: ConditionContext
+    href: SpellBook.GAS.Conditions.ConditionContext.html
+  - name: )
+- uid: SpellBook.Tags.GameplayTag
+  commentId: T:SpellBook.Tags.GameplayTag
+  parent: SpellBook.Tags
+  href: SpellBook.Tags.GameplayTag.html
+  name: GameplayTag
+  nameWithType: GameplayTag
+  fullName: SpellBook.Tags.GameplayTag
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: SpellBook.Core.Conditions.Condition`1
+  commentId: T:SpellBook.Core.Conditions.Condition`1
+  href: SpellBook.Core.Conditions.Condition-1.html
+  name: Condition<TContext>
+  nameWithType: Condition<TContext>
+  fullName: SpellBook.Core.Conditions.Condition<TContext>
+  nameWithType.vb: Condition(Of TContext)
+  fullName.vb: SpellBook.Core.Conditions.Condition(Of TContext)
+  name.vb: Condition(Of TContext)
+  spec.csharp:
+  - uid: SpellBook.Core.Conditions.Condition`1
+    name: Condition
+    href: SpellBook.Core.Conditions.Condition-1.html
+  - name: <
+  - name: TContext
+  - name: '>'
+  spec.vb:
+  - uid: SpellBook.Core.Conditions.Condition`1
+    name: Condition
+    href: SpellBook.Core.Conditions.Condition-1.html
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TContext
+  - name: )
+- uid: SpellBook.Core.Conditions
+  commentId: N:SpellBook.Core.Conditions
+  name: SpellBook.Core.Conditions
+  nameWithType: SpellBook.Core.Conditions
+  fullName: SpellBook.Core.Conditions
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Conditions
+    name: Conditions
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Conditions
+    name: Conditions
+- uid: SpellBook.Tags
+  commentId: N:SpellBook.Tags
+  name: SpellBook.Tags
+  nameWithType: SpellBook.Tags
+  fullName: SpellBook.Tags
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Tags
+    name: Tags
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Tags
+    name: Tags
+- uid: SpellBook.GAS.Abilities.ActivationRule.Condition*
+  commentId: Overload:SpellBook.GAS.Abilities.ActivationRule.Condition
+  href: SpellBook.GAS.Abilities.ActivationRule.html#SpellBook_GAS_Abilities_ActivationRule_Condition
+  name: Condition
+  nameWithType: ActivationRule.Condition
+  fullName: SpellBook.GAS.Abilities.ActivationRule.Condition
+- uid: SpellBook.GAS.Abilities.ActivationRule.FailureTag*
+  commentId: Overload:SpellBook.GAS.Abilities.ActivationRule.FailureTag
+  href: SpellBook.GAS.Abilities.ActivationRule.html#SpellBook_GAS_Abilities_ActivationRule_FailureTag
+  name: FailureTag
+  nameWithType: ActivationRule.FailureTag
+  fullName: SpellBook.GAS.Abilities.ActivationRule.FailureTag
+- uid: SpellBook.GAS.Abilities.ActivationRule.FailureKey*
+  commentId: Overload:SpellBook.GAS.Abilities.ActivationRule.FailureKey
+  href: SpellBook.GAS.Abilities.ActivationRule.html#SpellBook_GAS_Abilities_ActivationRule_FailureKey
+  name: FailureKey
+  nameWithType: ActivationRule.FailureKey
+  fullName: SpellBook.GAS.Abilities.ActivationRule.FailureKey
+- uid: SpellBook.Core.Conditions.Condition`1.DefaultFailureKey
+  commentId: P:SpellBook.Core.Conditions.Condition`1.DefaultFailureKey
+  href: SpellBook.Core.Conditions.Condition-1.html#SpellBook_Core_Conditions_Condition_1_DefaultFailureKey
+  name: DefaultFailureKey
+  nameWithType: Condition<TContext>.DefaultFailureKey
+  fullName: SpellBook.Core.Conditions.Condition<TContext>.DefaultFailureKey
+  nameWithType.vb: Condition(Of TContext).DefaultFailureKey
+  fullName.vb: SpellBook.Core.Conditions.Condition(Of TContext).DefaultFailureKey
+- uid: SpellBook.GAS.Abilities.ActivationRule.EffectiveFailureKey*
+  commentId: Overload:SpellBook.GAS.Abilities.ActivationRule.EffectiveFailureKey
+  href: SpellBook.GAS.Abilities.ActivationRule.html#SpellBook_GAS_Abilities_ActivationRule_EffectiveFailureKey
+  name: EffectiveFailureKey
+  nameWithType: ActivationRule.EffectiveFailureKey
+  fullName: SpellBook.GAS.Abilities.ActivationRule.EffectiveFailureKey
+- uid: SpellBook.GAS.Abilities.ActivationRule.Validate*
+  commentId: Overload:SpellBook.GAS.Abilities.ActivationRule.Validate
+  href: SpellBook.GAS.Abilities.ActivationRule.html#SpellBook_GAS_Abilities_ActivationRule_Validate_SpellBook_Core_Validation_ValidationResult_System_String_
+  name: Validate
+  nameWithType: ActivationRule.Validate
+  fullName: SpellBook.GAS.Abilities.ActivationRule.Validate
+- uid: SpellBook.Core.Validation.ValidationResult
+  commentId: T:SpellBook.Core.Validation.ValidationResult
+  parent: SpellBook.Core.Validation
+  href: SpellBook.Core.Validation.ValidationResult.html
+  name: ValidationResult
+  nameWithType: ValidationResult
+  fullName: SpellBook.Core.Validation.ValidationResult
+- uid: SpellBook.Core.Validation
+  commentId: N:SpellBook.Core.Validation
+  name: SpellBook.Core.Validation
+  nameWithType: SpellBook.Core.Validation
+  fullName: SpellBook.Core.Validation
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Validation
+    name: Validation
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Validation
+    name: Validation

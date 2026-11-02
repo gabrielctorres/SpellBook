@@ -1,0 +1,440 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Abilities.TextElement
+  commentId: T:SpellBook.GAS.Abilities.TextElement
+  id: TextElement
+  parent: SpellBook.GAS.Abilities
+  children:
+  - SpellBook.GAS.Abilities.TextElement.GetText(SpellBook.GAS.Abilities.GameplayAbility,SpellBook.GAS.Core.AbilitySystemComponent)
+  - SpellBook.GAS.Abilities.TextElement.Text
+  langs:
+  - csharp
+  - vb
+  name: TextElement
+  nameWithType: TextElement
+  fullName: SpellBook.GAS.Abilities.TextElement
+  type: Class
+  namespace: SpellBook.GAS.Abilities
+  syntax:
+    content: >-
+      [Serializable]
+
+      public class TextElement : DescriptionElement
+    content.vb: >-
+      <Serializable>
+
+      Public Class TextElement Inherits DescriptionElement
+  inheritance:
+  - System.Object
+  - SpellBook.GAS.Abilities.DescriptionElement
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.MemberwiseClone
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+  attributes:
+  - type: System.SerializableAttribute
+    ctor: System.SerializableAttribute.#ctor
+    arguments: []
+- uid: SpellBook.GAS.Abilities.TextElement.Text
+  commentId: F:SpellBook.GAS.Abilities.TextElement.Text
+  id: Text
+  parent: SpellBook.GAS.Abilities.TextElement
+  langs:
+  - csharp
+  - vb
+  name: Text
+  nameWithType: TextElement.Text
+  fullName: SpellBook.GAS.Abilities.TextElement.Text
+  type: Field
+  namespace: SpellBook.GAS.Abilities
+  syntax:
+    content: public string Text
+    return:
+      type: System.String
+    content.vb: Public Text As String
+- uid: SpellBook.GAS.Abilities.TextElement.GetText(SpellBook.GAS.Abilities.GameplayAbility,SpellBook.GAS.Core.AbilitySystemComponent)
+  commentId: M:SpellBook.GAS.Abilities.TextElement.GetText(SpellBook.GAS.Abilities.GameplayAbility,SpellBook.GAS.Core.AbilitySystemComponent)
+  id: GetText(SpellBook.GAS.Abilities.GameplayAbility,SpellBook.GAS.Core.AbilitySystemComponent)
+  parent: SpellBook.GAS.Abilities.TextElement
+  langs:
+  - csharp
+  - vb
+  name: GetText(GameplayAbility, AbilitySystemComponent)
+  nameWithType: TextElement.GetText(GameplayAbility, AbilitySystemComponent)
+  fullName: SpellBook.GAS.Abilities.TextElement.GetText(SpellBook.GAS.Abilities.GameplayAbility, SpellBook.GAS.Core.AbilitySystemComponent)
+  type: Method
+  namespace: SpellBook.GAS.Abilities
+  example: []
+  syntax:
+    content: public override string GetText(GameplayAbility ability, AbilitySystemComponent source)
+    parameters:
+    - id: ability
+      type: SpellBook.GAS.Abilities.GameplayAbility
+    - id: source
+      type: SpellBook.GAS.Core.AbilitySystemComponent
+    return:
+      type: System.String
+    content.vb: Public Overrides Function GetText(ability As GameplayAbility, source As AbilitySystemComponent) As String
+  overridden: SpellBook.GAS.Abilities.DescriptionElement.GetText(SpellBook.GAS.Abilities.GameplayAbility,SpellBook.GAS.Core.AbilitySystemComponent)
+  overload: SpellBook.GAS.Abilities.TextElement.GetText*
+references:
+- uid: SpellBook.GAS.Abilities
+  commentId: N:SpellBook.GAS.Abilities
+  name: SpellBook.GAS.Abilities
+  nameWithType: SpellBook.GAS.Abilities
+  fullName: SpellBook.GAS.Abilities
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: SpellBook.GAS.Abilities.DescriptionElement
+  commentId: T:SpellBook.GAS.Abilities.DescriptionElement
+  parent: SpellBook.GAS.Abilities
+  href: SpellBook.GAS.Abilities.DescriptionElement.html
+  name: DescriptionElement
+  nameWithType: DescriptionElement
+  fullName: SpellBook.GAS.Abilities.DescriptionElement
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.MemberwiseClone
+  commentId: M:System.Object.MemberwiseClone
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  name: MemberwiseClone()
+  nameWithType: object.MemberwiseClone()
+  fullName: object.MemberwiseClone()
+  nameWithType.vb: Object.MemberwiseClone()
+  fullName.vb: Object.MemberwiseClone()
+  spec.csharp:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: SpellBook.GAS.Abilities.DescriptionElement.GetText(SpellBook.GAS.Abilities.GameplayAbility,SpellBook.GAS.Core.AbilitySystemComponent)
+  commentId: M:SpellBook.GAS.Abilities.DescriptionElement.GetText(SpellBook.GAS.Abilities.GameplayAbility,SpellBook.GAS.Core.AbilitySystemComponent)
+  parent: SpellBook.GAS.Abilities.DescriptionElement
+  href: SpellBook.GAS.Abilities.DescriptionElement.html#SpellBook_GAS_Abilities_DescriptionElement_GetText_SpellBook_GAS_Abilities_GameplayAbility_SpellBook_GAS_Core_AbilitySystemComponent_
+  name: GetText(GameplayAbility, AbilitySystemComponent)
+  nameWithType: DescriptionElement.GetText(GameplayAbility, AbilitySystemComponent)
+  fullName: SpellBook.GAS.Abilities.DescriptionElement.GetText(SpellBook.GAS.Abilities.GameplayAbility, SpellBook.GAS.Core.AbilitySystemComponent)
+  spec.csharp:
+  - uid: SpellBook.GAS.Abilities.DescriptionElement.GetText(SpellBook.GAS.Abilities.GameplayAbility,SpellBook.GAS.Core.AbilitySystemComponent)
+    name: GetText
+    href: SpellBook.GAS.Abilities.DescriptionElement.html#SpellBook_GAS_Abilities_DescriptionElement_GetText_SpellBook_GAS_Abilities_GameplayAbility_SpellBook_GAS_Core_AbilitySystemComponent_
+  - name: (
+  - uid: SpellBook.GAS.Abilities.GameplayAbility
+    name: GameplayAbility
+    href: SpellBook.GAS.Abilities.GameplayAbility.html
+  - name: ','
+  - name: " "
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent
+    name: AbilitySystemComponent
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  - name: )
+  spec.vb:
+  - uid: SpellBook.GAS.Abilities.DescriptionElement.GetText(SpellBook.GAS.Abilities.GameplayAbility,SpellBook.GAS.Core.AbilitySystemComponent)
+    name: GetText
+    href: SpellBook.GAS.Abilities.DescriptionElement.html#SpellBook_GAS_Abilities_DescriptionElement_GetText_SpellBook_GAS_Abilities_GameplayAbility_SpellBook_GAS_Core_AbilitySystemComponent_
+  - name: (
+  - uid: SpellBook.GAS.Abilities.GameplayAbility
+    name: GameplayAbility
+    href: SpellBook.GAS.Abilities.GameplayAbility.html
+  - name: ','
+  - name: " "
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent
+    name: AbilitySystemComponent
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  - name: )
+- uid: SpellBook.GAS.Abilities.TextElement.GetText*
+  commentId: Overload:SpellBook.GAS.Abilities.TextElement.GetText
+  href: SpellBook.GAS.Abilities.TextElement.html#SpellBook_GAS_Abilities_TextElement_GetText_SpellBook_GAS_Abilities_GameplayAbility_SpellBook_GAS_Core_AbilitySystemComponent_
+  name: GetText
+  nameWithType: TextElement.GetText
+  fullName: SpellBook.GAS.Abilities.TextElement.GetText
+- uid: SpellBook.GAS.Abilities.GameplayAbility
+  commentId: T:SpellBook.GAS.Abilities.GameplayAbility
+  parent: SpellBook.GAS.Abilities
+  href: SpellBook.GAS.Abilities.GameplayAbility.html
+  name: GameplayAbility
+  nameWithType: GameplayAbility
+  fullName: SpellBook.GAS.Abilities.GameplayAbility
+- uid: SpellBook.GAS.Core.AbilitySystemComponent
+  commentId: T:SpellBook.GAS.Core.AbilitySystemComponent
+  parent: SpellBook.GAS.Core
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  name: AbilitySystemComponent
+  nameWithType: AbilitySystemComponent
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent
+- uid: SpellBook.GAS.Core
+  commentId: N:SpellBook.GAS.Core
+  name: SpellBook.GAS.Core
+  nameWithType: SpellBook.GAS.Core
+  fullName: SpellBook.GAS.Core
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Core
+    name: Core
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Core
+    name: Core

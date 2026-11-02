@@ -1,0 +1,73 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.Core.Editor
+  commentId: N:SpellBook.Core.Editor
+  id: SpellBook.Core.Editor
+  children:
+  - SpellBook.Core.Editor.HelpUrlRule
+  - SpellBook.Core.Editor.HelpUrlViolation
+  - SpellBook.Core.Editor.ProjectValidator
+  - SpellBook.Core.Editor.SpellBookEditor
+  - SpellBook.Core.Editor.ValidationWindow
+  langs:
+  - csharp
+  - vb
+  name: SpellBook.Core.Editor
+  nameWithType: SpellBook.Core.Editor
+  fullName: SpellBook.Core.Editor
+  type: Namespace
+references:
+- uid: SpellBook.Core.Editor.HelpUrlViolation
+  commentId: T:SpellBook.Core.Editor.HelpUrlViolation
+  href: SpellBook.Core.Editor.HelpUrlViolation.html
+  name: HelpUrlViolation
+  nameWithType: HelpUrlViolation
+  fullName: SpellBook.Core.Editor.HelpUrlViolation
+- uid: SpellBook.Core.Editor.HelpUrlRule
+  commentId: T:SpellBook.Core.Editor.HelpUrlRule
+  href: SpellBook.Core.Editor.HelpUrlRule.html
+  name: HelpUrlRule
+  nameWithType: HelpUrlRule
+  fullName: SpellBook.Core.Editor.HelpUrlRule
+- uid: SpellBook.Core.Editor.ProjectValidator
+  commentId: T:SpellBook.Core.Editor.ProjectValidator
+  href: SpellBook.Core.Editor.ProjectValidator.html
+  name: ProjectValidator
+  nameWithType: ProjectValidator
+  fullName: SpellBook.Core.Editor.ProjectValidator
+- uid: SpellBook.Core.Editor.ValidationWindow
+  commentId: T:SpellBook.Core.Editor.ValidationWindow
+  href: SpellBook.Core.Editor.ValidationWindow.html
+  name: ValidationWindow
+  nameWithType: ValidationWindow
+  fullName: SpellBook.Core.Editor.ValidationWindow
+- uid: SpellBook.Core.Editor.SpellBookEditor
+  commentId: T:SpellBook.Core.Editor.SpellBookEditor
+  parent: SpellBook.Core.Editor
+  href: SpellBook.Core.Editor.SpellBookEditor.html
+  name: SpellBookEditor
+  nameWithType: SpellBookEditor
+  fullName: SpellBook.Core.Editor.SpellBookEditor
+- uid: SpellBook.Core.Editor
+  commentId: N:SpellBook.Core.Editor
+  name: SpellBook.Core.Editor
+  nameWithType: SpellBook.Core.Editor
+  fullName: SpellBook.Core.Editor
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Editor
+    name: Editor
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Editor
+    name: Editor

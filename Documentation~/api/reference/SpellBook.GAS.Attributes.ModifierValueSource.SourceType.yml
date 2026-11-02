@@ -1,0 +1,150 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Attributes.ModifierValueSource.SourceType
+  commentId: T:SpellBook.GAS.Attributes.ModifierValueSource.SourceType
+  id: ModifierValueSource.SourceType
+  parent: SpellBook.GAS.Attributes
+  children:
+  - SpellBook.GAS.Attributes.ModifierValueSource.SourceType.Attribute
+  - SpellBook.GAS.Attributes.ModifierValueSource.SourceType.Formula
+  - SpellBook.GAS.Attributes.ModifierValueSource.SourceType.SetByCaller
+  - SpellBook.GAS.Attributes.ModifierValueSource.SourceType.TargetAttribute
+  - SpellBook.GAS.Attributes.ModifierValueSource.SourceType.Value
+  langs:
+  - csharp
+  - vb
+  name: ModifierValueSource.SourceType
+  nameWithType: ModifierValueSource.SourceType
+  fullName: SpellBook.GAS.Attributes.ModifierValueSource.SourceType
+  type: Enum
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: public enum ModifierValueSource.SourceType
+    content.vb: Public Enum ModifierValueSource.SourceType
+- uid: SpellBook.GAS.Attributes.ModifierValueSource.SourceType.Value
+  commentId: F:SpellBook.GAS.Attributes.ModifierValueSource.SourceType.Value
+  id: Value
+  parent: SpellBook.GAS.Attributes.ModifierValueSource.SourceType
+  langs:
+  - csharp
+  - vb
+  name: Value
+  nameWithType: ModifierValueSource.SourceType.Value
+  fullName: SpellBook.GAS.Attributes.ModifierValueSource.SourceType.Value
+  type: Field
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: Value = 0
+    return:
+      type: SpellBook.GAS.Attributes.ModifierValueSource.SourceType
+- uid: SpellBook.GAS.Attributes.ModifierValueSource.SourceType.Attribute
+  commentId: F:SpellBook.GAS.Attributes.ModifierValueSource.SourceType.Attribute
+  id: Attribute
+  parent: SpellBook.GAS.Attributes.ModifierValueSource.SourceType
+  langs:
+  - csharp
+  - vb
+  name: Attribute
+  nameWithType: ModifierValueSource.SourceType.Attribute
+  fullName: SpellBook.GAS.Attributes.ModifierValueSource.SourceType.Attribute
+  type: Field
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: Attribute = 1
+    return:
+      type: SpellBook.GAS.Attributes.ModifierValueSource.SourceType
+- uid: SpellBook.GAS.Attributes.ModifierValueSource.SourceType.Formula
+  commentId: F:SpellBook.GAS.Attributes.ModifierValueSource.SourceType.Formula
+  id: Formula
+  parent: SpellBook.GAS.Attributes.ModifierValueSource.SourceType
+  langs:
+  - csharp
+  - vb
+  name: Formula
+  nameWithType: ModifierValueSource.SourceType.Formula
+  fullName: SpellBook.GAS.Attributes.ModifierValueSource.SourceType.Formula
+  type: Field
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: Formula = 2
+    return:
+      type: SpellBook.GAS.Attributes.ModifierValueSource.SourceType
+- uid: SpellBook.GAS.Attributes.ModifierValueSource.SourceType.SetByCaller
+  commentId: F:SpellBook.GAS.Attributes.ModifierValueSource.SourceType.SetByCaller
+  id: SetByCaller
+  parent: SpellBook.GAS.Attributes.ModifierValueSource.SourceType
+  langs:
+  - csharp
+  - vb
+  name: SetByCaller
+  nameWithType: ModifierValueSource.SourceType.SetByCaller
+  fullName: SpellBook.GAS.Attributes.ModifierValueSource.SourceType.SetByCaller
+  type: Field
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: SetByCaller = 3
+    return:
+      type: SpellBook.GAS.Attributes.ModifierValueSource.SourceType
+- uid: SpellBook.GAS.Attributes.ModifierValueSource.SourceType.TargetAttribute
+  commentId: F:SpellBook.GAS.Attributes.ModifierValueSource.SourceType.TargetAttribute
+  id: TargetAttribute
+  parent: SpellBook.GAS.Attributes.ModifierValueSource.SourceType
+  langs:
+  - csharp
+  - vb
+  name: TargetAttribute
+  nameWithType: ModifierValueSource.SourceType.TargetAttribute
+  fullName: SpellBook.GAS.Attributes.ModifierValueSource.SourceType.TargetAttribute
+  type: Field
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: TargetAttribute = 4
+    return:
+      type: SpellBook.GAS.Attributes.ModifierValueSource.SourceType
+references:
+- uid: SpellBook.GAS.Attributes
+  commentId: N:SpellBook.GAS.Attributes
+  name: SpellBook.GAS.Attributes
+  nameWithType: SpellBook.GAS.Attributes
+  fullName: SpellBook.GAS.Attributes
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Attributes
+    name: Attributes
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Attributes
+    name: Attributes
+- uid: SpellBook.GAS.Attributes.ModifierValueSource.SourceType
+  commentId: T:SpellBook.GAS.Attributes.ModifierValueSource.SourceType
+  parent: SpellBook.GAS.Attributes
+  href: SpellBook.GAS.Attributes.ModifierValueSource.html
+  name: ModifierValueSource.SourceType
+  nameWithType: ModifierValueSource.SourceType
+  fullName: SpellBook.GAS.Attributes.ModifierValueSource.SourceType
+  spec.csharp:
+  - uid: SpellBook.GAS.Attributes.ModifierValueSource
+    name: ModifierValueSource
+    href: SpellBook.GAS.Attributes.ModifierValueSource.html
+  - name: .
+  - uid: SpellBook.GAS.Attributes.ModifierValueSource.SourceType
+    name: SourceType
+    href: SpellBook.GAS.Attributes.ModifierValueSource.SourceType.html
+  spec.vb:
+  - uid: SpellBook.GAS.Attributes.ModifierValueSource
+    name: ModifierValueSource
+    href: SpellBook.GAS.Attributes.ModifierValueSource.html
+  - name: .
+  - uid: SpellBook.GAS.Attributes.ModifierValueSource.SourceType
+    name: SourceType
+    href: SpellBook.GAS.Attributes.ModifierValueSource.SourceType.html

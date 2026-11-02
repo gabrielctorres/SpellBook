@@ -36,6 +36,7 @@ nav:
   - Exemplos:
       - exemplos/sandbox.md
   - Referência:
+      - referencia/catalogo.md
       - inicio/conceitos.md
       - regras/migracao-2-para-3.md
 

@@ -1,0 +1,146 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.Time.ITimeSource
+  commentId: T:SpellBook.Time.ITimeSource
+  id: ITimeSource
+  parent: SpellBook.Time
+  children:
+  - SpellBook.Time.ITimeSource.DeltaTime
+  - SpellBook.Time.ITimeSource.ElapsedTime
+  langs:
+  - csharp
+  - vb
+  name: ITimeSource
+  nameWithType: ITimeSource
+  fullName: SpellBook.Time.ITimeSource
+  type: Interface
+  namespace: SpellBook.Time
+  summary: >-
+    Fonte de tempo injetável (ADR 0014). Só consulta: o consumidor guarda o último
+
+    <xref href="SpellBook.Time.ITimeSource.ElapsedTime" data-throw-if-not-resolved="false"></xref> lido e avança pela diferença.
+  example: []
+  syntax:
+    content: public interface ITimeSource
+    content.vb: Public Interface ITimeSource
+  derivedClasses:
+  - SpellBook.Time.ManualTimeSource
+  - SpellBook.Time.PausableTimeSource
+  - SpellBook.Time.ScaledTimeSource
+  - SpellBook.Time.TimeSourceAsset
+  - SpellBook.Time.UnscaledTimeSource
+- uid: SpellBook.Time.ITimeSource.ElapsedTime
+  commentId: P:SpellBook.Time.ITimeSource.ElapsedTime
+  id: ElapsedTime
+  parent: SpellBook.Time.ITimeSource
+  langs:
+  - csharp
+  - vb
+  name: ElapsedTime
+  nameWithType: ITimeSource.ElapsedTime
+  fullName: SpellBook.Time.ITimeSource.ElapsedTime
+  type: Property
+  namespace: SpellBook.Time
+  summary: Tempo acumulado da fonte, em segundos.
+  example: []
+  syntax:
+    content: double ElapsedTime { get; }
+    parameters: []
+    return:
+      type: System.Double
+    content.vb: ReadOnly Property ElapsedTime As Double
+  overload: SpellBook.Time.ITimeSource.ElapsedTime*
+- uid: SpellBook.Time.ITimeSource.DeltaTime
+  commentId: P:SpellBook.Time.ITimeSource.DeltaTime
+  id: DeltaTime
+  parent: SpellBook.Time.ITimeSource
+  langs:
+  - csharp
+  - vb
+  name: DeltaTime
+  nameWithType: ITimeSource.DeltaTime
+  fullName: SpellBook.Time.ITimeSource.DeltaTime
+  type: Property
+  namespace: SpellBook.Time
+  summary: Delta do quadro atual, em segundos, já com a pausa da fonte aplicada.
+  example: []
+  syntax:
+    content: float DeltaTime { get; }
+    parameters: []
+    return:
+      type: System.Single
+    content.vb: ReadOnly Property DeltaTime As Single
+  overload: SpellBook.Time.ITimeSource.DeltaTime*
+references:
+- uid: SpellBook.Time.ITimeSource.ElapsedTime
+  commentId: P:SpellBook.Time.ITimeSource.ElapsedTime
+  parent: SpellBook.Time.ITimeSource
+  href: SpellBook.Time.ITimeSource.html#SpellBook_Time_ITimeSource_ElapsedTime
+  name: ElapsedTime
+  nameWithType: ITimeSource.ElapsedTime
+  fullName: SpellBook.Time.ITimeSource.ElapsedTime
+- uid: SpellBook.Time
+  commentId: N:SpellBook.Time
+  name: SpellBook.Time
+  nameWithType: SpellBook.Time
+  fullName: SpellBook.Time
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Time
+    name: Time
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Time
+    name: Time
+- uid: SpellBook.Time.ITimeSource
+  commentId: T:SpellBook.Time.ITimeSource
+  parent: SpellBook.Time
+  href: SpellBook.Time.ITimeSource.html
+  name: ITimeSource
+  nameWithType: ITimeSource
+  fullName: SpellBook.Time.ITimeSource
+- uid: SpellBook.Time.ITimeSource.ElapsedTime*
+  commentId: Overload:SpellBook.Time.ITimeSource.ElapsedTime
+  href: SpellBook.Time.ITimeSource.html#SpellBook_Time_ITimeSource_ElapsedTime
+  name: ElapsedTime
+  nameWithType: ITimeSource.ElapsedTime
+  fullName: SpellBook.Time.ITimeSource.ElapsedTime
+- uid: System.Double
+  commentId: T:System.Double
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.double
+  name: double
+  nameWithType: double
+  fullName: double
+  nameWithType.vb: Double
+  fullName.vb: Double
+  name.vb: Double
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: SpellBook.Time.ITimeSource.DeltaTime*
+  commentId: Overload:SpellBook.Time.ITimeSource.DeltaTime
+  href: SpellBook.Time.ITimeSource.html#SpellBook_Time_ITimeSource_DeltaTime
+  name: DeltaTime
+  nameWithType: ITimeSource.DeltaTime
+  fullName: SpellBook.Time.ITimeSource.DeltaTime
+- uid: System.Single
+  commentId: T:System.Single
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.single
+  name: float
+  nameWithType: float
+  fullName: float
+  nameWithType.vb: Single
+  fullName.vb: Single
+  name.vb: Single

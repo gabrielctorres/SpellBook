@@ -1,0 +1,588 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Diagnostics.GasEventEntry
+  commentId: T:SpellBook.GAS.Diagnostics.GasEventEntry
+  id: GasEventEntry
+  parent: SpellBook.GAS.Diagnostics
+  children:
+  - SpellBook.GAS.Diagnostics.GasEventEntry.#ctor(SpellBook.GAS.Diagnostics.GasEventKind,System.Double,SpellBook.GAS.Effects.ActiveEffectInstance,SpellBook.GAS.Abilities.AbilitySpec,SpellBook.GAS.Effects.EffectRemovalReason,System.Int32,System.Int32,SpellBook.GAS.Abilities.CooldownChange)
+  - SpellBook.GAS.Diagnostics.GasEventEntry.Ability
+  - SpellBook.GAS.Diagnostics.GasEventEntry.CooldownChange
+  - SpellBook.GAS.Diagnostics.GasEventEntry.Effect
+  - SpellBook.GAS.Diagnostics.GasEventEntry.Kind
+  - SpellBook.GAS.Diagnostics.GasEventEntry.NewStacks
+  - SpellBook.GAS.Diagnostics.GasEventEntry.OldStacks
+  - SpellBook.GAS.Diagnostics.GasEventEntry.RemovalReason
+  - SpellBook.GAS.Diagnostics.GasEventEntry.Time
+  langs:
+  - csharp
+  - vb
+  name: GasEventEntry
+  nameWithType: GasEventEntry
+  fullName: SpellBook.GAS.Diagnostics.GasEventEntry
+  type: Struct
+  namespace: SpellBook.GAS.Diagnostics
+  summary: >-
+    Evento gravado. <xref href="SpellBook.GAS.Diagnostics.GasEventEntry.Effect" data-throw-if-not-resolved="false"></xref> vale nos eventos de efeito e <xref href="SpellBook.GAS.Diagnostics.GasEventEntry.Ability" data-throw-if-not-resolved="false"></xref> nos de habilidade e recarga;
+
+    os demais campos, só no tipo a que se referem. <xref href="SpellBook.GAS.Diagnostics.GasEventEntry.Time" data-throw-if-not-resolved="false"></xref> é o <xref href="SpellBook.GAS.Core.AbilitySystemComponent.TickedTime" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public readonly struct GasEventEntry
+    content.vb: Public Structure GasEventEntry
+  inheritedMembers:
+  - System.ValueType.Equals(System.Object)
+  - System.ValueType.GetHashCode
+  - System.ValueType.ToString
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetType
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+- uid: SpellBook.GAS.Diagnostics.GasEventEntry.Kind
+  commentId: F:SpellBook.GAS.Diagnostics.GasEventEntry.Kind
+  id: Kind
+  parent: SpellBook.GAS.Diagnostics.GasEventEntry
+  langs:
+  - csharp
+  - vb
+  name: Kind
+  nameWithType: GasEventEntry.Kind
+  fullName: SpellBook.GAS.Diagnostics.GasEventEntry.Kind
+  type: Field
+  namespace: SpellBook.GAS.Diagnostics
+  syntax:
+    content: public readonly GasEventKind Kind
+    return:
+      type: SpellBook.GAS.Diagnostics.GasEventKind
+    content.vb: Public ReadOnly Kind As GasEventKind
+- uid: SpellBook.GAS.Diagnostics.GasEventEntry.Time
+  commentId: F:SpellBook.GAS.Diagnostics.GasEventEntry.Time
+  id: Time
+  parent: SpellBook.GAS.Diagnostics.GasEventEntry
+  langs:
+  - csharp
+  - vb
+  name: Time
+  nameWithType: GasEventEntry.Time
+  fullName: SpellBook.GAS.Diagnostics.GasEventEntry.Time
+  type: Field
+  namespace: SpellBook.GAS.Diagnostics
+  syntax:
+    content: public readonly double Time
+    return:
+      type: System.Double
+    content.vb: Public ReadOnly Time As Double
+- uid: SpellBook.GAS.Diagnostics.GasEventEntry.Effect
+  commentId: F:SpellBook.GAS.Diagnostics.GasEventEntry.Effect
+  id: Effect
+  parent: SpellBook.GAS.Diagnostics.GasEventEntry
+  langs:
+  - csharp
+  - vb
+  name: Effect
+  nameWithType: GasEventEntry.Effect
+  fullName: SpellBook.GAS.Diagnostics.GasEventEntry.Effect
+  type: Field
+  namespace: SpellBook.GAS.Diagnostics
+  syntax:
+    content: public readonly ActiveEffectInstance Effect
+    return:
+      type: SpellBook.GAS.Effects.ActiveEffectInstance
+    content.vb: Public ReadOnly Effect As ActiveEffectInstance
+- uid: SpellBook.GAS.Diagnostics.GasEventEntry.Ability
+  commentId: F:SpellBook.GAS.Diagnostics.GasEventEntry.Ability
+  id: Ability
+  parent: SpellBook.GAS.Diagnostics.GasEventEntry
+  langs:
+  - csharp
+  - vb
+  name: Ability
+  nameWithType: GasEventEntry.Ability
+  fullName: SpellBook.GAS.Diagnostics.GasEventEntry.Ability
+  type: Field
+  namespace: SpellBook.GAS.Diagnostics
+  syntax:
+    content: public readonly AbilitySpec Ability
+    return:
+      type: SpellBook.GAS.Abilities.AbilitySpec
+    content.vb: Public ReadOnly Ability As AbilitySpec
+- uid: SpellBook.GAS.Diagnostics.GasEventEntry.RemovalReason
+  commentId: F:SpellBook.GAS.Diagnostics.GasEventEntry.RemovalReason
+  id: RemovalReason
+  parent: SpellBook.GAS.Diagnostics.GasEventEntry
+  langs:
+  - csharp
+  - vb
+  name: RemovalReason
+  nameWithType: GasEventEntry.RemovalReason
+  fullName: SpellBook.GAS.Diagnostics.GasEventEntry.RemovalReason
+  type: Field
+  namespace: SpellBook.GAS.Diagnostics
+  syntax:
+    content: public readonly EffectRemovalReason RemovalReason
+    return:
+      type: SpellBook.GAS.Effects.EffectRemovalReason
+    content.vb: Public ReadOnly RemovalReason As EffectRemovalReason
+- uid: SpellBook.GAS.Diagnostics.GasEventEntry.OldStacks
+  commentId: F:SpellBook.GAS.Diagnostics.GasEventEntry.OldStacks
+  id: OldStacks
+  parent: SpellBook.GAS.Diagnostics.GasEventEntry
+  langs:
+  - csharp
+  - vb
+  name: OldStacks
+  nameWithType: GasEventEntry.OldStacks
+  fullName: SpellBook.GAS.Diagnostics.GasEventEntry.OldStacks
+  type: Field
+  namespace: SpellBook.GAS.Diagnostics
+  syntax:
+    content: public readonly int OldStacks
+    return:
+      type: System.Int32
+    content.vb: Public ReadOnly OldStacks As Integer
+- uid: SpellBook.GAS.Diagnostics.GasEventEntry.NewStacks
+  commentId: F:SpellBook.GAS.Diagnostics.GasEventEntry.NewStacks
+  id: NewStacks
+  parent: SpellBook.GAS.Diagnostics.GasEventEntry
+  langs:
+  - csharp
+  - vb
+  name: NewStacks
+  nameWithType: GasEventEntry.NewStacks
+  fullName: SpellBook.GAS.Diagnostics.GasEventEntry.NewStacks
+  type: Field
+  namespace: SpellBook.GAS.Diagnostics
+  syntax:
+    content: public readonly int NewStacks
+    return:
+      type: System.Int32
+    content.vb: Public ReadOnly NewStacks As Integer
+- uid: SpellBook.GAS.Diagnostics.GasEventEntry.CooldownChange
+  commentId: F:SpellBook.GAS.Diagnostics.GasEventEntry.CooldownChange
+  id: CooldownChange
+  parent: SpellBook.GAS.Diagnostics.GasEventEntry
+  langs:
+  - csharp
+  - vb
+  name: CooldownChange
+  nameWithType: GasEventEntry.CooldownChange
+  fullName: SpellBook.GAS.Diagnostics.GasEventEntry.CooldownChange
+  type: Field
+  namespace: SpellBook.GAS.Diagnostics
+  syntax:
+    content: public readonly CooldownChange CooldownChange
+    return:
+      type: SpellBook.GAS.Abilities.CooldownChange
+    content.vb: Public ReadOnly CooldownChange As CooldownChange
+- uid: SpellBook.GAS.Diagnostics.GasEventEntry.#ctor(SpellBook.GAS.Diagnostics.GasEventKind,System.Double,SpellBook.GAS.Effects.ActiveEffectInstance,SpellBook.GAS.Abilities.AbilitySpec,SpellBook.GAS.Effects.EffectRemovalReason,System.Int32,System.Int32,SpellBook.GAS.Abilities.CooldownChange)
+  commentId: M:SpellBook.GAS.Diagnostics.GasEventEntry.#ctor(SpellBook.GAS.Diagnostics.GasEventKind,System.Double,SpellBook.GAS.Effects.ActiveEffectInstance,SpellBook.GAS.Abilities.AbilitySpec,SpellBook.GAS.Effects.EffectRemovalReason,System.Int32,System.Int32,SpellBook.GAS.Abilities.CooldownChange)
+  id: '#ctor(SpellBook.GAS.Diagnostics.GasEventKind,System.Double,SpellBook.GAS.Effects.ActiveEffectInstance,SpellBook.GAS.Abilities.AbilitySpec,SpellBook.GAS.Effects.EffectRemovalReason,System.Int32,System.Int32,SpellBook.GAS.Abilities.CooldownChange)'
+  parent: SpellBook.GAS.Diagnostics.GasEventEntry
+  langs:
+  - csharp
+  - vb
+  name: GasEventEntry(GasEventKind, double, ActiveEffectInstance, AbilitySpec, EffectRemovalReason, int, int, CooldownChange)
+  nameWithType: GasEventEntry.GasEventEntry(GasEventKind, double, ActiveEffectInstance, AbilitySpec, EffectRemovalReason, int, int, CooldownChange)
+  fullName: SpellBook.GAS.Diagnostics.GasEventEntry.GasEventEntry(SpellBook.GAS.Diagnostics.GasEventKind, double, SpellBook.GAS.Effects.ActiveEffectInstance, SpellBook.GAS.Abilities.AbilitySpec, SpellBook.GAS.Effects.EffectRemovalReason, int, int, SpellBook.GAS.Abilities.CooldownChange)
+  type: Constructor
+  namespace: SpellBook.GAS.Diagnostics
+  syntax:
+    content: public GasEventEntry(GasEventKind kind, double time, ActiveEffectInstance effect, AbilitySpec ability, EffectRemovalReason removalReason = EffectRemovalReason.Expired, int oldStacks = 0, int newStacks = 0, CooldownChange cooldownChange = CooldownChange.Started)
+    parameters:
+    - id: kind
+      type: SpellBook.GAS.Diagnostics.GasEventKind
+    - id: time
+      type: System.Double
+    - id: effect
+      type: SpellBook.GAS.Effects.ActiveEffectInstance
+    - id: ability
+      type: SpellBook.GAS.Abilities.AbilitySpec
+    - id: removalReason
+      type: SpellBook.GAS.Effects.EffectRemovalReason
+    - id: oldStacks
+      type: System.Int32
+    - id: newStacks
+      type: System.Int32
+    - id: cooldownChange
+      type: SpellBook.GAS.Abilities.CooldownChange
+    content.vb: Public Sub New(kind As GasEventKind, time As Double, effect As ActiveEffectInstance, ability As AbilitySpec, removalReason As EffectRemovalReason = EffectRemovalReason.Expired, oldStacks As Integer = 0, newStacks As Integer = 0, cooldownChange As CooldownChange = CooldownChange.Started)
+  overload: SpellBook.GAS.Diagnostics.GasEventEntry.#ctor*
+  nameWithType.vb: GasEventEntry.New(GasEventKind, Double, ActiveEffectInstance, AbilitySpec, EffectRemovalReason, Integer, Integer, CooldownChange)
+  fullName.vb: SpellBook.GAS.Diagnostics.GasEventEntry.New(SpellBook.GAS.Diagnostics.GasEventKind, Double, SpellBook.GAS.Effects.ActiveEffectInstance, SpellBook.GAS.Abilities.AbilitySpec, SpellBook.GAS.Effects.EffectRemovalReason, Integer, Integer, SpellBook.GAS.Abilities.CooldownChange)
+  name.vb: New(GasEventKind, Double, ActiveEffectInstance, AbilitySpec, EffectRemovalReason, Integer, Integer, CooldownChange)
+references:
+- uid: SpellBook.GAS.Diagnostics.GasEventEntry.Effect
+  commentId: F:SpellBook.GAS.Diagnostics.GasEventEntry.Effect
+  href: SpellBook.GAS.Diagnostics.GasEventEntry.html#SpellBook_GAS_Diagnostics_GasEventEntry_Effect
+  name: Effect
+  nameWithType: GasEventEntry.Effect
+  fullName: SpellBook.GAS.Diagnostics.GasEventEntry.Effect
+- uid: SpellBook.GAS.Diagnostics.GasEventEntry.Ability
+  commentId: F:SpellBook.GAS.Diagnostics.GasEventEntry.Ability
+  href: SpellBook.GAS.Diagnostics.GasEventEntry.html#SpellBook_GAS_Diagnostics_GasEventEntry_Ability
+  name: Ability
+  nameWithType: GasEventEntry.Ability
+  fullName: SpellBook.GAS.Diagnostics.GasEventEntry.Ability
+- uid: SpellBook.GAS.Diagnostics.GasEventEntry.Time
+  commentId: F:SpellBook.GAS.Diagnostics.GasEventEntry.Time
+  href: SpellBook.GAS.Diagnostics.GasEventEntry.html#SpellBook_GAS_Diagnostics_GasEventEntry_Time
+  name: Time
+  nameWithType: GasEventEntry.Time
+  fullName: SpellBook.GAS.Diagnostics.GasEventEntry.Time
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.TickedTime
+  commentId: P:SpellBook.GAS.Core.AbilitySystemComponent.TickedTime
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_TickedTime
+  name: TickedTime
+  nameWithType: AbilitySystemComponent.TickedTime
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.TickedTime
+- uid: SpellBook.GAS.Diagnostics
+  commentId: N:SpellBook.GAS.Diagnostics
+  name: SpellBook.GAS.Diagnostics
+  nameWithType: SpellBook.GAS.Diagnostics
+  fullName: SpellBook.GAS.Diagnostics
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Diagnostics
+    name: Diagnostics
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Diagnostics
+    name: Diagnostics
+- uid: System.ValueType.Equals(System.Object)
+  commentId: M:System.ValueType.Equals(System.Object)
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  name: Equals(object)
+  nameWithType: ValueType.Equals(object)
+  fullName: System.ValueType.Equals(object)
+  nameWithType.vb: ValueType.Equals(Object)
+  fullName.vb: System.ValueType.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.ValueType.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.ValueType.GetHashCode
+  commentId: M:System.ValueType.GetHashCode
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  name: GetHashCode()
+  nameWithType: ValueType.GetHashCode()
+  fullName: System.ValueType.GetHashCode()
+  spec.csharp:
+  - uid: System.ValueType.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  - name: (
+  - name: )
+- uid: System.ValueType.ToString
+  commentId: M:System.ValueType.ToString
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  name: ToString()
+  nameWithType: ValueType.ToString()
+  fullName: System.ValueType.ToString()
+  spec.csharp:
+  - uid: System.ValueType.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  - name: (
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.ValueType
+  commentId: T:System.ValueType
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype
+  name: ValueType
+  nameWithType: ValueType
+  fullName: System.ValueType
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: SpellBook.GAS.Diagnostics.GasEventKind
+  commentId: T:SpellBook.GAS.Diagnostics.GasEventKind
+  parent: SpellBook.GAS.Diagnostics
+  href: SpellBook.GAS.Diagnostics.GasEventKind.html
+  name: GasEventKind
+  nameWithType: GasEventKind
+  fullName: SpellBook.GAS.Diagnostics.GasEventKind
+- uid: System.Double
+  commentId: T:System.Double
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.double
+  name: double
+  nameWithType: double
+  fullName: double
+  nameWithType.vb: Double
+  fullName.vb: Double
+  name.vb: Double
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance
+  commentId: T:SpellBook.GAS.Effects.ActiveEffectInstance
+  parent: SpellBook.GAS.Effects
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html
+  name: ActiveEffectInstance
+  nameWithType: ActiveEffectInstance
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance
+- uid: SpellBook.GAS.Effects
+  commentId: N:SpellBook.GAS.Effects
+  name: SpellBook.GAS.Effects
+  nameWithType: SpellBook.GAS.Effects
+  fullName: SpellBook.GAS.Effects
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Effects
+    name: Effects
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Effects
+    name: Effects
+- uid: SpellBook.GAS.Abilities.AbilitySpec
+  commentId: T:SpellBook.GAS.Abilities.AbilitySpec
+  parent: SpellBook.GAS.Abilities
+  href: SpellBook.GAS.Abilities.AbilitySpec.html
+  name: AbilitySpec
+  nameWithType: AbilitySpec
+  fullName: SpellBook.GAS.Abilities.AbilitySpec
+- uid: SpellBook.GAS.Abilities
+  commentId: N:SpellBook.GAS.Abilities
+  name: SpellBook.GAS.Abilities
+  nameWithType: SpellBook.GAS.Abilities
+  fullName: SpellBook.GAS.Abilities
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+- uid: SpellBook.GAS.Effects.EffectRemovalReason
+  commentId: T:SpellBook.GAS.Effects.EffectRemovalReason
+  parent: SpellBook.GAS.Effects
+  href: SpellBook.GAS.Effects.EffectRemovalReason.html
+  name: EffectRemovalReason
+  nameWithType: EffectRemovalReason
+  fullName: SpellBook.GAS.Effects.EffectRemovalReason
+- uid: System.Int32
+  commentId: T:System.Int32
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.int32
+  name: int
+  nameWithType: int
+  fullName: int
+  nameWithType.vb: Integer
+  fullName.vb: Integer
+  name.vb: Integer
+- uid: SpellBook.GAS.Abilities.CooldownChange
+  commentId: T:SpellBook.GAS.Abilities.CooldownChange
+  parent: SpellBook.GAS.Abilities
+  href: SpellBook.GAS.Abilities.CooldownChange.html
+  name: CooldownChange
+  nameWithType: CooldownChange
+  fullName: SpellBook.GAS.Abilities.CooldownChange
+- uid: SpellBook.GAS.Diagnostics.GasEventEntry.#ctor*
+  commentId: Overload:SpellBook.GAS.Diagnostics.GasEventEntry.#ctor
+  href: SpellBook.GAS.Diagnostics.GasEventEntry.html#SpellBook_GAS_Diagnostics_GasEventEntry__ctor_SpellBook_GAS_Diagnostics_GasEventKind_System_Double_SpellBook_GAS_Effects_ActiveEffectInstance_SpellBook_GAS_Abilities_AbilitySpec_SpellBook_GAS_Effects_EffectRemovalReason_System_Int32_System_Int32_SpellBook_GAS_Abilities_CooldownChange_
+  name: GasEventEntry
+  nameWithType: GasEventEntry.GasEventEntry
+  fullName: SpellBook.GAS.Diagnostics.GasEventEntry.GasEventEntry
+  nameWithType.vb: GasEventEntry.New
+  fullName.vb: SpellBook.GAS.Diagnostics.GasEventEntry.New
+  name.vb: New

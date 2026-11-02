@@ -1,0 +1,49 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Editor
+  commentId: N:SpellBook.GAS.Editor
+  id: SpellBook.GAS.Editor
+  children:
+  - SpellBook.GAS.Editor.AttributeDefinitionEditor
+  - SpellBook.GAS.Editor.GameplayAbilityEditor
+  - SpellBook.GAS.Editor.GasAssetMigration
+  - SpellBook.GAS.Editor.ScalableFloatDrawer
+  - SpellBook.GAS.Editor.ScalableFloatField
+  langs:
+  - csharp
+  - vb
+  name: SpellBook.GAS.Editor
+  nameWithType: SpellBook.GAS.Editor
+  fullName: SpellBook.GAS.Editor
+  type: Namespace
+references:
+- uid: SpellBook.GAS.Editor.AttributeDefinitionEditor
+  commentId: T:SpellBook.GAS.Editor.AttributeDefinitionEditor
+  href: SpellBook.GAS.Editor.AttributeDefinitionEditor.html
+  name: AttributeDefinitionEditor
+  nameWithType: AttributeDefinitionEditor
+  fullName: SpellBook.GAS.Editor.AttributeDefinitionEditor
+- uid: SpellBook.GAS.Editor.GameplayAbilityEditor
+  commentId: T:SpellBook.GAS.Editor.GameplayAbilityEditor
+  href: SpellBook.GAS.Editor.GameplayAbilityEditor.html
+  name: GameplayAbilityEditor
+  nameWithType: GameplayAbilityEditor
+  fullName: SpellBook.GAS.Editor.GameplayAbilityEditor
+- uid: SpellBook.GAS.Editor.GasAssetMigration
+  commentId: T:SpellBook.GAS.Editor.GasAssetMigration
+  href: SpellBook.GAS.Editor.GasAssetMigration.html
+  name: GasAssetMigration
+  nameWithType: GasAssetMigration
+  fullName: SpellBook.GAS.Editor.GasAssetMigration
+- uid: SpellBook.GAS.Editor.ScalableFloatDrawer
+  commentId: T:SpellBook.GAS.Editor.ScalableFloatDrawer
+  href: SpellBook.GAS.Editor.ScalableFloatDrawer.html
+  name: ScalableFloatDrawer
+  nameWithType: ScalableFloatDrawer
+  fullName: SpellBook.GAS.Editor.ScalableFloatDrawer
+- uid: SpellBook.GAS.Editor.ScalableFloatField
+  commentId: T:SpellBook.GAS.Editor.ScalableFloatField
+  href: SpellBook.GAS.Editor.ScalableFloatField.html
+  name: ScalableFloatField
+  nameWithType: ScalableFloatField
+  fullName: SpellBook.GAS.Editor.ScalableFloatField

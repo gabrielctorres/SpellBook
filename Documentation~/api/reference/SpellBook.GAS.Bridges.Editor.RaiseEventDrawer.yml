@@ -1,0 +1,693 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer
+  commentId: T:SpellBook.GAS.Bridges.Editor.RaiseEventDrawer
+  id: RaiseEventDrawer
+  parent: SpellBook.GAS.Bridges.Editor
+  children:
+  - SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.AttributeName
+  - SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.CreatePropertyGUI(UnityEditor.SerializedProperty)
+  - SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.NoticeName
+  - SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.OnGUI(UnityEngine.Rect,UnityEditor.SerializedProperty,UnityEngine.GUIContent)
+  - SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.SourceName
+  langs:
+  - csharp
+  - vb
+  name: RaiseEventDrawer
+  nameWithType: RaiseEventDrawer
+  fullName: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer
+  type: Class
+  namespace: SpellBook.GAS.Bridges.Editor
+  summary: >-
+    Drawer da <xref href="SpellBook.GAS.Bridges.RaiseEventAction" data-throw-if-not-resolved="false"></xref> (Spec do relay, Design 5): a emissão pelo drawer dela, um popup só com as
+
+    <xref href="SpellBook.GAS.Bridges.GasPayloadSource" data-throw-if-not-resolved="false"></xref> que servem para o tipo do canal, o atributo só com <code>AttributeValue</code> e um aviso de
+
+    que o payload fixo é ignorado fora de <code>Fixed</code>. Sob o <code>[TypePicker]</code> da lista de ações, o seletor usa este
+
+    drawer (ADR 0026, emenda de 2026-11-01); ele não usa <code>fieldInfo</code> nem <code>attribute</code>.
+  example: []
+  syntax:
+    content: >-
+      [CustomPropertyDrawer(typeof(RaiseEventAction))]
+
+      public sealed class RaiseEventDrawer : PropertyDrawer
+    content.vb: >-
+      <CustomPropertyDrawer(GetType(RaiseEventAction))>
+
+      Public NotInheritable Class RaiseEventDrawer Inherits PropertyDrawer
+  inheritance:
+  - System.Object
+  - UnityEditor.GUIDrawer
+  - UnityEditor.PropertyDrawer
+  inheritedMembers:
+  - UnityEditor.PropertyDrawer.GetPropertyHeight(UnityEditor.SerializedProperty,UnityEngine.GUIContent)
+  - UnityEditor.PropertyDrawer.CanCacheInspectorGUI(UnityEditor.SerializedProperty)
+  - UnityEditor.PropertyDrawer.attribute
+  - UnityEditor.PropertyDrawer.fieldInfo
+  - UnityEditor.PropertyDrawer.preferredLabel
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+  attributes:
+  - type: UnityEditor.CustomPropertyDrawer
+    ctor: UnityEditor.CustomPropertyDrawer.#ctor(System.Type)
+    arguments:
+    - type: System.Type
+      value: SpellBook.GAS.Bridges.RaiseEventAction
+- uid: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.SourceName
+  commentId: F:SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.SourceName
+  id: SourceName
+  parent: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer
+  langs:
+  - csharp
+  - vb
+  name: SourceName
+  nameWithType: RaiseEventDrawer.SourceName
+  fullName: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.SourceName
+  type: Field
+  namespace: SpellBook.GAS.Bridges.Editor
+  syntax:
+    content: public const string SourceName = "raise-event-payload-source"
+    return:
+      type: System.String
+    content.vb: Public Const SourceName As String = "raise-event-payload-source"
+- uid: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.AttributeName
+  commentId: F:SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.AttributeName
+  id: AttributeName
+  parent: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer
+  langs:
+  - csharp
+  - vb
+  name: AttributeName
+  nameWithType: RaiseEventDrawer.AttributeName
+  fullName: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.AttributeName
+  type: Field
+  namespace: SpellBook.GAS.Bridges.Editor
+  syntax:
+    content: public const string AttributeName = "raise-event-attribute"
+    return:
+      type: System.String
+    content.vb: Public Const AttributeName As String = "raise-event-attribute"
+- uid: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.NoticeName
+  commentId: F:SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.NoticeName
+  id: NoticeName
+  parent: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer
+  langs:
+  - csharp
+  - vb
+  name: NoticeName
+  nameWithType: RaiseEventDrawer.NoticeName
+  fullName: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.NoticeName
+  type: Field
+  namespace: SpellBook.GAS.Bridges.Editor
+  syntax:
+    content: public const string NoticeName = "raise-event-fixed-ignored"
+    return:
+      type: System.String
+    content.vb: Public Const NoticeName As String = "raise-event-fixed-ignored"
+- uid: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.CreatePropertyGUI(UnityEditor.SerializedProperty)
+  commentId: M:SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.CreatePropertyGUI(UnityEditor.SerializedProperty)
+  id: CreatePropertyGUI(UnityEditor.SerializedProperty)
+  parent: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer
+  langs:
+  - csharp
+  - vb
+  name: CreatePropertyGUI(SerializedProperty)
+  nameWithType: RaiseEventDrawer.CreatePropertyGUI(SerializedProperty)
+  fullName: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.CreatePropertyGUI(UnityEditor.SerializedProperty)
+  type: Method
+  namespace: SpellBook.GAS.Bridges.Editor
+  summary: <p>Creates custom GUI with UI Toolkit for the property.</p>
+  example: []
+  syntax:
+    content: public override VisualElement CreatePropertyGUI(SerializedProperty property)
+    parameters:
+    - id: property
+      type: UnityEditor.SerializedProperty
+      description: The SerializedProperty to make the custom GUI for.
+    return:
+      type: UnityEngine.UIElements.VisualElement
+      description: <p>The element containing the custom GUI.</p>
+    content.vb: Public Overrides Function CreatePropertyGUI([property] As SerializedProperty) As VisualElement
+  overridden: UnityEditor.PropertyDrawer.CreatePropertyGUI(UnityEditor.SerializedProperty)
+  overload: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.CreatePropertyGUI*
+- uid: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.OnGUI(UnityEngine.Rect,UnityEditor.SerializedProperty,UnityEngine.GUIContent)
+  commentId: M:SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.OnGUI(UnityEngine.Rect,UnityEditor.SerializedProperty,UnityEngine.GUIContent)
+  id: OnGUI(UnityEngine.Rect,UnityEditor.SerializedProperty,UnityEngine.GUIContent)
+  parent: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer
+  langs:
+  - csharp
+  - vb
+  name: OnGUI(Rect, SerializedProperty, GUIContent)
+  nameWithType: RaiseEventDrawer.OnGUI(Rect, SerializedProperty, GUIContent)
+  fullName: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.OnGUI(UnityEngine.Rect, UnityEditor.SerializedProperty, UnityEngine.GUIContent)
+  type: Method
+  namespace: SpellBook.GAS.Bridges.Editor
+  summary: 'Fallback IMGUI único (ADR 0026, item 3): uma linha com o aviso.'
+  example: []
+  syntax:
+    content: public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+    parameters:
+    - id: position
+      type: UnityEngine.Rect
+    - id: property
+      type: UnityEditor.SerializedProperty
+    - id: label
+      type: UnityEngine.GUIContent
+    content.vb: Public Overrides Sub OnGUI(position As Rect, [property] As SerializedProperty, label As GUIContent)
+  overridden: UnityEditor.PropertyDrawer.OnGUI(UnityEngine.Rect,UnityEditor.SerializedProperty,UnityEngine.GUIContent)
+  overload: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.OnGUI*
+references:
+- uid: SpellBook.GAS.Bridges.RaiseEventAction
+  commentId: T:SpellBook.GAS.Bridges.RaiseEventAction
+  parent: SpellBook.GAS.Bridges
+  href: SpellBook.GAS.Bridges.RaiseEventAction.html
+  name: RaiseEventAction
+  nameWithType: RaiseEventAction
+  fullName: SpellBook.GAS.Bridges.RaiseEventAction
+- uid: SpellBook.GAS.Bridges.GasPayloadSource
+  commentId: T:SpellBook.GAS.Bridges.GasPayloadSource
+  parent: SpellBook.GAS.Bridges
+  href: SpellBook.GAS.Bridges.GasPayloadSource.html
+  name: GasPayloadSource
+  nameWithType: GasPayloadSource
+  fullName: SpellBook.GAS.Bridges.GasPayloadSource
+- uid: SpellBook.GAS.Bridges.Editor
+  commentId: N:SpellBook.GAS.Bridges.Editor
+  name: SpellBook.GAS.Bridges.Editor
+  nameWithType: SpellBook.GAS.Bridges.Editor
+  fullName: SpellBook.GAS.Bridges.Editor
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Bridges
+    name: Bridges
+  - name: .
+  - uid: SpellBook.GAS.Bridges.Editor
+    name: Editor
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Bridges
+    name: Bridges
+  - name: .
+  - uid: SpellBook.GAS.Bridges.Editor
+    name: Editor
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: UnityEditor.GUIDrawer
+  commentId: T:UnityEditor.GUIDrawer
+  parent: UnityEditor
+  isExternal: true
+  name: GUIDrawer
+  nameWithType: GUIDrawer
+  fullName: UnityEditor.GUIDrawer
+- uid: UnityEditor.PropertyDrawer
+  commentId: T:UnityEditor.PropertyDrawer
+  parent: UnityEditor
+  isExternal: true
+  name: PropertyDrawer
+  nameWithType: PropertyDrawer
+  fullName: UnityEditor.PropertyDrawer
+- uid: UnityEditor.PropertyDrawer.GetPropertyHeight(UnityEditor.SerializedProperty,UnityEngine.GUIContent)
+  commentId: M:UnityEditor.PropertyDrawer.GetPropertyHeight(UnityEditor.SerializedProperty,UnityEngine.GUIContent)
+  parent: UnityEditor.PropertyDrawer
+  isExternal: true
+  name: GetPropertyHeight(SerializedProperty, GUIContent)
+  nameWithType: PropertyDrawer.GetPropertyHeight(SerializedProperty, GUIContent)
+  fullName: UnityEditor.PropertyDrawer.GetPropertyHeight(UnityEditor.SerializedProperty, UnityEngine.GUIContent)
+  spec.csharp:
+  - uid: UnityEditor.PropertyDrawer.GetPropertyHeight(UnityEditor.SerializedProperty,UnityEngine.GUIContent)
+    name: GetPropertyHeight
+    isExternal: true
+  - name: (
+  - uid: UnityEditor.SerializedProperty
+    name: SerializedProperty
+    isExternal: true
+  - name: ','
+  - name: " "
+  - uid: UnityEngine.GUIContent
+    name: GUIContent
+    isExternal: true
+  - name: )
+  spec.vb:
+  - uid: UnityEditor.PropertyDrawer.GetPropertyHeight(UnityEditor.SerializedProperty,UnityEngine.GUIContent)
+    name: GetPropertyHeight
+    isExternal: true
+  - name: (
+  - uid: UnityEditor.SerializedProperty
+    name: SerializedProperty
+    isExternal: true
+  - name: ','
+  - name: " "
+  - uid: UnityEngine.GUIContent
+    name: GUIContent
+    isExternal: true
+  - name: )
+- uid: UnityEditor.PropertyDrawer.CanCacheInspectorGUI(UnityEditor.SerializedProperty)
+  commentId: M:UnityEditor.PropertyDrawer.CanCacheInspectorGUI(UnityEditor.SerializedProperty)
+  parent: UnityEditor.PropertyDrawer
+  isExternal: true
+  name: CanCacheInspectorGUI(SerializedProperty)
+  nameWithType: PropertyDrawer.CanCacheInspectorGUI(SerializedProperty)
+  fullName: UnityEditor.PropertyDrawer.CanCacheInspectorGUI(UnityEditor.SerializedProperty)
+  spec.csharp:
+  - uid: UnityEditor.PropertyDrawer.CanCacheInspectorGUI(UnityEditor.SerializedProperty)
+    name: CanCacheInspectorGUI
+    isExternal: true
+  - name: (
+  - uid: UnityEditor.SerializedProperty
+    name: SerializedProperty
+    isExternal: true
+  - name: )
+  spec.vb:
+  - uid: UnityEditor.PropertyDrawer.CanCacheInspectorGUI(UnityEditor.SerializedProperty)
+    name: CanCacheInspectorGUI
+    isExternal: true
+  - name: (
+  - uid: UnityEditor.SerializedProperty
+    name: SerializedProperty
+    isExternal: true
+  - name: )
+- uid: UnityEditor.PropertyDrawer.attribute
+  commentId: P:UnityEditor.PropertyDrawer.attribute
+  parent: UnityEditor.PropertyDrawer
+  isExternal: true
+  name: attribute
+  nameWithType: PropertyDrawer.attribute
+  fullName: UnityEditor.PropertyDrawer.attribute
+- uid: UnityEditor.PropertyDrawer.fieldInfo
+  commentId: P:UnityEditor.PropertyDrawer.fieldInfo
+  parent: UnityEditor.PropertyDrawer
+  isExternal: true
+  name: fieldInfo
+  nameWithType: PropertyDrawer.fieldInfo
+  fullName: UnityEditor.PropertyDrawer.fieldInfo
+- uid: UnityEditor.PropertyDrawer.preferredLabel
+  commentId: P:UnityEditor.PropertyDrawer.preferredLabel
+  parent: UnityEditor.PropertyDrawer
+  isExternal: true
+  name: preferredLabel
+  nameWithType: PropertyDrawer.preferredLabel
+  fullName: UnityEditor.PropertyDrawer.preferredLabel
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: SpellBook.GAS.Bridges
+  commentId: N:SpellBook.GAS.Bridges
+  name: SpellBook.GAS.Bridges
+  nameWithType: SpellBook.GAS.Bridges
+  fullName: SpellBook.GAS.Bridges
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Bridges
+    name: Bridges
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Bridges
+    name: Bridges
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: UnityEditor
+  commentId: N:UnityEditor
+  isExternal: true
+  name: UnityEditor
+  nameWithType: UnityEditor
+  fullName: UnityEditor
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: UnityEditor.PropertyDrawer.CreatePropertyGUI(UnityEditor.SerializedProperty)
+  commentId: M:UnityEditor.PropertyDrawer.CreatePropertyGUI(UnityEditor.SerializedProperty)
+  parent: UnityEditor.PropertyDrawer
+  isExternal: true
+  name: CreatePropertyGUI(SerializedProperty)
+  nameWithType: PropertyDrawer.CreatePropertyGUI(SerializedProperty)
+  fullName: UnityEditor.PropertyDrawer.CreatePropertyGUI(UnityEditor.SerializedProperty)
+  spec.csharp:
+  - uid: UnityEditor.PropertyDrawer.CreatePropertyGUI(UnityEditor.SerializedProperty)
+    name: CreatePropertyGUI
+    isExternal: true
+  - name: (
+  - uid: UnityEditor.SerializedProperty
+    name: SerializedProperty
+    isExternal: true
+  - name: )
+  spec.vb:
+  - uid: UnityEditor.PropertyDrawer.CreatePropertyGUI(UnityEditor.SerializedProperty)
+    name: CreatePropertyGUI
+    isExternal: true
+  - name: (
+  - uid: UnityEditor.SerializedProperty
+    name: SerializedProperty
+    isExternal: true
+  - name: )
+- uid: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.CreatePropertyGUI*
+  commentId: Overload:SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.CreatePropertyGUI
+  href: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.html#SpellBook_GAS_Bridges_Editor_RaiseEventDrawer_CreatePropertyGUI_UnityEditor_SerializedProperty_
+  name: CreatePropertyGUI
+  nameWithType: RaiseEventDrawer.CreatePropertyGUI
+  fullName: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.CreatePropertyGUI
+- uid: UnityEditor.SerializedProperty
+  commentId: T:UnityEditor.SerializedProperty
+  parent: UnityEditor
+  isExternal: true
+  name: SerializedProperty
+  nameWithType: SerializedProperty
+  fullName: UnityEditor.SerializedProperty
+- uid: UnityEngine.UIElements.VisualElement
+  commentId: T:UnityEngine.UIElements.VisualElement
+  parent: UnityEngine.UIElements
+  isExternal: true
+  name: VisualElement
+  nameWithType: VisualElement
+  fullName: UnityEngine.UIElements.VisualElement
+- uid: UnityEngine.UIElements
+  commentId: N:UnityEngine.UIElements
+  isExternal: true
+  name: UnityEngine.UIElements
+  nameWithType: UnityEngine.UIElements
+  fullName: UnityEngine.UIElements
+  spec.csharp:
+  - uid: UnityEngine
+    name: UnityEngine
+    isExternal: true
+  - name: .
+  - uid: UnityEngine.UIElements
+    name: UIElements
+    isExternal: true
+  spec.vb:
+  - uid: UnityEngine
+    name: UnityEngine
+    isExternal: true
+  - name: .
+  - uid: UnityEngine.UIElements
+    name: UIElements
+    isExternal: true
+- uid: UnityEditor.PropertyDrawer.OnGUI(UnityEngine.Rect,UnityEditor.SerializedProperty,UnityEngine.GUIContent)
+  commentId: M:UnityEditor.PropertyDrawer.OnGUI(UnityEngine.Rect,UnityEditor.SerializedProperty,UnityEngine.GUIContent)
+  parent: UnityEditor.PropertyDrawer
+  isExternal: true
+  name: OnGUI(Rect, SerializedProperty, GUIContent)
+  nameWithType: PropertyDrawer.OnGUI(Rect, SerializedProperty, GUIContent)
+  fullName: UnityEditor.PropertyDrawer.OnGUI(UnityEngine.Rect, UnityEditor.SerializedProperty, UnityEngine.GUIContent)
+  spec.csharp:
+  - uid: UnityEditor.PropertyDrawer.OnGUI(UnityEngine.Rect,UnityEditor.SerializedProperty,UnityEngine.GUIContent)
+    name: OnGUI
+    isExternal: true
+  - name: (
+  - uid: UnityEngine.Rect
+    name: Rect
+    isExternal: true
+  - name: ','
+  - name: " "
+  - uid: UnityEditor.SerializedProperty
+    name: SerializedProperty
+    isExternal: true
+  - name: ','
+  - name: " "
+  - uid: UnityEngine.GUIContent
+    name: GUIContent
+    isExternal: true
+  - name: )
+  spec.vb:
+  - uid: UnityEditor.PropertyDrawer.OnGUI(UnityEngine.Rect,UnityEditor.SerializedProperty,UnityEngine.GUIContent)
+    name: OnGUI
+    isExternal: true
+  - name: (
+  - uid: UnityEngine.Rect
+    name: Rect
+    isExternal: true
+  - name: ','
+  - name: " "
+  - uid: UnityEditor.SerializedProperty
+    name: SerializedProperty
+    isExternal: true
+  - name: ','
+  - name: " "
+  - uid: UnityEngine.GUIContent
+    name: GUIContent
+    isExternal: true
+  - name: )
+- uid: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.OnGUI*
+  commentId: Overload:SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.OnGUI
+  href: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.html#SpellBook_GAS_Bridges_Editor_RaiseEventDrawer_OnGUI_UnityEngine_Rect_UnityEditor_SerializedProperty_UnityEngine_GUIContent_
+  name: OnGUI
+  nameWithType: RaiseEventDrawer.OnGUI
+  fullName: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer.OnGUI
+- uid: UnityEngine.Rect
+  commentId: T:UnityEngine.Rect
+  parent: UnityEngine
+  isExternal: true
+  name: Rect
+  nameWithType: Rect
+  fullName: UnityEngine.Rect
+- uid: UnityEngine.GUIContent
+  commentId: T:UnityEngine.GUIContent
+  parent: UnityEngine
+  isExternal: true
+  name: GUIContent
+  nameWithType: GUIContent
+  fullName: UnityEngine.GUIContent
+- uid: UnityEngine
+  commentId: N:UnityEngine
+  isExternal: true
+  name: UnityEngine
+  nameWithType: UnityEngine
+  fullName: UnityEngine

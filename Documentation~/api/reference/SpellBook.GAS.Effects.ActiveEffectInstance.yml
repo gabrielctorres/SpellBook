@@ -1,0 +1,1450 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance
+  commentId: T:SpellBook.GAS.Effects.ActiveEffectInstance
+  id: ActiveEffectInstance
+  parent: SpellBook.GAS.Effects
+  children:
+  - SpellBook.GAS.Effects.ActiveEffectInstance.#ctor(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Core.AbilitySystemComponent)
+  - SpellBook.GAS.Effects.ActiveEffectInstance.#ctor(SpellBook.GAS.Effects.GameplayEffect,System.Single,SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Core.AbilitySystemComponent)
+  - SpellBook.GAS.Effects.ActiveEffectInstance.AddActionData(SpellBook.GAS.Effects.EffectAction,System.Object)
+  - SpellBook.GAS.Effects.ActiveEffectInstance.AppliedDuration
+  - SpellBook.GAS.Effects.ActiveEffectInstance.Cleanup
+  - SpellBook.GAS.Effects.ActiveEffectInstance.Context
+  - SpellBook.GAS.Effects.ActiveEffectInstance.CurrentStacks
+  - SpellBook.GAS.Effects.ActiveEffectInstance.Effect
+  - SpellBook.GAS.Effects.ActiveEffectInstance.ExtendDuration(System.Single)
+  - SpellBook.GAS.Effects.ActiveEffectInstance.IsActive
+  - SpellBook.GAS.Effects.ActiveEffectInstance.IsBuff
+  - SpellBook.GAS.Effects.ActiveEffectInstance.IsDebuff
+  - SpellBook.GAS.Effects.ActiveEffectInstance.IsHidden
+  - SpellBook.GAS.Effects.ActiveEffectInstance.IsPurgable
+  - SpellBook.GAS.Effects.ActiveEffectInstance.LiveBindingCount
+  - SpellBook.GAS.Effects.ActiveEffectInstance.OnEffectExpired
+  - SpellBook.GAS.Effects.ActiveEffectInstance.OnTick
+  - SpellBook.GAS.Effects.ActiveEffectInstance.ReduceDuration(System.Single)
+  - SpellBook.GAS.Effects.ActiveEffectInstance.RemoveStacks(System.Int32)
+  - SpellBook.GAS.Effects.ActiveEffectInstance.RestartDuration
+  - SpellBook.GAS.Effects.ActiveEffectInstance.SetStacks(System.Int32)
+  - SpellBook.GAS.Effects.ActiveEffectInstance.Source
+  - SpellBook.GAS.Effects.ActiveEffectInstance.Target
+  - SpellBook.GAS.Effects.ActiveEffectInstance.TimeRemaining
+  - SpellBook.GAS.Effects.ActiveEffectInstance.TryGetActionData``1(SpellBook.GAS.Effects.EffectAction,System.Collections.Generic.List{``0}@)
+  langs:
+  - csharp
+  - vb
+  name: ActiveEffectInstance
+  nameWithType: ActiveEffectInstance
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance
+  type: Class
+  namespace: SpellBook.GAS.Effects
+  syntax:
+    content: public class ActiveEffectInstance
+    content.vb: Public Class ActiveEffectInstance
+  inheritance:
+  - System.Object
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.MemberwiseClone
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.Effect
+  commentId: P:SpellBook.GAS.Effects.ActiveEffectInstance.Effect
+  id: Effect
+  parent: SpellBook.GAS.Effects.ActiveEffectInstance
+  langs:
+  - csharp
+  - vb
+  name: Effect
+  nameWithType: ActiveEffectInstance.Effect
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.Effect
+  type: Property
+  namespace: SpellBook.GAS.Effects
+  syntax:
+    content: public GameplayEffect Effect { get; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Effects.GameplayEffect
+    content.vb: Public Property Effect As GameplayEffect
+  overload: SpellBook.GAS.Effects.ActiveEffectInstance.Effect*
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.TimeRemaining
+  commentId: P:SpellBook.GAS.Effects.ActiveEffectInstance.TimeRemaining
+  id: TimeRemaining
+  parent: SpellBook.GAS.Effects.ActiveEffectInstance
+  langs:
+  - csharp
+  - vb
+  name: TimeRemaining
+  nameWithType: ActiveEffectInstance.TimeRemaining
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.TimeRemaining
+  type: Property
+  namespace: SpellBook.GAS.Effects
+  syntax:
+    content: public float TimeRemaining { get; }
+    parameters: []
+    return:
+      type: System.Single
+    content.vb: Public Property TimeRemaining As Single
+  overload: SpellBook.GAS.Effects.ActiveEffectInstance.TimeRemaining*
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.CurrentStacks
+  commentId: P:SpellBook.GAS.Effects.ActiveEffectInstance.CurrentStacks
+  id: CurrentStacks
+  parent: SpellBook.GAS.Effects.ActiveEffectInstance
+  langs:
+  - csharp
+  - vb
+  name: CurrentStacks
+  nameWithType: ActiveEffectInstance.CurrentStacks
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.CurrentStacks
+  type: Property
+  namespace: SpellBook.GAS.Effects
+  syntax:
+    content: public int CurrentStacks { get; }
+    parameters: []
+    return:
+      type: System.Int32
+    content.vb: Public Property CurrentStacks As Integer
+  overload: SpellBook.GAS.Effects.ActiveEffectInstance.CurrentStacks*
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.Target
+  commentId: P:SpellBook.GAS.Effects.ActiveEffectInstance.Target
+  id: Target
+  parent: SpellBook.GAS.Effects.ActiveEffectInstance
+  langs:
+  - csharp
+  - vb
+  name: Target
+  nameWithType: ActiveEffectInstance.Target
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.Target
+  type: Property
+  namespace: SpellBook.GAS.Effects
+  syntax:
+    content: public AbilitySystemComponent Target { get; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Core.AbilitySystemComponent
+    content.vb: Public Property Target As AbilitySystemComponent
+  overload: SpellBook.GAS.Effects.ActiveEffectInstance.Target*
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.Source
+  commentId: P:SpellBook.GAS.Effects.ActiveEffectInstance.Source
+  id: Source
+  parent: SpellBook.GAS.Effects.ActiveEffectInstance
+  langs:
+  - csharp
+  - vb
+  name: Source
+  nameWithType: ActiveEffectInstance.Source
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.Source
+  type: Property
+  namespace: SpellBook.GAS.Effects
+  syntax:
+    content: public AbilitySystemComponent Source { get; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Core.AbilitySystemComponent
+    content.vb: Public Property Source As AbilitySystemComponent
+  overload: SpellBook.GAS.Effects.ActiveEffectInstance.Source*
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.IsBuff
+  commentId: P:SpellBook.GAS.Effects.ActiveEffectInstance.IsBuff
+  id: IsBuff
+  parent: SpellBook.GAS.Effects.ActiveEffectInstance
+  langs:
+  - csharp
+  - vb
+  name: IsBuff
+  nameWithType: ActiveEffectInstance.IsBuff
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.IsBuff
+  type: Property
+  namespace: SpellBook.GAS.Effects
+  summary: Repasse de <xref href="SpellBook.GAS.Effects.GameplayEffect.IsBuff" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public bool IsBuff { get; }
+    parameters: []
+    return:
+      type: System.Boolean
+    content.vb: Public ReadOnly Property IsBuff As Boolean
+  overload: SpellBook.GAS.Effects.ActiveEffectInstance.IsBuff*
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.IsDebuff
+  commentId: P:SpellBook.GAS.Effects.ActiveEffectInstance.IsDebuff
+  id: IsDebuff
+  parent: SpellBook.GAS.Effects.ActiveEffectInstance
+  langs:
+  - csharp
+  - vb
+  name: IsDebuff
+  nameWithType: ActiveEffectInstance.IsDebuff
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.IsDebuff
+  type: Property
+  namespace: SpellBook.GAS.Effects
+  summary: Repasse de <xref href="SpellBook.GAS.Effects.GameplayEffect.IsDebuff" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public bool IsDebuff { get; }
+    parameters: []
+    return:
+      type: System.Boolean
+    content.vb: Public ReadOnly Property IsDebuff As Boolean
+  overload: SpellBook.GAS.Effects.ActiveEffectInstance.IsDebuff*
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.IsHidden
+  commentId: P:SpellBook.GAS.Effects.ActiveEffectInstance.IsHidden
+  id: IsHidden
+  parent: SpellBook.GAS.Effects.ActiveEffectInstance
+  langs:
+  - csharp
+  - vb
+  name: IsHidden
+  nameWithType: ActiveEffectInstance.IsHidden
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.IsHidden
+  type: Property
+  namespace: SpellBook.GAS.Effects
+  summary: Repasse de <xref href="SpellBook.GAS.Effects.GameplayEffect.IsHidden" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public bool IsHidden { get; }
+    parameters: []
+    return:
+      type: System.Boolean
+    content.vb: Public ReadOnly Property IsHidden As Boolean
+  overload: SpellBook.GAS.Effects.ActiveEffectInstance.IsHidden*
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.IsPurgable
+  commentId: P:SpellBook.GAS.Effects.ActiveEffectInstance.IsPurgable
+  id: IsPurgable
+  parent: SpellBook.GAS.Effects.ActiveEffectInstance
+  langs:
+  - csharp
+  - vb
+  name: IsPurgable
+  nameWithType: ActiveEffectInstance.IsPurgable
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.IsPurgable
+  type: Property
+  namespace: SpellBook.GAS.Effects
+  summary: Repasse de <xref href="SpellBook.GAS.Effects.GameplayEffect.IsPurgable" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public bool IsPurgable { get; }
+    parameters: []
+    return:
+      type: System.Boolean
+    content.vb: Public ReadOnly Property IsPurgable As Boolean
+  overload: SpellBook.GAS.Effects.ActiveEffectInstance.IsPurgable*
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.AppliedDuration
+  commentId: P:SpellBook.GAS.Effects.ActiveEffectInstance.AppliedDuration
+  id: AppliedDuration
+  parent: SpellBook.GAS.Effects.ActiveEffectInstance
+  langs:
+  - csharp
+  - vb
+  name: AppliedDuration
+  nameWithType: ActiveEffectInstance.AppliedDuration
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.AppliedDuration
+  type: Property
+  namespace: SpellBook.GAS.Effects
+  summary: Duração com que a instância foi aplicada ou renovada pela última vez; a renovação volta a ela.
+  example: []
+  syntax:
+    content: public float AppliedDuration { get; }
+    parameters: []
+    return:
+      type: System.Single
+    content.vb: Public Property AppliedDuration As Single
+  overload: SpellBook.GAS.Effects.ActiveEffectInstance.AppliedDuration*
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.IsActive
+  commentId: P:SpellBook.GAS.Effects.ActiveEffectInstance.IsActive
+  id: IsActive
+  parent: SpellBook.GAS.Effects.ActiveEffectInstance
+  langs:
+  - csharp
+  - vb
+  name: IsActive
+  nameWithType: ActiveEffectInstance.IsActive
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.IsActive
+  type: Property
+  namespace: SpellBook.GAS.Effects
+  summary: A instância ainda está no ASC alvo; falso depois da remoção.
+  example: []
+  syntax:
+    content: public bool IsActive { get; }
+    parameters: []
+    return:
+      type: System.Boolean
+    content.vb: Public ReadOnly Property IsActive As Boolean
+  overload: SpellBook.GAS.Effects.ActiveEffectInstance.IsActive*
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.LiveBindingCount
+  commentId: P:SpellBook.GAS.Effects.ActiveEffectInstance.LiveBindingCount
+  id: LiveBindingCount
+  parent: SpellBook.GAS.Effects.ActiveEffectInstance
+  langs:
+  - csharp
+  - vb
+  name: LiveBindingCount
+  nameWithType: ActiveEffectInstance.LiveBindingCount
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.LiveBindingCount
+  type: Property
+  namespace: SpellBook.GAS.Effects
+  summary: Quantos modificadores ao vivo estão ligados às suas fontes. Zero em Snapshot e depois da remoção.
+  example: []
+  syntax:
+    content: public int LiveBindingCount { get; }
+    parameters: []
+    return:
+      type: System.Int32
+    content.vb: Public ReadOnly Property LiveBindingCount As Integer
+  overload: SpellBook.GAS.Effects.ActiveEffectInstance.LiveBindingCount*
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.OnEffectExpired
+  commentId: E:SpellBook.GAS.Effects.ActiveEffectInstance.OnEffectExpired
+  id: OnEffectExpired
+  parent: SpellBook.GAS.Effects.ActiveEffectInstance
+  langs:
+  - csharp
+  - vb
+  name: OnEffectExpired
+  nameWithType: ActiveEffectInstance.OnEffectExpired
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.OnEffectExpired
+  type: Event
+  namespace: SpellBook.GAS.Effects
+  syntax:
+    content: public event Action<ActiveEffectInstance> OnEffectExpired
+    return:
+      type: System.Action{SpellBook.GAS.Effects.ActiveEffectInstance}
+    content.vb: Public Event OnEffectExpired As Action(Of ActiveEffectInstance)
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.OnTick
+  commentId: E:SpellBook.GAS.Effects.ActiveEffectInstance.OnTick
+  id: OnTick
+  parent: SpellBook.GAS.Effects.ActiveEffectInstance
+  langs:
+  - csharp
+  - vb
+  name: OnTick
+  nameWithType: ActiveEffectInstance.OnTick
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.OnTick
+  type: Event
+  namespace: SpellBook.GAS.Effects
+  syntax:
+    content: public event Action<ActiveEffectInstance> OnTick
+    return:
+      type: System.Action{SpellBook.GAS.Effects.ActiveEffectInstance}
+    content.vb: Public Event OnTick As Action(Of ActiveEffectInstance)
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.Context
+  commentId: P:SpellBook.GAS.Effects.ActiveEffectInstance.Context
+  id: Context
+  parent: SpellBook.GAS.Effects.ActiveEffectInstance
+  langs:
+  - csharp
+  - vb
+  name: Context
+  nameWithType: ActiveEffectInstance.Context
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.Context
+  type: Property
+  namespace: SpellBook.GAS.Effects
+  summary: >-
+    Contexto da aplicação (cópia): instigador, alvo, habilidade, nível, ponto de impacto e valores do chamador. Os valores
+
+    do chamador que os modificadores do efeito usam são copiados na aplicação; mudar o objeto de quem chamou depois não
+
+    muda a instância.
+  example: []
+  syntax:
+    content: public EffectContext Context { get; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Effects.EffectContext
+    content.vb: Public Property Context As EffectContext
+  overload: SpellBook.GAS.Effects.ActiveEffectInstance.Context*
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.#ctor(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Core.AbilitySystemComponent)
+  commentId: M:SpellBook.GAS.Effects.ActiveEffectInstance.#ctor(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Core.AbilitySystemComponent)
+  id: '#ctor(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Core.AbilitySystemComponent)'
+  parent: SpellBook.GAS.Effects.ActiveEffectInstance
+  langs:
+  - csharp
+  - vb
+  name: ActiveEffectInstance(GameplayEffect, AbilitySystemComponent, AbilitySystemComponent)
+  nameWithType: ActiveEffectInstance.ActiveEffectInstance(GameplayEffect, AbilitySystemComponent, AbilitySystemComponent)
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.ActiveEffectInstance(SpellBook.GAS.Effects.GameplayEffect, SpellBook.GAS.Core.AbilitySystemComponent, SpellBook.GAS.Core.AbilitySystemComponent)
+  type: Constructor
+  namespace: SpellBook.GAS.Effects
+  syntax:
+    content: public ActiveEffectInstance(GameplayEffect effect, AbilitySystemComponent source, AbilitySystemComponent target)
+    parameters:
+    - id: effect
+      type: SpellBook.GAS.Effects.GameplayEffect
+    - id: source
+      type: SpellBook.GAS.Core.AbilitySystemComponent
+    - id: target
+      type: SpellBook.GAS.Core.AbilitySystemComponent
+    content.vb: Public Sub New(effect As GameplayEffect, source As AbilitySystemComponent, target As AbilitySystemComponent)
+  overload: SpellBook.GAS.Effects.ActiveEffectInstance.#ctor*
+  nameWithType.vb: ActiveEffectInstance.New(GameplayEffect, AbilitySystemComponent, AbilitySystemComponent)
+  fullName.vb: SpellBook.GAS.Effects.ActiveEffectInstance.New(SpellBook.GAS.Effects.GameplayEffect, SpellBook.GAS.Core.AbilitySystemComponent, SpellBook.GAS.Core.AbilitySystemComponent)
+  name.vb: New(GameplayEffect, AbilitySystemComponent, AbilitySystemComponent)
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.#ctor(SpellBook.GAS.Effects.GameplayEffect,System.Single,SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Core.AbilitySystemComponent)
+  commentId: M:SpellBook.GAS.Effects.ActiveEffectInstance.#ctor(SpellBook.GAS.Effects.GameplayEffect,System.Single,SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Core.AbilitySystemComponent)
+  id: '#ctor(SpellBook.GAS.Effects.GameplayEffect,System.Single,SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Core.AbilitySystemComponent)'
+  parent: SpellBook.GAS.Effects.ActiveEffectInstance
+  langs:
+  - csharp
+  - vb
+  name: ActiveEffectInstance(GameplayEffect, float, AbilitySystemComponent, AbilitySystemComponent)
+  nameWithType: ActiveEffectInstance.ActiveEffectInstance(GameplayEffect, float, AbilitySystemComponent, AbilitySystemComponent)
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.ActiveEffectInstance(SpellBook.GAS.Effects.GameplayEffect, float, SpellBook.GAS.Core.AbilitySystemComponent, SpellBook.GAS.Core.AbilitySystemComponent)
+  type: Constructor
+  namespace: SpellBook.GAS.Effects
+  syntax:
+    content: public ActiveEffectInstance(GameplayEffect effect, float duration, AbilitySystemComponent source, AbilitySystemComponent target)
+    parameters:
+    - id: effect
+      type: SpellBook.GAS.Effects.GameplayEffect
+    - id: duration
+      type: System.Single
+    - id: source
+      type: SpellBook.GAS.Core.AbilitySystemComponent
+    - id: target
+      type: SpellBook.GAS.Core.AbilitySystemComponent
+    content.vb: Public Sub New(effect As GameplayEffect, duration As Single, source As AbilitySystemComponent, target As AbilitySystemComponent)
+  overload: SpellBook.GAS.Effects.ActiveEffectInstance.#ctor*
+  nameWithType.vb: ActiveEffectInstance.New(GameplayEffect, Single, AbilitySystemComponent, AbilitySystemComponent)
+  fullName.vb: SpellBook.GAS.Effects.ActiveEffectInstance.New(SpellBook.GAS.Effects.GameplayEffect, Single, SpellBook.GAS.Core.AbilitySystemComponent, SpellBook.GAS.Core.AbilitySystemComponent)
+  name.vb: New(GameplayEffect, Single, AbilitySystemComponent, AbilitySystemComponent)
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.AddActionData(SpellBook.GAS.Effects.EffectAction,System.Object)
+  commentId: M:SpellBook.GAS.Effects.ActiveEffectInstance.AddActionData(SpellBook.GAS.Effects.EffectAction,System.Object)
+  id: AddActionData(SpellBook.GAS.Effects.EffectAction,System.Object)
+  parent: SpellBook.GAS.Effects.ActiveEffectInstance
+  langs:
+  - csharp
+  - vb
+  name: AddActionData(EffectAction, object)
+  nameWithType: ActiveEffectInstance.AddActionData(EffectAction, object)
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.AddActionData(SpellBook.GAS.Effects.EffectAction, object)
+  type: Method
+  namespace: SpellBook.GAS.Effects
+  syntax:
+    content: public void AddActionData(EffectAction action, object data)
+    parameters:
+    - id: action
+      type: SpellBook.GAS.Effects.EffectAction
+    - id: data
+      type: System.Object
+    content.vb: Public Sub AddActionData(action As EffectAction, data As Object)
+  overload: SpellBook.GAS.Effects.ActiveEffectInstance.AddActionData*
+  nameWithType.vb: ActiveEffectInstance.AddActionData(EffectAction, Object)
+  fullName.vb: SpellBook.GAS.Effects.ActiveEffectInstance.AddActionData(SpellBook.GAS.Effects.EffectAction, Object)
+  name.vb: AddActionData(EffectAction, Object)
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.TryGetActionData``1(SpellBook.GAS.Effects.EffectAction,System.Collections.Generic.List{``0}@)
+  commentId: M:SpellBook.GAS.Effects.ActiveEffectInstance.TryGetActionData``1(SpellBook.GAS.Effects.EffectAction,System.Collections.Generic.List{``0}@)
+  id: TryGetActionData``1(SpellBook.GAS.Effects.EffectAction,System.Collections.Generic.List{``0}@)
+  parent: SpellBook.GAS.Effects.ActiveEffectInstance
+  langs:
+  - csharp
+  - vb
+  name: TryGetActionData<T>(EffectAction, out List<T>)
+  nameWithType: ActiveEffectInstance.TryGetActionData<T>(EffectAction, out List<T>)
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.TryGetActionData<T>(SpellBook.GAS.Effects.EffectAction, out System.Collections.Generic.List<T>)
+  type: Method
+  namespace: SpellBook.GAS.Effects
+  syntax:
+    content: public bool TryGetActionData<T>(EffectAction action, out List<T> data)
+    parameters:
+    - id: action
+      type: SpellBook.GAS.Effects.EffectAction
+    - id: data
+      type: System.Collections.Generic.List{{T}}
+    typeParameters:
+    - id: T
+    return:
+      type: System.Boolean
+    content.vb: Public Function TryGetActionData(Of T)(action As EffectAction, data As List(Of T)) As Boolean
+  overload: SpellBook.GAS.Effects.ActiveEffectInstance.TryGetActionData*
+  nameWithType.vb: ActiveEffectInstance.TryGetActionData(Of T)(EffectAction, List(Of T))
+  fullName.vb: SpellBook.GAS.Effects.ActiveEffectInstance.TryGetActionData(Of T)(SpellBook.GAS.Effects.EffectAction, System.Collections.Generic.List(Of T))
+  name.vb: TryGetActionData(Of T)(EffectAction, List(Of T))
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.ExtendDuration(System.Single)
+  commentId: M:SpellBook.GAS.Effects.ActiveEffectInstance.ExtendDuration(System.Single)
+  id: ExtendDuration(System.Single)
+  parent: SpellBook.GAS.Effects.ActiveEffectInstance
+  langs:
+  - csharp
+  - vb
+  name: ExtendDuration(float)
+  nameWithType: ActiveEffectInstance.ExtendDuration(float)
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.ExtendDuration(float)
+  type: Method
+  namespace: SpellBook.GAS.Effects
+  summary: Atalho de <xref href="SpellBook.GAS.Core.AbilitySystemComponent.ExtendEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance%2cSystem.Single)" data-throw-if-not-resolved="false"></xref> no <xref href="SpellBook.GAS.Effects.ActiveEffectInstance.Target" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public bool ExtendDuration(float seconds)
+    parameters:
+    - id: seconds
+      type: System.Single
+    return:
+      type: System.Boolean
+    content.vb: Public Function ExtendDuration(seconds As Single) As Boolean
+  overload: SpellBook.GAS.Effects.ActiveEffectInstance.ExtendDuration*
+  nameWithType.vb: ActiveEffectInstance.ExtendDuration(Single)
+  fullName.vb: SpellBook.GAS.Effects.ActiveEffectInstance.ExtendDuration(Single)
+  name.vb: ExtendDuration(Single)
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.ReduceDuration(System.Single)
+  commentId: M:SpellBook.GAS.Effects.ActiveEffectInstance.ReduceDuration(System.Single)
+  id: ReduceDuration(System.Single)
+  parent: SpellBook.GAS.Effects.ActiveEffectInstance
+  langs:
+  - csharp
+  - vb
+  name: ReduceDuration(float)
+  nameWithType: ActiveEffectInstance.ReduceDuration(float)
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.ReduceDuration(float)
+  type: Method
+  namespace: SpellBook.GAS.Effects
+  summary: Atalho de <xref href="SpellBook.GAS.Core.AbilitySystemComponent.ReduceEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance%2cSystem.Single)" data-throw-if-not-resolved="false"></xref> no <xref href="SpellBook.GAS.Effects.ActiveEffectInstance.Target" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public bool ReduceDuration(float seconds)
+    parameters:
+    - id: seconds
+      type: System.Single
+    return:
+      type: System.Boolean
+    content.vb: Public Function ReduceDuration(seconds As Single) As Boolean
+  overload: SpellBook.GAS.Effects.ActiveEffectInstance.ReduceDuration*
+  nameWithType.vb: ActiveEffectInstance.ReduceDuration(Single)
+  fullName.vb: SpellBook.GAS.Effects.ActiveEffectInstance.ReduceDuration(Single)
+  name.vb: ReduceDuration(Single)
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.RestartDuration
+  commentId: M:SpellBook.GAS.Effects.ActiveEffectInstance.RestartDuration
+  id: RestartDuration
+  parent: SpellBook.GAS.Effects.ActiveEffectInstance
+  langs:
+  - csharp
+  - vb
+  name: RestartDuration()
+  nameWithType: ActiveEffectInstance.RestartDuration()
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.RestartDuration()
+  type: Method
+  namespace: SpellBook.GAS.Effects
+  summary: Atalho de <xref href="SpellBook.GAS.Core.AbilitySystemComponent.RestartEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance)" data-throw-if-not-resolved="false"></xref> no <xref href="SpellBook.GAS.Effects.ActiveEffectInstance.Target" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public bool RestartDuration()
+    return:
+      type: System.Boolean
+    content.vb: Public Function RestartDuration() As Boolean
+  overload: SpellBook.GAS.Effects.ActiveEffectInstance.RestartDuration*
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.SetStacks(System.Int32)
+  commentId: M:SpellBook.GAS.Effects.ActiveEffectInstance.SetStacks(System.Int32)
+  id: SetStacks(System.Int32)
+  parent: SpellBook.GAS.Effects.ActiveEffectInstance
+  langs:
+  - csharp
+  - vb
+  name: SetStacks(int)
+  nameWithType: ActiveEffectInstance.SetStacks(int)
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.SetStacks(int)
+  type: Method
+  namespace: SpellBook.GAS.Effects
+  summary: Atalho de <xref href="SpellBook.GAS.Core.AbilitySystemComponent.SetEffectStacks(SpellBook.GAS.Effects.ActiveEffectInstance%2cSystem.Int32)" data-throw-if-not-resolved="false"></xref> no <xref href="SpellBook.GAS.Effects.ActiveEffectInstance.Target" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public bool SetStacks(int count)
+    parameters:
+    - id: count
+      type: System.Int32
+    return:
+      type: System.Boolean
+    content.vb: Public Function SetStacks(count As Integer) As Boolean
+  overload: SpellBook.GAS.Effects.ActiveEffectInstance.SetStacks*
+  nameWithType.vb: ActiveEffectInstance.SetStacks(Integer)
+  fullName.vb: SpellBook.GAS.Effects.ActiveEffectInstance.SetStacks(Integer)
+  name.vb: SetStacks(Integer)
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.RemoveStacks(System.Int32)
+  commentId: M:SpellBook.GAS.Effects.ActiveEffectInstance.RemoveStacks(System.Int32)
+  id: RemoveStacks(System.Int32)
+  parent: SpellBook.GAS.Effects.ActiveEffectInstance
+  langs:
+  - csharp
+  - vb
+  name: RemoveStacks(int)
+  nameWithType: ActiveEffectInstance.RemoveStacks(int)
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.RemoveStacks(int)
+  type: Method
+  namespace: SpellBook.GAS.Effects
+  summary: Atalho de <xref href="SpellBook.GAS.Core.AbilitySystemComponent.RemoveEffectStacks(SpellBook.GAS.Effects.ActiveEffectInstance%2cSystem.Int32)" data-throw-if-not-resolved="false"></xref> no <xref href="SpellBook.GAS.Effects.ActiveEffectInstance.Target" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public bool RemoveStacks(int count)
+    parameters:
+    - id: count
+      type: System.Int32
+    return:
+      type: System.Boolean
+    content.vb: Public Function RemoveStacks(count As Integer) As Boolean
+  overload: SpellBook.GAS.Effects.ActiveEffectInstance.RemoveStacks*
+  nameWithType.vb: ActiveEffectInstance.RemoveStacks(Integer)
+  fullName.vb: SpellBook.GAS.Effects.ActiveEffectInstance.RemoveStacks(Integer)
+  name.vb: RemoveStacks(Integer)
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.Cleanup
+  commentId: M:SpellBook.GAS.Effects.ActiveEffectInstance.Cleanup
+  id: Cleanup
+  parent: SpellBook.GAS.Effects.ActiveEffectInstance
+  langs:
+  - csharp
+  - vb
+  name: Cleanup()
+  nameWithType: ActiveEffectInstance.Cleanup()
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.Cleanup()
+  type: Method
+  namespace: SpellBook.GAS.Effects
+  syntax:
+    content: public void Cleanup()
+    content.vb: Public Sub Cleanup()
+  overload: SpellBook.GAS.Effects.ActiveEffectInstance.Cleanup*
+references:
+- uid: SpellBook.GAS.Effects
+  commentId: N:SpellBook.GAS.Effects
+  name: SpellBook.GAS.Effects
+  nameWithType: SpellBook.GAS.Effects
+  fullName: SpellBook.GAS.Effects
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Effects
+    name: Effects
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Effects
+    name: Effects
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.MemberwiseClone
+  commentId: M:System.Object.MemberwiseClone
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  name: MemberwiseClone()
+  nameWithType: object.MemberwiseClone()
+  fullName: object.MemberwiseClone()
+  nameWithType.vb: Object.MemberwiseClone()
+  fullName.vb: Object.MemberwiseClone()
+  spec.csharp:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.Effect*
+  commentId: Overload:SpellBook.GAS.Effects.ActiveEffectInstance.Effect
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html#SpellBook_GAS_Effects_ActiveEffectInstance_Effect
+  name: Effect
+  nameWithType: ActiveEffectInstance.Effect
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.Effect
+- uid: SpellBook.GAS.Effects.GameplayEffect
+  commentId: T:SpellBook.GAS.Effects.GameplayEffect
+  parent: SpellBook.GAS.Effects
+  href: SpellBook.GAS.Effects.GameplayEffect.html
+  name: GameplayEffect
+  nameWithType: GameplayEffect
+  fullName: SpellBook.GAS.Effects.GameplayEffect
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.TimeRemaining*
+  commentId: Overload:SpellBook.GAS.Effects.ActiveEffectInstance.TimeRemaining
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html#SpellBook_GAS_Effects_ActiveEffectInstance_TimeRemaining
+  name: TimeRemaining
+  nameWithType: ActiveEffectInstance.TimeRemaining
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.TimeRemaining
+- uid: System.Single
+  commentId: T:System.Single
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.single
+  name: float
+  nameWithType: float
+  fullName: float
+  nameWithType.vb: Single
+  fullName.vb: Single
+  name.vb: Single
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.CurrentStacks*
+  commentId: Overload:SpellBook.GAS.Effects.ActiveEffectInstance.CurrentStacks
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html#SpellBook_GAS_Effects_ActiveEffectInstance_CurrentStacks
+  name: CurrentStacks
+  nameWithType: ActiveEffectInstance.CurrentStacks
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.CurrentStacks
+- uid: System.Int32
+  commentId: T:System.Int32
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.int32
+  name: int
+  nameWithType: int
+  fullName: int
+  nameWithType.vb: Integer
+  fullName.vb: Integer
+  name.vb: Integer
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.Target*
+  commentId: Overload:SpellBook.GAS.Effects.ActiveEffectInstance.Target
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html#SpellBook_GAS_Effects_ActiveEffectInstance_Target
+  name: Target
+  nameWithType: ActiveEffectInstance.Target
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.Target
+- uid: SpellBook.GAS.Core.AbilitySystemComponent
+  commentId: T:SpellBook.GAS.Core.AbilitySystemComponent
+  parent: SpellBook.GAS.Core
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  name: AbilitySystemComponent
+  nameWithType: AbilitySystemComponent
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent
+- uid: SpellBook.GAS.Core
+  commentId: N:SpellBook.GAS.Core
+  name: SpellBook.GAS.Core
+  nameWithType: SpellBook.GAS.Core
+  fullName: SpellBook.GAS.Core
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Core
+    name: Core
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Core
+    name: Core
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.Source*
+  commentId: Overload:SpellBook.GAS.Effects.ActiveEffectInstance.Source
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html#SpellBook_GAS_Effects_ActiveEffectInstance_Source
+  name: Source
+  nameWithType: ActiveEffectInstance.Source
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.Source
+- uid: SpellBook.GAS.Effects.GameplayEffect.IsBuff
+  commentId: P:SpellBook.GAS.Effects.GameplayEffect.IsBuff
+  href: SpellBook.GAS.Effects.GameplayEffect.html#SpellBook_GAS_Effects_GameplayEffect_IsBuff
+  name: IsBuff
+  nameWithType: GameplayEffect.IsBuff
+  fullName: SpellBook.GAS.Effects.GameplayEffect.IsBuff
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.IsBuff*
+  commentId: Overload:SpellBook.GAS.Effects.ActiveEffectInstance.IsBuff
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html#SpellBook_GAS_Effects_ActiveEffectInstance_IsBuff
+  name: IsBuff
+  nameWithType: ActiveEffectInstance.IsBuff
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.IsBuff
+- uid: System.Boolean
+  commentId: T:System.Boolean
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.boolean
+  name: bool
+  nameWithType: bool
+  fullName: bool
+  nameWithType.vb: Boolean
+  fullName.vb: Boolean
+  name.vb: Boolean
+- uid: SpellBook.GAS.Effects.GameplayEffect.IsDebuff
+  commentId: P:SpellBook.GAS.Effects.GameplayEffect.IsDebuff
+  href: SpellBook.GAS.Effects.GameplayEffect.html#SpellBook_GAS_Effects_GameplayEffect_IsDebuff
+  name: IsDebuff
+  nameWithType: GameplayEffect.IsDebuff
+  fullName: SpellBook.GAS.Effects.GameplayEffect.IsDebuff
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.IsDebuff*
+  commentId: Overload:SpellBook.GAS.Effects.ActiveEffectInstance.IsDebuff
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html#SpellBook_GAS_Effects_ActiveEffectInstance_IsDebuff
+  name: IsDebuff
+  nameWithType: ActiveEffectInstance.IsDebuff
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.IsDebuff
+- uid: SpellBook.GAS.Effects.GameplayEffect.IsHidden
+  commentId: P:SpellBook.GAS.Effects.GameplayEffect.IsHidden
+  href: SpellBook.GAS.Effects.GameplayEffect.html#SpellBook_GAS_Effects_GameplayEffect_IsHidden
+  name: IsHidden
+  nameWithType: GameplayEffect.IsHidden
+  fullName: SpellBook.GAS.Effects.GameplayEffect.IsHidden
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.IsHidden*
+  commentId: Overload:SpellBook.GAS.Effects.ActiveEffectInstance.IsHidden
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html#SpellBook_GAS_Effects_ActiveEffectInstance_IsHidden
+  name: IsHidden
+  nameWithType: ActiveEffectInstance.IsHidden
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.IsHidden
+- uid: SpellBook.GAS.Effects.GameplayEffect.IsPurgable
+  commentId: P:SpellBook.GAS.Effects.GameplayEffect.IsPurgable
+  href: SpellBook.GAS.Effects.GameplayEffect.html#SpellBook_GAS_Effects_GameplayEffect_IsPurgable
+  name: IsPurgable
+  nameWithType: GameplayEffect.IsPurgable
+  fullName: SpellBook.GAS.Effects.GameplayEffect.IsPurgable
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.IsPurgable*
+  commentId: Overload:SpellBook.GAS.Effects.ActiveEffectInstance.IsPurgable
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html#SpellBook_GAS_Effects_ActiveEffectInstance_IsPurgable
+  name: IsPurgable
+  nameWithType: ActiveEffectInstance.IsPurgable
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.IsPurgable
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.AppliedDuration*
+  commentId: Overload:SpellBook.GAS.Effects.ActiveEffectInstance.AppliedDuration
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html#SpellBook_GAS_Effects_ActiveEffectInstance_AppliedDuration
+  name: AppliedDuration
+  nameWithType: ActiveEffectInstance.AppliedDuration
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.AppliedDuration
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.IsActive*
+  commentId: Overload:SpellBook.GAS.Effects.ActiveEffectInstance.IsActive
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html#SpellBook_GAS_Effects_ActiveEffectInstance_IsActive
+  name: IsActive
+  nameWithType: ActiveEffectInstance.IsActive
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.IsActive
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.LiveBindingCount*
+  commentId: Overload:SpellBook.GAS.Effects.ActiveEffectInstance.LiveBindingCount
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html#SpellBook_GAS_Effects_ActiveEffectInstance_LiveBindingCount
+  name: LiveBindingCount
+  nameWithType: ActiveEffectInstance.LiveBindingCount
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.LiveBindingCount
+- uid: System.Action{SpellBook.GAS.Effects.ActiveEffectInstance}
+  commentId: T:System.Action{SpellBook.GAS.Effects.ActiveEffectInstance}
+  parent: System
+  definition: System.Action`1
+  href: https://learn.microsoft.com/dotnet/api/system.action-1
+  name: Action<ActiveEffectInstance>
+  nameWithType: Action<ActiveEffectInstance>
+  fullName: System.Action<SpellBook.GAS.Effects.ActiveEffectInstance>
+  nameWithType.vb: Action(Of ActiveEffectInstance)
+  fullName.vb: System.Action(Of SpellBook.GAS.Effects.ActiveEffectInstance)
+  name.vb: Action(Of ActiveEffectInstance)
+  spec.csharp:
+  - uid: System.Action`1
+    name: Action
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.action-1
+  - name: <
+  - uid: SpellBook.GAS.Effects.ActiveEffectInstance
+    name: ActiveEffectInstance
+    href: SpellBook.GAS.Effects.ActiveEffectInstance.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Action`1
+    name: Action
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.action-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: SpellBook.GAS.Effects.ActiveEffectInstance
+    name: ActiveEffectInstance
+    href: SpellBook.GAS.Effects.ActiveEffectInstance.html
+  - name: )
+- uid: System.Action`1
+  commentId: T:System.Action`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.action-1
+  name: Action<T>
+  nameWithType: Action<T>
+  fullName: System.Action<T>
+  nameWithType.vb: Action(Of T)
+  fullName.vb: System.Action(Of T)
+  name.vb: Action(Of T)
+  spec.csharp:
+  - uid: System.Action`1
+    name: Action
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.action-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Action`1
+    name: Action
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.action-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.Context*
+  commentId: Overload:SpellBook.GAS.Effects.ActiveEffectInstance.Context
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html#SpellBook_GAS_Effects_ActiveEffectInstance_Context
+  name: Context
+  nameWithType: ActiveEffectInstance.Context
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.Context
+- uid: SpellBook.GAS.Effects.EffectContext
+  commentId: T:SpellBook.GAS.Effects.EffectContext
+  parent: SpellBook.GAS.Effects
+  href: SpellBook.GAS.Effects.EffectContext.html
+  name: EffectContext
+  nameWithType: EffectContext
+  fullName: SpellBook.GAS.Effects.EffectContext
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.#ctor*
+  commentId: Overload:SpellBook.GAS.Effects.ActiveEffectInstance.#ctor
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html#SpellBook_GAS_Effects_ActiveEffectInstance__ctor_SpellBook_GAS_Effects_GameplayEffect_SpellBook_GAS_Core_AbilitySystemComponent_SpellBook_GAS_Core_AbilitySystemComponent_
+  name: ActiveEffectInstance
+  nameWithType: ActiveEffectInstance.ActiveEffectInstance
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.ActiveEffectInstance
+  nameWithType.vb: ActiveEffectInstance.New
+  fullName.vb: SpellBook.GAS.Effects.ActiveEffectInstance.New
+  name.vb: New
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.AddActionData*
+  commentId: Overload:SpellBook.GAS.Effects.ActiveEffectInstance.AddActionData
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html#SpellBook_GAS_Effects_ActiveEffectInstance_AddActionData_SpellBook_GAS_Effects_EffectAction_System_Object_
+  name: AddActionData
+  nameWithType: ActiveEffectInstance.AddActionData
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.AddActionData
+- uid: SpellBook.GAS.Effects.EffectAction
+  commentId: T:SpellBook.GAS.Effects.EffectAction
+  parent: SpellBook.GAS.Effects
+  href: SpellBook.GAS.Effects.EffectAction.html
+  name: EffectAction
+  nameWithType: EffectAction
+  fullName: SpellBook.GAS.Effects.EffectAction
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.TryGetActionData*
+  commentId: Overload:SpellBook.GAS.Effects.ActiveEffectInstance.TryGetActionData
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html#SpellBook_GAS_Effects_ActiveEffectInstance_TryGetActionData__1_SpellBook_GAS_Effects_EffectAction_System_Collections_Generic_List___0___
+  name: TryGetActionData
+  nameWithType: ActiveEffectInstance.TryGetActionData
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.TryGetActionData
+- uid: System.Collections.Generic.List{{T}}
+  commentId: T:System.Collections.Generic.List{`0}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.List`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  name: List<T>
+  nameWithType: List<T>
+  fullName: System.Collections.Generic.List<T>
+  nameWithType.vb: List(Of T)
+  fullName.vb: System.Collections.Generic.List(Of T)
+  name.vb: List(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic.List`1
+  commentId: T:System.Collections.Generic.List`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  name: List<T>
+  nameWithType: List<T>
+  fullName: System.Collections.Generic.List<T>
+  nameWithType.vb: List(Of T)
+  fullName.vb: System.Collections.Generic.List(Of T)
+  name.vb: List(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic
+  commentId: N:System.Collections.Generic
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Collections.Generic
+  nameWithType: System.Collections.Generic
+  fullName: System.Collections.Generic
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.ExtendEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance,System.Single)
+  commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.ExtendEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance,System.Single)
+  isExternal: true
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_ExtendEffectDuration_SpellBook_GAS_Effects_ActiveEffectInstance_System_Single_
+  name: ExtendEffectDuration(ActiveEffectInstance, float)
+  nameWithType: AbilitySystemComponent.ExtendEffectDuration(ActiveEffectInstance, float)
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.ExtendEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance, float)
+  nameWithType.vb: AbilitySystemComponent.ExtendEffectDuration(ActiveEffectInstance, Single)
+  fullName.vb: SpellBook.GAS.Core.AbilitySystemComponent.ExtendEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance, Single)
+  name.vb: ExtendEffectDuration(ActiveEffectInstance, Single)
+  spec.csharp:
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent.ExtendEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance,System.Single)
+    name: ExtendEffectDuration
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_ExtendEffectDuration_SpellBook_GAS_Effects_ActiveEffectInstance_System_Single_
+  - name: (
+  - uid: SpellBook.GAS.Effects.ActiveEffectInstance
+    name: ActiveEffectInstance
+    href: SpellBook.GAS.Effects.ActiveEffectInstance.html
+  - name: ','
+  - name: " "
+  - uid: System.Single
+    name: float
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.single
+  - name: )
+  spec.vb:
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent.ExtendEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance,System.Single)
+    name: ExtendEffectDuration
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_ExtendEffectDuration_SpellBook_GAS_Effects_ActiveEffectInstance_System_Single_
+  - name: (
+  - uid: SpellBook.GAS.Effects.ActiveEffectInstance
+    name: ActiveEffectInstance
+    href: SpellBook.GAS.Effects.ActiveEffectInstance.html
+  - name: ','
+  - name: " "
+  - uid: System.Single
+    name: Single
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.single
+  - name: )
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.Target
+  commentId: P:SpellBook.GAS.Effects.ActiveEffectInstance.Target
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html#SpellBook_GAS_Effects_ActiveEffectInstance_Target
+  name: Target
+  nameWithType: ActiveEffectInstance.Target
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.Target
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.ExtendDuration*
+  commentId: Overload:SpellBook.GAS.Effects.ActiveEffectInstance.ExtendDuration
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html#SpellBook_GAS_Effects_ActiveEffectInstance_ExtendDuration_System_Single_
+  name: ExtendDuration
+  nameWithType: ActiveEffectInstance.ExtendDuration
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.ExtendDuration
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.ReduceEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance,System.Single)
+  commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.ReduceEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance,System.Single)
+  isExternal: true
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_ReduceEffectDuration_SpellBook_GAS_Effects_ActiveEffectInstance_System_Single_
+  name: ReduceEffectDuration(ActiveEffectInstance, float)
+  nameWithType: AbilitySystemComponent.ReduceEffectDuration(ActiveEffectInstance, float)
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.ReduceEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance, float)
+  nameWithType.vb: AbilitySystemComponent.ReduceEffectDuration(ActiveEffectInstance, Single)
+  fullName.vb: SpellBook.GAS.Core.AbilitySystemComponent.ReduceEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance, Single)
+  name.vb: ReduceEffectDuration(ActiveEffectInstance, Single)
+  spec.csharp:
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent.ReduceEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance,System.Single)
+    name: ReduceEffectDuration
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_ReduceEffectDuration_SpellBook_GAS_Effects_ActiveEffectInstance_System_Single_
+  - name: (
+  - uid: SpellBook.GAS.Effects.ActiveEffectInstance
+    name: ActiveEffectInstance
+    href: SpellBook.GAS.Effects.ActiveEffectInstance.html
+  - name: ','
+  - name: " "
+  - uid: System.Single
+    name: float
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.single
+  - name: )
+  spec.vb:
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent.ReduceEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance,System.Single)
+    name: ReduceEffectDuration
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_ReduceEffectDuration_SpellBook_GAS_Effects_ActiveEffectInstance_System_Single_
+  - name: (
+  - uid: SpellBook.GAS.Effects.ActiveEffectInstance
+    name: ActiveEffectInstance
+    href: SpellBook.GAS.Effects.ActiveEffectInstance.html
+  - name: ','
+  - name: " "
+  - uid: System.Single
+    name: Single
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.single
+  - name: )
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.ReduceDuration*
+  commentId: Overload:SpellBook.GAS.Effects.ActiveEffectInstance.ReduceDuration
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html#SpellBook_GAS_Effects_ActiveEffectInstance_ReduceDuration_System_Single_
+  name: ReduceDuration
+  nameWithType: ActiveEffectInstance.ReduceDuration
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.ReduceDuration
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.RestartEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance)
+  commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.RestartEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance)
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_RestartEffectDuration_SpellBook_GAS_Effects_ActiveEffectInstance_
+  name: RestartEffectDuration(ActiveEffectInstance)
+  nameWithType: AbilitySystemComponent.RestartEffectDuration(ActiveEffectInstance)
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.RestartEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance)
+  spec.csharp:
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent.RestartEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance)
+    name: RestartEffectDuration
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_RestartEffectDuration_SpellBook_GAS_Effects_ActiveEffectInstance_
+  - name: (
+  - uid: SpellBook.GAS.Effects.ActiveEffectInstance
+    name: ActiveEffectInstance
+    href: SpellBook.GAS.Effects.ActiveEffectInstance.html
+  - name: )
+  spec.vb:
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent.RestartEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance)
+    name: RestartEffectDuration
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_RestartEffectDuration_SpellBook_GAS_Effects_ActiveEffectInstance_
+  - name: (
+  - uid: SpellBook.GAS.Effects.ActiveEffectInstance
+    name: ActiveEffectInstance
+    href: SpellBook.GAS.Effects.ActiveEffectInstance.html
+  - name: )
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.RestartDuration*
+  commentId: Overload:SpellBook.GAS.Effects.ActiveEffectInstance.RestartDuration
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html#SpellBook_GAS_Effects_ActiveEffectInstance_RestartDuration
+  name: RestartDuration
+  nameWithType: ActiveEffectInstance.RestartDuration
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.RestartDuration
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.SetEffectStacks(SpellBook.GAS.Effects.ActiveEffectInstance,System.Int32)
+  commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.SetEffectStacks(SpellBook.GAS.Effects.ActiveEffectInstance,System.Int32)
+  isExternal: true
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_SetEffectStacks_SpellBook_GAS_Effects_ActiveEffectInstance_System_Int32_
+  name: SetEffectStacks(ActiveEffectInstance, int)
+  nameWithType: AbilitySystemComponent.SetEffectStacks(ActiveEffectInstance, int)
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.SetEffectStacks(SpellBook.GAS.Effects.ActiveEffectInstance, int)
+  nameWithType.vb: AbilitySystemComponent.SetEffectStacks(ActiveEffectInstance, Integer)
+  fullName.vb: SpellBook.GAS.Core.AbilitySystemComponent.SetEffectStacks(SpellBook.GAS.Effects.ActiveEffectInstance, Integer)
+  name.vb: SetEffectStacks(ActiveEffectInstance, Integer)
+  spec.csharp:
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent.SetEffectStacks(SpellBook.GAS.Effects.ActiveEffectInstance,System.Int32)
+    name: SetEffectStacks
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_SetEffectStacks_SpellBook_GAS_Effects_ActiveEffectInstance_System_Int32_
+  - name: (
+  - uid: SpellBook.GAS.Effects.ActiveEffectInstance
+    name: ActiveEffectInstance
+    href: SpellBook.GAS.Effects.ActiveEffectInstance.html
+  - name: ','
+  - name: " "
+  - uid: System.Int32
+    name: int
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: )
+  spec.vb:
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent.SetEffectStacks(SpellBook.GAS.Effects.ActiveEffectInstance,System.Int32)
+    name: SetEffectStacks
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_SetEffectStacks_SpellBook_GAS_Effects_ActiveEffectInstance_System_Int32_
+  - name: (
+  - uid: SpellBook.GAS.Effects.ActiveEffectInstance
+    name: ActiveEffectInstance
+    href: SpellBook.GAS.Effects.ActiveEffectInstance.html
+  - name: ','
+  - name: " "
+  - uid: System.Int32
+    name: Integer
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: )
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.SetStacks*
+  commentId: Overload:SpellBook.GAS.Effects.ActiveEffectInstance.SetStacks
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html#SpellBook_GAS_Effects_ActiveEffectInstance_SetStacks_System_Int32_
+  name: SetStacks
+  nameWithType: ActiveEffectInstance.SetStacks
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.SetStacks
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.RemoveEffectStacks(SpellBook.GAS.Effects.ActiveEffectInstance,System.Int32)
+  commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.RemoveEffectStacks(SpellBook.GAS.Effects.ActiveEffectInstance,System.Int32)
+  isExternal: true
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_RemoveEffectStacks_SpellBook_GAS_Effects_ActiveEffectInstance_System_Int32_
+  name: RemoveEffectStacks(ActiveEffectInstance, int)
+  nameWithType: AbilitySystemComponent.RemoveEffectStacks(ActiveEffectInstance, int)
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.RemoveEffectStacks(SpellBook.GAS.Effects.ActiveEffectInstance, int)
+  nameWithType.vb: AbilitySystemComponent.RemoveEffectStacks(ActiveEffectInstance, Integer)
+  fullName.vb: SpellBook.GAS.Core.AbilitySystemComponent.RemoveEffectStacks(SpellBook.GAS.Effects.ActiveEffectInstance, Integer)
+  name.vb: RemoveEffectStacks(ActiveEffectInstance, Integer)
+  spec.csharp:
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent.RemoveEffectStacks(SpellBook.GAS.Effects.ActiveEffectInstance,System.Int32)
+    name: RemoveEffectStacks
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_RemoveEffectStacks_SpellBook_GAS_Effects_ActiveEffectInstance_System_Int32_
+  - name: (
+  - uid: SpellBook.GAS.Effects.ActiveEffectInstance
+    name: ActiveEffectInstance
+    href: SpellBook.GAS.Effects.ActiveEffectInstance.html
+  - name: ','
+  - name: " "
+  - uid: System.Int32
+    name: int
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: )
+  spec.vb:
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent.RemoveEffectStacks(SpellBook.GAS.Effects.ActiveEffectInstance,System.Int32)
+    name: RemoveEffectStacks
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_RemoveEffectStacks_SpellBook_GAS_Effects_ActiveEffectInstance_System_Int32_
+  - name: (
+  - uid: SpellBook.GAS.Effects.ActiveEffectInstance
+    name: ActiveEffectInstance
+    href: SpellBook.GAS.Effects.ActiveEffectInstance.html
+  - name: ','
+  - name: " "
+  - uid: System.Int32
+    name: Integer
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: )
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.RemoveStacks*
+  commentId: Overload:SpellBook.GAS.Effects.ActiveEffectInstance.RemoveStacks
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html#SpellBook_GAS_Effects_ActiveEffectInstance_RemoveStacks_System_Int32_
+  name: RemoveStacks
+  nameWithType: ActiveEffectInstance.RemoveStacks
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.RemoveStacks
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance.Cleanup*
+  commentId: Overload:SpellBook.GAS.Effects.ActiveEffectInstance.Cleanup
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html#SpellBook_GAS_Effects_ActiveEffectInstance_Cleanup
+  name: Cleanup
+  nameWithType: ActiveEffectInstance.Cleanup
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance.Cleanup

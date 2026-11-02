@@ -1,0 +1,21 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.Editor
+  commentId: N:SpellBook.Editor
+  id: SpellBook.Editor
+  children:
+  - SpellBook.Editor.FolderStructureCreator
+  langs:
+  - csharp
+  - vb
+  name: SpellBook.Editor
+  nameWithType: SpellBook.Editor
+  fullName: SpellBook.Editor
+  type: Namespace
+references:
+- uid: SpellBook.Editor.FolderStructureCreator
+  commentId: T:SpellBook.Editor.FolderStructureCreator
+  href: SpellBook.Editor.FolderStructureCreator.html
+  name: FolderStructureCreator
+  nameWithType: FolderStructureCreator
+  fullName: SpellBook.Editor.FolderStructureCreator

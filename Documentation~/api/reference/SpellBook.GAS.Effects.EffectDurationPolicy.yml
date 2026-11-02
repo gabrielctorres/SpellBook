@@ -1,0 +1,100 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Effects.EffectDurationPolicy
+  commentId: T:SpellBook.GAS.Effects.EffectDurationPolicy
+  id: EffectDurationPolicy
+  parent: SpellBook.GAS.Effects
+  children:
+  - SpellBook.GAS.Effects.EffectDurationPolicy.HasDuration
+  - SpellBook.GAS.Effects.EffectDurationPolicy.Infinite
+  - SpellBook.GAS.Effects.EffectDurationPolicy.Instant
+  langs:
+  - csharp
+  - vb
+  name: EffectDurationPolicy
+  nameWithType: EffectDurationPolicy
+  fullName: SpellBook.GAS.Effects.EffectDurationPolicy
+  type: Enum
+  namespace: SpellBook.GAS.Effects
+  syntax:
+    content: public enum EffectDurationPolicy
+    content.vb: Public Enum EffectDurationPolicy
+- uid: SpellBook.GAS.Effects.EffectDurationPolicy.Instant
+  commentId: F:SpellBook.GAS.Effects.EffectDurationPolicy.Instant
+  id: Instant
+  parent: SpellBook.GAS.Effects.EffectDurationPolicy
+  langs:
+  - csharp
+  - vb
+  name: Instant
+  nameWithType: EffectDurationPolicy.Instant
+  fullName: SpellBook.GAS.Effects.EffectDurationPolicy.Instant
+  type: Field
+  namespace: SpellBook.GAS.Effects
+  syntax:
+    content: Instant = 0
+    return:
+      type: SpellBook.GAS.Effects.EffectDurationPolicy
+- uid: SpellBook.GAS.Effects.EffectDurationPolicy.Infinite
+  commentId: F:SpellBook.GAS.Effects.EffectDurationPolicy.Infinite
+  id: Infinite
+  parent: SpellBook.GAS.Effects.EffectDurationPolicy
+  langs:
+  - csharp
+  - vb
+  name: Infinite
+  nameWithType: EffectDurationPolicy.Infinite
+  fullName: SpellBook.GAS.Effects.EffectDurationPolicy.Infinite
+  type: Field
+  namespace: SpellBook.GAS.Effects
+  syntax:
+    content: Infinite = 1
+    return:
+      type: SpellBook.GAS.Effects.EffectDurationPolicy
+- uid: SpellBook.GAS.Effects.EffectDurationPolicy.HasDuration
+  commentId: F:SpellBook.GAS.Effects.EffectDurationPolicy.HasDuration
+  id: HasDuration
+  parent: SpellBook.GAS.Effects.EffectDurationPolicy
+  langs:
+  - csharp
+  - vb
+  name: HasDuration
+  nameWithType: EffectDurationPolicy.HasDuration
+  fullName: SpellBook.GAS.Effects.EffectDurationPolicy.HasDuration
+  type: Field
+  namespace: SpellBook.GAS.Effects
+  syntax:
+    content: HasDuration = 2
+    return:
+      type: SpellBook.GAS.Effects.EffectDurationPolicy
+references:
+- uid: SpellBook.GAS.Effects
+  commentId: N:SpellBook.GAS.Effects
+  name: SpellBook.GAS.Effects
+  nameWithType: SpellBook.GAS.Effects
+  fullName: SpellBook.GAS.Effects
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Effects
+    name: Effects
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Effects
+    name: Effects
+- uid: SpellBook.GAS.Effects.EffectDurationPolicy
+  commentId: T:SpellBook.GAS.Effects.EffectDurationPolicy
+  parent: SpellBook.GAS.Effects
+  href: SpellBook.GAS.Effects.EffectDurationPolicy.html
+  name: EffectDurationPolicy
+  nameWithType: EffectDurationPolicy
+  fullName: SpellBook.GAS.Effects.EffectDurationPolicy

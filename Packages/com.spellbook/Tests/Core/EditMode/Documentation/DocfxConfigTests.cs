@@ -1,7 +1,10 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using SpellBook.Core.Editor.Documentation;
+using UnityEditor.Compilation;
 
 namespace SpellBook.Core.Tests.Documentation
 {
@@ -10,11 +13,12 @@ namespace SpellBook.Core.Tests.Documentation
     {
         private static readonly string Root = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "spellbook-docfx-config"));
         private static readonly string ConfigDir = Path.Combine(Root, "Documentation~", "api", "obj");
+        private static readonly string[] NoSystemDirectories = new string[0];
 
         [Test]
         public void Render_SourcesOnlyFromPackageAssemblies()
         {
-            string text = DocfxConfig.Render(new[] { CoreAssembly(), TestsAssembly() }, ConfigDir);
+            string text = DocfxConfig.Render(new[] { CoreAssembly(), TestsAssembly() }, NoSystemDirectories, ConfigDir);
 
             StringAssert.Contains("\"DocUrls.cs\"", text);
             StringAssert.DoesNotContain("ManualLinksTests.cs", text);
@@ -24,7 +28,7 @@ namespace SpellBook.Core.Tests.Documentation
         [Test]
         public void Render_SourcePathsRelativeToConfigDirWithForwardSlashes()
         {
-            string text = DocfxConfig.Render(new[] { CoreAssembly() }, ConfigDir);
+            string text = DocfxConfig.Render(new[] { CoreAssembly() }, NoSystemDirectories, ConfigDir);
 
             StringAssert.Contains("\"src\": \"../../../Packages/com.spellbook/Runtime/Core\"", text);
             StringAssert.DoesNotContain("\\", text);
@@ -36,7 +40,7 @@ namespace SpellBook.Core.Tests.Documentation
             var tags = new DocfxAssembly("SpellBook.Tags", new[] { At("Packages", "com.spellbook", "Runtime", "Tags", "GameplayTag.cs") },
                 new[] { At("Library", "ScriptAssemblies", "SpellBook.Core.dll"), Unity("UnityEngine.CoreModule.dll") });
 
-            string text = DocfxConfig.Render(new[] { CoreAssembly(), tags }, ConfigDir);
+            string text = DocfxConfig.Render(new[] { CoreAssembly(), tags }, NoSystemDirectories, ConfigDir);
 
             StringAssert.Contains("\"UnityEngine.CoreModule.dll\"", text);
             StringAssert.DoesNotContain("SpellBook.Core.dll", text);
@@ -44,9 +48,30 @@ namespace SpellBook.Core.Tests.Documentation
         }
 
         [Test]
+        public void Render_SkipsReferencesInSystemAssemblyDirectories()
+        {
+            var unity = new DocfxAssembly("SpellBook.Core", new[] { At("Packages", "com.spellbook", "Runtime", "Core", "DocUrls.cs") },
+                new[]
+                {
+                    "C:/Unity/NetStandard/ref/2.1.0/netstandard.dll",
+                    "C:/Unity/UnityReferenceAssemblies/unity-4.8-api/mscorlib.dll",
+                    "C:/Unity/Managed/UnityEngine.dll",
+                    "C:/Unity/NetStandard2/x.dll",
+                });
+            var system = new[] { "C:/Unity/NetStandard", "C:\\Unity\\UnityReferenceAssemblies\\" };
+
+            string text = DocfxConfig.Render(new[] { unity }, system, ConfigDir);
+
+            StringAssert.Contains("\"UnityEngine.dll\"", text);
+            StringAssert.Contains("\"x.dll\"", text);
+            StringAssert.DoesNotContain("netstandard.dll", text);
+            StringAssert.DoesNotContain("mscorlib.dll", text);
+        }
+
+        [Test]
         public void Render_DestinationIsApiReference()
         {
-            string text = DocfxConfig.Render(new[] { CoreAssembly() }, ConfigDir);
+            string text = DocfxConfig.Render(new[] { CoreAssembly() }, NoSystemDirectories, ConfigDir);
 
             StringAssert.Contains("\"dest\": \"../reference\"", text);
         }
@@ -54,8 +79,8 @@ namespace SpellBook.Core.Tests.Documentation
         [Test]
         public void Render_SameInputTwice_SameText()
         {
-            string first = DocfxConfig.Render(new[] { CoreAssembly(), TestsAssembly() }, ConfigDir);
-            string second = DocfxConfig.Render(new[] { TestsAssembly(), CoreAssembly() }, ConfigDir);
+            string first = DocfxConfig.Render(new[] { CoreAssembly(), TestsAssembly() }, NoSystemDirectories, ConfigDir);
+            string second = DocfxConfig.Render(new[] { TestsAssembly(), CoreAssembly() }, NoSystemDirectories, ConfigDir);
 
             Assert.That(second, Is.EqualTo(first));
             StringAssert.DoesNotContain("\r", first);
@@ -68,6 +93,24 @@ namespace SpellBook.Core.Tests.Documentation
 
             Assert.That(core.Sources.Select(s => s.Replace('\\', '/')),
                 Has.Some.EndsWith("/Runtime/Core/DocUrls.cs"));
+        }
+
+        [Test]
+        public void ReadSystemAssemblyDirectories_CoversCoreLibraryOfEveryPackageAssembly()
+        {
+            List<string> folders = DocfxConfig.ReadSystemAssemblyDirectories()
+                .Select(d => Path.GetFullPath(d).Replace('\\', '/').TrimEnd('/') + "/").ToList();
+
+            List<string> uncovered = CompilationPipeline.GetAssemblies(AssembliesType.Editor)
+                .Where(a => TypeCatalog.IsPackageAssembly(a.name))
+                .SelectMany(a => a.allReferences)
+                .Where(r => Path.GetFileName(r) == "mscorlib.dll" || Path.GetFileName(r) == "netstandard.dll")
+                .Select(r => Path.GetFullPath(r).Replace('\\', '/'))
+                .Where(r => !folders.Any(d => r.StartsWith(d, StringComparison.OrdinalIgnoreCase)))
+                .Distinct()
+                .ToList();
+
+            Assert.That(uncovered, Is.Empty);
         }
 
         private static DocfxAssembly CoreAssembly()

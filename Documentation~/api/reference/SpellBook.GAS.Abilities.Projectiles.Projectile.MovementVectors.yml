@@ -1,0 +1,122 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors
+  commentId: T:SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors
+  id: Projectile.MovementVectors
+  parent: SpellBook.GAS.Abilities.Projectiles
+  children:
+  - SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors.Forward
+  - SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors.Right
+  - SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors.Up
+  langs:
+  - csharp
+  - vb
+  name: Projectile.MovementVectors
+  nameWithType: Projectile.MovementVectors
+  fullName: SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors
+  type: Enum
+  namespace: SpellBook.GAS.Abilities.Projectiles
+  syntax:
+    content: public enum Projectile.MovementVectors
+    content.vb: Public Enum Projectile.MovementVectors
+- uid: SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors.Forward
+  commentId: F:SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors.Forward
+  id: Forward
+  parent: SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors
+  langs:
+  - csharp
+  - vb
+  name: Forward
+  nameWithType: Projectile.MovementVectors.Forward
+  fullName: SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors.Forward
+  type: Field
+  namespace: SpellBook.GAS.Abilities.Projectiles
+  syntax:
+    content: Forward = 0
+    return:
+      type: SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors
+- uid: SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors.Right
+  commentId: F:SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors.Right
+  id: Right
+  parent: SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors
+  langs:
+  - csharp
+  - vb
+  name: Right
+  nameWithType: Projectile.MovementVectors.Right
+  fullName: SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors.Right
+  type: Field
+  namespace: SpellBook.GAS.Abilities.Projectiles
+  syntax:
+    content: Right = 1
+    return:
+      type: SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors
+- uid: SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors.Up
+  commentId: F:SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors.Up
+  id: Up
+  parent: SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors
+  langs:
+  - csharp
+  - vb
+  name: Up
+  nameWithType: Projectile.MovementVectors.Up
+  fullName: SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors.Up
+  type: Field
+  namespace: SpellBook.GAS.Abilities.Projectiles
+  syntax:
+    content: Up = 2
+    return:
+      type: SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors
+references:
+- uid: SpellBook.GAS.Abilities.Projectiles
+  commentId: N:SpellBook.GAS.Abilities.Projectiles
+  name: SpellBook.GAS.Abilities.Projectiles
+  nameWithType: SpellBook.GAS.Abilities.Projectiles
+  fullName: SpellBook.GAS.Abilities.Projectiles
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+  - name: .
+  - uid: SpellBook.GAS.Abilities.Projectiles
+    name: Projectiles
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+  - name: .
+  - uid: SpellBook.GAS.Abilities.Projectiles
+    name: Projectiles
+- uid: SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors
+  commentId: T:SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors
+  parent: SpellBook.GAS.Abilities.Projectiles
+  href: SpellBook.GAS.Abilities.Projectiles.Projectile.html
+  name: Projectile.MovementVectors
+  nameWithType: Projectile.MovementVectors
+  fullName: SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors
+  spec.csharp:
+  - uid: SpellBook.GAS.Abilities.Projectiles.Projectile
+    name: Projectile
+    href: SpellBook.GAS.Abilities.Projectiles.Projectile.html
+  - name: .
+  - uid: SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors
+    name: MovementVectors
+    href: SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors.html
+  spec.vb:
+  - uid: SpellBook.GAS.Abilities.Projectiles.Projectile
+    name: Projectile
+    href: SpellBook.GAS.Abilities.Projectiles.Projectile.html
+  - name: .
+  - uid: SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors
+    name: MovementVectors
+    href: SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors.html

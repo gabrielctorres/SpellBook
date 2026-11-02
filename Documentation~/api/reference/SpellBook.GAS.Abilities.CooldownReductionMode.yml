@@ -1,0 +1,89 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Abilities.CooldownReductionMode
+  commentId: T:SpellBook.GAS.Abilities.CooldownReductionMode
+  id: CooldownReductionMode
+  parent: SpellBook.GAS.Abilities
+  children:
+  - SpellBook.GAS.Abilities.CooldownReductionMode.Haste
+  - SpellBook.GAS.Abilities.CooldownReductionMode.Percent
+  langs:
+  - csharp
+  - vb
+  name: CooldownReductionMode
+  nameWithType: CooldownReductionMode
+  fullName: SpellBook.GAS.Abilities.CooldownReductionMode
+  type: Enum
+  namespace: SpellBook.GAS.Abilities
+  summary: Como o valor do atributo de redução de recarga vira redução.
+  example: []
+  syntax:
+    content: public enum CooldownReductionMode
+    content.vb: Public Enum CooldownReductionMode
+- uid: SpellBook.GAS.Abilities.CooldownReductionMode.Percent
+  commentId: F:SpellBook.GAS.Abilities.CooldownReductionMode.Percent
+  id: Percent
+  parent: SpellBook.GAS.Abilities.CooldownReductionMode
+  langs:
+  - csharp
+  - vb
+  name: Percent
+  nameWithType: CooldownReductionMode.Percent
+  fullName: SpellBook.GAS.Abilities.CooldownReductionMode.Percent
+  type: Field
+  namespace: SpellBook.GAS.Abilities
+  summary: O atributo é a fração de redução (0,2 = 20 %).
+  example: []
+  syntax:
+    content: Percent = 0
+    return:
+      type: SpellBook.GAS.Abilities.CooldownReductionMode
+- uid: SpellBook.GAS.Abilities.CooldownReductionMode.Haste
+  commentId: F:SpellBook.GAS.Abilities.CooldownReductionMode.Haste
+  id: Haste
+  parent: SpellBook.GAS.Abilities.CooldownReductionMode
+  langs:
+  - csharp
+  - vb
+  name: Haste
+  nameWithType: CooldownReductionMode.Haste
+  fullName: SpellBook.GAS.Abilities.CooldownReductionMode.Haste
+  type: Field
+  namespace: SpellBook.GAS.Abilities
+  summary: O atributo é velocidade extra de recarga (1 = o dobro da velocidade, metade da duração).
+  example: []
+  syntax:
+    content: Haste = 1
+    return:
+      type: SpellBook.GAS.Abilities.CooldownReductionMode
+references:
+- uid: SpellBook.GAS.Abilities
+  commentId: N:SpellBook.GAS.Abilities
+  name: SpellBook.GAS.Abilities
+  nameWithType: SpellBook.GAS.Abilities
+  fullName: SpellBook.GAS.Abilities
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+- uid: SpellBook.GAS.Abilities.CooldownReductionMode
+  commentId: T:SpellBook.GAS.Abilities.CooldownReductionMode
+  parent: SpellBook.GAS.Abilities
+  href: SpellBook.GAS.Abilities.CooldownReductionMode.html
+  name: CooldownReductionMode
+  nameWithType: CooldownReductionMode
+  fullName: SpellBook.GAS.Abilities.CooldownReductionMode

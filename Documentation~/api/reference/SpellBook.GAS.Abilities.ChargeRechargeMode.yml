@@ -1,0 +1,70 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Abilities.ChargeRechargeMode
+  commentId: T:SpellBook.GAS.Abilities.ChargeRechargeMode
+  id: ChargeRechargeMode
+  parent: SpellBook.GAS.Abilities
+  children:
+  - SpellBook.GAS.Abilities.ChargeRechargeMode.Sequential
+  langs:
+  - csharp
+  - vb
+  name: ChargeRechargeMode
+  nameWithType: ChargeRechargeMode
+  fullName: SpellBook.GAS.Abilities.ChargeRechargeMode
+  type: Enum
+  namespace: SpellBook.GAS.Abilities
+  summary: Como as cargas voltam. Só existe a recarga sequencial; o enum guarda o formato serializado.
+  example: []
+  syntax:
+    content: public enum ChargeRechargeMode
+    content.vb: Public Enum ChargeRechargeMode
+- uid: SpellBook.GAS.Abilities.ChargeRechargeMode.Sequential
+  commentId: F:SpellBook.GAS.Abilities.ChargeRechargeMode.Sequential
+  id: Sequential
+  parent: SpellBook.GAS.Abilities.ChargeRechargeMode
+  langs:
+  - csharp
+  - vb
+  name: Sequential
+  nameWithType: ChargeRechargeMode.Sequential
+  fullName: SpellBook.GAS.Abilities.ChargeRechargeMode.Sequential
+  type: Field
+  namespace: SpellBook.GAS.Abilities
+  summary: 'Uma carga por vez: ao voltar uma, a recarga da seguinte recomeça.'
+  example: []
+  syntax:
+    content: Sequential = 0
+    return:
+      type: SpellBook.GAS.Abilities.ChargeRechargeMode
+references:
+- uid: SpellBook.GAS.Abilities
+  commentId: N:SpellBook.GAS.Abilities
+  name: SpellBook.GAS.Abilities
+  nameWithType: SpellBook.GAS.Abilities
+  fullName: SpellBook.GAS.Abilities
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+- uid: SpellBook.GAS.Abilities.ChargeRechargeMode
+  commentId: T:SpellBook.GAS.Abilities.ChargeRechargeMode
+  parent: SpellBook.GAS.Abilities
+  href: SpellBook.GAS.Abilities.ChargeRechargeMode.html
+  name: ChargeRechargeMode
+  nameWithType: ChargeRechargeMode
+  fullName: SpellBook.GAS.Abilities.ChargeRechargeMode
