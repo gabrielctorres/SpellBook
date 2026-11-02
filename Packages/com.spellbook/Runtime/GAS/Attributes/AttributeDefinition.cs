@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
 using SpellBook.Core.Validation;
+using SpellBook.Tags;
 using UnityEngine;
 
 namespace SpellBook.GAS.Attributes
@@ -77,6 +78,10 @@ namespace SpellBook.GAS.Attributes
         [Tooltip("Meta-atributo: a alteração passa pelos processadores, que a convertem em alterações de outros atributos, e a variação final é descartada. A base continua 0 e nenhum evento de valor dispara.")]
         private bool isMeta;
 
+        [SerializeField]
+        [Tooltip("Tag que o ASC tem enquanto o atributo está no mínimo: concedida ao chegar, devolvida ao sair. Vazia: desligado.")]
+        private GameplayTag stateTagWhileDepleted;
+
         /// <summary>A categoria do atributo, de <see cref="AttributeDisplay.Category"/> (R18).</summary>
         public AttributeCategory Category => Display.Category;
 
@@ -85,6 +90,9 @@ namespace SpellBook.GAS.Attributes
 
         /// <summary>Meta-atributo (ADR 0033, item 6): só os processadores agem; a variação final nunca chega à base.</summary>
         public bool IsMeta => isMeta;
+
+        /// <summary>Tag de estado enquanto o atributo está no mínimo (por exemplo, morto); inválida quando desligada.</summary>
+        public GameplayTag StateTagWhileDepleted => stateTagWhileDepleted;
 
         /// <summary>
         /// Erros: mínimo constante acima do máximo constante, fonte de limite sem atributo, apontando para o próprio

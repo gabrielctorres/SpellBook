@@ -12,6 +12,12 @@ using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Conditions;
 namespace SpellBook.GAS.Core
 {
+    /// <summary>
+    /// Ouvinte de um atributo que chegou a um limite. <paramref name="cause"/> é o relatório da alteração do pipeline
+    /// que o levou ao limite; sem ela (limite que mudou, modificador persistente), <c>IsValid</c> é falso.
+    /// </summary>
+    public delegate void AttributeLimitHandler(AttributeState state, in AttributeChangeReport cause);
+
     [RequireComponent(typeof(AttributeSet))]
     [HelpURL(DocUrls.Gas + "#abilitysystemcomponent")]
     public class AbilitySystemComponent : MonoBehaviour, IValidatable
@@ -79,6 +85,7 @@ namespace SpellBook.GAS.Core
         private void Awake()
         {
             if (attributeSet == null) attributeSet = GetComponent<AttributeSet>();
+            if (attributeSet != null) BindAttributeLimits();
 
             if (startingAbilities != null)
             {
@@ -1416,6 +1423,10 @@ namespace SpellBook.GAS.Core
         private bool _hasActiveChange;
         private GameplayEffect _activeChangeEffect;
         private EffectContext _activeChangeContext;
+        // A alteração sendo gravada na base, para a causa dos eventos de limite; estado nulo fora da gravação
+        private AttributeState _activeChangeState;
+        private AttributeChange _activeChange;
+        private float _activeChangeBefore;
 
         /// <summary>
         /// Uma alteração da base passou pelo pipeline e foi aplicada (ADR 0033): uma vez por alteração, também a
@@ -1473,9 +1484,13 @@ namespace SpellBook.GAS.Core
             bool hadActive = _hasActiveChange;
             GameplayEffect previousEffect = _activeChangeEffect;
             EffectContext previousContext = _activeChangeContext;
+            AttributeState previousState = _activeChangeState;
+            AttributeChange previousChange = _activeChange;
+            float previousBefore = _activeChangeBefore;
             _hasActiveChange = true;
             _activeChangeEffect = effect;
             _activeChangeContext = context;
+            _activeChangeState = null;
             if (processed) _changeChain[_changeDepth++] = definition;
             try
             {
@@ -1486,6 +1501,9 @@ namespace SpellBook.GAS.Core
                 // final zero não aplica, e a base pedida só vale se as redirecionadas não mudaram este atributo. O meta
                 // descarta a variação final: a base fica e nenhum evento de valor dispara (ADR 0033, item 6)
                 float before = state.BaseValue;
+                _activeChangeState = state;
+                _activeChange = change;
+                _activeChangeBefore = before;
                 if (definition.IsMeta)
                 {
                     // Nada a aplicar: o relatório sai com Final e Applied = 0
@@ -1497,6 +1515,7 @@ namespace SpellBook.GAS.Core
                     state.SetBaseValue(unchanged ? requestedBase : before + change.Delta);
                 }
 
+                _activeChangeState = null;
                 var report = new AttributeChangeReport(in change, state.BaseValue - before, in context);
                 OnAttributeChangeApplied?.Invoke(in report);
                 return report.Applied;
@@ -1507,7 +1526,74 @@ namespace SpellBook.GAS.Core
                 _hasActiveChange = hadActive;
                 _activeChangeEffect = previousEffect;
                 _activeChangeContext = previousContext;
+                _activeChangeState = previousState;
+                _activeChange = previousChange;
+                _activeChangeBefore = previousBefore;
             }
+        }
+
+        /// <summary>
+        /// Um atributo chegou ao mínimo (morte, escudo quebrado, mana vazia), depois do <c>OnDepleted</c> do estado e da
+        /// tag de estado. A causa traz o efeito, o instigador (nulo se destruído) e os valores da alteração.
+        /// </summary>
+        public event AttributeLimitHandler OnAttributeDepleted;
+
+        /// <summary>Um atributo chegou ao máximo, depois do <c>OnReachedMax</c> do estado, com a causa como no <see cref="OnAttributeDepleted"/>.</summary>
+        public event AttributeLimitHandler OnAttributeReachedMax;
+
+        // Estados cuja tag de estado este ASC concedeu: só devolve o que deu, mesmo com ouvintes que curam dentro do evento
+        private readonly HashSet<AttributeState> _grantedStateTags = new HashSet<AttributeState>();
+
+        // Um delegate por evento, reaproveitado em todos os estados; o estado que nasce no mínimo recebe a tag aqui
+        private void BindAttributeLimits()
+        {
+            Action<AttributeState> depleted = HandleAttributeDepleted;
+            Action<AttributeState> reachedMax = HandleAttributeReachedMax;
+            Action<AttributeState> leftMin = HandleAttributeLeftMin;
+            IReadOnlyList<AttributeState> states = attributeSet.States;
+            for (int i = 0; i < states.Count; i++)
+            {
+                AttributeState state = states[i];
+                state.OnDepleted += depleted;
+                state.OnReachedMax += reachedMax;
+                state.OnLeftMin += leftMin;
+                GrantStateTag(state);
+            }
+        }
+
+        private void HandleAttributeDepleted(AttributeState state)
+        {
+            GrantStateTag(state);
+            if (OnAttributeDepleted == null) return;
+            AttributeChangeReport cause = GetLimitCause(state);
+            OnAttributeDepleted(state, in cause);
+        }
+
+        private void HandleAttributeReachedMax(AttributeState state)
+        {
+            if (OnAttributeReachedMax == null) return;
+            AttributeChangeReport cause = GetLimitCause(state);
+            OnAttributeReachedMax(state, in cause);
+        }
+
+        private void HandleAttributeLeftMin(AttributeState state)
+        {
+            if (!_grantedStateTags.Remove(state)) return;
+            RemoveTag(state.Definition.StateTagWhileDepleted);
+        }
+
+        private void GrantStateTag(AttributeState state)
+        {
+            GameplayTag tag = state.Definition.StateTagWhileDepleted;
+            if (!tag.IsValid || !state.IsAtMin || !_grantedStateTags.Add(state)) return;
+            AddTag(tag);
+        }
+
+        // Só a alteração do pipeline gravando a base deste estado é causa; a de outro atributo (limite ligado) não
+        private AttributeChangeReport GetLimitCause(AttributeState state)
+        {
+            if (!ReferenceEquals(_activeChangeState, state)) return default;
+            return new AttributeChangeReport(in _activeChange, state.BaseValue - _activeChangeBefore, in _activeChangeContext);
         }
 
         private void RunProcessors(

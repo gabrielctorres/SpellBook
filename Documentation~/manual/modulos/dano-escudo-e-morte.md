@@ -101,6 +101,22 @@ Depois dos processadores, a variação que sobrou no meta-atributo é descartada
 
 Use o meta-atributo só em efeitos instantâneos e periódicos. Num efeito com duração, o modificador não passa pelos processadores e somaria ao valor atual do meta-atributo.
 
+## Morte e outros limites {#morte}
+
+Quando um atributo chega ao mínimo, o `AbilitySystemComponent` avisa no evento `OnAttributeDepleted`, junto com a causa: o efeito, o instigador e os valores da alteração. Vida em 0, escudo quebrado e mana vazia chegam pelo mesmo evento. O pacote não destrói nem desliga o personagem. O que a morte faz no seu jogo fica com o seu código ou com uma tag de estado.
+
+Para marcar o personagem como morto:
+
+1. Crie a tag `Estado.Morto`.
+2. No atributo `Vida`, preencha `State Tag While Depleted`, na seção `Damage`, com `Estado.Morto`.
+3. Nas habilidades que um morto não pode usar, ponha `Estado.Morto` em `Blocked Tags`.
+
+Com a `Vida` em 0, o `AbilitySystemComponent` ganha `Estado.Morto`, e essas habilidades falham com `BlockedByTags`. Uma cura que tira a `Vida` do mínimo devolve a tag, e as habilidades voltam a ativar. Um personagem que já nasce com a `Vida` em 0 começa com a tag. Com o campo vazio, nenhuma tag é concedida.
+
+A cura depois da morte parte do mínimo: com a `Vida` em 0, depois de um golpe de 300, uma cura de 40 deixa a `Vida` em 40.
+
+O evento dispara uma vez ao chegar ao mínimo. Outro golpe com a `Vida` já em 0 não repete o evento. Depois de uma cura, a próxima morte dispara de novo. `OnAttributeReachedMax` faz o mesmo para o máximo.
+
 ## Pelo código {#codigo}
 
 Para mudar um atributo pelo código e passar pelos processadores, chame `ApplyAttributeChange` no `AbilitySystemComponent`. O retorno é quanto a base mudou de fato, já com os limites:
@@ -137,6 +153,22 @@ if (asc.TryGetActiveChangeSource(out GameplayEffect efeito, out EffectContext co
 ```
 
 Com a lista `Processors` vazia, a base recebe a variação pedida direto, sem passo extra.
+
+Para reagir à morte, ouça o `OnAttributeDepleted`. O evento vem depois do `OnDepleted` do atributo e da tag de estado:
+
+```csharp
+asc.OnAttributeDepleted += (AttributeState estado, in AttributeChangeReport causa) =>
+{
+    if (estado.Definition != vida) return;
+    AbilitySystemComponent quem = causa.Context.Instigator; // nulo se o instigador foi destruído
+    string origem = causa.Effect != null ? causa.Effect.name : "código";
+    Debug.Log($"Morreu por {origem}, de {(quem != null ? quem.name : "ninguém")}, aplicado {causa.Applied}");
+};
+```
+
+A causa é o relatório da alteração que levou o atributo ao mínimo. Quando nenhuma alteração do pipeline levou o atributo ao limite, `causa.IsValid` é falso e o contexto vem vazio. Isso acontece com um modificador de efeito com duração e com um limite que muda porque outro atributo mudou. Um ouvinte pode curar ou aplicar efeitos dentro do evento.
+
+O `AttributeState` também diz se o valor está num limite (`IsAtMin`, `IsAtMax`) e avisa quando sai dele (`OnLeftMin`, `OnLeftMax`, depois do `OnDepleted` e do `OnReachedMax` do mesmo recálculo).
 
 ## Criar o seu {#criar-o-seu}
 
