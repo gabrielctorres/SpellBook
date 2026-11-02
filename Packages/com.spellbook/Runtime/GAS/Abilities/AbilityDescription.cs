@@ -14,14 +14,14 @@ namespace SpellBook.GAS.Abilities
         public abstract string GetText(GameplayAbility ability, AbilitySystemComponent source);
     }
 
-    [Serializable]
+    [Serializable, TypeCategory("Descrição", Summary = "Texto fixo.")]
     public class TextElement : DescriptionElement
     {
         public string Text;
         public override string GetText(GameplayAbility ability, AbilitySystemComponent source) => Text ?? string.Empty;
     }
 
-    [Serializable]
+    [Serializable, TypeCategory("Descrição", Summary = "Valor de um atributo de quem lançou, com cor.")]
     public class AttributeElement : DescriptionElement
     {
         public AttributeDefinition Attribute;
@@ -38,7 +38,7 @@ namespace SpellBook.GAS.Abilities
         private string GetColored(string text) => $"<color=#{ColorUtility.ToHtmlStringRGB(Color)}>{text}</color>";
     }
 
-    [Serializable]
+    [Serializable, TypeCategory("Descrição", Summary = "Modelo com marcadores trocados por atributos ou texto.")]
     public class TemplateElement : DescriptionElement
     {
         [TextArea(2, 5)]

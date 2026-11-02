@@ -1,0 +1,75 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.Time
+  commentId: N:SpellBook.Time
+  id: SpellBook.Time
+  children:
+  - SpellBook.Time.ITimeSource
+  - SpellBook.Time.ManualTimeSource
+  - SpellBook.Time.PausableTimeSource
+  - SpellBook.Time.ScaledTimeSource
+  - SpellBook.Time.TimeSourceAsset
+  - SpellBook.Time.UnscaledTimeSource
+  langs:
+  - csharp
+  - vb
+  name: SpellBook.Time
+  nameWithType: SpellBook.Time
+  fullName: SpellBook.Time
+  type: Namespace
+references:
+- uid: SpellBook.Time.ITimeSource
+  commentId: T:SpellBook.Time.ITimeSource
+  parent: SpellBook.Time
+  href: SpellBook.Time.ITimeSource.html
+  name: ITimeSource
+  nameWithType: ITimeSource
+  fullName: SpellBook.Time.ITimeSource
+- uid: SpellBook.Time.ManualTimeSource
+  commentId: T:SpellBook.Time.ManualTimeSource
+  href: SpellBook.Time.ManualTimeSource.html
+  name: ManualTimeSource
+  nameWithType: ManualTimeSource
+  fullName: SpellBook.Time.ManualTimeSource
+- uid: SpellBook.Time.PausableTimeSource
+  commentId: T:SpellBook.Time.PausableTimeSource
+  href: SpellBook.Time.PausableTimeSource.html
+  name: PausableTimeSource
+  nameWithType: PausableTimeSource
+  fullName: SpellBook.Time.PausableTimeSource
+- uid: SpellBook.Time.ScaledTimeSource
+  commentId: T:SpellBook.Time.ScaledTimeSource
+  href: SpellBook.Time.ScaledTimeSource.html
+  name: ScaledTimeSource
+  nameWithType: ScaledTimeSource
+  fullName: SpellBook.Time.ScaledTimeSource
+- uid: SpellBook.Time.TimeSourceAsset
+  commentId: T:SpellBook.Time.TimeSourceAsset
+  parent: SpellBook.Time
+  href: SpellBook.Time.TimeSourceAsset.html
+  name: TimeSourceAsset
+  nameWithType: TimeSourceAsset
+  fullName: SpellBook.Time.TimeSourceAsset
+- uid: SpellBook.Time.UnscaledTimeSource
+  commentId: T:SpellBook.Time.UnscaledTimeSource
+  href: SpellBook.Time.UnscaledTimeSource.html
+  name: UnscaledTimeSource
+  nameWithType: UnscaledTimeSource
+  fullName: SpellBook.Time.UnscaledTimeSource
+- uid: SpellBook.Time
+  commentId: N:SpellBook.Time
+  name: SpellBook.Time
+  nameWithType: SpellBook.Time
+  fullName: SpellBook.Time
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Time
+    name: Time
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Time
+    name: Time

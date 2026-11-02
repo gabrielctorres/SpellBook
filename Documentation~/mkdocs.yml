@@ -36,6 +36,8 @@ nav:
   - Exemplos:
       - exemplos/sandbox.md
   - Referência:
+      - referencia/catalogo.md
+      - API: https://gabrielctorres.github.io/SpellBook/api/
       - inicio/conceitos.md
       - regras/migracao-2-para-3.md
 

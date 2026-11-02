@@ -1,0 +1,54 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Attributes.AttributeChangeHandler
+  commentId: T:SpellBook.GAS.Attributes.AttributeChangeHandler
+  id: AttributeChangeHandler
+  parent: SpellBook.GAS.Attributes
+  children: []
+  langs:
+  - csharp
+  - vb
+  name: AttributeChangeHandler
+  nameWithType: AttributeChangeHandler
+  fullName: SpellBook.GAS.Attributes.AttributeChangeHandler
+  type: Delegate
+  namespace: SpellBook.GAS.Attributes
+  summary: Ouvinte do relatório de uma alteração aplicada.
+  example: []
+  syntax:
+    content: public delegate void AttributeChangeHandler(in AttributeChangeReport report)
+    parameters:
+    - id: report
+      type: SpellBook.GAS.Attributes.AttributeChangeReport
+    content.vb: Public Delegate Sub AttributeChangeHandler(report As AttributeChangeReport)
+references:
+- uid: SpellBook.GAS.Attributes
+  commentId: N:SpellBook.GAS.Attributes
+  name: SpellBook.GAS.Attributes
+  nameWithType: SpellBook.GAS.Attributes
+  fullName: SpellBook.GAS.Attributes
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Attributes
+    name: Attributes
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Attributes
+    name: Attributes
+- uid: SpellBook.GAS.Attributes.AttributeChangeReport
+  commentId: T:SpellBook.GAS.Attributes.AttributeChangeReport
+  parent: SpellBook.GAS.Attributes
+  href: SpellBook.GAS.Attributes.AttributeChangeReport.html
+  name: AttributeChangeReport
+  nameWithType: AttributeChangeReport
+  fullName: SpellBook.GAS.Attributes.AttributeChangeReport

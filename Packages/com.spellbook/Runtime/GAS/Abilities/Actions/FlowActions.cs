@@ -11,7 +11,7 @@ namespace SpellBook.GAS.Abilities.Actions
     /// <summary>
     /// Executa a lista de ações várias vezes, com intervalo opcional entre repetições.
     /// </summary>
-    [Serializable]
+    [Serializable, TypeCategory("Fluxo", Summary = "Repete as ações várias vezes, com intervalo opcional.")]
     public class RepeatAction : AbilityAction
     {
         [Min(1)] public int Count = 2;
@@ -41,7 +41,7 @@ namespace SpellBook.GAS.Abilities.Actions
     /// <summary>
     /// Executa todas as ações ao mesmo tempo e espera todas terminarem.
     /// </summary>
-    [Serializable]
+    [Serializable, TypeCategory("Fluxo", Summary = "Roda as ações ao mesmo tempo e espera todas terminarem.")]
     public class ParallelAction : AbilityAction
     {
         [SerializeReference]
@@ -83,7 +83,7 @@ namespace SpellBook.GAS.Abilities.Actions
     /// <summary>
     /// Executa "Then" ou "Else" conforme uma condição avaliada no momento da execução.
     /// </summary>
-    [Serializable]
+    [Serializable, TypeCategory("Fluxo", Summary = "Roda as ações de Then ou de Else conforme a condição.")]
     public class ConditionalAction : AbilityAction
     {
         public enum ConditionType

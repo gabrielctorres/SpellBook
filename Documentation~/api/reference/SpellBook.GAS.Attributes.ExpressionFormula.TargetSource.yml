@@ -1,0 +1,99 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Attributes.ExpressionFormula.TargetSource
+  commentId: T:SpellBook.GAS.Attributes.ExpressionFormula.TargetSource
+  id: ExpressionFormula.TargetSource
+  parent: SpellBook.GAS.Attributes
+  children:
+  - SpellBook.GAS.Attributes.ExpressionFormula.TargetSource.Source
+  - SpellBook.GAS.Attributes.ExpressionFormula.TargetSource.Target
+  langs:
+  - csharp
+  - vb
+  name: ExpressionFormula.TargetSource
+  nameWithType: ExpressionFormula.TargetSource
+  fullName: SpellBook.GAS.Attributes.ExpressionFormula.TargetSource
+  type: Enum
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: public enum ExpressionFormula.TargetSource
+    content.vb: Public Enum ExpressionFormula.TargetSource
+- uid: SpellBook.GAS.Attributes.ExpressionFormula.TargetSource.Source
+  commentId: F:SpellBook.GAS.Attributes.ExpressionFormula.TargetSource.Source
+  id: Source
+  parent: SpellBook.GAS.Attributes.ExpressionFormula.TargetSource
+  langs:
+  - csharp
+  - vb
+  name: Source
+  nameWithType: ExpressionFormula.TargetSource.Source
+  fullName: SpellBook.GAS.Attributes.ExpressionFormula.TargetSource.Source
+  type: Field
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: Source = 0
+    return:
+      type: SpellBook.GAS.Attributes.ExpressionFormula.TargetSource
+- uid: SpellBook.GAS.Attributes.ExpressionFormula.TargetSource.Target
+  commentId: F:SpellBook.GAS.Attributes.ExpressionFormula.TargetSource.Target
+  id: Target
+  parent: SpellBook.GAS.Attributes.ExpressionFormula.TargetSource
+  langs:
+  - csharp
+  - vb
+  name: Target
+  nameWithType: ExpressionFormula.TargetSource.Target
+  fullName: SpellBook.GAS.Attributes.ExpressionFormula.TargetSource.Target
+  type: Field
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: Target = 1
+    return:
+      type: SpellBook.GAS.Attributes.ExpressionFormula.TargetSource
+references:
+- uid: SpellBook.GAS.Attributes
+  commentId: N:SpellBook.GAS.Attributes
+  name: SpellBook.GAS.Attributes
+  nameWithType: SpellBook.GAS.Attributes
+  fullName: SpellBook.GAS.Attributes
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Attributes
+    name: Attributes
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Attributes
+    name: Attributes
+- uid: SpellBook.GAS.Attributes.ExpressionFormula.TargetSource
+  commentId: T:SpellBook.GAS.Attributes.ExpressionFormula.TargetSource
+  parent: SpellBook.GAS.Attributes
+  href: SpellBook.GAS.Attributes.ExpressionFormula.html
+  name: ExpressionFormula.TargetSource
+  nameWithType: ExpressionFormula.TargetSource
+  fullName: SpellBook.GAS.Attributes.ExpressionFormula.TargetSource
+  spec.csharp:
+  - uid: SpellBook.GAS.Attributes.ExpressionFormula
+    name: ExpressionFormula
+    href: SpellBook.GAS.Attributes.ExpressionFormula.html
+  - name: .
+  - uid: SpellBook.GAS.Attributes.ExpressionFormula.TargetSource
+    name: TargetSource
+    href: SpellBook.GAS.Attributes.ExpressionFormula.TargetSource.html
+  spec.vb:
+  - uid: SpellBook.GAS.Attributes.ExpressionFormula
+    name: ExpressionFormula
+    href: SpellBook.GAS.Attributes.ExpressionFormula.html
+  - name: .
+  - uid: SpellBook.GAS.Attributes.ExpressionFormula.TargetSource
+    name: TargetSource
+    href: SpellBook.GAS.Attributes.ExpressionFormula.TargetSource.html

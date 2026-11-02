@@ -1,0 +1,53 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Core
+  commentId: N:SpellBook.GAS.Core
+  id: SpellBook.GAS.Core
+  children:
+  - SpellBook.GAS.Core.AbilitySystemComponent
+  - SpellBook.GAS.Core.AttributeLimitHandler
+  langs:
+  - csharp
+  - vb
+  name: SpellBook.GAS.Core
+  nameWithType: SpellBook.GAS.Core
+  fullName: SpellBook.GAS.Core
+  type: Namespace
+references:
+- uid: SpellBook.GAS.Core.AttributeLimitHandler
+  commentId: T:SpellBook.GAS.Core.AttributeLimitHandler
+  parent: SpellBook.GAS.Core
+  href: SpellBook.GAS.Core.AttributeLimitHandler.html
+  name: AttributeLimitHandler
+  nameWithType: AttributeLimitHandler
+  fullName: SpellBook.GAS.Core.AttributeLimitHandler
+- uid: SpellBook.GAS.Core.AbilitySystemComponent
+  commentId: T:SpellBook.GAS.Core.AbilitySystemComponent
+  parent: SpellBook.GAS.Core
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  name: AbilitySystemComponent
+  nameWithType: AbilitySystemComponent
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent
+- uid: SpellBook.GAS.Core
+  commentId: N:SpellBook.GAS.Core
+  name: SpellBook.GAS.Core
+  nameWithType: SpellBook.GAS.Core
+  fullName: SpellBook.GAS.Core
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Core
+    name: Core
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Core
+    name: Core

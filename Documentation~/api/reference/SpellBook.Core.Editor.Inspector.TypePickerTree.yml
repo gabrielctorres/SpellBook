@@ -1,0 +1,666 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.Core.Editor.Inspector.TypePickerTree
+  commentId: T:SpellBook.Core.Editor.Inspector.TypePickerTree
+  id: TypePickerTree
+  parent: SpellBook.Core.Editor.Inspector
+  children:
+  - SpellBook.Core.Editor.Inspector.TypePickerTree.Build(System.Collections.Generic.IEnumerable{SpellBook.Core.Editor.Inspector.TypePickerEntry})
+  - SpellBook.Core.Editor.Inspector.TypePickerTree.Children(SpellBook.Core.Editor.Inspector.TypePickerNode)
+  - SpellBook.Core.Editor.Inspector.TypePickerTree.NoneLabel
+  - SpellBook.Core.Editor.Inspector.TypePickerTree.Parent(SpellBook.Core.Editor.Inspector.TypePickerNode)
+  - SpellBook.Core.Editor.Inspector.TypePickerTree.Root
+  - SpellBook.Core.Editor.Inspector.TypePickerTree.Search(System.String)
+  langs:
+  - csharp
+  - vb
+  name: TypePickerTree
+  nameWithType: TypePickerTree
+  fullName: SpellBook.Core.Editor.Inspector.TypePickerTree
+  type: Class
+  namespace: SpellBook.Core.Editor.Inspector
+  summary: >-
+    Modelo puro do popup do seletor (Spec, seção 4.10): níveis por <xref href="SpellBook.Core.Editor.Inspector.TypePickerEntry.CategoryPath" data-throw-if-not-resolved="false"></xref>,
+
+    em ordem alfabética, categorias antes dos tipos e "(Nenhum)" primeiro na raiz.
+  example: []
+  syntax:
+    content: public sealed class TypePickerTree
+    content.vb: Public NotInheritable Class TypePickerTree
+  inheritance:
+  - System.Object
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+- uid: SpellBook.Core.Editor.Inspector.TypePickerTree.NoneLabel
+  commentId: F:SpellBook.Core.Editor.Inspector.TypePickerTree.NoneLabel
+  id: NoneLabel
+  parent: SpellBook.Core.Editor.Inspector.TypePickerTree
+  langs:
+  - csharp
+  - vb
+  name: NoneLabel
+  nameWithType: TypePickerTree.NoneLabel
+  fullName: SpellBook.Core.Editor.Inspector.TypePickerTree.NoneLabel
+  type: Field
+  namespace: SpellBook.Core.Editor.Inspector
+  syntax:
+    content: public const string NoneLabel = "(Nenhum)"
+    return:
+      type: System.String
+    content.vb: Public Const NoneLabel As String = "(Nenhum)"
+- uid: SpellBook.Core.Editor.Inspector.TypePickerTree.Root
+  commentId: P:SpellBook.Core.Editor.Inspector.TypePickerTree.Root
+  id: Root
+  parent: SpellBook.Core.Editor.Inspector.TypePickerTree
+  langs:
+  - csharp
+  - vb
+  name: Root
+  nameWithType: TypePickerTree.Root
+  fullName: SpellBook.Core.Editor.Inspector.TypePickerTree.Root
+  type: Property
+  namespace: SpellBook.Core.Editor.Inspector
+  syntax:
+    content: public TypePickerNode Root { get; }
+    parameters: []
+    return:
+      type: SpellBook.Core.Editor.Inspector.TypePickerNode
+    content.vb: Public ReadOnly Property Root As TypePickerNode
+  overload: SpellBook.Core.Editor.Inspector.TypePickerTree.Root*
+- uid: SpellBook.Core.Editor.Inspector.TypePickerTree.Build(System.Collections.Generic.IEnumerable{SpellBook.Core.Editor.Inspector.TypePickerEntry})
+  commentId: M:SpellBook.Core.Editor.Inspector.TypePickerTree.Build(System.Collections.Generic.IEnumerable{SpellBook.Core.Editor.Inspector.TypePickerEntry})
+  id: Build(System.Collections.Generic.IEnumerable{SpellBook.Core.Editor.Inspector.TypePickerEntry})
+  parent: SpellBook.Core.Editor.Inspector.TypePickerTree
+  langs:
+  - csharp
+  - vb
+  name: Build(IEnumerable<TypePickerEntry>)
+  nameWithType: TypePickerTree.Build(IEnumerable<TypePickerEntry>)
+  fullName: SpellBook.Core.Editor.Inspector.TypePickerTree.Build(System.Collections.Generic.IEnumerable<SpellBook.Core.Editor.Inspector.TypePickerEntry>)
+  type: Method
+  namespace: SpellBook.Core.Editor.Inspector
+  syntax:
+    content: public static TypePickerTree Build(IEnumerable<TypePickerEntry> entries)
+    parameters:
+    - id: entries
+      type: System.Collections.Generic.IEnumerable{SpellBook.Core.Editor.Inspector.TypePickerEntry}
+    return:
+      type: SpellBook.Core.Editor.Inspector.TypePickerTree
+    content.vb: Public Shared Function Build(entries As IEnumerable(Of TypePickerEntry)) As TypePickerTree
+  overload: SpellBook.Core.Editor.Inspector.TypePickerTree.Build*
+  nameWithType.vb: TypePickerTree.Build(IEnumerable(Of TypePickerEntry))
+  fullName.vb: SpellBook.Core.Editor.Inspector.TypePickerTree.Build(System.Collections.Generic.IEnumerable(Of SpellBook.Core.Editor.Inspector.TypePickerEntry))
+  name.vb: Build(IEnumerable(Of TypePickerEntry))
+- uid: SpellBook.Core.Editor.Inspector.TypePickerTree.Children(SpellBook.Core.Editor.Inspector.TypePickerNode)
+  commentId: M:SpellBook.Core.Editor.Inspector.TypePickerTree.Children(SpellBook.Core.Editor.Inspector.TypePickerNode)
+  id: Children(SpellBook.Core.Editor.Inspector.TypePickerNode)
+  parent: SpellBook.Core.Editor.Inspector.TypePickerTree
+  langs:
+  - csharp
+  - vb
+  name: Children(TypePickerNode)
+  nameWithType: TypePickerTree.Children(TypePickerNode)
+  fullName: SpellBook.Core.Editor.Inspector.TypePickerTree.Children(SpellBook.Core.Editor.Inspector.TypePickerNode)
+  type: Method
+  namespace: SpellBook.Core.Editor.Inspector
+  summary: Filhos de um nível, já ordenados; lista vazia para nós de tipo e "(Nenhum)".
+  example: []
+  syntax:
+    content: public IReadOnlyList<TypePickerNode> Children(TypePickerNode level)
+    parameters:
+    - id: level
+      type: SpellBook.Core.Editor.Inspector.TypePickerNode
+    return:
+      type: System.Collections.Generic.IReadOnlyList{SpellBook.Core.Editor.Inspector.TypePickerNode}
+    content.vb: Public Function Children(level As TypePickerNode) As IReadOnlyList(Of TypePickerNode)
+  overload: SpellBook.Core.Editor.Inspector.TypePickerTree.Children*
+- uid: SpellBook.Core.Editor.Inspector.TypePickerTree.Parent(SpellBook.Core.Editor.Inspector.TypePickerNode)
+  commentId: M:SpellBook.Core.Editor.Inspector.TypePickerTree.Parent(SpellBook.Core.Editor.Inspector.TypePickerNode)
+  id: Parent(SpellBook.Core.Editor.Inspector.TypePickerNode)
+  parent: SpellBook.Core.Editor.Inspector.TypePickerTree
+  langs:
+  - csharp
+  - vb
+  name: Parent(TypePickerNode)
+  nameWithType: TypePickerTree.Parent(TypePickerNode)
+  fullName: SpellBook.Core.Editor.Inspector.TypePickerTree.Parent(SpellBook.Core.Editor.Inspector.TypePickerNode)
+  type: Method
+  namespace: SpellBook.Core.Editor.Inspector
+  summary: Nível acima do nó; <code>null</code> para a raiz.
+  example: []
+  syntax:
+    content: public TypePickerNode Parent(TypePickerNode node)
+    parameters:
+    - id: node
+      type: SpellBook.Core.Editor.Inspector.TypePickerNode
+    return:
+      type: SpellBook.Core.Editor.Inspector.TypePickerNode
+    content.vb: Public Function Parent(node As TypePickerNode) As TypePickerNode
+  overload: SpellBook.Core.Editor.Inspector.TypePickerTree.Parent*
+- uid: SpellBook.Core.Editor.Inspector.TypePickerTree.Search(System.String)
+  commentId: M:SpellBook.Core.Editor.Inspector.TypePickerTree.Search(System.String)
+  id: Search(System.String)
+  parent: SpellBook.Core.Editor.Inspector.TypePickerTree
+  langs:
+  - csharp
+  - vb
+  name: Search(string)
+  nameWithType: TypePickerTree.Search(string)
+  fullName: SpellBook.Core.Editor.Inspector.TypePickerTree.Search(string)
+  type: Method
+  namespace: SpellBook.Core.Editor.Inspector
+  summary: Tipos de todos os níveis que casam com a busca, numa lista plana; vazia quando a busca é vazia.
+  example: []
+  syntax:
+    content: public IReadOnlyList<TypePickerEntry> Search(string query)
+    parameters:
+    - id: query
+      type: System.String
+    return:
+      type: System.Collections.Generic.IReadOnlyList{SpellBook.Core.Editor.Inspector.TypePickerEntry}
+    content.vb: Public Function Search(query As String) As IReadOnlyList(Of TypePickerEntry)
+  overload: SpellBook.Core.Editor.Inspector.TypePickerTree.Search*
+  nameWithType.vb: TypePickerTree.Search(String)
+  fullName.vb: SpellBook.Core.Editor.Inspector.TypePickerTree.Search(String)
+  name.vb: Search(String)
+references:
+- uid: SpellBook.Core.Editor.Inspector.TypePickerEntry.CategoryPath
+  commentId: P:SpellBook.Core.Editor.Inspector.TypePickerEntry.CategoryPath
+  href: SpellBook.Core.Editor.Inspector.TypePickerEntry.html#SpellBook_Core_Editor_Inspector_TypePickerEntry_CategoryPath
+  name: CategoryPath
+  nameWithType: TypePickerEntry.CategoryPath
+  fullName: SpellBook.Core.Editor.Inspector.TypePickerEntry.CategoryPath
+- uid: SpellBook.Core.Editor.Inspector
+  commentId: N:SpellBook.Core.Editor.Inspector
+  name: SpellBook.Core.Editor.Inspector
+  nameWithType: SpellBook.Core.Editor.Inspector
+  fullName: SpellBook.Core.Editor.Inspector
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Editor
+    name: Editor
+  - name: .
+  - uid: SpellBook.Core.Editor.Inspector
+    name: Inspector
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Editor
+    name: Editor
+  - name: .
+  - uid: SpellBook.Core.Editor.Inspector
+    name: Inspector
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: SpellBook.Core.Editor.Inspector.TypePickerTree.Root*
+  commentId: Overload:SpellBook.Core.Editor.Inspector.TypePickerTree.Root
+  href: SpellBook.Core.Editor.Inspector.TypePickerTree.html#SpellBook_Core_Editor_Inspector_TypePickerTree_Root
+  name: Root
+  nameWithType: TypePickerTree.Root
+  fullName: SpellBook.Core.Editor.Inspector.TypePickerTree.Root
+- uid: SpellBook.Core.Editor.Inspector.TypePickerNode
+  commentId: T:SpellBook.Core.Editor.Inspector.TypePickerNode
+  parent: SpellBook.Core.Editor.Inspector
+  href: SpellBook.Core.Editor.Inspector.TypePickerNode.html
+  name: TypePickerNode
+  nameWithType: TypePickerNode
+  fullName: SpellBook.Core.Editor.Inspector.TypePickerNode
+- uid: SpellBook.Core.Editor.Inspector.TypePickerTree.Build*
+  commentId: Overload:SpellBook.Core.Editor.Inspector.TypePickerTree.Build
+  href: SpellBook.Core.Editor.Inspector.TypePickerTree.html#SpellBook_Core_Editor_Inspector_TypePickerTree_Build_System_Collections_Generic_IEnumerable_SpellBook_Core_Editor_Inspector_TypePickerEntry__
+  name: Build
+  nameWithType: TypePickerTree.Build
+  fullName: SpellBook.Core.Editor.Inspector.TypePickerTree.Build
+- uid: System.Collections.Generic.IEnumerable{SpellBook.Core.Editor.Inspector.TypePickerEntry}
+  commentId: T:System.Collections.Generic.IEnumerable{SpellBook.Core.Editor.Inspector.TypePickerEntry}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IEnumerable`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
+  name: IEnumerable<TypePickerEntry>
+  nameWithType: IEnumerable<TypePickerEntry>
+  fullName: System.Collections.Generic.IEnumerable<SpellBook.Core.Editor.Inspector.TypePickerEntry>
+  nameWithType.vb: IEnumerable(Of TypePickerEntry)
+  fullName.vb: System.Collections.Generic.IEnumerable(Of SpellBook.Core.Editor.Inspector.TypePickerEntry)
+  name.vb: IEnumerable(Of TypePickerEntry)
+  spec.csharp:
+  - uid: System.Collections.Generic.IEnumerable`1
+    name: IEnumerable
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
+  - name: <
+  - uid: SpellBook.Core.Editor.Inspector.TypePickerEntry
+    name: TypePickerEntry
+    href: SpellBook.Core.Editor.Inspector.TypePickerEntry.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IEnumerable`1
+    name: IEnumerable
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: SpellBook.Core.Editor.Inspector.TypePickerEntry
+    name: TypePickerEntry
+    href: SpellBook.Core.Editor.Inspector.TypePickerEntry.html
+  - name: )
+- uid: SpellBook.Core.Editor.Inspector.TypePickerTree
+  commentId: T:SpellBook.Core.Editor.Inspector.TypePickerTree
+  parent: SpellBook.Core.Editor.Inspector
+  href: SpellBook.Core.Editor.Inspector.TypePickerTree.html
+  name: TypePickerTree
+  nameWithType: TypePickerTree
+  fullName: SpellBook.Core.Editor.Inspector.TypePickerTree
+- uid: System.Collections.Generic.IEnumerable`1
+  commentId: T:System.Collections.Generic.IEnumerable`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
+  name: IEnumerable<T>
+  nameWithType: IEnumerable<T>
+  fullName: System.Collections.Generic.IEnumerable<T>
+  nameWithType.vb: IEnumerable(Of T)
+  fullName.vb: System.Collections.Generic.IEnumerable(Of T)
+  name.vb: IEnumerable(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IEnumerable`1
+    name: IEnumerable
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IEnumerable`1
+    name: IEnumerable
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic
+  commentId: N:System.Collections.Generic
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Collections.Generic
+  nameWithType: System.Collections.Generic
+  fullName: System.Collections.Generic
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+- uid: SpellBook.Core.Editor.Inspector.TypePickerTree.Children*
+  commentId: Overload:SpellBook.Core.Editor.Inspector.TypePickerTree.Children
+  href: SpellBook.Core.Editor.Inspector.TypePickerTree.html#SpellBook_Core_Editor_Inspector_TypePickerTree_Children_SpellBook_Core_Editor_Inspector_TypePickerNode_
+  name: Children
+  nameWithType: TypePickerTree.Children
+  fullName: SpellBook.Core.Editor.Inspector.TypePickerTree.Children
+- uid: System.Collections.Generic.IReadOnlyList{SpellBook.Core.Editor.Inspector.TypePickerNode}
+  commentId: T:System.Collections.Generic.IReadOnlyList{SpellBook.Core.Editor.Inspector.TypePickerNode}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IReadOnlyList`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  name: IReadOnlyList<TypePickerNode>
+  nameWithType: IReadOnlyList<TypePickerNode>
+  fullName: System.Collections.Generic.IReadOnlyList<SpellBook.Core.Editor.Inspector.TypePickerNode>
+  nameWithType.vb: IReadOnlyList(Of TypePickerNode)
+  fullName.vb: System.Collections.Generic.IReadOnlyList(Of SpellBook.Core.Editor.Inspector.TypePickerNode)
+  name.vb: IReadOnlyList(Of TypePickerNode)
+  spec.csharp:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: <
+  - uid: SpellBook.Core.Editor.Inspector.TypePickerNode
+    name: TypePickerNode
+    href: SpellBook.Core.Editor.Inspector.TypePickerNode.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: SpellBook.Core.Editor.Inspector.TypePickerNode
+    name: TypePickerNode
+    href: SpellBook.Core.Editor.Inspector.TypePickerNode.html
+  - name: )
+- uid: System.Collections.Generic.IReadOnlyList`1
+  commentId: T:System.Collections.Generic.IReadOnlyList`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  name: IReadOnlyList<T>
+  nameWithType: IReadOnlyList<T>
+  fullName: System.Collections.Generic.IReadOnlyList<T>
+  nameWithType.vb: IReadOnlyList(Of T)
+  fullName.vb: System.Collections.Generic.IReadOnlyList(Of T)
+  name.vb: IReadOnlyList(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: SpellBook.Core.Editor.Inspector.TypePickerTree.Parent*
+  commentId: Overload:SpellBook.Core.Editor.Inspector.TypePickerTree.Parent
+  href: SpellBook.Core.Editor.Inspector.TypePickerTree.html#SpellBook_Core_Editor_Inspector_TypePickerTree_Parent_SpellBook_Core_Editor_Inspector_TypePickerNode_
+  name: Parent
+  nameWithType: TypePickerTree.Parent
+  fullName: SpellBook.Core.Editor.Inspector.TypePickerTree.Parent
+- uid: SpellBook.Core.Editor.Inspector.TypePickerTree.Search*
+  commentId: Overload:SpellBook.Core.Editor.Inspector.TypePickerTree.Search
+  href: SpellBook.Core.Editor.Inspector.TypePickerTree.html#SpellBook_Core_Editor_Inspector_TypePickerTree_Search_System_String_
+  name: Search
+  nameWithType: TypePickerTree.Search
+  fullName: SpellBook.Core.Editor.Inspector.TypePickerTree.Search
+- uid: System.Collections.Generic.IReadOnlyList{SpellBook.Core.Editor.Inspector.TypePickerEntry}
+  commentId: T:System.Collections.Generic.IReadOnlyList{SpellBook.Core.Editor.Inspector.TypePickerEntry}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IReadOnlyList`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  name: IReadOnlyList<TypePickerEntry>
+  nameWithType: IReadOnlyList<TypePickerEntry>
+  fullName: System.Collections.Generic.IReadOnlyList<SpellBook.Core.Editor.Inspector.TypePickerEntry>
+  nameWithType.vb: IReadOnlyList(Of TypePickerEntry)
+  fullName.vb: System.Collections.Generic.IReadOnlyList(Of SpellBook.Core.Editor.Inspector.TypePickerEntry)
+  name.vb: IReadOnlyList(Of TypePickerEntry)
+  spec.csharp:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: <
+  - uid: SpellBook.Core.Editor.Inspector.TypePickerEntry
+    name: TypePickerEntry
+    href: SpellBook.Core.Editor.Inspector.TypePickerEntry.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: SpellBook.Core.Editor.Inspector.TypePickerEntry
+    name: TypePickerEntry
+    href: SpellBook.Core.Editor.Inspector.TypePickerEntry.html
+  - name: )

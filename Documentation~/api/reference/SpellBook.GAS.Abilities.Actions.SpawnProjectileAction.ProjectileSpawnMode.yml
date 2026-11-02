@@ -1,0 +1,105 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode
+  commentId: T:SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode
+  id: SpawnProjectileAction.ProjectileSpawnMode
+  parent: SpellBook.GAS.Abilities.Actions
+  children:
+  - SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode.ThreeDimensional
+  - SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode.TwoDimensional
+  langs:
+  - csharp
+  - vb
+  name: SpawnProjectileAction.ProjectileSpawnMode
+  nameWithType: SpawnProjectileAction.ProjectileSpawnMode
+  fullName: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode
+  type: Enum
+  namespace: SpellBook.GAS.Abilities.Actions
+  syntax:
+    content: public enum SpawnProjectileAction.ProjectileSpawnMode
+    content.vb: Public Enum SpawnProjectileAction.ProjectileSpawnMode
+- uid: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode.ThreeDimensional
+  commentId: F:SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode.ThreeDimensional
+  id: ThreeDimensional
+  parent: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode
+  langs:
+  - csharp
+  - vb
+  name: ThreeDimensional
+  nameWithType: SpawnProjectileAction.ProjectileSpawnMode.ThreeDimensional
+  fullName: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode.ThreeDimensional
+  type: Field
+  namespace: SpellBook.GAS.Abilities.Actions
+  syntax:
+    content: ThreeDimensional = 0
+    return:
+      type: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode
+- uid: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode.TwoDimensional
+  commentId: F:SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode.TwoDimensional
+  id: TwoDimensional
+  parent: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode
+  langs:
+  - csharp
+  - vb
+  name: TwoDimensional
+  nameWithType: SpawnProjectileAction.ProjectileSpawnMode.TwoDimensional
+  fullName: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode.TwoDimensional
+  type: Field
+  namespace: SpellBook.GAS.Abilities.Actions
+  syntax:
+    content: TwoDimensional = 1
+    return:
+      type: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode
+references:
+- uid: SpellBook.GAS.Abilities.Actions
+  commentId: N:SpellBook.GAS.Abilities.Actions
+  name: SpellBook.GAS.Abilities.Actions
+  nameWithType: SpellBook.GAS.Abilities.Actions
+  fullName: SpellBook.GAS.Abilities.Actions
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+  - name: .
+  - uid: SpellBook.GAS.Abilities.Actions
+    name: Actions
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+  - name: .
+  - uid: SpellBook.GAS.Abilities.Actions
+    name: Actions
+- uid: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode
+  commentId: T:SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode
+  parent: SpellBook.GAS.Abilities.Actions
+  href: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.html
+  name: SpawnProjectileAction.ProjectileSpawnMode
+  nameWithType: SpawnProjectileAction.ProjectileSpawnMode
+  fullName: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode
+  spec.csharp:
+  - uid: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction
+    name: SpawnProjectileAction
+    href: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.html
+  - name: .
+  - uid: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode
+    name: ProjectileSpawnMode
+    href: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode.html
+  spec.vb:
+  - uid: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction
+    name: SpawnProjectileAction
+    href: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.html
+  - name: .
+  - uid: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode
+    name: ProjectileSpawnMode
+    href: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode.html

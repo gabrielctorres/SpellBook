@@ -1,0 +1,186 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Abilities.Actions
+  commentId: N:SpellBook.GAS.Abilities.Actions
+  id: SpellBook.GAS.Abilities.Actions
+  children:
+  - SpellBook.GAS.Abilities.Actions.AnimationAction
+  - SpellBook.GAS.Abilities.Actions.AnimationParamType
+  - SpellBook.GAS.Abilities.Actions.ApplyEffectAction
+  - SpellBook.GAS.Abilities.Actions.ConditionalAction
+  - SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType
+  - SpellBook.GAS.Abilities.Actions.ParallelAction
+  - SpellBook.GAS.Abilities.Actions.PlayCueAction
+  - SpellBook.GAS.Abilities.Actions.RepeatAction
+  - SpellBook.GAS.Abilities.Actions.SpawnProjectileAction
+  - SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode
+  - SpellBook.GAS.Abilities.Actions.TargetingAction
+  - SpellBook.GAS.Abilities.Actions.TargetingAction.TargetMode
+  - SpellBook.GAS.Abilities.Actions.WaitAction
+  langs:
+  - csharp
+  - vb
+  name: SpellBook.GAS.Abilities.Actions
+  nameWithType: SpellBook.GAS.Abilities.Actions
+  fullName: SpellBook.GAS.Abilities.Actions
+  type: Namespace
+references:
+- uid: SpellBook.GAS.Abilities.Actions.AnimationParamType
+  commentId: T:SpellBook.GAS.Abilities.Actions.AnimationParamType
+  parent: SpellBook.GAS.Abilities.Actions
+  href: SpellBook.GAS.Abilities.Actions.AnimationParamType.html
+  name: AnimationParamType
+  nameWithType: AnimationParamType
+  fullName: SpellBook.GAS.Abilities.Actions.AnimationParamType
+- uid: SpellBook.GAS.Abilities.Actions.AnimationAction
+  commentId: T:SpellBook.GAS.Abilities.Actions.AnimationAction
+  href: SpellBook.GAS.Abilities.Actions.AnimationAction.html
+  name: AnimationAction
+  nameWithType: AnimationAction
+  fullName: SpellBook.GAS.Abilities.Actions.AnimationAction
+- uid: SpellBook.GAS.Abilities.Actions.ApplyEffectAction
+  commentId: T:SpellBook.GAS.Abilities.Actions.ApplyEffectAction
+  href: SpellBook.GAS.Abilities.Actions.ApplyEffectAction.html
+  name: ApplyEffectAction
+  nameWithType: ApplyEffectAction
+  fullName: SpellBook.GAS.Abilities.Actions.ApplyEffectAction
+- uid: SpellBook.GAS.Abilities.Actions.RepeatAction
+  commentId: T:SpellBook.GAS.Abilities.Actions.RepeatAction
+  href: SpellBook.GAS.Abilities.Actions.RepeatAction.html
+  name: RepeatAction
+  nameWithType: RepeatAction
+  fullName: SpellBook.GAS.Abilities.Actions.RepeatAction
+- uid: SpellBook.GAS.Abilities.Actions.ParallelAction
+  commentId: T:SpellBook.GAS.Abilities.Actions.ParallelAction
+  href: SpellBook.GAS.Abilities.Actions.ParallelAction.html
+  name: ParallelAction
+  nameWithType: ParallelAction
+  fullName: SpellBook.GAS.Abilities.Actions.ParallelAction
+- uid: SpellBook.GAS.Abilities.Actions.ConditionalAction
+  commentId: T:SpellBook.GAS.Abilities.Actions.ConditionalAction
+  href: SpellBook.GAS.Abilities.Actions.ConditionalAction.html
+  name: ConditionalAction
+  nameWithType: ConditionalAction
+  fullName: SpellBook.GAS.Abilities.Actions.ConditionalAction
+- uid: SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType
+  commentId: T:SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType
+  parent: SpellBook.GAS.Abilities.Actions
+  href: SpellBook.GAS.Abilities.Actions.ConditionalAction.html
+  name: ConditionalAction.ConditionType
+  nameWithType: ConditionalAction.ConditionType
+  fullName: SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType
+  spec.csharp:
+  - uid: SpellBook.GAS.Abilities.Actions.ConditionalAction
+    name: ConditionalAction
+    href: SpellBook.GAS.Abilities.Actions.ConditionalAction.html
+  - name: .
+  - uid: SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType
+    name: ConditionType
+    href: SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType.html
+  spec.vb:
+  - uid: SpellBook.GAS.Abilities.Actions.ConditionalAction
+    name: ConditionalAction
+    href: SpellBook.GAS.Abilities.Actions.ConditionalAction.html
+  - name: .
+  - uid: SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType
+    name: ConditionType
+    href: SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType.html
+- uid: SpellBook.GAS.Abilities.Actions.PlayCueAction
+  commentId: T:SpellBook.GAS.Abilities.Actions.PlayCueAction
+  href: SpellBook.GAS.Abilities.Actions.PlayCueAction.html
+  name: PlayCueAction
+  nameWithType: PlayCueAction
+  fullName: SpellBook.GAS.Abilities.Actions.PlayCueAction
+- uid: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction
+  commentId: T:SpellBook.GAS.Abilities.Actions.SpawnProjectileAction
+  href: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.html
+  name: SpawnProjectileAction
+  nameWithType: SpawnProjectileAction
+  fullName: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction
+- uid: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode
+  commentId: T:SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode
+  parent: SpellBook.GAS.Abilities.Actions
+  href: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.html
+  name: SpawnProjectileAction.ProjectileSpawnMode
+  nameWithType: SpawnProjectileAction.ProjectileSpawnMode
+  fullName: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode
+  spec.csharp:
+  - uid: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction
+    name: SpawnProjectileAction
+    href: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.html
+  - name: .
+  - uid: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode
+    name: ProjectileSpawnMode
+    href: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode.html
+  spec.vb:
+  - uid: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction
+    name: SpawnProjectileAction
+    href: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.html
+  - name: .
+  - uid: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode
+    name: ProjectileSpawnMode
+    href: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode.html
+- uid: SpellBook.GAS.Abilities.Actions.TargetingAction
+  commentId: T:SpellBook.GAS.Abilities.Actions.TargetingAction
+  href: SpellBook.GAS.Abilities.Actions.TargetingAction.html
+  name: TargetingAction
+  nameWithType: TargetingAction
+  fullName: SpellBook.GAS.Abilities.Actions.TargetingAction
+- uid: SpellBook.GAS.Abilities.Actions.TargetingAction.TargetMode
+  commentId: T:SpellBook.GAS.Abilities.Actions.TargetingAction.TargetMode
+  parent: SpellBook.GAS.Abilities.Actions
+  href: SpellBook.GAS.Abilities.Actions.TargetingAction.html
+  name: TargetingAction.TargetMode
+  nameWithType: TargetingAction.TargetMode
+  fullName: SpellBook.GAS.Abilities.Actions.TargetingAction.TargetMode
+  spec.csharp:
+  - uid: SpellBook.GAS.Abilities.Actions.TargetingAction
+    name: TargetingAction
+    href: SpellBook.GAS.Abilities.Actions.TargetingAction.html
+  - name: .
+  - uid: SpellBook.GAS.Abilities.Actions.TargetingAction.TargetMode
+    name: TargetMode
+    href: SpellBook.GAS.Abilities.Actions.TargetingAction.TargetMode.html
+  spec.vb:
+  - uid: SpellBook.GAS.Abilities.Actions.TargetingAction
+    name: TargetingAction
+    href: SpellBook.GAS.Abilities.Actions.TargetingAction.html
+  - name: .
+  - uid: SpellBook.GAS.Abilities.Actions.TargetingAction.TargetMode
+    name: TargetMode
+    href: SpellBook.GAS.Abilities.Actions.TargetingAction.TargetMode.html
+- uid: SpellBook.GAS.Abilities.Actions.WaitAction
+  commentId: T:SpellBook.GAS.Abilities.Actions.WaitAction
+  href: SpellBook.GAS.Abilities.Actions.WaitAction.html
+  name: WaitAction
+  nameWithType: WaitAction
+  fullName: SpellBook.GAS.Abilities.Actions.WaitAction
+- uid: SpellBook.GAS.Abilities.Actions
+  commentId: N:SpellBook.GAS.Abilities.Actions
+  name: SpellBook.GAS.Abilities.Actions
+  nameWithType: SpellBook.GAS.Abilities.Actions
+  fullName: SpellBook.GAS.Abilities.Actions
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+  - name: .
+  - uid: SpellBook.GAS.Abilities.Actions
+    name: Actions
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+  - name: .
+  - uid: SpellBook.GAS.Abilities.Actions
+    name: Actions

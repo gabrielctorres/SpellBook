@@ -1,0 +1,124 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.Core.Validation.IValidatable
+  commentId: T:SpellBook.Core.Validation.IValidatable
+  id: IValidatable
+  parent: SpellBook.Core.Validation
+  children:
+  - SpellBook.Core.Validation.IValidatable.Validate(SpellBook.Core.Validation.ValidationResult)
+  langs:
+  - csharp
+  - vb
+  name: IValidatable
+  nameWithType: IValidatable
+  fullName: SpellBook.Core.Validation.IValidatable
+  type: Interface
+  namespace: SpellBook.Core.Validation
+  summary: >-
+    Tipo do pacote com regra de validação (ADR 0026, item 6). O <code>Validate</code> não muda estado, não escreve no
+
+    console e não acessa <code>UnityEditor</code>; só adiciona mensagens curtas, em português, que dizem o que corrigir.
+  example: []
+  syntax:
+    content: public interface IValidatable
+    content.vb: Public Interface IValidatable
+  derivedClasses:
+  - SpellBook.Events.BoolEventResponse
+  - SpellBook.Events.DelayedReaction
+  - SpellBook.Events.EventEmission
+  - SpellBook.Events.EventEmission`1
+  - SpellBook.Events.EventEmitter
+  - SpellBook.Events.EventListener
+  - SpellBook.Events.EventResponse
+  - SpellBook.Events.EventResponse`1
+  - SpellBook.Events.FloatEventResponse
+  - SpellBook.Events.GameObjectEventResponse
+  - SpellBook.Events.IntEventResponse
+  - SpellBook.Events.LogReaction
+  - SpellBook.Events.RaiseChannelReaction
+  - SpellBook.Events.Reaction
+  - SpellBook.Events.SetActiveReaction
+  - SpellBook.Events.StringEventResponse
+  - SpellBook.Events.ToggleComponentReaction
+  - SpellBook.Events.Vector3EventResponse
+  - SpellBook.Events.VoidEventResponse
+  - SpellBook.GAS.Abilities.AbilityAction
+  - SpellBook.GAS.Abilities.Actions.AnimationAction
+  - SpellBook.GAS.Abilities.Actions.ApplyEffectAction
+  - SpellBook.GAS.Abilities.Actions.ConditionalAction
+  - SpellBook.GAS.Abilities.Actions.ParallelAction
+  - SpellBook.GAS.Abilities.Actions.PlayCueAction
+  - SpellBook.GAS.Abilities.Actions.RepeatAction
+  - SpellBook.GAS.Abilities.Actions.SpawnProjectileAction
+  - SpellBook.GAS.Abilities.Actions.TargetingAction
+  - SpellBook.GAS.Abilities.Actions.WaitAction
+  - SpellBook.GAS.Abilities.CooldownReductionPolicy
+  - SpellBook.GAS.Abilities.GameplayAbility
+  - SpellBook.GAS.Attributes.AttributeDefinition
+  - SpellBook.GAS.Bridges.AbilityEventResponse
+  - SpellBook.GAS.Bridges.AbilitySystemEventRelay
+  - SpellBook.GAS.Bridges.AttributeChangedEventResponse
+  - SpellBook.GAS.Bridges.AttributeLimitEventResponse
+  - SpellBook.GAS.Bridges.BlockedEventResponse
+  - SpellBook.GAS.Bridges.EffectEventResponse
+  - SpellBook.GAS.Bridges.RaiseEventAction
+  - SpellBook.GAS.Bridges.TagChangedEventResponse
+  - SpellBook.GAS.Core.AbilitySystemComponent
+  - SpellBook.GAS.Effects.GameplayEffect
+  - SpellBook.Pooling.PooledSpawnerAsset
+- uid: SpellBook.Core.Validation.IValidatable.Validate(SpellBook.Core.Validation.ValidationResult)
+  commentId: M:SpellBook.Core.Validation.IValidatable.Validate(SpellBook.Core.Validation.ValidationResult)
+  id: Validate(SpellBook.Core.Validation.ValidationResult)
+  parent: SpellBook.Core.Validation.IValidatable
+  langs:
+  - csharp
+  - vb
+  name: Validate(ValidationResult)
+  nameWithType: IValidatable.Validate(ValidationResult)
+  fullName: SpellBook.Core.Validation.IValidatable.Validate(SpellBook.Core.Validation.ValidationResult)
+  type: Method
+  namespace: SpellBook.Core.Validation
+  syntax:
+    content: void Validate(ValidationResult result)
+    parameters:
+    - id: result
+      type: SpellBook.Core.Validation.ValidationResult
+    content.vb: Sub Validate(result As ValidationResult)
+  overload: SpellBook.Core.Validation.IValidatable.Validate*
+references:
+- uid: SpellBook.Core.Validation
+  commentId: N:SpellBook.Core.Validation
+  name: SpellBook.Core.Validation
+  nameWithType: SpellBook.Core.Validation
+  fullName: SpellBook.Core.Validation
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Validation
+    name: Validation
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Validation
+    name: Validation
+- uid: SpellBook.Core.Validation.IValidatable.Validate*
+  commentId: Overload:SpellBook.Core.Validation.IValidatable.Validate
+  href: SpellBook.Core.Validation.IValidatable.html#SpellBook_Core_Validation_IValidatable_Validate_SpellBook_Core_Validation_ValidationResult_
+  name: Validate
+  nameWithType: IValidatable.Validate
+  fullName: SpellBook.Core.Validation.IValidatable.Validate
+- uid: SpellBook.Core.Validation.ValidationResult
+  commentId: T:SpellBook.Core.Validation.ValidationResult
+  parent: SpellBook.Core.Validation
+  href: SpellBook.Core.Validation.ValidationResult.html
+  name: ValidationResult
+  nameWithType: ValidationResult
+  fullName: SpellBook.Core.Validation.ValidationResult

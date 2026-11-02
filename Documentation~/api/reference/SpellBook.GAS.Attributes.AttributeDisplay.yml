@@ -1,0 +1,758 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Attributes.AttributeDisplay
+  commentId: T:SpellBook.GAS.Attributes.AttributeDisplay
+  id: AttributeDisplay
+  parent: SpellBook.GAS.Attributes
+  children:
+  - SpellBook.GAS.Attributes.AttributeDisplay.Category
+  - SpellBook.GAS.Attributes.AttributeDisplay.Decimals
+  - SpellBook.GAS.Attributes.AttributeDisplay.Format(System.Single,SpellBook.GAS.Attributes.ModifierOperation,System.IFormatProvider)
+  - SpellBook.GAS.Attributes.AttributeDisplay.Format(System.Single,System.IFormatProvider)
+  - SpellBook.GAS.Attributes.AttributeDisplay.GetDeltaRole(System.Single)
+  - SpellBook.GAS.Attributes.AttributeDisplay.Hidden
+  - SpellBook.GAS.Attributes.AttributeDisplay.HigherIsBetter
+  - SpellBook.GAS.Attributes.AttributeDisplay.IsBeneficial(System.Single,SpellBook.GAS.Attributes.ModifierOperation)
+  - SpellBook.GAS.Attributes.AttributeDisplay.Kind
+  - SpellBook.GAS.Attributes.AttributeDisplay.LowerIsBetter
+  - SpellBook.GAS.Attributes.AttributeDisplay.Order
+  - SpellBook.GAS.Attributes.AttributeDisplay.Prefix
+  - SpellBook.GAS.Attributes.AttributeDisplay.Role
+  - SpellBook.GAS.Attributes.AttributeDisplay.Suffix
+  langs:
+  - csharp
+  - vb
+  name: AttributeDisplay
+  nameWithType: AttributeDisplay
+  fullName: SpellBook.GAS.Attributes.AttributeDisplay
+  type: Struct
+  namespace: SpellBook.GAS.Attributes
+  summary: >-
+    Exibição de um atributo: tipo de valor, casas, prefixo, sufixo, direção boa, ordem, visibilidade, categoria e papel
+
+    de cor (R15 a R18). Asset antigo abre como <xref href="SpellBook.GAS.Attributes.ValueKind.Flat" data-throw-if-not-resolved="false"></xref>, 0 casas, visível e "mais é melhor".
+  example: []
+  syntax:
+    content: >-
+      [Serializable]
+
+      public struct AttributeDisplay
+    content.vb: >-
+      <Serializable>
+
+      Public Structure AttributeDisplay
+  inheritedMembers:
+  - System.ValueType.Equals(System.Object)
+  - System.ValueType.GetHashCode
+  - System.ValueType.ToString
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetType
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  attributes:
+  - type: System.SerializableAttribute
+    ctor: System.SerializableAttribute.#ctor
+    arguments: []
+- uid: SpellBook.GAS.Attributes.AttributeDisplay.Kind
+  commentId: F:SpellBook.GAS.Attributes.AttributeDisplay.Kind
+  id: Kind
+  parent: SpellBook.GAS.Attributes.AttributeDisplay
+  langs:
+  - csharp
+  - vb
+  name: Kind
+  nameWithType: AttributeDisplay.Kind
+  fullName: SpellBook.GAS.Attributes.AttributeDisplay.Kind
+  type: Field
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: public ValueKind Kind
+    return:
+      type: SpellBook.GAS.Attributes.ValueKind
+    content.vb: Public Kind As ValueKind
+- uid: SpellBook.GAS.Attributes.AttributeDisplay.Decimals
+  commentId: F:SpellBook.GAS.Attributes.AttributeDisplay.Decimals
+  id: Decimals
+  parent: SpellBook.GAS.Attributes.AttributeDisplay
+  langs:
+  - csharp
+  - vb
+  name: Decimals
+  nameWithType: AttributeDisplay.Decimals
+  fullName: SpellBook.GAS.Attributes.AttributeDisplay.Decimals
+  type: Field
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: public int Decimals
+    return:
+      type: System.Int32
+    content.vb: Public Decimals As Integer
+- uid: SpellBook.GAS.Attributes.AttributeDisplay.Prefix
+  commentId: F:SpellBook.GAS.Attributes.AttributeDisplay.Prefix
+  id: Prefix
+  parent: SpellBook.GAS.Attributes.AttributeDisplay
+  langs:
+  - csharp
+  - vb
+  name: Prefix
+  nameWithType: AttributeDisplay.Prefix
+  fullName: SpellBook.GAS.Attributes.AttributeDisplay.Prefix
+  type: Field
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: public string Prefix
+    return:
+      type: System.String
+    content.vb: Public Prefix As String
+- uid: SpellBook.GAS.Attributes.AttributeDisplay.Suffix
+  commentId: F:SpellBook.GAS.Attributes.AttributeDisplay.Suffix
+  id: Suffix
+  parent: SpellBook.GAS.Attributes.AttributeDisplay
+  langs:
+  - csharp
+  - vb
+  name: Suffix
+  nameWithType: AttributeDisplay.Suffix
+  fullName: SpellBook.GAS.Attributes.AttributeDisplay.Suffix
+  type: Field
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: public string Suffix
+    return:
+      type: System.String
+    content.vb: Public Suffix As String
+- uid: SpellBook.GAS.Attributes.AttributeDisplay.LowerIsBetter
+  commentId: F:SpellBook.GAS.Attributes.AttributeDisplay.LowerIsBetter
+  id: LowerIsBetter
+  parent: SpellBook.GAS.Attributes.AttributeDisplay
+  langs:
+  - csharp
+  - vb
+  name: LowerIsBetter
+  nameWithType: AttributeDisplay.LowerIsBetter
+  fullName: SpellBook.GAS.Attributes.AttributeDisplay.LowerIsBetter
+  type: Field
+  namespace: SpellBook.GAS.Attributes
+  summary: Serializado ao contrário de <xref href="SpellBook.GAS.Attributes.AttributeDisplay.HigherIsBetter" data-throw-if-not-resolved="false"></xref> para que o padrão (falso) seja "mais é melhor".
+  example: []
+  syntax:
+    content: public bool LowerIsBetter
+    return:
+      type: System.Boolean
+    content.vb: Public LowerIsBetter As Boolean
+- uid: SpellBook.GAS.Attributes.AttributeDisplay.Order
+  commentId: F:SpellBook.GAS.Attributes.AttributeDisplay.Order
+  id: Order
+  parent: SpellBook.GAS.Attributes.AttributeDisplay
+  langs:
+  - csharp
+  - vb
+  name: Order
+  nameWithType: AttributeDisplay.Order
+  fullName: SpellBook.GAS.Attributes.AttributeDisplay.Order
+  type: Field
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: public int Order
+    return:
+      type: System.Int32
+    content.vb: Public Order As Integer
+- uid: SpellBook.GAS.Attributes.AttributeDisplay.Hidden
+  commentId: F:SpellBook.GAS.Attributes.AttributeDisplay.Hidden
+  id: Hidden
+  parent: SpellBook.GAS.Attributes.AttributeDisplay
+  langs:
+  - csharp
+  - vb
+  name: Hidden
+  nameWithType: AttributeDisplay.Hidden
+  fullName: SpellBook.GAS.Attributes.AttributeDisplay.Hidden
+  type: Field
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: public bool Hidden
+    return:
+      type: System.Boolean
+    content.vb: Public Hidden As Boolean
+- uid: SpellBook.GAS.Attributes.AttributeDisplay.Category
+  commentId: F:SpellBook.GAS.Attributes.AttributeDisplay.Category
+  id: Category
+  parent: SpellBook.GAS.Attributes.AttributeDisplay
+  langs:
+  - csharp
+  - vb
+  name: Category
+  nameWithType: AttributeDisplay.Category
+  fullName: SpellBook.GAS.Attributes.AttributeDisplay.Category
+  type: Field
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: public AttributeCategory Category
+    return:
+      type: SpellBook.GAS.Attributes.AttributeCategory
+    content.vb: Public Category As AttributeCategory
+- uid: SpellBook.GAS.Attributes.AttributeDisplay.Role
+  commentId: F:SpellBook.GAS.Attributes.AttributeDisplay.Role
+  id: Role
+  parent: SpellBook.GAS.Attributes.AttributeDisplay
+  langs:
+  - csharp
+  - vb
+  name: Role
+  nameWithType: AttributeDisplay.Role
+  fullName: SpellBook.GAS.Attributes.AttributeDisplay.Role
+  type: Field
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: public TextRole Role
+    return:
+      type: SpellBook.Core.TextRole
+    content.vb: Public Role As TextRole
+- uid: SpellBook.GAS.Attributes.AttributeDisplay.HigherIsBetter
+  commentId: P:SpellBook.GAS.Attributes.AttributeDisplay.HigherIsBetter
+  id: HigherIsBetter
+  parent: SpellBook.GAS.Attributes.AttributeDisplay
+  langs:
+  - csharp
+  - vb
+  name: HigherIsBetter
+  nameWithType: AttributeDisplay.HigherIsBetter
+  fullName: SpellBook.GAS.Attributes.AttributeDisplay.HigherIsBetter
+  type: Property
+  namespace: SpellBook.GAS.Attributes
+  summary: Se um valor maior é bom para o jogador.
+  example: []
+  syntax:
+    content: public bool HigherIsBetter { get; }
+    parameters: []
+    return:
+      type: System.Boolean
+    content.vb: Public ReadOnly Property HigherIsBetter As Boolean
+  overload: SpellBook.GAS.Attributes.AttributeDisplay.HigherIsBetter*
+- uid: SpellBook.GAS.Attributes.AttributeDisplay.Format(System.Single,System.IFormatProvider)
+  commentId: M:SpellBook.GAS.Attributes.AttributeDisplay.Format(System.Single,System.IFormatProvider)
+  id: Format(System.Single,System.IFormatProvider)
+  parent: SpellBook.GAS.Attributes.AttributeDisplay
+  langs:
+  - csharp
+  - vb
+  name: Format(float, IFormatProvider)
+  nameWithType: AttributeDisplay.Format(float, IFormatProvider)
+  fullName: SpellBook.GAS.Attributes.AttributeDisplay.Format(float, System.IFormatProvider)
+  type: Method
+  namespace: SpellBook.GAS.Attributes
+  summary: >-
+    Texto do valor pelo <xref href="SpellBook.GAS.Attributes.AttributeDisplay.Kind" data-throw-if-not-resolved="false"></xref>, com <xref href="SpellBook.GAS.Attributes.AttributeDisplay.Decimals" data-throw-if-not-resolved="false"></xref> (limitado a 0..6), <xref href="SpellBook.GAS.Attributes.AttributeDisplay.Prefix" data-throw-if-not-resolved="false"></xref> e
+
+    <xref href="SpellBook.GAS.Attributes.AttributeDisplay.Suffix" data-throw-if-not-resolved="false"></xref>. Cultura nula usa <xref href="System.Globalization.CultureInfo.InvariantCulture" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public string Format(float value, IFormatProvider culture = null)
+    parameters:
+    - id: value
+      type: System.Single
+    - id: culture
+      type: System.IFormatProvider
+    return:
+      type: System.String
+    content.vb: Public Function Format(value As Single, culture As IFormatProvider = Nothing) As String
+  overload: SpellBook.GAS.Attributes.AttributeDisplay.Format*
+  nameWithType.vb: AttributeDisplay.Format(Single, IFormatProvider)
+  fullName.vb: SpellBook.GAS.Attributes.AttributeDisplay.Format(Single, System.IFormatProvider)
+  name.vb: Format(Single, IFormatProvider)
+- uid: SpellBook.GAS.Attributes.AttributeDisplay.Format(System.Single,SpellBook.GAS.Attributes.ModifierOperation,System.IFormatProvider)
+  commentId: M:SpellBook.GAS.Attributes.AttributeDisplay.Format(System.Single,SpellBook.GAS.Attributes.ModifierOperation,System.IFormatProvider)
+  id: Format(System.Single,SpellBook.GAS.Attributes.ModifierOperation,System.IFormatProvider)
+  parent: SpellBook.GAS.Attributes.AttributeDisplay
+  langs:
+  - csharp
+  - vb
+  name: Format(float, ModifierOperation, IFormatProvider)
+  nameWithType: AttributeDisplay.Format(float, ModifierOperation, IFormatProvider)
+  fullName: SpellBook.GAS.Attributes.AttributeDisplay.Format(float, SpellBook.GAS.Attributes.ModifierOperation, System.IFormatProvider)
+  type: Method
+  namespace: SpellBook.GAS.Attributes
+  summary: >-
+    Texto do valor de um modificador: <code>Add</code> e <code>AddFinal</code> com sinal explícito, pelo tipo;
+
+    <code>Multiply</code> e <code>MultiplyCompound</code> em porcentagem com sinal (0,5 = "+50%"), sem prefixo nem sufixo,
+
+    porque são variação relativa; <code>Override</code> sem sinal, pelo tipo. Cultura nula usa <xref href="System.Globalization.CultureInfo.InvariantCulture" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public string Format(float value, ModifierOperation op, IFormatProvider culture = null)
+    parameters:
+    - id: value
+      type: System.Single
+    - id: op
+      type: SpellBook.GAS.Attributes.ModifierOperation
+    - id: culture
+      type: System.IFormatProvider
+    return:
+      type: System.String
+    content.vb: Public Function Format(value As Single, op As ModifierOperation, culture As IFormatProvider = Nothing) As String
+  overload: SpellBook.GAS.Attributes.AttributeDisplay.Format*
+  nameWithType.vb: AttributeDisplay.Format(Single, ModifierOperation, IFormatProvider)
+  fullName.vb: SpellBook.GAS.Attributes.AttributeDisplay.Format(Single, SpellBook.GAS.Attributes.ModifierOperation, System.IFormatProvider)
+  name.vb: Format(Single, ModifierOperation, IFormatProvider)
+- uid: SpellBook.GAS.Attributes.AttributeDisplay.GetDeltaRole(System.Single)
+  commentId: M:SpellBook.GAS.Attributes.AttributeDisplay.GetDeltaRole(System.Single)
+  id: GetDeltaRole(System.Single)
+  parent: SpellBook.GAS.Attributes.AttributeDisplay
+  langs:
+  - csharp
+  - vb
+  name: GetDeltaRole(float)
+  nameWithType: AttributeDisplay.GetDeltaRole(float)
+  fullName: SpellBook.GAS.Attributes.AttributeDisplay.GetDeltaRole(float)
+  type: Method
+  namespace: SpellBook.GAS.Attributes
+  summary: 'Papel de cor de uma variação: zero é neutro; senão benéfico quando concorda com <xref href="SpellBook.GAS.Attributes.AttributeDisplay.HigherIsBetter" data-throw-if-not-resolved="false"></xref>. Não aloca.'
+  example: []
+  syntax:
+    content: public TextRole GetDeltaRole(float delta)
+    parameters:
+    - id: delta
+      type: System.Single
+    return:
+      type: SpellBook.Core.TextRole
+    content.vb: Public Function GetDeltaRole(delta As Single) As TextRole
+  overload: SpellBook.GAS.Attributes.AttributeDisplay.GetDeltaRole*
+  nameWithType.vb: AttributeDisplay.GetDeltaRole(Single)
+  fullName.vb: SpellBook.GAS.Attributes.AttributeDisplay.GetDeltaRole(Single)
+  name.vb: GetDeltaRole(Single)
+- uid: SpellBook.GAS.Attributes.AttributeDisplay.IsBeneficial(System.Single,SpellBook.GAS.Attributes.ModifierOperation)
+  commentId: M:SpellBook.GAS.Attributes.AttributeDisplay.IsBeneficial(System.Single,SpellBook.GAS.Attributes.ModifierOperation)
+  id: IsBeneficial(System.Single,SpellBook.GAS.Attributes.ModifierOperation)
+  parent: SpellBook.GAS.Attributes.AttributeDisplay
+  langs:
+  - csharp
+  - vb
+  name: IsBeneficial(float, ModifierOperation)
+  nameWithType: AttributeDisplay.IsBeneficial(float, ModifierOperation)
+  fullName: SpellBook.GAS.Attributes.AttributeDisplay.IsBeneficial(float, SpellBook.GAS.Attributes.ModifierOperation)
+  type: Method
+  namespace: SpellBook.GAS.Attributes
+  summary: >-
+    Se a variação é boa para o jogador (R17). O sinal do delta decide para todas as operações; a operação fica na
+
+    assinatura do R17. Não aloca.
+  example: []
+  syntax:
+    content: public bool IsBeneficial(float delta, ModifierOperation op)
+    parameters:
+    - id: delta
+      type: System.Single
+    - id: op
+      type: SpellBook.GAS.Attributes.ModifierOperation
+    return:
+      type: System.Boolean
+    content.vb: Public Function IsBeneficial(delta As Single, op As ModifierOperation) As Boolean
+  overload: SpellBook.GAS.Attributes.AttributeDisplay.IsBeneficial*
+  nameWithType.vb: AttributeDisplay.IsBeneficial(Single, ModifierOperation)
+  fullName.vb: SpellBook.GAS.Attributes.AttributeDisplay.IsBeneficial(Single, SpellBook.GAS.Attributes.ModifierOperation)
+  name.vb: IsBeneficial(Single, ModifierOperation)
+references:
+- uid: SpellBook.GAS.Attributes.ValueKind.Flat
+  commentId: F:SpellBook.GAS.Attributes.ValueKind.Flat
+  href: SpellBook.GAS.Attributes.ValueKind.html#SpellBook_GAS_Attributes_ValueKind_Flat
+  name: Flat
+  nameWithType: ValueKind.Flat
+  fullName: SpellBook.GAS.Attributes.ValueKind.Flat
+- uid: SpellBook.GAS.Attributes
+  commentId: N:SpellBook.GAS.Attributes
+  name: SpellBook.GAS.Attributes
+  nameWithType: SpellBook.GAS.Attributes
+  fullName: SpellBook.GAS.Attributes
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Attributes
+    name: Attributes
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Attributes
+    name: Attributes
+- uid: System.ValueType.Equals(System.Object)
+  commentId: M:System.ValueType.Equals(System.Object)
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  name: Equals(object)
+  nameWithType: ValueType.Equals(object)
+  fullName: System.ValueType.Equals(object)
+  nameWithType.vb: ValueType.Equals(Object)
+  fullName.vb: System.ValueType.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.ValueType.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.ValueType.GetHashCode
+  commentId: M:System.ValueType.GetHashCode
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  name: GetHashCode()
+  nameWithType: ValueType.GetHashCode()
+  fullName: System.ValueType.GetHashCode()
+  spec.csharp:
+  - uid: System.ValueType.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  - name: (
+  - name: )
+- uid: System.ValueType.ToString
+  commentId: M:System.ValueType.ToString
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  name: ToString()
+  nameWithType: ValueType.ToString()
+  fullName: System.ValueType.ToString()
+  spec.csharp:
+  - uid: System.ValueType.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  - name: (
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.ValueType
+  commentId: T:System.ValueType
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype
+  name: ValueType
+  nameWithType: ValueType
+  fullName: System.ValueType
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: SpellBook.GAS.Attributes.ValueKind
+  commentId: T:SpellBook.GAS.Attributes.ValueKind
+  parent: SpellBook.GAS.Attributes
+  href: SpellBook.GAS.Attributes.ValueKind.html
+  name: ValueKind
+  nameWithType: ValueKind
+  fullName: SpellBook.GAS.Attributes.ValueKind
+- uid: System.Int32
+  commentId: T:System.Int32
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.int32
+  name: int
+  nameWithType: int
+  fullName: int
+  nameWithType.vb: Integer
+  fullName.vb: Integer
+  name.vb: Integer
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: SpellBook.GAS.Attributes.AttributeDisplay.HigherIsBetter
+  commentId: P:SpellBook.GAS.Attributes.AttributeDisplay.HigherIsBetter
+  href: SpellBook.GAS.Attributes.AttributeDisplay.html#SpellBook_GAS_Attributes_AttributeDisplay_HigherIsBetter
+  name: HigherIsBetter
+  nameWithType: AttributeDisplay.HigherIsBetter
+  fullName: SpellBook.GAS.Attributes.AttributeDisplay.HigherIsBetter
+- uid: System.Boolean
+  commentId: T:System.Boolean
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.boolean
+  name: bool
+  nameWithType: bool
+  fullName: bool
+  nameWithType.vb: Boolean
+  fullName.vb: Boolean
+  name.vb: Boolean
+- uid: SpellBook.GAS.Attributes.AttributeCategory
+  commentId: T:SpellBook.GAS.Attributes.AttributeCategory
+  parent: SpellBook.GAS.Attributes
+  href: SpellBook.GAS.Attributes.AttributeCategory.html
+  name: AttributeCategory
+  nameWithType: AttributeCategory
+  fullName: SpellBook.GAS.Attributes.AttributeCategory
+- uid: SpellBook.Core.TextRole
+  commentId: T:SpellBook.Core.TextRole
+  parent: SpellBook.Core
+  href: SpellBook.Core.TextRole.html
+  name: TextRole
+  nameWithType: TextRole
+  fullName: SpellBook.Core.TextRole
+- uid: SpellBook.Core
+  commentId: N:SpellBook.Core
+  name: SpellBook.Core
+  nameWithType: SpellBook.Core
+  fullName: SpellBook.Core
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+- uid: SpellBook.GAS.Attributes.AttributeDisplay.HigherIsBetter*
+  commentId: Overload:SpellBook.GAS.Attributes.AttributeDisplay.HigherIsBetter
+  href: SpellBook.GAS.Attributes.AttributeDisplay.html#SpellBook_GAS_Attributes_AttributeDisplay_HigherIsBetter
+  name: HigherIsBetter
+  nameWithType: AttributeDisplay.HigherIsBetter
+  fullName: SpellBook.GAS.Attributes.AttributeDisplay.HigherIsBetter
+- uid: SpellBook.GAS.Attributes.AttributeDisplay.Kind
+  commentId: F:SpellBook.GAS.Attributes.AttributeDisplay.Kind
+  href: SpellBook.GAS.Attributes.AttributeDisplay.html#SpellBook_GAS_Attributes_AttributeDisplay_Kind
+  name: Kind
+  nameWithType: AttributeDisplay.Kind
+  fullName: SpellBook.GAS.Attributes.AttributeDisplay.Kind
+- uid: SpellBook.GAS.Attributes.AttributeDisplay.Decimals
+  commentId: F:SpellBook.GAS.Attributes.AttributeDisplay.Decimals
+  href: SpellBook.GAS.Attributes.AttributeDisplay.html#SpellBook_GAS_Attributes_AttributeDisplay_Decimals
+  name: Decimals
+  nameWithType: AttributeDisplay.Decimals
+  fullName: SpellBook.GAS.Attributes.AttributeDisplay.Decimals
+- uid: SpellBook.GAS.Attributes.AttributeDisplay.Prefix
+  commentId: F:SpellBook.GAS.Attributes.AttributeDisplay.Prefix
+  href: SpellBook.GAS.Attributes.AttributeDisplay.html#SpellBook_GAS_Attributes_AttributeDisplay_Prefix
+  name: Prefix
+  nameWithType: AttributeDisplay.Prefix
+  fullName: SpellBook.GAS.Attributes.AttributeDisplay.Prefix
+- uid: SpellBook.GAS.Attributes.AttributeDisplay.Suffix
+  commentId: F:SpellBook.GAS.Attributes.AttributeDisplay.Suffix
+  href: SpellBook.GAS.Attributes.AttributeDisplay.html#SpellBook_GAS_Attributes_AttributeDisplay_Suffix
+  name: Suffix
+  nameWithType: AttributeDisplay.Suffix
+  fullName: SpellBook.GAS.Attributes.AttributeDisplay.Suffix
+- uid: System.Globalization.CultureInfo.InvariantCulture
+  commentId: P:System.Globalization.CultureInfo.InvariantCulture
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.globalization.cultureinfo.invariantculture
+  name: InvariantCulture
+  nameWithType: CultureInfo.InvariantCulture
+  fullName: System.Globalization.CultureInfo.InvariantCulture
+- uid: SpellBook.GAS.Attributes.AttributeDisplay.Format*
+  commentId: Overload:SpellBook.GAS.Attributes.AttributeDisplay.Format
+  href: SpellBook.GAS.Attributes.AttributeDisplay.html#SpellBook_GAS_Attributes_AttributeDisplay_Format_System_Single_System_IFormatProvider_
+  name: Format
+  nameWithType: AttributeDisplay.Format
+  fullName: SpellBook.GAS.Attributes.AttributeDisplay.Format
+- uid: System.Single
+  commentId: T:System.Single
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.single
+  name: float
+  nameWithType: float
+  fullName: float
+  nameWithType.vb: Single
+  fullName.vb: Single
+  name.vb: Single
+- uid: System.IFormatProvider
+  commentId: T:System.IFormatProvider
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.iformatprovider
+  name: IFormatProvider
+  nameWithType: IFormatProvider
+  fullName: System.IFormatProvider
+- uid: SpellBook.GAS.Attributes.ModifierOperation
+  commentId: T:SpellBook.GAS.Attributes.ModifierOperation
+  parent: SpellBook.GAS.Attributes
+  href: SpellBook.GAS.Attributes.ModifierOperation.html
+  name: ModifierOperation
+  nameWithType: ModifierOperation
+  fullName: SpellBook.GAS.Attributes.ModifierOperation
+- uid: SpellBook.GAS.Attributes.AttributeDisplay.GetDeltaRole*
+  commentId: Overload:SpellBook.GAS.Attributes.AttributeDisplay.GetDeltaRole
+  href: SpellBook.GAS.Attributes.AttributeDisplay.html#SpellBook_GAS_Attributes_AttributeDisplay_GetDeltaRole_System_Single_
+  name: GetDeltaRole
+  nameWithType: AttributeDisplay.GetDeltaRole
+  fullName: SpellBook.GAS.Attributes.AttributeDisplay.GetDeltaRole
+- uid: SpellBook.GAS.Attributes.AttributeDisplay.IsBeneficial*
+  commentId: Overload:SpellBook.GAS.Attributes.AttributeDisplay.IsBeneficial
+  href: SpellBook.GAS.Attributes.AttributeDisplay.html#SpellBook_GAS_Attributes_AttributeDisplay_IsBeneficial_System_Single_SpellBook_GAS_Attributes_ModifierOperation_
+  name: IsBeneficial
+  nameWithType: AttributeDisplay.IsBeneficial
+  fullName: SpellBook.GAS.Attributes.AttributeDisplay.IsBeneficial

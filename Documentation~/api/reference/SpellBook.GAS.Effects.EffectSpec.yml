@@ -1,0 +1,706 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Effects.EffectSpec
+  commentId: T:SpellBook.GAS.Effects.EffectSpec
+  id: EffectSpec
+  parent: SpellBook.GAS.Effects
+  children:
+  - SpellBook.GAS.Effects.EffectSpec.Context
+  - SpellBook.GAS.Effects.EffectSpec.Create(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Core.AbilitySystemComponent)
+  - SpellBook.GAS.Effects.EffectSpec.DurationOverride
+  - SpellBook.GAS.Effects.EffectSpec.Effect
+  - SpellBook.GAS.Effects.EffectSpec.FromAbility(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Abilities.AbilityContext)
+  - SpellBook.GAS.Effects.EffectSpec.HasDurationOverride
+  - SpellBook.GAS.Effects.EffectSpec.WithCallerValues(SpellBook.GAS.Effects.IReadOnlySetByCaller)
+  - SpellBook.GAS.Effects.EffectSpec.WithDurationOverride(System.Single)
+  - SpellBook.GAS.Effects.EffectSpec.WithImpactPoint(UnityEngine.Vector3)
+  langs:
+  - csharp
+  - vb
+  name: EffectSpec
+  nameWithType: EffectSpec
+  fullName: SpellBook.GAS.Effects.EffectSpec
+  type: Struct
+  namespace: SpellBook.GAS.Effects
+  summary: >-
+    Pedido de aplicação de um efeito (ADR 0030): o efeito, o contexto e, opcionalmente, uma duração que substitui a do efeito.
+
+    É struct e é passado por <code>in</code>; montar e aplicar não aloca.
+  example: []
+  syntax:
+    content: public struct EffectSpec
+    content.vb: Public Structure EffectSpec
+  inheritedMembers:
+  - System.ValueType.Equals(System.Object)
+  - System.ValueType.GetHashCode
+  - System.ValueType.ToString
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetType
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+- uid: SpellBook.GAS.Effects.EffectSpec.Effect
+  commentId: P:SpellBook.GAS.Effects.EffectSpec.Effect
+  id: Effect
+  parent: SpellBook.GAS.Effects.EffectSpec
+  langs:
+  - csharp
+  - vb
+  name: Effect
+  nameWithType: EffectSpec.Effect
+  fullName: SpellBook.GAS.Effects.EffectSpec.Effect
+  type: Property
+  namespace: SpellBook.GAS.Effects
+  syntax:
+    content: public readonly GameplayEffect Effect { get; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Effects.GameplayEffect
+    content.vb: Public Property Effect As GameplayEffect
+  overload: SpellBook.GAS.Effects.EffectSpec.Effect*
+- uid: SpellBook.GAS.Effects.EffectSpec.Context
+  commentId: P:SpellBook.GAS.Effects.EffectSpec.Context
+  id: Context
+  parent: SpellBook.GAS.Effects.EffectSpec
+  langs:
+  - csharp
+  - vb
+  name: Context
+  nameWithType: EffectSpec.Context
+  fullName: SpellBook.GAS.Effects.EffectSpec.Context
+  type: Property
+  namespace: SpellBook.GAS.Effects
+  syntax:
+    content: public readonly EffectContext Context { get; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Effects.EffectContext
+    content.vb: Public Property Context As EffectContext
+  overload: SpellBook.GAS.Effects.EffectSpec.Context*
+- uid: SpellBook.GAS.Effects.EffectSpec.HasDurationOverride
+  commentId: P:SpellBook.GAS.Effects.EffectSpec.HasDurationOverride
+  id: HasDurationOverride
+  parent: SpellBook.GAS.Effects.EffectSpec
+  langs:
+  - csharp
+  - vb
+  name: HasDurationOverride
+  nameWithType: EffectSpec.HasDurationOverride
+  fullName: SpellBook.GAS.Effects.EffectSpec.HasDurationOverride
+  type: Property
+  namespace: SpellBook.GAS.Effects
+  syntax:
+    content: public readonly bool HasDurationOverride { get; }
+    parameters: []
+    return:
+      type: System.Boolean
+    content.vb: Public Property HasDurationOverride As Boolean
+  overload: SpellBook.GAS.Effects.EffectSpec.HasDurationOverride*
+- uid: SpellBook.GAS.Effects.EffectSpec.DurationOverride
+  commentId: P:SpellBook.GAS.Effects.EffectSpec.DurationOverride
+  id: DurationOverride
+  parent: SpellBook.GAS.Effects.EffectSpec
+  langs:
+  - csharp
+  - vb
+  name: DurationOverride
+  nameWithType: EffectSpec.DurationOverride
+  fullName: SpellBook.GAS.Effects.EffectSpec.DurationOverride
+  type: Property
+  namespace: SpellBook.GAS.Effects
+  summary: Duração em segundos que substitui a do efeito; só vale com <xref href="SpellBook.GAS.Effects.EffectSpec.HasDurationOverride" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public readonly float DurationOverride { get; }
+    parameters: []
+    return:
+      type: System.Single
+    content.vb: Public Property DurationOverride As Single
+  overload: SpellBook.GAS.Effects.EffectSpec.DurationOverride*
+- uid: SpellBook.GAS.Effects.EffectSpec.Create(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Core.AbilitySystemComponent)
+  commentId: M:SpellBook.GAS.Effects.EffectSpec.Create(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Core.AbilitySystemComponent)
+  id: Create(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Core.AbilitySystemComponent)
+  parent: SpellBook.GAS.Effects.EffectSpec
+  langs:
+  - csharp
+  - vb
+  name: Create(GameplayEffect, AbilitySystemComponent)
+  nameWithType: EffectSpec.Create(GameplayEffect, AbilitySystemComponent)
+  fullName: SpellBook.GAS.Effects.EffectSpec.Create(SpellBook.GAS.Effects.GameplayEffect, SpellBook.GAS.Core.AbilitySystemComponent)
+  type: Method
+  namespace: SpellBook.GAS.Effects
+  summary: 'Spec sem habilidade: nível <xref href="SpellBook.GAS.Effects.GameplayEffect.DefaultLevel" data-throw-if-not-resolved="false"></xref> e nenhuma tabela.'
+  example: []
+  syntax:
+    content: public static EffectSpec Create(GameplayEffect effect, AbilitySystemComponent instigator)
+    parameters:
+    - id: effect
+      type: SpellBook.GAS.Effects.GameplayEffect
+    - id: instigator
+      type: SpellBook.GAS.Core.AbilitySystemComponent
+    return:
+      type: SpellBook.GAS.Effects.EffectSpec
+    content.vb: Public Shared Function Create(effect As GameplayEffect, instigator As AbilitySystemComponent) As EffectSpec
+  overload: SpellBook.GAS.Effects.EffectSpec.Create*
+- uid: SpellBook.GAS.Effects.EffectSpec.FromAbility(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Abilities.AbilityContext)
+  commentId: M:SpellBook.GAS.Effects.EffectSpec.FromAbility(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Abilities.AbilityContext)
+  id: FromAbility(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Abilities.AbilityContext)
+  parent: SpellBook.GAS.Effects.EffectSpec
+  langs:
+  - csharp
+  - vb
+  name: FromAbility(GameplayEffect, AbilityContext)
+  nameWithType: EffectSpec.FromAbility(GameplayEffect, AbilityContext)
+  fullName: SpellBook.GAS.Effects.EffectSpec.FromAbility(SpellBook.GAS.Effects.GameplayEffect, SpellBook.GAS.Abilities.AbilityContext)
+  type: Method
+  namespace: SpellBook.GAS.Effects
+  summary: >-
+    Spec de uma ação de habilidade: instigador, habilidade e nível do <code class="paramref">context</code>, e o
+
+    <xref href="SpellBook.GAS.Abilities.AbilityContext.TargetPosition" data-throw-if-not-resolved="false"></xref> como ponto de impacto. Contexto nulo vira <xref href="SpellBook.GAS.Effects.EffectSpec.Create(SpellBook.GAS.Effects.GameplayEffect%2cSpellBook.GAS.Core.AbilitySystemComponent)" data-throw-if-not-resolved="false"></xref> sem instigador.
+  example: []
+  syntax:
+    content: public static EffectSpec FromAbility(GameplayEffect effect, AbilityContext context)
+    parameters:
+    - id: effect
+      type: SpellBook.GAS.Effects.GameplayEffect
+    - id: context
+      type: SpellBook.GAS.Abilities.AbilityContext
+    return:
+      type: SpellBook.GAS.Effects.EffectSpec
+    content.vb: Public Shared Function FromAbility(effect As GameplayEffect, context As AbilityContext) As EffectSpec
+  overload: SpellBook.GAS.Effects.EffectSpec.FromAbility*
+- uid: SpellBook.GAS.Effects.EffectSpec.WithCallerValues(SpellBook.GAS.Effects.IReadOnlySetByCaller)
+  commentId: M:SpellBook.GAS.Effects.EffectSpec.WithCallerValues(SpellBook.GAS.Effects.IReadOnlySetByCaller)
+  id: WithCallerValues(SpellBook.GAS.Effects.IReadOnlySetByCaller)
+  parent: SpellBook.GAS.Effects.EffectSpec
+  langs:
+  - csharp
+  - vb
+  name: WithCallerValues(IReadOnlySetByCaller)
+  nameWithType: EffectSpec.WithCallerValues(IReadOnlySetByCaller)
+  fullName: SpellBook.GAS.Effects.EffectSpec.WithCallerValues(SpellBook.GAS.Effects.IReadOnlySetByCaller)
+  type: Method
+  namespace: SpellBook.GAS.Effects
+  syntax:
+    content: public EffectSpec WithCallerValues(IReadOnlySetByCaller values)
+    parameters:
+    - id: values
+      type: SpellBook.GAS.Effects.IReadOnlySetByCaller
+    return:
+      type: SpellBook.GAS.Effects.EffectSpec
+    content.vb: Public Function WithCallerValues(values As IReadOnlySetByCaller) As EffectSpec
+  overload: SpellBook.GAS.Effects.EffectSpec.WithCallerValues*
+- uid: SpellBook.GAS.Effects.EffectSpec.WithImpactPoint(UnityEngine.Vector3)
+  commentId: M:SpellBook.GAS.Effects.EffectSpec.WithImpactPoint(UnityEngine.Vector3)
+  id: WithImpactPoint(UnityEngine.Vector3)
+  parent: SpellBook.GAS.Effects.EffectSpec
+  langs:
+  - csharp
+  - vb
+  name: WithImpactPoint(Vector3)
+  nameWithType: EffectSpec.WithImpactPoint(Vector3)
+  fullName: SpellBook.GAS.Effects.EffectSpec.WithImpactPoint(UnityEngine.Vector3)
+  type: Method
+  namespace: SpellBook.GAS.Effects
+  syntax:
+    content: public EffectSpec WithImpactPoint(Vector3 point)
+    parameters:
+    - id: point
+      type: UnityEngine.Vector3
+    return:
+      type: SpellBook.GAS.Effects.EffectSpec
+    content.vb: Public Function WithImpactPoint(point As Vector3) As EffectSpec
+  overload: SpellBook.GAS.Effects.EffectSpec.WithImpactPoint*
+- uid: SpellBook.GAS.Effects.EffectSpec.WithDurationOverride(System.Single)
+  commentId: M:SpellBook.GAS.Effects.EffectSpec.WithDurationOverride(System.Single)
+  id: WithDurationOverride(System.Single)
+  parent: SpellBook.GAS.Effects.EffectSpec
+  langs:
+  - csharp
+  - vb
+  name: WithDurationOverride(float)
+  nameWithType: EffectSpec.WithDurationOverride(float)
+  fullName: SpellBook.GAS.Effects.EffectSpec.WithDurationOverride(float)
+  type: Method
+  namespace: SpellBook.GAS.Effects
+  syntax:
+    content: public EffectSpec WithDurationOverride(float seconds)
+    parameters:
+    - id: seconds
+      type: System.Single
+    return:
+      type: SpellBook.GAS.Effects.EffectSpec
+    content.vb: Public Function WithDurationOverride(seconds As Single) As EffectSpec
+  overload: SpellBook.GAS.Effects.EffectSpec.WithDurationOverride*
+  nameWithType.vb: EffectSpec.WithDurationOverride(Single)
+  fullName.vb: SpellBook.GAS.Effects.EffectSpec.WithDurationOverride(Single)
+  name.vb: WithDurationOverride(Single)
+references:
+- uid: SpellBook.GAS.Effects
+  commentId: N:SpellBook.GAS.Effects
+  name: SpellBook.GAS.Effects
+  nameWithType: SpellBook.GAS.Effects
+  fullName: SpellBook.GAS.Effects
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Effects
+    name: Effects
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Effects
+    name: Effects
+- uid: System.ValueType.Equals(System.Object)
+  commentId: M:System.ValueType.Equals(System.Object)
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  name: Equals(object)
+  nameWithType: ValueType.Equals(object)
+  fullName: System.ValueType.Equals(object)
+  nameWithType.vb: ValueType.Equals(Object)
+  fullName.vb: System.ValueType.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.ValueType.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.equals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.ValueType.GetHashCode
+  commentId: M:System.ValueType.GetHashCode
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  name: GetHashCode()
+  nameWithType: ValueType.GetHashCode()
+  fullName: System.ValueType.GetHashCode()
+  spec.csharp:
+  - uid: System.ValueType.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode
+  - name: (
+  - name: )
+- uid: System.ValueType.ToString
+  commentId: M:System.ValueType.ToString
+  parent: System.ValueType
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  name: ToString()
+  nameWithType: ValueType.ToString()
+  fullName: System.ValueType.ToString()
+  spec.csharp:
+  - uid: System.ValueType.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.ValueType.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.valuetype.tostring
+  - name: (
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.ValueType
+  commentId: T:System.ValueType
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.valuetype
+  name: ValueType
+  nameWithType: ValueType
+  fullName: System.ValueType
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: SpellBook.GAS.Effects.EffectSpec.Effect*
+  commentId: Overload:SpellBook.GAS.Effects.EffectSpec.Effect
+  href: SpellBook.GAS.Effects.EffectSpec.html#SpellBook_GAS_Effects_EffectSpec_Effect
+  name: Effect
+  nameWithType: EffectSpec.Effect
+  fullName: SpellBook.GAS.Effects.EffectSpec.Effect
+- uid: SpellBook.GAS.Effects.GameplayEffect
+  commentId: T:SpellBook.GAS.Effects.GameplayEffect
+  parent: SpellBook.GAS.Effects
+  href: SpellBook.GAS.Effects.GameplayEffect.html
+  name: GameplayEffect
+  nameWithType: GameplayEffect
+  fullName: SpellBook.GAS.Effects.GameplayEffect
+- uid: SpellBook.GAS.Effects.EffectSpec.Context*
+  commentId: Overload:SpellBook.GAS.Effects.EffectSpec.Context
+  href: SpellBook.GAS.Effects.EffectSpec.html#SpellBook_GAS_Effects_EffectSpec_Context
+  name: Context
+  nameWithType: EffectSpec.Context
+  fullName: SpellBook.GAS.Effects.EffectSpec.Context
+- uid: SpellBook.GAS.Effects.EffectContext
+  commentId: T:SpellBook.GAS.Effects.EffectContext
+  parent: SpellBook.GAS.Effects
+  href: SpellBook.GAS.Effects.EffectContext.html
+  name: EffectContext
+  nameWithType: EffectContext
+  fullName: SpellBook.GAS.Effects.EffectContext
+- uid: SpellBook.GAS.Effects.EffectSpec.HasDurationOverride*
+  commentId: Overload:SpellBook.GAS.Effects.EffectSpec.HasDurationOverride
+  href: SpellBook.GAS.Effects.EffectSpec.html#SpellBook_GAS_Effects_EffectSpec_HasDurationOverride
+  name: HasDurationOverride
+  nameWithType: EffectSpec.HasDurationOverride
+  fullName: SpellBook.GAS.Effects.EffectSpec.HasDurationOverride
+- uid: System.Boolean
+  commentId: T:System.Boolean
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.boolean
+  name: bool
+  nameWithType: bool
+  fullName: bool
+  nameWithType.vb: Boolean
+  fullName.vb: Boolean
+  name.vb: Boolean
+- uid: SpellBook.GAS.Effects.EffectSpec.HasDurationOverride
+  commentId: P:SpellBook.GAS.Effects.EffectSpec.HasDurationOverride
+  href: SpellBook.GAS.Effects.EffectSpec.html#SpellBook_GAS_Effects_EffectSpec_HasDurationOverride
+  name: HasDurationOverride
+  nameWithType: EffectSpec.HasDurationOverride
+  fullName: SpellBook.GAS.Effects.EffectSpec.HasDurationOverride
+- uid: SpellBook.GAS.Effects.EffectSpec.DurationOverride*
+  commentId: Overload:SpellBook.GAS.Effects.EffectSpec.DurationOverride
+  href: SpellBook.GAS.Effects.EffectSpec.html#SpellBook_GAS_Effects_EffectSpec_DurationOverride
+  name: DurationOverride
+  nameWithType: EffectSpec.DurationOverride
+  fullName: SpellBook.GAS.Effects.EffectSpec.DurationOverride
+- uid: System.Single
+  commentId: T:System.Single
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.single
+  name: float
+  nameWithType: float
+  fullName: float
+  nameWithType.vb: Single
+  fullName.vb: Single
+  name.vb: Single
+- uid: SpellBook.GAS.Effects.GameplayEffect.DefaultLevel
+  commentId: P:SpellBook.GAS.Effects.GameplayEffect.DefaultLevel
+  href: SpellBook.GAS.Effects.GameplayEffect.html#SpellBook_GAS_Effects_GameplayEffect_DefaultLevel
+  name: DefaultLevel
+  nameWithType: GameplayEffect.DefaultLevel
+  fullName: SpellBook.GAS.Effects.GameplayEffect.DefaultLevel
+- uid: SpellBook.GAS.Effects.EffectSpec.Create*
+  commentId: Overload:SpellBook.GAS.Effects.EffectSpec.Create
+  href: SpellBook.GAS.Effects.EffectSpec.html#SpellBook_GAS_Effects_EffectSpec_Create_SpellBook_GAS_Effects_GameplayEffect_SpellBook_GAS_Core_AbilitySystemComponent_
+  name: Create
+  nameWithType: EffectSpec.Create
+  fullName: SpellBook.GAS.Effects.EffectSpec.Create
+- uid: SpellBook.GAS.Core.AbilitySystemComponent
+  commentId: T:SpellBook.GAS.Core.AbilitySystemComponent
+  parent: SpellBook.GAS.Core
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  name: AbilitySystemComponent
+  nameWithType: AbilitySystemComponent
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent
+- uid: SpellBook.GAS.Effects.EffectSpec
+  commentId: T:SpellBook.GAS.Effects.EffectSpec
+  parent: SpellBook.GAS.Effects
+  href: SpellBook.GAS.Effects.EffectSpec.html
+  name: EffectSpec
+  nameWithType: EffectSpec
+  fullName: SpellBook.GAS.Effects.EffectSpec
+- uid: SpellBook.GAS.Core
+  commentId: N:SpellBook.GAS.Core
+  name: SpellBook.GAS.Core
+  nameWithType: SpellBook.GAS.Core
+  fullName: SpellBook.GAS.Core
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Core
+    name: Core
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Core
+    name: Core
+- uid: SpellBook.GAS.Abilities.AbilityContext.TargetPosition
+  commentId: F:SpellBook.GAS.Abilities.AbilityContext.TargetPosition
+  href: SpellBook.GAS.Abilities.AbilityContext.html#SpellBook_GAS_Abilities_AbilityContext_TargetPosition
+  name: TargetPosition
+  nameWithType: AbilityContext.TargetPosition
+  fullName: SpellBook.GAS.Abilities.AbilityContext.TargetPosition
+- uid: SpellBook.GAS.Effects.EffectSpec.Create(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Core.AbilitySystemComponent)
+  commentId: M:SpellBook.GAS.Effects.EffectSpec.Create(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Core.AbilitySystemComponent)
+  href: SpellBook.GAS.Effects.EffectSpec.html#SpellBook_GAS_Effects_EffectSpec_Create_SpellBook_GAS_Effects_GameplayEffect_SpellBook_GAS_Core_AbilitySystemComponent_
+  name: Create(GameplayEffect, AbilitySystemComponent)
+  nameWithType: EffectSpec.Create(GameplayEffect, AbilitySystemComponent)
+  fullName: SpellBook.GAS.Effects.EffectSpec.Create(SpellBook.GAS.Effects.GameplayEffect, SpellBook.GAS.Core.AbilitySystemComponent)
+  spec.csharp:
+  - uid: SpellBook.GAS.Effects.EffectSpec.Create(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Core.AbilitySystemComponent)
+    name: Create
+    href: SpellBook.GAS.Effects.EffectSpec.html#SpellBook_GAS_Effects_EffectSpec_Create_SpellBook_GAS_Effects_GameplayEffect_SpellBook_GAS_Core_AbilitySystemComponent_
+  - name: (
+  - uid: SpellBook.GAS.Effects.GameplayEffect
+    name: GameplayEffect
+    href: SpellBook.GAS.Effects.GameplayEffect.html
+  - name: ','
+  - name: " "
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent
+    name: AbilitySystemComponent
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  - name: )
+  spec.vb:
+  - uid: SpellBook.GAS.Effects.EffectSpec.Create(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Core.AbilitySystemComponent)
+    name: Create
+    href: SpellBook.GAS.Effects.EffectSpec.html#SpellBook_GAS_Effects_EffectSpec_Create_SpellBook_GAS_Effects_GameplayEffect_SpellBook_GAS_Core_AbilitySystemComponent_
+  - name: (
+  - uid: SpellBook.GAS.Effects.GameplayEffect
+    name: GameplayEffect
+    href: SpellBook.GAS.Effects.GameplayEffect.html
+  - name: ','
+  - name: " "
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent
+    name: AbilitySystemComponent
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  - name: )
+- uid: SpellBook.GAS.Effects.EffectSpec.FromAbility*
+  commentId: Overload:SpellBook.GAS.Effects.EffectSpec.FromAbility
+  href: SpellBook.GAS.Effects.EffectSpec.html#SpellBook_GAS_Effects_EffectSpec_FromAbility_SpellBook_GAS_Effects_GameplayEffect_SpellBook_GAS_Abilities_AbilityContext_
+  name: FromAbility
+  nameWithType: EffectSpec.FromAbility
+  fullName: SpellBook.GAS.Effects.EffectSpec.FromAbility
+- uid: SpellBook.GAS.Abilities.AbilityContext
+  commentId: T:SpellBook.GAS.Abilities.AbilityContext
+  parent: SpellBook.GAS.Abilities
+  href: SpellBook.GAS.Abilities.AbilityContext.html
+  name: AbilityContext
+  nameWithType: AbilityContext
+  fullName: SpellBook.GAS.Abilities.AbilityContext
+- uid: SpellBook.GAS.Abilities
+  commentId: N:SpellBook.GAS.Abilities
+  name: SpellBook.GAS.Abilities
+  nameWithType: SpellBook.GAS.Abilities
+  fullName: SpellBook.GAS.Abilities
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+- uid: SpellBook.GAS.Effects.EffectSpec.WithCallerValues*
+  commentId: Overload:SpellBook.GAS.Effects.EffectSpec.WithCallerValues
+  href: SpellBook.GAS.Effects.EffectSpec.html#SpellBook_GAS_Effects_EffectSpec_WithCallerValues_SpellBook_GAS_Effects_IReadOnlySetByCaller_
+  name: WithCallerValues
+  nameWithType: EffectSpec.WithCallerValues
+  fullName: SpellBook.GAS.Effects.EffectSpec.WithCallerValues
+- uid: SpellBook.GAS.Effects.IReadOnlySetByCaller
+  commentId: T:SpellBook.GAS.Effects.IReadOnlySetByCaller
+  parent: SpellBook.GAS.Effects
+  href: SpellBook.GAS.Effects.IReadOnlySetByCaller.html
+  name: IReadOnlySetByCaller
+  nameWithType: IReadOnlySetByCaller
+  fullName: SpellBook.GAS.Effects.IReadOnlySetByCaller
+- uid: SpellBook.GAS.Effects.EffectSpec.WithImpactPoint*
+  commentId: Overload:SpellBook.GAS.Effects.EffectSpec.WithImpactPoint
+  href: SpellBook.GAS.Effects.EffectSpec.html#SpellBook_GAS_Effects_EffectSpec_WithImpactPoint_UnityEngine_Vector3_
+  name: WithImpactPoint
+  nameWithType: EffectSpec.WithImpactPoint
+  fullName: SpellBook.GAS.Effects.EffectSpec.WithImpactPoint
+- uid: UnityEngine.Vector3
+  commentId: T:UnityEngine.Vector3
+  parent: UnityEngine
+  isExternal: true
+  name: Vector3
+  nameWithType: Vector3
+  fullName: UnityEngine.Vector3
+- uid: UnityEngine
+  commentId: N:UnityEngine
+  isExternal: true
+  name: UnityEngine
+  nameWithType: UnityEngine
+  fullName: UnityEngine
+- uid: SpellBook.GAS.Effects.EffectSpec.WithDurationOverride*
+  commentId: Overload:SpellBook.GAS.Effects.EffectSpec.WithDurationOverride
+  href: SpellBook.GAS.Effects.EffectSpec.html#SpellBook_GAS_Effects_EffectSpec_WithDurationOverride_System_Single_
+  name: WithDurationOverride
+  nameWithType: EffectSpec.WithDurationOverride
+  fullName: SpellBook.GAS.Effects.EffectSpec.WithDurationOverride

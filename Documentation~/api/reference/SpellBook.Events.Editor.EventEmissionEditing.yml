@@ -1,0 +1,395 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.Events.Editor.EventEmissionEditing
+  commentId: T:SpellBook.Events.Editor.EventEmissionEditing
+  id: EventEmissionEditing
+  parent: SpellBook.Events.Editor
+  children:
+  - SpellBook.Events.Editor.EventEmissionEditing.SetChannel(UnityEditor.SerializedProperty,SpellBook.Events.EventChannel)
+  langs:
+  - csharp
+  - vb
+  name: EventEmissionEditing
+  nameWithType: EventEmissionEditing
+  fullName: SpellBook.Events.Editor.EventEmissionEditing
+  type: Class
+  namespace: SpellBook.Events.Editor
+  summary: Troca de canal de uma <xref href="SpellBook.Events.EventEmission" data-throw-if-not-resolved="false"></xref> num campo <code>[SerializeReference]</code> (ADR 0016, emenda).
+  example: []
+  syntax:
+    content: public static class EventEmissionEditing
+    content.vb: Public Module EventEmissionEditing
+  inheritance:
+  - System.Object
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.MemberwiseClone
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+- uid: SpellBook.Events.Editor.EventEmissionEditing.SetChannel(UnityEditor.SerializedProperty,SpellBook.Events.EventChannel)
+  commentId: M:SpellBook.Events.Editor.EventEmissionEditing.SetChannel(UnityEditor.SerializedProperty,SpellBook.Events.EventChannel)
+  id: SetChannel(UnityEditor.SerializedProperty,SpellBook.Events.EventChannel)
+  parent: SpellBook.Events.Editor.EventEmissionEditing
+  langs:
+  - csharp
+  - vb
+  name: SetChannel(SerializedProperty, EventChannel)
+  nameWithType: EventEmissionEditing.SetChannel(SerializedProperty, EventChannel)
+  fullName: SpellBook.Events.Editor.EventEmissionEditing.SetChannel(UnityEditor.SerializedProperty, SpellBook.Events.EventChannel)
+  type: Method
+  namespace: SpellBook.Events.Editor
+  summary: >-
+    Põe <code class="paramref">channel</code> na emissão de <code class="paramref">emission</code> e aplica. Com o mesmo tipo de payload,
+
+    troca só o canal e mantém o payload; com outro tipo, recria a emissão por <xref href="SpellBook.Events.EventEmission.CreateFor(SpellBook.Events.EventChannel)" data-throw-if-not-resolved="false"></xref>.
+
+    Com canal nulo, mantém a emissão (e o payload) sem canal.
+  example: []
+  syntax:
+    content: public static void SetChannel(SerializedProperty emission, EventChannel channel)
+    parameters:
+    - id: emission
+      type: UnityEditor.SerializedProperty
+    - id: channel
+      type: SpellBook.Events.EventChannel
+    content.vb: Public Shared Sub SetChannel(emission As SerializedProperty, channel As EventChannel)
+  overload: SpellBook.Events.Editor.EventEmissionEditing.SetChannel*
+references:
+- uid: SpellBook.Events.EventEmission
+  commentId: T:SpellBook.Events.EventEmission
+  parent: SpellBook.Events
+  href: SpellBook.Events.EventEmission.html
+  name: EventEmission
+  nameWithType: EventEmission
+  fullName: SpellBook.Events.EventEmission
+- uid: SpellBook.Events.Editor
+  commentId: N:SpellBook.Events.Editor
+  name: SpellBook.Events.Editor
+  nameWithType: SpellBook.Events.Editor
+  fullName: SpellBook.Events.Editor
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Events
+    name: Events
+  - name: .
+  - uid: SpellBook.Events.Editor
+    name: Editor
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Events
+    name: Events
+  - name: .
+  - uid: SpellBook.Events.Editor
+    name: Editor
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.MemberwiseClone
+  commentId: M:System.Object.MemberwiseClone
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  name: MemberwiseClone()
+  nameWithType: object.MemberwiseClone()
+  fullName: object.MemberwiseClone()
+  nameWithType.vb: Object.MemberwiseClone()
+  fullName.vb: Object.MemberwiseClone()
+  spec.csharp:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: SpellBook.Events
+  commentId: N:SpellBook.Events
+  name: SpellBook.Events
+  nameWithType: SpellBook.Events
+  fullName: SpellBook.Events
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Events
+    name: Events
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Events
+    name: Events
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: SpellBook.Events.EventEmission.CreateFor(SpellBook.Events.EventChannel)
+  commentId: M:SpellBook.Events.EventEmission.CreateFor(SpellBook.Events.EventChannel)
+  parent: SpellBook.Events.EventEmission
+  href: SpellBook.Events.EventEmission.html#SpellBook_Events_EventEmission_CreateFor_SpellBook_Events_EventChannel_
+  name: CreateFor(EventChannel)
+  nameWithType: EventEmission.CreateFor(EventChannel)
+  fullName: SpellBook.Events.EventEmission.CreateFor(SpellBook.Events.EventChannel)
+  spec.csharp:
+  - uid: SpellBook.Events.EventEmission.CreateFor(SpellBook.Events.EventChannel)
+    name: CreateFor
+    href: SpellBook.Events.EventEmission.html#SpellBook_Events_EventEmission_CreateFor_SpellBook_Events_EventChannel_
+  - name: (
+  - uid: SpellBook.Events.EventChannel
+    name: EventChannel
+    href: SpellBook.Events.EventChannel.html
+  - name: )
+  spec.vb:
+  - uid: SpellBook.Events.EventEmission.CreateFor(SpellBook.Events.EventChannel)
+    name: CreateFor
+    href: SpellBook.Events.EventEmission.html#SpellBook_Events_EventEmission_CreateFor_SpellBook_Events_EventChannel_
+  - name: (
+  - uid: SpellBook.Events.EventChannel
+    name: EventChannel
+    href: SpellBook.Events.EventChannel.html
+  - name: )
+- uid: SpellBook.Events.Editor.EventEmissionEditing.SetChannel*
+  commentId: Overload:SpellBook.Events.Editor.EventEmissionEditing.SetChannel
+  href: SpellBook.Events.Editor.EventEmissionEditing.html#SpellBook_Events_Editor_EventEmissionEditing_SetChannel_UnityEditor_SerializedProperty_SpellBook_Events_EventChannel_
+  name: SetChannel
+  nameWithType: EventEmissionEditing.SetChannel
+  fullName: SpellBook.Events.Editor.EventEmissionEditing.SetChannel
+- uid: UnityEditor.SerializedProperty
+  commentId: T:UnityEditor.SerializedProperty
+  parent: UnityEditor
+  isExternal: true
+  name: SerializedProperty
+  nameWithType: SerializedProperty
+  fullName: UnityEditor.SerializedProperty
+- uid: SpellBook.Events.EventChannel
+  commentId: T:SpellBook.Events.EventChannel
+  parent: SpellBook.Events
+  href: SpellBook.Events.EventChannel.html
+  name: EventChannel
+  nameWithType: EventChannel
+  fullName: SpellBook.Events.EventChannel
+- uid: UnityEditor
+  commentId: N:UnityEditor
+  isExternal: true
+  name: UnityEditor
+  nameWithType: UnityEditor
+  fullName: UnityEditor

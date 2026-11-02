@@ -1,0 +1,807 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Values.ScalableFloat
+  commentId: T:SpellBook.GAS.Values.ScalableFloat
+  id: ScalableFloat
+  parent: SpellBook.GAS.Values
+  children:
+  - SpellBook.GAS.Values.ScalableFloat.Constant(System.Single)
+  - SpellBook.GAS.Values.ScalableFloat.Evaluate(System.Int32,SpellBook.GAS.Values.AbilityValues)
+  - SpellBook.GAS.Values.ScalableFloat.Fallback
+  - SpellBook.GAS.Values.ScalableFloat.FromArray(System.Single[])
+  - SpellBook.GAS.Values.ScalableFloat.FromCurve(UnityEngine.AnimationCurve)
+  - SpellBook.GAS.Values.ScalableFloat.FromTable(System.String,System.Single)
+  - SpellBook.GAS.Values.ScalableFloat.Mode
+  - SpellBook.GAS.Values.ScalableFloat.TableName
+  - SpellBook.GAS.Values.ScalableFloat.TryParse(System.String,System.Single[]@,System.String@)
+  - SpellBook.GAS.Values.ScalableFloat.Validate(SpellBook.Core.Validation.ValidationResult,System.String,System.Boolean)
+  langs:
+  - csharp
+  - vb
+  name: ScalableFloat
+  nameWithType: ScalableFloat
+  fullName: SpellBook.GAS.Values.ScalableFloat
+  type: Class
+  namespace: SpellBook.GAS.Values
+  summary: >-
+    Número que pode variar com o nível (ADR 0020 e 0030): constante, um valor por nível (array), uma curva
+
+    avaliada no nível ou um valor nomeado da tabela <xref href="SpellBook.GAS.Values.AbilityValues" data-throw-if-not-resolved="false"></xref> da habilidade (modo <code>Table</code>).
+
+    O nível começa em 1; nível menor que 1 vale como 1. <xref href="SpellBook.GAS.Values.ScalableFloat.Evaluate(System.Int32%2cSpellBook.GAS.Values.AbilityValues)" data-throw-if-not-resolved="false"></xref> não aloca.
+  example: []
+  syntax:
+    content: >-
+      [Serializable]
+
+      public sealed class ScalableFloat
+    content.vb: >-
+      <Serializable>
+
+      Public NotInheritable Class ScalableFloat
+  inheritance:
+  - System.Object
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+  attributes:
+  - type: System.SerializableAttribute
+    ctor: System.SerializableAttribute.#ctor
+    arguments: []
+- uid: SpellBook.GAS.Values.ScalableFloat.Mode
+  commentId: P:SpellBook.GAS.Values.ScalableFloat.Mode
+  id: Mode
+  parent: SpellBook.GAS.Values.ScalableFloat
+  langs:
+  - csharp
+  - vb
+  name: Mode
+  nameWithType: ScalableFloat.Mode
+  fullName: SpellBook.GAS.Values.ScalableFloat.Mode
+  type: Property
+  namespace: SpellBook.GAS.Values
+  summary: Como o valor é calculado.
+  example: []
+  syntax:
+    content: public ScalableFloat.ScalableMode Mode { get; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Values.ScalableFloat.ScalableMode
+    content.vb: Public ReadOnly Property Mode As ScalableFloat.ScalableMode
+  overload: SpellBook.GAS.Values.ScalableFloat.Mode*
+- uid: SpellBook.GAS.Values.ScalableFloat.TableName
+  commentId: P:SpellBook.GAS.Values.ScalableFloat.TableName
+  id: TableName
+  parent: SpellBook.GAS.Values.ScalableFloat
+  langs:
+  - csharp
+  - vb
+  name: TableName
+  nameWithType: ScalableFloat.TableName
+  fullName: SpellBook.GAS.Values.ScalableFloat.TableName
+  type: Property
+  namespace: SpellBook.GAS.Values
+  summary: Nome do valor na tabela, no modo <code>Table</code>.
+  example: []
+  syntax:
+    content: public string TableName { get; }
+    parameters: []
+    return:
+      type: System.String
+    content.vb: Public ReadOnly Property TableName As String
+  overload: SpellBook.GAS.Values.ScalableFloat.TableName*
+- uid: SpellBook.GAS.Values.ScalableFloat.Fallback
+  commentId: P:SpellBook.GAS.Values.ScalableFloat.Fallback
+  id: Fallback
+  parent: SpellBook.GAS.Values.ScalableFloat
+  langs:
+  - csharp
+  - vb
+  name: Fallback
+  nameWithType: ScalableFloat.Fallback
+  fullName: SpellBook.GAS.Values.ScalableFloat.Fallback
+  type: Property
+  namespace: SpellBook.GAS.Values
+  summary: Valor no modo <code>Table</code> sem tabela ou sem o nome nela.
+  example: []
+  syntax:
+    content: public float Fallback { get; }
+    parameters: []
+    return:
+      type: System.Single
+    content.vb: Public ReadOnly Property Fallback As Single
+  overload: SpellBook.GAS.Values.ScalableFloat.Fallback*
+- uid: SpellBook.GAS.Values.ScalableFloat.Constant(System.Single)
+  commentId: M:SpellBook.GAS.Values.ScalableFloat.Constant(System.Single)
+  id: Constant(System.Single)
+  parent: SpellBook.GAS.Values.ScalableFloat
+  langs:
+  - csharp
+  - vb
+  name: Constant(float)
+  nameWithType: ScalableFloat.Constant(float)
+  fullName: SpellBook.GAS.Values.ScalableFloat.Constant(float)
+  type: Method
+  namespace: SpellBook.GAS.Values
+  summary: Mesmo valor em qualquer nível.
+  example: []
+  syntax:
+    content: public static ScalableFloat Constant(float value)
+    parameters:
+    - id: value
+      type: System.Single
+    return:
+      type: SpellBook.GAS.Values.ScalableFloat
+    content.vb: Public Shared Function Constant(value As Single) As ScalableFloat
+  overload: SpellBook.GAS.Values.ScalableFloat.Constant*
+  nameWithType.vb: ScalableFloat.Constant(Single)
+  fullName.vb: SpellBook.GAS.Values.ScalableFloat.Constant(Single)
+  name.vb: Constant(Single)
+- uid: SpellBook.GAS.Values.ScalableFloat.FromArray(System.Single[])
+  commentId: M:SpellBook.GAS.Values.ScalableFloat.FromArray(System.Single[])
+  id: FromArray(System.Single[])
+  parent: SpellBook.GAS.Values.ScalableFloat
+  langs:
+  - csharp
+  - vb
+  name: FromArray(params float[])
+  nameWithType: ScalableFloat.FromArray(params float[])
+  fullName: SpellBook.GAS.Values.ScalableFloat.FromArray(params float[])
+  type: Method
+  namespace: SpellBook.GAS.Values
+  summary: Um valor por nível; o primeiro é o nível 1. O array é copiado.
+  example: []
+  syntax:
+    content: public static ScalableFloat FromArray(params float[] values)
+    parameters:
+    - id: values
+      type: System.Single[]
+    return:
+      type: SpellBook.GAS.Values.ScalableFloat
+    content.vb: Public Shared Function FromArray(ParamArray values As Single()) As ScalableFloat
+  overload: SpellBook.GAS.Values.ScalableFloat.FromArray*
+  nameWithType.vb: ScalableFloat.FromArray(ParamArray Single())
+  fullName.vb: SpellBook.GAS.Values.ScalableFloat.FromArray(ParamArray Single())
+  name.vb: FromArray(ParamArray Single())
+- uid: SpellBook.GAS.Values.ScalableFloat.FromCurve(UnityEngine.AnimationCurve)
+  commentId: M:SpellBook.GAS.Values.ScalableFloat.FromCurve(UnityEngine.AnimationCurve)
+  id: FromCurve(UnityEngine.AnimationCurve)
+  parent: SpellBook.GAS.Values.ScalableFloat
+  langs:
+  - csharp
+  - vb
+  name: FromCurve(AnimationCurve)
+  nameWithType: ScalableFloat.FromCurve(AnimationCurve)
+  fullName: SpellBook.GAS.Values.ScalableFloat.FromCurve(UnityEngine.AnimationCurve)
+  type: Method
+  namespace: SpellBook.GAS.Values
+  summary: Curva avaliada no nível (x = nível inteiro).
+  example: []
+  syntax:
+    content: public static ScalableFloat FromCurve(AnimationCurve curve)
+    parameters:
+    - id: curve
+      type: UnityEngine.AnimationCurve
+    return:
+      type: SpellBook.GAS.Values.ScalableFloat
+    content.vb: Public Shared Function FromCurve(curve As AnimationCurve) As ScalableFloat
+  overload: SpellBook.GAS.Values.ScalableFloat.FromCurve*
+- uid: SpellBook.GAS.Values.ScalableFloat.FromTable(System.String,System.Single)
+  commentId: M:SpellBook.GAS.Values.ScalableFloat.FromTable(System.String,System.Single)
+  id: FromTable(System.String,System.Single)
+  parent: SpellBook.GAS.Values.ScalableFloat
+  langs:
+  - csharp
+  - vb
+  name: FromTable(string, float)
+  nameWithType: ScalableFloat.FromTable(string, float)
+  fullName: SpellBook.GAS.Values.ScalableFloat.FromTable(string, float)
+  type: Method
+  namespace: SpellBook.GAS.Values
+  summary: Valor <code class="paramref">name</code> da tabela da habilidade; sem tabela ou sem o nome, vale <code class="paramref">fallback</code>.
+  example: []
+  syntax:
+    content: public static ScalableFloat FromTable(string name, float fallback = 0)
+    parameters:
+    - id: name
+      type: System.String
+    - id: fallback
+      type: System.Single
+    return:
+      type: SpellBook.GAS.Values.ScalableFloat
+    content.vb: Public Shared Function FromTable(name As String, fallback As Single = 0) As ScalableFloat
+  overload: SpellBook.GAS.Values.ScalableFloat.FromTable*
+  nameWithType.vb: ScalableFloat.FromTable(String, Single)
+  fullName.vb: SpellBook.GAS.Values.ScalableFloat.FromTable(String, Single)
+  name.vb: FromTable(String, Single)
+- uid: SpellBook.GAS.Values.ScalableFloat.Evaluate(System.Int32,SpellBook.GAS.Values.AbilityValues)
+  commentId: M:SpellBook.GAS.Values.ScalableFloat.Evaluate(System.Int32,SpellBook.GAS.Values.AbilityValues)
+  id: Evaluate(System.Int32,SpellBook.GAS.Values.AbilityValues)
+  parent: SpellBook.GAS.Values.ScalableFloat
+  langs:
+  - csharp
+  - vb
+  name: Evaluate(int, AbilityValues)
+  nameWithType: ScalableFloat.Evaluate(int, AbilityValues)
+  fullName: SpellBook.GAS.Values.ScalableFloat.Evaluate(int, SpellBook.GAS.Values.AbilityValues)
+  type: Method
+  namespace: SpellBook.GAS.Values
+  summary: >-
+    Valor no nível. Array vazio e curva nula valem 0; acima do tamanho do array, repete o último. No modo
+
+    <code>Table</code>, lê a entrada da <code class="paramref">table</code>: sem tabela vale o <xref href="SpellBook.GAS.Values.ScalableFloat.Fallback" data-throw-if-not-resolved="false"></xref>, sem aviso;
+
+    com tabela mas sem o nome, vale o <xref href="SpellBook.GAS.Values.ScalableFloat.Fallback" data-throw-if-not-resolved="false"></xref> com um aviso único por instância.
+  example: []
+  syntax:
+    content: public float Evaluate(int level, AbilityValues table = null)
+    parameters:
+    - id: level
+      type: System.Int32
+    - id: table
+      type: SpellBook.GAS.Values.AbilityValues
+    return:
+      type: System.Single
+    content.vb: Public Function Evaluate(level As Integer, table As AbilityValues = Nothing) As Single
+  overload: SpellBook.GAS.Values.ScalableFloat.Evaluate*
+  nameWithType.vb: ScalableFloat.Evaluate(Integer, AbilityValues)
+  fullName.vb: SpellBook.GAS.Values.ScalableFloat.Evaluate(Integer, SpellBook.GAS.Values.AbilityValues)
+  name.vb: Evaluate(Integer, AbilityValues)
+- uid: SpellBook.GAS.Values.ScalableFloat.TryParse(System.String,System.Single[]@,System.String@)
+  commentId: M:SpellBook.GAS.Values.ScalableFloat.TryParse(System.String,System.Single[]@,System.String@)
+  id: TryParse(System.String,System.Single[]@,System.String@)
+  parent: SpellBook.GAS.Values.ScalableFloat
+  langs:
+  - csharp
+  - vb
+  name: TryParse(string, out float[], out string)
+  nameWithType: ScalableFloat.TryParse(string, out float[], out string)
+  fullName: SpellBook.GAS.Values.ScalableFloat.TryParse(string, out float[], out string)
+  type: Method
+  namespace: SpellBook.GAS.Values
+  summary: >-
+    Lê o texto de um array ("10 8 6 4"). Separadores: espaço, vírgula e ponto e vírgula; o ponto é o
+
+    separador decimal (cultura invariante). Texto vazio dá um array vazio. Usado pelo Editor.
+  example: []
+  syntax:
+    content: public static bool TryParse(string text, out float[] values, out string error)
+    parameters:
+    - id: text
+      type: System.String
+    - id: values
+      type: System.Single[]
+    - id: error
+      type: System.String
+    return:
+      type: System.Boolean
+    content.vb: Public Shared Function TryParse(text As String, values As Single(), [error] As String) As Boolean
+  overload: SpellBook.GAS.Values.ScalableFloat.TryParse*
+  nameWithType.vb: ScalableFloat.TryParse(String, Single(), String)
+  fullName.vb: SpellBook.GAS.Values.ScalableFloat.TryParse(String, Single(), String)
+  name.vb: TryParse(String, Single(), String)
+- uid: SpellBook.GAS.Values.ScalableFloat.Validate(SpellBook.Core.Validation.ValidationResult,System.String,System.Boolean)
+  commentId: M:SpellBook.GAS.Values.ScalableFloat.Validate(SpellBook.Core.Validation.ValidationResult,System.String,System.Boolean)
+  id: Validate(SpellBook.Core.Validation.ValidationResult,System.String,System.Boolean)
+  parent: SpellBook.GAS.Values.ScalableFloat
+  langs:
+  - csharp
+  - vb
+  name: Validate(ValidationResult, string, bool)
+  nameWithType: ScalableFloat.Validate(ValidationResult, string, bool)
+  fullName: SpellBook.GAS.Values.ScalableFloat.Validate(SpellBook.Core.Validation.ValidationResult, string, bool)
+  type: Method
+  namespace: SpellBook.GAS.Values
+  summary: >-
+    Acusa array vazio, curva nula, modo <code>Table</code> sem nome e, com <code class="paramref">allowTable</code> falso (dentro da
+
+    própria <xref href="SpellBook.GAS.Values.AbilityValues" data-throw-if-not-resolved="false"></xref>), modo <code>Table</code>. O caminho é o do campo dono.
+  example: []
+  syntax:
+    content: public void Validate(ValidationResult result, string propertyPath, bool allowTable = true)
+    parameters:
+    - id: result
+      type: SpellBook.Core.Validation.ValidationResult
+    - id: propertyPath
+      type: System.String
+    - id: allowTable
+      type: System.Boolean
+    content.vb: Public Sub Validate(result As ValidationResult, propertyPath As String, allowTable As Boolean = True)
+  overload: SpellBook.GAS.Values.ScalableFloat.Validate*
+  nameWithType.vb: ScalableFloat.Validate(ValidationResult, String, Boolean)
+  fullName.vb: SpellBook.GAS.Values.ScalableFloat.Validate(SpellBook.Core.Validation.ValidationResult, String, Boolean)
+  name.vb: Validate(ValidationResult, String, Boolean)
+references:
+- uid: SpellBook.GAS.Values.AbilityValues
+  commentId: T:SpellBook.GAS.Values.AbilityValues
+  parent: SpellBook.GAS.Values
+  href: SpellBook.GAS.Values.AbilityValues.html
+  name: AbilityValues
+  nameWithType: AbilityValues
+  fullName: SpellBook.GAS.Values.AbilityValues
+- uid: SpellBook.GAS.Values.ScalableFloat.Evaluate(System.Int32,SpellBook.GAS.Values.AbilityValues)
+  commentId: M:SpellBook.GAS.Values.ScalableFloat.Evaluate(System.Int32,SpellBook.GAS.Values.AbilityValues)
+  isExternal: true
+  href: SpellBook.GAS.Values.ScalableFloat.html#SpellBook_GAS_Values_ScalableFloat_Evaluate_System_Int32_SpellBook_GAS_Values_AbilityValues_
+  name: Evaluate(int, AbilityValues)
+  nameWithType: ScalableFloat.Evaluate(int, AbilityValues)
+  fullName: SpellBook.GAS.Values.ScalableFloat.Evaluate(int, SpellBook.GAS.Values.AbilityValues)
+  nameWithType.vb: ScalableFloat.Evaluate(Integer, AbilityValues)
+  fullName.vb: SpellBook.GAS.Values.ScalableFloat.Evaluate(Integer, SpellBook.GAS.Values.AbilityValues)
+  name.vb: Evaluate(Integer, AbilityValues)
+  spec.csharp:
+  - uid: SpellBook.GAS.Values.ScalableFloat.Evaluate(System.Int32,SpellBook.GAS.Values.AbilityValues)
+    name: Evaluate
+    href: SpellBook.GAS.Values.ScalableFloat.html#SpellBook_GAS_Values_ScalableFloat_Evaluate_System_Int32_SpellBook_GAS_Values_AbilityValues_
+  - name: (
+  - uid: System.Int32
+    name: int
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: ','
+  - name: " "
+  - uid: SpellBook.GAS.Values.AbilityValues
+    name: AbilityValues
+    href: SpellBook.GAS.Values.AbilityValues.html
+  - name: )
+  spec.vb:
+  - uid: SpellBook.GAS.Values.ScalableFloat.Evaluate(System.Int32,SpellBook.GAS.Values.AbilityValues)
+    name: Evaluate
+    href: SpellBook.GAS.Values.ScalableFloat.html#SpellBook_GAS_Values_ScalableFloat_Evaluate_System_Int32_SpellBook_GAS_Values_AbilityValues_
+  - name: (
+  - uid: System.Int32
+    name: Integer
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: ','
+  - name: " "
+  - uid: SpellBook.GAS.Values.AbilityValues
+    name: AbilityValues
+    href: SpellBook.GAS.Values.AbilityValues.html
+  - name: )
+- uid: SpellBook.GAS.Values
+  commentId: N:SpellBook.GAS.Values
+  name: SpellBook.GAS.Values
+  nameWithType: SpellBook.GAS.Values
+  fullName: SpellBook.GAS.Values
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Values
+    name: Values
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Values
+    name: Values
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: SpellBook.GAS.Values.ScalableFloat.Mode*
+  commentId: Overload:SpellBook.GAS.Values.ScalableFloat.Mode
+  href: SpellBook.GAS.Values.ScalableFloat.html#SpellBook_GAS_Values_ScalableFloat_Mode
+  name: Mode
+  nameWithType: ScalableFloat.Mode
+  fullName: SpellBook.GAS.Values.ScalableFloat.Mode
+- uid: SpellBook.GAS.Values.ScalableFloat.ScalableMode
+  commentId: T:SpellBook.GAS.Values.ScalableFloat.ScalableMode
+  parent: SpellBook.GAS.Values
+  href: SpellBook.GAS.Values.ScalableFloat.html
+  name: ScalableFloat.ScalableMode
+  nameWithType: ScalableFloat.ScalableMode
+  fullName: SpellBook.GAS.Values.ScalableFloat.ScalableMode
+  spec.csharp:
+  - uid: SpellBook.GAS.Values.ScalableFloat
+    name: ScalableFloat
+    href: SpellBook.GAS.Values.ScalableFloat.html
+  - name: .
+  - uid: SpellBook.GAS.Values.ScalableFloat.ScalableMode
+    name: ScalableMode
+    href: SpellBook.GAS.Values.ScalableFloat.ScalableMode.html
+  spec.vb:
+  - uid: SpellBook.GAS.Values.ScalableFloat
+    name: ScalableFloat
+    href: SpellBook.GAS.Values.ScalableFloat.html
+  - name: .
+  - uid: SpellBook.GAS.Values.ScalableFloat.ScalableMode
+    name: ScalableMode
+    href: SpellBook.GAS.Values.ScalableFloat.ScalableMode.html
+- uid: SpellBook.GAS.Values.ScalableFloat.TableName*
+  commentId: Overload:SpellBook.GAS.Values.ScalableFloat.TableName
+  href: SpellBook.GAS.Values.ScalableFloat.html#SpellBook_GAS_Values_ScalableFloat_TableName
+  name: TableName
+  nameWithType: ScalableFloat.TableName
+  fullName: SpellBook.GAS.Values.ScalableFloat.TableName
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: SpellBook.GAS.Values.ScalableFloat.Fallback*
+  commentId: Overload:SpellBook.GAS.Values.ScalableFloat.Fallback
+  href: SpellBook.GAS.Values.ScalableFloat.html#SpellBook_GAS_Values_ScalableFloat_Fallback
+  name: Fallback
+  nameWithType: ScalableFloat.Fallback
+  fullName: SpellBook.GAS.Values.ScalableFloat.Fallback
+- uid: System.Single
+  commentId: T:System.Single
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.single
+  name: float
+  nameWithType: float
+  fullName: float
+  nameWithType.vb: Single
+  fullName.vb: Single
+  name.vb: Single
+- uid: SpellBook.GAS.Values.ScalableFloat.Constant*
+  commentId: Overload:SpellBook.GAS.Values.ScalableFloat.Constant
+  href: SpellBook.GAS.Values.ScalableFloat.html#SpellBook_GAS_Values_ScalableFloat_Constant_System_Single_
+  name: Constant
+  nameWithType: ScalableFloat.Constant
+  fullName: SpellBook.GAS.Values.ScalableFloat.Constant
+- uid: SpellBook.GAS.Values.ScalableFloat
+  commentId: T:SpellBook.GAS.Values.ScalableFloat
+  parent: SpellBook.GAS.Values
+  href: SpellBook.GAS.Values.ScalableFloat.html
+  name: ScalableFloat
+  nameWithType: ScalableFloat
+  fullName: SpellBook.GAS.Values.ScalableFloat
+- uid: SpellBook.GAS.Values.ScalableFloat.FromArray*
+  commentId: Overload:SpellBook.GAS.Values.ScalableFloat.FromArray
+  href: SpellBook.GAS.Values.ScalableFloat.html#SpellBook_GAS_Values_ScalableFloat_FromArray_System_Single___
+  name: FromArray
+  nameWithType: ScalableFloat.FromArray
+  fullName: SpellBook.GAS.Values.ScalableFloat.FromArray
+- uid: System.Single[]
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.single
+  name: float[]
+  nameWithType: float[]
+  fullName: float[]
+  nameWithType.vb: Single()
+  fullName.vb: Single()
+  name.vb: Single()
+  spec.csharp:
+  - uid: System.Single
+    name: float
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.single
+  - name: '['
+  - name: ']'
+  spec.vb:
+  - uid: System.Single
+    name: Single
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.single
+  - name: (
+  - name: )
+- uid: SpellBook.GAS.Values.ScalableFloat.FromCurve*
+  commentId: Overload:SpellBook.GAS.Values.ScalableFloat.FromCurve
+  href: SpellBook.GAS.Values.ScalableFloat.html#SpellBook_GAS_Values_ScalableFloat_FromCurve_UnityEngine_AnimationCurve_
+  name: FromCurve
+  nameWithType: ScalableFloat.FromCurve
+  fullName: SpellBook.GAS.Values.ScalableFloat.FromCurve
+- uid: UnityEngine.AnimationCurve
+  commentId: T:UnityEngine.AnimationCurve
+  parent: UnityEngine
+  isExternal: true
+  name: AnimationCurve
+  nameWithType: AnimationCurve
+  fullName: UnityEngine.AnimationCurve
+- uid: UnityEngine
+  commentId: N:UnityEngine
+  isExternal: true
+  name: UnityEngine
+  nameWithType: UnityEngine
+  fullName: UnityEngine
+- uid: SpellBook.GAS.Values.ScalableFloat.FromTable*
+  commentId: Overload:SpellBook.GAS.Values.ScalableFloat.FromTable
+  href: SpellBook.GAS.Values.ScalableFloat.html#SpellBook_GAS_Values_ScalableFloat_FromTable_System_String_System_Single_
+  name: FromTable
+  nameWithType: ScalableFloat.FromTable
+  fullName: SpellBook.GAS.Values.ScalableFloat.FromTable
+- uid: SpellBook.GAS.Values.ScalableFloat.Fallback
+  commentId: P:SpellBook.GAS.Values.ScalableFloat.Fallback
+  href: SpellBook.GAS.Values.ScalableFloat.html#SpellBook_GAS_Values_ScalableFloat_Fallback
+  name: Fallback
+  nameWithType: ScalableFloat.Fallback
+  fullName: SpellBook.GAS.Values.ScalableFloat.Fallback
+- uid: SpellBook.GAS.Values.ScalableFloat.Evaluate*
+  commentId: Overload:SpellBook.GAS.Values.ScalableFloat.Evaluate
+  href: SpellBook.GAS.Values.ScalableFloat.html#SpellBook_GAS_Values_ScalableFloat_Evaluate_System_Int32_SpellBook_GAS_Values_AbilityValues_
+  name: Evaluate
+  nameWithType: ScalableFloat.Evaluate
+  fullName: SpellBook.GAS.Values.ScalableFloat.Evaluate
+- uid: System.Int32
+  commentId: T:System.Int32
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.int32
+  name: int
+  nameWithType: int
+  fullName: int
+  nameWithType.vb: Integer
+  fullName.vb: Integer
+  name.vb: Integer
+- uid: SpellBook.GAS.Values.ScalableFloat.TryParse*
+  commentId: Overload:SpellBook.GAS.Values.ScalableFloat.TryParse
+  href: SpellBook.GAS.Values.ScalableFloat.html#SpellBook_GAS_Values_ScalableFloat_TryParse_System_String_System_Single____System_String__
+  name: TryParse
+  nameWithType: ScalableFloat.TryParse
+  fullName: SpellBook.GAS.Values.ScalableFloat.TryParse
+- uid: System.Boolean
+  commentId: T:System.Boolean
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.boolean
+  name: bool
+  nameWithType: bool
+  fullName: bool
+  nameWithType.vb: Boolean
+  fullName.vb: Boolean
+  name.vb: Boolean
+- uid: SpellBook.GAS.Values.ScalableFloat.Validate*
+  commentId: Overload:SpellBook.GAS.Values.ScalableFloat.Validate
+  href: SpellBook.GAS.Values.ScalableFloat.html#SpellBook_GAS_Values_ScalableFloat_Validate_SpellBook_Core_Validation_ValidationResult_System_String_System_Boolean_
+  name: Validate
+  nameWithType: ScalableFloat.Validate
+  fullName: SpellBook.GAS.Values.ScalableFloat.Validate
+- uid: SpellBook.Core.Validation.ValidationResult
+  commentId: T:SpellBook.Core.Validation.ValidationResult
+  parent: SpellBook.Core.Validation
+  href: SpellBook.Core.Validation.ValidationResult.html
+  name: ValidationResult
+  nameWithType: ValidationResult
+  fullName: SpellBook.Core.Validation.ValidationResult
+- uid: SpellBook.Core.Validation
+  commentId: N:SpellBook.Core.Validation
+  name: SpellBook.Core.Validation
+  nameWithType: SpellBook.Core.Validation
+  fullName: SpellBook.Core.Validation
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Validation
+    name: Validation
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Validation
+    name: Validation

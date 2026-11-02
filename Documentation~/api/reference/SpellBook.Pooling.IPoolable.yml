@@ -1,0 +1,87 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.Pooling.IPoolable
+  commentId: T:SpellBook.Pooling.IPoolable
+  id: IPoolable
+  parent: SpellBook.Pooling
+  children:
+  - SpellBook.Pooling.IPoolable.OnReturnToPool
+  - SpellBook.Pooling.IPoolable.OnSpawnFromPool
+  langs:
+  - csharp
+  - vb
+  name: IPoolable
+  nameWithType: IPoolable
+  fullName: SpellBook.Pooling.IPoolable
+  type: Interface
+  namespace: SpellBook.Pooling
+  summary: >-
+    Interface para objetos gerenciados por um ComponentPooler local.
+
+    Permite que os objetos resetem seu estado sem Destroy/Instantiate.
+  example: []
+  syntax:
+    content: public interface IPoolable
+    content.vb: Public Interface IPoolable
+- uid: SpellBook.Pooling.IPoolable.OnSpawnFromPool
+  commentId: M:SpellBook.Pooling.IPoolable.OnSpawnFromPool
+  id: OnSpawnFromPool
+  parent: SpellBook.Pooling.IPoolable
+  langs:
+  - csharp
+  - vb
+  name: OnSpawnFromPool()
+  nameWithType: IPoolable.OnSpawnFromPool()
+  fullName: SpellBook.Pooling.IPoolable.OnSpawnFromPool()
+  type: Method
+  namespace: SpellBook.Pooling
+  syntax:
+    content: void OnSpawnFromPool()
+    content.vb: Sub OnSpawnFromPool()
+  overload: SpellBook.Pooling.IPoolable.OnSpawnFromPool*
+- uid: SpellBook.Pooling.IPoolable.OnReturnToPool
+  commentId: M:SpellBook.Pooling.IPoolable.OnReturnToPool
+  id: OnReturnToPool
+  parent: SpellBook.Pooling.IPoolable
+  langs:
+  - csharp
+  - vb
+  name: OnReturnToPool()
+  nameWithType: IPoolable.OnReturnToPool()
+  fullName: SpellBook.Pooling.IPoolable.OnReturnToPool()
+  type: Method
+  namespace: SpellBook.Pooling
+  syntax:
+    content: void OnReturnToPool()
+    content.vb: Sub OnReturnToPool()
+  overload: SpellBook.Pooling.IPoolable.OnReturnToPool*
+references:
+- uid: SpellBook.Pooling
+  commentId: N:SpellBook.Pooling
+  name: SpellBook.Pooling
+  nameWithType: SpellBook.Pooling
+  fullName: SpellBook.Pooling
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Pooling
+    name: Pooling
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Pooling
+    name: Pooling
+- uid: SpellBook.Pooling.IPoolable.OnSpawnFromPool*
+  commentId: Overload:SpellBook.Pooling.IPoolable.OnSpawnFromPool
+  href: SpellBook.Pooling.IPoolable.html#SpellBook_Pooling_IPoolable_OnSpawnFromPool
+  name: OnSpawnFromPool
+  nameWithType: IPoolable.OnSpawnFromPool
+  fullName: SpellBook.Pooling.IPoolable.OnSpawnFromPool
+- uid: SpellBook.Pooling.IPoolable.OnReturnToPool*
+  commentId: Overload:SpellBook.Pooling.IPoolable.OnReturnToPool
+  href: SpellBook.Pooling.IPoolable.html#SpellBook_Pooling_IPoolable_OnReturnToPool
+  name: OnReturnToPool
+  nameWithType: IPoolable.OnReturnToPool
+  fullName: SpellBook.Pooling.IPoolable.OnReturnToPool

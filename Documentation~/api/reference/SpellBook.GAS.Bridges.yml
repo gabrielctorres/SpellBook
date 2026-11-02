@@ -1,0 +1,219 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Bridges
+  commentId: N:SpellBook.GAS.Bridges
+  id: SpellBook.GAS.Bridges
+  children:
+  - SpellBook.GAS.Bridges.AbilityEventChannel
+  - SpellBook.GAS.Bridges.AbilityEventData
+  - SpellBook.GAS.Bridges.AbilityEventResponse
+  - SpellBook.GAS.Bridges.AbilitySystemEventRelay
+  - SpellBook.GAS.Bridges.AttributeChangedData
+  - SpellBook.GAS.Bridges.AttributeChangedEventChannel
+  - SpellBook.GAS.Bridges.AttributeChangedEventResponse
+  - SpellBook.GAS.Bridges.AttributeLimitEventChannel
+  - SpellBook.GAS.Bridges.AttributeLimitEventData
+  - SpellBook.GAS.Bridges.AttributeLimitEventResponse
+  - SpellBook.GAS.Bridges.BlockedEventChannel
+  - SpellBook.GAS.Bridges.BlockedEventData
+  - SpellBook.GAS.Bridges.BlockedEventResponse
+  - SpellBook.GAS.Bridges.EffectEventChannel
+  - SpellBook.GAS.Bridges.EffectEventData
+  - SpellBook.GAS.Bridges.EffectEventResponse
+  - SpellBook.GAS.Bridges.GasPayloadSource
+  - SpellBook.GAS.Bridges.GasPayloadSourceUtility
+  - SpellBook.GAS.Bridges.RaiseEventAction
+  - SpellBook.GAS.Bridges.RelayPair`1
+  - SpellBook.GAS.Bridges.TagChangedData
+  - SpellBook.GAS.Bridges.TagChangedEventChannel
+  - SpellBook.GAS.Bridges.TagChangedEventResponse
+  langs:
+  - csharp
+  - vb
+  name: SpellBook.GAS.Bridges
+  nameWithType: SpellBook.GAS.Bridges
+  fullName: SpellBook.GAS.Bridges
+  type: Namespace
+references:
+- uid: SpellBook.GAS.Bridges.GasPayloadSource
+  commentId: T:SpellBook.GAS.Bridges.GasPayloadSource
+  parent: SpellBook.GAS.Bridges
+  href: SpellBook.GAS.Bridges.GasPayloadSource.html
+  name: GasPayloadSource
+  nameWithType: GasPayloadSource
+  fullName: SpellBook.GAS.Bridges.GasPayloadSource
+- uid: SpellBook.GAS.Bridges.GasPayloadSourceUtility
+  commentId: T:SpellBook.GAS.Bridges.GasPayloadSourceUtility
+  href: SpellBook.GAS.Bridges.GasPayloadSourceUtility.html
+  name: GasPayloadSourceUtility
+  nameWithType: GasPayloadSourceUtility
+  fullName: SpellBook.GAS.Bridges.GasPayloadSourceUtility
+- uid: SpellBook.GAS.Bridges.RaiseEventAction
+  commentId: T:SpellBook.GAS.Bridges.RaiseEventAction
+  parent: SpellBook.GAS.Bridges
+  href: SpellBook.GAS.Bridges.RaiseEventAction.html
+  name: RaiseEventAction
+  nameWithType: RaiseEventAction
+  fullName: SpellBook.GAS.Bridges.RaiseEventAction
+- uid: SpellBook.GAS.Bridges.AbilityEventChannel
+  commentId: T:SpellBook.GAS.Bridges.AbilityEventChannel
+  href: SpellBook.GAS.Bridges.AbilityEventChannel.html
+  name: AbilityEventChannel
+  nameWithType: AbilityEventChannel
+  fullName: SpellBook.GAS.Bridges.AbilityEventChannel
+- uid: SpellBook.GAS.Bridges.AttributeChangedEventChannel
+  commentId: T:SpellBook.GAS.Bridges.AttributeChangedEventChannel
+  href: SpellBook.GAS.Bridges.AttributeChangedEventChannel.html
+  name: AttributeChangedEventChannel
+  nameWithType: AttributeChangedEventChannel
+  fullName: SpellBook.GAS.Bridges.AttributeChangedEventChannel
+- uid: SpellBook.GAS.Bridges.AttributeLimitEventChannel
+  commentId: T:SpellBook.GAS.Bridges.AttributeLimitEventChannel
+  href: SpellBook.GAS.Bridges.AttributeLimitEventChannel.html
+  name: AttributeLimitEventChannel
+  nameWithType: AttributeLimitEventChannel
+  fullName: SpellBook.GAS.Bridges.AttributeLimitEventChannel
+- uid: SpellBook.GAS.Bridges.BlockedEventChannel
+  commentId: T:SpellBook.GAS.Bridges.BlockedEventChannel
+  href: SpellBook.GAS.Bridges.BlockedEventChannel.html
+  name: BlockedEventChannel
+  nameWithType: BlockedEventChannel
+  fullName: SpellBook.GAS.Bridges.BlockedEventChannel
+- uid: SpellBook.GAS.Bridges.EffectEventChannel
+  commentId: T:SpellBook.GAS.Bridges.EffectEventChannel
+  href: SpellBook.GAS.Bridges.EffectEventChannel.html
+  name: EffectEventChannel
+  nameWithType: EffectEventChannel
+  fullName: SpellBook.GAS.Bridges.EffectEventChannel
+- uid: SpellBook.GAS.Bridges.EffectEventResponse
+  commentId: T:SpellBook.GAS.Bridges.EffectEventResponse
+  href: SpellBook.GAS.Bridges.EffectEventResponse.html
+  name: EffectEventResponse
+  nameWithType: EffectEventResponse
+  fullName: SpellBook.GAS.Bridges.EffectEventResponse
+- uid: SpellBook.GAS.Bridges.AbilityEventResponse
+  commentId: T:SpellBook.GAS.Bridges.AbilityEventResponse
+  href: SpellBook.GAS.Bridges.AbilityEventResponse.html
+  name: AbilityEventResponse
+  nameWithType: AbilityEventResponse
+  fullName: SpellBook.GAS.Bridges.AbilityEventResponse
+- uid: SpellBook.GAS.Bridges.AttributeChangedEventResponse
+  commentId: T:SpellBook.GAS.Bridges.AttributeChangedEventResponse
+  href: SpellBook.GAS.Bridges.AttributeChangedEventResponse.html
+  name: AttributeChangedEventResponse
+  nameWithType: AttributeChangedEventResponse
+  fullName: SpellBook.GAS.Bridges.AttributeChangedEventResponse
+- uid: SpellBook.GAS.Bridges.AttributeLimitEventResponse
+  commentId: T:SpellBook.GAS.Bridges.AttributeLimitEventResponse
+  href: SpellBook.GAS.Bridges.AttributeLimitEventResponse.html
+  name: AttributeLimitEventResponse
+  nameWithType: AttributeLimitEventResponse
+  fullName: SpellBook.GAS.Bridges.AttributeLimitEventResponse
+- uid: SpellBook.GAS.Bridges.TagChangedEventResponse
+  commentId: T:SpellBook.GAS.Bridges.TagChangedEventResponse
+  href: SpellBook.GAS.Bridges.TagChangedEventResponse.html
+  name: TagChangedEventResponse
+  nameWithType: TagChangedEventResponse
+  fullName: SpellBook.GAS.Bridges.TagChangedEventResponse
+- uid: SpellBook.GAS.Bridges.BlockedEventResponse
+  commentId: T:SpellBook.GAS.Bridges.BlockedEventResponse
+  href: SpellBook.GAS.Bridges.BlockedEventResponse.html
+  name: BlockedEventResponse
+  nameWithType: BlockedEventResponse
+  fullName: SpellBook.GAS.Bridges.BlockedEventResponse
+- uid: SpellBook.GAS.Bridges.TagChangedEventChannel
+  commentId: T:SpellBook.GAS.Bridges.TagChangedEventChannel
+  href: SpellBook.GAS.Bridges.TagChangedEventChannel.html
+  name: TagChangedEventChannel
+  nameWithType: TagChangedEventChannel
+  fullName: SpellBook.GAS.Bridges.TagChangedEventChannel
+- uid: SpellBook.GAS.Bridges.EffectEventData
+  commentId: T:SpellBook.GAS.Bridges.EffectEventData
+  href: SpellBook.GAS.Bridges.EffectEventData.html
+  name: EffectEventData
+  nameWithType: EffectEventData
+  fullName: SpellBook.GAS.Bridges.EffectEventData
+- uid: SpellBook.GAS.Bridges.AbilityEventData
+  commentId: T:SpellBook.GAS.Bridges.AbilityEventData
+  href: SpellBook.GAS.Bridges.AbilityEventData.html
+  name: AbilityEventData
+  nameWithType: AbilityEventData
+  fullName: SpellBook.GAS.Bridges.AbilityEventData
+- uid: SpellBook.GAS.Bridges.AttributeChangedData
+  commentId: T:SpellBook.GAS.Bridges.AttributeChangedData
+  href: SpellBook.GAS.Bridges.AttributeChangedData.html
+  name: AttributeChangedData
+  nameWithType: AttributeChangedData
+  fullName: SpellBook.GAS.Bridges.AttributeChangedData
+- uid: SpellBook.GAS.Bridges.AttributeLimitEventData
+  commentId: T:SpellBook.GAS.Bridges.AttributeLimitEventData
+  href: SpellBook.GAS.Bridges.AttributeLimitEventData.html
+  name: AttributeLimitEventData
+  nameWithType: AttributeLimitEventData
+  fullName: SpellBook.GAS.Bridges.AttributeLimitEventData
+- uid: SpellBook.GAS.Bridges.TagChangedData
+  commentId: T:SpellBook.GAS.Bridges.TagChangedData
+  href: SpellBook.GAS.Bridges.TagChangedData.html
+  name: TagChangedData
+  nameWithType: TagChangedData
+  fullName: SpellBook.GAS.Bridges.TagChangedData
+- uid: SpellBook.GAS.Bridges.BlockedEventData
+  commentId: T:SpellBook.GAS.Bridges.BlockedEventData
+  href: SpellBook.GAS.Bridges.BlockedEventData.html
+  name: BlockedEventData
+  nameWithType: BlockedEventData
+  fullName: SpellBook.GAS.Bridges.BlockedEventData
+- uid: SpellBook.GAS.Bridges.AbilitySystemEventRelay
+  commentId: T:SpellBook.GAS.Bridges.AbilitySystemEventRelay
+  href: SpellBook.GAS.Bridges.AbilitySystemEventRelay.html
+  name: AbilitySystemEventRelay
+  nameWithType: AbilitySystemEventRelay
+  fullName: SpellBook.GAS.Bridges.AbilitySystemEventRelay
+- uid: SpellBook.GAS.Bridges.RelayPair`1
+  commentId: T:SpellBook.GAS.Bridges.RelayPair`1
+  href: SpellBook.GAS.Bridges.RelayPair-1.html
+  name: RelayPair<T>
+  nameWithType: RelayPair<T>
+  fullName: SpellBook.GAS.Bridges.RelayPair<T>
+  nameWithType.vb: RelayPair(Of T)
+  fullName.vb: SpellBook.GAS.Bridges.RelayPair(Of T)
+  name.vb: RelayPair(Of T)
+  spec.csharp:
+  - uid: SpellBook.GAS.Bridges.RelayPair`1
+    name: RelayPair
+    href: SpellBook.GAS.Bridges.RelayPair-1.html
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: SpellBook.GAS.Bridges.RelayPair`1
+    name: RelayPair
+    href: SpellBook.GAS.Bridges.RelayPair-1.html
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: SpellBook.GAS.Bridges
+  commentId: N:SpellBook.GAS.Bridges
+  name: SpellBook.GAS.Bridges
+  nameWithType: SpellBook.GAS.Bridges
+  fullName: SpellBook.GAS.Bridges
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Bridges
+    name: Bridges
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Bridges
+    name: Bridges

@@ -1,0 +1,652 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.Events.DelayedReaction
+  commentId: T:SpellBook.Events.DelayedReaction
+  id: DelayedReaction
+  parent: SpellBook.Events
+  children:
+  - SpellBook.Events.DelayedReaction.Execute(SpellBook.Events.EventListener)
+  - SpellBook.Events.DelayedReaction.Execute``1(SpellBook.Events.EventListener,``0@)
+  - SpellBook.Events.DelayedReaction.Validate(SpellBook.Core.Validation.ValidationResult)
+  - SpellBook.Events.DelayedReaction.Validate(SpellBook.Core.Validation.ValidationResult,System.Type)
+  langs:
+  - csharp
+  - vb
+  name: DelayedReaction
+  nameWithType: DelayedReaction
+  fullName: SpellBook.Events.DelayedReaction
+  type: Class
+  namespace: SpellBook.Events
+  summary: >-
+    Invoke com delay: espera <code>delay</code> segundos na fonte de tempo e roda a lista de reações, na ordem, com o
+
+    payload do disparo. Sem fonte, usa o tempo escalado. Se o <xref href="SpellBook.Events.EventListener" data-throw-if-not-resolved="false"></xref> for desabilitado na
+
+    espera, a lista não roda. Cada disparo pendente guarda uma entrada própria (aloca).
+  example: []
+  syntax:
+    content: >-
+      [Serializable]
+
+      [TypeCategory("Fluxo", Summary = "Roda uma lista de reações depois de um atraso.")]
+
+      public sealed class DelayedReaction : Reaction, IValidatable
+    content.vb: >-
+      <Serializable>
+
+      <TypeCategory("Fluxo", Summary:="Roda uma lista de reações depois de um atraso.")>
+
+      Public NotInheritable Class DelayedReaction Inherits Reaction Implements IValidatable
+  inheritance:
+  - System.Object
+  - SpellBook.Events.Reaction
+  implements:
+  - SpellBook.Core.Validation.IValidatable
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+  attributes:
+  - type: System.SerializableAttribute
+    ctor: System.SerializableAttribute.#ctor
+    arguments: []
+  - type: SpellBook.Core.Inspector.TypeCategoryAttribute
+    ctor: SpellBook.Core.Inspector.TypeCategoryAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: Fluxo
+    namedArguments:
+    - name: Summary
+      type: System.String
+      value: Roda uma lista de reações depois de um atraso.
+- uid: SpellBook.Events.DelayedReaction.Execute(SpellBook.Events.EventListener)
+  commentId: M:SpellBook.Events.DelayedReaction.Execute(SpellBook.Events.EventListener)
+  id: Execute(SpellBook.Events.EventListener)
+  parent: SpellBook.Events.DelayedReaction
+  langs:
+  - csharp
+  - vb
+  name: Execute(EventListener)
+  nameWithType: DelayedReaction.Execute(EventListener)
+  fullName: SpellBook.Events.DelayedReaction.Execute(SpellBook.Events.EventListener)
+  type: Method
+  namespace: SpellBook.Events
+  summary: Executa a reação sem olhar o payload. É o que as reações prontas sem payload sobrescrevem.
+  example: []
+  syntax:
+    content: public override void Execute(EventListener listener)
+    parameters:
+    - id: listener
+      type: SpellBook.Events.EventListener
+    content.vb: Public Overrides Sub Execute(listener As EventListener)
+  overridden: SpellBook.Events.Reaction.Execute(SpellBook.Events.EventListener)
+  overload: SpellBook.Events.DelayedReaction.Execute*
+- uid: SpellBook.Events.DelayedReaction.Execute``1(SpellBook.Events.EventListener,``0@)
+  commentId: M:SpellBook.Events.DelayedReaction.Execute``1(SpellBook.Events.EventListener,``0@)
+  id: Execute``1(SpellBook.Events.EventListener,``0@)
+  parent: SpellBook.Events.DelayedReaction
+  langs:
+  - csharp
+  - vb
+  name: Execute<T>(EventListener, in T)
+  nameWithType: DelayedReaction.Execute<T>(EventListener, in T)
+  fullName: SpellBook.Events.DelayedReaction.Execute<T>(SpellBook.Events.EventListener, in T)
+  type: Method
+  namespace: SpellBook.Events
+  summary: Executa a reação com o payload do disparo. Por padrão, chama <xref href="SpellBook.Events.Reaction.Execute(SpellBook.Events.EventListener)" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public override void Execute<T>(EventListener listener, in T payload)
+    parameters:
+    - id: listener
+      type: SpellBook.Events.EventListener
+    - id: payload
+      type: '{T}'
+    typeParameters:
+    - id: T
+    content.vb: Public Overrides Sub Execute(Of T)(listener As EventListener, payload As T)
+  overridden: SpellBook.Events.Reaction.Execute``1(SpellBook.Events.EventListener,{T}@)
+  overload: SpellBook.Events.DelayedReaction.Execute*
+  nameWithType.vb: DelayedReaction.Execute(Of T)(EventListener, T)
+  fullName.vb: SpellBook.Events.DelayedReaction.Execute(Of T)(SpellBook.Events.EventListener, T)
+  name.vb: Execute(Of T)(EventListener, T)
+- uid: SpellBook.Events.DelayedReaction.Validate(SpellBook.Core.Validation.ValidationResult)
+  commentId: M:SpellBook.Events.DelayedReaction.Validate(SpellBook.Core.Validation.ValidationResult)
+  id: Validate(SpellBook.Core.Validation.ValidationResult)
+  parent: SpellBook.Events.DelayedReaction
+  langs:
+  - csharp
+  - vb
+  name: Validate(ValidationResult)
+  nameWithType: DelayedReaction.Validate(ValidationResult)
+  fullName: SpellBook.Events.DelayedReaction.Validate(SpellBook.Core.Validation.ValidationResult)
+  type: Method
+  namespace: SpellBook.Events
+  summary: Acusa campos obrigatórios vazios. Por padrão, não acusa nada.
+  example: []
+  syntax:
+    content: public override void Validate(ValidationResult result)
+    parameters:
+    - id: result
+      type: SpellBook.Core.Validation.ValidationResult
+    content.vb: Public Overrides Sub Validate(result As ValidationResult)
+  overridden: SpellBook.Events.Reaction.Validate(SpellBook.Core.Validation.ValidationResult)
+  overload: SpellBook.Events.DelayedReaction.Validate*
+- uid: SpellBook.Events.DelayedReaction.Validate(SpellBook.Core.Validation.ValidationResult,System.Type)
+  commentId: M:SpellBook.Events.DelayedReaction.Validate(SpellBook.Core.Validation.ValidationResult,System.Type)
+  id: Validate(SpellBook.Core.Validation.ValidationResult,System.Type)
+  parent: SpellBook.Events.DelayedReaction
+  langs:
+  - csharp
+  - vb
+  name: Validate(ValidationResult, Type)
+  nameWithType: DelayedReaction.Validate(ValidationResult, Type)
+  fullName: SpellBook.Events.DelayedReaction.Validate(SpellBook.Core.Validation.ValidationResult, System.Type)
+  type: Method
+  namespace: SpellBook.Events
+  summary: >-
+    Valida sabendo o tipo do payload da resposta que contém a reação. Por padrão, chama
+
+    <xref href="SpellBook.Events.Reaction.Validate(SpellBook.Core.Validation.ValidationResult)" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public override void Validate(ValidationResult result, Type payloadType)
+    parameters:
+    - id: result
+      type: SpellBook.Core.Validation.ValidationResult
+    - id: payloadType
+      type: System.Type
+    content.vb: Public Overrides Sub Validate(result As ValidationResult, payloadType As Type)
+  overridden: SpellBook.Events.Reaction.Validate(SpellBook.Core.Validation.ValidationResult,System.Type)
+  overload: SpellBook.Events.DelayedReaction.Validate*
+references:
+- uid: SpellBook.Events.EventListener
+  commentId: T:SpellBook.Events.EventListener
+  parent: SpellBook.Events
+  href: SpellBook.Events.EventListener.html
+  name: EventListener
+  nameWithType: EventListener
+  fullName: SpellBook.Events.EventListener
+- uid: SpellBook.Events
+  commentId: N:SpellBook.Events
+  name: SpellBook.Events
+  nameWithType: SpellBook.Events
+  fullName: SpellBook.Events
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Events
+    name: Events
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Events
+    name: Events
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: SpellBook.Events.Reaction
+  commentId: T:SpellBook.Events.Reaction
+  parent: SpellBook.Events
+  href: SpellBook.Events.Reaction.html
+  name: Reaction
+  nameWithType: Reaction
+  fullName: SpellBook.Events.Reaction
+- uid: SpellBook.Core.Validation.IValidatable
+  commentId: T:SpellBook.Core.Validation.IValidatable
+  parent: SpellBook.Core.Validation
+  href: SpellBook.Core.Validation.IValidatable.html
+  name: IValidatable
+  nameWithType: IValidatable
+  fullName: SpellBook.Core.Validation.IValidatable
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: SpellBook.Core.Validation
+  commentId: N:SpellBook.Core.Validation
+  name: SpellBook.Core.Validation
+  nameWithType: SpellBook.Core.Validation
+  fullName: SpellBook.Core.Validation
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Validation
+    name: Validation
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Validation
+    name: Validation
+- uid: SpellBook.Events.Reaction.Execute(SpellBook.Events.EventListener)
+  commentId: M:SpellBook.Events.Reaction.Execute(SpellBook.Events.EventListener)
+  parent: SpellBook.Events.Reaction
+  href: SpellBook.Events.Reaction.html#SpellBook_Events_Reaction_Execute_SpellBook_Events_EventListener_
+  name: Execute(EventListener)
+  nameWithType: Reaction.Execute(EventListener)
+  fullName: SpellBook.Events.Reaction.Execute(SpellBook.Events.EventListener)
+  spec.csharp:
+  - uid: SpellBook.Events.Reaction.Execute(SpellBook.Events.EventListener)
+    name: Execute
+    href: SpellBook.Events.Reaction.html#SpellBook_Events_Reaction_Execute_SpellBook_Events_EventListener_
+  - name: (
+  - uid: SpellBook.Events.EventListener
+    name: EventListener
+    href: SpellBook.Events.EventListener.html
+  - name: )
+  spec.vb:
+  - uid: SpellBook.Events.Reaction.Execute(SpellBook.Events.EventListener)
+    name: Execute
+    href: SpellBook.Events.Reaction.html#SpellBook_Events_Reaction_Execute_SpellBook_Events_EventListener_
+  - name: (
+  - uid: SpellBook.Events.EventListener
+    name: EventListener
+    href: SpellBook.Events.EventListener.html
+  - name: )
+- uid: SpellBook.Events.DelayedReaction.Execute*
+  commentId: Overload:SpellBook.Events.DelayedReaction.Execute
+  href: SpellBook.Events.DelayedReaction.html#SpellBook_Events_DelayedReaction_Execute_SpellBook_Events_EventListener_
+  name: Execute
+  nameWithType: DelayedReaction.Execute
+  fullName: SpellBook.Events.DelayedReaction.Execute
+- uid: SpellBook.Events.Reaction.Execute``1(SpellBook.Events.EventListener,{T}@)
+  commentId: M:SpellBook.Events.Reaction.Execute``1(SpellBook.Events.EventListener,``0@)
+  parent: SpellBook.Events.Reaction
+  definition: SpellBook.Events.Reaction.Execute``1(SpellBook.Events.EventListener,``0@)
+  href: SpellBook.Events.Reaction.html#SpellBook_Events_Reaction_Execute__1_SpellBook_Events_EventListener___0__
+  name: Execute<T>(EventListener, in T)
+  nameWithType: Reaction.Execute<T>(EventListener, in T)
+  fullName: SpellBook.Events.Reaction.Execute<T>(SpellBook.Events.EventListener, in T)
+  nameWithType.vb: Reaction.Execute(Of T)(EventListener, T)
+  fullName.vb: SpellBook.Events.Reaction.Execute(Of T)(SpellBook.Events.EventListener, T)
+  name.vb: Execute(Of T)(EventListener, T)
+  spec.csharp:
+  - uid: SpellBook.Events.Reaction.Execute``1(SpellBook.Events.EventListener,``0@)
+    name: Execute
+    href: SpellBook.Events.Reaction.html#SpellBook_Events_Reaction_Execute__1_SpellBook_Events_EventListener___0__
+  - name: <
+  - name: T
+  - name: '>'
+  - name: (
+  - uid: SpellBook.Events.EventListener
+    name: EventListener
+    href: SpellBook.Events.EventListener.html
+  - name: ','
+  - name: " "
+  - name: in
+  - name: " "
+  - name: T
+  - name: )
+  spec.vb:
+  - uid: SpellBook.Events.Reaction.Execute``1(SpellBook.Events.EventListener,``0@)
+    name: Execute
+    href: SpellBook.Events.Reaction.html#SpellBook_Events_Reaction_Execute__1_SpellBook_Events_EventListener___0__
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+  - name: (
+  - uid: SpellBook.Events.EventListener
+    name: EventListener
+    href: SpellBook.Events.EventListener.html
+  - name: ','
+  - name: " "
+  - name: T
+  - name: )
+- uid: '{T}'
+  commentId: '!:T'
+  definition: T
+  name: T
+  nameWithType: T
+  fullName: T
+- uid: SpellBook.Events.Reaction.Execute``1(SpellBook.Events.EventListener,``0@)
+  commentId: M:SpellBook.Events.Reaction.Execute``1(SpellBook.Events.EventListener,``0@)
+  href: SpellBook.Events.Reaction.html#SpellBook_Events_Reaction_Execute__1_SpellBook_Events_EventListener___0__
+  name: Execute<T>(EventListener, in T)
+  nameWithType: Reaction.Execute<T>(EventListener, in T)
+  fullName: SpellBook.Events.Reaction.Execute<T>(SpellBook.Events.EventListener, in T)
+  nameWithType.vb: Reaction.Execute(Of T)(EventListener, T)
+  fullName.vb: SpellBook.Events.Reaction.Execute(Of T)(SpellBook.Events.EventListener, T)
+  name.vb: Execute(Of T)(EventListener, T)
+  spec.csharp:
+  - uid: SpellBook.Events.Reaction.Execute``1(SpellBook.Events.EventListener,``0@)
+    name: Execute
+    href: SpellBook.Events.Reaction.html#SpellBook_Events_Reaction_Execute__1_SpellBook_Events_EventListener___0__
+  - name: <
+  - name: T
+  - name: '>'
+  - name: (
+  - uid: SpellBook.Events.EventListener
+    name: EventListener
+    href: SpellBook.Events.EventListener.html
+  - name: ','
+  - name: " "
+  - name: in
+  - name: " "
+  - name: T
+  - name: )
+  spec.vb:
+  - uid: SpellBook.Events.Reaction.Execute``1(SpellBook.Events.EventListener,``0@)
+    name: Execute
+    href: SpellBook.Events.Reaction.html#SpellBook_Events_Reaction_Execute__1_SpellBook_Events_EventListener___0__
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+  - name: (
+  - uid: SpellBook.Events.EventListener
+    name: EventListener
+    href: SpellBook.Events.EventListener.html
+  - name: ','
+  - name: " "
+  - name: T
+  - name: )
+- uid: T
+  name: T
+  nameWithType: T
+  fullName: T
+- uid: SpellBook.Events.Reaction.Validate(SpellBook.Core.Validation.ValidationResult)
+  commentId: M:SpellBook.Events.Reaction.Validate(SpellBook.Core.Validation.ValidationResult)
+  parent: SpellBook.Events.Reaction
+  href: SpellBook.Events.Reaction.html#SpellBook_Events_Reaction_Validate_SpellBook_Core_Validation_ValidationResult_
+  name: Validate(ValidationResult)
+  nameWithType: Reaction.Validate(ValidationResult)
+  fullName: SpellBook.Events.Reaction.Validate(SpellBook.Core.Validation.ValidationResult)
+  spec.csharp:
+  - uid: SpellBook.Events.Reaction.Validate(SpellBook.Core.Validation.ValidationResult)
+    name: Validate
+    href: SpellBook.Events.Reaction.html#SpellBook_Events_Reaction_Validate_SpellBook_Core_Validation_ValidationResult_
+  - name: (
+  - uid: SpellBook.Core.Validation.ValidationResult
+    name: ValidationResult
+    href: SpellBook.Core.Validation.ValidationResult.html
+  - name: )
+  spec.vb:
+  - uid: SpellBook.Events.Reaction.Validate(SpellBook.Core.Validation.ValidationResult)
+    name: Validate
+    href: SpellBook.Events.Reaction.html#SpellBook_Events_Reaction_Validate_SpellBook_Core_Validation_ValidationResult_
+  - name: (
+  - uid: SpellBook.Core.Validation.ValidationResult
+    name: ValidationResult
+    href: SpellBook.Core.Validation.ValidationResult.html
+  - name: )
+- uid: SpellBook.Events.DelayedReaction.Validate*
+  commentId: Overload:SpellBook.Events.DelayedReaction.Validate
+  href: SpellBook.Events.DelayedReaction.html#SpellBook_Events_DelayedReaction_Validate_SpellBook_Core_Validation_ValidationResult_
+  name: Validate
+  nameWithType: DelayedReaction.Validate
+  fullName: SpellBook.Events.DelayedReaction.Validate
+- uid: SpellBook.Core.Validation.ValidationResult
+  commentId: T:SpellBook.Core.Validation.ValidationResult
+  parent: SpellBook.Core.Validation
+  href: SpellBook.Core.Validation.ValidationResult.html
+  name: ValidationResult
+  nameWithType: ValidationResult
+  fullName: SpellBook.Core.Validation.ValidationResult
+- uid: SpellBook.Events.Reaction.Validate(SpellBook.Core.Validation.ValidationResult,System.Type)
+  commentId: M:SpellBook.Events.Reaction.Validate(SpellBook.Core.Validation.ValidationResult,System.Type)
+  parent: SpellBook.Events.Reaction
+  isExternal: true
+  href: SpellBook.Events.Reaction.html#SpellBook_Events_Reaction_Validate_SpellBook_Core_Validation_ValidationResult_System_Type_
+  name: Validate(ValidationResult, Type)
+  nameWithType: Reaction.Validate(ValidationResult, Type)
+  fullName: SpellBook.Events.Reaction.Validate(SpellBook.Core.Validation.ValidationResult, System.Type)
+  spec.csharp:
+  - uid: SpellBook.Events.Reaction.Validate(SpellBook.Core.Validation.ValidationResult,System.Type)
+    name: Validate
+    href: SpellBook.Events.Reaction.html#SpellBook_Events_Reaction_Validate_SpellBook_Core_Validation_ValidationResult_System_Type_
+  - name: (
+  - uid: SpellBook.Core.Validation.ValidationResult
+    name: ValidationResult
+    href: SpellBook.Core.Validation.ValidationResult.html
+  - name: ','
+  - name: " "
+  - uid: System.Type
+    name: Type
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.type
+  - name: )
+  spec.vb:
+  - uid: SpellBook.Events.Reaction.Validate(SpellBook.Core.Validation.ValidationResult,System.Type)
+    name: Validate
+    href: SpellBook.Events.Reaction.html#SpellBook_Events_Reaction_Validate_SpellBook_Core_Validation_ValidationResult_System_Type_
+  - name: (
+  - uid: SpellBook.Core.Validation.ValidationResult
+    name: ValidationResult
+    href: SpellBook.Core.Validation.ValidationResult.html
+  - name: ','
+  - name: " "
+  - uid: System.Type
+    name: Type
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.type
+  - name: )
+- uid: System.Type
+  commentId: T:System.Type
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.type
+  name: Type
+  nameWithType: Type
+  fullName: System.Type

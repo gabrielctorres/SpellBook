@@ -9,7 +9,7 @@ using SpellBook.GAS.Abilities.Projectiles;
 
 namespace SpellBook.GAS.Abilities.Actions
 {
-    [Serializable]
+    [Serializable, TypeCategory("Mundo", Summary = "Lança projéteis que rodam ações ao acertar.")]
     public class SpawnProjectileAction : AbilityAction
     {
         public enum ProjectileSpawnMode { ThreeDimensional, TwoDimensional }

@@ -1,0 +1,83 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Attributes.AttributeType
+  commentId: T:SpellBook.GAS.Attributes.AttributeType
+  id: AttributeType
+  parent: SpellBook.GAS.Attributes
+  children:
+  - SpellBook.GAS.Attributes.AttributeType.Derived
+  - SpellBook.GAS.Attributes.AttributeType.Primary
+  langs:
+  - csharp
+  - vb
+  name: AttributeType
+  nameWithType: AttributeType
+  fullName: SpellBook.GAS.Attributes.AttributeType
+  type: Enum
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: public enum AttributeType
+    content.vb: Public Enum AttributeType
+- uid: SpellBook.GAS.Attributes.AttributeType.Primary
+  commentId: F:SpellBook.GAS.Attributes.AttributeType.Primary
+  id: Primary
+  parent: SpellBook.GAS.Attributes.AttributeType
+  langs:
+  - csharp
+  - vb
+  name: Primary
+  nameWithType: AttributeType.Primary
+  fullName: SpellBook.GAS.Attributes.AttributeType.Primary
+  type: Field
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: Primary = 0
+    return:
+      type: SpellBook.GAS.Attributes.AttributeType
+- uid: SpellBook.GAS.Attributes.AttributeType.Derived
+  commentId: F:SpellBook.GAS.Attributes.AttributeType.Derived
+  id: Derived
+  parent: SpellBook.GAS.Attributes.AttributeType
+  langs:
+  - csharp
+  - vb
+  name: Derived
+  nameWithType: AttributeType.Derived
+  fullName: SpellBook.GAS.Attributes.AttributeType.Derived
+  type: Field
+  namespace: SpellBook.GAS.Attributes
+  syntax:
+    content: Derived = 1
+    return:
+      type: SpellBook.GAS.Attributes.AttributeType
+references:
+- uid: SpellBook.GAS.Attributes
+  commentId: N:SpellBook.GAS.Attributes
+  name: SpellBook.GAS.Attributes
+  nameWithType: SpellBook.GAS.Attributes
+  fullName: SpellBook.GAS.Attributes
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Attributes
+    name: Attributes
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Attributes
+    name: Attributes
+- uid: SpellBook.GAS.Attributes.AttributeType
+  commentId: T:SpellBook.GAS.Attributes.AttributeType
+  parent: SpellBook.GAS.Attributes
+  href: SpellBook.GAS.Attributes.AttributeType.html
+  name: AttributeType
+  nameWithType: AttributeType
+  fullName: SpellBook.GAS.Attributes.AttributeType

@@ -1,11 +1,12 @@
 using System;
 using System.Collections;
+using SpellBook.Core.Inspector;
 using UnityEngine;
 using SpellBook.GAS.Targeting;
 
 namespace SpellBook.GAS.Abilities.Actions
 {
-    [Serializable]
+    [Serializable, TypeCategory("Alvo", Summary = "Busca alvos com uma estratégia e troca ou soma aos alvos atuais.")]
     public class TargetingAction : AbilityAction
     {
         public enum TargetMode { Replace, Append }

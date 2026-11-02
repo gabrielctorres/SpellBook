@@ -36,3 +36,7 @@ Thumbs.db
 
 # Saída do mkdocs build (manual); não commitar
 /Documentation~/site/
+
+# Referência da API (ADR 0040): configuração com caminhos da máquina e saída do docfx build; não commitar
+/Documentation~/api/obj/
+/Documentation~/api/_site/

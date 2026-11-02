@@ -1,0 +1,238 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Abilities.AbilityActivationResult
+  commentId: T:SpellBook.GAS.Abilities.AbilityActivationResult
+  id: AbilityActivationResult
+  parent: SpellBook.GAS.Abilities
+  children:
+  - SpellBook.GAS.Abilities.AbilityActivationResult.AlreadyActive
+  - SpellBook.GAS.Abilities.AbilityActivationResult.BlockedByActiveAbility
+  - SpellBook.GAS.Abilities.AbilityActivationResult.BlockedByCondition
+  - SpellBook.GAS.Abilities.AbilityActivationResult.BlockedByTags
+  - SpellBook.GAS.Abilities.AbilityActivationResult.CannotAffordCost
+  - SpellBook.GAS.Abilities.AbilityActivationResult.InvalidAbility
+  - SpellBook.GAS.Abilities.AbilityActivationResult.MissingRequiredTags
+  - SpellBook.GAS.Abilities.AbilityActivationResult.NoCharges
+  - SpellBook.GAS.Abilities.AbilityActivationResult.NotGranted
+  - SpellBook.GAS.Abilities.AbilityActivationResult.OnCooldown
+  - SpellBook.GAS.Abilities.AbilityActivationResult.Success
+  langs:
+  - csharp
+  - vb
+  name: AbilityActivationResult
+  nameWithType: AbilityActivationResult
+  fullName: SpellBook.GAS.Abilities.AbilityActivationResult
+  type: Enum
+  namespace: SpellBook.GAS.Abilities
+  summary: Resultado de uma tentativa de ativação. Útil para feedback de UI ("Sem mana", "Em recarga").
+  example: []
+  syntax:
+    content: public enum AbilityActivationResult
+    content.vb: Public Enum AbilityActivationResult
+- uid: SpellBook.GAS.Abilities.AbilityActivationResult.Success
+  commentId: F:SpellBook.GAS.Abilities.AbilityActivationResult.Success
+  id: Success
+  parent: SpellBook.GAS.Abilities.AbilityActivationResult
+  langs:
+  - csharp
+  - vb
+  name: Success
+  nameWithType: AbilityActivationResult.Success
+  fullName: SpellBook.GAS.Abilities.AbilityActivationResult.Success
+  type: Field
+  namespace: SpellBook.GAS.Abilities
+  syntax:
+    content: Success = 0
+    return:
+      type: SpellBook.GAS.Abilities.AbilityActivationResult
+- uid: SpellBook.GAS.Abilities.AbilityActivationResult.InvalidAbility
+  commentId: F:SpellBook.GAS.Abilities.AbilityActivationResult.InvalidAbility
+  id: InvalidAbility
+  parent: SpellBook.GAS.Abilities.AbilityActivationResult
+  langs:
+  - csharp
+  - vb
+  name: InvalidAbility
+  nameWithType: AbilityActivationResult.InvalidAbility
+  fullName: SpellBook.GAS.Abilities.AbilityActivationResult.InvalidAbility
+  type: Field
+  namespace: SpellBook.GAS.Abilities
+  syntax:
+    content: InvalidAbility = 1
+    return:
+      type: SpellBook.GAS.Abilities.AbilityActivationResult
+- uid: SpellBook.GAS.Abilities.AbilityActivationResult.NotGranted
+  commentId: F:SpellBook.GAS.Abilities.AbilityActivationResult.NotGranted
+  id: NotGranted
+  parent: SpellBook.GAS.Abilities.AbilityActivationResult
+  langs:
+  - csharp
+  - vb
+  name: NotGranted
+  nameWithType: AbilityActivationResult.NotGranted
+  fullName: SpellBook.GAS.Abilities.AbilityActivationResult.NotGranted
+  type: Field
+  namespace: SpellBook.GAS.Abilities
+  syntax:
+    content: NotGranted = 2
+    return:
+      type: SpellBook.GAS.Abilities.AbilityActivationResult
+- uid: SpellBook.GAS.Abilities.AbilityActivationResult.AlreadyActive
+  commentId: F:SpellBook.GAS.Abilities.AbilityActivationResult.AlreadyActive
+  id: AlreadyActive
+  parent: SpellBook.GAS.Abilities.AbilityActivationResult
+  langs:
+  - csharp
+  - vb
+  name: AlreadyActive
+  nameWithType: AbilityActivationResult.AlreadyActive
+  fullName: SpellBook.GAS.Abilities.AbilityActivationResult.AlreadyActive
+  type: Field
+  namespace: SpellBook.GAS.Abilities
+  syntax:
+    content: AlreadyActive = 3
+    return:
+      type: SpellBook.GAS.Abilities.AbilityActivationResult
+- uid: SpellBook.GAS.Abilities.AbilityActivationResult.BlockedByTags
+  commentId: F:SpellBook.GAS.Abilities.AbilityActivationResult.BlockedByTags
+  id: BlockedByTags
+  parent: SpellBook.GAS.Abilities.AbilityActivationResult
+  langs:
+  - csharp
+  - vb
+  name: BlockedByTags
+  nameWithType: AbilityActivationResult.BlockedByTags
+  fullName: SpellBook.GAS.Abilities.AbilityActivationResult.BlockedByTags
+  type: Field
+  namespace: SpellBook.GAS.Abilities
+  syntax:
+    content: BlockedByTags = 4
+    return:
+      type: SpellBook.GAS.Abilities.AbilityActivationResult
+- uid: SpellBook.GAS.Abilities.AbilityActivationResult.MissingRequiredTags
+  commentId: F:SpellBook.GAS.Abilities.AbilityActivationResult.MissingRequiredTags
+  id: MissingRequiredTags
+  parent: SpellBook.GAS.Abilities.AbilityActivationResult
+  langs:
+  - csharp
+  - vb
+  name: MissingRequiredTags
+  nameWithType: AbilityActivationResult.MissingRequiredTags
+  fullName: SpellBook.GAS.Abilities.AbilityActivationResult.MissingRequiredTags
+  type: Field
+  namespace: SpellBook.GAS.Abilities
+  syntax:
+    content: MissingRequiredTags = 5
+    return:
+      type: SpellBook.GAS.Abilities.AbilityActivationResult
+- uid: SpellBook.GAS.Abilities.AbilityActivationResult.BlockedByActiveAbility
+  commentId: F:SpellBook.GAS.Abilities.AbilityActivationResult.BlockedByActiveAbility
+  id: BlockedByActiveAbility
+  parent: SpellBook.GAS.Abilities.AbilityActivationResult
+  langs:
+  - csharp
+  - vb
+  name: BlockedByActiveAbility
+  nameWithType: AbilityActivationResult.BlockedByActiveAbility
+  fullName: SpellBook.GAS.Abilities.AbilityActivationResult.BlockedByActiveAbility
+  type: Field
+  namespace: SpellBook.GAS.Abilities
+  syntax:
+    content: BlockedByActiveAbility = 6
+    return:
+      type: SpellBook.GAS.Abilities.AbilityActivationResult
+- uid: SpellBook.GAS.Abilities.AbilityActivationResult.OnCooldown
+  commentId: F:SpellBook.GAS.Abilities.AbilityActivationResult.OnCooldown
+  id: OnCooldown
+  parent: SpellBook.GAS.Abilities.AbilityActivationResult
+  langs:
+  - csharp
+  - vb
+  name: OnCooldown
+  nameWithType: AbilityActivationResult.OnCooldown
+  fullName: SpellBook.GAS.Abilities.AbilityActivationResult.OnCooldown
+  type: Field
+  namespace: SpellBook.GAS.Abilities
+  syntax:
+    content: OnCooldown = 7
+    return:
+      type: SpellBook.GAS.Abilities.AbilityActivationResult
+- uid: SpellBook.GAS.Abilities.AbilityActivationResult.CannotAffordCost
+  commentId: F:SpellBook.GAS.Abilities.AbilityActivationResult.CannotAffordCost
+  id: CannotAffordCost
+  parent: SpellBook.GAS.Abilities.AbilityActivationResult
+  langs:
+  - csharp
+  - vb
+  name: CannotAffordCost
+  nameWithType: AbilityActivationResult.CannotAffordCost
+  fullName: SpellBook.GAS.Abilities.AbilityActivationResult.CannotAffordCost
+  type: Field
+  namespace: SpellBook.GAS.Abilities
+  syntax:
+    content: CannotAffordCost = 8
+    return:
+      type: SpellBook.GAS.Abilities.AbilityActivationResult
+- uid: SpellBook.GAS.Abilities.AbilityActivationResult.BlockedByCondition
+  commentId: F:SpellBook.GAS.Abilities.AbilityActivationResult.BlockedByCondition
+  id: BlockedByCondition
+  parent: SpellBook.GAS.Abilities.AbilityActivationResult
+  langs:
+  - csharp
+  - vb
+  name: BlockedByCondition
+  nameWithType: AbilityActivationResult.BlockedByCondition
+  fullName: SpellBook.GAS.Abilities.AbilityActivationResult.BlockedByCondition
+  type: Field
+  namespace: SpellBook.GAS.Abilities
+  syntax:
+    content: BlockedByCondition = 9
+    return:
+      type: SpellBook.GAS.Abilities.AbilityActivationResult
+- uid: SpellBook.GAS.Abilities.AbilityActivationResult.NoCharges
+  commentId: F:SpellBook.GAS.Abilities.AbilityActivationResult.NoCharges
+  id: NoCharges
+  parent: SpellBook.GAS.Abilities.AbilityActivationResult
+  langs:
+  - csharp
+  - vb
+  name: NoCharges
+  nameWithType: AbilityActivationResult.NoCharges
+  fullName: SpellBook.GAS.Abilities.AbilityActivationResult.NoCharges
+  type: Field
+  namespace: SpellBook.GAS.Abilities
+  syntax:
+    content: NoCharges = 10
+    return:
+      type: SpellBook.GAS.Abilities.AbilityActivationResult
+references:
+- uid: SpellBook.GAS.Abilities
+  commentId: N:SpellBook.GAS.Abilities
+  name: SpellBook.GAS.Abilities
+  nameWithType: SpellBook.GAS.Abilities
+  fullName: SpellBook.GAS.Abilities
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+- uid: SpellBook.GAS.Abilities.AbilityActivationResult
+  commentId: T:SpellBook.GAS.Abilities.AbilityActivationResult
+  parent: SpellBook.GAS.Abilities
+  href: SpellBook.GAS.Abilities.AbilityActivationResult.html
+  name: AbilityActivationResult
+  nameWithType: AbilityActivationResult
+  fullName: SpellBook.GAS.Abilities.AbilityActivationResult

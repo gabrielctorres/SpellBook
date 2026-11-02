@@ -140,3 +140,23 @@ Quem implementa e quem revisa rodam estas conferências a partir da raiz do repo
 - Diagrama sem legenda: todo bloco ```` ```mermaid ```` tem uma linha de legenda logo abaixo do fechamento.
 - Build: `mkdocs build --strict -f Documentation~/mkdocs.yml`, com o site gerado fora do repositório (`-d` para uma pasta temporária).
 - Diagrama novo: abra a página no site gerado, porque o `--strict` confere o Markdown e o navegador é que desenha o Mermaid.
+
+## 8. Catálogo e referência da API gerados
+
+O catálogo (`manual/referencia/catalogo.md`), os YAML da API (`api/reference/`), o mapa da Unity (`api/unity.xrefmap.yml`) e a impressão digital (`api/reference.sha256`) saem do código, pela Unity, e vão para o repositório (0040). Não edite esses arquivos à mão.
+
+Na API, os tipos da Unity levam à documentação da Unity pelo mapa, que a geração monta a partir dos YAML (0041). Os módulos do motor apontam para o ScriptReference mais recente, sem versão na URL. Os pacotes `com.unity.*` apontam para a versão instalada no projeto, então quem atualiza um desses pacotes precisa gerar a referência de novo. Os tipos do .NET levam ao learn.microsoft.com pelo `href` que o `docfx metadata` grava nos YAML. O `docfx.json` não declara mapa do .NET, e o build não usa a rede.
+
+Quem muda um `.cs` do pacote:
+
+1. Rode **SpellBook > Documentação > Gerar referência** na Unity, com o SDK do .NET instalado. Em batchmode, a mesma geração roda com `-executeMethod SpellBook.Core.Editor.Documentation.ReferenceGenerator.GenerateFromCommandLine` e sai com 0 se deu certo ou 1 se falhou.
+2. Commite o catálogo, a pasta `api/reference/`, o `api/unity.xrefmap.yml` e o `api/reference.sha256` no mesmo diff. Sem isso, o `ReferenceUpToDateTests` falha.
+
+Para ver o site sem a Unity, rode dentro de `Documentation~/`:
+
+1. `mkdocs build --strict -f mkdocs.yml`, no venv do manual;
+2. `dotnet tool restore` e `dotnet docfx build api/docfx.json --warningsAsErrors`. A API sai em `api/_site/`, que o git ignora, com a página de cada tipo em `<uid>.html`, o mesmo caminho do link do catálogo.
+
+A Action `docs` roda nos pull requests que mexem no manual, na API, na configuração do DocFX ou no próprio workflow. Ela monta o manual e a API como na publicação, mas não publica. Depois, confere cada link `api/...html` do catálogo no site montado, porque o MkDocs não valida link absoluto. Se um link aponta para um tipo sem página, o build falha e mostra o caminho. Isso costuma acontecer quando o código muda e a geração não roda de novo.
+
+A versão do DocFX fica travada em `.config/dotnet-tools.json`. Se você trocar essa versão, a impressão digital muda e a geração precisa rodar de novo.

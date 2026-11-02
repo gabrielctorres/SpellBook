@@ -1,0 +1,145 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Effects
+  commentId: N:SpellBook.GAS.Effects
+  id: SpellBook.GAS.Effects
+  children:
+  - SpellBook.GAS.Effects.ActiveEffectInstance
+  - SpellBook.GAS.Effects.AttributeEffectModifier
+  - SpellBook.GAS.Effects.DebugLogEffectAction
+  - SpellBook.GAS.Effects.EffectAction
+  - SpellBook.GAS.Effects.EffectApplicationResult
+  - SpellBook.GAS.Effects.EffectContext
+  - SpellBook.GAS.Effects.EffectDurationPolicy
+  - SpellBook.GAS.Effects.EffectRemovalReason
+  - SpellBook.GAS.Effects.EffectSpec
+  - SpellBook.GAS.Effects.GameplayEffect
+  - SpellBook.GAS.Effects.IReadOnlySetByCaller
+  - SpellBook.GAS.Effects.MagnitudeMode
+  - SpellBook.GAS.Effects.SetByCallerValues
+  - SpellBook.GAS.Effects.SpawnVFXEffectAction
+  langs:
+  - csharp
+  - vb
+  name: SpellBook.GAS.Effects
+  nameWithType: SpellBook.GAS.Effects
+  fullName: SpellBook.GAS.Effects
+  type: Namespace
+references:
+- uid: SpellBook.GAS.Effects.ActiveEffectInstance
+  commentId: T:SpellBook.GAS.Effects.ActiveEffectInstance
+  parent: SpellBook.GAS.Effects
+  href: SpellBook.GAS.Effects.ActiveEffectInstance.html
+  name: ActiveEffectInstance
+  nameWithType: ActiveEffectInstance
+  fullName: SpellBook.GAS.Effects.ActiveEffectInstance
+- uid: SpellBook.GAS.Effects.EffectAction
+  commentId: T:SpellBook.GAS.Effects.EffectAction
+  parent: SpellBook.GAS.Effects
+  href: SpellBook.GAS.Effects.EffectAction.html
+  name: EffectAction
+  nameWithType: EffectAction
+  fullName: SpellBook.GAS.Effects.EffectAction
+- uid: SpellBook.GAS.Effects.EffectApplicationResult
+  commentId: T:SpellBook.GAS.Effects.EffectApplicationResult
+  parent: SpellBook.GAS.Effects
+  href: SpellBook.GAS.Effects.EffectApplicationResult.html
+  name: EffectApplicationResult
+  nameWithType: EffectApplicationResult
+  fullName: SpellBook.GAS.Effects.EffectApplicationResult
+- uid: SpellBook.GAS.Effects.EffectContext
+  commentId: T:SpellBook.GAS.Effects.EffectContext
+  parent: SpellBook.GAS.Effects
+  href: SpellBook.GAS.Effects.EffectContext.html
+  name: EffectContext
+  nameWithType: EffectContext
+  fullName: SpellBook.GAS.Effects.EffectContext
+- uid: SpellBook.GAS.Effects.EffectRemovalReason
+  commentId: T:SpellBook.GAS.Effects.EffectRemovalReason
+  parent: SpellBook.GAS.Effects
+  href: SpellBook.GAS.Effects.EffectRemovalReason.html
+  name: EffectRemovalReason
+  nameWithType: EffectRemovalReason
+  fullName: SpellBook.GAS.Effects.EffectRemovalReason
+- uid: SpellBook.GAS.Effects.EffectSpec
+  commentId: T:SpellBook.GAS.Effects.EffectSpec
+  parent: SpellBook.GAS.Effects
+  href: SpellBook.GAS.Effects.EffectSpec.html
+  name: EffectSpec
+  nameWithType: EffectSpec
+  fullName: SpellBook.GAS.Effects.EffectSpec
+- uid: SpellBook.GAS.Effects.EffectDurationPolicy
+  commentId: T:SpellBook.GAS.Effects.EffectDurationPolicy
+  parent: SpellBook.GAS.Effects
+  href: SpellBook.GAS.Effects.EffectDurationPolicy.html
+  name: EffectDurationPolicy
+  nameWithType: EffectDurationPolicy
+  fullName: SpellBook.GAS.Effects.EffectDurationPolicy
+- uid: SpellBook.GAS.Effects.MagnitudeMode
+  commentId: T:SpellBook.GAS.Effects.MagnitudeMode
+  parent: SpellBook.GAS.Effects
+  href: SpellBook.GAS.Effects.MagnitudeMode.html
+  name: MagnitudeMode
+  nameWithType: MagnitudeMode
+  fullName: SpellBook.GAS.Effects.MagnitudeMode
+- uid: SpellBook.GAS.Effects.AttributeEffectModifier
+  commentId: T:SpellBook.GAS.Effects.AttributeEffectModifier
+  href: SpellBook.GAS.Effects.AttributeEffectModifier.html
+  name: AttributeEffectModifier
+  nameWithType: AttributeEffectModifier
+  fullName: SpellBook.GAS.Effects.AttributeEffectModifier
+- uid: SpellBook.GAS.Effects.GameplayEffect
+  commentId: T:SpellBook.GAS.Effects.GameplayEffect
+  parent: SpellBook.GAS.Effects
+  href: SpellBook.GAS.Effects.GameplayEffect.html
+  name: GameplayEffect
+  nameWithType: GameplayEffect
+  fullName: SpellBook.GAS.Effects.GameplayEffect
+- uid: SpellBook.GAS.Effects.IReadOnlySetByCaller
+  commentId: T:SpellBook.GAS.Effects.IReadOnlySetByCaller
+  parent: SpellBook.GAS.Effects
+  href: SpellBook.GAS.Effects.IReadOnlySetByCaller.html
+  name: IReadOnlySetByCaller
+  nameWithType: IReadOnlySetByCaller
+  fullName: SpellBook.GAS.Effects.IReadOnlySetByCaller
+- uid: SpellBook.GAS.Effects.SetByCallerValues
+  commentId: T:SpellBook.GAS.Effects.SetByCallerValues
+  href: SpellBook.GAS.Effects.SetByCallerValues.html
+  name: SetByCallerValues
+  nameWithType: SetByCallerValues
+  fullName: SpellBook.GAS.Effects.SetByCallerValues
+- uid: SpellBook.GAS.Effects.DebugLogEffectAction
+  commentId: T:SpellBook.GAS.Effects.DebugLogEffectAction
+  href: SpellBook.GAS.Effects.DebugLogEffectAction.html
+  name: DebugLogEffectAction
+  nameWithType: DebugLogEffectAction
+  fullName: SpellBook.GAS.Effects.DebugLogEffectAction
+- uid: SpellBook.GAS.Effects.SpawnVFXEffectAction
+  commentId: T:SpellBook.GAS.Effects.SpawnVFXEffectAction
+  href: SpellBook.GAS.Effects.SpawnVFXEffectAction.html
+  name: SpawnVFXEffectAction
+  nameWithType: SpawnVFXEffectAction
+  fullName: SpellBook.GAS.Effects.SpawnVFXEffectAction
+- uid: SpellBook.GAS.Effects
+  commentId: N:SpellBook.GAS.Effects
+  name: SpellBook.GAS.Effects
+  nameWithType: SpellBook.GAS.Effects
+  fullName: SpellBook.GAS.Effects
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Effects
+    name: Effects
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Effects
+    name: Effects

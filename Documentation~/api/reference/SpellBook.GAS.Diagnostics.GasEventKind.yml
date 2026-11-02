@@ -1,0 +1,160 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Diagnostics.GasEventKind
+  commentId: T:SpellBook.GAS.Diagnostics.GasEventKind
+  id: GasEventKind
+  parent: SpellBook.GAS.Diagnostics
+  children:
+  - SpellBook.GAS.Diagnostics.GasEventKind.AbilityGranted
+  - SpellBook.GAS.Diagnostics.GasEventKind.AbilityRemoved
+  - SpellBook.GAS.Diagnostics.GasEventKind.CooldownChanged
+  - SpellBook.GAS.Diagnostics.GasEventKind.EffectApplied
+  - SpellBook.GAS.Diagnostics.GasEventKind.EffectRemoved
+  - SpellBook.GAS.Diagnostics.GasEventKind.EffectStacksChanged
+  langs:
+  - csharp
+  - vb
+  name: GasEventKind
+  nameWithType: GasEventKind
+  fullName: SpellBook.GAS.Diagnostics.GasEventKind
+  type: Enum
+  namespace: SpellBook.GAS.Diagnostics
+  summary: Tipo de evento gravado no <xref href="SpellBook.GAS.Diagnostics.EventLog" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public enum GasEventKind
+    content.vb: Public Enum GasEventKind
+- uid: SpellBook.GAS.Diagnostics.GasEventKind.EffectApplied
+  commentId: F:SpellBook.GAS.Diagnostics.GasEventKind.EffectApplied
+  id: EffectApplied
+  parent: SpellBook.GAS.Diagnostics.GasEventKind
+  langs:
+  - csharp
+  - vb
+  name: EffectApplied
+  nameWithType: GasEventKind.EffectApplied
+  fullName: SpellBook.GAS.Diagnostics.GasEventKind.EffectApplied
+  type: Field
+  namespace: SpellBook.GAS.Diagnostics
+  syntax:
+    content: EffectApplied = 0
+    return:
+      type: SpellBook.GAS.Diagnostics.GasEventKind
+- uid: SpellBook.GAS.Diagnostics.GasEventKind.EffectRemoved
+  commentId: F:SpellBook.GAS.Diagnostics.GasEventKind.EffectRemoved
+  id: EffectRemoved
+  parent: SpellBook.GAS.Diagnostics.GasEventKind
+  langs:
+  - csharp
+  - vb
+  name: EffectRemoved
+  nameWithType: GasEventKind.EffectRemoved
+  fullName: SpellBook.GAS.Diagnostics.GasEventKind.EffectRemoved
+  type: Field
+  namespace: SpellBook.GAS.Diagnostics
+  syntax:
+    content: EffectRemoved = 1
+    return:
+      type: SpellBook.GAS.Diagnostics.GasEventKind
+- uid: SpellBook.GAS.Diagnostics.GasEventKind.EffectStacksChanged
+  commentId: F:SpellBook.GAS.Diagnostics.GasEventKind.EffectStacksChanged
+  id: EffectStacksChanged
+  parent: SpellBook.GAS.Diagnostics.GasEventKind
+  langs:
+  - csharp
+  - vb
+  name: EffectStacksChanged
+  nameWithType: GasEventKind.EffectStacksChanged
+  fullName: SpellBook.GAS.Diagnostics.GasEventKind.EffectStacksChanged
+  type: Field
+  namespace: SpellBook.GAS.Diagnostics
+  syntax:
+    content: EffectStacksChanged = 2
+    return:
+      type: SpellBook.GAS.Diagnostics.GasEventKind
+- uid: SpellBook.GAS.Diagnostics.GasEventKind.AbilityGranted
+  commentId: F:SpellBook.GAS.Diagnostics.GasEventKind.AbilityGranted
+  id: AbilityGranted
+  parent: SpellBook.GAS.Diagnostics.GasEventKind
+  langs:
+  - csharp
+  - vb
+  name: AbilityGranted
+  nameWithType: GasEventKind.AbilityGranted
+  fullName: SpellBook.GAS.Diagnostics.GasEventKind.AbilityGranted
+  type: Field
+  namespace: SpellBook.GAS.Diagnostics
+  syntax:
+    content: AbilityGranted = 3
+    return:
+      type: SpellBook.GAS.Diagnostics.GasEventKind
+- uid: SpellBook.GAS.Diagnostics.GasEventKind.AbilityRemoved
+  commentId: F:SpellBook.GAS.Diagnostics.GasEventKind.AbilityRemoved
+  id: AbilityRemoved
+  parent: SpellBook.GAS.Diagnostics.GasEventKind
+  langs:
+  - csharp
+  - vb
+  name: AbilityRemoved
+  nameWithType: GasEventKind.AbilityRemoved
+  fullName: SpellBook.GAS.Diagnostics.GasEventKind.AbilityRemoved
+  type: Field
+  namespace: SpellBook.GAS.Diagnostics
+  syntax:
+    content: AbilityRemoved = 4
+    return:
+      type: SpellBook.GAS.Diagnostics.GasEventKind
+- uid: SpellBook.GAS.Diagnostics.GasEventKind.CooldownChanged
+  commentId: F:SpellBook.GAS.Diagnostics.GasEventKind.CooldownChanged
+  id: CooldownChanged
+  parent: SpellBook.GAS.Diagnostics.GasEventKind
+  langs:
+  - csharp
+  - vb
+  name: CooldownChanged
+  nameWithType: GasEventKind.CooldownChanged
+  fullName: SpellBook.GAS.Diagnostics.GasEventKind.CooldownChanged
+  type: Field
+  namespace: SpellBook.GAS.Diagnostics
+  syntax:
+    content: CooldownChanged = 5
+    return:
+      type: SpellBook.GAS.Diagnostics.GasEventKind
+references:
+- uid: SpellBook.GAS.Diagnostics.EventLog
+  commentId: T:SpellBook.GAS.Diagnostics.EventLog
+  parent: SpellBook.GAS.Diagnostics
+  href: SpellBook.GAS.Diagnostics.EventLog.html
+  name: EventLog
+  nameWithType: EventLog
+  fullName: SpellBook.GAS.Diagnostics.EventLog
+- uid: SpellBook.GAS.Diagnostics
+  commentId: N:SpellBook.GAS.Diagnostics
+  name: SpellBook.GAS.Diagnostics
+  nameWithType: SpellBook.GAS.Diagnostics
+  fullName: SpellBook.GAS.Diagnostics
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Diagnostics
+    name: Diagnostics
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Diagnostics
+    name: Diagnostics
+- uid: SpellBook.GAS.Diagnostics.GasEventKind
+  commentId: T:SpellBook.GAS.Diagnostics.GasEventKind
+  parent: SpellBook.GAS.Diagnostics
+  href: SpellBook.GAS.Diagnostics.GasEventKind.html
+  name: GasEventKind
+  nameWithType: GasEventKind
+  fullName: SpellBook.GAS.Diagnostics.GasEventKind

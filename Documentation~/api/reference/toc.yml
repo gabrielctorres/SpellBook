@@ -1,0 +1,831 @@
+### YamlMime:TableOfContent
+items:
+- uid: SpellBook.Core
+  name: SpellBook.Core
+  type: Namespace
+  items:
+  - uid: SpellBook.Core.DocUrls
+    name: DocUrls
+    type: Class
+  - uid: SpellBook.Core.InstantiateSpawnerAsset
+    name: InstantiateSpawnerAsset
+    type: Class
+  - uid: SpellBook.Core.MathTools
+    name: MathTools
+    type: Class
+  - uid: SpellBook.Core.RuntimeSet`1
+    name: RuntimeSet<T>
+    type: Class
+  - uid: SpellBook.Core.SpawnerAsset
+    name: SpawnerAsset
+    type: Class
+  - uid: SpellBook.Core.TextRole
+    name: TextRole
+    type: Enum
+  - uid: SpellBook.Core.TextRoleTheme
+    name: TextRoleTheme
+    type: Class
+  - uid: SpellBook.Core.Void
+    name: Void
+    type: Struct
+- uid: SpellBook.Core.Conditions
+  name: SpellBook.Core.Conditions
+  type: Namespace
+  items:
+  - uid: SpellBook.Core.Conditions.AndConditionBase`1
+    name: AndConditionBase<TContext>
+    type: Class
+  - uid: SpellBook.Core.Conditions.Condition`1
+    name: Condition<TContext>
+    type: Class
+  - uid: SpellBook.Core.Conditions.NotConditionBase`1
+    name: NotConditionBase<TContext>
+    type: Class
+  - uid: SpellBook.Core.Conditions.OrConditionBase`1
+    name: OrConditionBase<TContext>
+    type: Class
+- uid: SpellBook.Core.Editor
+  name: SpellBook.Core.Editor
+  type: Namespace
+  items:
+  - uid: SpellBook.Core.Editor.HelpUrlRule
+    name: HelpUrlRule
+    type: Class
+  - uid: SpellBook.Core.Editor.HelpUrlViolation
+    name: HelpUrlViolation
+    type: Struct
+  - uid: SpellBook.Core.Editor.ProjectValidator
+    name: ProjectValidator
+    type: Class
+  - uid: SpellBook.Core.Editor.SpellBookEditor
+    name: SpellBookEditor
+    type: Class
+  - uid: SpellBook.Core.Editor.ValidationWindow
+    name: ValidationWindow
+    type: Class
+- uid: SpellBook.Core.Editor.Documentation
+  name: SpellBook.Core.Editor.Documentation
+  type: Namespace
+  items:
+  - uid: SpellBook.Core.Editor.Documentation.DocfxAssembly
+    name: DocfxAssembly
+    type: Class
+  - uid: SpellBook.Core.Editor.Documentation.DocfxConfig
+    name: DocfxConfig
+    type: Class
+  - uid: SpellBook.Core.Editor.Documentation.ReferenceFingerprint
+    name: ReferenceFingerprint
+    type: Class
+  - uid: SpellBook.Core.Editor.Documentation.ReferenceGenerator
+    name: ReferenceGenerator
+    type: Class
+  - uid: SpellBook.Core.Editor.Documentation.TypeCatalog
+    name: TypeCatalog
+    type: Class
+  - uid: SpellBook.Core.Editor.Documentation.TypeCatalogPage
+    name: TypeCatalogPage
+    type: Class
+  - uid: SpellBook.Core.Editor.Documentation.TypeCatalogSection
+    name: TypeCatalogSection
+    type: Class
+  - uid: SpellBook.Core.Editor.Documentation.UnityXrefMap
+    name: UnityXrefMap
+    type: Class
+- uid: SpellBook.Core.Editor.Inspector
+  name: SpellBook.Core.Editor.Inspector
+  type: Namespace
+  items:
+  - uid: SpellBook.Core.Editor.Inspector.MissingReferenceTypes
+    name: MissingReferenceTypes
+    type: Class
+  - uid: SpellBook.Core.Editor.Inspector.MissingTypeEntry
+    name: MissingTypeEntry
+    type: Struct
+  - uid: SpellBook.Core.Editor.Inspector.ShowIfDrawer
+    name: ShowIfDrawer
+    type: Class
+  - uid: SpellBook.Core.Editor.Inspector.ShowIfRule
+    name: ShowIfRule
+    type: Class
+  - uid: SpellBook.Core.Editor.Inspector.SummaryFormatter
+    name: SummaryFormatter
+    type: Class
+  - uid: SpellBook.Core.Editor.Inspector.TypePickerCatalog
+    name: TypePickerCatalog
+    type: Class
+  - uid: SpellBook.Core.Editor.Inspector.TypePickerDrawer
+    name: TypePickerDrawer
+    type: Class
+  - uid: SpellBook.Core.Editor.Inspector.TypePickerEntry
+    name: TypePickerEntry
+    type: Struct
+  - uid: SpellBook.Core.Editor.Inspector.TypePickerNode
+    name: TypePickerNode
+    type: Class
+  - uid: SpellBook.Core.Editor.Inspector.TypePickerNodeKind
+    name: TypePickerNodeKind
+    type: Enum
+  - uid: SpellBook.Core.Editor.Inspector.TypePickerPopup
+    name: TypePickerPopup
+    type: Class
+  - uid: SpellBook.Core.Editor.Inspector.TypePickerTree
+    name: TypePickerTree
+    type: Class
+- uid: SpellBook.Core.Inspector
+  name: SpellBook.Core.Inspector
+  type: Namespace
+  items:
+  - uid: SpellBook.Core.Inspector.ShowIfAttribute
+    name: ShowIfAttribute
+    type: Class
+  - uid: SpellBook.Core.Inspector.TypeCategoryAttribute
+    name: TypeCategoryAttribute
+    type: Class
+  - uid: SpellBook.Core.Inspector.TypePickerAttribute
+    name: TypePickerAttribute
+    type: Class
+- uid: SpellBook.Core.Validation
+  name: SpellBook.Core.Validation
+  type: Namespace
+  items:
+  - uid: SpellBook.Core.Validation.IValidatable
+    name: IValidatable
+    type: Interface
+  - uid: SpellBook.Core.Validation.ValidationMessage
+    name: ValidationMessage
+    type: Struct
+  - uid: SpellBook.Core.Validation.ValidationResult
+    name: ValidationResult
+    type: Class
+  - uid: SpellBook.Core.Validation.ValidationSeverity
+    name: ValidationSeverity
+    type: Enum
+- uid: SpellBook.Editor
+  name: SpellBook.Editor
+  type: Namespace
+  items:
+  - uid: SpellBook.Editor.FolderStructureCreator
+    name: FolderStructureCreator
+    type: Class
+- uid: SpellBook.Events
+  name: SpellBook.Events
+  type: Namespace
+  items:
+  - uid: SpellBook.Events.BoolEventChannel
+    name: BoolEventChannel
+    type: Class
+  - uid: SpellBook.Events.BoolEventResponse
+    name: BoolEventResponse
+    type: Class
+  - uid: SpellBook.Events.DelayedReaction
+    name: DelayedReaction
+    type: Class
+  - uid: SpellBook.Events.EscapeEvent`1
+    name: EscapeEvent<T>
+    type: Class
+  - uid: SpellBook.Events.EventBus`1
+    name: EventBus<T>
+    type: Class
+  - uid: SpellBook.Events.EventChannel
+    name: EventChannel
+    type: Class
+  - uid: SpellBook.Events.EventChannel`1
+    name: EventChannel<T>
+    type: Class
+  - uid: SpellBook.Events.EventEmission
+    name: EventEmission
+    type: Class
+  - uid: SpellBook.Events.EventEmission`1
+    name: EventEmission<T>
+    type: Class
+  - uid: SpellBook.Events.EventEmitter
+    name: EventEmitter
+    type: Class
+  - uid: SpellBook.Events.EventListener
+    name: EventListener
+    type: Class
+  - uid: SpellBook.Events.EventResponse
+    name: EventResponse
+    type: Class
+  - uid: SpellBook.Events.EventResponse`1
+    name: EventResponse<T>
+    type: Class
+  - uid: SpellBook.Events.FloatEventChannel
+    name: FloatEventChannel
+    type: Class
+  - uid: SpellBook.Events.FloatEventResponse
+    name: FloatEventResponse
+    type: Class
+  - uid: SpellBook.Events.GameObjectEventChannel
+    name: GameObjectEventChannel
+    type: Class
+  - uid: SpellBook.Events.GameObjectEventResponse
+    name: GameObjectEventResponse
+    type: Class
+  - uid: SpellBook.Events.IEvent
+    name: IEvent
+    type: Interface
+  - uid: SpellBook.Events.IntEventChannel
+    name: IntEventChannel
+    type: Class
+  - uid: SpellBook.Events.IntEventResponse
+    name: IntEventResponse
+    type: Class
+  - uid: SpellBook.Events.LogReaction
+    name: LogReaction
+    type: Class
+  - uid: SpellBook.Events.RaiseChannelReaction
+    name: RaiseChannelReaction
+    type: Class
+  - uid: SpellBook.Events.RaiseChannelReaction.Mode
+    name: RaiseChannelReaction.Mode
+    type: Enum
+  - uid: SpellBook.Events.Reaction
+    name: Reaction
+    type: Class
+  - uid: SpellBook.Events.SetActiveReaction
+    name: SetActiveReaction
+    type: Class
+  - uid: SpellBook.Events.StringEventChannel
+    name: StringEventChannel
+    type: Class
+  - uid: SpellBook.Events.StringEventResponse
+    name: StringEventResponse
+    type: Class
+  - uid: SpellBook.Events.ToggleComponentReaction
+    name: ToggleComponentReaction
+    type: Class
+  - uid: SpellBook.Events.ToggleComponentReaction.Mode
+    name: ToggleComponentReaction.Mode
+    type: Enum
+  - uid: SpellBook.Events.Vector3EventChannel
+    name: Vector3EventChannel
+    type: Class
+  - uid: SpellBook.Events.Vector3EventResponse
+    name: Vector3EventResponse
+    type: Class
+  - uid: SpellBook.Events.VoidEventChannel
+    name: VoidEventChannel
+    type: Class
+  - uid: SpellBook.Events.VoidEventResponse
+    name: VoidEventResponse
+    type: Class
+- uid: SpellBook.Events.Editor
+  name: SpellBook.Events.Editor
+  type: Namespace
+  items:
+  - uid: SpellBook.Events.Editor.ChannelCatalog
+    name: ChannelCatalog
+    type: Class
+  - uid: SpellBook.Events.Editor.ChannelPickerDrawer
+    name: ChannelPickerDrawer
+    type: Class
+  - uid: SpellBook.Events.Editor.EventChannelEditor
+    name: EventChannelEditor
+    type: Class
+  - uid: SpellBook.Events.Editor.EventEmissionDrawer
+    name: EventEmissionDrawer
+    type: Class
+  - uid: SpellBook.Events.Editor.EventEmissionEditing
+    name: EventEmissionEditing
+    type: Class
+  - uid: SpellBook.Events.Editor.EventEmitterEditor
+    name: EventEmitterEditor
+    type: Class
+- uid: SpellBook.GAS.Abilities
+  name: SpellBook.GAS.Abilities
+  type: Namespace
+  items:
+  - uid: SpellBook.GAS.Abilities.AbilityAction
+    name: AbilityAction
+    type: Class
+  - uid: SpellBook.GAS.Abilities.AbilityActivationResult
+    name: AbilityActivationResult
+    type: Enum
+  - uid: SpellBook.GAS.Abilities.AbilityContext
+    name: AbilityContext
+    type: Class
+  - uid: SpellBook.GAS.Abilities.AbilityDescription
+    name: AbilityDescription
+    type: Class
+  - uid: SpellBook.GAS.Abilities.AbilitySpec
+    name: AbilitySpec
+    type: Class
+  - uid: SpellBook.GAS.Abilities.AbilityTarget
+    name: AbilityTarget
+    type: Struct
+  - uid: SpellBook.GAS.Abilities.AbilityTargetSource
+    name: AbilityTargetSource
+    type: Enum
+  - uid: SpellBook.GAS.Abilities.ActivationFailure
+    name: ActivationFailure
+    type: Struct
+  - uid: SpellBook.GAS.Abilities.ActivationRule
+    name: ActivationRule
+    type: Class
+  - uid: SpellBook.GAS.Abilities.AttributeElement
+    name: AttributeElement
+    type: Class
+  - uid: SpellBook.GAS.Abilities.ChargeRechargeMode
+    name: ChargeRechargeMode
+    type: Enum
+  - uid: SpellBook.GAS.Abilities.ChargesConfig
+    name: ChargesConfig
+    type: Class
+  - uid: SpellBook.GAS.Abilities.CooldownChange
+    name: CooldownChange
+    type: Enum
+  - uid: SpellBook.GAS.Abilities.CooldownReductionMode
+    name: CooldownReductionMode
+    type: Enum
+  - uid: SpellBook.GAS.Abilities.CooldownReductionPolicy
+    name: CooldownReductionPolicy
+    type: Class
+  - uid: SpellBook.GAS.Abilities.DescriptionElement
+    name: DescriptionElement
+    type: Class
+  - uid: SpellBook.GAS.Abilities.GameplayAbility
+    name: GameplayAbility
+    type: Class
+  - uid: SpellBook.GAS.Abilities.TemplateElement
+    name: TemplateElement
+    type: Class
+  - uid: SpellBook.GAS.Abilities.TemplateElement.TagMapping
+    name: TemplateElement.TagMapping
+    type: Struct
+  - uid: SpellBook.GAS.Abilities.TextElement
+    name: TextElement
+    type: Class
+- uid: SpellBook.GAS.Abilities.Actions
+  name: SpellBook.GAS.Abilities.Actions
+  type: Namespace
+  items:
+  - uid: SpellBook.GAS.Abilities.Actions.AnimationAction
+    name: AnimationAction
+    type: Class
+  - uid: SpellBook.GAS.Abilities.Actions.AnimationParamType
+    name: AnimationParamType
+    type: Enum
+  - uid: SpellBook.GAS.Abilities.Actions.ApplyEffectAction
+    name: ApplyEffectAction
+    type: Class
+  - uid: SpellBook.GAS.Abilities.Actions.ConditionalAction
+    name: ConditionalAction
+    type: Class
+  - uid: SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType
+    name: ConditionalAction.ConditionType
+    type: Enum
+  - uid: SpellBook.GAS.Abilities.Actions.ParallelAction
+    name: ParallelAction
+    type: Class
+  - uid: SpellBook.GAS.Abilities.Actions.PlayCueAction
+    name: PlayCueAction
+    type: Class
+  - uid: SpellBook.GAS.Abilities.Actions.RepeatAction
+    name: RepeatAction
+    type: Class
+  - uid: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction
+    name: SpawnProjectileAction
+    type: Class
+  - uid: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectileSpawnMode
+    name: SpawnProjectileAction.ProjectileSpawnMode
+    type: Enum
+  - uid: SpellBook.GAS.Abilities.Actions.TargetingAction
+    name: TargetingAction
+    type: Class
+  - uid: SpellBook.GAS.Abilities.Actions.TargetingAction.TargetMode
+    name: TargetingAction.TargetMode
+    type: Enum
+  - uid: SpellBook.GAS.Abilities.Actions.WaitAction
+    name: WaitAction
+    type: Class
+- uid: SpellBook.GAS.Abilities.Projectiles
+  name: SpellBook.GAS.Abilities.Projectiles
+  type: Namespace
+  items:
+  - uid: SpellBook.GAS.Abilities.Projectiles.Projectile
+    name: Projectile
+    type: Class
+  - uid: SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors
+    name: Projectile.MovementVectors
+    type: Enum
+- uid: SpellBook.GAS.Attributes
+  name: SpellBook.GAS.Attributes
+  type: Namespace
+  items:
+  - uid: SpellBook.GAS.Attributes.AbsorbWithAttribute
+    name: AbsorbWithAttribute
+    type: Class
+  - uid: SpellBook.GAS.Attributes.AttributeCategory
+    name: AttributeCategory
+    type: Class
+  - uid: SpellBook.GAS.Attributes.AttributeChange
+    name: AttributeChange
+    type: Struct
+  - uid: SpellBook.GAS.Attributes.AttributeChangeHandler
+    name: AttributeChangeHandler
+    type: Delegate
+  - uid: SpellBook.GAS.Attributes.AttributeChangeProcessor
+    name: AttributeChangeProcessor
+    type: Class
+  - uid: SpellBook.GAS.Attributes.AttributeChangeQueue
+    name: AttributeChangeQueue
+    type: Class
+  - uid: SpellBook.GAS.Attributes.AttributeChangeReport
+    name: AttributeChangeReport
+    type: Struct
+  - uid: SpellBook.GAS.Attributes.AttributeDefinition
+    name: AttributeDefinition
+    type: Class
+  - uid: SpellBook.GAS.Attributes.AttributeDisplay
+    name: AttributeDisplay
+    type: Struct
+  - uid: SpellBook.GAS.Attributes.AttributeModifier
+    name: AttributeModifier
+    type: Class
+  - uid: SpellBook.GAS.Attributes.AttributeSet
+    name: AttributeSet
+    type: Class
+  - uid: SpellBook.GAS.Attributes.AttributeSet.InitialAttribute
+    name: AttributeSet.InitialAttribute
+    type: Struct
+  - uid: SpellBook.GAS.Attributes.AttributeState
+    name: AttributeState
+    type: Class
+  - uid: SpellBook.GAS.Attributes.AttributeType
+    name: AttributeType
+    type: Enum
+  - uid: SpellBook.GAS.Attributes.ExpressionFormula
+    name: ExpressionFormula
+    type: Class
+  - uid: SpellBook.GAS.Attributes.ExpressionFormula.TargetSource
+    name: ExpressionFormula.TargetSource
+    type: Enum
+  - uid: SpellBook.GAS.Attributes.ExpressionFormula.VariableMapping
+    name: ExpressionFormula.VariableMapping
+    type: Struct
+  - uid: SpellBook.GAS.Attributes.ExpressionParser
+    name: ExpressionParser
+    type: Class
+  - uid: SpellBook.GAS.Attributes.Formula
+    name: Formula
+    type: Class
+  - uid: SpellBook.GAS.Attributes.ImmuneToTags
+    name: ImmuneToTags
+    type: Class
+  - uid: SpellBook.GAS.Attributes.LimitSource
+    name: LimitSource
+    type: Enum
+  - uid: SpellBook.GAS.Attributes.MaxChangePolicy
+    name: MaxChangePolicy
+    type: Enum
+  - uid: SpellBook.GAS.Attributes.ModifierOperation
+    name: ModifierOperation
+    type: Enum
+  - uid: SpellBook.GAS.Attributes.ModifierValueSource
+    name: ModifierValueSource
+    type: Class
+  - uid: SpellBook.GAS.Attributes.ModifierValueSource.SourceType
+    name: ModifierValueSource.SourceType
+    type: Enum
+  - uid: SpellBook.GAS.Attributes.ReduceByAttribute
+    name: ReduceByAttribute
+    type: Class
+  - uid: SpellBook.GAS.Attributes.ReductionMode
+    name: ReductionMode
+    type: Enum
+  - uid: SpellBook.GAS.Attributes.SimpleAttributeFormula
+    name: SimpleAttributeFormula
+    type: Class
+  - uid: SpellBook.GAS.Attributes.SimpleAttributeFormula.AttributeComponent
+    name: SimpleAttributeFormula.AttributeComponent
+    type: Struct
+  - uid: SpellBook.GAS.Attributes.SimpleAttributeFormula.TargetSource
+    name: SimpleAttributeFormula.TargetSource
+    type: Enum
+  - uid: SpellBook.GAS.Attributes.ValueKind
+    name: ValueKind
+    type: Enum
+- uid: SpellBook.GAS.Bridges
+  name: SpellBook.GAS.Bridges
+  type: Namespace
+  items:
+  - uid: SpellBook.GAS.Bridges.AbilityEventChannel
+    name: AbilityEventChannel
+    type: Class
+  - uid: SpellBook.GAS.Bridges.AbilityEventData
+    name: AbilityEventData
+    type: Struct
+  - uid: SpellBook.GAS.Bridges.AbilityEventResponse
+    name: AbilityEventResponse
+    type: Class
+  - uid: SpellBook.GAS.Bridges.AbilitySystemEventRelay
+    name: AbilitySystemEventRelay
+    type: Class
+  - uid: SpellBook.GAS.Bridges.AttributeChangedData
+    name: AttributeChangedData
+    type: Struct
+  - uid: SpellBook.GAS.Bridges.AttributeChangedEventChannel
+    name: AttributeChangedEventChannel
+    type: Class
+  - uid: SpellBook.GAS.Bridges.AttributeChangedEventResponse
+    name: AttributeChangedEventResponse
+    type: Class
+  - uid: SpellBook.GAS.Bridges.AttributeLimitEventChannel
+    name: AttributeLimitEventChannel
+    type: Class
+  - uid: SpellBook.GAS.Bridges.AttributeLimitEventData
+    name: AttributeLimitEventData
+    type: Struct
+  - uid: SpellBook.GAS.Bridges.AttributeLimitEventResponse
+    name: AttributeLimitEventResponse
+    type: Class
+  - uid: SpellBook.GAS.Bridges.BlockedEventChannel
+    name: BlockedEventChannel
+    type: Class
+  - uid: SpellBook.GAS.Bridges.BlockedEventData
+    name: BlockedEventData
+    type: Struct
+  - uid: SpellBook.GAS.Bridges.BlockedEventResponse
+    name: BlockedEventResponse
+    type: Class
+  - uid: SpellBook.GAS.Bridges.EffectEventChannel
+    name: EffectEventChannel
+    type: Class
+  - uid: SpellBook.GAS.Bridges.EffectEventData
+    name: EffectEventData
+    type: Struct
+  - uid: SpellBook.GAS.Bridges.EffectEventResponse
+    name: EffectEventResponse
+    type: Class
+  - uid: SpellBook.GAS.Bridges.GasPayloadSource
+    name: GasPayloadSource
+    type: Enum
+  - uid: SpellBook.GAS.Bridges.GasPayloadSourceUtility
+    name: GasPayloadSourceUtility
+    type: Class
+  - uid: SpellBook.GAS.Bridges.RaiseEventAction
+    name: RaiseEventAction
+    type: Class
+  - uid: SpellBook.GAS.Bridges.RelayPair`1
+    name: RelayPair<T>
+    type: Class
+  - uid: SpellBook.GAS.Bridges.TagChangedData
+    name: TagChangedData
+    type: Struct
+  - uid: SpellBook.GAS.Bridges.TagChangedEventChannel
+    name: TagChangedEventChannel
+    type: Class
+  - uid: SpellBook.GAS.Bridges.TagChangedEventResponse
+    name: TagChangedEventResponse
+    type: Class
+- uid: SpellBook.GAS.Bridges.Editor
+  name: SpellBook.GAS.Bridges.Editor
+  type: Namespace
+  items:
+  - uid: SpellBook.GAS.Bridges.Editor.RaiseEventDrawer
+    name: RaiseEventDrawer
+    type: Class
+- uid: SpellBook.GAS.Conditions
+  name: SpellBook.GAS.Conditions
+  type: Namespace
+  items:
+  - uid: SpellBook.GAS.Conditions.AndCondition
+    name: AndCondition
+    type: Class
+  - uid: SpellBook.GAS.Conditions.AttributeThresholdCondition
+    name: AttributeThresholdCondition
+    type: Class
+  - uid: SpellBook.GAS.Conditions.AttributeThresholdCondition.Comparison
+    name: AttributeThresholdCondition.Comparison
+    type: Enum
+  - uid: SpellBook.GAS.Conditions.CastRangeCondition
+    name: CastRangeCondition
+    type: Class
+  - uid: SpellBook.GAS.Conditions.ConditionContext
+    name: ConditionContext
+    type: Struct
+  - uid: SpellBook.GAS.Conditions.HasTargetPointCondition
+    name: HasTargetPointCondition
+    type: Class
+  - uid: SpellBook.GAS.Conditions.HasTargetsCondition
+    name: HasTargetsCondition
+    type: Class
+  - uid: SpellBook.GAS.Conditions.NotCondition
+    name: NotCondition
+    type: Class
+  - uid: SpellBook.GAS.Conditions.OrCondition
+    name: OrCondition
+    type: Class
+  - uid: SpellBook.GAS.Conditions.TagQueryCondition
+    name: TagQueryCondition
+    type: Class
+- uid: SpellBook.GAS.Core
+  name: SpellBook.GAS.Core
+  type: Namespace
+  items:
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent
+    name: AbilitySystemComponent
+    type: Class
+  - uid: SpellBook.GAS.Core.AttributeLimitHandler
+    name: AttributeLimitHandler
+    type: Delegate
+- uid: SpellBook.GAS.Diagnostics
+  name: SpellBook.GAS.Diagnostics
+  type: Namespace
+  items:
+  - uid: SpellBook.GAS.Diagnostics.AbilityRow
+    name: AbilityRow
+    type: Struct
+  - uid: SpellBook.GAS.Diagnostics.AttributeRow
+    name: AttributeRow
+    type: Struct
+  - uid: SpellBook.GAS.Diagnostics.EffectRow
+    name: EffectRow
+    type: Struct
+  - uid: SpellBook.GAS.Diagnostics.EventLog
+    name: EventLog
+    type: Class
+  - uid: SpellBook.GAS.Diagnostics.GasDebuggerModel
+    name: GasDebuggerModel
+    type: Class
+  - uid: SpellBook.GAS.Diagnostics.GasEventEntry
+    name: GasEventEntry
+    type: Struct
+  - uid: SpellBook.GAS.Diagnostics.GasEventKind
+    name: GasEventKind
+    type: Enum
+  - uid: SpellBook.GAS.Diagnostics.TagRow
+    name: TagRow
+    type: Struct
+- uid: SpellBook.GAS.Editor
+  name: SpellBook.GAS.Editor
+  type: Namespace
+  items:
+  - uid: SpellBook.GAS.Editor.AttributeDefinitionEditor
+    name: AttributeDefinitionEditor
+    type: Class
+  - uid: SpellBook.GAS.Editor.GameplayAbilityEditor
+    name: GameplayAbilityEditor
+    type: Class
+  - uid: SpellBook.GAS.Editor.GasAssetMigration
+    name: GasAssetMigration
+    type: Class
+  - uid: SpellBook.GAS.Editor.ScalableFloatDrawer
+    name: ScalableFloatDrawer
+    type: Class
+  - uid: SpellBook.GAS.Editor.ScalableFloatField
+    name: ScalableFloatField
+    type: Class
+- uid: SpellBook.GAS.Effects
+  name: SpellBook.GAS.Effects
+  type: Namespace
+  items:
+  - uid: SpellBook.GAS.Effects.ActiveEffectInstance
+    name: ActiveEffectInstance
+    type: Class
+  - uid: SpellBook.GAS.Effects.AttributeEffectModifier
+    name: AttributeEffectModifier
+    type: Class
+  - uid: SpellBook.GAS.Effects.DebugLogEffectAction
+    name: DebugLogEffectAction
+    type: Class
+  - uid: SpellBook.GAS.Effects.EffectAction
+    name: EffectAction
+    type: Class
+  - uid: SpellBook.GAS.Effects.EffectApplicationResult
+    name: EffectApplicationResult
+    type: Enum
+  - uid: SpellBook.GAS.Effects.EffectContext
+    name: EffectContext
+    type: Struct
+  - uid: SpellBook.GAS.Effects.EffectDurationPolicy
+    name: EffectDurationPolicy
+    type: Enum
+  - uid: SpellBook.GAS.Effects.EffectRemovalReason
+    name: EffectRemovalReason
+    type: Enum
+  - uid: SpellBook.GAS.Effects.EffectSpec
+    name: EffectSpec
+    type: Struct
+  - uid: SpellBook.GAS.Effects.GameplayEffect
+    name: GameplayEffect
+    type: Class
+  - uid: SpellBook.GAS.Effects.IReadOnlySetByCaller
+    name: IReadOnlySetByCaller
+    type: Interface
+  - uid: SpellBook.GAS.Effects.MagnitudeMode
+    name: MagnitudeMode
+    type: Enum
+  - uid: SpellBook.GAS.Effects.SetByCallerValues
+    name: SetByCallerValues
+    type: Class
+  - uid: SpellBook.GAS.Effects.SpawnVFXEffectAction
+    name: SpawnVFXEffectAction
+    type: Class
+- uid: SpellBook.GAS.Targeting
+  name: SpellBook.GAS.Targeting
+  type: Namespace
+  items:
+  - uid: SpellBook.GAS.Targeting.CircleTargeting
+    name: CircleTargeting
+    type: Class
+  - uid: SpellBook.GAS.Targeting.MouseTargetingStrategy
+    name: MouseTargetingStrategy
+    type: Class
+  - uid: SpellBook.GAS.Targeting.PhysicsMode
+    name: PhysicsMode
+    type: Enum
+  - uid: SpellBook.GAS.Targeting.TargetingStrategy
+    name: TargetingStrategy
+    type: Class
+- uid: SpellBook.GAS.Values
+  name: SpellBook.GAS.Values
+  type: Namespace
+  items:
+  - uid: SpellBook.GAS.Values.AbilityValues
+    name: AbilityValues
+    type: Class
+  - uid: SpellBook.GAS.Values.AbilityValues.Entry
+    name: AbilityValues.Entry
+    type: Class
+  - uid: SpellBook.GAS.Values.ScalableFloat
+    name: ScalableFloat
+    type: Class
+  - uid: SpellBook.GAS.Values.ScalableFloat.ScalableMode
+    name: ScalableFloat.ScalableMode
+    type: Enum
+- uid: SpellBook.Pooling
+  name: SpellBook.Pooling
+  type: Namespace
+  items:
+  - uid: SpellBook.Pooling.ComponentPooler
+    name: ComponentPooler
+    type: Class
+  - uid: SpellBook.Pooling.IPoolable
+    name: IPoolable
+    type: Interface
+  - uid: SpellBook.Pooling.PoolConfiguration
+    name: PoolConfiguration
+    type: Class
+  - uid: SpellBook.Pooling.PoolManager
+    name: PoolManager
+    type: Class
+  - uid: SpellBook.Pooling.PoolableObject
+    name: PoolableObject
+    type: Class
+  - uid: SpellBook.Pooling.PooledSpawnerAsset
+    name: PooledSpawnerAsset
+    type: Class
+- uid: SpellBook.Tags
+  name: SpellBook.Tags
+  type: Namespace
+  items:
+  - uid: SpellBook.Tags.GameplayTag
+    name: GameplayTag
+    type: Struct
+  - uid: SpellBook.Tags.GameplayTagContainer
+    name: GameplayTagContainer
+    type: Class
+  - uid: SpellBook.Tags.GameplayTagContainer.Enumerator
+    name: GameplayTagContainer.Enumerator
+    type: Struct
+  - uid: SpellBook.Tags.GameplayTagDefinition
+    name: GameplayTagDefinition
+    type: Class
+  - uid: SpellBook.Tags.GameplayTagQuery
+    name: GameplayTagQuery
+    type: Class
+- uid: SpellBook.Tags.Editor
+  name: SpellBook.Tags.Editor
+  type: Namespace
+  items:
+  - uid: SpellBook.Tags.Editor.GameplayTagContainerDrawer
+    name: GameplayTagContainerDrawer
+    type: Class
+  - uid: SpellBook.Tags.Editor.GameplayTagQueryDrawer
+    name: GameplayTagQueryDrawer
+    type: Class
+- uid: SpellBook.Time
+  name: SpellBook.Time
+  type: Namespace
+  items:
+  - uid: SpellBook.Time.ITimeSource
+    name: ITimeSource
+    type: Interface
+  - uid: SpellBook.Time.ManualTimeSource
+    name: ManualTimeSource
+    type: Class
+  - uid: SpellBook.Time.PausableTimeSource
+    name: PausableTimeSource
+    type: Class
+  - uid: SpellBook.Time.ScaledTimeSource
+    name: ScaledTimeSource
+    type: Class
+  - uid: SpellBook.Time.TimeSourceAsset
+    name: TimeSourceAsset
+    type: Class
+  - uid: SpellBook.Time.UnscaledTimeSource
+    name: UnscaledTimeSource
+    type: Class
+memberLayout: SamePage

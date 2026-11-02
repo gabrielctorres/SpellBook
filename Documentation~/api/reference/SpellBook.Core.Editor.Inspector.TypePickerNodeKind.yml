@@ -1,0 +1,110 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.Core.Editor.Inspector.TypePickerNodeKind
+  commentId: T:SpellBook.Core.Editor.Inspector.TypePickerNodeKind
+  id: TypePickerNodeKind
+  parent: SpellBook.Core.Editor.Inspector
+  children:
+  - SpellBook.Core.Editor.Inspector.TypePickerNodeKind.Category
+  - SpellBook.Core.Editor.Inspector.TypePickerNodeKind.None
+  - SpellBook.Core.Editor.Inspector.TypePickerNodeKind.Type
+  langs:
+  - csharp
+  - vb
+  name: TypePickerNodeKind
+  nameWithType: TypePickerNodeKind
+  fullName: SpellBook.Core.Editor.Inspector.TypePickerNodeKind
+  type: Enum
+  namespace: SpellBook.Core.Editor.Inspector
+  summary: Tipo de um nó da árvore do seletor.
+  example: []
+  syntax:
+    content: public enum TypePickerNodeKind
+    content.vb: Public Enum TypePickerNodeKind
+- uid: SpellBook.Core.Editor.Inspector.TypePickerNodeKind.None
+  commentId: F:SpellBook.Core.Editor.Inspector.TypePickerNodeKind.None
+  id: None
+  parent: SpellBook.Core.Editor.Inspector.TypePickerNodeKind
+  langs:
+  - csharp
+  - vb
+  name: None
+  nameWithType: TypePickerNodeKind.None
+  fullName: SpellBook.Core.Editor.Inspector.TypePickerNodeKind.None
+  type: Field
+  namespace: SpellBook.Core.Editor.Inspector
+  summary: "\"(Nenhum)\": deixa o campo nulo. Só existe na raiz."
+  example: []
+  syntax:
+    content: None = 0
+    return:
+      type: SpellBook.Core.Editor.Inspector.TypePickerNodeKind
+- uid: SpellBook.Core.Editor.Inspector.TypePickerNodeKind.Category
+  commentId: F:SpellBook.Core.Editor.Inspector.TypePickerNodeKind.Category
+  id: Category
+  parent: SpellBook.Core.Editor.Inspector.TypePickerNodeKind
+  langs:
+  - csharp
+  - vb
+  name: Category
+  nameWithType: TypePickerNodeKind.Category
+  fullName: SpellBook.Core.Editor.Inspector.TypePickerNodeKind.Category
+  type: Field
+  namespace: SpellBook.Core.Editor.Inspector
+  syntax:
+    content: Category = 1
+    return:
+      type: SpellBook.Core.Editor.Inspector.TypePickerNodeKind
+- uid: SpellBook.Core.Editor.Inspector.TypePickerNodeKind.Type
+  commentId: F:SpellBook.Core.Editor.Inspector.TypePickerNodeKind.Type
+  id: Type
+  parent: SpellBook.Core.Editor.Inspector.TypePickerNodeKind
+  langs:
+  - csharp
+  - vb
+  name: Type
+  nameWithType: TypePickerNodeKind.Type
+  fullName: SpellBook.Core.Editor.Inspector.TypePickerNodeKind.Type
+  type: Field
+  namespace: SpellBook.Core.Editor.Inspector
+  syntax:
+    content: Type = 2
+    return:
+      type: SpellBook.Core.Editor.Inspector.TypePickerNodeKind
+references:
+- uid: SpellBook.Core.Editor.Inspector
+  commentId: N:SpellBook.Core.Editor.Inspector
+  name: SpellBook.Core.Editor.Inspector
+  nameWithType: SpellBook.Core.Editor.Inspector
+  fullName: SpellBook.Core.Editor.Inspector
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Editor
+    name: Editor
+  - name: .
+  - uid: SpellBook.Core.Editor.Inspector
+    name: Inspector
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Editor
+    name: Editor
+  - name: .
+  - uid: SpellBook.Core.Editor.Inspector
+    name: Inspector
+- uid: SpellBook.Core.Editor.Inspector.TypePickerNodeKind
+  commentId: T:SpellBook.Core.Editor.Inspector.TypePickerNodeKind
+  parent: SpellBook.Core.Editor.Inspector
+  href: SpellBook.Core.Editor.Inspector.TypePickerNodeKind.html
+  name: TypePickerNodeKind
+  nameWithType: TypePickerNodeKind
+  fullName: SpellBook.Core.Editor.Inspector.TypePickerNodeKind
