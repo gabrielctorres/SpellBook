@@ -1,11 +1,12 @@
 using System;
 using System.Collections;
+using SpellBook.Core.Inspector;
 using UnityEngine;
 using SpellBook.Core;
 
 namespace SpellBook.GAS.Abilities.Actions
 {
-    [Serializable]
+    [Serializable, TypeCategory("Apresentação", Summary = "Cria um efeito visual e toca um som em quem lançou, no alvo ou no ponto.")]
     public class PlayCueAction : AbilityAction
     {
         public GameObject VFX_Prefab;

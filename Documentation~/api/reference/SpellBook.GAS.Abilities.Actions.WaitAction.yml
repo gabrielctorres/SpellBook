@@ -19,9 +19,13 @@ items:
     content: >-
       [Serializable]
 
+      [TypeCategory("Fluxo", Summary = "Espera alguns segundos no tempo do sistema de habilidades do ator.")]
+
       public class WaitAction : AbilityAction, IValidatable
     content.vb: >-
       <Serializable>
+
+      <TypeCategory("Fluxo", Summary:="Espera alguns segundos no tempo do sistema de habilidades do ator.")>
 
       Public Class WaitAction Inherits AbilityAction Implements IValidatable
   inheritance:
@@ -47,6 +51,15 @@ items:
   - type: System.SerializableAttribute
     ctor: System.SerializableAttribute.#ctor
     arguments: []
+  - type: SpellBook.Core.Inspector.TypeCategoryAttribute
+    ctor: SpellBook.Core.Inspector.TypeCategoryAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: Fluxo
+    namedArguments:
+    - name: Summary
+      type: System.String
+      value: Espera alguns segundos no tempo do sistema de habilidades do ator.
 - uid: SpellBook.GAS.Abilities.Actions.WaitAction.Duration
   commentId: F:SpellBook.GAS.Abilities.Actions.WaitAction.Duration
   id: Duration

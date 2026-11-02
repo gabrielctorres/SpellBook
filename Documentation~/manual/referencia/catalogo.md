@@ -56,16 +56,16 @@ Aparece em: `Conditional Action > Else`, `Conditional Action > Then`, `Gameplay 
 
 | Tipo | Categoria | Resumo |
 |---|---|---|
-| [Animation Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.AnimationAction.html) | Raiz |  |
-| [Apply Effect Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.ApplyEffectAction.html) | Raiz |  |
-| [Conditional Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.ConditionalAction.html) | Raiz |  |
-| [Parallel Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.ParallelAction.html) | Raiz |  |
-| [Play Cue Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.PlayCueAction.html) | Raiz |  |
+| [Animation Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.AnimationAction.html) | Apresentação | Muda um parâmetro do Animator de quem lançou. |
+| [Apply Effect Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.ApplyEffectAction.html) | Efeito | Aplica efeitos nos alvos e, se marcado, em quem lançou. |
+| [Conditional Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.ConditionalAction.html) | Fluxo | Roda as ações de Then ou de Else conforme a condição. |
+| [Parallel Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.ParallelAction.html) | Fluxo | Roda as ações ao mesmo tempo e espera todas terminarem. |
+| [Play Cue Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.PlayCueAction.html) | Apresentação | Cria um efeito visual e toca um som em quem lançou, no alvo ou no ponto. |
 | [Raise Event Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Bridges.RaiseEventAction.html) | Eventos | Dispara um canal de eventos com um payload fixo ou da habilidade. |
-| [Repeat Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.RepeatAction.html) | Raiz |  |
-| [Spawn Projectile Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.html) | Raiz |  |
-| [Targeting Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.TargetingAction.html) | Raiz |  |
-| [Wait Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.WaitAction.html) | Raiz |  |
+| [Repeat Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.RepeatAction.html) | Fluxo | Repete as ações várias vezes, com intervalo opcional. |
+| [Spawn Projectile Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.html) | Mundo | Lança projéteis que rodam ações ao acertar. |
+| [Targeting Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.TargetingAction.html) | Alvo | Busca alvos com uma estratégia e troca ou soma aos alvos atuais. |
+| [Wait Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.WaitAction.html) | Fluxo | Espera alguns segundos no tempo do sistema de habilidades do ator. |
 
 ## `DescriptionElement` {#spellbook-gas-abilities-descriptionelement}
 
@@ -73,9 +73,9 @@ Aparece em: `Ability Description > Elements`.
 
 | Tipo | Categoria | Resumo |
 |---|---|---|
-| [Attribute Element](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.AttributeElement.html) | Raiz |  |
-| [Template Element](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.TemplateElement.html) | Raiz |  |
-| [Text Element](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.TextElement.html) | Raiz |  |
+| [Attribute Element](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.AttributeElement.html) | Descrição | Valor de um atributo de quem lançou, com cor. |
+| [Template Element](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.TemplateElement.html) | Descrição | Modelo com marcadores trocados por atributos ou texto. |
+| [Text Element](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.TextElement.html) | Descrição | Texto fixo. |
 
 ## `AttributeChangeProcessor` {#spellbook-gas-attributes-attributechangeprocessor}
 

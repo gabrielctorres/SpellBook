@@ -23,9 +23,13 @@ items:
     content: >-
       [Serializable]
 
+      [TypeCategory("Efeito", Summary = "Aplica efeitos nos alvos e, se marcado, em quem lançou.")]
+
       public class ApplyEffectAction : AbilityAction, IValidatable
     content.vb: >-
       <Serializable>
+
+      <TypeCategory("Efeito", Summary:="Aplica efeitos nos alvos e, se marcado, em quem lançou.")>
 
       Public Class ApplyEffectAction Inherits AbilityAction Implements IValidatable
   inheritance:
@@ -50,6 +54,15 @@ items:
   - type: System.SerializableAttribute
     ctor: System.SerializableAttribute.#ctor
     arguments: []
+  - type: SpellBook.Core.Inspector.TypeCategoryAttribute
+    ctor: SpellBook.Core.Inspector.TypeCategoryAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: Efeito
+    namedArguments:
+    - name: Summary
+      type: System.String
+      value: Aplica efeitos nos alvos e, se marcado, em quem lançou.
 - uid: SpellBook.GAS.Abilities.Actions.ApplyEffectAction.Effects
   commentId: F:SpellBook.GAS.Abilities.Actions.ApplyEffectAction.Effects
   id: Effects

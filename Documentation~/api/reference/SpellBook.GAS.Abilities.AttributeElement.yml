@@ -22,9 +22,13 @@ items:
     content: >-
       [Serializable]
 
+      [TypeCategory("Descrição", Summary = "Valor de um atributo de quem lançou, com cor.")]
+
       public class AttributeElement : DescriptionElement
     content.vb: >-
       <Serializable>
+
+      <TypeCategory("Descrição", Summary:="Valor de um atributo de quem lançou, com cor.")>
 
       Public Class AttributeElement Inherits DescriptionElement
   inheritance:
@@ -42,6 +46,15 @@ items:
   - type: System.SerializableAttribute
     ctor: System.SerializableAttribute.#ctor
     arguments: []
+  - type: SpellBook.Core.Inspector.TypeCategoryAttribute
+    ctor: SpellBook.Core.Inspector.TypeCategoryAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: Descrição
+    namedArguments:
+    - name: Summary
+      type: System.String
+      value: Valor de um atributo de quem lançou, com cor.
 - uid: SpellBook.GAS.Abilities.AttributeElement.Attribute
   commentId: F:SpellBook.GAS.Abilities.AttributeElement.Attribute
   id: Attribute

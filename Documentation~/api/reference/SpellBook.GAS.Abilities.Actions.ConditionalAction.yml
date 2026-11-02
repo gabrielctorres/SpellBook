@@ -25,9 +25,13 @@ items:
     content: >-
       [Serializable]
 
+      [TypeCategory("Fluxo", Summary = "Roda as ações de Then ou de Else conforme a condição.")]
+
       public class ConditionalAction : AbilityAction, IValidatable
     content.vb: >-
       <Serializable>
+
+      <TypeCategory("Fluxo", Summary:="Roda as ações de Then ou de Else conforme a condição.")>
 
       Public Class ConditionalAction Inherits AbilityAction Implements IValidatable
   inheritance:
@@ -52,6 +56,15 @@ items:
   - type: System.SerializableAttribute
     ctor: System.SerializableAttribute.#ctor
     arguments: []
+  - type: SpellBook.Core.Inspector.TypeCategoryAttribute
+    ctor: SpellBook.Core.Inspector.TypeCategoryAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: Fluxo
+    namedArguments:
+    - name: Summary
+      type: System.String
+      value: Roda as ações de Then ou de Else conforme a condição.
 - uid: SpellBook.GAS.Abilities.Actions.ConditionalAction.Condition
   commentId: F:SpellBook.GAS.Abilities.Actions.ConditionalAction.Condition
   id: Condition

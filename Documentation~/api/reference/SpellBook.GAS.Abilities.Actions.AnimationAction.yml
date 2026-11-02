@@ -22,9 +22,13 @@ items:
     content: >-
       [Serializable]
 
+      [TypeCategory("Apresentação", Summary = "Muda um parâmetro do Animator de quem lançou.")]
+
       public class AnimationAction : AbilityAction, IValidatable
     content.vb: >-
       <Serializable>
+
+      <TypeCategory("Apresentação", Summary:="Muda um parâmetro do Animator de quem lançou.")>
 
       Public Class AnimationAction Inherits AbilityAction Implements IValidatable
   inheritance:
@@ -50,6 +54,15 @@ items:
   - type: System.SerializableAttribute
     ctor: System.SerializableAttribute.#ctor
     arguments: []
+  - type: SpellBook.Core.Inspector.TypeCategoryAttribute
+    ctor: SpellBook.Core.Inspector.TypeCategoryAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: Apresentação
+    namedArguments:
+    - name: Summary
+      type: System.String
+      value: Muda um parâmetro do Animator de quem lançou.
 - uid: SpellBook.GAS.Abilities.Actions.AnimationAction.ParameterName
   commentId: F:SpellBook.GAS.Abilities.Actions.AnimationAction.ParameterName
   id: ParameterName

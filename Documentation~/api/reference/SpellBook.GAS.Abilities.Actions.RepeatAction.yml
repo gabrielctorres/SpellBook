@@ -24,9 +24,13 @@ items:
     content: >-
       [Serializable]
 
+      [TypeCategory("Fluxo", Summary = "Repete as ações várias vezes, com intervalo opcional.")]
+
       public class RepeatAction : AbilityAction, IValidatable
     content.vb: >-
       <Serializable>
+
+      <TypeCategory("Fluxo", Summary:="Repete as ações várias vezes, com intervalo opcional.")>
 
       Public Class RepeatAction Inherits AbilityAction Implements IValidatable
   inheritance:
@@ -51,6 +55,15 @@ items:
   - type: System.SerializableAttribute
     ctor: System.SerializableAttribute.#ctor
     arguments: []
+  - type: SpellBook.Core.Inspector.TypeCategoryAttribute
+    ctor: SpellBook.Core.Inspector.TypeCategoryAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: Fluxo
+    namedArguments:
+    - name: Summary
+      type: System.String
+      value: Repete as ações várias vezes, com intervalo opcional.
 - uid: SpellBook.GAS.Abilities.Actions.RepeatAction.Count
   commentId: F:SpellBook.GAS.Abilities.Actions.RepeatAction.Count
   id: Count

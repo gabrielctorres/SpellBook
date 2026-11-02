@@ -1,12 +1,13 @@
 using System;
 using System.Collections;
+using SpellBook.Core.Inspector;
 using UnityEngine;
 
 namespace SpellBook.GAS.Abilities.Actions
 {
     public enum AnimationParamType { Trigger, Bool, Int }
 
-    [Serializable]
+    [Serializable, TypeCategory("Apresentação", Summary = "Muda um parâmetro do Animator de quem lançou.")]
     public class AnimationAction : AbilityAction
     {
         public string ParameterName;

@@ -1,13 +1,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using SpellBook.Core.Inspector;
 using UnityEngine;
 using SpellBook.GAS.Effects;
 
 namespace SpellBook.GAS.Abilities.Actions
 {
     /// <summary>Aplica os efeitos com a habilidade, o nível e o ponto de alvo do contexto (<see cref="EffectSpec.FromAbility"/>).</summary>
-    [Serializable]
+    [Serializable, TypeCategory("Efeito", Summary = "Aplica efeitos nos alvos e, se marcado, em quem lançou.")]
     public class ApplyEffectAction : AbilityAction
     {
         public List<GameplayEffect> Effects;

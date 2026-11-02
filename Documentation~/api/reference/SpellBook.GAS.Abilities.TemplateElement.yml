@@ -20,9 +20,13 @@ items:
     content: >-
       [Serializable]
 
+      [TypeCategory("Descrição", Summary = "Modelo com marcadores trocados por atributos ou texto.")]
+
       public class TemplateElement : DescriptionElement
     content.vb: >-
       <Serializable>
+
+      <TypeCategory("Descrição", Summary:="Modelo com marcadores trocados por atributos ou texto.")>
 
       Public Class TemplateElement Inherits DescriptionElement
   inheritance:
@@ -40,6 +44,15 @@ items:
   - type: System.SerializableAttribute
     ctor: System.SerializableAttribute.#ctor
     arguments: []
+  - type: SpellBook.Core.Inspector.TypeCategoryAttribute
+    ctor: SpellBook.Core.Inspector.TypeCategoryAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: Descrição
+    namedArguments:
+    - name: Summary
+      type: System.String
+      value: Modelo com marcadores trocados por atributos ou texto.
 - uid: SpellBook.GAS.Abilities.TemplateElement.Template
   commentId: F:SpellBook.GAS.Abilities.TemplateElement.Template
   id: Template

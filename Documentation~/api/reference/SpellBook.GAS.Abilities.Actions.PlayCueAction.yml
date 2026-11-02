@@ -23,9 +23,13 @@ items:
     content: >-
       [Serializable]
 
+      [TypeCategory("Apresentação", Summary = "Cria um efeito visual e toca um som em quem lançou, no alvo ou no ponto.")]
+
       public class PlayCueAction : AbilityAction, IValidatable
     content.vb: >-
       <Serializable>
+
+      <TypeCategory("Apresentação", Summary:="Cria um efeito visual e toca um som em quem lançou, no alvo ou no ponto.")>
 
       Public Class PlayCueAction Inherits AbilityAction Implements IValidatable
   inheritance:
@@ -51,6 +55,15 @@ items:
   - type: System.SerializableAttribute
     ctor: System.SerializableAttribute.#ctor
     arguments: []
+  - type: SpellBook.Core.Inspector.TypeCategoryAttribute
+    ctor: SpellBook.Core.Inspector.TypeCategoryAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: Apresentação
+    namedArguments:
+    - name: Summary
+      type: System.String
+      value: Cria um efeito visual e toca um som em quem lançou, no alvo ou no ponto.
 - uid: SpellBook.GAS.Abilities.Actions.PlayCueAction.VFX_Prefab
   commentId: F:SpellBook.GAS.Abilities.Actions.PlayCueAction.VFX_Prefab
   id: VFX_Prefab

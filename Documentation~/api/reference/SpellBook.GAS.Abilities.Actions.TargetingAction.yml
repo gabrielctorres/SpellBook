@@ -21,9 +21,13 @@ items:
     content: >-
       [Serializable]
 
+      [TypeCategory("Alvo", Summary = "Busca alvos com uma estratégia e troca ou soma aos alvos atuais.")]
+
       public class TargetingAction : AbilityAction, IValidatable
     content.vb: >-
       <Serializable>
+
+      <TypeCategory("Alvo", Summary:="Busca alvos com uma estratégia e troca ou soma aos alvos atuais.")>
 
       Public Class TargetingAction Inherits AbilityAction Implements IValidatable
   inheritance:
@@ -49,6 +53,15 @@ items:
   - type: System.SerializableAttribute
     ctor: System.SerializableAttribute.#ctor
     arguments: []
+  - type: SpellBook.Core.Inspector.TypeCategoryAttribute
+    ctor: SpellBook.Core.Inspector.TypeCategoryAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: Alvo
+    namedArguments:
+    - name: Summary
+      type: System.String
+      value: Busca alvos com uma estratégia e troca ou soma aos alvos atuais.
 - uid: SpellBook.GAS.Abilities.Actions.TargetingAction.Strategy
   commentId: F:SpellBook.GAS.Abilities.Actions.TargetingAction.Strategy
   id: Strategy

@@ -12,12 +12,10 @@ namespace SpellBook.Core.Tests.Documentation
     public class TypeCatalogSummaryTests
     {
         /// <summary>
-        /// Namespaces ainda sem resumo, cada um com os seus sub-namespaces. A lista só diminui: o RC7 tira
-        /// <c>SpellBook.GAS.Abilities</c> e o RC8 apaga a lista.
+        /// Namespaces ainda sem resumo, cada um com os seus sub-namespaces. A lista só diminui: o RC8 apaga a lista.
         /// </summary>
         private static readonly string[] PendingNamespaces =
         {
-            "SpellBook.GAS.Abilities",
             "SpellBook.GAS.Effects",
         };
 

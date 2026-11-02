@@ -19,9 +19,13 @@ items:
     content: >-
       [Serializable]
 
+      [TypeCategory("Descrição", Summary = "Texto fixo.")]
+
       public class TextElement : DescriptionElement
     content.vb: >-
       <Serializable>
+
+      <TypeCategory("Descrição", Summary:="Texto fixo.")>
 
       Public Class TextElement Inherits DescriptionElement
   inheritance:
@@ -39,6 +43,15 @@ items:
   - type: System.SerializableAttribute
     ctor: System.SerializableAttribute.#ctor
     arguments: []
+  - type: SpellBook.Core.Inspector.TypeCategoryAttribute
+    ctor: SpellBook.Core.Inspector.TypeCategoryAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: Descrição
+    namedArguments:
+    - name: Summary
+      type: System.String
+      value: Texto fixo.
 - uid: SpellBook.GAS.Abilities.TextElement.Text
   commentId: F:SpellBook.GAS.Abilities.TextElement.Text
   id: Text

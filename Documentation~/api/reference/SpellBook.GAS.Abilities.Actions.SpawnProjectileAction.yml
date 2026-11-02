@@ -29,9 +29,13 @@ items:
     content: >-
       [Serializable]
 
+      [TypeCategory("Mundo", Summary = "Lança projéteis que rodam ações ao acertar.")]
+
       public class SpawnProjectileAction : AbilityAction, IValidatable
     content.vb: >-
       <Serializable>
+
+      <TypeCategory("Mundo", Summary:="Lança projéteis que rodam ações ao acertar.")>
 
       Public Class SpawnProjectileAction Inherits AbilityAction Implements IValidatable
   inheritance:
@@ -56,6 +60,15 @@ items:
   - type: System.SerializableAttribute
     ctor: System.SerializableAttribute.#ctor
     arguments: []
+  - type: SpellBook.Core.Inspector.TypeCategoryAttribute
+    ctor: SpellBook.Core.Inspector.TypeCategoryAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: Mundo
+    namedArguments:
+    - name: Summary
+      type: System.String
+      value: Lança projéteis que rodam ações ao acertar.
 - uid: SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectilePrefab
   commentId: F:SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.ProjectilePrefab
   id: ProjectilePrefab
