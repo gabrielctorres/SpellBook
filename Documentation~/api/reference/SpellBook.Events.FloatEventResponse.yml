@@ -19,13 +19,13 @@ items:
     content: >-
       [Serializable]
 
-      [TypeCategory("Respostas")]
+      [TypeCategory("Respostas", Summary = "Roda reações quando um canal de float dispara.")]
 
       public sealed class FloatEventResponse : EventResponse<float>, IValidatable
     content.vb: >-
       <Serializable>
 
-      <TypeCategory("Respostas")>
+      <TypeCategory("Respostas", Summary:="Roda reações quando um canal de float dispara.")>
 
       Public NotInheritable Class FloatEventResponse Inherits EventResponse(Of Single) Implements IValidatable
   inheritance:
@@ -54,6 +54,10 @@ items:
     arguments:
     - type: System.String
       value: Respostas
+    namedArguments:
+    - name: Summary
+      type: System.String
+      value: Roda reações quando um canal de float dispara.
 references:
 - uid: SpellBook.Events.FloatEventChannel
   commentId: T:SpellBook.Events.FloatEventChannel

@@ -19,13 +19,13 @@ items:
     content: >-
       [Serializable]
 
-      [TypeCategory("Respostas")]
+      [TypeCategory("Respostas", Summary = "Roda reações quando um canal de string dispara.")]
 
       public sealed class StringEventResponse : EventResponse<string>, IValidatable
     content.vb: >-
       <Serializable>
 
-      <TypeCategory("Respostas")>
+      <TypeCategory("Respostas", Summary:="Roda reações quando um canal de string dispara.")>
 
       Public NotInheritable Class StringEventResponse Inherits EventResponse(Of String) Implements IValidatable
   inheritance:
@@ -54,6 +54,10 @@ items:
     arguments:
     - type: System.String
       value: Respostas
+    namedArguments:
+    - name: Summary
+      type: System.String
+      value: Roda reações quando um canal de string dispara.
 references:
 - uid: SpellBook.Events.StringEventChannel
   commentId: T:SpellBook.Events.StringEventChannel

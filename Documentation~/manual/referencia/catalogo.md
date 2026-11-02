@@ -24,19 +24,19 @@ Aparece em: `Event Listener > Responses`.
 
 | Tipo | Categoria | Resumo |
 |---|---|---|
-| [Ability Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Bridges.AbilityEventResponse.html) | Respostas |  |
-| [Attribute Changed Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Bridges.AttributeChangedEventResponse.html) | Respostas |  |
-| [Attribute Limit Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Bridges.AttributeLimitEventResponse.html) | Respostas |  |
-| [Blocked Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Bridges.BlockedEventResponse.html) | Respostas |  |
-| [Bool Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.Events.BoolEventResponse.html) | Respostas |  |
-| [Effect Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Bridges.EffectEventResponse.html) | Respostas |  |
-| [Float Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.Events.FloatEventResponse.html) | Respostas |  |
-| [Game Object Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.Events.GameObjectEventResponse.html) | Respostas |  |
-| [Int Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.Events.IntEventResponse.html) | Respostas |  |
-| [String Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.Events.StringEventResponse.html) | Respostas |  |
-| [Tag Changed Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Bridges.TagChangedEventResponse.html) | Respostas |  |
-| [Vector 3 Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.Events.Vector3EventResponse.html) | Respostas |  |
-| [Void Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.Events.VoidEventResponse.html) | Respostas |  |
+| [Ability Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Bridges.AbilityEventResponse.html) | Respostas | Roda reações quando uma habilidade é ativada, termina, falha, é concedida ou removida. |
+| [Attribute Changed Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Bridges.AttributeChangedEventResponse.html) | Respostas | Roda reações quando o valor atual de um atributo muda. |
+| [Attribute Limit Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Bridges.AttributeLimitEventResponse.html) | Respostas | Roda reações quando um atributo chega ao mínimo ou ao máximo. |
+| [Blocked Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Bridges.BlockedEventResponse.html) | Respostas | Roda reações quando um ASC informa um bloqueio, com a tag do motivo. |
+| [Bool Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.Events.BoolEventResponse.html) | Respostas | Roda reações quando um canal de bool dispara. |
+| [Effect Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Bridges.EffectEventResponse.html) | Respostas | Roda reações quando um efeito é aplicado, removido, muda de pilhas ou é bloqueado. |
+| [Float Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.Events.FloatEventResponse.html) | Respostas | Roda reações quando um canal de float dispara. |
+| [Game Object Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.Events.GameObjectEventResponse.html) | Respostas | Roda reações quando um canal de GameObject dispara. |
+| [Int Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.Events.IntEventResponse.html) | Respostas | Roda reações quando um canal de int dispara. |
+| [String Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.Events.StringEventResponse.html) | Respostas | Roda reações quando um canal de string dispara. |
+| [Tag Changed Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Bridges.TagChangedEventResponse.html) | Respostas | Roda reações quando uma tag entra no ASC ou sai dele. |
+| [Vector 3 Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.Events.Vector3EventResponse.html) | Respostas | Roda reações quando um canal de Vector3 dispara. |
+| [Void Event Response](https://gabrielctorres.github.io/SpellBook/api/SpellBook.Events.VoidEventResponse.html) | Respostas | Roda reações quando um canal sem payload dispara. |
 
 ## `Reaction` {#spellbook-events-reaction}
 

@@ -19,13 +19,13 @@ items:
     content: >-
       [Serializable]
 
-      [TypeCategory("Respostas")]
+      [TypeCategory("Respostas", Summary = "Roda reações quando uma tag entra no ASC ou sai dele.")]
 
       public sealed class TagChangedEventResponse : EventResponse<TagChangedData>, IValidatable
     content.vb: >-
       <Serializable>
 
-      <TypeCategory("Respostas")>
+      <TypeCategory("Respostas", Summary:="Roda reações quando uma tag entra no ASC ou sai dele.")>
 
       Public NotInheritable Class TagChangedEventResponse Inherits EventResponse(Of TagChangedData) Implements IValidatable
   inheritance:
@@ -54,6 +54,10 @@ items:
     arguments:
     - type: System.String
       value: Respostas
+    namedArguments:
+    - name: Summary
+      type: System.String
+      value: Roda reações quando uma tag entra no ASC ou sai dele.
 references:
 - uid: SpellBook.GAS.Bridges.TagChangedEventChannel
   commentId: T:SpellBook.GAS.Bridges.TagChangedEventChannel

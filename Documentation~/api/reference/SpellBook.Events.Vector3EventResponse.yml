@@ -19,13 +19,13 @@ items:
     content: >-
       [Serializable]
 
-      [TypeCategory("Respostas")]
+      [TypeCategory("Respostas", Summary = "Roda reações quando um canal de Vector3 dispara.")]
 
       public sealed class Vector3EventResponse : EventResponse<Vector3>, IValidatable
     content.vb: >-
       <Serializable>
 
-      <TypeCategory("Respostas")>
+      <TypeCategory("Respostas", Summary:="Roda reações quando um canal de Vector3 dispara.")>
 
       Public NotInheritable Class Vector3EventResponse Inherits EventResponse(Of Vector3) Implements IValidatable
   inheritance:
@@ -54,6 +54,10 @@ items:
     arguments:
     - type: System.String
       value: Respostas
+    namedArguments:
+    - name: Summary
+      type: System.String
+      value: Roda reações quando um canal de Vector3 dispara.
 references:
 - uid: SpellBook.Events.Vector3EventChannel
   commentId: T:SpellBook.Events.Vector3EventChannel
