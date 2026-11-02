@@ -1,0 +1,11 @@
+{
+  "build": {
+    "content": [
+      { "files": [ "reference/**.yml", "index.md", "toc.yml" ] }
+    ],
+    "globalMetadata": {
+      "_appTitle": "SpellBook: referência da API"
+    },
+    "dest": "_site"
+  }
+}
