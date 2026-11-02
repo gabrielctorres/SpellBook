@@ -84,6 +84,23 @@ Para montar o escudo, crie um atributo `Escudo` com mínimo 0, ponha-o no `Attri
 
 Quando o `Escudo` chega a 0, o `OnDepleted` dele dispara uma vez, antes de qualquer `OnDepleted` da `Vida` no mesmo golpe.
 
+## Meta-atributo {#meta-atributo}
+
+Um meta-atributo recebe o dano e não guarda valor. Os efeitos aplicam o golpe nele, e os processadores dele repassam o golpe aos atributos de verdade, como o escudo e a vida. Use quando vários efeitos causam dano e você quer as regras de conversão num lugar só. Se o dano vai direto à vida, não precisa de meta-atributo.
+
+Para montar:
+
+1. Crie um atributo `DanoRecebido` e ligue `Is Meta` na seção `Damage`.
+2. Ponha `DanoRecebido` no `AttributeSet` do personagem, com valor inicial 0, como qualquer outro atributo.
+3. Na lista `Processors` de `DanoRecebido`, adicione os processadores que repassam o golpe. Um `AbsorbWithAttribute` com `Shield` em `Escudo` manda ao escudo o que ele puder absorver. Para mandar o resto à `Vida`, escreva um processador que chama `queue.Redirect(vida, change.Delta)` (veja [Criar o seu](#criar-o-seu)).
+4. Nos efeitos de dano, troque o atributo do modificador de `Vida` para `DanoRecebido`.
+
+Com `Escudo` 30 e `Vida` 100, um efeito de -40 em `DanoRecebido` deixa o `Escudo` em 0 e a `Vida` em 90.
+
+Depois dos processadores, a variação que sobrou no meta-atributo é descartada. A base dele continua 0, o `OnValueChanged` dele não dispara, e o relatório dele sai com `Final` preenchido e `Applied` 0. Sem processadores, o meta-atributo engole a alteração e nenhum atributo muda.
+
+Use o meta-atributo só em efeitos instantâneos e periódicos. Num efeito com duração, o modificador não passa pelos processadores e somaria ao valor atual do meta-atributo.
+
 ## Pelo código {#codigo}
 
 Para mudar um atributo pelo código e passar pelos processadores, chame `ApplyAttributeChange` no `AbilitySystemComponent`. O retorno é quanto a base mudou de fato, já com os limites:

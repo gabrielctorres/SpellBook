@@ -1483,9 +1483,14 @@ namespace SpellBook.GAS.Core
                 if (processed) RunProcessors(processors, ref change, effect, in context, chainStart);
 
                 // Sem processadores (ou com a guarda), a base pedida vai direto, como antes do pipeline (CA1); com eles,
-                // final zero não aplica, e a base pedida só vale se as redirecionadas não mudaram este atributo
+                // final zero não aplica, e a base pedida só vale se as redirecionadas não mudaram este atributo. O meta
+                // descarta a variação final: a base fica e nenhum evento de valor dispara (ADR 0033, item 6)
                 float before = state.BaseValue;
-                if (!processed) state.SetBaseValue(requestedBase);
+                if (definition.IsMeta)
+                {
+                    // Nada a aplicar: o relatório sai com Final e Applied = 0
+                }
+                else if (!processed) state.SetBaseValue(requestedBase);
                 else if (change.Delta != 0f)
                 {
                     bool unchanged = change.Delta == change.Requested && before == startBase;

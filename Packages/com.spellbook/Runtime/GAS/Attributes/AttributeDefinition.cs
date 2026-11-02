@@ -73,11 +73,18 @@ namespace SpellBook.GAS.Attributes
         [Tooltip("Processadores que mudam cada alteração da base por efeito instantâneo, tique ou código, na ordem da lista. Modificadores persistentes não passam por eles.")]
         private List<AttributeChangeProcessor> processors = new List<AttributeChangeProcessor>();
 
+        [SerializeField]
+        [Tooltip("Meta-atributo: a alteração passa pelos processadores, que a convertem em alterações de outros atributos, e a variação final é descartada. A base continua 0 e nenhum evento de valor dispara.")]
+        private bool isMeta;
+
         /// <summary>A categoria do atributo, de <see cref="AttributeDisplay.Category"/> (R18).</summary>
         public AttributeCategory Category => Display.Category;
 
         /// <summary>Pipeline de pré-alteração, na ordem de execução (ADR 0033). Entrada nula é pulada.</summary>
         public IReadOnlyList<AttributeChangeProcessor> Processors => processors;
+
+        /// <summary>Meta-atributo (ADR 0033, item 6): só os processadores agem; a variação final nunca chega à base.</summary>
+        public bool IsMeta => isMeta;
 
         /// <summary>
         /// Erros: mínimo constante acima do máximo constante, fonte de limite sem atributo, apontando para o próprio
