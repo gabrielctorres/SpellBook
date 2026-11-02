@@ -20,8 +20,6 @@ namespace SpellBook.Core.Tests
         /// </summary>
         private static readonly string[] PendingPages =
         {
-            "inicio/inspector.md",
-            "ferramentas/validador.md",
             "modulos/gas.md",
             "modulos/eventos.md",
             "modulos/tags.md",
