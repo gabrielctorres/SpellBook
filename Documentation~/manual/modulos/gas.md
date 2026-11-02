@@ -464,7 +464,7 @@ Para consultar sem ativar, use `ability.CanActivate(asc, out var reason)` ou, co
 - `asc.ResetCooldown(ability)` remove todas (motivo `Removed`), e a habilidade volta a ser ativável. Exceção: uma tag de recarga dada fora de efeito, com `AddTag`, continua bloqueando, porque não há instância para remover.
 - `asc.RestartCooldown(ability)` volta cada uma à duração aplicada, e não à `Duration` do asset.
 
-Os três devolvem se algo mudou. Habilidade nula, sem `CooldownEffect` ou pronta: `false`, sem exceção.
+Os três devolvem se algo mudou. Habilidade nula, sem `CooldownEffect` ou pronta: `false`, sem exceção. Numa habilidade com [cargas](#cargas), eles também agem sobre a recarga da carga em curso.
 
 **Evento de recarga.** `OnCooldownChanged(spec, mudança)` acompanha a recarga aplicada pela ativação de uma habilidade concedida, com o `CooldownChange`:
 
@@ -481,7 +481,9 @@ Com cargas, a habilidade pode ser usada várias vezes seguidas, e as cargas volt
 - **Recharge Time:** os segundos para voltar uma carga, por nível ou por `%nome`.
 - **Mode:** só `Sequential`, uma carga por vez.
 
-As cargas nascem cheias ao conceder a habilidade, com o máximo avaliado no nível do spec. Cada ativação com sucesso gasta uma carga junto do custo. Se a recarga estava parada, ela começa. Quando a recarga termina, volta uma carga e, se ainda faltar alguma, a recarga da seguinte começa na hora, com o tempo que sobrou do `Tick` passado adiante. No máximo, a recarga para. Um `Tick` grande pode devolver mais de uma carga.
+As cargas nascem cheias ao conceder a habilidade, com o máximo avaliado no nível do spec. O ASC volta a avaliar o máximo a cada `SetAbilityLevel` e a cada `Tick`, então um `%nome` da tabela acompanha o nível e um atributo acompanha o valor dele. Com `%Charges` valendo 2, 3 e 4 nos níveis 1 a 3, a habilidade no nível 3 guarda até 4 cargas. Quando o máximo sobe, as cargas não enchem: se faltar alguma, a recarga começa. Quando o máximo desce abaixo das cargas, elas são limitadas a ele, com `OnChargesChanged`, e a recarga para.
+
+Cada ativação com sucesso gasta uma carga junto do custo. Se a recarga estava parada, ela começa. Quando a recarga termina, volta uma carga e, se ainda faltar alguma, a recarga da seguinte começa na hora, com o tempo que sobrou do `Tick` passado adiante. No máximo, a recarga para. Um `Tick` grande pode devolver mais de uma carga.
 
 O tempo de recarga passa pela mesma redução da recarga da habilidade: o `CooldownReductionAttribute` e a [CooldownReductionPolicy](#cooldownreductionpolicy), com piso e teto. Com **Max Reduction** 0,5 e **Min Duration** 1 s, uma recarga de 8 s com redução de 0,9 dura 4 s. O tempo anda só pelo [`Tick` do ASC](#tempo-do-asc), nunca pelo relógio da Unity.
 
@@ -496,9 +498,17 @@ O estado fica no `AbilitySpec` (`Charges`, `MaxCharges`, `ChargeRechargeRemainin
 | `GetChargeRechargeNormalized(spec)` | De 1 a 0 pela duração aplicada da recarga em curso, para barras; 0 com a recarga parada. |
 | `AddCharges(spec, n)` | Soma `n` cargas, sem passar do máximo. Devolve `false` se nada mudou, inclusive com `n` ≤ 0. |
 | `RefillCharges(spec)` | Enche as cargas. Devolve `false` se já estavam cheias. |
-| `OnChargesChanged(spec, antes, depois)` | Sai só quando as cargas mudam: no gasto, a cada carga que volta e em `AddCharges` e `RefillCharges`. |
+| `OnChargesChanged(spec, antes, depois)` | Sai só quando as cargas mudam: no gasto, a cada carga que volta, em `AddCharges` e `RefillCharges` e quando o máximo desce abaixo das cargas. |
 
 Com spec nulo ou sem cargas, as consultas devolvem 0 e os métodos, `false`. Encher pelo `AddCharges` ou pelo `RefillCharges` para a recarga.
+
+Os controles de recarga da habilidade também agem sobre a recarga da carga em curso, além do `CooldownEffect`:
+
+- `ReduceCooldown(ability, segundos)` tira o tempo da recarga da carga. Se passar do que falta, volta uma carga e o resto sai da recarga seguinte, então uma redução grande pode devolver mais de uma.
+- `ResetCooldown(ability)` devolve uma carga na hora e recomeça a recarga da seguinte com a duração cheia. No máximo, a recarga para.
+- `RestartCooldown(ability)` volta a recarga da carga à duração aplicada, já com a redução de recarga.
+
+Com a recarga da carga parada e sem `CooldownEffect` correndo, os três devolvem `false`.
 
 ```csharp
 AbilitySpec spec = asc.FindSpec(dash);

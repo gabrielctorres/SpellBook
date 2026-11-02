@@ -174,7 +174,12 @@ namespace SpellBook.GAS.Core
             for (int i = 0; i < _abilities.Count; i++)
             {
                 AbilitySpec spec = _abilities[i];
-                if (!spec.ChargeRecharging || !HasCharges(spec)) continue;
+                if (!HasCharges(spec)) continue;
+
+                // Uma recarga que o máximo novo acabou de começar não desconta este Tick
+                bool wasRecharging = spec.ChargeRecharging;
+                RefreshMaxCharges(spec);
+                if (!wasRecharging || !spec.ChargeRecharging) continue;
                 spec.ChargeRechargeRemaining -= deltaTime;
                 AdvanceChargeRecharge(spec);
             }
@@ -272,6 +277,7 @@ namespace SpellBook.GAS.Core
             if (after == before) return true;
 
             spec.Level = after;
+            if (HasCharges(spec)) RefreshMaxCharges(spec);
             OnAbilityLevelChanged?.Invoke(spec, before, after);
             return true;
         }
@@ -319,12 +325,15 @@ namespace SpellBook.GAS.Core
 
         /// <summary>
         /// Tira <paramref name="seconds"/> de toda instância que conta para a recarga da habilidade (o próprio
-        /// <c>CooldownEffect</c> ou uma tag filha); as que chegam a zero expiram. Segundos negativos ou NaN são ignorados com
-        /// aviso. Habilidade nula, sem recarga ou pronta: <c>false</c>.
+        /// <c>CooldownEffect</c> ou uma tag filha); as que chegam a zero expiram. Com cargas, tira também da recarga da carga
+        /// em curso, que pode devolver mais de uma carga. Segundos negativos ou NaN são ignorados com aviso. Habilidade nula,
+        /// sem recarga ou pronta: <c>false</c>.
         /// </summary>
         public bool ReduceCooldown(GameplayAbility ability, float seconds)
         {
-            if (!HasCooldownInstance(ability)) return false;
+            bool hasCooldown = HasCooldownInstance(ability);
+            AbilitySpec chargeSpec = FindRechargingSpec(ability);
+            if (!hasCooldown && chargeSpec == null) return false;
             if (!(seconds >= 0f))
             {
                 if (Debug.isDebugBuild) Debug.LogWarning($"[GAS] {nameof(ReduceCooldown)} ignorado: segundos inválidos ({seconds}) em '{ability.name}'.", this);
@@ -332,53 +341,97 @@ namespace SpellBook.GAS.Core
             }
 
             bool changed = false;
-            GameplayEffect cooldownEffect = ability.CooldownEffect;
-            for (int i = _activeEffects.Count - 1; i >= 0; i--)
+            if (hasCooldown)
             {
-                // Uma expiração pode disparar ouvintes que mexem na lista
-                if (i >= _activeEffects.Count) continue;
-                ActiveEffectInstance instance = _activeEffects[i];
-                if (IsCooldownMatch(instance.Effect, cooldownEffect)) changed |= ReduceEffectDuration(instance, seconds);
+                GameplayEffect cooldownEffect = ability.CooldownEffect;
+                for (int i = _activeEffects.Count - 1; i >= 0; i--)
+                {
+                    // Uma expiração pode disparar ouvintes que mexem na lista
+                    if (i >= _activeEffects.Count) continue;
+                    ActiveEffectInstance instance = _activeEffects[i];
+                    if (IsCooldownMatch(instance.Effect, cooldownEffect)) changed |= ReduceEffectDuration(instance, seconds);
+                }
+                if (changed) RaiseCooldownChanged(ability);
             }
-            if (changed) RaiseCooldownChanged(ability);
+
+            if (chargeSpec != null && chargeSpec.ChargeRecharging && seconds > 0f)
+            {
+                chargeSpec.ChargeRechargeRemaining -= seconds;
+                AdvanceChargeRecharge(chargeSpec);
+                changed = true;
+            }
             return changed;
         }
 
         /// <summary>
         /// Remove toda instância que conta para a recarga da habilidade (motivo <see cref="EffectRemovalReason.Removed"/>).
-        /// Uma tag de recarga dada fora de efeito (<see cref="AddTag"/>) continua bloqueando. Nula, sem recarga ou pronta: <c>false</c>.
+        /// Uma tag de recarga dada fora de efeito (<see cref="AddTag"/>) continua bloqueando. Com cargas e a recarga da carga
+        /// correndo, devolve uma carga e recomeça a próxima com a duração cheia (no máximo, para). Nula, sem recarga ou pronta:
+        /// <c>false</c>.
         /// </summary>
         public bool ResetCooldown(GameplayAbility ability)
         {
-            if (!HasCooldownInstance(ability)) return false;
+            bool hasCooldown = HasCooldownInstance(ability);
+            AbilitySpec chargeSpec = FindRechargingSpec(ability);
+            if (!hasCooldown && chargeSpec == null) return false;
 
-            GameplayEffect cooldownEffect = ability.CooldownEffect;
-            for (int i = _activeEffects.Count - 1; i >= 0; i--)
+            if (hasCooldown)
             {
-                if (i >= _activeEffects.Count) continue;
-                ActiveEffectInstance instance = _activeEffects[i];
-                if (IsCooldownMatch(instance.Effect, cooldownEffect)) RemoveEffectCore(instance, EffectRemovalReason.Removed);
+                GameplayEffect cooldownEffect = ability.CooldownEffect;
+                for (int i = _activeEffects.Count - 1; i >= 0; i--)
+                {
+                    if (i >= _activeEffects.Count) continue;
+                    ActiveEffectInstance instance = _activeEffects[i];
+                    if (IsCooldownMatch(instance.Effect, cooldownEffect)) RemoveEffectCore(instance, EffectRemovalReason.Removed);
+                }
+            }
+
+            if (chargeSpec != null && chargeSpec.ChargeRecharging)
+            {
+                // Recarga vencida sem sobra: volta uma carga e a próxima começa com a duração cheia
+                chargeSpec.ChargeRechargeRemaining = 0f;
+                AdvanceChargeRecharge(chargeSpec);
             }
             return true;
         }
 
         /// <summary>
-        /// Volta toda instância que conta para a recarga da habilidade à duração aplicada. Nula, sem recarga ou pronta: <c>false</c>.
+        /// Volta toda instância que conta para a recarga da habilidade à duração aplicada e, com cargas, a recarga da carga em
+        /// curso à duração aplicada dela. Nula, sem recarga ou pronta: <c>false</c>.
         /// </summary>
         public bool RestartCooldown(GameplayAbility ability)
         {
-            if (!HasCooldownInstance(ability)) return false;
+            bool hasCooldown = HasCooldownInstance(ability);
+            AbilitySpec chargeSpec = FindRechargingSpec(ability);
+            if (!hasCooldown && chargeSpec == null) return false;
 
             bool changed = false;
-            GameplayEffect cooldownEffect = ability.CooldownEffect;
-            for (int i = _activeEffects.Count - 1; i >= 0; i--)
+            if (hasCooldown)
             {
-                if (i >= _activeEffects.Count) continue;
-                ActiveEffectInstance instance = _activeEffects[i];
-                if (IsCooldownMatch(instance.Effect, cooldownEffect)) changed |= RestartEffectDuration(instance);
+                GameplayEffect cooldownEffect = ability.CooldownEffect;
+                for (int i = _activeEffects.Count - 1; i >= 0; i--)
+                {
+                    if (i >= _activeEffects.Count) continue;
+                    ActiveEffectInstance instance = _activeEffects[i];
+                    if (IsCooldownMatch(instance.Effect, cooldownEffect)) changed |= RestartEffectDuration(instance);
+                }
+                if (changed) RaiseCooldownChanged(ability);
             }
-            if (changed) RaiseCooldownChanged(ability);
+
+            if (chargeSpec != null && chargeSpec.ChargeRecharging
+                && chargeSpec.ChargeRechargeRemaining != chargeSpec.ChargeRechargeDuration)
+            {
+                chargeSpec.ChargeRechargeRemaining = chargeSpec.ChargeRechargeDuration;
+                changed = true;
+            }
             return changed;
+        }
+
+        /// <summary>Spec concedido da habilidade com a recarga de carga correndo, ou nulo.</summary>
+        private AbilitySpec FindRechargingSpec(GameplayAbility ability)
+        {
+            AbilitySpec spec = FindSpec(ability);
+            return HasCharges(spec) && spec.ChargeRecharging ? spec : null;
         }
 
         private bool HasCooldownInstance(GameplayAbility ability)
@@ -413,7 +466,8 @@ namespace SpellBook.GAS.Core
         #region Charges
         /// <summary>
         /// As cargas de uma habilidade mudaram de fato: (spec, antes, depois). Sai no gasto da ativação, a cada carga que volta
-        /// pela recarga e em <see cref="AddCharges"/> e <see cref="RefillCharges"/>.
+        /// pela recarga (também pelas de <see cref="ReduceCooldown"/> e <see cref="ResetCooldown"/>), em
+        /// <see cref="AddCharges"/> e <see cref="RefillCharges"/>, e quando o máximo desce abaixo das cargas.
         /// </summary>
         public event Action<AbilitySpec, int, int> OnChargesChanged;
 
@@ -476,11 +530,31 @@ namespace SpellBook.GAS.Core
         {
             if (!HasCharges(spec)) return;
 
-            GameplayAbility ability = spec.Ability;
-            var context = new EffectContext(this, this, ability, spec.Level, false, Vector3.zero, null);
-            spec.MaxCharges = Mathf.Max(0, Mathf.FloorToInt(ability.Charges.MaxCharges.Evaluate(in context)));
+            spec.MaxCharges = EvaluateMaxCharges(spec);
             spec.Charges = spec.MaxCharges;
             StopChargeRecharge(spec);
+        }
+
+        // Máximo no nível do spec, com a tabela da habilidade e o ASC como instigador: inteiro, para baixo, pelo menos 0
+        private int EvaluateMaxCharges(AbilitySpec spec)
+        {
+            var context = new EffectContext(this, this, spec.Ability, spec.Level, false, Vector3.zero, null);
+            return Mathf.Max(0, Mathf.FloorToInt(spec.Ability.Charges.MaxCharges.Evaluate(in context)));
+        }
+
+        // Reavalia o máximo (mudança de nível e cada Tick). O que desce limita as cargas e, no máximo, para a recarga; o que
+        // sobe não enche: abaixo do máximo, a recarga parada começa (R18)
+        private void RefreshMaxCharges(AbilitySpec spec)
+        {
+            int max = EvaluateMaxCharges(spec);
+            if (max == spec.MaxCharges) return;
+
+            spec.MaxCharges = max;
+            int before = spec.Charges;
+            if (before > max) spec.Charges = max;
+            if (spec.Charges >= max) StopChargeRecharge(spec);
+            else if (!spec.ChargeRecharging) StartChargeRecharge(spec, 0f);
+            if (spec.Charges != before) OnChargesChanged?.Invoke(spec, before, spec.Charges);
         }
 
         // Commit: gasta 1 carga; abaixo do máximo com a recarga parada, a recarga da próxima começa

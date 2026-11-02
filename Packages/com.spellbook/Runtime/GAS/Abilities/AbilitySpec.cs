@@ -21,7 +21,10 @@ namespace SpellBook.GAS.Abilities
         /// <summary>Cargas atuais (com cargas desligadas, 0). Muda pelo ASC: ativação, recarga, <c>AddCharges</c> e <c>RefillCharges</c>.</summary>
         public int Charges { get; internal set; }
 
-        /// <summary>Máximo de cargas avaliado pelo ASC (inteiro, pelo menos 0; com cargas desligadas, 0).</summary>
+        /// <summary>
+        /// Máximo de cargas avaliado pelo ASC (inteiro, pelo menos 0; com cargas desligadas, 0), na concessão, a cada mudança
+        /// de nível e a cada <c>Tick</c>.
+        /// </summary>
         public int MaxCharges { get; internal set; }
 
         /// <summary>Segundos até voltar a próxima carga; 0 com a recarga parada.</summary>
