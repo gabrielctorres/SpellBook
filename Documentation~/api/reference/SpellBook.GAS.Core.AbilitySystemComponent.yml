@@ -19,6 +19,7 @@ items:
   - SpellBook.GAS.Core.AbilitySystemComponent.CancelAbilitiesWithTags(System.Collections.Generic.IEnumerable{SpellBook.Tags.GameplayTag},SpellBook.GAS.Abilities.AbilitySpec)
   - SpellBook.GAS.Core.AbilitySystemComponent.CancelAbility(SpellBook.GAS.Abilities.AbilitySpec)
   - SpellBook.GAS.Core.AbilitySystemComponent.CancelAbility(SpellBook.GAS.Abilities.GameplayAbility)
+  - SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(System.Object)
   - SpellBook.GAS.Core.AbilitySystemComponent.CancelAllAbilities
   - SpellBook.GAS.Core.AbilitySystemComponent.ExtendEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance,System.Single)
   - SpellBook.GAS.Core.AbilitySystemComponent.FindEffects(SpellBook.GAS.Effects.GameplayEffect,System.Collections.Generic.List{SpellBook.GAS.Effects.ActiveEffectInstance})
@@ -607,11 +608,11 @@ items:
   summary: >-
     Roda <code class="paramref">actions</code> em sequência no executor deste ASC (ADR 0034). As ações sem espera rodam já,
 
-    nesta chamada; as esperas andam no <xref href="SpellBook.GAS.Core.AbilitySystemComponent.Tick(System.Single)" data-throw-if-not-resolved="false"></xref>. Com <code class="paramref">context</code> nulo, cria um contexto
+    nesta chamada; as esperas andam no <xref href="SpellBook.GAS.Core.AbilitySystemComponent.Tick(System.Single)" data-throw-if-not-resolved="false"></xref>. O executor fica com <code class="paramref">context</code> e o
 
-    com este ASC como dono e instigador. <code class="paramref">owner</code> é o dono lógico, consultado por
+    devolve ao pool no fim; nulo usa um contexto do pool com este ASC como dono e instigador.
 
-    <xref href="SpellBook.GAS.Core.AbilitySystemComponent.HasRunningActions(System.Object)" data-throw-if-not-resolved="false"></xref>; nulo deixa a execução sem dono.
+    <code class="paramref">owner</code> é o dono lógico, usado por <xref href="SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(System.Object)" data-throw-if-not-resolved="false"></xref>; nulo deixa a execução sem dono.
   example: []
   syntax:
     content: public ActionExecutionHandle RunActions(IReadOnlyList<GameplayAction> actions, ActionContext context, object owner)
@@ -629,6 +630,33 @@ items:
   nameWithType.vb: AbilitySystemComponent.RunActions(IReadOnlyList(Of GameplayAction), ActionContext, Object)
   fullName.vb: SpellBook.GAS.Core.AbilitySystemComponent.RunActions(System.Collections.Generic.IReadOnlyList(Of SpellBook.GAS.Actions.GameplayAction), SpellBook.GAS.Actions.ActionContext, Object)
   name.vb: RunActions(IReadOnlyList(Of GameplayAction), ActionContext, Object)
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(System.Object)
+  commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(System.Object)
+  id: CancelActions(System.Object)
+  parent: SpellBook.GAS.Core.AbilitySystemComponent
+  langs:
+  - csharp
+  - vb
+  name: CancelActions(object)
+  nameWithType: AbilitySystemComponent.CancelActions(object)
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(object)
+  type: Method
+  namespace: SpellBook.GAS.Core
+  summary: >-
+    Cancela as execuções de <code class="paramref">owner</code>. Cada ação em curso recebe <code>OnCancel</code>, das execuções
+
+    filhas antes das mães e, em cada execução, do topo para a base.
+  example: []
+  syntax:
+    content: public void CancelActions(object owner)
+    parameters:
+    - id: owner
+      type: System.Object
+    content.vb: Public Sub CancelActions(owner As Object)
+  overload: SpellBook.GAS.Core.AbilitySystemComponent.CancelActions*
+  nameWithType.vb: AbilitySystemComponent.CancelActions(Object)
+  fullName.vb: SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(Object)
+  name.vb: CancelActions(Object)
 - uid: SpellBook.GAS.Core.AbilitySystemComponent.HasRunningActions(System.Object)
   commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.HasRunningActions(System.Object)
   id: HasRunningActions(System.Object)
@@ -10619,20 +10647,20 @@ references:
   nameWithType.vb: Single
   fullName.vb: Single
   name.vb: Single
-- uid: SpellBook.GAS.Core.AbilitySystemComponent.HasRunningActions(System.Object)
-  commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.HasRunningActions(System.Object)
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(System.Object)
+  commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(System.Object)
   isExternal: true
-  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_HasRunningActions_System_Object_
-  name: HasRunningActions(object)
-  nameWithType: AbilitySystemComponent.HasRunningActions(object)
-  fullName: SpellBook.GAS.Core.AbilitySystemComponent.HasRunningActions(object)
-  nameWithType.vb: AbilitySystemComponent.HasRunningActions(Object)
-  fullName.vb: SpellBook.GAS.Core.AbilitySystemComponent.HasRunningActions(Object)
-  name.vb: HasRunningActions(Object)
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_CancelActions_System_Object_
+  name: CancelActions(object)
+  nameWithType: AbilitySystemComponent.CancelActions(object)
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(object)
+  nameWithType.vb: AbilitySystemComponent.CancelActions(Object)
+  fullName.vb: SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(Object)
+  name.vb: CancelActions(Object)
   spec.csharp:
-  - uid: SpellBook.GAS.Core.AbilitySystemComponent.HasRunningActions(System.Object)
-    name: HasRunningActions
-    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_HasRunningActions_System_Object_
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(System.Object)
+    name: CancelActions
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_CancelActions_System_Object_
   - name: (
   - uid: System.Object
     name: object
@@ -10640,9 +10668,9 @@ references:
     href: https://learn.microsoft.com/dotnet/api/system.object
   - name: )
   spec.vb:
-  - uid: SpellBook.GAS.Core.AbilitySystemComponent.HasRunningActions(System.Object)
-    name: HasRunningActions
-    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_HasRunningActions_System_Object_
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(System.Object)
+    name: CancelActions
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_CancelActions_System_Object_
   - name: (
   - uid: System.Object
     name: Object
@@ -10725,6 +10753,12 @@ references:
   - name: .
   - uid: SpellBook.GAS.Actions
     name: Actions
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.CancelActions*
+  commentId: Overload:SpellBook.GAS.Core.AbilitySystemComponent.CancelActions
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_CancelActions_System_Object_
+  name: CancelActions
+  nameWithType: AbilitySystemComponent.CancelActions
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.CancelActions
 - uid: SpellBook.GAS.Core.AbilitySystemComponent.HasRunningActions*
   commentId: Overload:SpellBook.GAS.Core.AbilitySystemComponent.HasRunningActions
   href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_HasRunningActions_System_Object_

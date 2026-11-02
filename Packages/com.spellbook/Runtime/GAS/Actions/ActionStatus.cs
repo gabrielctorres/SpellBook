@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace SpellBook.GAS.Actions
 {
     /// <summary>
@@ -19,15 +21,17 @@ namespace SpellBook.GAS.Actions
     /// <summary>O que o executor faz depois de uma chamada a <see cref="GameplayAction.Execute"/>.</summary>
     public readonly struct ActionStatus
     {
-        internal enum StatusKind : byte { Done, Wait }
+        internal enum StatusKind : byte { Done, Wait, Run, RunParallel }
 
         internal readonly StatusKind Kind;
         internal readonly float Seconds;
+        internal readonly IReadOnlyList<GameplayAction> Children;
 
-        private ActionStatus(StatusKind kind, float seconds)
+        private ActionStatus(StatusKind kind, float seconds, IReadOnlyList<GameplayAction> children)
         {
             Kind = kind;
             Seconds = seconds;
+            Children = children;
         }
 
         /// <summary>A ação terminou; o executor passa à próxima.</summary>
@@ -37,6 +41,12 @@ namespace SpellBook.GAS.Actions
         /// Chama a ação de novo depois de <paramref name="seconds"/> segundos no tempo do ASC, contados do fim do passo
         /// anterior. Zero ou negativo não espera: a ação é chamada de novo na mesma chamada.
         /// </summary>
-        public static ActionStatus Wait(float seconds) => new ActionStatus(StatusKind.Wait, seconds);
+        public static ActionStatus Wait(float seconds) => new ActionStatus(StatusKind.Wait, seconds, null);
+
+        /// <summary>Roda <paramref name="children"/> em sequência e chama a ação de novo quando terminam.</summary>
+        public static ActionStatus Run(IReadOnlyList<GameplayAction> children) => new ActionStatus(StatusKind.Run, 0f, children);
+
+        /// <summary>Roda <paramref name="children"/> ao mesmo tempo e chama a ação de novo quando todas terminam.</summary>
+        public static ActionStatus RunParallel(IReadOnlyList<GameplayAction> children) => new ActionStatus(StatusKind.RunParallel, 0f, children);
     }
 }

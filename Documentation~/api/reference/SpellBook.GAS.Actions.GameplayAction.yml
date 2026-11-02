@@ -7,6 +7,7 @@ items:
   children:
   - SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
   - SpellBook.GAS.Actions.GameplayAction.Execute(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
+  - SpellBook.GAS.Actions.GameplayAction.OnCancel(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
   - SpellBook.GAS.Actions.GameplayAction.UsesTargets
   - SpellBook.GAS.Actions.GameplayAction.Validate(SpellBook.Core.Validation.ValidationResult)
   langs:
@@ -85,7 +86,7 @@ items:
   summary: >-
     Avança a ação. Na primeira chamada, <code>frame</code> vem zerado. Devolva <xref href="SpellBook.GAS.Actions.ActionStatus.Done" data-throw-if-not-resolved="false"></xref> para
 
-    terminar, ou uma espera para ser chamada de novo depois dela.
+    terminar, ou uma espera ou lista filha para ser chamada de novo depois dela.
   example: []
   syntax:
     content: protected abstract ActionStatus Execute(ActionContext context, ref ActionFrame frame)
@@ -101,6 +102,32 @@ items:
   nameWithType.vb: GameplayAction.Execute(ActionContext, ActionFrame)
   fullName.vb: SpellBook.GAS.Actions.GameplayAction.Execute(SpellBook.GAS.Actions.ActionContext, SpellBook.GAS.Actions.ActionFrame)
   name.vb: Execute(ActionContext, ActionFrame)
+- uid: SpellBook.GAS.Actions.GameplayAction.OnCancel(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
+  commentId: M:SpellBook.GAS.Actions.GameplayAction.OnCancel(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
+  id: OnCancel(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
+  parent: SpellBook.GAS.Actions.GameplayAction
+  langs:
+  - csharp
+  - vb
+  name: OnCancel(ActionContext, ref ActionFrame)
+  nameWithType: GameplayAction.OnCancel(ActionContext, ref ActionFrame)
+  fullName: SpellBook.GAS.Actions.GameplayAction.OnCancel(SpellBook.GAS.Actions.ActionContext, ref SpellBook.GAS.Actions.ActionFrame)
+  type: Method
+  namespace: SpellBook.GAS.Actions
+  summary: Chamado quando o dono da execução é cancelado com esta ação em curso.
+  example: []
+  syntax:
+    content: protected virtual void OnCancel(ActionContext context, ref ActionFrame frame)
+    parameters:
+    - id: context
+      type: SpellBook.GAS.Actions.ActionContext
+    - id: frame
+      type: SpellBook.GAS.Actions.ActionFrame
+    content.vb: Protected Overridable Sub OnCancel(context As ActionContext, frame As ActionFrame)
+  overload: SpellBook.GAS.Actions.GameplayAction.OnCancel*
+  nameWithType.vb: GameplayAction.OnCancel(ActionContext, ActionFrame)
+  fullName.vb: SpellBook.GAS.Actions.GameplayAction.OnCancel(SpellBook.GAS.Actions.ActionContext, SpellBook.GAS.Actions.ActionFrame)
+  name.vb: OnCancel(ActionContext, ActionFrame)
 - uid: SpellBook.GAS.Actions.GameplayAction.Validate(SpellBook.Core.Validation.ValidationResult)
   commentId: M:SpellBook.GAS.Actions.GameplayAction.Validate(SpellBook.Core.Validation.ValidationResult)
   id: Validate(SpellBook.Core.Validation.ValidationResult)
@@ -519,6 +546,12 @@ references:
   name: ActionStatus
   nameWithType: ActionStatus
   fullName: SpellBook.GAS.Actions.ActionStatus
+- uid: SpellBook.GAS.Actions.GameplayAction.OnCancel*
+  commentId: Overload:SpellBook.GAS.Actions.GameplayAction.OnCancel
+  href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_OnCancel_SpellBook_GAS_Actions_ActionContext_SpellBook_GAS_Actions_ActionFrame__
+  name: OnCancel
+  nameWithType: GameplayAction.OnCancel
+  fullName: SpellBook.GAS.Actions.GameplayAction.OnCancel
 - uid: SpellBook.GAS.Actions.GameplayAction.Validate*
   commentId: Overload:SpellBook.GAS.Actions.GameplayAction.Validate
   href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_Validate_SpellBook_Core_Validation_ValidationResult_

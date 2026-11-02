@@ -235,13 +235,22 @@ namespace SpellBook.GAS.Core
 
         /// <summary>
         /// Roda <paramref name="actions"/> em sequência no executor deste ASC (ADR 0034). As ações sem espera rodam já,
-        /// nesta chamada; as esperas andam no <see cref="Tick"/>. Com <paramref name="context"/> nulo, cria um contexto
-        /// com este ASC como dono e instigador. <paramref name="owner"/> é o dono lógico, consultado por
-        /// <see cref="HasRunningActions"/>; nulo deixa a execução sem dono.
+        /// nesta chamada; as esperas andam no <see cref="Tick"/>. O executor fica com <paramref name="context"/> e o
+        /// devolve ao pool no fim; nulo usa um contexto do pool com este ASC como dono e instigador.
+        /// <paramref name="owner"/> é o dono lógico, usado por <see cref="CancelActions"/>; nulo deixa a execução sem dono.
         /// </summary>
         public ActionExecutionHandle RunActions(IReadOnlyList<GameplayAction> actions, ActionContext context, object owner)
         {
             return Runner.Run(actions, context, owner);
+        }
+
+        /// <summary>
+        /// Cancela as execuções de <paramref name="owner"/>. Cada ação em curso recebe <c>OnCancel</c>, das execuções
+        /// filhas antes das mães e, em cada execução, do topo para a base.
+        /// </summary>
+        public void CancelActions(object owner)
+        {
+            _runner?.Cancel(owner);
         }
 
         /// <summary>Se há execução em curso de <paramref name="owner"/>.</summary>

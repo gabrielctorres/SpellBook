@@ -447,14 +447,22 @@ Uma ação implementa `Execute(ActionContext context, ref ActionFrame frame)` e 
 
 - `ActionStatus.Done`: a ação terminou, e o executor passa à próxima da lista.
 - `ActionStatus.Wait(segundos)`: o executor chama a ação de novo depois desse tempo do ASC. Zero ou negativo não espera.
+- `ActionStatus.Run(filhas)`: o executor roda as filhas em sequência e chama a ação de novo quando elas terminam.
+- `ActionStatus.RunParallel(filhas)`: o executor roda as filhas ao mesmo tempo e chama a ação de novo quando todas terminam. A espera seguinte conta do fim da filha que terminou por último.
 
-A mesma instância da ação serve a todas as execuções. Guarde o estado de uma execução no `ActionFrame` (`Phase`, `Index`, `Count` e `Data`), nunca em campos da ação. O quadro chega zerado na primeira chamada. Uma ação que espera e depois age, por exemplo, devolve `Wait` com `Phase` em 0, muda `Phase` para 1 e, na chamada seguinte, faz o trabalho e devolve `Done`.
+A mesma instância da ação serve a todas as execuções. Guarde o estado de uma execução no `ActionFrame` (`Phase`, `Index`, `Count` e `Data`), nunca em campos da ação. O quadro chega zerado na primeira chamada. Uma ação que espera e depois age, por exemplo, devolve `Wait` com `Phase` em 0, muda `Phase` para 1 e, na chamada seguinte, faz o trabalho e devolve `Done`. Sobrescreva `OnCancel(context, ref frame)` para desfazer o que a ação deixou pela metade quando a execução é cancelada.
 
-Para rodar uma lista pelo código, chame `asc.RunActions(acoes, contexto, dono)`. As ações sem espera rodam na mesma chamada, e as esperas andam no `Tick` do ASC. Uma entrada nula da lista é pulada. O `dono` é qualquer objeto que identifique a execução, e `asc.HasRunningActions(dono)` diz se ainda há alguma dele em curso.
+Para rodar uma lista pelo código, chame `asc.RunActions(acoes, contexto, dono)`. As ações sem espera rodam na mesma chamada, e as esperas andam no `Tick` do ASC. Uma entrada nula da lista é pulada. O `dono` é qualquer objeto que identifique a execução. `asc.CancelActions(dono)` cancela as execuções dele, e `asc.HasRunningActions(dono)` diz se ainda há alguma em curso.
+
+No cancelamento, cada ação em curso recebe `OnCancel`. As filhas paralelas recebem antes da ação que as rodou, e as filhas em sequência antes da ação mãe. Um `OnCancel` pode cancelar ou iniciar outra execução sem quebrar o cancelamento em curso.
 
 Uma espera conta a partir do fim do passo anterior, no tempo do ASC. Um `Tick` no mesmo quadro em que a execução começou conta, e o excesso de um `Tick` grande passa para a espera seguinte: com duas esperas de 1 s, `Tick(1.5)` e depois `Tick(0.5)` terminam as duas.
 
-O `ActionContext` leva os dados da execução: `Owner` (o ASC que roda), `Instigator`, `EventTargets`, `Targets`, `Point` com `HasPoint`, `Ability`, `Spec`, `Level`, `EffectInstance`, `Effect` com `HasEffect`, `EventInstigator` e `CustomData`. Passe `null` como contexto para o ASC criar um, com ele mesmo como `Owner` e `Instigator`.
+O `ActionContext` leva os dados da execução: `Owner` (o ASC que roda), `Instigator`, `EventTargets`, `Targets`, `Point` com `HasPoint`, `Ability`, `Spec`, `Level`, `EffectInstance`, `Effect` com `HasEffect`, `EventInstigator`, `IsCancelled` e `CustomData`. Passe `null` como contexto para o ASC usar um, com ele mesmo como `Owner` e `Instigator`.
+
+O ASC guarda execuções e contextos em pool, e rodar a mesma lista de novo não aloca. Se você passar um contexto seu, o executor fica com ele e o devolve ao pool quando a execução termina ou é cancelada. Não use essa referência depois disso. Um `ActionExecutionHandle` antigo continua dizendo que a execução não roda, mesmo depois que o pool a reaproveita.
+
+`context.CreateDerived(ponto)` devolve um contexto novo com esse ponto, o mesmo `Owner`, `Instigator`, `Ability` e `Level`, e uma cópia rasa do `CustomData`. Uma chave acrescentada no derivado não aparece no original, mas um valor que é objeto fica compartilhado. O derivado não tem vínculo de cancelamento com a execução de origem.
 
 ---
 

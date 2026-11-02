@@ -6,6 +6,7 @@ items:
   parent: SpellBook.GAS.Actions
   children:
   - SpellBook.GAS.Actions.ActionContext.Ability
+  - SpellBook.GAS.Actions.ActionContext.CreateDerived(UnityEngine.Vector3)
   - SpellBook.GAS.Actions.ActionContext.CustomData
   - SpellBook.GAS.Actions.ActionContext.Effect
   - SpellBook.GAS.Actions.ActionContext.EffectInstance
@@ -14,6 +15,7 @@ items:
   - SpellBook.GAS.Actions.ActionContext.HasEffect
   - SpellBook.GAS.Actions.ActionContext.HasPoint
   - SpellBook.GAS.Actions.ActionContext.Instigator
+  - SpellBook.GAS.Actions.ActionContext.IsCancelled
   - SpellBook.GAS.Actions.ActionContext.Level
   - SpellBook.GAS.Actions.ActionContext.Owner
   - SpellBook.GAS.Actions.ActionContext.Point
@@ -29,9 +31,11 @@ items:
   type: Class
   namespace: SpellBook.GAS.Actions
   summary: >-
-    Dados de uma execução de ações, passados a cada <xref href="SpellBook.GAS.Actions.GameplayAction" data-throw-if-not-resolved="false"></xref> da lista. Sem contexto,
+    Dados de uma execução de ações. O ASC guarda os contextos em pool: depois de passar um contexto a
 
-    <xref href="SpellBook.GAS.Core.AbilitySystemComponent.RunActions(System.Collections.Generic.IReadOnlyList%7bSpellBook.GAS.Actions.GameplayAction%7d%2cSpellBook.GAS.Actions.ActionContext%2cSystem.Object)" data-throw-if-not-resolved="false"></xref> cria um com o ASC como dono e instigador.
+    <xref href="SpellBook.GAS.Core.AbilitySystemComponent.RunActions(System.Collections.Generic.IReadOnlyList%7bSpellBook.GAS.Actions.GameplayAction%7d%2cSpellBook.GAS.Actions.ActionContext%2cSystem.Object)" data-throw-if-not-resolved="false"></xref>, o executor fica com ele e o devolve ao pool quando a execução
+
+    termina ou é cancelada. Não guarde a referência depois disso.
   example: []
   syntax:
     content: public sealed class ActionContext
@@ -312,6 +316,27 @@ items:
       type: SpellBook.GAS.Core.AbilitySystemComponent
     content.vb: Public Property EventInstigator As AbilitySystemComponent
   overload: SpellBook.GAS.Actions.ActionContext.EventInstigator*
+- uid: SpellBook.GAS.Actions.ActionContext.IsCancelled
+  commentId: P:SpellBook.GAS.Actions.ActionContext.IsCancelled
+  id: IsCancelled
+  parent: SpellBook.GAS.Actions.ActionContext
+  langs:
+  - csharp
+  - vb
+  name: IsCancelled
+  nameWithType: ActionContext.IsCancelled
+  fullName: SpellBook.GAS.Actions.ActionContext.IsCancelled
+  type: Property
+  namespace: SpellBook.GAS.Actions
+  summary: Verdadeiro depois que o dono da execução é cancelado.
+  example: []
+  syntax:
+    content: public bool IsCancelled { get; }
+    parameters: []
+    return:
+      type: System.Boolean
+    content.vb: Public Property IsCancelled As Boolean
+  overload: SpellBook.GAS.Actions.ActionContext.IsCancelled*
 - uid: SpellBook.GAS.Actions.ActionContext.CustomData
   commentId: P:SpellBook.GAS.Actions.ActionContext.CustomData
   id: CustomData
@@ -352,13 +377,33 @@ items:
       type: UnityEngine.Vector3
     content.vb: Public Sub SetPoint(point As Vector3)
   overload: SpellBook.GAS.Actions.ActionContext.SetPoint*
+- uid: SpellBook.GAS.Actions.ActionContext.CreateDerived(UnityEngine.Vector3)
+  commentId: M:SpellBook.GAS.Actions.ActionContext.CreateDerived(UnityEngine.Vector3)
+  id: CreateDerived(UnityEngine.Vector3)
+  parent: SpellBook.GAS.Actions.ActionContext
+  langs:
+  - csharp
+  - vb
+  name: CreateDerived(Vector3)
+  nameWithType: ActionContext.CreateDerived(Vector3)
+  fullName: SpellBook.GAS.Actions.ActionContext.CreateDerived(UnityEngine.Vector3)
+  type: Method
+  namespace: SpellBook.GAS.Actions
+  summary: >-
+    Contexto novo com <code class="paramref">point</code> como ponto, herdando instigador, habilidade e nível, sem vínculo
+
+    de cancelamento. O <xref href="SpellBook.GAS.Actions.ActionContext.CustomData" data-throw-if-not-resolved="false"></xref> é copiado raso.
+  example: []
+  syntax:
+    content: public ActionContext CreateDerived(Vector3 point)
+    parameters:
+    - id: point
+      type: UnityEngine.Vector3
+    return:
+      type: SpellBook.GAS.Actions.ActionContext
+    content.vb: Public Function CreateDerived(point As Vector3) As ActionContext
+  overload: SpellBook.GAS.Actions.ActionContext.CreateDerived*
 references:
-- uid: SpellBook.GAS.Actions.GameplayAction
-  commentId: T:SpellBook.GAS.Actions.GameplayAction
-  href: SpellBook.GAS.Actions.GameplayAction.html
-  name: GameplayAction
-  nameWithType: GameplayAction
-  fullName: SpellBook.GAS.Actions.GameplayAction
 - uid: SpellBook.GAS.Core.AbilitySystemComponent.RunActions(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction},SpellBook.GAS.Actions.ActionContext,System.Object)
   commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.RunActions(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction},SpellBook.GAS.Actions.ActionContext,System.Object)
   isExternal: true
@@ -986,6 +1031,12 @@ references:
   name: EventInstigator
   nameWithType: ActionContext.EventInstigator
   fullName: SpellBook.GAS.Actions.ActionContext.EventInstigator
+- uid: SpellBook.GAS.Actions.ActionContext.IsCancelled*
+  commentId: Overload:SpellBook.GAS.Actions.ActionContext.IsCancelled
+  href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_IsCancelled
+  name: IsCancelled
+  nameWithType: ActionContext.IsCancelled
+  fullName: SpellBook.GAS.Actions.ActionContext.IsCancelled
 - uid: SpellBook.GAS.Actions.ActionContext.CustomData*
   commentId: Overload:SpellBook.GAS.Actions.ActionContext.CustomData
   href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_CustomData
@@ -1079,3 +1130,22 @@ references:
   name: SetPoint
   nameWithType: ActionContext.SetPoint
   fullName: SpellBook.GAS.Actions.ActionContext.SetPoint
+- uid: SpellBook.GAS.Actions.ActionContext.CustomData
+  commentId: P:SpellBook.GAS.Actions.ActionContext.CustomData
+  href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_CustomData
+  name: CustomData
+  nameWithType: ActionContext.CustomData
+  fullName: SpellBook.GAS.Actions.ActionContext.CustomData
+- uid: SpellBook.GAS.Actions.ActionContext.CreateDerived*
+  commentId: Overload:SpellBook.GAS.Actions.ActionContext.CreateDerived
+  href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_CreateDerived_UnityEngine_Vector3_
+  name: CreateDerived
+  nameWithType: ActionContext.CreateDerived
+  fullName: SpellBook.GAS.Actions.ActionContext.CreateDerived
+- uid: SpellBook.GAS.Actions.ActionContext
+  commentId: T:SpellBook.GAS.Actions.ActionContext
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.ActionContext.html
+  name: ActionContext
+  nameWithType: ActionContext
+  fullName: SpellBook.GAS.Actions.ActionContext

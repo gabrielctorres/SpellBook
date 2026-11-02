@@ -18,9 +18,12 @@ namespace SpellBook.GAS.Actions
 
         /// <summary>
         /// Avança a ação. Na primeira chamada, <c>frame</c> vem zerado. Devolva <see cref="ActionStatus.Done"/> para
-        /// terminar, ou uma espera para ser chamada de novo depois dela.
+        /// terminar, ou uma espera ou lista filha para ser chamada de novo depois dela.
         /// </summary>
         protected internal abstract ActionStatus Execute(ActionContext context, ref ActionFrame frame);
+
+        /// <summary>Chamado quando o dono da execução é cancelado com esta ação em curso.</summary>
+        protected internal virtual void OnCancel(ActionContext context, ref ActionFrame frame) { }
 
         /// <summary>Acusa a configuração inválida da ação. O padrão não acusa nada.</summary>
         public virtual void Validate(ValidationResult result) { }

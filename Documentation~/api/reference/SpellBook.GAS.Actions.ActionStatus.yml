@@ -6,6 +6,8 @@ items:
   parent: SpellBook.GAS.Actions
   children:
   - SpellBook.GAS.Actions.ActionStatus.Done
+  - SpellBook.GAS.Actions.ActionStatus.Run(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction})
+  - SpellBook.GAS.Actions.ActionStatus.RunParallel(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction})
   - SpellBook.GAS.Actions.ActionStatus.Wait(System.Single)
   langs:
   - csharp
@@ -77,6 +79,58 @@ items:
   nameWithType.vb: ActionStatus.Wait(Single)
   fullName.vb: SpellBook.GAS.Actions.ActionStatus.Wait(Single)
   name.vb: Wait(Single)
+- uid: SpellBook.GAS.Actions.ActionStatus.Run(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction})
+  commentId: M:SpellBook.GAS.Actions.ActionStatus.Run(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction})
+  id: Run(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction})
+  parent: SpellBook.GAS.Actions.ActionStatus
+  langs:
+  - csharp
+  - vb
+  name: Run(IReadOnlyList<GameplayAction>)
+  nameWithType: ActionStatus.Run(IReadOnlyList<GameplayAction>)
+  fullName: SpellBook.GAS.Actions.ActionStatus.Run(System.Collections.Generic.IReadOnlyList<SpellBook.GAS.Actions.GameplayAction>)
+  type: Method
+  namespace: SpellBook.GAS.Actions
+  summary: Roda <code class="paramref">children</code> em sequência e chama a ação de novo quando terminam.
+  example: []
+  syntax:
+    content: public static ActionStatus Run(IReadOnlyList<GameplayAction> children)
+    parameters:
+    - id: children
+      type: System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction}
+    return:
+      type: SpellBook.GAS.Actions.ActionStatus
+    content.vb: Public Shared Function Run(children As IReadOnlyList(Of GameplayAction)) As ActionStatus
+  overload: SpellBook.GAS.Actions.ActionStatus.Run*
+  nameWithType.vb: ActionStatus.Run(IReadOnlyList(Of GameplayAction))
+  fullName.vb: SpellBook.GAS.Actions.ActionStatus.Run(System.Collections.Generic.IReadOnlyList(Of SpellBook.GAS.Actions.GameplayAction))
+  name.vb: Run(IReadOnlyList(Of GameplayAction))
+- uid: SpellBook.GAS.Actions.ActionStatus.RunParallel(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction})
+  commentId: M:SpellBook.GAS.Actions.ActionStatus.RunParallel(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction})
+  id: RunParallel(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction})
+  parent: SpellBook.GAS.Actions.ActionStatus
+  langs:
+  - csharp
+  - vb
+  name: RunParallel(IReadOnlyList<GameplayAction>)
+  nameWithType: ActionStatus.RunParallel(IReadOnlyList<GameplayAction>)
+  fullName: SpellBook.GAS.Actions.ActionStatus.RunParallel(System.Collections.Generic.IReadOnlyList<SpellBook.GAS.Actions.GameplayAction>)
+  type: Method
+  namespace: SpellBook.GAS.Actions
+  summary: Roda <code class="paramref">children</code> ao mesmo tempo e chama a ação de novo quando todas terminam.
+  example: []
+  syntax:
+    content: public static ActionStatus RunParallel(IReadOnlyList<GameplayAction> children)
+    parameters:
+    - id: children
+      type: System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction}
+    return:
+      type: SpellBook.GAS.Actions.ActionStatus
+    content.vb: Public Shared Function RunParallel(children As IReadOnlyList(Of GameplayAction)) As ActionStatus
+  overload: SpellBook.GAS.Actions.ActionStatus.RunParallel*
+  nameWithType.vb: ActionStatus.RunParallel(IReadOnlyList(Of GameplayAction))
+  fullName.vb: SpellBook.GAS.Actions.ActionStatus.RunParallel(System.Collections.Generic.IReadOnlyList(Of SpellBook.GAS.Actions.GameplayAction))
+  name.vb: RunParallel(IReadOnlyList(Of GameplayAction))
 references:
 - uid: SpellBook.GAS.Actions.GameplayAction.Execute(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
   commentId: M:SpellBook.GAS.Actions.GameplayAction.Execute(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
@@ -387,3 +441,113 @@ references:
   nameWithType.vb: Single
   fullName.vb: Single
   name.vb: Single
+- uid: SpellBook.GAS.Actions.ActionStatus.Run*
+  commentId: Overload:SpellBook.GAS.Actions.ActionStatus.Run
+  href: SpellBook.GAS.Actions.ActionStatus.html#SpellBook_GAS_Actions_ActionStatus_Run_System_Collections_Generic_IReadOnlyList_SpellBook_GAS_Actions_GameplayAction__
+  name: Run
+  nameWithType: ActionStatus.Run
+  fullName: SpellBook.GAS.Actions.ActionStatus.Run
+- uid: System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction}
+  commentId: T:System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IReadOnlyList`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  name: IReadOnlyList<GameplayAction>
+  nameWithType: IReadOnlyList<GameplayAction>
+  fullName: System.Collections.Generic.IReadOnlyList<SpellBook.GAS.Actions.GameplayAction>
+  nameWithType.vb: IReadOnlyList(Of GameplayAction)
+  fullName.vb: System.Collections.Generic.IReadOnlyList(Of SpellBook.GAS.Actions.GameplayAction)
+  name.vb: IReadOnlyList(Of GameplayAction)
+  spec.csharp:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: <
+  - uid: SpellBook.GAS.Actions.GameplayAction
+    name: GameplayAction
+    href: SpellBook.GAS.Actions.GameplayAction.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: SpellBook.GAS.Actions.GameplayAction
+    name: GameplayAction
+    href: SpellBook.GAS.Actions.GameplayAction.html
+  - name: )
+- uid: System.Collections.Generic.IReadOnlyList`1
+  commentId: T:System.Collections.Generic.IReadOnlyList`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  name: IReadOnlyList<T>
+  nameWithType: IReadOnlyList<T>
+  fullName: System.Collections.Generic.IReadOnlyList<T>
+  nameWithType.vb: IReadOnlyList(Of T)
+  fullName.vb: System.Collections.Generic.IReadOnlyList(Of T)
+  name.vb: IReadOnlyList(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic
+  commentId: N:System.Collections.Generic
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Collections.Generic
+  nameWithType: System.Collections.Generic
+  fullName: System.Collections.Generic
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+- uid: SpellBook.GAS.Actions.ActionStatus.RunParallel*
+  commentId: Overload:SpellBook.GAS.Actions.ActionStatus.RunParallel
+  href: SpellBook.GAS.Actions.ActionStatus.html#SpellBook_GAS_Actions_ActionStatus_RunParallel_System_Collections_Generic_IReadOnlyList_SpellBook_GAS_Actions_GameplayAction__
+  name: RunParallel
+  nameWithType: ActionStatus.RunParallel
+  fullName: SpellBook.GAS.Actions.ActionStatus.RunParallel

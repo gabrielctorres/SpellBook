@@ -7,8 +7,9 @@ using UnityEngine;
 namespace SpellBook.GAS.Actions
 {
     /// <summary>
-    /// Dados de uma execução de ações, passados a cada <see cref="GameplayAction"/> da lista. Sem contexto,
-    /// <see cref="AbilitySystemComponent.RunActions"/> cria um com o ASC como dono e instigador.
+    /// Dados de uma execução de ações. O ASC guarda os contextos em pool: depois de passar um contexto a
+    /// <see cref="AbilitySystemComponent.RunActions"/>, o executor fica com ele e o devolve ao pool quando a execução
+    /// termina ou é cancelada. Não guarde a referência depois disso.
     /// </summary>
     public sealed class ActionContext
     {
@@ -40,6 +41,8 @@ namespace SpellBook.GAS.Actions
         public EffectContext Effect => _effect;
         /// <summary>Quem causou o evento de reação ou de gameplay. Nulo nos outros eventos.</summary>
         public AbilitySystemComponent EventInstigator { get; internal set; }
+        /// <summary>Verdadeiro depois que o dono da execução é cancelado.</summary>
+        public bool IsCancelled { get; internal set; }
 
         /// <summary>Dados livres da execução, criados no primeiro acesso.</summary>
         public Dictionary<string, object> CustomData => _customData ??= new Dictionary<string, object>();
@@ -54,6 +57,44 @@ namespace SpellBook.GAS.Actions
         {
             _effect = effect;
             HasEffect = true;
+        }
+
+        /// <summary>
+        /// Contexto novo com <paramref name="point"/> como ponto, herdando instigador, habilidade e nível, sem vínculo
+        /// de cancelamento. O <see cref="CustomData"/> é copiado raso.
+        /// </summary>
+        public ActionContext CreateDerived(Vector3 point)
+        {
+            ActionContext derived = Owner != null ? Owner.Runner.RentContext() : new ActionContext();
+            derived.Owner = Owner;
+            derived.Instigator = Instigator;
+            derived.Ability = Ability;
+            derived.Level = Level;
+            derived.SetPoint(point);
+            if (_customData != null)
+            {
+                foreach (KeyValuePair<string, object> pair in _customData) derived.CustomData[pair.Key] = pair.Value;
+            }
+            return derived;
+        }
+
+        internal void Reset()
+        {
+            _eventTargets.Clear();
+            _targets.Clear();
+            _customData?.Clear();
+            _effect = default;
+            HasEffect = false;
+            Instigator = null;
+            Owner = null;
+            Point = default;
+            HasPoint = false;
+            Ability = null;
+            Spec = null;
+            Level = 1;
+            EffectInstance = null;
+            EventInstigator = null;
+            IsCancelled = false;
         }
     }
 }
