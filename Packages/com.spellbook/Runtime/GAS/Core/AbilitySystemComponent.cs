@@ -117,14 +117,49 @@ namespace SpellBook.GAS.Core
             }
         }
 
+        /// <summary>
+        /// Erro: entrada vazia em Starting Effects. Aviso: processador de um atributo do <see cref="AttributeSet"/> que
+        /// cita um atributo ausente do mesmo conjunto; em runtime esse processador não faz nada.
+        /// </summary>
         public void Validate(ValidationResult result)
         {
-            if (startingEffects == null) return;
-            for (int i = 0; i < startingEffects.Count; i++)
+            if (startingEffects != null)
             {
-                if (startingEffects[i] == null)
+                for (int i = 0; i < startingEffects.Count; i++)
                 {
-                    result.AddError($"Starting Effects tem uma entrada vazia (elemento {i}).", $"{nameof(startingEffects)}.Array.data[{i}]");
+                    if (startingEffects[i] == null)
+                    {
+                        result.AddError($"Starting Effects tem uma entrada vazia (elemento {i}).", $"{nameof(startingEffects)}.Array.data[{i}]");
+                    }
+                }
+            }
+
+            ValidateProcessorAttributes(result);
+        }
+
+        private void ValidateProcessorAttributes(ValidationResult result)
+        {
+            AttributeSet set = attributeSet != null ? attributeSet : GetComponent<AttributeSet>();
+            if (set == null) return;
+
+            var cited = new List<AttributeDefinition>();
+            for (int i = 0; i < set.StartingAttributeCount; i++)
+            {
+                AttributeDefinition owner = set.GetStartingAttribute(i);
+                if (owner == null) continue;
+
+                IReadOnlyList<AttributeChangeProcessor> processors = owner.Processors;
+                for (int p = 0; p < processors.Count; p++)
+                {
+                    cited.Clear();
+                    processors[p]?.CollectAttributes(cited);
+                    for (int c = 0; c < cited.Count; c++)
+                    {
+                        if (set.DeclaresAttribute(cited[c])) continue;
+                        result.AddWarning(
+                            $"O processador {processors[p].GetType().Name} de {owner.name} cita {cited[c].name}, que não está no Attribute Set: em runtime ele não faz nada.",
+                            nameof(attributeSet));
+                    }
                 }
             }
         }

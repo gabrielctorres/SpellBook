@@ -61,6 +61,13 @@ O validador acusa erro em:
   [AttributeDefinition](../modulos/gas.md#attributedefinition));
 - um `AbilitySystemComponent` com entrada vazia em **Starting Effects** (veja
   [Efeitos de partida](../modulos/gas.md#starting-effects));
+- um `AttributeDefinition` com processador vazio em **Processors**, com `AbsorbWithAttribute` sem
+  escudo, com o próprio atributo como escudo ou com **Fraction** fora de 0 a 1, com
+  `ReduceByAttribute` sem atributo, ou com **State Tag While Depleted** apontando para uma tag que
+  foi apagada. Num meta-atributo, o escudo igual ao próprio atributo aparece como ciclo. Um
+  `GameplayEffect` com meta-atributo em **Modifiers** de efeito com duração ou infinito também é
+  erro, porque o meta só muda pela base. A mensagem aponta o campo do processador (veja
+  [Dano, escudo e morte](../modulos/dano-escudo-e-morte.md));
 - uma habilidade com **Max Level** menor que 1, com nome vazio, inválido ou repetido na tabela
   **Values**, ou com uma entrada da tabela que lê outra (modo `Table`) (veja
   [Níveis e tabela de valores](../modulos/gas.md#abilityvalues));
@@ -86,14 +93,17 @@ O validador acusa erro em:
 - uma `CooldownReductionPolicy` com **Min Duration** negativo ou **Max Reduction** fora de 0 a 1
   (veja [CooldownReductionPolicy](../modulos/gas.md#cooldownreductionpolicy));
 - uma linha vazia num `GameplayTagContainer` ou numa lista de um `GameplayTagQuery`, e a mesma tag
-  em duas listas da consulta, nos campos cujo dono repassa a validação (veja
+  em duas listas da consulta, nos campos cujo dono repassa a validação, como as **Damage Tags** do
+  `GameplayEffect` (veja
   [Validação](../modulos/tags.md#validacao) em Tags);
 - uma referência `[SerializeReference]` cujo tipo não existe mais (abaixo);
 - um `MonoBehaviour` ou `ScriptableObject` público e concreto do SpellBook sem `[HelpURL]`, ou com
   `[HelpURL]` fora do manual (abaixo).
 
 E acusa aviso numa tag repetida num conjunto ou numa lista da consulta, numa consulta com as três
-listas vazias, num `AttributeDefinition` com **Hidden** sem **Category**, num `GameplayEffect` com **Is Buff** e
+listas vazias, num `AttributeDefinition` com **Hidden** sem **Category**, num meta-atributo sem processadores (a
+alteração não afeta ninguém), num `AbilitySystemComponent` cujo **Attribute Set** tem um atributo com
+processador que cita outro atributo fora do conjunto (em runtime, o processador não faz nada), num `GameplayEffect` com **Is Buff** e
 **Is Debuff** ligados juntos (veja [Gameplay Effects](../modulos/gas.md#gameplayeffect)), num `GameplayEffect`
 com **SetByCaller** sem padrão (sem o valor do chamador, vale 0), com modo **Live** em efeito `Instant` ou
 em modificador periódico, onde o modo não tem efeito, numa habilidade com **Cooldown Reduction Policy** sem

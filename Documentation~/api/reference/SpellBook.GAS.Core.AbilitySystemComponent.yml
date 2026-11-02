@@ -525,6 +525,10 @@ items:
   fullName: SpellBook.GAS.Core.AbilitySystemComponent.Validate(SpellBook.Core.Validation.ValidationResult)
   type: Method
   namespace: SpellBook.GAS.Core
+  summary: >-
+    Erro: entrada vazia em Starting Effects. Aviso: processador de um atributo do <xref href="SpellBook.GAS.Core.AbilitySystemComponent.AttributeSet" data-throw-if-not-resolved="false"></xref> que
+
+    cita um atributo ausente do mesmo conjunto; em runtime esse processador não faz nada.
   example: []
   syntax:
     content: public void Validate(ValidationResult result)
@@ -10471,6 +10475,12 @@ references:
   nameWithType.vb: Double
   fullName.vb: Double
   name.vb: Double
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.AttributeSet
+  commentId: P:SpellBook.GAS.Core.AbilitySystemComponent.AttributeSet
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_AttributeSet
+  name: AttributeSet
+  nameWithType: AbilitySystemComponent.AttributeSet
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.AttributeSet
 - uid: SpellBook.GAS.Core.AbilitySystemComponent.Validate*
   commentId: Overload:SpellBook.GAS.Core.AbilitySystemComponent.Validate
   href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_Validate_SpellBook_Core_Validation_ValidationResult_

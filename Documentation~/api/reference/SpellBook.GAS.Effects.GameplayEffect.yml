@@ -716,7 +716,9 @@ items:
   summary: >-
     Acusa Is Buff com Is Debuff, cada <xref href="SpellBook.GAS.Values.ScalableFloat" data-throw-if-not-resolved="false"></xref> inválido (duração e valores), SetByCaller sem nome
 
-    válido (erro) ou sem padrão (aviso), modo Live onde não tem efeito (aviso) e ciclo ao vivo entre atributos (erro).
+    válido (erro) ou sem padrão (aviso), modo Live onde não tem efeito (aviso), ciclo ao vivo entre atributos (erro),
+
+    tag de dano vazia ou repetida e meta-atributo em <code>Modifiers</code> de efeito com duração ou infinito (erro).
 
     Os nomes do modo Table são conferidos pela habilidade que usa o efeito.
   example: []

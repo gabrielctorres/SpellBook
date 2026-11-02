@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using SpellBook.Core.Validation;
 using SpellBook.GAS.Effects;
 
@@ -20,5 +21,8 @@ namespace SpellBook.GAS.Attributes
 
         /// <summary>Confere a configuração do processador no asset de <paramref name="owner"/>.</summary>
         public virtual void Validate(ValidationResult result, string propertyPath, AttributeDefinition owner) { }
+
+        // Atributos do dono que o processador lê ou altera; o validador do ASC confere se estão no AttributeSet.
+        internal virtual void CollectAttributes(List<AttributeDefinition> attributes) { }
     }
 }

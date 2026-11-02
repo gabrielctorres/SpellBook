@@ -9,6 +9,7 @@ items:
   - SpellBook.GAS.Attributes.AbsorbWithAttribute.Fraction
   - SpellBook.GAS.Attributes.AbsorbWithAttribute.Process(SpellBook.GAS.Attributes.AttributeChange@,SpellBook.GAS.Effects.EffectContext@,SpellBook.GAS.Attributes.AttributeChangeQueue)
   - SpellBook.GAS.Attributes.AbsorbWithAttribute.Shield
+  - SpellBook.GAS.Attributes.AbsorbWithAttribute.Validate(SpellBook.Core.Validation.ValidationResult,System.String,SpellBook.GAS.Attributes.AttributeDefinition)
   langs:
   - csharp
   - vb
@@ -45,7 +46,6 @@ items:
   - System.Object
   - SpellBook.GAS.Attributes.AttributeChangeProcessor
   inheritedMembers:
-  - SpellBook.GAS.Attributes.AttributeChangeProcessor.Validate(SpellBook.Core.Validation.ValidationResult,System.String,SpellBook.GAS.Attributes.AttributeDefinition)
   - System.Object.Equals(System.Object)
   - System.Object.Equals(System.Object,System.Object)
   - System.Object.GetHashCode
@@ -168,6 +168,35 @@ items:
   nameWithType.vb: AbsorbWithAttribute.Process(AttributeChange, EffectContext, AttributeChangeQueue)
   fullName.vb: SpellBook.GAS.Attributes.AbsorbWithAttribute.Process(SpellBook.GAS.Attributes.AttributeChange, SpellBook.GAS.Effects.EffectContext, SpellBook.GAS.Attributes.AttributeChangeQueue)
   name.vb: Process(AttributeChange, EffectContext, AttributeChangeQueue)
+- uid: SpellBook.GAS.Attributes.AbsorbWithAttribute.Validate(SpellBook.Core.Validation.ValidationResult,System.String,SpellBook.GAS.Attributes.AttributeDefinition)
+  commentId: M:SpellBook.GAS.Attributes.AbsorbWithAttribute.Validate(SpellBook.Core.Validation.ValidationResult,System.String,SpellBook.GAS.Attributes.AttributeDefinition)
+  id: Validate(SpellBook.Core.Validation.ValidationResult,System.String,SpellBook.GAS.Attributes.AttributeDefinition)
+  parent: SpellBook.GAS.Attributes.AbsorbWithAttribute
+  langs:
+  - csharp
+  - vb
+  name: Validate(ValidationResult, string, AttributeDefinition)
+  nameWithType: AbsorbWithAttribute.Validate(ValidationResult, string, AttributeDefinition)
+  fullName: SpellBook.GAS.Attributes.AbsorbWithAttribute.Validate(SpellBook.Core.Validation.ValidationResult, string, SpellBook.GAS.Attributes.AttributeDefinition)
+  type: Method
+  namespace: SpellBook.GAS.Attributes
+  summary: 'Erros: sem escudo, escudo igual ao próprio atributo (num meta, um ciclo) e fração fora de 0 a 1.'
+  example: []
+  syntax:
+    content: public override void Validate(ValidationResult result, string propertyPath, AttributeDefinition owner)
+    parameters:
+    - id: result
+      type: SpellBook.Core.Validation.ValidationResult
+    - id: propertyPath
+      type: System.String
+    - id: owner
+      type: SpellBook.GAS.Attributes.AttributeDefinition
+    content.vb: Public Overrides Sub Validate(result As ValidationResult, propertyPath As String, owner As AttributeDefinition)
+  overridden: SpellBook.GAS.Attributes.AttributeChangeProcessor.Validate(SpellBook.Core.Validation.ValidationResult,System.String,SpellBook.GAS.Attributes.AttributeDefinition)
+  overload: SpellBook.GAS.Attributes.AbsorbWithAttribute.Validate*
+  nameWithType.vb: AbsorbWithAttribute.Validate(ValidationResult, String, AttributeDefinition)
+  fullName.vb: SpellBook.GAS.Attributes.AbsorbWithAttribute.Validate(SpellBook.Core.Validation.ValidationResult, String, SpellBook.GAS.Attributes.AttributeDefinition)
+  name.vb: Validate(ValidationResult, String, AttributeDefinition)
 references:
 - uid: SpellBook.GAS.Attributes.AbsorbWithAttribute.DamageTags
   commentId: P:SpellBook.GAS.Attributes.AbsorbWithAttribute.DamageTags
@@ -216,57 +245,6 @@ references:
   name: AttributeChangeProcessor
   nameWithType: AttributeChangeProcessor
   fullName: SpellBook.GAS.Attributes.AttributeChangeProcessor
-- uid: SpellBook.GAS.Attributes.AttributeChangeProcessor.Validate(SpellBook.Core.Validation.ValidationResult,System.String,SpellBook.GAS.Attributes.AttributeDefinition)
-  commentId: M:SpellBook.GAS.Attributes.AttributeChangeProcessor.Validate(SpellBook.Core.Validation.ValidationResult,System.String,SpellBook.GAS.Attributes.AttributeDefinition)
-  parent: SpellBook.GAS.Attributes.AttributeChangeProcessor
-  isExternal: true
-  href: SpellBook.GAS.Attributes.AttributeChangeProcessor.html#SpellBook_GAS_Attributes_AttributeChangeProcessor_Validate_SpellBook_Core_Validation_ValidationResult_System_String_SpellBook_GAS_Attributes_AttributeDefinition_
-  name: Validate(ValidationResult, string, AttributeDefinition)
-  nameWithType: AttributeChangeProcessor.Validate(ValidationResult, string, AttributeDefinition)
-  fullName: SpellBook.GAS.Attributes.AttributeChangeProcessor.Validate(SpellBook.Core.Validation.ValidationResult, string, SpellBook.GAS.Attributes.AttributeDefinition)
-  nameWithType.vb: AttributeChangeProcessor.Validate(ValidationResult, String, AttributeDefinition)
-  fullName.vb: SpellBook.GAS.Attributes.AttributeChangeProcessor.Validate(SpellBook.Core.Validation.ValidationResult, String, SpellBook.GAS.Attributes.AttributeDefinition)
-  name.vb: Validate(ValidationResult, String, AttributeDefinition)
-  spec.csharp:
-  - uid: SpellBook.GAS.Attributes.AttributeChangeProcessor.Validate(SpellBook.Core.Validation.ValidationResult,System.String,SpellBook.GAS.Attributes.AttributeDefinition)
-    name: Validate
-    href: SpellBook.GAS.Attributes.AttributeChangeProcessor.html#SpellBook_GAS_Attributes_AttributeChangeProcessor_Validate_SpellBook_Core_Validation_ValidationResult_System_String_SpellBook_GAS_Attributes_AttributeDefinition_
-  - name: (
-  - uid: SpellBook.Core.Validation.ValidationResult
-    name: ValidationResult
-    href: SpellBook.Core.Validation.ValidationResult.html
-  - name: ','
-  - name: " "
-  - uid: System.String
-    name: string
-    isExternal: true
-    href: https://learn.microsoft.com/dotnet/api/system.string
-  - name: ','
-  - name: " "
-  - uid: SpellBook.GAS.Attributes.AttributeDefinition
-    name: AttributeDefinition
-    href: SpellBook.GAS.Attributes.AttributeDefinition.html
-  - name: )
-  spec.vb:
-  - uid: SpellBook.GAS.Attributes.AttributeChangeProcessor.Validate(SpellBook.Core.Validation.ValidationResult,System.String,SpellBook.GAS.Attributes.AttributeDefinition)
-    name: Validate
-    href: SpellBook.GAS.Attributes.AttributeChangeProcessor.html#SpellBook_GAS_Attributes_AttributeChangeProcessor_Validate_SpellBook_Core_Validation_ValidationResult_System_String_SpellBook_GAS_Attributes_AttributeDefinition_
-  - name: (
-  - uid: SpellBook.Core.Validation.ValidationResult
-    name: ValidationResult
-    href: SpellBook.Core.Validation.ValidationResult.html
-  - name: ','
-  - name: " "
-  - uid: System.String
-    name: String
-    isExternal: true
-    href: https://learn.microsoft.com/dotnet/api/system.string
-  - name: ','
-  - name: " "
-  - uid: SpellBook.GAS.Attributes.AttributeDefinition
-    name: AttributeDefinition
-    href: SpellBook.GAS.Attributes.AttributeDefinition.html
-  - name: )
 - uid: System.Object.Equals(System.Object)
   commentId: M:System.Object.Equals(System.Object)
   parent: System.Object
@@ -637,3 +615,101 @@ references:
   - name: .
   - uid: SpellBook.GAS.Effects
     name: Effects
+- uid: SpellBook.GAS.Attributes.AttributeChangeProcessor.Validate(SpellBook.Core.Validation.ValidationResult,System.String,SpellBook.GAS.Attributes.AttributeDefinition)
+  commentId: M:SpellBook.GAS.Attributes.AttributeChangeProcessor.Validate(SpellBook.Core.Validation.ValidationResult,System.String,SpellBook.GAS.Attributes.AttributeDefinition)
+  parent: SpellBook.GAS.Attributes.AttributeChangeProcessor
+  isExternal: true
+  href: SpellBook.GAS.Attributes.AttributeChangeProcessor.html#SpellBook_GAS_Attributes_AttributeChangeProcessor_Validate_SpellBook_Core_Validation_ValidationResult_System_String_SpellBook_GAS_Attributes_AttributeDefinition_
+  name: Validate(ValidationResult, string, AttributeDefinition)
+  nameWithType: AttributeChangeProcessor.Validate(ValidationResult, string, AttributeDefinition)
+  fullName: SpellBook.GAS.Attributes.AttributeChangeProcessor.Validate(SpellBook.Core.Validation.ValidationResult, string, SpellBook.GAS.Attributes.AttributeDefinition)
+  nameWithType.vb: AttributeChangeProcessor.Validate(ValidationResult, String, AttributeDefinition)
+  fullName.vb: SpellBook.GAS.Attributes.AttributeChangeProcessor.Validate(SpellBook.Core.Validation.ValidationResult, String, SpellBook.GAS.Attributes.AttributeDefinition)
+  name.vb: Validate(ValidationResult, String, AttributeDefinition)
+  spec.csharp:
+  - uid: SpellBook.GAS.Attributes.AttributeChangeProcessor.Validate(SpellBook.Core.Validation.ValidationResult,System.String,SpellBook.GAS.Attributes.AttributeDefinition)
+    name: Validate
+    href: SpellBook.GAS.Attributes.AttributeChangeProcessor.html#SpellBook_GAS_Attributes_AttributeChangeProcessor_Validate_SpellBook_Core_Validation_ValidationResult_System_String_SpellBook_GAS_Attributes_AttributeDefinition_
+  - name: (
+  - uid: SpellBook.Core.Validation.ValidationResult
+    name: ValidationResult
+    href: SpellBook.Core.Validation.ValidationResult.html
+  - name: ','
+  - name: " "
+  - uid: System.String
+    name: string
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: ','
+  - name: " "
+  - uid: SpellBook.GAS.Attributes.AttributeDefinition
+    name: AttributeDefinition
+    href: SpellBook.GAS.Attributes.AttributeDefinition.html
+  - name: )
+  spec.vb:
+  - uid: SpellBook.GAS.Attributes.AttributeChangeProcessor.Validate(SpellBook.Core.Validation.ValidationResult,System.String,SpellBook.GAS.Attributes.AttributeDefinition)
+    name: Validate
+    href: SpellBook.GAS.Attributes.AttributeChangeProcessor.html#SpellBook_GAS_Attributes_AttributeChangeProcessor_Validate_SpellBook_Core_Validation_ValidationResult_System_String_SpellBook_GAS_Attributes_AttributeDefinition_
+  - name: (
+  - uid: SpellBook.Core.Validation.ValidationResult
+    name: ValidationResult
+    href: SpellBook.Core.Validation.ValidationResult.html
+  - name: ','
+  - name: " "
+  - uid: System.String
+    name: String
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: ','
+  - name: " "
+  - uid: SpellBook.GAS.Attributes.AttributeDefinition
+    name: AttributeDefinition
+    href: SpellBook.GAS.Attributes.AttributeDefinition.html
+  - name: )
+- uid: SpellBook.GAS.Attributes.AbsorbWithAttribute.Validate*
+  commentId: Overload:SpellBook.GAS.Attributes.AbsorbWithAttribute.Validate
+  href: SpellBook.GAS.Attributes.AbsorbWithAttribute.html#SpellBook_GAS_Attributes_AbsorbWithAttribute_Validate_SpellBook_Core_Validation_ValidationResult_System_String_SpellBook_GAS_Attributes_AttributeDefinition_
+  name: Validate
+  nameWithType: AbsorbWithAttribute.Validate
+  fullName: SpellBook.GAS.Attributes.AbsorbWithAttribute.Validate
+- uid: SpellBook.Core.Validation.ValidationResult
+  commentId: T:SpellBook.Core.Validation.ValidationResult
+  parent: SpellBook.Core.Validation
+  href: SpellBook.Core.Validation.ValidationResult.html
+  name: ValidationResult
+  nameWithType: ValidationResult
+  fullName: SpellBook.Core.Validation.ValidationResult
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.string
+  name: string
+  nameWithType: string
+  fullName: string
+  nameWithType.vb: String
+  fullName.vb: String
+  name.vb: String
+- uid: SpellBook.Core.Validation
+  commentId: N:SpellBook.Core.Validation
+  name: SpellBook.Core.Validation
+  nameWithType: SpellBook.Core.Validation
+  fullName: SpellBook.Core.Validation
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Validation
+    name: Validation
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Validation
+    name: Validation

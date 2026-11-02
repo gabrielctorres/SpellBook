@@ -202,6 +202,22 @@ namespace SpellBook.GAS.Attributes
             return TryGetState(def, out var state) ? state.CurrentValue : fallback;
         }
 
+        // Leitura do campo serializado sem criar os estados, para o validador do ASC no Editor.
+        internal bool DeclaresAttribute(AttributeDefinition def)
+        {
+            if (def == null || startingAttributes == null) return false;
+            for (int i = 0; i < startingAttributes.Count; i++)
+            {
+                if (startingAttributes[i].Definition == def) return true;
+            }
+
+            return false;
+        }
+
+        internal int StartingAttributeCount => startingAttributes != null ? startingAttributes.Count : 0;
+
+        internal AttributeDefinition GetStartingAttribute(int index) => startingAttributes[index].Definition;
+
         /// <summary>Se o atributo está em <c>startingAttributes</c>. Sem aviso; <paramref name="def"/> nulo: falso.</summary>
         public bool HasAttribute(AttributeDefinition def)
         {

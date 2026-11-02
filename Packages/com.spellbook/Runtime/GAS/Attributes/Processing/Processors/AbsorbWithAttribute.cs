@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using SpellBook.GAS.Effects;
 using SpellBook.Tags;
 using UnityEngine;
@@ -59,6 +61,33 @@ namespace SpellBook.GAS.Attributes
 
             queue.Redirect(shield, -consumed);
             change.Delta = delta + consumed;
+        }
+
+        /// <summary>Erros: sem escudo, escudo igual ao próprio atributo (num meta, um ciclo) e fração fora de 0 a 1.</summary>
+        public override void Validate(ValidationResult result, string propertyPath, AttributeDefinition owner)
+        {
+            string shieldPath = propertyPath + "." + nameof(shield);
+            if (shield == null)
+            {
+                result.AddError("AbsorbWithAttribute sem escudo: escolha o atributo Shield.", shieldPath);
+            }
+            else if (shield == owner)
+            {
+                result.AddError(owner != null && owner.IsMeta
+                        ? $"AbsorbWithAttribute de {owner.name} redireciona para o próprio meta-atributo: é um ciclo."
+                        : "O escudo do AbsorbWithAttribute é o próprio atributo: escolha outro atributo.",
+                    shieldPath);
+            }
+
+            if (fraction < 0f || fraction > 1f)
+            {
+                result.AddError($"Fraction ({fraction}) fora de 0 a 1.", propertyPath + "." + nameof(fraction));
+            }
+        }
+
+        internal override void CollectAttributes(List<AttributeDefinition> attributes)
+        {
+            if (shield != null) attributes.Add(shield);
         }
     }
 }

@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using SpellBook.GAS.Effects;
 using SpellBook.Tags;
 using UnityEngine;
@@ -75,6 +77,20 @@ namespace SpellBook.GAS.Attributes
                 ? magnitude * Mathf.Clamp01(source.CurrentValue)
                 : Mathf.Clamp(source.CurrentValue, 0f, magnitude);
             change.Delta = Mathf.Sign(delta) * (magnitude - reduction);
+        }
+
+        /// <summary>Erro: sem atributo de origem.</summary>
+        public override void Validate(ValidationResult result, string propertyPath, AttributeDefinition owner)
+        {
+            if (sourceAttribute == null)
+            {
+                result.AddError("ReduceByAttribute sem atributo: escolha o Source Attribute.", propertyPath + "." + nameof(sourceAttribute));
+            }
+        }
+
+        internal override void CollectAttributes(List<AttributeDefinition> attributes)
+        {
+            if (sourceAttribute != null) attributes.Add(sourceAttribute);
         }
     }
 }
