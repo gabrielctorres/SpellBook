@@ -1401,8 +1401,52 @@ namespace SpellBook.GAS.Core
                         : mod.ValueSource.Evaluate(in context);
                     accumulator.Accumulate(mod.Operation, value);
                 }
-                state.SetBaseValue(accumulator.Result());
+                float newBase = accumulator.Result();
+                ProcessChange(state, newBase - state.BaseValue, newBase, effect, in context);
             }
+        }
+
+        private AttributeChangeQueue _changeQueue;
+
+        /// <summary>
+        /// Uma alteração da base passou pelo pipeline e foi aplicada (ADR 0033): uma vez por alteração, também a anulada,
+        /// depois do <c>OnValueChanged</c>. Modificadores persistentes não disparam.
+        /// </summary>
+        public event AttributeChangeHandler OnAttributeChangeApplied;
+
+        /// <summary>
+        /// Muda a base de <paramref name="attribute"/> em <paramref name="delta"/> pelo pipeline de processadores, como um
+        /// efeito instantâneo faria. Devolve quanto a base mudou de fato; 0 se o ASC não tem o atributo.
+        /// </summary>
+        public float ApplyAttributeChange(AttributeDefinition attribute, float delta, in EffectContext context = default, GameplayEffect effect = null)
+        {
+            if (attribute == null || attributeSet == null || !attributeSet.TryGetState(attribute, out var state)) return 0f;
+            return ProcessChange(state, delta, state.BaseValue + delta, effect, in context);
+        }
+
+        /// <summary>
+        /// Núcleo do pipeline: roda os processadores da definição na ordem da lista, aplica a variação final e dispara o
+        /// relatório. <paramref name="requestedBase"/> é a base pedida, usada sem conta nova quando nada mudou a variação.
+        /// </summary>
+        private float ProcessChange(AttributeState state, float delta, float requestedBase, GameplayEffect effect, in EffectContext context)
+        {
+            var change = new AttributeChange(state.Definition, delta, effect);
+            IReadOnlyList<AttributeChangeProcessor> processors = state.Definition.Processors;
+            bool processed = processors != null && processors.Count > 0;
+            if (processed)
+            {
+                AttributeChangeQueue queue = _changeQueue ??= new AttributeChangeQueue(this);
+                for (int i = 0; i < processors.Count; i++) processors[i]?.Process(ref change, in context, queue);
+            }
+
+            // Sem processadores, a base pedida vai direto, como antes do pipeline (CA1); com eles, final zero não aplica
+            float before = state.BaseValue;
+            if (!processed) state.SetBaseValue(requestedBase);
+            else if (change.Delta != 0f) state.SetBaseValue(change.Delta == change.Requested ? requestedBase : before + change.Delta);
+
+            var report = new AttributeChangeReport(in change, state.BaseValue - before, in context);
+            OnAttributeChangeApplied?.Invoke(in report);
+            return report.Applied;
         }
 
         private static bool IsAttributeHandledBefore(List<AttributeEffectModifier> modifiers, int index)

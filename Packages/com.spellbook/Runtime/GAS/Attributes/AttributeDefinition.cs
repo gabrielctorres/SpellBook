@@ -68,8 +68,16 @@ namespace SpellBook.GAS.Attributes
         [Tooltip("Como o valor aparece na interface: tipo, casas, prefixo, sufixo, direção boa, ordem, visibilidade e categoria")]
         public AttributeDisplay Display;
 
+        [Header("Damage")]
+        [SerializeReference, TypePicker]
+        [Tooltip("Processadores que mudam cada alteração da base por efeito instantâneo, tique ou código, na ordem da lista. Modificadores persistentes não passam por eles.")]
+        private List<AttributeChangeProcessor> processors = new List<AttributeChangeProcessor>();
+
         /// <summary>A categoria do atributo, de <see cref="AttributeDisplay.Category"/> (R18).</summary>
         public AttributeCategory Category => Display.Category;
+
+        /// <summary>Pipeline de pré-alteração, na ordem de execução (ADR 0033). Entrada nula é pulada.</summary>
+        public IReadOnlyList<AttributeChangeProcessor> Processors => processors;
 
         /// <summary>
         /// Erros: mínimo constante acima do máximo constante, fonte de limite sem atributo, apontando para o próprio
