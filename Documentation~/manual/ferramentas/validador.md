@@ -75,6 +75,14 @@ O validador acusa erro em:
   dígitos e `_`, ou com modificadores **Live** em ciclo, em que um atributo depende do outro (veja
   [Valores por nível](../modulos/gas.md#scalablefloat) e
   [Snapshot ou ao vivo](../modulos/gas.md#magnitude-ao-vivo));
+- uma regra de **Activation Conditions** vazia ou sem condição, um `NotCondition` sem condição, uma
+  `AttributeThresholdCondition` sem atributo ou com valor `SetByCaller` ou `TargetAttribute` (na
+  ativação não há chamador nem alvo) e uma `CastRangeCondition`, mesmo dentro de outra condição, com
+  **Cast Range** negativo em algum nível. A mensagem aponta o campo da regra ou o **Cast Range** da
+  habilidade (veja [Condições](../modulos/gas.md#condicoes));
+- uma habilidade com [cargas](../modulos/gas.md#cargas) ligadas e **Max Charges** constante menor que 1,
+  **Recharge Time** constante menor ou igual a 0, ou um desses dois campos em modo `Table` com um nome que
+  não está na tabela da habilidade;
 - uma `CooldownReductionPolicy` com **Min Duration** negativo ou **Max Reduction** fora de 0 a 1
   (veja [CooldownReductionPolicy](../modulos/gas.md#cooldownreductionpolicy));
 - uma linha vazia num `GameplayTagContainer` ou numa lista de um `GameplayTagQuery`, e a mesma tag
@@ -89,7 +97,9 @@ listas vazias, num `AttributeDefinition` com **Hidden** sem **Category**, num `G
 **Is Debuff** ligados juntos (veja [Gameplay Effects](../modulos/gas.md#gameplayeffect)), num `GameplayEffect`
 com **SetByCaller** sem padrão (sem o valor do chamador, vale 0), com modo **Live** em efeito `Instant` ou
 em modificador periódico, onde o modo não tem efeito, numa habilidade com **Cooldown Reduction Policy** sem
-**Cooldown Reduction Attribute** e numa habilidade com **Max Level** acima do tamanho de um array da tabela
+**Cooldown Reduction Attribute**, num `OrCondition` sem condições (sempre falso), numa `TagQueryCondition`
+com a consulta vazia, numa `CastRangeCondition` com **Cast Range** 0 em todos os níveis (sem limite, ela
+sempre passa) e numa habilidade com **Max Level** acima do tamanho de um array da tabela
 (acima dele, o array repete o último valor).
 
 ## Tipo sem HelpURL {#helpurl}

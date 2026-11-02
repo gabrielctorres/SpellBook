@@ -1,6 +1,7 @@
 using System;
 using SpellBook.Core.Conditions;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using SpellBook.Tags;
 using UnityEngine;
 
@@ -24,6 +25,12 @@ namespace SpellBook.GAS.Conditions
         public override bool Evaluate(in ConditionContext context)
         {
             return context.Owner != null && context.Owner.HasMatching(query);
+        }
+
+        /// <summary>Repassa à <see cref="GameplayTagQuery.Validate"/>: consulta vazia (aviso) e tag inválida ou repetida.</summary>
+        public override void Validate(ValidationResult result, string propertyPath)
+        {
+            query?.Validate(result, propertyPath + "." + nameof(query));
         }
     }
 }

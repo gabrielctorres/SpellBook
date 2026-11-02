@@ -1,4 +1,5 @@
 using System;
+using SpellBook.Core.Validation;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Values;
 using UnityEngine;
@@ -55,6 +56,38 @@ namespace SpellBook.GAS.Abilities
         {
             get => mode;
             set => mode = value;
+        }
+
+        /// <summary>
+        /// Com as cargas ligadas, acusa o máximo constante menor que 1, o tempo de recarga constante menor ou igual a 0 e o
+        /// nome do modo Table que não está na <paramref name="table"/> da habilidade. O caminho é o do campo dono.
+        /// </summary>
+        public void Validate(ValidationResult result, string propertyPath, AbilityValues table)
+        {
+            if (!enabled) return;
+
+            string maxPath = propertyPath + "." + nameof(maxCharges);
+            ScalableFloat max = MaxCharges.Type == ModifierValueSource.SourceType.Value ? MaxCharges.Value : null;
+            if (max != null && max.Mode == ScalableFloat.ScalableMode.Constant && Mathf.Floor(max.Evaluate(1)) < 1f)
+            {
+                result.AddError($"Max Charges é {max.Evaluate(1)}: com cargas ligadas, o máximo é pelo menos 1.", maxPath);
+            }
+            ValidateTableName(result, max, table, maxPath);
+
+            string rechargePath = propertyPath + "." + nameof(rechargeTime);
+            if (RechargeTime.Mode == ScalableFloat.ScalableMode.Constant && RechargeTime.Evaluate(1) <= 0f)
+            {
+                result.AddError($"Recharge Time é {RechargeTime.Evaluate(1)}: o tempo de recarga é maior que 0.", rechargePath);
+            }
+            ValidateTableName(result, RechargeTime, table, rechargePath);
+        }
+
+        private static void ValidateTableName(ValidationResult result, ScalableFloat value, AbilityValues table, string propertyPath)
+        {
+            if (value == null || value.Mode != ScalableFloat.ScalableMode.Table || string.IsNullOrEmpty(value.TableName)) return;
+            if (table != null && table.IndexOf(value.TableName) >= 0) return;
+
+            result.AddError($"As cargas leem o valor \"{value.TableName}\" da tabela, que não existe nesta habilidade.", propertyPath);
         }
     }
 }
