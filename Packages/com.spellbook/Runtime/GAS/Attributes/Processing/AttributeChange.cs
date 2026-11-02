@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using SpellBook.GAS.Effects;
+using SpellBook.Tags;
 
 namespace SpellBook.GAS.Attributes
 {
@@ -31,6 +33,16 @@ namespace SpellBook.GAS.Attributes
 
         /// <summary>Atributo cujo processador gerou esta alteração; nulo na alteração original.</summary>
         public AttributeDefinition RedirectedFrom { get; }
+
+        /// <summary>
+        /// O efeito tem alguma das tags de dano do <paramref name="filter"/>, pela hierarquia (<c>Dano</c> casa com
+        /// <c>Dano.Fogo</c>). Filtro nulo ou vazio: verdadeiro. Alteração sem efeito com filtro preenchido: falso.
+        /// </summary>
+        public bool HasDamageTag(IReadOnlyList<GameplayTag> filter)
+        {
+            if (filter == null || filter.Count == 0) return true;
+            return Effect != null && Effect.DamageTags.HasAny(filter);
+        }
     }
 
     /// <summary>

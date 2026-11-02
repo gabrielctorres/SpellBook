@@ -37,6 +37,35 @@ Um passo da lista de processadores de um atributo. Fica no asset do atributo, en
 
 A ordem muda o resultado. Com um processador que soma 10 e outro que corta pela metade, um golpe de -20 vira -5 com a soma antes (`(-20 + 10) × 0,5`) e vira 0 com o corte antes (`-20 × 0,5 + 10`). A mesma lista dá sempre o mesmo resultado.
 
+## Tipos de dano {#tipos-de-dano}
+
+O tipo de dano é uma tag no `GameplayEffect`. No campo `Damage Tags` (seção `Gameplay Tags` do efeito), escolha uma ou mais tags, como `Dano.Fogo` e `Dano.Magico`. Os processadores que filtram por tipo comparam essas tags pela hierarquia: um filtro `Dano` casa com `Dano.Fogo` e com `Dano.Magico`.
+
+Uma linha vazia em `Damage Tags` não casa com nenhum filtro e não lança erro.
+
+## Prontos para usar {#prontos}
+
+O pacote traz dois processadores no grupo **Dano** do seletor da lista `Processors`.
+
+### ReduceByAttribute {#reducebyattribute}
+
+Reduz a alteração pelo valor atual de um atributo do mesmo dono, como uma resistência ou uma armadura. Se o dono não tem esse atributo, a alteração passa inteira.
+
+- `Source Attribute`: o atributo do dono que dá a redução.
+- `Mode`: escolha entre
+    - `Percent`: reduz a alteração pelo valor, de 0 a 1. Com 0,5, um golpe de -100 vira -50. Valores fora de 0 a 1 contam como 0 ou 1.
+    - `Flat`: tira o valor da alteração, até zerá-la. Com 15, um golpe de -40 vira -25 e um de -10 vira 0, nunca uma cura.
+- `Damage Tags`: os tipos de dano reduzidos. Vazio reduz qualquer alteração, inclusive as feitas pelo código.
+- `Only Negative`: ligado, só o dano é reduzido e as curas passam inteiras.
+
+Com uma `Resistência ao fogo` de 0,5 e `Damage Tags` em `Dano.Fogo`, um efeito de fogo de 100 tira 50 da vida e um de veneno de 100 tira 100.
+
+### ImmuneToTags {#immunetotags}
+
+Anula a alteração deste atributo quando o efeito tem um dos tipos de dano da lista. O resto do efeito vale: um efeito de fogo que também concede `Estado.Queimando` e tira mana continua fazendo isso num alvo imune a fogo.
+
+- `Damage Tags`: os tipos de dano anulados. Vazio não anula nada.
+
 ## Pelo código {#codigo}
 
 Para mudar um atributo pelo código e passar pelos processadores, chame `ApplyAttributeChange` no `AbilitySystemComponent`. O retorno é quanto a base mudou de fato, já com os limites:
