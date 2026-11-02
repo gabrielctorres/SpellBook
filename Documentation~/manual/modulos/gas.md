@@ -298,6 +298,30 @@ Filhas nulas nas composições são ignoradas. No Inspector, um campo `[Serializ
 
 Para consultar as tags do ASC no código, sem alocar, use `asc.HasMatching(query)`, `asc.HasAll(tags)` e `asc.HasAny(tags)`. Os dois últimos aceitam um `GameplayTagContainer`, uma lista ou um array. Valem as regras de `HasTag`: a tag ativa filha satisfaz o pai e uma tag inválida não casa. A consulta vazia casa com qualquer ASC e a consulta nula não casa.
 
+##### Condição própria {#condicao-propria}
+Para criar uma condição, herde `Condition<ConditionContext>`, marque a classe com `[Serializable]` e sobrescreva `Evaluate`. A classe precisa ser concreta, não genérica e ter um construtor sem parâmetros: assim ela aparece no seletor ao lado das condições prontas. O `[TypeCategory]` dá a pasta no seletor, a dica (`Summary`) e o resumo de uma linha (`Line`), em que `{campo}` vira o valor do campo serializado.
+
+```csharp
+using System;
+using SpellBook.Core.Conditions;
+using SpellBook.Core.Inspector;
+using SpellBook.GAS.Conditions;
+using UnityEngine;
+
+[Serializable]
+[TypeCategory("Nível", Summary = "A habilidade está no nível mínimo.", Line = "Nível ≥ {minLevel}")]
+public sealed class MinLevelCondition : Condition<ConditionContext>
+{
+    [SerializeField] private int minLevel = 2;
+
+    public override string DefaultFailureKey => "game.activation.min_level";
+
+    public override bool Evaluate(in ConditionContext context) => context.Level >= minLevel;
+}
+```
+
+Em `Evaluate`, só leia o contexto: não mude o ASC, não guarde estado e não aloque, porque a consulta da UI chama a mesma condição a cada quadro. `DefaultFailureKey` é opcional e vale quando a regra deixa o **Failure Key** vazio. Para acusar configuração errada no validador, sobrescreva `Validate(result, propertyPath)` e passe o `propertyPath` nas mensagens.
+
 ### 1.5 AbilitySystemComponent (ASC) {#abilitysystemcomponent}
 O `AbilitySystemComponent` é o componente que guarda as habilidades concedidas, os atributos,
 os efeitos ativos e as tags de um personagem. Veja a seção [Ciclo de vida](#ciclo-de-vida).
@@ -448,6 +472,10 @@ Nada é gasto antes do fim das checagens: a carga, a recarga e o custo saem só 
 
 Com a regra "Mana `GreaterOrEqual` 20" e a tag `Fail.LowMana`, a Mana em 10 devolve `BlockedByCondition` com `ReasonTag` `Fail.LowMana`; em 30, a habilidade ativa.
 
+**Motivo na UI.** Para mostrar por que a habilidade não ativa, leia o `ActivationFailure` da consulta ou do `OnAbilityFailed`. Com `ReasonKey`, procure o texto pela chave; sem chave, escolha o texto pelo `Result` (`NoCharges`, `OnCooldown`, `CannotAffordCost` e os outros). Use a `ReasonTag` quando a lógica de jogo precisa reagir a um motivo, como tocar um som diferente para "sem mana".
+
+**No Inspector.** Abaixo dos campos da habilidade, a seção **Ativação** mostra uma linha por regra, na ordem da lista: o número, o resumo da condição e o motivo, como `1. Mana Greater Or Equal 20 → motivo: Fail.LowMana`. O motivo é a **Failure Tag**; sem ela, a chave efetiva (a **Failure Key** ou a chave padrão da condição). A condição de cada regra é escolhida no seletor de tipo da lista **Activation Conditions**, e as composições abrem as filhas no mesmo lugar.
+
 Em caso de sucesso, o ASC:
 
 - aplica o `CooldownEffect` (duração reduzida por `CooldownReductionAttribute`) e o `CostEffect`;
@@ -509,6 +537,8 @@ Os controles de recarga da habilidade também agem sobre a recarga da carga em c
 - `RestartCooldown(ability)` volta a recarga da carga à duração aplicada, já com a redução de recarga.
 
 Com a recarga da carga parada e sem `CooldownEffect` correndo, os três devolvem `false`.
+
+Com **Enabled** ligado, a seção **Ativação** do Inspector mostra a prévia das cargas no **Nível de prévia**, como `1 carga a cada 6 s, máximo 4 no nível 3`. A prévia não aplica a redução do atributo. Com **Max Charges** por atributo ou por fórmula, ela mostra o tipo da fonte no lugar do número, porque o valor depende do ASC.
 
 ```csharp
 AbilitySpec spec = asc.FindSpec(dash);
