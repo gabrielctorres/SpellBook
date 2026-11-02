@@ -37,6 +37,16 @@ items:
   inheritance:
   - System.Object
   derivedClasses:
+  - SpellBook.GAS.Abilities.Actions.AnimationAction
+  - SpellBook.GAS.Abilities.Actions.ApplyEffectAction
+  - SpellBook.GAS.Abilities.Actions.ConditionalAction
+  - SpellBook.GAS.Abilities.Actions.ParallelAction
+  - SpellBook.GAS.Abilities.Actions.PlayCueAction
+  - SpellBook.GAS.Abilities.Actions.RepeatAction
+  - SpellBook.GAS.Abilities.Actions.SpawnProjectileAction
+  - SpellBook.GAS.Abilities.Actions.TargetingAction
+  - SpellBook.GAS.Abilities.Actions.WaitAction
+  - SpellBook.GAS.Bridges.RaiseEventAction
   - SpellBook.GAS.Effects.DebugLogAction
   - SpellBook.GAS.Effects.SpawnVFXAction
   implements:
@@ -89,7 +99,7 @@ items:
   summary: >-
     Avança a ação. Na primeira chamada, <code>frame</code> vem zerado. Devolva <xref href="SpellBook.GAS.Actions.ActionStatus.Done" data-throw-if-not-resolved="false"></xref> para
 
-    terminar, ou uma espera ou lista filha para ser chamada de novo depois dela.
+    terminar, ou uma espera ou lista filha para ser chamada de novo depois dela. Quem chama é o executor.
   example: []
   syntax:
     content: protected abstract ActionStatus Execute(ActionContext context, ref ActionFrame frame)

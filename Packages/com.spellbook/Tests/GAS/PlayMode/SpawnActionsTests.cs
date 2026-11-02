@@ -42,10 +42,10 @@ namespace SpellBook.GAS.Tests
             prefab.AddComponent<Projectile>();
             AbilitySystemComponent caster = _gas.CreateAsc();
             var action = new SpawnProjectileAction { ProjectilePrefab = prefab };
-            AbilityContext context = GasFactory.CreateAbilityContext(caster, new Vector3(0f, 0f, 10f));
+            ActionContext context = GasFactory.CreateActionContext(caster, new Vector3(0f, 0f, 10f));
             HashSet<Projectile> existing = FindExisting<Projectile>();
 
-            Assert.DoesNotThrow(() => RunToEnd(action.Execute(context)));
+            Assert.DoesNotThrow(() => RunToEnd(action, context));
 
             List<Projectile> spawned = TrackSpawned(existing);
             Assert.That(spawned, Has.Count.EqualTo(1), "o projétil deveria ter sido criado pelo spawner padrão");
@@ -57,10 +57,10 @@ namespace SpellBook.GAS.Tests
             GameObject prefab = _spawn.CreateParticlePrefab("Cue_Test");
             var position = new Vector3(3f, 0f, 4f);
             var action = new PlayCueAction { VFX_Prefab = prefab, TargetSource = AbilityTargetSource.Location };
-            AbilityContext context = GasFactory.CreateAbilityContext(_gas.CreateAsc(), position);
+            ActionContext context = GasFactory.CreateActionContext(_gas.CreateAsc(), position);
             HashSet<ParticleSystem> existing = FindExisting<ParticleSystem>();
 
-            Assert.DoesNotThrow(() => RunToEnd(action.Execute(context)));
+            Assert.DoesNotThrow(() => RunToEnd(action, context));
 
             List<ParticleSystem> spawned = TrackSpawned(existing);
             Assert.That(spawned, Has.Count.EqualTo(1), "o VFX deveria ter sido criado pelo spawner padrão");
@@ -119,8 +119,8 @@ namespace SpellBook.GAS.Tests
             RecordingSpawner spawner = CreateRecordingSpawner();
             GameObject go = _spawn.Track(new GameObject("Projectile_Test"));
             var projectile = go.AddComponent<Projectile>();
-            AbilityContext context = GasFactory.CreateAbilityContext(_gas.CreateAsc(), Vector3.zero);
-            projectile.Setup(spawner, context, new List<AbilityAction>());
+            ActionContext context = GasFactory.CreateActionContext(_gas.CreateAsc(), Vector3.zero);
+            projectile.Setup(spawner, context, new List<GameplayAction>());
 
             projectile.ReturnToPool();
 
@@ -134,11 +134,11 @@ namespace SpellBook.GAS.Tests
             GameObject prefab = _spawn.CreatePrefab("Projectile_Test");
             prefab.AddComponent<Projectile>();
             var action = new SpawnProjectileAction { ProjectilePrefab = prefab, Spawner = spawner, ProjectileCount = 2 };
-            AbilityContext context = GasFactory.CreateAbilityContext(_gas.CreateAsc(), new Vector3(0f, 0f, 10f));
+            ActionContext context = GasFactory.CreateActionContext(_gas.CreateAsc(), new Vector3(0f, 0f, 10f));
             LogAssert.Expect(LogType.Warning, SpawnFailedWarning(spawner, prefab));
             LogAssert.Expect(LogType.Warning, SpawnFailedWarning(spawner, prefab));
 
-            Assert.DoesNotThrow(() => RunToEnd(action.Execute(context)));
+            Assert.DoesNotThrow(() => RunToEnd(action, context));
 
             Assert.That(spawner.SpawnCalls, Is.EqualTo(2), "cada tiro da rajada deveria pedir uma instância ao spawner");
         }
@@ -151,10 +151,10 @@ namespace SpellBook.GAS.Tests
             prefab.AddComponent<Projectile>();
             AbilitySystemComponent caster = _gas.CreateAsc();
             var action = new SpawnProjectileAction { ProjectilePrefab = prefab, Spawner = spawner, ProjectileCount = 2 };
-            AbilityContext context = GasFactory.CreateAbilityContext(caster, new Vector3(0f, 0f, 10f));
+            ActionContext context = GasFactory.CreateActionContext(caster, new Vector3(0f, 0f, 10f));
             LogAssert.Expect(LogType.Warning, SpawnFailedWarning(spawner, prefab));
 
-            RunToEnd(action.Execute(context));
+            RunToEnd(action, context);
 
             Assert.That(spawner.Spawned, Has.Count.EqualTo(1), "o segundo tiro deveria sair depois do primeiro falhar");
             Projectile projectile = spawner.Spawned[0].GetComponent<Projectile>();
@@ -247,9 +247,11 @@ namespace SpellBook.GAS.Tests
             return spawned;
         }
 
-        private static void RunToEnd(IEnumerator routine)
+        // Roda a ação pelo executor do instigador do contexto; as ações destes testes terminam na mesma chamada
+        private static void RunToEnd(GameplayAction action, ActionContext context)
         {
-            while (routine.MoveNext()) { }
+            ActionExecutionHandle run = context.Instigator.RunActions(new[] { action }, context, null);
+            Assert.That(run.IsRunning, Is.False, "a ação não terminou na mesma chamada");
         }
 
         /// <summary>Spawner que cria por <c>Instantiate</c> e anota o que criou e o que recebeu de volta.</summary>

@@ -19,7 +19,7 @@ namespace SpellBook.GAS.Effects
 
         public override bool UsesTargets => false;
 
-        protected internal override ActionStatus Execute(ActionContext context, ref ActionFrame frame)
+        protected override ActionStatus Execute(ActionContext context, ref ActionFrame frame)
         {
             string source = context.Instigator != null ? context.Instigator.name : "-";
             string target = context.Owner != null ? context.Owner.name : "-";
@@ -41,7 +41,7 @@ namespace SpellBook.GAS.Effects
         public Vector3 Offset = Vector3.zero;
         public bool DestroyOnRemoval = true;
 
-        protected internal override ActionStatus Execute(ActionContext context, ref ActionFrame frame)
+        protected override ActionStatus Execute(ActionContext context, ref ActionFrame frame)
         {
             AbilitySystemComponent target = context.Owner;
             if (Prefab == null || target == null) return ActionStatus.Done;

@@ -42,7 +42,6 @@ items:
   - SpellBook.Events.ToggleComponentReaction
   - SpellBook.Events.Vector3EventResponse
   - SpellBook.Events.VoidEventResponse
-  - SpellBook.GAS.Abilities.AbilityAction
   - SpellBook.GAS.Abilities.Actions.AnimationAction
   - SpellBook.GAS.Abilities.Actions.ApplyEffectAction
   - SpellBook.GAS.Abilities.Actions.ConditionalAction

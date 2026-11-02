@@ -26,14 +26,14 @@ items:
   - SpellBook.GAS.Abilities.Projectiles.Projectile.Movement
   - SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVector
   - SpellBook.GAS.Abilities.Projectiles.Projectile.OnEnable
-  - SpellBook.GAS.Abilities.Projectiles.Projectile.OnHitActions
+  - SpellBook.GAS.Abilities.Projectiles.Projectile.OnImpact
   - SpellBook.GAS.Abilities.Projectiles.Projectile.OnTriggerEnter(UnityEngine.Collider)
   - SpellBook.GAS.Abilities.Projectiles.Projectile.OnTriggerEnter2D(UnityEngine.Collider2D)
   - SpellBook.GAS.Abilities.Projectiles.Projectile.ProjectileIsFacingRight
   - SpellBook.GAS.Abilities.Projectiles.Projectile.ReturnToPool
   - SpellBook.GAS.Abilities.Projectiles.Projectile.SetDirection(UnityEngine.Vector3,UnityEngine.Quaternion,System.Boolean)
-  - SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset,SpellBook.GAS.Abilities.AbilityContext,System.Collections.Generic.List{SpellBook.GAS.Abilities.AbilityAction})
-  - SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset,SpellBook.GAS.Core.AbilitySystemComponent,System.Collections.Generic.List{SpellBook.GAS.Abilities.AbilityAction})
+  - SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset,SpellBook.GAS.Actions.ActionContext,System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction})
+  - SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset,SpellBook.GAS.Core.AbilitySystemComponent,System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction})
   - SpellBook.GAS.Abilities.Projectiles.Projectile.Source
   - SpellBook.GAS.Abilities.Projectiles.Projectile.Speed
   - SpellBook.GAS.Abilities.Projectiles.Projectile.Target
@@ -46,7 +46,6 @@ items:
   - SpellBook.GAS.Abilities.Projectiles.Projectile._initialSpeed
   - SpellBook.GAS.Abilities.Projectiles.Projectile._isInvulnerable
   - SpellBook.GAS.Abilities.Projectiles.Projectile._movement
-  - SpellBook.GAS.Abilities.Projectiles.Projectile._parentContext
   - SpellBook.GAS.Abilities.Projectiles.Projectile._rigidBody
   - SpellBook.GAS.Abilities.Projectiles.Projectile._rigidBody2D
   - SpellBook.GAS.Abilities.Projectiles.Projectile._shouldMove
@@ -548,33 +547,42 @@ items:
     return:
       type: UnityEngine.Transform
     content.vb: Public Target As Transform
-- uid: SpellBook.GAS.Abilities.Projectiles.Projectile.OnHitActions
-  commentId: F:SpellBook.GAS.Abilities.Projectiles.Projectile.OnHitActions
-  id: OnHitActions
+- uid: SpellBook.GAS.Abilities.Projectiles.Projectile.OnImpact
+  commentId: F:SpellBook.GAS.Abilities.Projectiles.Projectile.OnImpact
+  id: OnImpact
   parent: SpellBook.GAS.Abilities.Projectiles.Projectile
   langs:
   - csharp
   - vb
-  name: OnHitActions
-  nameWithType: Projectile.OnHitActions
-  fullName: SpellBook.GAS.Abilities.Projectiles.Projectile.OnHitActions
+  name: OnImpact
+  nameWithType: Projectile.OnImpact
+  fullName: SpellBook.GAS.Abilities.Projectiles.Projectile.OnImpact
   type: Field
   namespace: SpellBook.GAS.Abilities.Projectiles
   syntax:
     content: >-
       [HideInInspector]
 
-      public List<AbilityAction> OnHitActions
+      [FormerlySerializedAs("OnHitActions")]
+
+      public List<GameplayAction> OnImpact
     return:
-      type: System.Collections.Generic.List{SpellBook.GAS.Abilities.AbilityAction}
+      type: System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction}
     content.vb: >-
       <HideInInspector>
 
-      Public OnHitActions As List(Of AbilityAction)
+      <FormerlySerializedAs("OnHitActions")>
+
+      Public OnImpact As List(Of GameplayAction)
   attributes:
   - type: UnityEngine.HideInInspector
     ctor: UnityEngine.HideInInspector.#ctor
     arguments: []
+  - type: UnityEngine.Serialization.FormerlySerializedAsAttribute
+    ctor: UnityEngine.Serialization.FormerlySerializedAsAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: OnHitActions
 - uid: SpellBook.GAS.Abilities.Projectiles.Projectile.Source
   commentId: F:SpellBook.GAS.Abilities.Projectiles.Projectile.Source
   id: Source
@@ -875,75 +883,65 @@ items:
     content: protected virtual void Awake()
     content.vb: Protected Overridable Sub Awake()
   overload: SpellBook.GAS.Abilities.Projectiles.Projectile.Awake*
-- uid: SpellBook.GAS.Abilities.Projectiles.Projectile._parentContext
-  commentId: F:SpellBook.GAS.Abilities.Projectiles.Projectile._parentContext
-  id: _parentContext
+- uid: SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset,SpellBook.GAS.Core.AbilitySystemComponent,System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction})
+  commentId: M:SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset,SpellBook.GAS.Core.AbilitySystemComponent,System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction})
+  id: Setup(SpellBook.Core.SpawnerAsset,SpellBook.GAS.Core.AbilitySystemComponent,System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction})
   parent: SpellBook.GAS.Abilities.Projectiles.Projectile
   langs:
   - csharp
   - vb
-  name: _parentContext
-  nameWithType: Projectile._parentContext
-  fullName: SpellBook.GAS.Abilities.Projectiles.Projectile._parentContext
-  type: Field
-  namespace: SpellBook.GAS.Abilities.Projectiles
-  syntax:
-    content: protected AbilityContext _parentContext
-    return:
-      type: SpellBook.GAS.Abilities.AbilityContext
-    content.vb: Protected _parentContext As AbilityContext
-- uid: SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset,SpellBook.GAS.Core.AbilitySystemComponent,System.Collections.Generic.List{SpellBook.GAS.Abilities.AbilityAction})
-  commentId: M:SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset,SpellBook.GAS.Core.AbilitySystemComponent,System.Collections.Generic.List{SpellBook.GAS.Abilities.AbilityAction})
-  id: Setup(SpellBook.Core.SpawnerAsset,SpellBook.GAS.Core.AbilitySystemComponent,System.Collections.Generic.List{SpellBook.GAS.Abilities.AbilityAction})
-  parent: SpellBook.GAS.Abilities.Projectiles.Projectile
-  langs:
-  - csharp
-  - vb
-  name: Setup(SpawnerAsset, AbilitySystemComponent, List<AbilityAction>)
-  nameWithType: Projectile.Setup(SpawnerAsset, AbilitySystemComponent, List<AbilityAction>)
-  fullName: SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset, SpellBook.GAS.Core.AbilitySystemComponent, System.Collections.Generic.List<SpellBook.GAS.Abilities.AbilityAction>)
+  name: Setup(SpawnerAsset, AbilitySystemComponent, List<GameplayAction>)
+  nameWithType: Projectile.Setup(SpawnerAsset, AbilitySystemComponent, List<GameplayAction>)
+  fullName: SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset, SpellBook.GAS.Core.AbilitySystemComponent, System.Collections.Generic.List<SpellBook.GAS.Actions.GameplayAction>)
   type: Method
   namespace: SpellBook.GAS.Abilities.Projectiles
   syntax:
-    content: public void Setup(SpawnerAsset spawner, AbilitySystemComponent source, List<AbilityAction> onHitActions)
+    content: public void Setup(SpawnerAsset spawner, AbilitySystemComponent source, List<GameplayAction> onImpact)
     parameters:
     - id: spawner
       type: SpellBook.Core.SpawnerAsset
     - id: source
       type: SpellBook.GAS.Core.AbilitySystemComponent
-    - id: onHitActions
-      type: System.Collections.Generic.List{SpellBook.GAS.Abilities.AbilityAction}
-    content.vb: Public Sub Setup(spawner As SpawnerAsset, source As AbilitySystemComponent, onHitActions As List(Of AbilityAction))
+    - id: onImpact
+      type: System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction}
+    content.vb: Public Sub Setup(spawner As SpawnerAsset, source As AbilitySystemComponent, onImpact As List(Of GameplayAction))
   overload: SpellBook.GAS.Abilities.Projectiles.Projectile.Setup*
-  nameWithType.vb: Projectile.Setup(SpawnerAsset, AbilitySystemComponent, List(Of AbilityAction))
-  fullName.vb: SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset, SpellBook.GAS.Core.AbilitySystemComponent, System.Collections.Generic.List(Of SpellBook.GAS.Abilities.AbilityAction))
-  name.vb: Setup(SpawnerAsset, AbilitySystemComponent, List(Of AbilityAction))
-- uid: SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset,SpellBook.GAS.Abilities.AbilityContext,System.Collections.Generic.List{SpellBook.GAS.Abilities.AbilityAction})
-  commentId: M:SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset,SpellBook.GAS.Abilities.AbilityContext,System.Collections.Generic.List{SpellBook.GAS.Abilities.AbilityAction})
-  id: Setup(SpellBook.Core.SpawnerAsset,SpellBook.GAS.Abilities.AbilityContext,System.Collections.Generic.List{SpellBook.GAS.Abilities.AbilityAction})
+  nameWithType.vb: Projectile.Setup(SpawnerAsset, AbilitySystemComponent, List(Of GameplayAction))
+  fullName.vb: SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset, SpellBook.GAS.Core.AbilitySystemComponent, System.Collections.Generic.List(Of SpellBook.GAS.Actions.GameplayAction))
+  name.vb: Setup(SpawnerAsset, AbilitySystemComponent, List(Of GameplayAction))
+- uid: SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset,SpellBook.GAS.Actions.ActionContext,System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction})
+  commentId: M:SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset,SpellBook.GAS.Actions.ActionContext,System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction})
+  id: Setup(SpellBook.Core.SpawnerAsset,SpellBook.GAS.Actions.ActionContext,System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction})
   parent: SpellBook.GAS.Abilities.Projectiles.Projectile
   langs:
   - csharp
   - vb
-  name: Setup(SpawnerAsset, AbilityContext, List<AbilityAction>)
-  nameWithType: Projectile.Setup(SpawnerAsset, AbilityContext, List<AbilityAction>)
-  fullName: SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset, SpellBook.GAS.Abilities.AbilityContext, System.Collections.Generic.List<SpellBook.GAS.Abilities.AbilityAction>)
+  name: Setup(SpawnerAsset, ActionContext, List<GameplayAction>)
+  nameWithType: Projectile.Setup(SpawnerAsset, ActionContext, List<GameplayAction>)
+  fullName: SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset, SpellBook.GAS.Actions.ActionContext, System.Collections.Generic.List<SpellBook.GAS.Actions.GameplayAction>)
   type: Method
   namespace: SpellBook.GAS.Abilities.Projectiles
+  summary: >-
+    Como <xref href="SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset%2cSpellBook.GAS.Core.AbilitySystemComponent%2cSystem.Collections.Generic.List%7bSpellBook.GAS.Actions.GameplayAction%7d)" data-throw-if-not-resolved="false"></xref>, com o instigador de
+
+    <code class="paramref">parentContext</code> como <xref href="SpellBook.GAS.Abilities.Projectiles.Projectile.Source" data-throw-if-not-resolved="false"></xref>. O impacto roda num contexto derivado dele
+
+    (<xref href="SpellBook.GAS.Actions.ActionContext.CreateDerived(UnityEngine.Vector3)" data-throw-if-not-resolved="false"></xref>), com o ponto de impacto.
+  example: []
   syntax:
-    content: public void Setup(SpawnerAsset spawner, AbilityContext parentContext, List<AbilityAction> onHitActions)
+    content: public void Setup(SpawnerAsset spawner, ActionContext parentContext, List<GameplayAction> onImpact)
     parameters:
     - id: spawner
       type: SpellBook.Core.SpawnerAsset
     - id: parentContext
-      type: SpellBook.GAS.Abilities.AbilityContext
-    - id: onHitActions
-      type: System.Collections.Generic.List{SpellBook.GAS.Abilities.AbilityAction}
-    content.vb: Public Sub Setup(spawner As SpawnerAsset, parentContext As AbilityContext, onHitActions As List(Of AbilityAction))
+      type: SpellBook.GAS.Actions.ActionContext
+    - id: onImpact
+      type: System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction}
+    content.vb: Public Sub Setup(spawner As SpawnerAsset, parentContext As ActionContext, onImpact As List(Of GameplayAction))
   overload: SpellBook.GAS.Abilities.Projectiles.Projectile.Setup*
-  nameWithType.vb: Projectile.Setup(SpawnerAsset, AbilityContext, List(Of AbilityAction))
-  fullName.vb: SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset, SpellBook.GAS.Abilities.AbilityContext, System.Collections.Generic.List(Of SpellBook.GAS.Abilities.AbilityAction))
-  name.vb: Setup(SpawnerAsset, AbilityContext, List(Of AbilityAction))
+  nameWithType.vb: Projectile.Setup(SpawnerAsset, ActionContext, List(Of GameplayAction))
+  fullName.vb: SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset, SpellBook.GAS.Actions.ActionContext, System.Collections.Generic.List(Of SpellBook.GAS.Actions.GameplayAction))
+  name.vb: Setup(SpawnerAsset, ActionContext, List(Of GameplayAction))
 - uid: SpellBook.GAS.Abilities.Projectiles.Projectile.OnEnable
   commentId: M:SpellBook.GAS.Abilities.Projectiles.Projectile.OnEnable
   id: OnEnable
@@ -8383,26 +8381,26 @@ references:
   name: Transform
   nameWithType: Transform
   fullName: UnityEngine.Transform
-- uid: System.Collections.Generic.List{SpellBook.GAS.Abilities.AbilityAction}
-  commentId: T:System.Collections.Generic.List{SpellBook.GAS.Abilities.AbilityAction}
+- uid: System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction}
+  commentId: T:System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction}
   parent: System.Collections.Generic
   definition: System.Collections.Generic.List`1
   href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
-  name: List<AbilityAction>
-  nameWithType: List<AbilityAction>
-  fullName: System.Collections.Generic.List<SpellBook.GAS.Abilities.AbilityAction>
-  nameWithType.vb: List(Of AbilityAction)
-  fullName.vb: System.Collections.Generic.List(Of SpellBook.GAS.Abilities.AbilityAction)
-  name.vb: List(Of AbilityAction)
+  name: List<GameplayAction>
+  nameWithType: List<GameplayAction>
+  fullName: System.Collections.Generic.List<SpellBook.GAS.Actions.GameplayAction>
+  nameWithType.vb: List(Of GameplayAction)
+  fullName.vb: System.Collections.Generic.List(Of SpellBook.GAS.Actions.GameplayAction)
+  name.vb: List(Of GameplayAction)
   spec.csharp:
   - uid: System.Collections.Generic.List`1
     name: List
     isExternal: true
     href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
   - name: <
-  - uid: SpellBook.GAS.Abilities.AbilityAction
-    name: AbilityAction
-    href: SpellBook.GAS.Abilities.AbilityAction.html
+  - uid: SpellBook.GAS.Actions.GameplayAction
+    name: GameplayAction
+    href: SpellBook.GAS.Actions.GameplayAction.html
   - name: '>'
   spec.vb:
   - uid: System.Collections.Generic.List`1
@@ -8412,9 +8410,9 @@ references:
   - name: (
   - name: Of
   - name: " "
-  - uid: SpellBook.GAS.Abilities.AbilityAction
-    name: AbilityAction
-    href: SpellBook.GAS.Abilities.AbilityAction.html
+  - uid: SpellBook.GAS.Actions.GameplayAction
+    name: GameplayAction
+    href: SpellBook.GAS.Actions.GameplayAction.html
   - name: )
 - uid: System.Collections.Generic.List`1
   commentId: T:System.Collections.Generic.List`1
@@ -8552,18 +8550,117 @@ references:
   name: Awake
   nameWithType: Projectile.Awake
   fullName: SpellBook.GAS.Abilities.Projectiles.Projectile.Awake
-- uid: SpellBook.GAS.Abilities.AbilityContext
-  commentId: T:SpellBook.GAS.Abilities.AbilityContext
-  parent: SpellBook.GAS.Abilities
-  href: SpellBook.GAS.Abilities.AbilityContext.html
-  name: AbilityContext
-  nameWithType: AbilityContext
-  fullName: SpellBook.GAS.Abilities.AbilityContext
-- uid: SpellBook.GAS.Abilities
-  commentId: N:SpellBook.GAS.Abilities
-  name: SpellBook.GAS.Abilities
-  nameWithType: SpellBook.GAS.Abilities
-  fullName: SpellBook.GAS.Abilities
+- uid: SpellBook.GAS.Abilities.Projectiles.Projectile.Setup*
+  commentId: Overload:SpellBook.GAS.Abilities.Projectiles.Projectile.Setup
+  href: SpellBook.GAS.Abilities.Projectiles.Projectile.html#SpellBook_GAS_Abilities_Projectiles_Projectile_Setup_SpellBook_Core_SpawnerAsset_SpellBook_GAS_Core_AbilitySystemComponent_System_Collections_Generic_List_SpellBook_GAS_Actions_GameplayAction__
+  name: Setup
+  nameWithType: Projectile.Setup
+  fullName: SpellBook.GAS.Abilities.Projectiles.Projectile.Setup
+- uid: SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset,SpellBook.GAS.Core.AbilitySystemComponent,System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction})
+  commentId: M:SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset,SpellBook.GAS.Core.AbilitySystemComponent,System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction})
+  isExternal: true
+  href: SpellBook.GAS.Abilities.Projectiles.Projectile.html#SpellBook_GAS_Abilities_Projectiles_Projectile_Setup_SpellBook_Core_SpawnerAsset_SpellBook_GAS_Core_AbilitySystemComponent_System_Collections_Generic_List_SpellBook_GAS_Actions_GameplayAction__
+  name: Setup(SpawnerAsset, AbilitySystemComponent, List<GameplayAction>)
+  nameWithType: Projectile.Setup(SpawnerAsset, AbilitySystemComponent, List<GameplayAction>)
+  fullName: SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset, SpellBook.GAS.Core.AbilitySystemComponent, System.Collections.Generic.List<SpellBook.GAS.Actions.GameplayAction>)
+  nameWithType.vb: Projectile.Setup(SpawnerAsset, AbilitySystemComponent, List(Of GameplayAction))
+  fullName.vb: SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset, SpellBook.GAS.Core.AbilitySystemComponent, System.Collections.Generic.List(Of SpellBook.GAS.Actions.GameplayAction))
+  name.vb: Setup(SpawnerAsset, AbilitySystemComponent, List(Of GameplayAction))
+  spec.csharp:
+  - uid: SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset,SpellBook.GAS.Core.AbilitySystemComponent,System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction})
+    name: Setup
+    href: SpellBook.GAS.Abilities.Projectiles.Projectile.html#SpellBook_GAS_Abilities_Projectiles_Projectile_Setup_SpellBook_Core_SpawnerAsset_SpellBook_GAS_Core_AbilitySystemComponent_System_Collections_Generic_List_SpellBook_GAS_Actions_GameplayAction__
+  - name: (
+  - uid: SpellBook.Core.SpawnerAsset
+    name: SpawnerAsset
+    href: SpellBook.Core.SpawnerAsset.html
+  - name: ','
+  - name: " "
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent
+    name: AbilitySystemComponent
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  - name: ','
+  - name: " "
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: <
+  - uid: SpellBook.GAS.Actions.GameplayAction
+    name: GameplayAction
+    href: SpellBook.GAS.Actions.GameplayAction.html
+  - name: '>'
+  - name: )
+  spec.vb:
+  - uid: SpellBook.GAS.Abilities.Projectiles.Projectile.Setup(SpellBook.Core.SpawnerAsset,SpellBook.GAS.Core.AbilitySystemComponent,System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction})
+    name: Setup
+    href: SpellBook.GAS.Abilities.Projectiles.Projectile.html#SpellBook_GAS_Abilities_Projectiles_Projectile_Setup_SpellBook_Core_SpawnerAsset_SpellBook_GAS_Core_AbilitySystemComponent_System_Collections_Generic_List_SpellBook_GAS_Actions_GameplayAction__
+  - name: (
+  - uid: SpellBook.Core.SpawnerAsset
+    name: SpawnerAsset
+    href: SpellBook.Core.SpawnerAsset.html
+  - name: ','
+  - name: " "
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent
+    name: AbilitySystemComponent
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  - name: ','
+  - name: " "
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: SpellBook.GAS.Actions.GameplayAction
+    name: GameplayAction
+    href: SpellBook.GAS.Actions.GameplayAction.html
+  - name: )
+  - name: )
+- uid: SpellBook.GAS.Abilities.Projectiles.Projectile.Source
+  commentId: F:SpellBook.GAS.Abilities.Projectiles.Projectile.Source
+  href: SpellBook.GAS.Abilities.Projectiles.Projectile.html#SpellBook_GAS_Abilities_Projectiles_Projectile_Source
+  name: Source
+  nameWithType: Projectile.Source
+  fullName: SpellBook.GAS.Abilities.Projectiles.Projectile.Source
+- uid: SpellBook.GAS.Actions.ActionContext.CreateDerived(UnityEngine.Vector3)
+  commentId: M:SpellBook.GAS.Actions.ActionContext.CreateDerived(UnityEngine.Vector3)
+  isExternal: true
+  href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_CreateDerived_UnityEngine_Vector3_
+  name: CreateDerived(Vector3)
+  nameWithType: ActionContext.CreateDerived(Vector3)
+  fullName: SpellBook.GAS.Actions.ActionContext.CreateDerived(UnityEngine.Vector3)
+  spec.csharp:
+  - uid: SpellBook.GAS.Actions.ActionContext.CreateDerived(UnityEngine.Vector3)
+    name: CreateDerived
+    href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_CreateDerived_UnityEngine_Vector3_
+  - name: (
+  - uid: UnityEngine.Vector3
+    name: Vector3
+    isExternal: true
+  - name: )
+  spec.vb:
+  - uid: SpellBook.GAS.Actions.ActionContext.CreateDerived(UnityEngine.Vector3)
+    name: CreateDerived
+    href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_CreateDerived_UnityEngine_Vector3_
+  - name: (
+  - uid: UnityEngine.Vector3
+    name: Vector3
+    isExternal: true
+  - name: )
+- uid: SpellBook.GAS.Actions.ActionContext
+  commentId: T:SpellBook.GAS.Actions.ActionContext
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.ActionContext.html
+  name: ActionContext
+  nameWithType: ActionContext
+  fullName: SpellBook.GAS.Actions.ActionContext
+- uid: SpellBook.GAS.Actions
+  commentId: N:SpellBook.GAS.Actions
+  name: SpellBook.GAS.Actions
+  nameWithType: SpellBook.GAS.Actions
+  fullName: SpellBook.GAS.Actions
   spec.csharp:
   - uid: SpellBook
     name: SpellBook
@@ -8571,8 +8668,8 @@ references:
   - uid: SpellBook.GAS
     name: GAS
   - name: .
-  - uid: SpellBook.GAS.Abilities
-    name: Abilities
+  - uid: SpellBook.GAS.Actions
+    name: Actions
   spec.vb:
   - uid: SpellBook
     name: SpellBook
@@ -8580,14 +8677,8 @@ references:
   - uid: SpellBook.GAS
     name: GAS
   - name: .
-  - uid: SpellBook.GAS.Abilities
-    name: Abilities
-- uid: SpellBook.GAS.Abilities.Projectiles.Projectile.Setup*
-  commentId: Overload:SpellBook.GAS.Abilities.Projectiles.Projectile.Setup
-  href: SpellBook.GAS.Abilities.Projectiles.Projectile.html#SpellBook_GAS_Abilities_Projectiles_Projectile_Setup_SpellBook_Core_SpawnerAsset_SpellBook_GAS_Core_AbilitySystemComponent_System_Collections_Generic_List_SpellBook_GAS_Abilities_AbilityAction__
-  name: Setup
-  nameWithType: Projectile.Setup
-  fullName: SpellBook.GAS.Abilities.Projectiles.Projectile.Setup
+  - uid: SpellBook.GAS.Actions
+    name: Actions
 - uid: SpellBook.GAS.Abilities.Projectiles.Projectile.OnEnable*
   commentId: Overload:SpellBook.GAS.Abilities.Projectiles.Projectile.OnEnable
   href: SpellBook.GAS.Abilities.Projectiles.Projectile.html#SpellBook_GAS_Abilities_Projectiles_Projectile_OnEnable

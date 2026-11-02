@@ -1,16 +1,17 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
 using UnityEngine;
+using SpellBook.GAS.Actions;
+using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
 using SpellBook.GAS.Abilities.Projectiles;
 
 namespace SpellBook.GAS.Abilities.Actions
 {
     [Serializable, TypeCategory("Mundo", Summary = "Lança projéteis que rodam ações ao acertar.")]
-    public class SpawnProjectileAction : AbilityAction
+    public class SpawnProjectileAction : GameplayAction
     {
         public enum ProjectileSpawnMode { ThreeDimensional, TwoDimensional }
 
@@ -22,7 +23,7 @@ namespace SpellBook.GAS.Abilities.Actions
         [Header("Impact Payload")]
         [SerializeReference]
         [TypePicker]
-        public List<AbilityAction> OnHitActions = new List<AbilityAction>();
+        public List<GameplayAction> OnHitActions = new List<GameplayAction>();
 
         [Header("Spawn Configuration")]
         public ProjectileSpawnMode SpawnMode = ProjectileSpawnMode.ThreeDimensional;
@@ -37,88 +38,109 @@ namespace SpellBook.GAS.Abilities.Actions
         public bool HomeInOnTargets = false;
         public float HomingTurnSpeed = 10f;
 
-        public override IEnumerator Execute(AbilityContext context)
+        /// <summary>Origem e direção da rajada, medidas no primeiro tiro e mantidas entre os tiros.</summary>
+        private struct Burst
         {
-            if (ProjectilePrefab == null || context.Source == null) yield break;
+            public Vector3 Position;
+            public Vector3 Direction;
+        }
 
-            Vector3 forward = (SpawnMode == ProjectileSpawnMode.ThreeDimensional) ? context.Source.transform.forward : context.Source.transform.right;
-            Vector3 up = Vector3.up;
+        // frame.Index: próximo tiro; frame.Data: a Burst, guardada só quando há espera entre os tiros
+        protected override ActionStatus Execute(ActionContext context, ref ActionFrame frame)
+        {
+            AbilitySystemComponent caster = context.Instigator;
+            if (ProjectilePrefab == null || caster == null) return ActionStatus.Done;
 
-            Vector3 spawnBasePos = context.Source.transform.position + 
-                                  up * SpawnOffset.y + 
-                                  forward * SpawnOffset.z + 
-                                  context.Source.transform.right * SpawnOffset.x;
-
-            Vector3 targetDir = (context.TargetPosition - spawnBasePos).normalized;
-            if (targetDir == Vector3.zero) targetDir = forward;
-
+            Burst burst = frame.Phase == 0 ? Aim(caster, context.Point) : (Burst)frame.Data;
             SpawnerAsset spawner = SpawnerAsset.OrDefault(Spawner);
-            float startAngle = -SpreadAngle / 2f;
-            float angleStep = (ProjectileCount > 1) ? SpreadAngle / (ProjectileCount - 1) : 0f;
-
-            for (int i = 0; i < ProjectileCount; i++)
+            while (frame.Index < ProjectileCount)
             {
-                // Rajada interrompida se a habilidade for cancelada durante o DelayBetweenShots
-                if (context.IsCancelled || context.Source == null) yield break;
+                Fire(context, caster, spawner, burst, frame.Index);
+                frame.Index++;
 
-                float currentAngle = (ProjectileCount > 1) ? startAngle + (angleStep * i) : 0f;
-                
-                Quaternion finalRotation;
-                Vector3 finalDirection;
-
-                if (SpawnMode == ProjectileSpawnMode.ThreeDimensional)
+                if (DelayBetweenShots > 0 && frame.Index < ProjectileCount)
                 {
-                    Quaternion spreadRotation = Quaternion.Euler(0, currentAngle, 0);
-                    finalDirection = spreadRotation * targetDir;
-                    finalRotation = Quaternion.LookRotation(finalDirection);
-                }
-                else
-                {
-                    float baseAngle = Mathf.Atan2(targetDir.y, targetDir.x) * Mathf.Rad2Deg;
-                    finalRotation = Quaternion.Euler(0, 0, baseAngle + currentAngle);
-                    finalDirection = finalRotation * Vector3.right;
-                }
-
-                GameObject projObj = spawner.Spawn(ProjectilePrefab, spawnBasePos, finalRotation);
-
-                if (projObj == null)
-                {
-                    // Spawner sem instância (ex.: pool vazio que não cresce): pula só este tiro e mantém a cadência
-                    Debug.LogWarning($"[SpawnProjectileAction] O spawner '{spawner.name}' não criou uma instância de '{ProjectilePrefab.name}'; o tiro foi pulado.", spawner);
-                }
-                else if (projObj.TryGetComponent<Projectile>(out var projScript))
-                {
-                    // O projétil volta pelo mesmo spawner que o criou (ADR 0015)
-                    projScript.Setup(spawner, context, OnHitActions);
-
-                    // Determina se o spawner está virado para a direita (baseado no forward do transform)
-                    bool spawnerFacingRight = context.Source.transform.right.x > 0;
-                    projScript.SetDirection(finalDirection, finalRotation, spawnerFacingRight);
-
-                    var targets = context.GetValidTargets();
-                    if (HomeInOnTargets && targets.Count > 0)
+                    if (frame.Phase == 0)
                     {
-                        int targetIndex = i % targets.Count;
-                        projScript.Target = targets[targetIndex].transform;
-                        projScript.IsHoming = true;
-                        projScript.HomingTurnSpeed = HomingTurnSpeed;
+                        frame.Phase = 1;
+                        frame.Data = burst;
                     }
-                }
-
-                if (DelayBetweenShots > 0 && i < ProjectileCount - 1)
-                {
-                    yield return context.WaitSeconds(DelayBetweenShots);
+                    return ActionStatus.Wait(DelayBetweenShots);
                 }
             }
 
-            yield return null;
+            return ActionStatus.Done;
         }
 
         public override void CollectEffects(List<GameplayEffect> effects)
         {
-            CollectEffects(OnHitActions, effects);
+            ActionLists.CollectEffects(OnHitActions, effects);
+        }
+
+        private Burst Aim(AbilitySystemComponent caster, Vector3 point)
+        {
+            Transform transform = caster.transform;
+            Vector3 forward = (SpawnMode == ProjectileSpawnMode.ThreeDimensional) ? transform.forward : transform.right;
+            Vector3 up = Vector3.up;
+
+            Vector3 position = transform.position +
+                               up * SpawnOffset.y +
+                               forward * SpawnOffset.z +
+                               transform.right * SpawnOffset.x;
+
+            Vector3 direction = (point - position).normalized;
+            if (direction == Vector3.zero) direction = forward;
+            return new Burst { Position = position, Direction = direction };
+        }
+
+        private void Fire(ActionContext context, AbilitySystemComponent caster, SpawnerAsset spawner, Burst burst, int shot)
+        {
+            float startAngle = -SpreadAngle / 2f;
+            float angleStep = (ProjectileCount > 1) ? SpreadAngle / (ProjectileCount - 1) : 0f;
+            float currentAngle = (ProjectileCount > 1) ? startAngle + (angleStep * shot) : 0f;
+
+            Quaternion finalRotation;
+            Vector3 finalDirection;
+
+            if (SpawnMode == ProjectileSpawnMode.ThreeDimensional)
+            {
+                Quaternion spreadRotation = Quaternion.Euler(0, currentAngle, 0);
+                finalDirection = spreadRotation * burst.Direction;
+                finalRotation = Quaternion.LookRotation(finalDirection);
+            }
+            else
+            {
+                float baseAngle = Mathf.Atan2(burst.Direction.y, burst.Direction.x) * Mathf.Rad2Deg;
+                finalRotation = Quaternion.Euler(0, 0, baseAngle + currentAngle);
+                finalDirection = finalRotation * Vector3.right;
+            }
+
+            GameObject projObj = spawner.Spawn(ProjectilePrefab, burst.Position, finalRotation);
+
+            if (projObj == null)
+            {
+                // Spawner sem instância (ex.: pool vazio que não cresce): pula só este tiro e mantém a cadência
+                Debug.LogWarning($"[SpawnProjectileAction] O spawner '{spawner.name}' não criou uma instância de '{ProjectilePrefab.name}'; o tiro foi pulado.", spawner);
+            }
+            else if (projObj.TryGetComponent<Projectile>(out var projScript))
+            {
+                // O projétil volta pelo mesmo spawner que o criou (ADR 0015)
+                projScript.Setup(spawner, context, OnHitActions);
+
+                // Determina se o spawner está virado para a direita (baseado no forward do transform)
+                bool spawnerFacingRight = caster.transform.right.x > 0;
+                projScript.SetDirection(finalDirection, finalRotation, spawnerFacingRight);
+
+                List<AbilitySystemComponent> targets = context.EventTargets;
+                targets.RemoveAll(t => t == null);
+                if (HomeInOnTargets && targets.Count > 0)
+                {
+                    int targetIndex = shot % targets.Count;
+                    projScript.Target = targets[targetIndex].transform;
+                    projScript.IsHoming = true;
+                    projScript.HomingTurnSpeed = HomingTurnSpeed;
+                }
+            }
         }
     }
 }
-
-

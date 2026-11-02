@@ -173,7 +173,7 @@ namespace SpellBook.GAS.Actions
                     continue;
                 }
 
-                ActionStatus status = action.Execute(execution.Context, ref top.Frame);
+                ActionStatus status = action.InvokeExecute(execution.Context, ref top.Frame);
                 // A própria ação pode ter cancelado esta execução
                 if (execution.Version != version || !execution.Running) return;
 
@@ -251,7 +251,7 @@ namespace SpellBook.GAS.Actions
                 ref Entry entry = ref execution.Stack[d];
                 if (entry.List == null || entry.Index >= entry.End) continue;
                 GameplayAction action = entry.List[entry.Index];
-                if (action != null) action.OnCancel(execution.Context, ref entry.Frame);
+                if (action != null) action.InvokeCancel(execution.Context, ref entry.Frame);
             }
             Release(execution);
         }

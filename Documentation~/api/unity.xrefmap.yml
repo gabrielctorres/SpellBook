@@ -553,9 +553,6 @@ references:
 - uid: UnityEngine.Component.transformHandle
   name: transformHandle
   href: https://docs.unity3d.com/ScriptReference/Component-transformHandle.html
-- uid: UnityEngine.Coroutine
-  name: Coroutine
-  href: https://docs.unity3d.com/ScriptReference/Coroutine.html
 - uid: UnityEngine.Events.UnityEvent`1
   name: UnityEvent<T0>
   href: https://docs.unity3d.com/ScriptReference/Events.UnityEvent_1.html

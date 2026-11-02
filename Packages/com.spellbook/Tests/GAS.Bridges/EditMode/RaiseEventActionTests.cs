@@ -1,10 +1,10 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using SpellBook.Core.Validation;
 using SpellBook.Events;
 using SpellBook.GAS.Abilities;
+using SpellBook.GAS.Actions;
 using SpellBook.Testing;
 using UnityEditor;
 using UnityEngine;
@@ -12,7 +12,7 @@ using UnityEngine;
 namespace SpellBook.GAS.Bridges.Tests
 {
     /// <summary>
-    /// <see cref="RaiseEventAction"/> dispara a emissão uma vez, com o payload fixo, e termina no mesmo quadro (CA61).
+    /// <see cref="RaiseEventAction"/> dispara a emissão uma vez, com o payload fixo, e termina na mesma chamada (CA61).
     /// Ação sem emissão ou sem canal é erro de validação, também pela habilidade que a contém (CA35, parte).
     /// </summary>
     public class RaiseEventActionTests
@@ -43,11 +43,11 @@ namespace SpellBook.GAS.Bridges.Tests
             Action<int> onRaised = received.Add;
             channel.Raised += onRaised;
 
-            IEnumerator run = action.Execute(GasFactory.CreateAbilityContext(null, Vector3.zero));
-            bool yielded = run.MoveNext();
+            ActionExecutionHandle run = _gas.CreateAsc().RunActions(
+                new GameplayAction[] { action }, GasFactory.CreateActionContext(null, Vector3.zero), null);
             channel.Raised -= onRaised;
 
-            Assert.That(yielded, Is.False, "a ação não terminou no mesmo quadro");
+            Assert.That(run.IsRunning, Is.False, "a ação não terminou na mesma chamada");
             Assert.That(received, Is.EqualTo(new[] { 7 }));
         }
 
@@ -89,7 +89,7 @@ namespace SpellBook.GAS.Bridges.Tests
             GameplayAbility ability = _gas.CreateAbility(new RaiseEventAction());
             using (var serialized = new SerializedObject(ability))
             {
-                SerializedProperty emission = serialized.FindProperty(nameof(GameplayAbility.Actions))
+                SerializedProperty emission = serialized.FindProperty(nameof(GameplayAbility.OnActivate))
                     .GetArrayElementAtIndex(0)
                     .FindPropertyRelative("emission");
                 emission.managedReferenceValue = channel != null ? EventEmission.CreateFor(channel) : new EventEmission<int>();
@@ -97,7 +97,7 @@ namespace SpellBook.GAS.Bridges.Tests
                 serialized.ApplyModifiedPropertiesWithoutUndo();
             }
 
-            return (RaiseEventAction)ability.Actions[0];
+            return (RaiseEventAction)ability.OnActivate[0];
         }
     }
 }

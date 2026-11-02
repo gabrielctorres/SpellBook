@@ -76,7 +76,7 @@ O validador acusa erro em:
   confere a recarga, o custo e os efeitos de cada `ApplyEffectAction`, inclusive dentro de
   `RepeatAction`, `ParallelAction`, `ConditionalAction` e das **On Hit Actions** do
   `SpawnProjectileAction`. Uma ação sua que aplica efeitos entra na conferência ao sobrescrever
-  `AbilityAction.CollectEffects`;
+  `GameplayAction.CollectEffects`;
 - um `GameplayEffect` com valor por nível inválido (array vazio, curva sem definir ou modo `Table`
   sem nome) na duração ou num modificador, com nome de **SetByCaller** vazio ou fora de letras,
   dígitos e `_`, ou com modificadores **Live** em ciclo, em que um atributo depende do outro (veja

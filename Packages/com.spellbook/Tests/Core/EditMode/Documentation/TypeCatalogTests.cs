@@ -68,7 +68,7 @@ namespace SpellBook.Core.Tests.Documentation
             {
                 "SpellBook.Events.Reaction",
                 "SpellBook.Events.EventResponse",
-                "SpellBook.GAS.Abilities.AbilityAction",
+                "SpellBook.GAS.Actions.GameplayAction",
             }));
         }
 

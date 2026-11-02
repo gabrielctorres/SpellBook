@@ -4,9 +4,7 @@ items:
   commentId: N:SpellBook.GAS.Abilities
   id: SpellBook.GAS.Abilities
   children:
-  - SpellBook.GAS.Abilities.AbilityAction
   - SpellBook.GAS.Abilities.AbilityActivationResult
-  - SpellBook.GAS.Abilities.AbilityContext
   - SpellBook.GAS.Abilities.AbilityDescription
   - SpellBook.GAS.Abilities.AbilitySpec
   - SpellBook.GAS.Abilities.AbilityTarget
@@ -32,13 +30,6 @@ items:
   fullName: SpellBook.GAS.Abilities
   type: Namespace
 references:
-- uid: SpellBook.GAS.Abilities.AbilityAction
-  commentId: T:SpellBook.GAS.Abilities.AbilityAction
-  parent: SpellBook.GAS.Abilities
-  href: SpellBook.GAS.Abilities.AbilityAction.html
-  name: AbilityAction
-  nameWithType: AbilityAction
-  fullName: SpellBook.GAS.Abilities.AbilityAction
 - uid: SpellBook.GAS.Abilities.AbilityActivationResult
   commentId: T:SpellBook.GAS.Abilities.AbilityActivationResult
   parent: SpellBook.GAS.Abilities
@@ -46,13 +37,6 @@ references:
   name: AbilityActivationResult
   nameWithType: AbilityActivationResult
   fullName: SpellBook.GAS.Abilities.AbilityActivationResult
-- uid: SpellBook.GAS.Abilities.AbilityContext
-  commentId: T:SpellBook.GAS.Abilities.AbilityContext
-  parent: SpellBook.GAS.Abilities
-  href: SpellBook.GAS.Abilities.AbilityContext.html
-  name: AbilityContext
-  nameWithType: AbilityContext
-  fullName: SpellBook.GAS.Abilities.AbilityContext
 - uid: SpellBook.GAS.Abilities.DescriptionElement
   commentId: T:SpellBook.GAS.Abilities.DescriptionElement
   parent: SpellBook.GAS.Abilities

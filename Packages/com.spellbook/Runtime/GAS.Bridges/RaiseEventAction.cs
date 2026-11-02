@@ -1,11 +1,11 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
 using SpellBook.Core.Validation;
 using SpellBook.Events;
 using SpellBook.GAS.Abilities;
+using SpellBook.GAS.Actions;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using UnityEngine;
@@ -13,14 +13,14 @@ using UnityEngine;
 namespace SpellBook.GAS.Bridges
 {
     /// <summary>
-    /// Dispara um canal de eventos uma vez e termina no mesmo quadro. O payload é o fixo da emissão ou, com outra
-    /// <see cref="GasPayloadSource"/>, um valor lido do <see cref="AbilityContext"/> na hora. O ASC que conjurou aparece
+    /// Dispara um canal de eventos uma vez e termina na mesma chamada. O payload é o fixo da emissão ou, com outra
+    /// <see cref="GasPayloadSource"/>, um valor lido do <see cref="ActionContext"/> na hora. O ASC que conjurou aparece
     /// como quem disparou. Sem emissão, sem canal, com fonte incompatível com o canal ou sem valor para enviar (sem
     /// conjurador, sem o atributo, sem alvo válido), não dispara nada, e a validação acusa o que é configuração.
     /// </summary>
     [HelpURL(DocUrls.Gas + "#raiseeventaction")]
     [Serializable, TypeCategory("Eventos", Summary = "Dispara um canal de eventos com um payload fixo ou da habilidade.")]
-    public sealed class RaiseEventAction : AbilityAction
+    public sealed class RaiseEventAction : GameplayAction
     {
         [SerializeReference, Tooltip("Canal disparado e payload enviado.")]
         private EventEmission emission;
@@ -31,18 +31,20 @@ namespace SpellBook.GAS.Bridges
         [SerializeField, Tooltip("Atributo do conjurador lido pela fonte AttributeValue.")]
         private AttributeDefinition attribute;
 
-        public override IEnumerator Execute(AbilityContext context)
+        protected override ActionStatus Execute(ActionContext context, ref ActionFrame frame)
         {
-            if (emission == null) yield break;
+            if (emission == null) return ActionStatus.Done;
 
             if (payloadSource == GasPayloadSource.Fixed)
             {
-                emission.Raise(context.Source);
+                emission.Raise(context.Instigator);
             }
             else if (emission.Channel != null && GasPayloadSourceUtility.Supports(payloadSource, emission.PayloadType))
             {
                 RaiseDynamic(context);
             }
+
+            return ActionStatus.Done;
         }
 
         public override void Validate(ValidationResult result)
@@ -69,9 +71,9 @@ namespace SpellBook.GAS.Bridges
         }
 
         // Só é chamado com a fonte compatível com o canal, então cada cast abaixo acerta o tipo.
-        private void RaiseDynamic(AbilityContext context)
+        private void RaiseDynamic(ActionContext context)
         {
-            AbilitySystemComponent source = context.Source;
+            AbilitySystemComponent source = context.Instigator;
             switch (payloadSource)
             {
                 case GasPayloadSource.AttributeValue:
@@ -96,7 +98,8 @@ namespace SpellBook.GAS.Bridges
 
                     break;
                 case GasPayloadSource.TargetObject:
-                    List<AbilitySystemComponent> targets = context.GetValidTargets();
+                    List<AbilitySystemComponent> targets = context.EventTargets;
+                    targets.RemoveAll(t => t == null);
                     if (targets.Count > 0)
                     {
                         ((EventChannel<GameObject>)emission.Channel).Raise(targets[0].gameObject, source);

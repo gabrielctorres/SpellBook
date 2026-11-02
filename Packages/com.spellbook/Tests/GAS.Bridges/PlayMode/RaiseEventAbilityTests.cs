@@ -63,7 +63,7 @@ namespace SpellBook.GAS.Bridges.Tests
         {
             using (var serialized = new SerializedObject(ability))
             {
-                serialized.FindProperty(nameof(GameplayAbility.Actions))
+                serialized.FindProperty(nameof(GameplayAbility.OnActivate))
                     .GetArrayElementAtIndex(0)
                     .FindPropertyRelative("emission")
                     .managedReferenceValue = EventEmission.CreateFor(channel);

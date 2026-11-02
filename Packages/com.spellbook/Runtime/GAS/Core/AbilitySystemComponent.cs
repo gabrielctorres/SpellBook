@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using SpellBook.Core;
@@ -228,7 +227,21 @@ namespace SpellBook.GAS.Core
                 AdvanceChargeRecharge(spec);
             }
 
-            _runner?.Tick();
+            if (_runner == null) return;
+            _runner.Tick();
+            EndFinishedAbilities();
+        }
+
+        // Termina as habilidades cuja lista OnActivate acabou neste Tick
+        private void EndFinishedAbilities()
+        {
+            for (int i = _abilities.Count - 1; i >= 0; i--)
+            {
+                // Um OnAbilityEnded pode retirar habilidades
+                if (i >= _abilities.Count) continue;
+                AbilitySpec spec = _abilities[i];
+                if (spec.IsActive && spec.Executing && !spec.Execution.IsRunning) EndAbility(spec, false);
+            }
         }
 
         internal ActionRunner Runner => _runner ??= new ActionRunner(this);
@@ -877,13 +890,13 @@ namespace SpellBook.GAS.Core
 
             CancelAbilitiesWithTags(ability.CancelAbilitiesWithTag, spec);
 
-            var context = new AbilityContext(this, targetPos)
-            {
-                Ability = ability,
-                Spec = spec,
-                Level = spec.Level
-            };
+            ActionContext context = Runner.RentContext();
+            context.Ability = ability;
+            context.Spec = spec;
+            context.Level = spec.Level;
+            context.SetPoint(targetPos);
 
+            int activation = ++spec.ActivationId;
             spec.IsActive = true;
             spec.ActiveContext = context;
             AddTags(ability.ActivationOwnedTags);
@@ -891,18 +904,23 @@ namespace SpellBook.GAS.Core
             // Dispara eventos DEPOIS de aplicar o cooldown, para que a UI leia o tempo correto
             OnAbilityActivated?.Invoke(spec);
 
-            // A tag concedida acima pode ter cancelado a própria habilidade
-            if (!spec.IsActive || spec.ActiveContext != context) return;
+            // A tag concedida acima pode ter cancelado a própria habilidade; o contexto, sem execução, não volta ao pool
+            if (!spec.IsActive || spec.ActivationId != activation) return;
 
-            var routine = StartCoroutine(RunAbility(spec, context));
-            // Se a habilidade terminou de forma síncrona, não guarda a rotina
-            if (spec.IsActive && spec.ActiveContext == context) spec.Routine = routine;
-        }
+            // O dono das execuções é o spec: uma ativação por vez, e cancelar a habilidade cancela as ações dela
+            ActionExecutionHandle execution = Runner.Run(ability.OnActivate, context, spec);
+            // Uma ação pode ter terminado ou cancelado a ativação, ou começado outra
+            if (!spec.IsActive || spec.ActivationId != activation) return;
 
-        private IEnumerator RunAbility(AbilitySpec spec, AbilityContext context)
-        {
-            yield return AbilityAction.RunSequence(spec.Ability.Actions, context);
-            if (spec.IsActive && spec.ActiveContext == context) EndAbility(spec, false);
+            if (execution.IsRunning)
+            {
+                spec.Execution = execution;
+                spec.Executing = true;
+            }
+            else
+            {
+                EndAbility(spec, false);
+            }
         }
         #endregion
 
@@ -914,25 +932,15 @@ namespace SpellBook.GAS.Core
         {
             if (spec == null || !spec.IsActive) return;
 
-            var context = spec.ActiveContext;
-            context.IsCancelled = true;
-
-            if (spec.Routine != null) StopCoroutine(spec.Routine);
-            foreach (var child in spec.ChildRoutines)
-            {
-                if (child != null) StopCoroutine(child);
-            }
+            int activation = spec.ActivationId;
+            spec.Executing = false;
 
             // Ordem reversa: as ações mais internas restauram estado primeiro
-            var running = context.RunningActions.ToArray();
-            context.RunningActions.Clear();
-            for (int i = running.Length - 1; i >= 0; i--)
-            {
-                try { running[i].OnCancel(context); }
-                catch (Exception e) { Debug.LogException(e, this); }
-            }
+            try { CancelActions(spec); }
+            catch (Exception e) { Debug.LogException(e, this); }
 
-            EndAbility(spec, true);
+            // Um OnCancel pode ter terminado a habilidade ou começado outra ativação
+            if (spec.ActivationId == activation) EndAbility(spec, true);
         }
 
         public void CancelAbility(GameplayAbility ability) => CancelAbility(FindSpec(ability));
@@ -974,8 +982,8 @@ namespace SpellBook.GAS.Core
             if (!spec.IsActive) return;
 
             spec.IsActive = false;
-            spec.Routine = null;
-            spec.ChildRoutines.Clear();
+            spec.Executing = false;
+            spec.Execution = default;
             spec.ActiveContext = null;
 
             RemoveTags(spec.Ability.ActivationOwnedTags);

@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using NUnit.Framework;
 using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Abilities.Actions;
+using SpellBook.GAS.Actions;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
@@ -257,7 +258,7 @@ namespace SpellBook.GAS.Tests
             };
         }
 
-        private GameplayAbility CreateAbility(int maxLevel, params AbilityAction[] actions)
+        private GameplayAbility CreateAbility(int maxLevel, params GameplayAction[] actions)
         {
             GameplayAbility ability = _gas.CreateAbility(actions);
             var so = new SerializedObject(ability);

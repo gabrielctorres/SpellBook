@@ -108,7 +108,7 @@ namespace SpellBook.GAS.Bridges.Tests
             GameplayAbility ability = _gas.CreateAbility(new RaiseEventAction());
             _serializedObject?.Dispose();
             _serializedObject = new SerializedObject(ability);
-            SerializedProperty action = _serializedObject.FindProperty(nameof(GameplayAbility.Actions)).GetArrayElementAtIndex(0);
+            SerializedProperty action = _serializedObject.FindProperty(nameof(GameplayAbility.OnActivate)).GetArrayElementAtIndex(0);
             action.FindPropertyRelative("emission").managedReferenceValue = EventEmission.CreateFor(channel);
             action.FindPropertyRelative("payloadSource").enumValueIndex = (int)source;
             _serializedObject.ApplyModifiedPropertiesWithoutUndo();

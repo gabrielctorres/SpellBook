@@ -137,7 +137,7 @@ EffectSpec spec = EffectSpec.Create(efeito, caster).WithCallerValues(valores);
 target.TryApplyEffect(in spec, out ActiveEffectInstance instancia);
 ```
 
-`EffectSpec.Create(efeito, instigador)` monta o spec sem habilidade; `EffectSpec.FromAbility(efeito, contextoDaHabilidade)` usa o instigador, a habilidade, o nível e o ponto de alvo (é o que a `ApplyEffectAction` faz, inclusive no impacto de projétil). `WithCallerValues`, `WithImpactPoint` e `WithDurationOverride` devolvem uma cópia alterada. `ApplyEffect(efeito, origem)` e as outras formas antigas continuam valendo, com o mesmo resultado. Aplicar um spec instantâneo não aloca.
+`EffectSpec.Create(efeito, instigador)` monta o spec sem habilidade; `EffectSpec.FromAbility(efeito, contextoDaAcao)` usa o instigador, a habilidade, o nível e o ponto do `ActionContext` (é o que a `ApplyEffectAction` faz, inclusive no impacto de projétil). `WithCallerValues`, `WithImpactPoint` e `WithDurationOverride` devolvem uma cópia alterada. `ApplyEffect(efeito, origem)` e as outras formas antigas continuam valendo, com o mesmo resultado. Aplicar um spec instantâneo não aloca.
 
 ##### Origens do valor {#origens-do-valor}
 O `ValueSource` de um modificador diz de onde vem o valor (`ModifierValueSource.SourceType`):
@@ -337,7 +337,7 @@ A lista **Starting Effects** do ASC aplica cada efeito no `Awake`, na ordem da l
 
 ### Passo a passo
 1. Clique com o botão direito no Project → **Create → GAS → Gameplay Ability**.
-2. No Inspector, localize a lista **Actions**.
+2. No Inspector, localize a lista **On Activate** (era **Actions** na 2.x).
 3. Clique no botão **+** e selecione a ação desejada (ex: `WaitAction`, `TargetingAction`).
 4. Configure os parâmetros da ação diretamente ali.
 
@@ -368,16 +368,18 @@ O `Duration` da `WaitAction`, o `Interval` da `RepeatAction` e o `DelayBetweenSh
 - Com a fonte padrão (tempo escalado), a espera dura o mesmo que na 2.x.
 - Se o ASC usa um [grupo pausável](tempo.md#pausabletimesource), pausar o grupo pausa a habilidade no meio da espera. Ao retomar, ela continua de onde parou.
 - Com `autoTick` desligado, a espera só anda quando alguém chama `Tick`.
-- Se o ASC for destruído, a espera termina.
-- **Início do `Interval`:** o `Interval` da `RepeatAction` começa a contar no quadro seguinte ao fim de cada repetição. Um `Tick` no mesmo quadro em que a repetição termina não entra no intervalo. O `DelayBetweenShots` começa a contar logo depois de cada tiro. Com `autoTick` ligado, a diferença é de no máximo um quadro.
-- **Wait 0:** uma `WaitAction` com `Duration` zero ou negativo espera exatamente um quadro, como na 2.x, e não lê o tempo. Serve para passar a lista de ações ao quadro seguinte e termina mesmo com o ASC parado.
+- Se o ASC for destruído, as ações que ele rodava param.
+- As três esperas contam do fim do passo anterior. Um `Tick` no mesmo quadro em que o passo terminou já entra na espera, e o excesso de um `Tick` grande passa para a espera seguinte ([Base nova das ações](#gameplayaction)).
+- Ações sem espera não custam quadro: rodam todas na mesma chamada. Uma `RepeatAction` com `Count` 3 e `Interval` 0 roda as três repetições de uma vez, e uma `WaitAction` com `Duration` zero ou negativo termina na hora. Na 2.x, as duas custavam um quadro.
 
-Numa ação própria, espere com `yield return context.WaitSeconds(segundos)`, e não com `WaitForSeconds`.
+Numa ação própria, espere devolvendo `ActionStatus.Wait(segundos)`, e não com `WaitForSeconds`.
 
 #### Projéteis {#projectile}
-A `SpawnProjectileAction` dispara projéteis: cria o `ProjectilePrefab` pelo campo `Spawner` e chama `Setup` no componente `Projectile`. As `OnHitActions` rodam no impacto com um contexto derivado (mesma habilidade e nível) que recebe uma cópia rasa do `CustomData`: enxerga as chaves gravadas antes do disparo (como `"crit"`), mas o que o impacto grava não volta ao contexto original, e vice-versa. Valores que são objetos continuam sendo as mesmas referências.
+A `SpawnProjectileAction` dispara projéteis: cria o `ProjectilePrefab` pelo campo `Spawner` e chama `Setup` no componente `Projectile`. As **On Hit Actions** da ação viram o `OnImpact` do projétil (era `OnHitActions`). No impacto, essa lista roda no ASC de quem lançou, por `RunActions` e sem dono: ela não é cancelada junto com a habilidade, e as esperas dela andam no `Tick` desse ASC. O alvo atingido entra nos `EventTargets`.
 
-- **`Setup(SpawnerAsset spawner, AbilityContext parentContext, List<AbilityAction> onHitActions)`** guarda o spawner que criou o projétil. Há uma sobrecarga com `AbilitySystemComponent` no lugar do contexto.
+O contexto do impacto é derivado do contexto da habilidade no `Setup` (`CreateDerived`), com a mesma habilidade, o mesmo nível e o mesmo instigador, e recebe o ponto de impacto. A cópia do `CustomData` é rasa: o impacto enxerga as chaves gravadas antes do disparo (como `"crit"`), mas o que ele grava não volta ao contexto original, e vice-versa. Valores que são objetos continuam sendo as mesmas referências.
+
+- **`Setup(SpawnerAsset spawner, ActionContext parentContext, List<GameplayAction> onImpact)`** guarda o spawner que criou o projétil. Há uma sobrecarga com `AbilitySystemComponent` no lugar do contexto, que roda o impacto num contexto do pool desse ASC.
 - **`ReturnToPool()`** devolve o projétil por esse mesmo spawner (`spawner.Release`). Sem spawner, ele volta pelo `SpawnerAsset.Default`, que destrói a instância.
 - O `Projectile` reinicia o estado no `OnEnable`, que roda tanto no `Instantiate` quanto ao sair de um pool. Ele não implementa mais o `IPoolable`.
 
@@ -398,7 +400,7 @@ A ação guarda uma **emissão**, o mesmo campo do [`EventEmitter`](eventos.md#e
 
 - **Canal sem payload** (Void): a ação só dispara o canal.
 - **Canal com payload** (`EventChannel<T>`, como Int ou um payload próprio): a ação envia o valor fixo do campo **Payload**. Trocar o canal por um de outro tipo recria a emissão, e o payload volta ao valor padrão.
-- Cada passagem pela ação dispara o canal uma vez, e a ação termina no mesmo quadro. O ASC que conjurou aparece como quem disparou no log do canal.
+- Cada passagem pela ação dispara o canal uma vez, e a ação termina na mesma chamada. O ASC que conjurou aparece como quem disparou no log do canal.
 - Sem emissão ou sem canal, a ação não faz nada, e o validador acusa o erro na habilidade.
 
 O campo **Payload Source** escolhe de onde vem o payload. O padrão, `Fixed`, envia o valor fixo da emissão e serve para qualquer canal. As outras fontes leem a habilidade na hora do disparo e ignoram o payload fixo:
@@ -419,13 +421,13 @@ O campo **Payload Source** escolhe de onde vem o payload. O padrão, `Fixed`, en
 - As fontes do lado do efeito (a magnitude de um modificador, as pilhas, o nome do efeito e o `EffectEventData`) ainda não existem.
 
 ### 3.1 Criando ações próprias {#acoes-proprias}
-Herde de `AbilityAction` e implemente `IEnumerator Execute(AbilityContext context)`.
+Herde de `GameplayAction` e sobrescreva `Execute(ActionContext context, ref ActionFrame frame)`, que devolve um `ActionStatus`. O override é `protected override` em qualquer assembly, e quem chama o `Execute` é o executor do ASC. A mesma base serve às listas da habilidade, do efeito e do projétil, e o contrato está em [Base nova das ações](#gameplayaction).
 
-- A mesma instância da ação é compartilhada por todos que usam a habilidade: guarde estado de execução no `context.CustomData`, nunca em campos.
-- Sobrescreva `OnCancel(AbilityContext context)` para restaurar estado se a habilidade for cancelada no meio da ação (ex: reabilitar movimento após um dash).
-- Para rodar sub-ações use `AbilityAction.RunSequence(lista, context)`; para corrotinas paralelas use `context.StartChildRoutine(...)`, que é interrompida junto no cancelamento.
-- Use `context.GetValidTargets()` em vez de `context.Targets` quando alvos podem ter sido destruídos durante a habilidade.
-- Para esperar, use `yield return context.WaitSeconds(segundos)`, que conta o tempo do ASC ([Ações que esperam](#acoes-que-esperam)).
+- A mesma instância da ação é compartilhada por todos que usam a habilidade. Guarde o estado da execução no `ActionFrame` ou no `context.CustomData`, nunca em campos.
+- Sobrescreva `OnCancel(context, ref frame)` para restaurar estado se a habilidade for cancelada no meio da ação (ex: reabilitar movimento após um dash).
+- Para rodar sub-ações, devolva `ActionStatus.Run(lista)`, ou `ActionStatus.RunParallel(lista)` para rodá-las ao mesmo tempo. O cancelamento da habilidade chega às filhas.
+- Quem lançou está em `context.Instigator`, e o ponto em `context.Point`. Os alvos que a `TargetingAction` encontra ficam em `context.EventTargets`; tire da lista os alvos destruídos antes de usá-la.
+- Para esperar, devolva `ActionStatus.Wait(segundos)`, que conta o tempo do ASC ([Ações que esperam](#acoes-que-esperam)).
 - Para acusar uma configuração inválida, sobrescreva `Validate(ValidationResult result)` e chame `result.AddError(...)`. O `GameplayAbility` repassa a validação a cada ação da lista.
 
 ### 3.2 Targeting {#targeting}
@@ -441,7 +443,9 @@ Os alvos num raio em volta da origem. Aceita `maxTargets` (prioriza os mais pró
 O alvo válido mais próximo do ponto mirado, num raio pequeno. Crie em **Create → GAS → Targeting → Mouse**.
 
 ### 3.3 Base nova das ações {#gameplayaction}
-`GameplayAction` (namespace `SpellBook.GAS.Actions`) é a base única das ações da 3.0, e o `AbilitySystemComponent` tem o executor que a roda. Nesta versão de desenvolvimento, habilidades, efeitos e projéteis ainda usam `AbilityAction` e `EffectAction`. As próximas mudanças os passam para a base nova.
+`GameplayAction` (namespace `SpellBook.GAS.Actions`) é a base única das ações da 3.0, e o `AbilitySystemComponent` tem o executor que a roda. A lista `OnActivate` da habilidade, as listas do efeito e o `OnImpact` do projétil usam essa base, e a mesma instância de ação pode estar em listas de donos diferentes.
+
+A ativação roda o `OnActivate` com o spec como dono e termina quando a execução acaba, na mesma chamada se nenhuma ação esperar. `CancelAbility` cancela as execuções desse dono antes de terminar a habilidade.
 
 Uma ação implementa `Execute(ActionContext context, ref ActionFrame frame)` e devolve um `ActionStatus`:
 
@@ -462,7 +466,9 @@ O `ActionContext` leva os dados da execução: `Owner` (o ASC que roda), `Instig
 
 O ASC guarda execuções e contextos em pool, e rodar a mesma lista de novo não aloca. Se você passar um contexto seu, o executor fica com ele e o devolve ao pool quando a execução termina ou é cancelada. Não use essa referência depois disso. Um `ActionExecutionHandle` antigo continua dizendo que a execução não roda, mesmo depois que o pool a reaproveita.
 
-`context.CreateDerived(ponto)` devolve um contexto novo com esse ponto, o mesmo `Owner`, `Instigator`, `Ability` e `Level`, e uma cópia rasa do `CustomData`. Uma chave acrescentada no derivado não aparece no original, mas um valor que é objeto fica compartilhado. O derivado não tem vínculo de cancelamento com a execução de origem.
+As chaves do `CustomData` usam o comparador padrão. Para usar outro, como `StringComparer.OrdinalIgnoreCase`, chame `context.SetCustomDataComparer(comparador)` antes de gravar a primeira chave. Com chaves gravadas, a chamada lança `InvalidOperationException`. Um contexto que volta do pool vem com o comparador padrão.
+
+`context.CreateDerived(ponto)` devolve um contexto novo com esse ponto, o mesmo `Owner`, `Instigator`, `Ability` e `Level`, e uma cópia rasa do `CustomData`, com o mesmo comparador. Uma chave acrescentada no derivado não aparece no original, mas um valor que é objeto fica compartilhado. O derivado não tem vínculo de cancelamento com a execução de origem.
 
 ---
 
@@ -484,6 +490,8 @@ O ASC só ativa habilidades concedidas. Use a lista `startingAbilities` no Inspe
 6. regras de ativação (`BlockedByCondition`), na ordem da lista; a primeira que falha decide.
 
 Nada é gasto antes do fim das checagens: a carga, a recarga e o custo saem só depois que todas passam.
+
+Uma habilidade sem ações, ou só com ações sem espera, termina dentro do `TryActivateAbility`. Uma consulta logo depois já vê a recarga (`OnCooldown`), e não `AlreadyActive`. Na 2.x, ela ficava ativa por um quadro.
 
 **Regras de ativação.** A lista **Activation Conditions** da habilidade (`ActivationConditions`) tem uma `ActivationRule` por entrada: uma [condição](#condicoes) e o motivo da falha, com **Failure Tag** (uma `GameplayTag`, opcional) e **Failure Key** (chave de texto). Com a chave vazia, vale a chave padrão da condição. Entradas vazias ou sem condição são puladas. As condições recebem o alvo da ativação no `ConditionContext.Target`.
 

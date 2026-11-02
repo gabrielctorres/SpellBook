@@ -7,7 +7,6 @@ items:
   - SpellBook.GAS.Effects.ActiveEffectInstance
   - SpellBook.GAS.Effects.AttributeEffectModifier
   - SpellBook.GAS.Effects.DebugLogAction
-  - SpellBook.GAS.Effects.EffectAction
   - SpellBook.GAS.Effects.EffectApplicationResult
   - SpellBook.GAS.Effects.EffectContext
   - SpellBook.GAS.Effects.EffectDurationPolicy
@@ -33,12 +32,6 @@ references:
   name: ActiveEffectInstance
   nameWithType: ActiveEffectInstance
   fullName: SpellBook.GAS.Effects.ActiveEffectInstance
-- uid: SpellBook.GAS.Effects.EffectAction
-  commentId: T:SpellBook.GAS.Effects.EffectAction
-  href: SpellBook.GAS.Effects.EffectAction.html
-  name: EffectAction
-  nameWithType: EffectAction
-  fullName: SpellBook.GAS.Effects.EffectAction
 - uid: SpellBook.GAS.Effects.EffectApplicationResult
   commentId: T:SpellBook.GAS.Effects.EffectApplicationResult
   parent: SpellBook.GAS.Effects

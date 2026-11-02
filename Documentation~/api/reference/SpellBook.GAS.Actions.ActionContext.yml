@@ -21,6 +21,7 @@ items:
   - SpellBook.GAS.Actions.ActionContext.Level
   - SpellBook.GAS.Actions.ActionContext.Owner
   - SpellBook.GAS.Actions.ActionContext.Point
+  - SpellBook.GAS.Actions.ActionContext.SetCustomDataComparer(System.Collections.Generic.IEqualityComparer{System.String})
   - SpellBook.GAS.Actions.ActionContext.SetPoint(UnityEngine.Vector3)
   - SpellBook.GAS.Actions.ActionContext.Spec
   - SpellBook.GAS.Actions.ActionContext.Targets
@@ -393,7 +394,10 @@ items:
   fullName: SpellBook.GAS.Actions.ActionContext.CustomData
   type: Property
   namespace: SpellBook.GAS.Actions
-  summary: Dados livres da execução, criados no primeiro acesso.
+  summary: >-
+    Dados livres da execução, criados no primeiro acesso. As chaves usam o comparador de
+
+    <xref href="SpellBook.GAS.Actions.ActionContext.SetCustomDataComparer(System.Collections.Generic.IEqualityComparer%7bSystem.String%7d)" data-throw-if-not-resolved="false"></xref>, ou o padrão.
   example: []
   syntax:
     content: public Dictionary<string, object> CustomData { get; }
@@ -402,6 +406,35 @@ items:
       type: System.Collections.Generic.Dictionary{System.String,System.Object}
     content.vb: Public ReadOnly Property CustomData As Dictionary(Of String, Object)
   overload: SpellBook.GAS.Actions.ActionContext.CustomData*
+- uid: SpellBook.GAS.Actions.ActionContext.SetCustomDataComparer(System.Collections.Generic.IEqualityComparer{System.String})
+  commentId: M:SpellBook.GAS.Actions.ActionContext.SetCustomDataComparer(System.Collections.Generic.IEqualityComparer{System.String})
+  id: SetCustomDataComparer(System.Collections.Generic.IEqualityComparer{System.String})
+  parent: SpellBook.GAS.Actions.ActionContext
+  langs:
+  - csharp
+  - vb
+  name: SetCustomDataComparer(IEqualityComparer<string>)
+  nameWithType: ActionContext.SetCustomDataComparer(IEqualityComparer<string>)
+  fullName: SpellBook.GAS.Actions.ActionContext.SetCustomDataComparer(System.Collections.Generic.IEqualityComparer<string>)
+  type: Method
+  namespace: SpellBook.GAS.Actions
+  summary: >-
+    Escolhe o comparador das chaves do <xref href="SpellBook.GAS.Actions.ActionContext.CustomData" data-throw-if-not-resolved="false"></xref>. <code>null</code> usa o padrão. Chame antes de gravar a
+
+    primeira chave: com chaves gravadas, lança <xref href="System.InvalidOperationException" data-throw-if-not-resolved="false"></xref>, porque o comparador novo
+
+    poderia juntar duas chaves numa.
+  example: []
+  syntax:
+    content: public void SetCustomDataComparer(IEqualityComparer<string> comparer)
+    parameters:
+    - id: comparer
+      type: System.Collections.Generic.IEqualityComparer{System.String}
+    content.vb: Public Sub SetCustomDataComparer(comparer As IEqualityComparer(Of String))
+  overload: SpellBook.GAS.Actions.ActionContext.SetCustomDataComparer*
+  nameWithType.vb: ActionContext.SetCustomDataComparer(IEqualityComparer(Of String))
+  fullName.vb: SpellBook.GAS.Actions.ActionContext.SetCustomDataComparer(System.Collections.Generic.IEqualityComparer(Of String))
+  name.vb: SetCustomDataComparer(IEqualityComparer(Of String))
 - uid: SpellBook.GAS.Actions.ActionContext.SetPoint(UnityEngine.Vector3)
   commentId: M:SpellBook.GAS.Actions.ActionContext.SetPoint(UnityEngine.Vector3)
   id: SetPoint(UnityEngine.Vector3)
@@ -436,7 +469,9 @@ items:
   summary: >-
     Contexto novo com <code class="paramref">point</code> como ponto, herdando instigador, habilidade e nível, sem vínculo
 
-    de cancelamento. O <xref href="SpellBook.GAS.Actions.ActionContext.CustomData" data-throw-if-not-resolved="false"></xref> é copiado raso.
+    de cancelamento. O <xref href="SpellBook.GAS.Actions.ActionContext.CustomData" data-throw-if-not-resolved="false"></xref> é copiado raso: dicionário novo, com o mesmo comparador e as mesmas
+
+    referências de valor.
   example: []
   syntax:
     content: public ActionContext CreateDerived(Vector3 point)
@@ -1113,6 +1148,50 @@ references:
   name: IsCancelled
   nameWithType: ActionContext.IsCancelled
   fullName: SpellBook.GAS.Actions.ActionContext.IsCancelled
+- uid: SpellBook.GAS.Actions.ActionContext.SetCustomDataComparer(System.Collections.Generic.IEqualityComparer{System.String})
+  commentId: M:SpellBook.GAS.Actions.ActionContext.SetCustomDataComparer(System.Collections.Generic.IEqualityComparer{System.String})
+  isExternal: true
+  href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_SetCustomDataComparer_System_Collections_Generic_IEqualityComparer_System_String__
+  name: SetCustomDataComparer(IEqualityComparer<string>)
+  nameWithType: ActionContext.SetCustomDataComparer(IEqualityComparer<string>)
+  fullName: SpellBook.GAS.Actions.ActionContext.SetCustomDataComparer(System.Collections.Generic.IEqualityComparer<string>)
+  nameWithType.vb: ActionContext.SetCustomDataComparer(IEqualityComparer(Of String))
+  fullName.vb: SpellBook.GAS.Actions.ActionContext.SetCustomDataComparer(System.Collections.Generic.IEqualityComparer(Of String))
+  name.vb: SetCustomDataComparer(IEqualityComparer(Of String))
+  spec.csharp:
+  - uid: SpellBook.GAS.Actions.ActionContext.SetCustomDataComparer(System.Collections.Generic.IEqualityComparer{System.String})
+    name: SetCustomDataComparer
+    href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_SetCustomDataComparer_System_Collections_Generic_IEqualityComparer_System_String__
+  - name: (
+  - uid: System.Collections.Generic.IEqualityComparer`1
+    name: IEqualityComparer
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.iequalitycomparer-1
+  - name: <
+  - uid: System.String
+    name: string
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: '>'
+  - name: )
+  spec.vb:
+  - uid: SpellBook.GAS.Actions.ActionContext.SetCustomDataComparer(System.Collections.Generic.IEqualityComparer{System.String})
+    name: SetCustomDataComparer
+    href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_SetCustomDataComparer_System_Collections_Generic_IEqualityComparer_System_String__
+  - name: (
+  - uid: System.Collections.Generic.IEqualityComparer`1
+    name: IEqualityComparer
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.iequalitycomparer-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.String
+    name: String
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: )
+  - name: )
 - uid: SpellBook.GAS.Actions.ActionContext.CustomData*
   commentId: Overload:SpellBook.GAS.Actions.ActionContext.CustomData
   href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_CustomData
@@ -1200,18 +1279,94 @@ references:
   - name: " "
   - name: TValue
   - name: )
-- uid: SpellBook.GAS.Actions.ActionContext.SetPoint*
-  commentId: Overload:SpellBook.GAS.Actions.ActionContext.SetPoint
-  href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_SetPoint_UnityEngine_Vector3_
-  name: SetPoint
-  nameWithType: ActionContext.SetPoint
-  fullName: SpellBook.GAS.Actions.ActionContext.SetPoint
 - uid: SpellBook.GAS.Actions.ActionContext.CustomData
   commentId: P:SpellBook.GAS.Actions.ActionContext.CustomData
   href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_CustomData
   name: CustomData
   nameWithType: ActionContext.CustomData
   fullName: SpellBook.GAS.Actions.ActionContext.CustomData
+- uid: System.InvalidOperationException
+  commentId: T:System.InvalidOperationException
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.invalidoperationexception
+  name: InvalidOperationException
+  nameWithType: InvalidOperationException
+  fullName: System.InvalidOperationException
+- uid: SpellBook.GAS.Actions.ActionContext.SetCustomDataComparer*
+  commentId: Overload:SpellBook.GAS.Actions.ActionContext.SetCustomDataComparer
+  href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_SetCustomDataComparer_System_Collections_Generic_IEqualityComparer_System_String__
+  name: SetCustomDataComparer
+  nameWithType: ActionContext.SetCustomDataComparer
+  fullName: SpellBook.GAS.Actions.ActionContext.SetCustomDataComparer
+- uid: System.Collections.Generic.IEqualityComparer{System.String}
+  commentId: T:System.Collections.Generic.IEqualityComparer{System.String}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IEqualityComparer`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.iequalitycomparer-1
+  name: IEqualityComparer<string>
+  nameWithType: IEqualityComparer<string>
+  fullName: System.Collections.Generic.IEqualityComparer<string>
+  nameWithType.vb: IEqualityComparer(Of String)
+  fullName.vb: System.Collections.Generic.IEqualityComparer(Of String)
+  name.vb: IEqualityComparer(Of String)
+  spec.csharp:
+  - uid: System.Collections.Generic.IEqualityComparer`1
+    name: IEqualityComparer
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.iequalitycomparer-1
+  - name: <
+  - uid: System.String
+    name: string
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IEqualityComparer`1
+    name: IEqualityComparer
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.iequalitycomparer-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: System.String
+    name: String
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.string
+  - name: )
+- uid: System.Collections.Generic.IEqualityComparer`1
+  commentId: T:System.Collections.Generic.IEqualityComparer`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.iequalitycomparer-1
+  name: IEqualityComparer<T>
+  nameWithType: IEqualityComparer<T>
+  fullName: System.Collections.Generic.IEqualityComparer<T>
+  nameWithType.vb: IEqualityComparer(Of T)
+  fullName.vb: System.Collections.Generic.IEqualityComparer(Of T)
+  name.vb: IEqualityComparer(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IEqualityComparer`1
+    name: IEqualityComparer
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.iequalitycomparer-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IEqualityComparer`1
+    name: IEqualityComparer
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.iequalitycomparer-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: SpellBook.GAS.Actions.ActionContext.SetPoint*
+  commentId: Overload:SpellBook.GAS.Actions.ActionContext.SetPoint
+  href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_SetPoint_UnityEngine_Vector3_
+  name: SetPoint
+  nameWithType: ActionContext.SetPoint
+  fullName: SpellBook.GAS.Actions.ActionContext.SetPoint
 - uid: SpellBook.GAS.Actions.ActionContext.CreateDerived*
   commentId: Overload:SpellBook.GAS.Actions.ActionContext.CreateDerived
   href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_CreateDerived_UnityEngine_Vector3_

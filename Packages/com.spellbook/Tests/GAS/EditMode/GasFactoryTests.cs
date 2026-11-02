@@ -1,12 +1,13 @@
 using NUnit.Framework;
 using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Abilities.Actions;
+using SpellBook.GAS.Actions;
 using SpellBook.Tags;
 using SpellBook.Testing;
 
 namespace SpellBook.GAS.Tests
 {
-    /// <summary>As sobrecargas de <see cref="GasFactory.CreateAbility(AbilityAction[])"/> com e sem tag (RP-04).</summary>
+    /// <summary>As sobrecargas de <see cref="GasFactory.CreateAbility(GameplayAction[])"/> com e sem tag (RP-04).</summary>
     public class GasFactoryTests
     {
         private GasFactory _gas;
@@ -32,7 +33,7 @@ namespace SpellBook.GAS.Tests
             GameplayAbility ability = _gas.CreateAbility(a, b);
 
             Assert.That(ability.AbilityTag.IsValid, Is.False);
-            Assert.That(ability.Actions, Is.EqualTo(new AbilityAction[] { a, b }));
+            Assert.That(ability.OnActivate, Is.EqualTo(new GameplayAction[] { a, b }));
         }
 
         [Test]
@@ -44,7 +45,7 @@ namespace SpellBook.GAS.Tests
             GameplayAbility ability = _gas.CreateAbility(tag, a);
 
             Assert.That(ability.AbilityTag, Is.EqualTo(tag));
-            Assert.That(ability.Actions, Is.EqualTo(new AbilityAction[] { a }));
+            Assert.That(ability.OnActivate, Is.EqualTo(new GameplayAction[] { a }));
         }
     }
 }

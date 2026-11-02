@@ -296,15 +296,9 @@ items:
   name: SpellBook.GAS.Abilities
   type: Namespace
   items:
-  - uid: SpellBook.GAS.Abilities.AbilityAction
-    name: AbilityAction
-    type: Class
   - uid: SpellBook.GAS.Abilities.AbilityActivationResult
     name: AbilityActivationResult
     type: Enum
-  - uid: SpellBook.GAS.Abilities.AbilityContext
-    name: AbilityContext
-    type: Class
   - uid: SpellBook.GAS.Abilities.AbilityDescription
     name: AbilityDescription
     type: Class
@@ -723,9 +717,6 @@ items:
     type: Class
   - uid: SpellBook.GAS.Effects.DebugLogAction
     name: DebugLogAction
-    type: Class
-  - uid: SpellBook.GAS.Effects.EffectAction
-    name: EffectAction
     type: Class
   - uid: SpellBook.GAS.Effects.EffectApplicationResult
     name: EffectApplicationResult

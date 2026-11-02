@@ -9,7 +9,7 @@ items:
   - SpellBook.GAS.Effects.EffectSpec.Create(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Core.AbilitySystemComponent)
   - SpellBook.GAS.Effects.EffectSpec.DurationOverride
   - SpellBook.GAS.Effects.EffectSpec.Effect
-  - SpellBook.GAS.Effects.EffectSpec.FromAbility(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Abilities.AbilityContext)
+  - SpellBook.GAS.Effects.EffectSpec.FromAbility(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Actions.ActionContext)
   - SpellBook.GAS.Effects.EffectSpec.HasDurationOverride
   - SpellBook.GAS.Effects.EffectSpec.WithCallerValues(SpellBook.GAS.Effects.IReadOnlySetByCaller)
   - SpellBook.GAS.Effects.EffectSpec.WithDurationOverride(System.Single)
@@ -140,33 +140,33 @@ items:
       type: SpellBook.GAS.Effects.EffectSpec
     content.vb: Public Shared Function Create(effect As GameplayEffect, instigator As AbilitySystemComponent) As EffectSpec
   overload: SpellBook.GAS.Effects.EffectSpec.Create*
-- uid: SpellBook.GAS.Effects.EffectSpec.FromAbility(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Abilities.AbilityContext)
-  commentId: M:SpellBook.GAS.Effects.EffectSpec.FromAbility(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Abilities.AbilityContext)
-  id: FromAbility(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Abilities.AbilityContext)
+- uid: SpellBook.GAS.Effects.EffectSpec.FromAbility(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Actions.ActionContext)
+  commentId: M:SpellBook.GAS.Effects.EffectSpec.FromAbility(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Actions.ActionContext)
+  id: FromAbility(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Actions.ActionContext)
   parent: SpellBook.GAS.Effects.EffectSpec
   langs:
   - csharp
   - vb
-  name: FromAbility(GameplayEffect, AbilityContext)
-  nameWithType: EffectSpec.FromAbility(GameplayEffect, AbilityContext)
-  fullName: SpellBook.GAS.Effects.EffectSpec.FromAbility(SpellBook.GAS.Effects.GameplayEffect, SpellBook.GAS.Abilities.AbilityContext)
+  name: FromAbility(GameplayEffect, ActionContext)
+  nameWithType: EffectSpec.FromAbility(GameplayEffect, ActionContext)
+  fullName: SpellBook.GAS.Effects.EffectSpec.FromAbility(SpellBook.GAS.Effects.GameplayEffect, SpellBook.GAS.Actions.ActionContext)
   type: Method
   namespace: SpellBook.GAS.Effects
   summary: >-
-    Spec de uma ação de habilidade: instigador, habilidade e nível do <code class="paramref">context</code>, e o
+    Spec de uma ação: instigador, habilidade e nível do <code class="paramref">context</code>, e o
 
-    <xref href="SpellBook.GAS.Abilities.AbilityContext.TargetPosition" data-throw-if-not-resolved="false"></xref> como ponto de impacto. Contexto nulo vira <xref href="SpellBook.GAS.Effects.EffectSpec.Create(SpellBook.GAS.Effects.GameplayEffect%2cSpellBook.GAS.Core.AbilitySystemComponent)" data-throw-if-not-resolved="false"></xref> sem instigador.
+    <xref href="SpellBook.GAS.Actions.ActionContext.Point" data-throw-if-not-resolved="false"></xref> como ponto de impacto. Contexto nulo vira <xref href="SpellBook.GAS.Effects.EffectSpec.Create(SpellBook.GAS.Effects.GameplayEffect%2cSpellBook.GAS.Core.AbilitySystemComponent)" data-throw-if-not-resolved="false"></xref> sem instigador.
   example: []
   syntax:
-    content: public static EffectSpec FromAbility(GameplayEffect effect, AbilityContext context)
+    content: public static EffectSpec FromAbility(GameplayEffect effect, ActionContext context)
     parameters:
     - id: effect
       type: SpellBook.GAS.Effects.GameplayEffect
     - id: context
-      type: SpellBook.GAS.Abilities.AbilityContext
+      type: SpellBook.GAS.Actions.ActionContext
     return:
       type: SpellBook.GAS.Effects.EffectSpec
-    content.vb: Public Shared Function FromAbility(effect As GameplayEffect, context As AbilityContext) As EffectSpec
+    content.vb: Public Shared Function FromAbility(effect As GameplayEffect, context As ActionContext) As EffectSpec
   overload: SpellBook.GAS.Effects.EffectSpec.FromAbility*
 - uid: SpellBook.GAS.Effects.EffectSpec.WithCallerValues(SpellBook.GAS.Effects.IReadOnlySetByCaller)
   commentId: M:SpellBook.GAS.Effects.EffectSpec.WithCallerValues(SpellBook.GAS.Effects.IReadOnlySetByCaller)
@@ -590,12 +590,12 @@ references:
   - name: .
   - uid: SpellBook.GAS.Core
     name: Core
-- uid: SpellBook.GAS.Abilities.AbilityContext.TargetPosition
-  commentId: F:SpellBook.GAS.Abilities.AbilityContext.TargetPosition
-  href: SpellBook.GAS.Abilities.AbilityContext.html#SpellBook_GAS_Abilities_AbilityContext_TargetPosition
-  name: TargetPosition
-  nameWithType: AbilityContext.TargetPosition
-  fullName: SpellBook.GAS.Abilities.AbilityContext.TargetPosition
+- uid: SpellBook.GAS.Actions.ActionContext.Point
+  commentId: P:SpellBook.GAS.Actions.ActionContext.Point
+  href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_Point
+  name: Point
+  nameWithType: ActionContext.Point
+  fullName: SpellBook.GAS.Actions.ActionContext.Point
 - uid: SpellBook.GAS.Effects.EffectSpec.Create(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Core.AbilitySystemComponent)
   commentId: M:SpellBook.GAS.Effects.EffectSpec.Create(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Core.AbilitySystemComponent)
   href: SpellBook.GAS.Effects.EffectSpec.html#SpellBook_GAS_Effects_EffectSpec_Create_SpellBook_GAS_Effects_GameplayEffect_SpellBook_GAS_Core_AbilitySystemComponent_
@@ -632,22 +632,22 @@ references:
   - name: )
 - uid: SpellBook.GAS.Effects.EffectSpec.FromAbility*
   commentId: Overload:SpellBook.GAS.Effects.EffectSpec.FromAbility
-  href: SpellBook.GAS.Effects.EffectSpec.html#SpellBook_GAS_Effects_EffectSpec_FromAbility_SpellBook_GAS_Effects_GameplayEffect_SpellBook_GAS_Abilities_AbilityContext_
+  href: SpellBook.GAS.Effects.EffectSpec.html#SpellBook_GAS_Effects_EffectSpec_FromAbility_SpellBook_GAS_Effects_GameplayEffect_SpellBook_GAS_Actions_ActionContext_
   name: FromAbility
   nameWithType: EffectSpec.FromAbility
   fullName: SpellBook.GAS.Effects.EffectSpec.FromAbility
-- uid: SpellBook.GAS.Abilities.AbilityContext
-  commentId: T:SpellBook.GAS.Abilities.AbilityContext
-  parent: SpellBook.GAS.Abilities
-  href: SpellBook.GAS.Abilities.AbilityContext.html
-  name: AbilityContext
-  nameWithType: AbilityContext
-  fullName: SpellBook.GAS.Abilities.AbilityContext
-- uid: SpellBook.GAS.Abilities
-  commentId: N:SpellBook.GAS.Abilities
-  name: SpellBook.GAS.Abilities
-  nameWithType: SpellBook.GAS.Abilities
-  fullName: SpellBook.GAS.Abilities
+- uid: SpellBook.GAS.Actions.ActionContext
+  commentId: T:SpellBook.GAS.Actions.ActionContext
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.ActionContext.html
+  name: ActionContext
+  nameWithType: ActionContext
+  fullName: SpellBook.GAS.Actions.ActionContext
+- uid: SpellBook.GAS.Actions
+  commentId: N:SpellBook.GAS.Actions
+  name: SpellBook.GAS.Actions
+  nameWithType: SpellBook.GAS.Actions
+  fullName: SpellBook.GAS.Actions
   spec.csharp:
   - uid: SpellBook
     name: SpellBook
@@ -655,8 +655,8 @@ references:
   - uid: SpellBook.GAS
     name: GAS
   - name: .
-  - uid: SpellBook.GAS.Abilities
-    name: Abilities
+  - uid: SpellBook.GAS.Actions
+    name: Actions
   spec.vb:
   - uid: SpellBook
     name: SpellBook
@@ -664,8 +664,8 @@ references:
   - uid: SpellBook.GAS
     name: GAS
   - name: .
-  - uid: SpellBook.GAS.Abilities
-    name: Abilities
+  - uid: SpellBook.GAS.Actions
+    name: Actions
 - uid: SpellBook.GAS.Effects.EffectSpec.WithCallerValues*
   commentId: Overload:SpellBook.GAS.Effects.EffectSpec.WithCallerValues
   href: SpellBook.GAS.Effects.EffectSpec.html#SpellBook_GAS_Effects_EffectSpec_WithCallerValues_SpellBook_GAS_Effects_IReadOnlySetByCaller_

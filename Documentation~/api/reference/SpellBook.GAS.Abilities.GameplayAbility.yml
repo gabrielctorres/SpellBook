@@ -6,7 +6,6 @@ items:
   parent: SpellBook.GAS.Abilities
   children:
   - SpellBook.GAS.Abilities.GameplayAbility.AbilityTag
-  - SpellBook.GAS.Abilities.GameplayAbility.Actions
   - SpellBook.GAS.Abilities.GameplayAbility.ActivationConditions
   - SpellBook.GAS.Abilities.GameplayAbility.ActivationOwnedTags
   - SpellBook.GAS.Abilities.GameplayAbility.BlockAbilitiesWithTag
@@ -28,6 +27,7 @@ items:
   - SpellBook.GAS.Abilities.GameplayAbility.GetDescription(SpellBook.GAS.Core.AbilitySystemComponent)
   - SpellBook.GAS.Abilities.GameplayAbility.Icon
   - SpellBook.GAS.Abilities.GameplayAbility.MaxLevel
+  - SpellBook.GAS.Abilities.GameplayAbility.OnActivate
   - SpellBook.GAS.Abilities.GameplayAbility.OnValidate
   - SpellBook.GAS.Abilities.GameplayAbility.RequiredTags
   - SpellBook.GAS.Abilities.GameplayAbility.TryGetValue(System.String,System.Int32,System.Single@)
@@ -492,16 +492,16 @@ items:
     arguments:
     - type: System.String
       value: 'Cancela esta habilidade se o dono receber uma destas tags durante a execução (ex: State.Stunned).'
-- uid: SpellBook.GAS.Abilities.GameplayAbility.Actions
-  commentId: F:SpellBook.GAS.Abilities.GameplayAbility.Actions
-  id: Actions
+- uid: SpellBook.GAS.Abilities.GameplayAbility.OnActivate
+  commentId: F:SpellBook.GAS.Abilities.GameplayAbility.OnActivate
+  id: OnActivate
   parent: SpellBook.GAS.Abilities.GameplayAbility
   langs:
   - csharp
   - vb
-  name: Actions
-  nameWithType: GameplayAbility.Actions
-  fullName: SpellBook.GAS.Abilities.GameplayAbility.Actions
+  name: OnActivate
+  nameWithType: GameplayAbility.OnActivate
+  fullName: SpellBook.GAS.Abilities.GameplayAbility.OnActivate
   type: Field
   namespace: SpellBook.GAS.Abilities
   syntax:
@@ -510,15 +510,23 @@ items:
 
       [SerializeReference]
 
-      public List<AbilityAction> Actions
+      [FormerlySerializedAs("Actions")]
+
+      [ActionEvent("Ao ativar", DefaultTarget.EventTargets, true)]
+
+      public List<GameplayAction> OnActivate
     return:
-      type: System.Collections.Generic.List{SpellBook.GAS.Abilities.AbilityAction}
+      type: System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction}
     content.vb: >-
       <Header("Execução")>
 
       <SerializeReference>
 
-      Public Actions As List(Of AbilityAction)
+      <FormerlySerializedAs("Actions")>
+
+      <ActionEvent("Ao ativar", DefaultTarget.EventTargets, True)>
+
+      Public OnActivate As List(Of GameplayAction)
   attributes:
   - type: UnityEngine.HeaderAttribute
     ctor: UnityEngine.HeaderAttribute.#ctor(System.String)
@@ -528,6 +536,20 @@ items:
   - type: UnityEngine.SerializeReference
     ctor: UnityEngine.SerializeReference.#ctor
     arguments: []
+  - type: UnityEngine.Serialization.FormerlySerializedAsAttribute
+    ctor: UnityEngine.Serialization.FormerlySerializedAsAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: Actions
+  - type: SpellBook.GAS.Actions.ActionEventAttribute
+    ctor: SpellBook.GAS.Actions.ActionEventAttribute.#ctor(System.String,SpellBook.GAS.Actions.DefaultTarget,System.Boolean)
+    arguments:
+    - type: System.String
+      value: Ao ativar
+    - type: SpellBook.GAS.Actions.DefaultTarget
+      value: 0
+    - type: System.Boolean
+      value: true
 - uid: SpellBook.GAS.Abilities.GameplayAbility.CanActivate(SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Abilities.AbilityActivationResult@)
   commentId: M:SpellBook.GAS.Abilities.GameplayAbility.CanActivate(SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Abilities.AbilityActivationResult@)
   id: CanActivate(SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Abilities.AbilityActivationResult@)
@@ -830,7 +852,7 @@ items:
 
     redução, cada nome do modo Table que um efeito usado pela habilidade lê e não está na tabela (recarga, custo e
 
-    <xref href="SpellBook.GAS.Abilities.AbilityAction.CollectEffects(System.Collections.Generic.List%7bSpellBook.GAS.Effects.GameplayEffect%7d)" data-throw-if-not-resolved="false"></xref>), e <code>MaxLevel</code> acima do tamanho de um array da tabela (aviso).
+    <xref href="SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List%7bSpellBook.GAS.Effects.GameplayEffect%7d)" data-throw-if-not-resolved="false"></xref>), e <code>MaxLevel</code> acima do tamanho de um array da tabela (aviso).
 
     Repassa a validação a cada ação da lista; ações vazias são ignoradas.
   example: []
@@ -5915,26 +5937,26 @@ references:
     name: Generic
     isExternal: true
     href: https://learn.microsoft.com/dotnet/api/system.collections.generic
-- uid: System.Collections.Generic.List{SpellBook.GAS.Abilities.AbilityAction}
-  commentId: T:System.Collections.Generic.List{SpellBook.GAS.Abilities.AbilityAction}
+- uid: System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction}
+  commentId: T:System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction}
   parent: System.Collections.Generic
   definition: System.Collections.Generic.List`1
   href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
-  name: List<AbilityAction>
-  nameWithType: List<AbilityAction>
-  fullName: System.Collections.Generic.List<SpellBook.GAS.Abilities.AbilityAction>
-  nameWithType.vb: List(Of AbilityAction)
-  fullName.vb: System.Collections.Generic.List(Of SpellBook.GAS.Abilities.AbilityAction)
-  name.vb: List(Of AbilityAction)
+  name: List<GameplayAction>
+  nameWithType: List<GameplayAction>
+  fullName: System.Collections.Generic.List<SpellBook.GAS.Actions.GameplayAction>
+  nameWithType.vb: List(Of GameplayAction)
+  fullName.vb: System.Collections.Generic.List(Of SpellBook.GAS.Actions.GameplayAction)
+  name.vb: List(Of GameplayAction)
   spec.csharp:
   - uid: System.Collections.Generic.List`1
     name: List
     isExternal: true
     href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
   - name: <
-  - uid: SpellBook.GAS.Abilities.AbilityAction
-    name: AbilityAction
-    href: SpellBook.GAS.Abilities.AbilityAction.html
+  - uid: SpellBook.GAS.Actions.GameplayAction
+    name: GameplayAction
+    href: SpellBook.GAS.Actions.GameplayAction.html
   - name: '>'
   spec.vb:
   - uid: System.Collections.Generic.List`1
@@ -5944,9 +5966,9 @@ references:
   - name: (
   - name: Of
   - name: " "
-  - uid: SpellBook.GAS.Abilities.AbilityAction
-    name: AbilityAction
-    href: SpellBook.GAS.Abilities.AbilityAction.html
+  - uid: SpellBook.GAS.Actions.GameplayAction
+    name: GameplayAction
+    href: SpellBook.GAS.Actions.GameplayAction.html
   - name: )
 - uid: SpellBook.GAS.Abilities.GameplayAbility.CanActivate*
   commentId: Overload:SpellBook.GAS.Abilities.GameplayAbility.CanActivate
@@ -6315,21 +6337,21 @@ references:
   name: GetCooldownDuration
   nameWithType: GameplayAbility.GetCooldownDuration
   fullName: SpellBook.GAS.Abilities.GameplayAbility.GetCooldownDuration
-- uid: SpellBook.GAS.Abilities.AbilityAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
-  commentId: M:SpellBook.GAS.Abilities.AbilityAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
-  parent: SpellBook.GAS.Abilities.AbilityAction
+- uid: SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
+  commentId: M:SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
+  parent: SpellBook.GAS.Actions.GameplayAction
   isExternal: true
-  href: SpellBook.GAS.Abilities.AbilityAction.html#SpellBook_GAS_Abilities_AbilityAction_CollectEffects_System_Collections_Generic_List_SpellBook_GAS_Effects_GameplayEffect__
+  href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_CollectEffects_System_Collections_Generic_List_SpellBook_GAS_Effects_GameplayEffect__
   name: CollectEffects(List<GameplayEffect>)
-  nameWithType: AbilityAction.CollectEffects(List<GameplayEffect>)
-  fullName: SpellBook.GAS.Abilities.AbilityAction.CollectEffects(System.Collections.Generic.List<SpellBook.GAS.Effects.GameplayEffect>)
-  nameWithType.vb: AbilityAction.CollectEffects(List(Of GameplayEffect))
-  fullName.vb: SpellBook.GAS.Abilities.AbilityAction.CollectEffects(System.Collections.Generic.List(Of SpellBook.GAS.Effects.GameplayEffect))
+  nameWithType: GameplayAction.CollectEffects(List<GameplayEffect>)
+  fullName: SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List<SpellBook.GAS.Effects.GameplayEffect>)
+  nameWithType.vb: GameplayAction.CollectEffects(List(Of GameplayEffect))
+  fullName.vb: SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List(Of SpellBook.GAS.Effects.GameplayEffect))
   name.vb: CollectEffects(List(Of GameplayEffect))
   spec.csharp:
-  - uid: SpellBook.GAS.Abilities.AbilityAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
+  - uid: SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
     name: CollectEffects
-    href: SpellBook.GAS.Abilities.AbilityAction.html#SpellBook_GAS_Abilities_AbilityAction_CollectEffects_System_Collections_Generic_List_SpellBook_GAS_Effects_GameplayEffect__
+    href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_CollectEffects_System_Collections_Generic_List_SpellBook_GAS_Effects_GameplayEffect__
   - name: (
   - uid: System.Collections.Generic.List`1
     name: List
@@ -6342,9 +6364,9 @@ references:
   - name: '>'
   - name: )
   spec.vb:
-  - uid: SpellBook.GAS.Abilities.AbilityAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
+  - uid: SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
     name: CollectEffects
-    href: SpellBook.GAS.Abilities.AbilityAction.html#SpellBook_GAS_Abilities_AbilityAction_CollectEffects_System_Collections_Generic_List_SpellBook_GAS_Effects_GameplayEffect__
+    href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_CollectEffects_System_Collections_Generic_List_SpellBook_GAS_Effects_GameplayEffect__
   - name: (
   - uid: System.Collections.Generic.List`1
     name: List
@@ -6396,13 +6418,36 @@ references:
   name: ValidationResult
   nameWithType: ValidationResult
   fullName: SpellBook.Core.Validation.ValidationResult
-- uid: SpellBook.GAS.Abilities.AbilityAction
-  commentId: T:SpellBook.GAS.Abilities.AbilityAction
-  parent: SpellBook.GAS.Abilities
-  href: SpellBook.GAS.Abilities.AbilityAction.html
-  name: AbilityAction
-  nameWithType: AbilityAction
-  fullName: SpellBook.GAS.Abilities.AbilityAction
+- uid: SpellBook.GAS.Actions.GameplayAction
+  commentId: T:SpellBook.GAS.Actions.GameplayAction
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.GameplayAction.html
+  name: GameplayAction
+  nameWithType: GameplayAction
+  fullName: SpellBook.GAS.Actions.GameplayAction
+- uid: SpellBook.GAS.Actions
+  commentId: N:SpellBook.GAS.Actions
+  name: SpellBook.GAS.Actions
+  nameWithType: SpellBook.GAS.Actions
+  fullName: SpellBook.GAS.Actions
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Actions
+    name: Actions
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Actions
+    name: Actions
 - uid: SpellBook.GAS.Abilities.GameplayAbility.GetDescription*
   commentId: Overload:SpellBook.GAS.Abilities.GameplayAbility.GetDescription
   href: SpellBook.GAS.Abilities.GameplayAbility.html#SpellBook_GAS_Abilities_GameplayAbility_GetDescription_SpellBook_GAS_Core_AbilitySystemComponent_
