@@ -153,6 +153,8 @@ Quem muda um `.cs` do pacote:
 Para ver o site sem a Unity, rode dentro de `Documentation~/`:
 
 1. `mkdocs build --strict -f mkdocs.yml`, no venv do manual;
-2. `dotnet tool restore` e `dotnet docfx build api/docfx.json --warningsAsErrors`.
+2. `dotnet tool restore` e `dotnet docfx build api/docfx.json --warningsAsErrors`. A API sai em `api/_site/`, que o git ignora, com a página de cada tipo em `<uid>.html`, o mesmo caminho do link do catálogo.
+
+A Action `docs` roda nos pull requests que mexem no manual, na API, na configuração do DocFX ou no próprio workflow. Ela monta o manual e a API como na publicação, mas não publica. Depois, confere cada link `api/...html` do catálogo no site montado, porque o MkDocs não valida link absoluto. Se um link aponta para um tipo sem página, o build falha e mostra o caminho. Isso costuma acontecer quando o código muda e a geração não roda de novo.
 
 A versão do DocFX fica travada em `.config/dotnet-tools.json`. Se você trocar essa versão, a impressão digital muda e a geração precisa rodar de novo.

@@ -82,6 +82,10 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); 
 - **Recálculo e tique sem alocação:** `AttributeState.Recalculate`, `AddModifier`, `RemoveModifier` e `RemoveModifiersFromSource` não alocam mais memória gerenciada depois do primeiro uso, e o `Tick` do ASC com um efeito periódico de valor constante ou por atributo deixa de gerar lixo a cada quadro. Os valores calculados não mudam.
 - **`RemoveEffect` idempotente:** ignora `null` e instâncias que não estão ativas no ASC. Antes, `null` lançava `NullReferenceException` e uma segunda chamada (ou a remoção no mesmo quadro da expiração) rodava de novo a limpeza e as ações de `OnRemoval` e devolvia as tags outra vez.
 
+### Documentação
+- **Catálogo de tipos:** a página **Referência > Catálogo de tipos** do manual lista, para cada campo do Inspector com seletor de tipo, os tipos que o pacote oferece, com categoria e resumo. A página sai do código, pelo menu **SpellBook > Documentação > Gerar referência**, e cada tipo leva à página dele na API.
+- **Referência da API:** o site publica em `api/` uma página para cada tipo público do pacote, de runtime e de Editor, montada pelo DocFX com os comentários XML. A entrada **API** fica no grupo Referência do manual.
+
 ### Migração
 1. Rodar **SpellBook > Migrar assets do GAS (3.0)** para regravar os `GameplayEffect` no formato 3.0 (`Duration` e `ConstantValue` viram `ScalableFloat`). Veja `manual/regras/migracao-2-para-3.md#valores-por-nivel`.
 

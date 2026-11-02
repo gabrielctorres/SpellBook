@@ -1,5 +1,7 @@
-# Publica o manual (Documentation~/manual) no GitHub Pages (ADR 0025, ticket 0M-09).
-# Só a pasta manual/ vira site: prd/, spec/, adr/, planos/, backlog e TIME não são publicados.
+# Publica o manual (Documentation~/manual) e a referência da API (Documentation~/api) no GitHub Pages
+# (ADR 0025 e 0040, tickets 0M-09 e RC5). Só manual/ e api/ viram site: prd/, spec/, adr/, planos/,
+# backlog e TIME não são publicados. Nenhum passo usa a Unity nem secret: a API sai dos YAML commitados.
+# Em pull request, o build roda inteiro e nada é publicado.
 # Passo manual do dono do repositório: Settings > Pages > Source: GitHub Actions.
 name: docs
 
@@ -10,6 +12,16 @@ on:
       - "Documentation~/manual/**"
       - "Documentation~/mkdocs.yml"
       - "Documentation~/requirements-docs.txt"
+      - "Documentation~/api/**"
+      - "Documentation~/.config/**"
+      - ".github/workflows/docs.yml"
+  pull_request:
+    paths:
+      - "Documentation~/manual/**"
+      - "Documentation~/mkdocs.yml"
+      - "Documentation~/requirements-docs.txt"
+      - "Documentation~/api/**"
+      - "Documentation~/.config/**"
       - ".github/workflows/docs.yml"
   workflow_dispatch:
 
@@ -18,8 +30,9 @@ permissions:
   contents: read
 
 # Uma publicação por vez; a mais nova substitui a pendente, sem cancelar a em curso.
+# Em pull request, cada PR tem o próprio grupo e não espera a fila do Pages.
 concurrency:
-  group: pages
+  group: ${{ github.event_name == 'pull_request' && format('docs-pr-{0}', github.event.pull_request.number) || 'pages' }}
   cancel-in-progress: false
 
 jobs:
@@ -43,13 +56,56 @@ jobs:
       - name: Gerar o site (--strict falha em link quebrado)
         run: mkdocs build --strict -f Documentation~/mkdocs.yml -d "${RUNNER_TEMP}/site"
 
+      - name: .NET (SDK travado)
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: "10.0.110"
+
+      - name: Instalar o DocFX (versão travada em .config/dotnet-tools.json)
+        working-directory: Documentation~
+        run: dotnet tool restore
+
+      # Monta a API dos YAML commitados (api/reference/), sem compilar e sem as DLLs da Unity.
+      # O DocFX grava em <saída>/_site; a pasta vira site/api/.
+      - name: Gerar a API (aviso vira erro)
+        working-directory: Documentation~
+        run: |
+          dotnet docfx build api/docfx.json --warningsAsErrors -o "${RUNNER_TEMP}/docfx"
+          mv "${RUNNER_TEMP}/docfx/_site" "${RUNNER_TEMP}/site/api"
+
+      # O MkDocs não valida link absoluto: cada link api/...html do catálogo precisa de um arquivo no site.
+      - name: Conferir os links do catálogo para a API
+        env:
+          SITE: ${{ runner.temp }}/site
+        run: |
+          catalog="Documentation~/manual/referencia/catalogo.md"
+          site_url=$(sed -n 's/^site_url: *//p' Documentation~/mkdocs.yml)
+          links=$(grep -oE "\(${site_url}api/[^)#]+\.html" "$catalog" | sed "s|^(${site_url}||" | sort -u)
+          if [ -z "$links" ]; then
+            echo "::error file=$catalog::o catálogo não tem link para a API"
+            exit 1
+          fi
+          total=0
+          missing=0
+          for path in $links; do
+            total=$((total + 1))
+            if [ ! -f "$SITE/$path" ]; then
+              echo "::error file=$catalog::sem página no site: $path"
+              missing=$((missing + 1))
+            fi
+          done
+          echo "$total links da API no catálogo, $missing sem página."
+          [ "$missing" -eq 0 ]
+
       - name: Enviar o artefato do Pages
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: ${{ runner.temp }}/site
 
+  # Só publica no push para a main; em pull request e no workflow_dispatch de outra branch, não.
   deploy:
     needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

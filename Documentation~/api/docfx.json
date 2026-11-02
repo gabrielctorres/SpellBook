@@ -1,7 +1,8 @@
 {
   "build": {
     "content": [
-      { "files": [ "reference/**.yml", "index.md", "toc.yml" ] }
+      { "src": "reference", "files": [ "**.yml" ], "exclude": [ "toc.yml" ] },
+      { "files": [ "reference/toc.yml", "index.md", "toc.yml" ] }
     ],
     "globalMetadata": {
       "_appTitle": "SpellBook: referência da API"
