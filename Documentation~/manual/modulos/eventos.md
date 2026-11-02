@@ -215,7 +215,8 @@ conhece o GAS. Cada canal tem a sua resposta no seletor da lista **Responses** d
 |---|---|---|---|
 | `EffectEventChannel` | `EffectEventData` | `Owner`, `Source`, `Effect`, `Stacks`, `PreviousStacks`, `RemovalReason`, `Result` | `EffectEventResponse` |
 | `AbilityEventChannel` | `AbilityEventData` | `Owner`, `Ability`, `Level`, `Cancelled`, `FailureReason`, `FailureTag`, `FailureKey` | `AbilityEventResponse` |
-| `AttributeChangedEventChannel` | `AttributeChangedData` | `Owner`, `Attribute`, `OldValue`, `NewValue`, `Delta` | `AttributeChangedEventResponse` |
+| `AttributeChangedEventChannel` | `AttributeChangedData` | `Owner`, `Attribute`, `OldValue`, `NewValue`, `Delta`, `Instigator`, `Effect` | `AttributeChangedEventResponse` |
+| `AttributeLimitEventChannel` | `AttributeLimitEventData` | `Owner`, `Attribute`, `Value`, `Instigator`, `Effect` | `AttributeLimitEventResponse` |
 | `TagChangedEventChannel` | `TagChangedData` | `Owner`, `Tag`, `Added`, `Count` | `TagChangedEventResponse` |
 | `BlockedEventChannel` | `BlockedEventData` | `Owner`, `Reason`, `Source` | `BlockedEventResponse` |
 
@@ -227,6 +228,13 @@ conhece o GAS. Cada canal tem a sua resposta no seletor da lista **Responses** d
   quando a falha não tem esse motivo.
 - `Delta` é `NewValue - OldValue`: negativo quando o valor caiu. O construtor
   `new AttributeChangedData(dono, atributo, antigo, novo)` calcula esse valor.
+- `Instigator` e `Effect` dizem quem causou a mudança e com que efeito, quando ela vem do
+  [pipeline de dano](dano-escudo-e-morte.md): um efeito instantâneo, um tique ou
+  `ApplyAttributeChange`. O tipo do dano está nas `DamageTags` do `Effect`. Uma mudança fora do
+  pipeline, como um modificador com duração ou `SetBaseValue`, chega com os dois nulos. O
+  instigador destruído também chega nulo.
+- `AttributeLimitEventData` é o atributo no mínimo ou no máximo: `Value` é o valor atual nesse
+  momento, e `Instigator` e `Effect` vêm da alteração que levou ao limite, com as mesmas regras.
 - Os payloads são structs: disparar não aloca.
 
 ## Relay do GAS {#relay-do-gas}
@@ -257,6 +265,8 @@ Cada evento é um **par** com três campos, todos opcionais. Ligue só o que pre
 | `Ability Removed` | `OnAbilityRemoved` | nível | nome da habilidade | dono |
 | `Attribute Changed` | `OnValueChanged` de cada atributo | valor novo | nome do atributo | dono |
 | `Attribute Decreased` | `OnValueChanged`, só quando o valor cai | variação (negativa) | nome do atributo | dono |
+| `Attribute Depleted` | `OnAttributeDepleted` | valor (o mínimo) | nome do atributo | dono |
+| `Attribute Reached Max` | `OnAttributeReachedMax` | valor (o máximo) | nome do atributo | dono |
 | `Tag Added` | `OnTagChanged`, ao entrar | contagem (1) | nome da tag | dono |
 | `Tag Removed` | `OnTagChanged`, ao sair | contagem (0) | nome da tag | dono |
 | `Blocked` | `OnBlocked` (`ReportBlocked`) | — | nome da tag | dono |
@@ -267,6 +277,9 @@ Cada evento é um **par** com três campos, todos opcionais. Ligue só o que pre
   (novo − antigo). `Attribute Changed` dispara em toda mudança; filtre o atributo na reação.
   `Attribute Decreased` dispara só quando o valor cai e, com o campo **Decreased Attribute**
   preenchido, só para aquele atributo. Ele serve para "dano recebido": o `Delta` é negativo.
+- `Attribute Depleted` e `Attribute Reached Max` usam o `AttributeLimitEventChannel` e disparam
+  uma vez ao chegar ao limite, de novo só depois de sair dele. Use `Attribute Depleted` para a
+  morte, o escudo quebrado ou a mana vazia; filtre o atributo na reação.
 - As tags usam o `TagChangedEventChannel`. A tag entra na primeira concessão e sai na última
   remoção; concessões repetidas da mesma tag não disparam de novo.
 - O relay acompanha os atributos que o `AttributeSet` tem ao ser habilitado.
@@ -279,8 +292,8 @@ Cada evento é um **par** com três campos, todos opcionais. Ligue só o que pre
 ### Inspector e validação do relay {#relay-inspector}
 
 O Inspector mostra o campo **Ability System** e, abaixo, os pares em cinco grupos recolhidos:
-**Efeitos**, **Habilidades**, **Atributos** (com o **Decreased Attribute**), **Tags** e
-**Bloqueio**. Abra só o grupo do evento que vai ligar.
+**Efeitos**, **Habilidades**, **Atributos** (com o **Decreased Attribute** e os pares de mínimo e
+máximo), **Tags** e **Bloqueio**. Abra só o grupo do evento que vai ligar.
 
 O validador acusa erro, no topo do Inspector e na janela do
 [validador](../ferramentas/validador.md), em:

@@ -61,6 +61,15 @@ namespace SpellBook.GAS.Bridges
         public float NewValue;
         /// <summary><see cref="NewValue"/> menos <see cref="OldValue"/>; negativo quando o valor caiu.</summary>
         public float Delta;
+        /// <summary>
+        /// Instigador da alteração do pipeline que mudou o valor; nulo fora do pipeline, sem instigador ou se destruído.
+        /// </summary>
+        public AbilitySystemComponent Instigator;
+        /// <summary>
+        /// Efeito da alteração do pipeline que mudou o valor; nulo fora do pipeline ou em alteração por código. As tags de
+        /// dano são as <see cref="GameplayEffect.DamageTags"/> dele.
+        /// </summary>
+        public GameplayEffect Effect;
 
         /// <summary>Monta os dados e grava <see cref="Delta"/> como <c>newValue - oldValue</c>.</summary>
         public AttributeChangedData(AbilitySystemComponent owner, AttributeDefinition attribute, float oldValue, float newValue)
@@ -70,7 +79,25 @@ namespace SpellBook.GAS.Bridges
             OldValue = oldValue;
             NewValue = newValue;
             Delta = newValue - oldValue;
+            Instigator = null;
+            Effect = null;
         }
+    }
+
+    /// <summary>Dados de um atributo que chegou ao mínimo ou ao máximo, com a causa quando veio do pipeline.</summary>
+    [Serializable]
+    public struct AttributeLimitEventData
+    {
+        /// <summary>ASC dono do atributo.</summary>
+        public AbilitySystemComponent Owner;
+        /// <summary>Atributo que chegou ao limite.</summary>
+        public AttributeDefinition Attribute;
+        /// <summary>Valor atual do atributo no evento.</summary>
+        public float Value;
+        /// <summary>Instigador da alteração que levou ao limite; nulo sem causa do pipeline, sem instigador ou se destruído.</summary>
+        public AbilitySystemComponent Instigator;
+        /// <summary>Efeito da alteração que levou ao limite; nulo sem causa do pipeline ou em alteração por código.</summary>
+        public GameplayEffect Effect;
     }
 
     /// <summary>Dados de uma tag que entrou ou saiu do ASC.</summary>

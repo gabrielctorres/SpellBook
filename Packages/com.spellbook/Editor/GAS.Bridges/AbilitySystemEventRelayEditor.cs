@@ -23,7 +23,7 @@ namespace SpellBook.GAS.Bridges.Editor
         {
             ("Efeitos", new[] { "effectApplied", "effectRemoved", "effectStacksChanged", "effectBlocked" }),
             ("Habilidades", new[] { "abilityActivated", "abilityEnded", "abilityFailed", "abilityGranted", "abilityRemoved" }),
-            ("Atributos", new[] { "attributeChanged", "attributeDecreased", "decreasedAttribute" }),
+            ("Atributos", new[] { "attributeChanged", "attributeDecreased", "decreasedAttribute", "attributeDepleted", "attributeReachedMax" }),
             ("Tags", new[] { "tagAdded", "tagRemoved" }),
             ("Bloqueio", new[] { "blocked" }),
         };

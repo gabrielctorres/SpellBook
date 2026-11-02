@@ -18,7 +18,7 @@ namespace SpellBook.GAS.Bridges.Tests
         {
             new[] { "effectApplied", "effectRemoved", "effectStacksChanged", "effectBlocked" },
             new[] { "abilityActivated", "abilityEnded", "abilityFailed", "abilityGranted", "abilityRemoved" },
-            new[] { "attributeChanged", "attributeDecreased", "decreasedAttribute" },
+            new[] { "attributeChanged", "attributeDecreased", "decreasedAttribute", "attributeDepleted", "attributeReachedMax" },
             new[] { "tagAdded", "tagRemoved" },
             new[] { "blocked" },
         };

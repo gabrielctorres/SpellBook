@@ -40,6 +40,8 @@ namespace SpellBook.GAS.Bridges
         [SerializeField] private RelayPair<AttributeChangedData> attributeDecreased = new RelayPair<AttributeChangedData>();
         [SerializeField, Tooltip("Só este atributo dispara Attribute Decreased. Vazio: qualquer atributo.")]
         private AttributeDefinition decreasedAttribute;
+        [SerializeField] private RelayPair<AttributeLimitEventData> attributeDepleted = new RelayPair<AttributeLimitEventData>();
+        [SerializeField] private RelayPair<AttributeLimitEventData> attributeReachedMax = new RelayPair<AttributeLimitEventData>();
 
         [Header("Tags")]
         [SerializeField] private RelayPair<TagChangedData> tagAdded = new RelayPair<TagChangedData>();
@@ -52,6 +54,7 @@ namespace SpellBook.GAS.Bridges
         private static readonly AbilityValues AbilitySelector = new AbilityValues();
         private static readonly AttributeValues AttributeSelector = new AttributeValues(false);
         private static readonly AttributeValues DecreasedSelector = new AttributeValues(true);
+        private static readonly LimitValues LimitSelector = new LimitValues();
         private static readonly TagValues TagSelector = new TagValues();
         private static readonly BlockedValues BlockedSelector = new BlockedValues();
 
@@ -68,6 +71,8 @@ namespace SpellBook.GAS.Bridges
         private Action<AbilitySpec> _onAbilityGranted;
         private Action<AbilitySpec> _onAbilityRemoved;
         private Action<GameplayTag, bool> _onTagChanged;
+        private AttributeLimitHandler _onAttributeDepleted;
+        private AttributeLimitHandler _onAttributeReachedMax;
         private List<AttributeSubscription> _attributeSubscriptions;
 
 #if UNITY_EDITOR
@@ -137,6 +142,8 @@ namespace SpellBook.GAS.Bridges
             _onAbilityGranted = HandleAbilityGranted;
             _onAbilityRemoved = HandleAbilityRemoved;
             _onTagChanged = HandleTagChanged;
+            _onAttributeDepleted = HandleAttributeDepleted;
+            _onAttributeReachedMax = HandleAttributeReachedMax;
         }
 
         private void OnEnable() => Subscribe();
@@ -176,6 +183,8 @@ namespace SpellBook.GAS.Bridges
             abilityRemoved.Validate(result, nameof(abilityRemoved));
             attributeChanged.Validate(result, nameof(attributeChanged));
             attributeDecreased.Validate(result, nameof(attributeDecreased));
+            attributeDepleted.Validate(result, nameof(attributeDepleted));
+            attributeReachedMax.Validate(result, nameof(attributeReachedMax));
             tagAdded.Validate(result, nameof(tagAdded));
             tagRemoved.Validate(result, nameof(tagRemoved));
             blocked.Validate(result, nameof(blocked));
@@ -205,6 +214,8 @@ namespace SpellBook.GAS.Bridges
             asc.OnAbilityGranted += _onAbilityGranted;
             asc.OnAbilityRemoved += _onAbilityRemoved;
             asc.OnTagChanged += _onTagChanged;
+            asc.OnAttributeDepleted += _onAttributeDepleted;
+            asc.OnAttributeReachedMax += _onAttributeReachedMax;
             SubscribeAttributes(asc.AttributeSet);
         }
 
@@ -240,6 +251,8 @@ namespace SpellBook.GAS.Bridges
             asc.OnAbilityGranted -= _onAbilityGranted;
             asc.OnAbilityRemoved -= _onAbilityRemoved;
             asc.OnTagChanged -= _onTagChanged;
+            asc.OnAttributeDepleted -= _onAttributeDepleted;
+            asc.OnAttributeReachedMax -= _onAttributeReachedMax;
 
             if (_attributeSubscriptions == null) return;
             foreach (AttributeSubscription subscription in _attributeSubscriptions)
@@ -320,10 +333,38 @@ namespace SpellBook.GAS.Bridges
         private void HandleAttributeChanged(AttributeDefinition attribute, float oldValue, float newValue)
         {
             var data = new AttributeChangedData(_subscribed, attribute, oldValue, newValue);
+            if (_subscribed.TryGetActiveChangeSource(out GameplayEffect effect, out EffectContext context))
+            {
+                data.Effect = effect;
+                data.Instigator = context.Instigator;
+            }
+
             Raise(attributeChanged, nameof(attributeChanged), in data, AttributeSelector);
             if (newValue >= oldValue) return;
             if (decreasedAttribute != null && decreasedAttribute != attribute) return;
             Raise(attributeDecreased, nameof(attributeDecreased), in data, DecreasedSelector);
+        }
+
+        private void HandleAttributeDepleted(AttributeState state, in AttributeChangeReport cause)
+        {
+            AttributeLimitEventData data = LimitData(state, in cause);
+            Raise(attributeDepleted, nameof(attributeDepleted), in data, LimitSelector);
+        }
+
+        private void HandleAttributeReachedMax(AttributeState state, in AttributeChangeReport cause)
+        {
+            AttributeLimitEventData data = LimitData(state, in cause);
+            Raise(attributeReachedMax, nameof(attributeReachedMax), in data, LimitSelector);
+        }
+
+        // Sem causa do pipeline (limite que mudou, modificador com duração), instigador e efeito ficam nulos.
+        private AttributeLimitEventData LimitData(AttributeState state, in AttributeChangeReport cause)
+        {
+            var data = new AttributeLimitEventData { Owner = _subscribed, Attribute = state.Definition, Value = state.CurrentValue };
+            if (!cause.IsValid) return data;
+            data.Instigator = cause.Context.Instigator;
+            data.Effect = cause.Effect;
+            return data;
         }
 
         // Contagem lida depois da mudança: 1 ao entrar e 0 ao sair.
@@ -407,6 +448,20 @@ namespace SpellBook.GAS.Bridges
             public override string GetText(in AttributeChangedData data) => NameOf(data.Attribute);
 
             public override GameObject GetObject(in AttributeChangedData data) => ObjectOf(data.Owner);
+        }
+
+        // Limite de atributo: valor no limite, nome do atributo, objeto do dono.
+        private sealed class LimitValues : RelayValueSelector<AttributeLimitEventData>
+        {
+            public override bool TryGetFloat(in AttributeLimitEventData data, out float value)
+            {
+                value = data.Value;
+                return true;
+            }
+
+            public override string GetText(in AttributeLimitEventData data) => NameOf(data.Attribute);
+
+            public override GameObject GetObject(in AttributeLimitEventData data) => ObjectOf(data.Owner);
         }
 
         // Tag: contagem, nome da tag, objeto do dono.
