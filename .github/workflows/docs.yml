@@ -15,6 +15,9 @@ on:
       - "Documentation~/api/**"
       - "Documentation~/.config/**"
       - ".github/workflows/docs.yml"
+      # Exemplos do manual incluídos de arquivos de teste (D9 da Spec referencia-catalogo-e-api.md; ADR 0041).
+      - "Packages/com.spellbook/Tests/**/Examples/**"
+      - "Packages/com.spellbook/Samples~/Sandbox/Scripts/**"
   pull_request:
     paths:
       - "Documentation~/manual/**"
@@ -23,6 +26,9 @@ on:
       - "Documentation~/api/**"
       - "Documentation~/.config/**"
       - ".github/workflows/docs.yml"
+      # Exemplos do manual incluídos de arquivos de teste (D9 da Spec referencia-catalogo-e-api.md; ADR 0041).
+      - "Packages/com.spellbook/Tests/**/Examples/**"
+      - "Packages/com.spellbook/Samples~/Sandbox/Scripts/**"
   workflow_dispatch:
 
 # Permissões mínimas do workflow; o job de publicação pede as do Pages.
@@ -53,8 +59,10 @@ jobs:
       - name: Instalar MkDocs e Material (versões travadas)
         run: pip install -r Documentation~/requirements-docs.txt
 
-      - name: Gerar o site (--strict falha em link quebrado)
-        run: mkdocs build --strict -f Documentation~/mkdocs.yml -d "${RUNNER_TEMP}/site"
+      # Roda de dentro de Documentation~/: o pymdownx.snippets inclui os exemplos a partir de "..", a raiz do repositório.
+      - name: Gerar o site (--strict falha em link quebrado ou exemplo sem arquivo)
+        working-directory: Documentation~
+        run: mkdocs build --strict -f mkdocs.yml -d "${RUNNER_TEMP}/site"
 
       - name: .NET (SDK travado)
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
