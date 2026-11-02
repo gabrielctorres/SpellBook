@@ -11,20 +11,12 @@ namespace SpellBook.Core.Tests.Documentation
     /// </summary>
     public class TypeCatalogSummaryTests
     {
-        /// <summary>
-        /// Namespaces ainda sem resumo, cada um com os seus sub-namespaces. A lista só diminui: o RC8 apaga a lista.
-        /// </summary>
-        private static readonly string[] PendingNamespaces =
-        {
-            "SpellBook.GAS.Effects",
-        };
-
         [Test]
         public void EveryCatalogTypeHasSummary()
         {
             string[] missing = TypeCatalog.Build()
                 .SelectMany(section => section.Entries)
-                .Where(entry => string.IsNullOrWhiteSpace(entry.Summary) && !IsPending(entry.Type))
+                .Where(entry => string.IsNullOrWhiteSpace(entry.Summary))
                 .Select(entry => entry.Type.FullName)
                 .Distinct()
                 .OrderBy(name => name, StringComparer.Ordinal)
@@ -32,12 +24,6 @@ namespace SpellBook.Core.Tests.Documentation
 
             Assert.That(missing, Is.Empty,
                 "tipos do catálogo sem resumo; ponha [TypeCategory(caminho, Summary = \"...\")] em:\n" + string.Join("\n", missing));
-        }
-
-        private static bool IsPending(Type type)
-        {
-            string ns = type.Namespace ?? string.Empty;
-            return PendingNamespaces.Any(prefix => ns == prefix || ns.StartsWith(prefix + ".", StringComparison.Ordinal));
         }
     }
 }

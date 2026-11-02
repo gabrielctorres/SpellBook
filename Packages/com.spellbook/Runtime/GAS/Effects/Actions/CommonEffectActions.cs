@@ -1,11 +1,12 @@
 using System;
 using UnityEngine;
 using SpellBook.Core;
+using SpellBook.Core.Inspector;
 using SpellBook.GAS.Core;
 
 namespace SpellBook.GAS.Effects
 {
-    [Serializable]
+    [Serializable, TypeCategory("Depuração", Summary = "Escreve uma mensagem colorida no Console quando o efeito roda.")]
     public class DebugLogEffectAction : EffectAction
     {
         public string Message = "Effect Triggered!";
@@ -17,7 +18,7 @@ namespace SpellBook.GAS.Effects
         }
     }
 
-    [Serializable]
+    [Serializable, TypeCategory("Apresentação", Summary = "Cria um efeito visual no alvo e, se marcado, o remove quando o efeito sai.")]
     public class SpawnVFXEffectAction : EffectAction
     {
         public GameObject Prefab;

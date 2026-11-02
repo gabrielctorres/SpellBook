@@ -93,5 +93,5 @@ Aparece em: `Gameplay Effect > On Application`, `Gameplay Effect > On Removal`, 
 
 | Tipo | Categoria | Resumo |
 |---|---|---|
-| [Debug Log Effect Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Effects.DebugLogEffectAction.html) | Raiz |  |
-| [Spawn VFX Effect Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Effects.SpawnVFXEffectAction.html) | Raiz |  |
+| [Debug Log Effect Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Effects.DebugLogEffectAction.html) | Depuração | Escreve uma mensagem colorida no Console quando o efeito roda. |
+| [Spawn VFX Effect Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Effects.SpawnVFXEffectAction.html) | Apresentação | Cria um efeito visual no alvo e, se marcado, o remove quando o efeito sai. |

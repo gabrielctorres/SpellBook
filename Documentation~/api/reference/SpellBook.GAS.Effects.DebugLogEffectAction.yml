@@ -20,9 +20,13 @@ items:
     content: >-
       [Serializable]
 
+      [TypeCategory("Depuração", Summary = "Escreve uma mensagem colorida no Console quando o efeito roda.")]
+
       public class DebugLogEffectAction : EffectAction
     content.vb: >-
       <Serializable>
+
+      <TypeCategory("Depuração", Summary:="Escreve uma mensagem colorida no Console quando o efeito roda.")>
 
       Public Class DebugLogEffectAction Inherits EffectAction
   inheritance:
@@ -41,6 +45,15 @@ items:
   - type: System.SerializableAttribute
     ctor: System.SerializableAttribute.#ctor
     arguments: []
+  - type: SpellBook.Core.Inspector.TypeCategoryAttribute
+    ctor: SpellBook.Core.Inspector.TypeCategoryAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: Depuração
+    namedArguments:
+    - name: Summary
+      type: System.String
+      value: Escreve uma mensagem colorida no Console quando o efeito roda.
 - uid: SpellBook.GAS.Effects.DebugLogEffectAction.Message
   commentId: F:SpellBook.GAS.Effects.DebugLogEffectAction.Message
   id: Message

@@ -25,9 +25,13 @@ items:
     content: >-
       [Serializable]
 
+      [TypeCategory("Apresentação", Summary = "Cria um efeito visual no alvo e, se marcado, o remove quando o efeito sai.")]
+
       public class SpawnVFXEffectAction : EffectAction
     content.vb: >-
       <Serializable>
+
+      <TypeCategory("Apresentação", Summary:="Cria um efeito visual no alvo e, se marcado, o remove quando o efeito sai.")>
 
       Public Class SpawnVFXEffectAction Inherits EffectAction
   inheritance:
@@ -45,6 +49,15 @@ items:
   - type: System.SerializableAttribute
     ctor: System.SerializableAttribute.#ctor
     arguments: []
+  - type: SpellBook.Core.Inspector.TypeCategoryAttribute
+    ctor: SpellBook.Core.Inspector.TypeCategoryAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: Apresentação
+    namedArguments:
+    - name: Summary
+      type: System.String
+      value: Cria um efeito visual no alvo e, se marcado, o remove quando o efeito sai.
 - uid: SpellBook.GAS.Effects.SpawnVFXEffectAction.Prefab
   commentId: F:SpellBook.GAS.Effects.SpawnVFXEffectAction.Prefab
   id: Prefab
