@@ -45,7 +45,7 @@ Uma linha vazia em `Damage Tags` não casa com nenhum filtro e não lança erro.
 
 ## Prontos para usar {#prontos}
 
-O pacote traz dois processadores no grupo **Dano** do seletor da lista `Processors`.
+O pacote traz três processadores no grupo **Dano** do seletor da lista `Processors`.
 
 ### ReduceByAttribute {#reducebyattribute}
 
@@ -65,6 +65,24 @@ Com uma `Resistência ao fogo` de 0,5 e `Damage Tags` em `Dano.Fogo`, um efeito 
 Anula a alteração deste atributo quando o efeito tem um dos tipos de dano da lista. O resto do efeito vale: um efeito de fogo que também concede `Estado.Queimando` e tira mana continua fazendo isso num alvo imune a fogo.
 
 - `Damage Tags`: os tipos de dano anulados. Vazio não anula nada.
+
+### AbsorbWithAttribute {#absorbwithattribute}
+
+Gasta um atributo de escudo do mesmo dono antes do atributo que recebe o dano. O escudo absorve o que puder, até chegar ao mínimo dele, e o resto do golpe segue para o atributo. A parte do escudo é uma [alteração redirecionada](#redirecionar): ela é aplicada antes, então o escudo chega ao mínimo antes da vida. Curas passam inteiras, e um dono sem o escudo recebe o golpe inteiro.
+
+- `Shield`: o atributo do dono que absorve o dano.
+- `Damage Tags`: os tipos de dano absorvidos. Vazio absorve qualquer dano, inclusive o feito pelo código.
+- `Fraction`: a parte do golpe que o escudo pode absorver, de 0 a 1. Com 0,5, o escudo pega no máximo metade e a outra metade vai ao atributo.
+
+Para montar o escudo, crie um atributo `Escudo` com mínimo 0, ponha-o no `AttributeSet` do personagem e adicione um `AbsorbWithAttribute` com `Shield` em `Escudo` à lista `Processors` da `Vida`. Com `Escudo` 50 e `Vida` 100:
+
+| Golpe | `Escudo` depois | `Vida` depois |
+|---|---|---|
+| -30 | 20 | 100 |
+| -30 (com `Escudo` 20) | 0 | 90 |
+| -30 (com `Escudo` 0) | 0 | 70 |
+
+Quando o `Escudo` chega a 0, o `OnDepleted` dele dispara uma vez, antes de qualquer `OnDepleted` da `Vida` no mesmo golpe.
 
 ## Pelo código {#codigo}
 
