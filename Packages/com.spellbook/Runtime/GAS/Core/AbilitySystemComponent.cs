@@ -1402,15 +1402,24 @@ namespace SpellBook.GAS.Core
                     accumulator.Accumulate(mod.Operation, value);
                 }
                 float newBase = accumulator.Result();
-                ProcessChange(state, newBase - state.BaseValue, newBase, effect, in context);
+                ProcessChange(state, newBase - state.BaseValue, newBase, effect, in context, null, _changeDepth);
             }
         }
 
+        private const int MaxChangeDepth = 8;
+
         private AttributeChangeQueue _changeQueue;
+        // Atributos com processadores em execução, do mais externo ao atual; cada pipeline aninhado começa um trecho novo
+        private readonly AttributeDefinition[] _changeChain = new AttributeDefinition[MaxChangeDepth];
+        private int _changeDepth;
+        private HashSet<AttributeDefinition> _warnedChangeGuard;
+        private bool _hasActiveChange;
+        private GameplayEffect _activeChangeEffect;
+        private EffectContext _activeChangeContext;
 
         /// <summary>
-        /// Uma alteração da base passou pelo pipeline e foi aplicada (ADR 0033): uma vez por alteração, também a anulada,
-        /// depois do <c>OnValueChanged</c>. Modificadores persistentes não disparam.
+        /// Uma alteração da base passou pelo pipeline e foi aplicada (ADR 0033): uma vez por alteração, também a
+        /// redirecionada e a anulada, depois do <c>OnValueChanged</c>. Modificadores persistentes não disparam.
         /// </summary>
         public event AttributeChangeHandler OnAttributeChangeApplied;
 
@@ -1421,32 +1430,125 @@ namespace SpellBook.GAS.Core
         public float ApplyAttributeChange(AttributeDefinition attribute, float delta, in EffectContext context = default, GameplayEffect effect = null)
         {
             if (attribute == null || attributeSet == null || !attributeSet.TryGetState(attribute, out var state)) return 0f;
-            return ProcessChange(state, delta, state.BaseValue + delta, effect, in context);
+            return ProcessChange(state, delta, state.BaseValue + delta, effect, in context, null, _changeDepth);
         }
 
         /// <summary>
-        /// Núcleo do pipeline: roda os processadores da definição na ordem da lista, aplica a variação final e dispara o
-        /// relatório. <paramref name="requestedBase"/> é a base pedida, usada sem conta nova quando nada mudou a variação.
+        /// Efeito e contexto da alteração do pipeline em curso, para quem ouve a mudança de valor. Num pipeline aninhado,
+        /// vale o nível mais interno. Fora de uma alteração, devolve falso, com efeito nulo e contexto vazio.
         /// </summary>
-        private float ProcessChange(AttributeState state, float delta, float requestedBase, GameplayEffect effect, in EffectContext context)
+        public bool TryGetActiveChangeSource(out GameplayEffect effect, out EffectContext context)
         {
-            var change = new AttributeChange(state.Definition, delta, effect);
-            IReadOnlyList<AttributeChangeProcessor> processors = state.Definition.Processors;
+            effect = _activeChangeEffect;
+            context = _activeChangeContext;
+            return _hasActiveChange;
+        }
+
+        /// <summary>
+        /// Núcleo do pipeline: roda os processadores da definição na ordem da lista, aplica as alterações redirecionadas,
+        /// depois a original, e dispara o relatório de cada uma. <paramref name="requestedBase"/> é a base pedida, usada
+        /// sem conta nova quando nada mudou a variação. <paramref name="chainStart"/> é o início do trecho da cadeia deste
+        /// pipeline: atributo repetido no trecho ou cadeia com <see cref="MaxChangeDepth"/> atributos recebe direto.
+        /// </summary>
+        private float ProcessChange(
+            AttributeState state,
+            float delta,
+            float requestedBase,
+            GameplayEffect effect,
+            in EffectContext context,
+            AttributeDefinition redirectedFrom,
+            int chainStart)
+        {
+            AttributeDefinition definition = state.Definition;
+            var change = new AttributeChange(definition, delta, effect, redirectedFrom);
+            IReadOnlyList<AttributeChangeProcessor> processors = definition.Processors;
             bool processed = processors != null && processors.Count > 0;
-            if (processed)
+            bool guarded = processed && (_changeDepth >= MaxChangeDepth || IsInChangeChain(definition, chainStart));
+            if (guarded)
             {
-                AttributeChangeQueue queue = _changeQueue ??= new AttributeChangeQueue(this);
-                for (int i = 0; i < processors.Count; i++) processors[i]?.Process(ref change, in context, queue);
+                WarnChangeGuard(definition);
+                processed = false;
             }
 
-            // Sem processadores, a base pedida vai direto, como antes do pipeline (CA1); com eles, final zero não aplica
-            float before = state.BaseValue;
-            if (!processed) state.SetBaseValue(requestedBase);
-            else if (change.Delta != 0f) state.SetBaseValue(change.Delta == change.Requested ? requestedBase : before + change.Delta);
+            bool hadActive = _hasActiveChange;
+            GameplayEffect previousEffect = _activeChangeEffect;
+            EffectContext previousContext = _activeChangeContext;
+            _hasActiveChange = true;
+            _activeChangeEffect = effect;
+            _activeChangeContext = context;
+            if (processed) _changeChain[_changeDepth++] = definition;
+            try
+            {
+                float startBase = state.BaseValue;
+                if (processed) RunProcessors(processors, ref change, effect, in context, chainStart);
 
-            var report = new AttributeChangeReport(in change, state.BaseValue - before, in context);
-            OnAttributeChangeApplied?.Invoke(in report);
-            return report.Applied;
+                // Sem processadores (ou com a guarda), a base pedida vai direto, como antes do pipeline (CA1); com eles,
+                // final zero não aplica, e a base pedida só vale se as redirecionadas não mudaram este atributo
+                float before = state.BaseValue;
+                if (!processed) state.SetBaseValue(requestedBase);
+                else if (change.Delta != 0f)
+                {
+                    bool unchanged = change.Delta == change.Requested && before == startBase;
+                    state.SetBaseValue(unchanged ? requestedBase : before + change.Delta);
+                }
+
+                var report = new AttributeChangeReport(in change, state.BaseValue - before, in context);
+                OnAttributeChangeApplied?.Invoke(in report);
+                return report.Applied;
+            }
+            finally
+            {
+                if (processed) _changeChain[--_changeDepth] = null;
+                _hasActiveChange = hadActive;
+                _activeChangeEffect = previousEffect;
+                _activeChangeContext = previousContext;
+            }
+        }
+
+        private void RunProcessors(
+            IReadOnlyList<AttributeChangeProcessor> processors,
+            ref AttributeChange change,
+            GameplayEffect effect,
+            in EffectContext context,
+            int chainStart)
+        {
+            AttributeChangeQueue queue = _changeQueue ??= new AttributeChangeQueue(this);
+            int queueStart = queue.Count;
+            try
+            {
+                for (int i = 0; i < processors.Count; i++) processors[i]?.Process(ref change, in context, queue);
+
+                // As redirecionadas vêm antes da original (ADR 0033, item 5); as que elas geram ficam depois de queueEnd
+                int queueEnd = queue.Count;
+                for (int i = queueStart; i < queueEnd; i++)
+                {
+                    AttributeChangeQueue.Entry entry = queue[i];
+                    if (!attributeSet.TryGetState(entry.Target, out var target)) continue;
+                    ProcessChange(target, entry.Delta, target.BaseValue + entry.Delta, effect, in context, change.Attribute, chainStart);
+                }
+            }
+            finally
+            {
+                queue.TrimTo(queueStart);
+            }
+        }
+
+        private bool IsInChangeChain(AttributeDefinition definition, int chainStart)
+        {
+            for (int i = chainStart; i < _changeDepth; i++)
+            {
+                if (ReferenceEquals(_changeChain[i], definition)) return true;
+            }
+            return false;
+        }
+
+        private void WarnChangeGuard(AttributeDefinition definition)
+        {
+            _warnedChangeGuard ??= new HashSet<AttributeDefinition>();
+            if (!_warnedChangeGuard.Add(definition) || !Debug.isDebugBuild) return;
+            Debug.LogWarning(
+                $"[GAS] Alteração de '{definition.name}' em '{name}' aplicada sem os processadores: o atributo já está na " +
+                $"cadeia de redirecionamento ou o pipeline passou de {MaxChangeDepth} níveis.", this);
         }
 
         private static bool IsAttributeHandledBefore(List<AttributeEffectModifier> modifiers, int index)

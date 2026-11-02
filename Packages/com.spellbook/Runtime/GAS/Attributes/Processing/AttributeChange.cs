@@ -8,12 +8,13 @@ namespace SpellBook.GAS.Attributes
     /// </summary>
     public struct AttributeChange
     {
-        public AttributeChange(AttributeDefinition attribute, float requested, GameplayEffect effect)
+        public AttributeChange(AttributeDefinition attribute, float requested, GameplayEffect effect, AttributeDefinition redirectedFrom = null)
         {
             Attribute = attribute;
             Requested = requested;
             Delta = requested;
             Effect = effect;
+            RedirectedFrom = redirectedFrom;
         }
 
         /// <summary>Atributo que recebe a alteração.</summary>
@@ -27,6 +28,9 @@ namespace SpellBook.GAS.Attributes
 
         /// <summary>Efeito que pediu a alteração; nulo numa alteração feita por código.</summary>
         public GameplayEffect Effect { get; }
+
+        /// <summary>Atributo cujo processador gerou esta alteração; nulo na alteração original.</summary>
+        public AttributeDefinition RedirectedFrom { get; }
     }
 
     /// <summary>
@@ -43,6 +47,7 @@ namespace SpellBook.GAS.Attributes
             Applied = applied;
             Effect = change.Effect;
             Context = context;
+            RedirectedFrom = change.RedirectedFrom;
             IsValid = true;
         }
 
@@ -63,6 +68,9 @@ namespace SpellBook.GAS.Attributes
 
         /// <summary>Contexto da aplicação; vazio numa alteração feita por código sem contexto.</summary>
         public EffectContext Context { get; }
+
+        /// <summary>Atributo cujo processador gerou esta alteração; nulo na alteração original.</summary>
+        public AttributeDefinition RedirectedFrom { get; }
 
         /// <summary>Falso no relatório <c>default</c>, que não veio de uma alteração.</summary>
         public bool IsValid { get; }

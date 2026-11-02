@@ -12,6 +12,12 @@ O primeiro processador recebe a variação pedida. Cada um muda a variação e p
 
 Os modificadores de efeitos com duração ou infinitos não passam pelos processadores. Eles não mudam a base: somam ao valor atual enquanto o efeito dura.
 
+### Redirecionar para outro atributo {#redirecionar}
+
+Um processador pode mandar parte da alteração para outro atributo do mesmo dono, como um escudo que absorve o golpe antes da vida. A parte redirecionada passa pelos processadores do atributo de destino e é aplicada antes da alteração original. Assim o escudo chega ao mínimo antes da vida mudar.
+
+Cada alteração gera o seu relatório, na ordem em que é aplicada: primeiro as redirecionadas, depois a original. Um atributo que já está na cadeia (a vida manda ao escudo, e o escudo devolve à vida) recebe a parte dele direto, sem rodar os processadores de novo. O mesmo vale a partir do nono atributo da cadeia. Nos dois casos, o Console mostra um aviso, uma vez por atributo.
+
 ```mermaid
 flowchart LR
     Efeito["Gameplay Effect (instantâneo ou tique)"] --> Lista["Processors do atributo, em ordem"]
@@ -54,7 +60,17 @@ asc.OnAttributeChangeApplied += (in AttributeChangeReport relatorio) =>
 };
 ```
 
-O `AttributeChangeReport` tem `Attribute`, `Requested` (a variação pedida), `Final` (depois dos processadores), `Applied` (o que a base mudou, depois do mínimo e do máximo), `Effect` (nulo numa alteração por código) e `Context`. Um relatório `default` tem `IsValid` falso.
+O `AttributeChangeReport` tem `Attribute`, `Requested` (a variação pedida), `Final` (depois dos processadores), `Applied` (o que a base mudou, depois do mínimo e do máximo), `Effect` (nulo numa alteração por código), `Context` e `RedirectedFrom` (o atributo que redirecionou a alteração, nulo na original). Um relatório `default` tem `IsValid` falso.
+
+Para saber, dentro de um ouvinte de `OnValueChanged`, que efeito causou a mudança, chame `TryGetActiveChangeSource` no `AbilitySystemComponent`. Ele devolve verdadeiro, com o efeito e o contexto, só durante a aplicação de uma alteração pelo pipeline. Se o ouvinte aplicar outra alteração, ela tem a própria origem até terminar, e depois a de fora volta:
+
+```csharp
+if (asc.TryGetActiveChangeSource(out GameplayEffect efeito, out EffectContext contexto))
+{
+    string origem = efeito != null ? efeito.name : "código";
+    Debug.Log($"{origem}, nível {contexto.Level}");
+}
+```
 
 Com a lista `Processors` vazia, a base recebe a variação pedida direto, sem passo extra.
 
@@ -77,7 +93,15 @@ public sealed class CortaPelaMetade : AttributeChangeProcessor
 }
 ```
 
-A classe aparece no seletor da lista `Processors`. `change.Requested` guarda a variação pedida, e `queue.TryGetState` lê outro atributo do mesmo dono, como uma resistência. Confira se `change.Effect` e `context.Instigator` são nulos antes de usá-los, porque uma alteração por código chega sem eles.
+A classe aparece no seletor da lista `Processors`. `change.Requested` guarda a variação pedida, e `queue.TryGetState` lê outro atributo do mesmo dono, como uma resistência. Para passar parte da alteração a outro atributo, chame `queue.Redirect` e tire essa parte do `Delta`:
+
+```csharp
+float parte = change.Delta * 0.5f;
+queue.Redirect(escudo, parte);
+change.Delta -= parte;
+```
+
+Confira se `change.Effect` e `context.Instigator` são nulos antes de usá-los, porque uma alteração por código chega sem eles.
 
 ## Veja também {#veja-tambem}
 
