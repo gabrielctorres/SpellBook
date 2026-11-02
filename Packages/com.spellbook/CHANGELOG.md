@@ -85,6 +85,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); 
 ### Documentação
 - **Catálogo de tipos:** a página **Referência > Catálogo de tipos** do manual lista, para cada campo do Inspector com seletor de tipo, os tipos que o pacote oferece, com categoria e resumo. A página sai do código, pelo menu **SpellBook > Documentação > Gerar referência**, e cada tipo leva à página dele na API.
 - **Referência da API:** o site publica em `api/` uma página para cada tipo público do pacote, de runtime e de Editor, montada pelo DocFX com os comentários XML. A entrada **API** fica no grupo Referência do manual.
+- **Links da API para a Unity:** os tipos da Unity citados na API levam à documentação da Unity: os do motor ao ScriptReference mais recente, sem versão na URL, e os de pacotes `com.unity.*` à versão do pacote instalada no projeto. Os tipos do .NET levam ao learn.microsoft.com.
 
 ### Migração
 1. Rodar **SpellBook > Migrar assets do GAS (3.0)** para regravar os `GameplayEffect` no formato 3.0 (`Duration` e `ConstantValue` viram `ScalableFloat`). Veja `manual/regras/migracao-2-para-3.md#valores-por-nivel`.

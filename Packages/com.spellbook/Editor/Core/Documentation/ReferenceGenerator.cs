@@ -18,7 +18,8 @@ namespace SpellBook.Core.Editor.Documentation
 
     /// <summary>
     /// Gera a referência do pacote: a página do catálogo, a configuração do DocFX em <c>api/obj/</c>, os YAML da API em
-    /// <c>api/reference/</c> e a impressão digital em <c>api/reference.sha256</c> (ADR 0040, item 2).
+    /// <c>api/reference/</c>, o mapa da Unity em <c>api/unity.xrefmap.yml</c> e a impressão digital em
+    /// <c>api/reference.sha256</c> (ADR 0040, item 2; ADR 0041, item 1).
     /// </summary>
     public static class ReferenceGenerator
     {
@@ -32,7 +33,7 @@ namespace SpellBook.Core.Editor.Documentation
             try
             {
                 Generate(DefaultDocumentationRoot());
-                Debug.Log("Referência gerada. Commite o catálogo, a pasta api/reference/ e o api/reference.sha256.");
+                Debug.Log("Referência gerada. Commite o catálogo, a pasta api/reference/, o api/unity.xrefmap.yml e o api/reference.sha256.");
             }
             catch (Exception exception)
             {
@@ -76,9 +77,11 @@ namespace SpellBook.Core.Editor.Documentation
             string configPath = Path.Combine(configDir, "docfx.metadata.json");
             Write(configPath, DocfxConfig.Render(DocfxConfig.Read(), DocfxConfig.ReadSystemAssemblyDirectories(), configDir));
 
-            // Nada da geração anterior fica: tipo removido não deixa YAML, e uma falha não deixa impressão digital velha.
+            // Nada da geração anterior fica: tipo removido não deixa YAML, e uma falha não deixa impressão digital nem mapa velhos.
             string fingerprintPath = Path.Combine(root, "api", "reference.sha256");
             File.Delete(fingerprintPath);
+            string xrefMapPath = Path.Combine(root, "api", "unity.xrefmap.yml");
+            File.Delete(xrefMapPath);
             string referenceDir = Path.Combine(root, "api", "reference");
             if (Directory.Exists(referenceDir))
             {
@@ -86,6 +89,7 @@ namespace SpellBook.Core.Editor.Documentation
             }
 
             runner.Run(root, configPath);
+            Write(xrefMapPath, UnityXrefMap.Render(referenceDir));
             Write(fingerprintPath, ReferenceFingerprint.Compute(repositoryRoot) + "\n");
         }
 

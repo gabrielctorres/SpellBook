@@ -20,7 +20,9 @@ items:
   summary: >-
     Gera a referência do pacote: a página do catálogo, a configuração do DocFX em <code>api/obj/</code>, os YAML da API em
 
-    <code>api/reference/</code> e a impressão digital em <code>api/reference.sha256</code> (ADR 0040, item 2).
+    <code>api/reference/</code>, o mapa da Unity em <code>api/unity.xrefmap.yml</code> e a impressão digital em
+
+    <code>api/reference.sha256</code> (ADR 0040, item 2; ADR 0041, item 1).
   example: []
   syntax:
     content: public static class ReferenceGenerator

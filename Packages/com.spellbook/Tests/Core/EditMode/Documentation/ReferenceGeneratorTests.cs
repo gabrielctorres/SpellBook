@@ -6,7 +6,10 @@ using SpellBook.Core.Editor.Documentation;
 
 namespace SpellBook.Core.Tests.Documentation
 {
-    /// <summary>Geração do catálogo, da configuração do DocFX e da impressão digital (Spec referencia-catalogo-e-api, D2; RC4).</summary>
+    /// <summary>
+    /// Geração do catálogo, da configuração do DocFX, do mapa da Unity e da impressão digital
+    /// (Spec referencia-catalogo-e-api, D2 e D8; RC4 e XR2).
+    /// </summary>
     public class ReferenceGeneratorTests
     {
         private static readonly string Root = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "spellbook-reference-generator"));
@@ -14,6 +17,8 @@ namespace SpellBook.Core.Tests.Documentation
         private static readonly string Catalog = Path.Combine(Docs, "manual", "referencia", "catalogo.md");
         private static readonly string Config = Path.Combine(Docs, "api", "obj", "docfx.metadata.json");
         private static readonly string Fingerprint = Path.Combine(Docs, "api", "reference.sha256");
+        private static readonly string XrefMap = Path.Combine(Docs, "api", "unity.xrefmap.yml");
+        private static readonly string ReferenceDir = Path.Combine(Docs, "api", "reference");
 
         [SetUp]
         public void SetUp()
@@ -54,16 +59,44 @@ namespace SpellBook.Core.Tests.Documentation
         }
 
         [Test]
+        public void Generate_WritesUnityXrefMap()
+        {
+            ReferenceGenerator.Generate(Docs, new FakeRunner());
+
+            string map = File.ReadAllText(XrefMap);
+            Assert.That(map, Is.EqualTo(UnityXrefMap.Render(ReferenceDir)));
+            StringAssert.Contains("- uid: UnityEngine.GameObject\n", map);
+            StringAssert.Contains("  href: https://docs.unity3d.com/ScriptReference/GameObject.html\n", map);
+            StringAssert.DoesNotContain("System.String", map);
+        }
+
+        [Test]
+        public void Generate_RunnerFails_NoXrefMap()
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(XrefMap));
+            File.WriteAllText(XrefMap, "mapa da geração anterior\n");
+            var runner = new FakeRunner { Failure = new InvalidOperationException("docfx saiu com 1") };
+
+            Assert.Throws<InvalidOperationException>(() => ReferenceGenerator.Generate(Docs, runner));
+
+            Assert.That(File.Exists(XrefMap), Is.False);
+        }
+
+        [Test]
         public void Generate_Twice_SameBytes()
         {
             ReferenceGenerator.Generate(Docs, new FakeRunner());
-            byte[][] first = { File.ReadAllBytes(Catalog), File.ReadAllBytes(Config), File.ReadAllBytes(Fingerprint) };
+            byte[][] first =
+            {
+                File.ReadAllBytes(Catalog), File.ReadAllBytes(Config), File.ReadAllBytes(Fingerprint), File.ReadAllBytes(XrefMap),
+            };
 
             ReferenceGenerator.Generate(Docs, new FakeRunner());
 
             Assert.That(File.ReadAllBytes(Catalog), Is.EqualTo(first[0]));
             Assert.That(File.ReadAllBytes(Config), Is.EqualTo(first[1]));
             Assert.That(File.ReadAllBytes(Fingerprint), Is.EqualTo(first[2]));
+            Assert.That(File.ReadAllBytes(XrefMap), Is.EqualTo(first[3]));
         }
 
         [Test]
@@ -107,8 +140,25 @@ namespace SpellBook.Core.Tests.Documentation
             }
         }
 
+        /// <summary>Faz o papel do <c>docfx metadata</c>: escreve um YAML com uma referência da Unity e uma do .NET.</summary>
         private sealed class FakeRunner : IDocfxMetadataRunner
         {
+            private const string Yaml =
+                "### YamlMime:ManagedReference\n" +
+                "items:\n" +
+                "- uid: SpellBook.A\n" +
+                "  commentId: T:SpellBook.A\n" +
+                "references:\n" +
+                "- uid: UnityEngine.GameObject\n" +
+                "  commentId: T:UnityEngine.GameObject\n" +
+                "  isExternal: true\n" +
+                "  name: GameObject\n" +
+                "- uid: System.String\n" +
+                "  commentId: T:System.String\n" +
+                "  isExternal: true\n" +
+                "  href: https://learn.microsoft.com/dotnet/api/system.string\n" +
+                "  name: string\n";
+
             public List<string> Calls { get; } = new List<string>();
 
             public Exception Failure { get; set; }
@@ -120,6 +170,10 @@ namespace SpellBook.Core.Tests.Documentation
                 {
                     throw Failure;
                 }
+
+                string folder = Path.Combine(documentationRoot, "api", "reference");
+                Directory.CreateDirectory(folder);
+                File.WriteAllText(Path.Combine(folder, "SpellBook.A.yml"), Yaml);
             }
         }
     }

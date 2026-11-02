@@ -143,12 +143,14 @@ Quem implementa e quem revisa rodam estas conferências a partir da raiz do repo
 
 ## 8. Catálogo e referência da API gerados
 
-O catálogo (`manual/referencia/catalogo.md`), os YAML da API (`api/reference/`) e a impressão digital (`api/reference.sha256`) saem do código, pela Unity, e vão para o repositório (0040). Não edite esses arquivos à mão.
+O catálogo (`manual/referencia/catalogo.md`), os YAML da API (`api/reference/`), o mapa da Unity (`api/unity.xrefmap.yml`) e a impressão digital (`api/reference.sha256`) saem do código, pela Unity, e vão para o repositório (0040). Não edite esses arquivos à mão.
+
+Na API, os tipos da Unity levam à documentação da Unity pelo mapa, que a geração monta a partir dos YAML (0041). Os módulos do motor apontam para o ScriptReference mais recente, sem versão na URL. Os pacotes `com.unity.*` apontam para a versão instalada no projeto, então quem atualiza um desses pacotes precisa gerar a referência de novo. Os tipos do .NET levam ao learn.microsoft.com pelo `href` que o `docfx metadata` grava nos YAML. O `docfx.json` não declara mapa do .NET, e o build não usa a rede.
 
 Quem muda um `.cs` do pacote:
 
 1. Rode **SpellBook > Documentação > Gerar referência** na Unity, com o SDK do .NET instalado. Em batchmode, a mesma geração roda com `-executeMethod SpellBook.Core.Editor.Documentation.ReferenceGenerator.GenerateFromCommandLine` e sai com 0 se deu certo ou 1 se falhou.
-2. Commite o catálogo, a pasta `api/reference/` e o `api/reference.sha256` no mesmo diff. Sem isso, o `ReferenceUpToDateTests` falha.
+2. Commite o catálogo, a pasta `api/reference/`, o `api/unity.xrefmap.yml` e o `api/reference.sha256` no mesmo diff. Sem isso, o `ReferenceUpToDateTests` falha.
 
 Para ver o site sem a Unity, rode dentro de `Documentation~/`:
 
