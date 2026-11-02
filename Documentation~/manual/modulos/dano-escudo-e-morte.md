@@ -37,6 +37,16 @@ Um passo da lista de processadores de um atributo. Fica no asset do atributo, en
 
 A ordem muda o resultado. Com um processador que soma 10 e outro que corta pela metade, um golpe de -20 vira -5 com a soma antes (`(-20 + 10) × 0,5`) e vira 0 com o corte antes (`-20 × 0,5 + 10`). A mesma lista dá sempre o mesmo resultado.
 
+### Prévia do dano {#previa}
+
+Depois dos campos, o Inspector da `AttributeDefinition` mostra a seção **Dano**. Ela lista os processadores numerados, com o resumo de cada um (o escudo e a fração de um `AbsorbWithAttribute`, por exemplo), e logo abaixo a prévia:
+
+- `Dano de exemplo`: o golpe que a prévia aplica ao atributo. Com 30, ela aplica -30.
+- Um campo por atributo: o valor inicial do próprio atributo e de cada atributo que os processadores citam, como o escudo e a resistência. Todos começam em 100.
+- As alterações: uma linha por alteração, na ordem em que o jogo as aplica, com o valor antes, o valor depois e a variação. A alteração redirecionada diz de onde veio: `Escudo: 50 → 20 (-30) via Vida`.
+
+Com a seleção de vários atributos, a seção não aparece. A prévia roda o mesmo pipeline do jogo num `AbilitySystemComponent` oculto, que nasce quando o Inspector abre e some quando ele fecha. Mude a ordem da lista e confira na prévia se o resultado é o que você quer.
+
 ## Tipos de dano {#tipos-de-dano}
 
 O tipo de dano é uma tag no `GameplayEffect`. No campo `Damage Tags` (seção `Gameplay Tags` do efeito), escolha uma ou mais tags, como `Dano.Fogo` e `Dano.Magico`. Os processadores que filtram por tipo comparam essas tags pela hierarquia: um filtro `Dano` casa com `Dano.Fogo` e com `Dano.Magico`.
@@ -116,6 +126,60 @@ Com a `Vida` em 0, o `AbilitySystemComponent` ganha `Estado.Morto`, e essas habi
 A cura depois da morte parte do mínimo: com a `Vida` em 0, depois de um golpe de 300, uma cura de 40 deixa a `Vida` em 40.
 
 O evento dispara uma vez ao chegar ao mínimo. Outro golpe com a `Vida` já em 0 não repete o evento. Depois de uma cura, a próxima morte dispara de novo. `OnAttributeReachedMax` faz o mesmo para o máximo.
+
+## Exemplos completos {#exemplos}
+
+Os três exemplos usam um personagem com `AbilitySystemComponent` e `AttributeSet`. Monte os assets no Inspector e confira o resultado pelo código, num teste ou num script de cena.
+
+### Escudo que absorve antes da vida {#exemplo-escudo}
+
+1. Crie os atributos `Vida` e `Escudo` em **Create > GAS > Attribute Definition**, os dois com `Min Value` 0 e `Max Value` 100.
+2. Ponha `Vida` com valor inicial 100 e `Escudo` com 50 no `Starting Attributes` do `AttributeSet`.
+3. Na `Vida`, adicione um `AbsorbWithAttribute` à lista `Processors`, com `Shield` em `Escudo` e `Fraction` 1.
+4. Na prévia do Inspector da `Vida`, ponha `Dano de exemplo` em 30. A prévia mostra `Escudo: 50 → 20 (-30) via Vida` e `Vida: 100 → 100 (0)`.
+
+```csharp
+asc.ApplyAttributeChange(vida, -30f);
+Debug.Log(asc.GetAttributeValue(escudo)); // 20
+Debug.Log(asc.GetAttributeValue(vida));   // 100
+asc.ApplyAttributeChange(vida, -30f);
+Debug.Log(asc.GetAttributeValue(escudo)); // 0
+Debug.Log(asc.GetAttributeValue(vida));   // 90
+```
+
+### Resistência a fogo {#exemplo-resistencia}
+
+1. Crie as tags `Dano.Fogo` e `Dano.Veneno`, e o atributo `ResistenciaFogo`, com `Max Value` 1.
+2. Ponha `ResistenciaFogo` com valor inicial 0,5 no `AttributeSet`.
+3. Na `Vida`, adicione um `ReduceByAttribute` com `Source Attribute` em `ResistenciaFogo`, `Mode` em `Percent` e `Damage Tags` em `Dano.Fogo`.
+4. Crie dois efeitos instantâneos com um modificador `Add` de -40 na `Vida`: `BolaDeFogo`, com `Damage Tags` em `Dano.Fogo`, e `Veneno`, com `Dano.Veneno`.
+
+```csharp
+asc.TryApplyEffect(bolaDeFogo, asc, out _); // a Vida perde 20: vai de 100 a 80
+asc.TryApplyEffect(veneno, asc, out _);     // a Vida perde 40: vai de 80 a 40
+```
+
+A resistência só reduz o efeito com uma tag que casa com `Dano.Fogo`. Para reduzir todo dano mágico, use o filtro pai (`Dano.Magico`) e marque os efeitos com as tags filhas.
+
+### Personagem morto {#exemplo-morto}
+
+1. Crie a tag `Estado.Morto`.
+2. Na `Vida`, preencha `State Tag While Depleted` com `Estado.Morto`.
+3. Nas habilidades que um morto não pode usar, ponha `Estado.Morto` em `Blocked Tags`.
+4. Ouça o `OnAttributeDepleted` para tocar a animação de morte, mostrar a tela de derrota ou desligar o controle, do jeito do seu jogo.
+
+```csharp
+asc.OnAttributeDepleted += (AttributeState estado, in AttributeChangeReport causa) =>
+{
+    if (estado.Definition != vida) return;
+    animator.SetTrigger("Morrer");
+};
+
+asc.ApplyAttributeChange(vida, -1000f);
+Debug.Log(asc.HasTag(morto)); // true
+asc.ApplyAttributeChange(vida, 40f);
+Debug.Log(asc.HasTag(morto)); // false
+```
 
 ## Pelo código {#codigo}
 
@@ -198,6 +262,14 @@ change.Delta -= parte;
 ```
 
 Confira se `change.Effect` e `context.Instigator` são nulos antes de usá-los, porque uma alteração por código chega sem eles.
+
+## Limitações e armadilhas {#armadilhas}
+
+!!! warning "O sistema de habilidades não destrói nada"
+    Nenhum processador, evento ou tag do pacote destrói, desliga ou devolve ao pool o personagem que chega a vida 0. O `OnAttributeDepleted` e a tag de estado avisam; o que a morte faz (animação, derrota, respawn, loot) fica com o seu código.
+
+- Um modificador de efeito com duração ou infinito não passa pelos processadores. Um veneno feito como efeito com duração e modificador `Add` de -10 na `Vida` ignora a resistência e o escudo. Para o dano passar por eles, faça o veneno periódico, com o -10 em `Periodic Modifiers`.
+- Os processadores moram só no asset do atributo. Para um chefe resistir mais que os outros com o mesmo atributo `Vida`, dê a ele um valor maior de `ResistenciaFogo`, sem outra lista de processadores.
 
 ## Veja também {#veja-tambem}
 

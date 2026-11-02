@@ -665,6 +665,12 @@ items:
   - uid: SpellBook.GAS.Editor.AttributeDefinitionEditor
     name: AttributeDefinitionEditor
     type: Class
+  - uid: SpellBook.GAS.Editor.DamagePreviewModel
+    name: DamagePreviewModel
+    type: Class
+  - uid: SpellBook.GAS.Editor.DamagePreviewRow
+    name: DamagePreviewRow
+    type: Struct
   - uid: SpellBook.GAS.Editor.GameplayAbilityEditor
     name: GameplayAbilityEditor
     type: Class

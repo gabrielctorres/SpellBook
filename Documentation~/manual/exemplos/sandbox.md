@@ -109,6 +109,10 @@ eventos do ASC. O pacote já tem esse relay: o par **Attribute Decreased** do
 cada tique da queimadura. O Sample pode trocar o `DamageTakenRelay` por ele; a diferença é o sinal, porque o
 par entrega a variação negativa e o `DamageTakenRelay`, o valor perdido.
 
+## O boneco não morre {#sem-morte}
+
+O boneco de treino não morre, porque o Sample não usa a morte. Ele pode ganhar a morte depois, num ticket próprio: um alvo que chega a Vida 0, mostra o estado e reinicia. As peças para isso já estão no pacote: o `State Tag While Depleted` da Vida e o evento `OnAttributeDepleted`, em [Dano, escudo e morte](../modulos/dano-escudo-e-morte.md#morte).
+
 ## Renovação da queimadura {#renovacao-da-queimadura}
 
 Reaplicar a queimadura **renova** a duração para 4 s, sem somar pilhas e sem criar segunda instância.
