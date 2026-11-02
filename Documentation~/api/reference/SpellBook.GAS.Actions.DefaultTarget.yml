@@ -1,0 +1,89 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Actions.DefaultTarget
+  commentId: T:SpellBook.GAS.Actions.DefaultTarget
+  id: DefaultTarget
+  parent: SpellBook.GAS.Actions
+  children:
+  - SpellBook.GAS.Actions.DefaultTarget.EventTargets
+  - SpellBook.GAS.Actions.DefaultTarget.Owner
+  langs:
+  - csharp
+  - vb
+  name: DefaultTarget
+  nameWithType: DefaultTarget
+  fullName: SpellBook.GAS.Actions.DefaultTarget
+  type: Enum
+  namespace: SpellBook.GAS.Actions
+  summary: Alvo de uma ação sem seletor numa lista de evento.
+  example: []
+  syntax:
+    content: public enum DefaultTarget
+    content.vb: Public Enum DefaultTarget
+- uid: SpellBook.GAS.Actions.DefaultTarget.EventTargets
+  commentId: F:SpellBook.GAS.Actions.DefaultTarget.EventTargets
+  id: EventTargets
+  parent: SpellBook.GAS.Actions.DefaultTarget
+  langs:
+  - csharp
+  - vb
+  name: EventTargets
+  nameWithType: DefaultTarget.EventTargets
+  fullName: SpellBook.GAS.Actions.DefaultTarget.EventTargets
+  type: Field
+  namespace: SpellBook.GAS.Actions
+  summary: Os alvos do evento que disparou a lista.
+  example: []
+  syntax:
+    content: EventTargets = 0
+    return:
+      type: SpellBook.GAS.Actions.DefaultTarget
+- uid: SpellBook.GAS.Actions.DefaultTarget.Owner
+  commentId: F:SpellBook.GAS.Actions.DefaultTarget.Owner
+  id: Owner
+  parent: SpellBook.GAS.Actions.DefaultTarget
+  langs:
+  - csharp
+  - vb
+  name: Owner
+  nameWithType: DefaultTarget.Owner
+  fullName: SpellBook.GAS.Actions.DefaultTarget.Owner
+  type: Field
+  namespace: SpellBook.GAS.Actions
+  summary: 'O ASC dono da lista: o dono da habilidade ou o ASC que tem o efeito.'
+  example: []
+  syntax:
+    content: Owner = 1
+    return:
+      type: SpellBook.GAS.Actions.DefaultTarget
+references:
+- uid: SpellBook.GAS.Actions
+  commentId: N:SpellBook.GAS.Actions
+  name: SpellBook.GAS.Actions
+  nameWithType: SpellBook.GAS.Actions
+  fullName: SpellBook.GAS.Actions
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Actions
+    name: Actions
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Actions
+    name: Actions
+- uid: SpellBook.GAS.Actions.DefaultTarget
+  commentId: T:SpellBook.GAS.Actions.DefaultTarget
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.DefaultTarget.html
+  name: DefaultTarget
+  nameWithType: DefaultTarget
+  fullName: SpellBook.GAS.Actions.DefaultTarget

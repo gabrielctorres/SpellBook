@@ -65,7 +65,9 @@ items:
   - SpellBook.GAS.Bridges.RaiseEventAction
   - SpellBook.GAS.Bridges.TagChangedEventResponse
   - SpellBook.GAS.Core.AbilitySystemComponent
+  - SpellBook.GAS.Effects.DebugLogAction
   - SpellBook.GAS.Effects.GameplayEffect
+  - SpellBook.GAS.Effects.SpawnVFXAction
   - SpellBook.Pooling.PooledSpawnerAsset
 - uid: SpellBook.Core.Validation.IValidatable.Validate(SpellBook.Core.Validation.ValidationResult)
   commentId: M:SpellBook.Core.Validation.IValidatable.Validate(SpellBook.Core.Validation.ValidationResult)

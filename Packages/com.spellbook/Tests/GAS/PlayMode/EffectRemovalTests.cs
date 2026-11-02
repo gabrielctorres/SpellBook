@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using NUnit.Framework;
+using SpellBook.GAS.Actions;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
@@ -36,7 +37,7 @@ namespace SpellBook.GAS.Tests
             AbilitySystemComponent asc = CreateManualAsc();
             var removal = new CountingAction();
             GameplayEffect first = _gas.CreateDurationEffect(10f, burning);
-            first.OnRemoval.Add(removal);
+            first.OnRemoved.Add(removal);
             GameplayEffect second = _gas.CreateDurationEffect(10f, burning);
             ActiveEffectInstance firstInstance = asc.ApplyEffect(first);
             ActiveEffectInstance secondInstance = asc.ApplyEffect(second);
@@ -74,7 +75,7 @@ namespace SpellBook.GAS.Tests
             AbilitySystemComponent other = CreateManualAsc((armor, 10f));
             var removal = new CountingAction();
             GameplayEffect effect = CreateArmorBuff(armor, 5f, burning);
-            effect.OnRemoval.Add(removal);
+            effect.OnRemoved.Add(removal);
             asc.ApplyEffect(effect);
             ActiveEffectInstance otherInstance = other.ApplyEffect(effect);
 
@@ -94,7 +95,7 @@ namespace SpellBook.GAS.Tests
             AbilitySystemComponent asc = CreateManualAsc();
             var removal = new CountingAction();
             GameplayEffect effect = _gas.CreateDurationEffect(1f, burning);
-            effect.OnRemoval.Add(removal);
+            effect.OnRemoved.Add(removal);
             ActiveEffectInstance instance = asc.ApplyEffect(effect);
             asc.AddTag(burning); // outra fonte da mesma tag: uma devolução a mais apareceria aqui
 
@@ -119,7 +120,7 @@ namespace SpellBook.GAS.Tests
             AbilitySystemComponent asc = CreateManualAsc();
             var removal = new RemoveSelfAction();
             GameplayEffect effect = _gas.CreateDurationEffect(10f);
-            effect.OnRemoval.Add(removal);
+            effect.OnRemoved.Add(removal);
             ActiveEffectInstance instance = asc.ApplyEffect(effect);
 
             asc.RemoveEffect(instance);
@@ -148,13 +149,14 @@ namespace SpellBook.GAS.Tests
         }
 
         /// <summary>Conta quantas vezes rodou.</summary>
-        private sealed class CountingAction : EffectAction
+        private sealed class CountingAction : GameplayAction
         {
             public int Count { get; private set; }
 
-            public override void Execute(AbilitySystemComponent source, AbilitySystemComponent target, ActiveEffectInstance instance = null)
+            protected override ActionStatus Execute(ActionContext context, ref ActionFrame frame)
             {
                 Count++;
+                return ActionStatus.Done;
             }
         }
 
@@ -162,16 +164,17 @@ namespace SpellBook.GAS.Tests
         /// Remove a própria instância ao rodar. Para de chamar a remoção depois da segunda execução,
         /// para que a reentrância apareça como contagem e não como estouro de pilha.
         /// </summary>
-        private sealed class RemoveSelfAction : EffectAction
+        private sealed class RemoveSelfAction : GameplayAction
         {
             private const int ReentryLimit = 2;
 
             public int Count { get; private set; }
 
-            public override void Execute(AbilitySystemComponent source, AbilitySystemComponent target, ActiveEffectInstance instance = null)
+            protected override ActionStatus Execute(ActionContext context, ref ActionFrame frame)
             {
                 Count++;
-                if (Count < ReentryLimit) target.RemoveEffect(instance);
+                if (Count < ReentryLimit) context.Owner.RemoveEffect(context.EffectInstance);
+                return ActionStatus.Done;
             }
         }
     }

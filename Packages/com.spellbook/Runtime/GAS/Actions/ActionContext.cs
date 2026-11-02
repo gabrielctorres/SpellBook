@@ -6,6 +6,19 @@ using UnityEngine;
 
 namespace SpellBook.GAS.Actions
 {
+    /// <summary>Evento do efeito que disparou a lista de ações.</summary>
+    public enum EffectEvent
+    {
+        /// <summary>A execução não vem de um efeito.</summary>
+        None,
+        Applied,
+        Tick,
+        Removed,
+        TakeDamage,
+        Death,
+        AbilityExecuted,
+    }
+
     /// <summary>
     /// Dados de uma execução de ações. O ASC guarda os contextos em pool: depois de passar um contexto a
     /// <see cref="AbilitySystemComponent.RunActions"/>, o executor fica com ele e o devolve ao pool quando a execução
@@ -35,6 +48,10 @@ namespace SpellBook.GAS.Actions
         public int Level { get; internal set; } = 1;
         /// <summary>Instância do efeito que disparou a lista. Nula fora de efeito e no efeito instantâneo.</summary>
         public ActiveEffectInstance EffectInstance { get; internal set; }
+        /// <summary>Asset do efeito que disparou a lista, também no efeito instantâneo. Nulo fora de efeito.</summary>
+        public GameplayEffect EffectDefinition { get; internal set; }
+        /// <summary>Evento do efeito que disparou a lista. <see cref="EffectEvent.None"/> fora de efeito.</summary>
+        public EffectEvent EffectEvent { get; internal set; }
         /// <summary>Se a execução vem de um efeito. Só então <see cref="Effect"/> vale.</summary>
         public bool HasEffect { get; private set; }
         /// <summary>Cópia do <see cref="EffectContext"/> do efeito que disparou a lista.</summary>
@@ -93,6 +110,8 @@ namespace SpellBook.GAS.Actions
             Spec = null;
             Level = 1;
             EffectInstance = null;
+            EffectDefinition = null;
+            EffectEvent = EffectEvent.None;
             EventInstigator = null;
             IsCancelled = false;
         }

@@ -1,0 +1,172 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Actions.EffectEvent
+  commentId: T:SpellBook.GAS.Actions.EffectEvent
+  id: EffectEvent
+  parent: SpellBook.GAS.Actions
+  children:
+  - SpellBook.GAS.Actions.EffectEvent.AbilityExecuted
+  - SpellBook.GAS.Actions.EffectEvent.Applied
+  - SpellBook.GAS.Actions.EffectEvent.Death
+  - SpellBook.GAS.Actions.EffectEvent.None
+  - SpellBook.GAS.Actions.EffectEvent.Removed
+  - SpellBook.GAS.Actions.EffectEvent.TakeDamage
+  - SpellBook.GAS.Actions.EffectEvent.Tick
+  langs:
+  - csharp
+  - vb
+  name: EffectEvent
+  nameWithType: EffectEvent
+  fullName: SpellBook.GAS.Actions.EffectEvent
+  type: Enum
+  namespace: SpellBook.GAS.Actions
+  summary: Evento do efeito que disparou a lista de ações.
+  example: []
+  syntax:
+    content: public enum EffectEvent
+    content.vb: Public Enum EffectEvent
+- uid: SpellBook.GAS.Actions.EffectEvent.None
+  commentId: F:SpellBook.GAS.Actions.EffectEvent.None
+  id: None
+  parent: SpellBook.GAS.Actions.EffectEvent
+  langs:
+  - csharp
+  - vb
+  name: None
+  nameWithType: EffectEvent.None
+  fullName: SpellBook.GAS.Actions.EffectEvent.None
+  type: Field
+  namespace: SpellBook.GAS.Actions
+  summary: A execução não vem de um efeito.
+  example: []
+  syntax:
+    content: None = 0
+    return:
+      type: SpellBook.GAS.Actions.EffectEvent
+- uid: SpellBook.GAS.Actions.EffectEvent.Applied
+  commentId: F:SpellBook.GAS.Actions.EffectEvent.Applied
+  id: Applied
+  parent: SpellBook.GAS.Actions.EffectEvent
+  langs:
+  - csharp
+  - vb
+  name: Applied
+  nameWithType: EffectEvent.Applied
+  fullName: SpellBook.GAS.Actions.EffectEvent.Applied
+  type: Field
+  namespace: SpellBook.GAS.Actions
+  syntax:
+    content: Applied = 1
+    return:
+      type: SpellBook.GAS.Actions.EffectEvent
+- uid: SpellBook.GAS.Actions.EffectEvent.Tick
+  commentId: F:SpellBook.GAS.Actions.EffectEvent.Tick
+  id: Tick
+  parent: SpellBook.GAS.Actions.EffectEvent
+  langs:
+  - csharp
+  - vb
+  name: Tick
+  nameWithType: EffectEvent.Tick
+  fullName: SpellBook.GAS.Actions.EffectEvent.Tick
+  type: Field
+  namespace: SpellBook.GAS.Actions
+  syntax:
+    content: Tick = 2
+    return:
+      type: SpellBook.GAS.Actions.EffectEvent
+- uid: SpellBook.GAS.Actions.EffectEvent.Removed
+  commentId: F:SpellBook.GAS.Actions.EffectEvent.Removed
+  id: Removed
+  parent: SpellBook.GAS.Actions.EffectEvent
+  langs:
+  - csharp
+  - vb
+  name: Removed
+  nameWithType: EffectEvent.Removed
+  fullName: SpellBook.GAS.Actions.EffectEvent.Removed
+  type: Field
+  namespace: SpellBook.GAS.Actions
+  syntax:
+    content: Removed = 3
+    return:
+      type: SpellBook.GAS.Actions.EffectEvent
+- uid: SpellBook.GAS.Actions.EffectEvent.TakeDamage
+  commentId: F:SpellBook.GAS.Actions.EffectEvent.TakeDamage
+  id: TakeDamage
+  parent: SpellBook.GAS.Actions.EffectEvent
+  langs:
+  - csharp
+  - vb
+  name: TakeDamage
+  nameWithType: EffectEvent.TakeDamage
+  fullName: SpellBook.GAS.Actions.EffectEvent.TakeDamage
+  type: Field
+  namespace: SpellBook.GAS.Actions
+  syntax:
+    content: TakeDamage = 4
+    return:
+      type: SpellBook.GAS.Actions.EffectEvent
+- uid: SpellBook.GAS.Actions.EffectEvent.Death
+  commentId: F:SpellBook.GAS.Actions.EffectEvent.Death
+  id: Death
+  parent: SpellBook.GAS.Actions.EffectEvent
+  langs:
+  - csharp
+  - vb
+  name: Death
+  nameWithType: EffectEvent.Death
+  fullName: SpellBook.GAS.Actions.EffectEvent.Death
+  type: Field
+  namespace: SpellBook.GAS.Actions
+  syntax:
+    content: Death = 5
+    return:
+      type: SpellBook.GAS.Actions.EffectEvent
+- uid: SpellBook.GAS.Actions.EffectEvent.AbilityExecuted
+  commentId: F:SpellBook.GAS.Actions.EffectEvent.AbilityExecuted
+  id: AbilityExecuted
+  parent: SpellBook.GAS.Actions.EffectEvent
+  langs:
+  - csharp
+  - vb
+  name: AbilityExecuted
+  nameWithType: EffectEvent.AbilityExecuted
+  fullName: SpellBook.GAS.Actions.EffectEvent.AbilityExecuted
+  type: Field
+  namespace: SpellBook.GAS.Actions
+  syntax:
+    content: AbilityExecuted = 6
+    return:
+      type: SpellBook.GAS.Actions.EffectEvent
+references:
+- uid: SpellBook.GAS.Actions
+  commentId: N:SpellBook.GAS.Actions
+  name: SpellBook.GAS.Actions
+  nameWithType: SpellBook.GAS.Actions
+  fullName: SpellBook.GAS.Actions
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Actions
+    name: Actions
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Actions
+    name: Actions
+- uid: SpellBook.GAS.Actions.EffectEvent
+  commentId: T:SpellBook.GAS.Actions.EffectEvent
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.EffectEvent.html
+  name: EffectEvent
+  nameWithType: EffectEvent
+  fullName: SpellBook.GAS.Actions.EffectEvent

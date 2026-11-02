@@ -9,6 +9,8 @@ items:
   - SpellBook.GAS.Actions.ActionContext.CreateDerived(UnityEngine.Vector3)
   - SpellBook.GAS.Actions.ActionContext.CustomData
   - SpellBook.GAS.Actions.ActionContext.Effect
+  - SpellBook.GAS.Actions.ActionContext.EffectDefinition
+  - SpellBook.GAS.Actions.ActionContext.EffectEvent
   - SpellBook.GAS.Actions.ActionContext.EffectInstance
   - SpellBook.GAS.Actions.ActionContext.EventInstigator
   - SpellBook.GAS.Actions.ActionContext.EventTargets
@@ -253,6 +255,48 @@ items:
       type: SpellBook.GAS.Effects.ActiveEffectInstance
     content.vb: Public Property EffectInstance As ActiveEffectInstance
   overload: SpellBook.GAS.Actions.ActionContext.EffectInstance*
+- uid: SpellBook.GAS.Actions.ActionContext.EffectDefinition
+  commentId: P:SpellBook.GAS.Actions.ActionContext.EffectDefinition
+  id: EffectDefinition
+  parent: SpellBook.GAS.Actions.ActionContext
+  langs:
+  - csharp
+  - vb
+  name: EffectDefinition
+  nameWithType: ActionContext.EffectDefinition
+  fullName: SpellBook.GAS.Actions.ActionContext.EffectDefinition
+  type: Property
+  namespace: SpellBook.GAS.Actions
+  summary: Asset do efeito que disparou a lista, também no efeito instantâneo. Nulo fora de efeito.
+  example: []
+  syntax:
+    content: public GameplayEffect EffectDefinition { get; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Effects.GameplayEffect
+    content.vb: Public Property EffectDefinition As GameplayEffect
+  overload: SpellBook.GAS.Actions.ActionContext.EffectDefinition*
+- uid: SpellBook.GAS.Actions.ActionContext.EffectEvent
+  commentId: P:SpellBook.GAS.Actions.ActionContext.EffectEvent
+  id: EffectEvent
+  parent: SpellBook.GAS.Actions.ActionContext
+  langs:
+  - csharp
+  - vb
+  name: EffectEvent
+  nameWithType: ActionContext.EffectEvent
+  fullName: SpellBook.GAS.Actions.ActionContext.EffectEvent
+  type: Property
+  namespace: SpellBook.GAS.Actions
+  summary: Evento do efeito que disparou a lista. <xref href="SpellBook.GAS.Actions.EffectEvent.None" data-throw-if-not-resolved="false"></xref> fora de efeito.
+  example: []
+  syntax:
+    content: public EffectEvent EffectEvent { get; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Actions.EffectEvent
+    content.vb: Public Property EffectEvent As EffectEvent
+  overload: SpellBook.GAS.Actions.ActionContext.EffectEvent*
 - uid: SpellBook.GAS.Actions.ActionContext.HasEffect
   commentId: P:SpellBook.GAS.Actions.ActionContext.HasEffect
   id: HasEffect
@@ -1000,6 +1044,38 @@ references:
   - name: .
   - uid: SpellBook.GAS.Effects
     name: Effects
+- uid: SpellBook.GAS.Actions.ActionContext.EffectDefinition*
+  commentId: Overload:SpellBook.GAS.Actions.ActionContext.EffectDefinition
+  href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_EffectDefinition
+  name: EffectDefinition
+  nameWithType: ActionContext.EffectDefinition
+  fullName: SpellBook.GAS.Actions.ActionContext.EffectDefinition
+- uid: SpellBook.GAS.Effects.GameplayEffect
+  commentId: T:SpellBook.GAS.Effects.GameplayEffect
+  parent: SpellBook.GAS.Effects
+  href: SpellBook.GAS.Effects.GameplayEffect.html
+  name: GameplayEffect
+  nameWithType: GameplayEffect
+  fullName: SpellBook.GAS.Effects.GameplayEffect
+- uid: SpellBook.GAS.Actions.EffectEvent.None
+  commentId: F:SpellBook.GAS.Actions.EffectEvent.None
+  href: SpellBook.GAS.Actions.EffectEvent.html#SpellBook_GAS_Actions_EffectEvent_None
+  name: None
+  nameWithType: EffectEvent.None
+  fullName: SpellBook.GAS.Actions.EffectEvent.None
+- uid: SpellBook.GAS.Actions.ActionContext.EffectEvent*
+  commentId: Overload:SpellBook.GAS.Actions.ActionContext.EffectEvent
+  href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_EffectEvent
+  name: EffectEvent
+  nameWithType: ActionContext.EffectEvent
+  fullName: SpellBook.GAS.Actions.ActionContext.EffectEvent
+- uid: SpellBook.GAS.Actions.EffectEvent
+  commentId: T:SpellBook.GAS.Actions.EffectEvent
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.EffectEvent.html
+  name: EffectEvent
+  nameWithType: EffectEvent
+  fullName: SpellBook.GAS.Actions.EffectEvent
 - uid: SpellBook.GAS.Actions.ActionContext.Effect
   commentId: P:SpellBook.GAS.Actions.ActionContext.Effect
   href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_Effect

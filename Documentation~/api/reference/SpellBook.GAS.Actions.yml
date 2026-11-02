@@ -5,9 +5,12 @@ items:
   id: SpellBook.GAS.Actions
   children:
   - SpellBook.GAS.Actions.ActionContext
+  - SpellBook.GAS.Actions.ActionEventAttribute
   - SpellBook.GAS.Actions.ActionExecutionHandle
   - SpellBook.GAS.Actions.ActionFrame
   - SpellBook.GAS.Actions.ActionStatus
+  - SpellBook.GAS.Actions.DefaultTarget
+  - SpellBook.GAS.Actions.EffectEvent
   - SpellBook.GAS.Actions.GameplayAction
   langs:
   - csharp
@@ -17,6 +20,13 @@ items:
   fullName: SpellBook.GAS.Actions
   type: Namespace
 references:
+- uid: SpellBook.GAS.Actions.EffectEvent
+  commentId: T:SpellBook.GAS.Actions.EffectEvent
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.EffectEvent.html
+  name: EffectEvent
+  nameWithType: EffectEvent
+  fullName: SpellBook.GAS.Actions.EffectEvent
 - uid: SpellBook.GAS.Actions.ActionContext
   commentId: T:SpellBook.GAS.Actions.ActionContext
   parent: SpellBook.GAS.Actions
@@ -24,6 +34,20 @@ references:
   name: ActionContext
   nameWithType: ActionContext
   fullName: SpellBook.GAS.Actions.ActionContext
+- uid: SpellBook.GAS.Actions.DefaultTarget
+  commentId: T:SpellBook.GAS.Actions.DefaultTarget
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.DefaultTarget.html
+  name: DefaultTarget
+  nameWithType: DefaultTarget
+  fullName: SpellBook.GAS.Actions.DefaultTarget
+- uid: SpellBook.GAS.Actions.ActionEventAttribute
+  commentId: T:SpellBook.GAS.Actions.ActionEventAttribute
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.ActionEventAttribute.html
+  name: ActionEventAttribute
+  nameWithType: ActionEventAttribute
+  fullName: SpellBook.GAS.Actions.ActionEventAttribute
 - uid: SpellBook.GAS.Actions.ActionExecutionHandle
   commentId: T:SpellBook.GAS.Actions.ActionExecutionHandle
   parent: SpellBook.GAS.Actions
@@ -47,6 +71,7 @@ references:
   fullName: SpellBook.GAS.Actions.ActionStatus
 - uid: SpellBook.GAS.Actions.GameplayAction
   commentId: T:SpellBook.GAS.Actions.GameplayAction
+  parent: SpellBook.GAS.Actions
   href: SpellBook.GAS.Actions.GameplayAction.html
   name: GameplayAction
   nameWithType: GameplayAction

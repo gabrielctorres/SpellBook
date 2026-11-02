@@ -1196,7 +1196,7 @@ namespace SpellBook.GAS.Core
                 return EffectApplicationResult.Stacked;
             }
 
-            // Sem CanStack: renova a instância existente, sem reaplicar modificadores, tags nem OnApplication.
+            // Sem CanStack: renova a instância existente, sem reaplicar modificadores, tags nem OnApplied.
             existing.Renew(hasOverride ? durationOverride : existing.AppliedDuration);
             return EffectApplicationResult.Refreshed;
         }
@@ -1392,10 +1392,18 @@ namespace SpellBook.GAS.Core
 
         private void ApplyInstantEffect(GameplayEffect effect, in EffectContext context)
         {
-            // Trigger Application Actions
-            if (effect.OnApplication != null)
+            List<GameplayAction> actions = effect.OnApplied;
+            if (actions != null && actions.Count > 0)
             {
-                foreach (var action in effect.OnApplication) action?.Execute(context.Instigator, this);
+                // Sem instância: a execução fica sem dono, com o asset e o contexto do efeito
+                ActionContext actionContext = Runner.RentContext();
+                if (context.Instigator != null) actionContext.Instigator = context.Instigator;
+                actionContext.Level = context.Level;
+                actionContext.EffectDefinition = effect;
+                actionContext.EffectEvent = EffectEvent.Applied;
+                actionContext.SetEffect(in context);
+                actionContext.EventTargets.Add(this);
+                RunActions(actions, actionContext, null);
             }
 
             ApplyModifiersToBase(effect, effect.Modifiers, in context);
@@ -1876,6 +1884,8 @@ namespace SpellBook.GAS.Core
 
             instance.IsRemoved = true;
             instance.DisposeLiveBindings();
+            // As ações em curso da instância param antes das ações de remoção
+            CancelActions(instance);
             instance.Cleanup();
             instance.OnEffectExpired -= HandleEffectExpired;
             instance.OnTick -= HandleEffectTick;

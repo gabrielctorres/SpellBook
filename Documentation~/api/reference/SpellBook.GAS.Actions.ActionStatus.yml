@@ -134,6 +134,7 @@ items:
 references:
 - uid: SpellBook.GAS.Actions.GameplayAction.Execute(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
   commentId: M:SpellBook.GAS.Actions.GameplayAction.Execute(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
+  parent: SpellBook.GAS.Actions.GameplayAction
   href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_Execute_SpellBook_GAS_Actions_ActionContext_SpellBook_GAS_Actions_ActionFrame__
   name: Execute(ActionContext, ref ActionFrame)
   nameWithType: GameplayAction.Execute(ActionContext, ref ActionFrame)
@@ -385,6 +386,13 @@ references:
     isExternal: true
     href: https://learn.microsoft.com/dotnet/api/system.object
   - name: )
+- uid: SpellBook.GAS.Actions.GameplayAction
+  commentId: T:SpellBook.GAS.Actions.GameplayAction
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.GameplayAction.html
+  name: GameplayAction
+  nameWithType: GameplayAction
+  fullName: SpellBook.GAS.Actions.GameplayAction
 - uid: System.ValueType
   commentId: T:System.ValueType
   parent: System

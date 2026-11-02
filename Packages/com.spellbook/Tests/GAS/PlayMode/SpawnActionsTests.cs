@@ -6,6 +6,7 @@ using SpellBook.Core;
 using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Abilities.Actions;
 using SpellBook.GAS.Abilities.Projectiles;
+using SpellBook.GAS.Actions;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
 using SpellBook.Testing;
@@ -70,7 +71,7 @@ namespace SpellBook.GAS.Tests
         public void SpawnVfx_ReleasesThroughConfiguredSpawner()
         {
             RecordingSpawner spawner = CreateRecordingSpawner();
-            var action = new SpawnVFXEffectAction
+            var action = new SpawnVFXAction
             {
                 Prefab = _spawn.CreatePrefab("Vfx_Test"),
                 AttachPointName = string.Empty,
@@ -78,7 +79,7 @@ namespace SpellBook.GAS.Tests
                 Spawner = spawner,
             };
             GameplayEffect effect = _gas.CreateDurationEffect(2f);
-            effect.OnApplication = new List<EffectAction> { action };
+            effect.OnApplied.Add(action);
             AbilitySystemComponent target = _gas.CreateAsc();
             ActiveEffectInstance instance = target.ApplyEffect(effect);
 
@@ -86,6 +87,30 @@ namespace SpellBook.GAS.Tests
 
             Assert.That(spawner.Spawned, Has.Count.EqualTo(1), "o VFX deveria ser criado pelo spawner configurado");
             Assert.That(spawner.Released, Is.EqualTo(spawner.Spawned), "o VFX deveria voltar pelo mesmo spawner");
+        }
+
+        [Test]
+        public void SpawnVfx_ReleasedOnRemoval()
+        {
+            RecordingSpawner spawner = CreateRecordingSpawner();
+            var action = new SpawnVFXAction
+            {
+                Prefab = _spawn.CreatePrefab("Vfx_Test"),
+                AttachPointName = string.Empty,
+                DestroyOnRemoval = true,
+                Spawner = spawner,
+            };
+            GameplayEffect effect = _gas.CreateDurationEffect(2f);
+            effect.OnApplied.Add(action);
+            AbilitySystemComponent target = _gas.CreateAsc();
+            ActiveEffectInstance instance = target.ApplyEffect(effect);
+            int releasedWhileActive = spawner.Released.Count;
+
+            target.RemoveEffect(instance);
+
+            Assert.That(spawner.Spawned, Has.Count.EqualTo(1), "o VFX não foi criado na aplicação");
+            Assert.That(releasedWhileActive, Is.EqualTo(0), "o VFX voltou antes da remoção");
+            Assert.That(spawner.Released, Is.EqualTo(spawner.Spawned), "o VFX não voltou na remoção");
         }
 
         [Test]
@@ -141,7 +166,7 @@ namespace SpellBook.GAS.Tests
         {
             NullSpawner spawner = CreateNullSpawner(nullCalls: int.MaxValue);
             GameObject prefab = _spawn.CreatePrefab("Vfx_Test");
-            var action = new SpawnVFXEffectAction
+            var action = new SpawnVFXAction
             {
                 Prefab = prefab,
                 AttachPointName = string.Empty,
@@ -151,7 +176,7 @@ namespace SpellBook.GAS.Tests
             AbilitySystemComponent target = _gas.CreateAsc();
             LogAssert.Expect(LogType.Warning, SpawnFailedWarning(spawner, prefab));
 
-            Assert.DoesNotThrow(() => action.Execute(target, target, null));
+            Assert.DoesNotThrow(() => target.RunActions(new GameplayAction[] { action }, null, null));
         }
 
         [Test]
@@ -159,7 +184,7 @@ namespace SpellBook.GAS.Tests
         {
             NullSpawner spawner = CreateNullSpawner(nullCalls: int.MaxValue);
             GameObject prefab = _spawn.CreatePrefab("Vfx_Test");
-            var action = new SpawnVFXEffectAction
+            var action = new SpawnVFXAction
             {
                 Prefab = prefab,
                 AttachPointName = string.Empty,
@@ -167,7 +192,7 @@ namespace SpellBook.GAS.Tests
                 Spawner = spawner,
             };
             GameplayEffect effect = _gas.CreateDurationEffect(2f);
-            effect.OnApplication = new List<EffectAction> { action };
+            effect.OnApplied.Add(action);
             AbilitySystemComponent target = _gas.CreateAsc();
             LogAssert.Expect(LogType.Warning, SpawnFailedWarning(spawner, prefab));
             ActiveEffectInstance instance = target.ApplyEffect(effect);

@@ -6,7 +6,7 @@ items:
   children:
   - SpellBook.GAS.Effects.ActiveEffectInstance
   - SpellBook.GAS.Effects.AttributeEffectModifier
-  - SpellBook.GAS.Effects.DebugLogEffectAction
+  - SpellBook.GAS.Effects.DebugLogAction
   - SpellBook.GAS.Effects.EffectAction
   - SpellBook.GAS.Effects.EffectApplicationResult
   - SpellBook.GAS.Effects.EffectContext
@@ -17,7 +17,7 @@ items:
   - SpellBook.GAS.Effects.IReadOnlySetByCaller
   - SpellBook.GAS.Effects.MagnitudeMode
   - SpellBook.GAS.Effects.SetByCallerValues
-  - SpellBook.GAS.Effects.SpawnVFXEffectAction
+  - SpellBook.GAS.Effects.SpawnVFXAction
   langs:
   - csharp
   - vb
@@ -35,7 +35,6 @@ references:
   fullName: SpellBook.GAS.Effects.ActiveEffectInstance
 - uid: SpellBook.GAS.Effects.EffectAction
   commentId: T:SpellBook.GAS.Effects.EffectAction
-  parent: SpellBook.GAS.Effects
   href: SpellBook.GAS.Effects.EffectAction.html
   name: EffectAction
   nameWithType: EffectAction
@@ -108,18 +107,18 @@ references:
   name: SetByCallerValues
   nameWithType: SetByCallerValues
   fullName: SpellBook.GAS.Effects.SetByCallerValues
-- uid: SpellBook.GAS.Effects.DebugLogEffectAction
-  commentId: T:SpellBook.GAS.Effects.DebugLogEffectAction
-  href: SpellBook.GAS.Effects.DebugLogEffectAction.html
-  name: DebugLogEffectAction
-  nameWithType: DebugLogEffectAction
-  fullName: SpellBook.GAS.Effects.DebugLogEffectAction
-- uid: SpellBook.GAS.Effects.SpawnVFXEffectAction
-  commentId: T:SpellBook.GAS.Effects.SpawnVFXEffectAction
-  href: SpellBook.GAS.Effects.SpawnVFXEffectAction.html
-  name: SpawnVFXEffectAction
-  nameWithType: SpawnVFXEffectAction
-  fullName: SpellBook.GAS.Effects.SpawnVFXEffectAction
+- uid: SpellBook.GAS.Effects.DebugLogAction
+  commentId: T:SpellBook.GAS.Effects.DebugLogAction
+  href: SpellBook.GAS.Effects.DebugLogAction.html
+  name: DebugLogAction
+  nameWithType: DebugLogAction
+  fullName: SpellBook.GAS.Effects.DebugLogAction
+- uid: SpellBook.GAS.Effects.SpawnVFXAction
+  commentId: T:SpellBook.GAS.Effects.SpawnVFXAction
+  href: SpellBook.GAS.Effects.SpawnVFXAction.html
+  name: SpawnVFXAction
+  nameWithType: SpawnVFXAction
+  fullName: SpellBook.GAS.Effects.SpawnVFXAction
 - uid: SpellBook.GAS.Effects
   commentId: N:SpellBook.GAS.Effects
   name: SpellBook.GAS.Effects

@@ -26,9 +26,6 @@ items:
       Public MustInherit Class EffectAction
   inheritance:
   - System.Object
-  derivedClasses:
-  - SpellBook.GAS.Effects.DebugLogEffectAction
-  - SpellBook.GAS.Effects.SpawnVFXEffectAction
   inheritedMembers:
   - System.Object.Equals(System.Object)
   - System.Object.Equals(System.Object,System.Object)

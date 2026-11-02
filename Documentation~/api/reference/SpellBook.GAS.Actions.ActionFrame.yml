@@ -111,6 +111,7 @@ items:
 references:
 - uid: SpellBook.GAS.Actions.GameplayAction
   commentId: T:SpellBook.GAS.Actions.GameplayAction
+  parent: SpellBook.GAS.Actions
   href: SpellBook.GAS.Actions.GameplayAction.html
   name: GameplayAction
   nameWithType: GameplayAction

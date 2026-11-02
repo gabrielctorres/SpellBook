@@ -36,6 +36,9 @@ items:
       Public MustInherit Class GameplayAction Implements IValidatable
   inheritance:
   - System.Object
+  derivedClasses:
+  - SpellBook.GAS.Effects.DebugLogAction
+  - SpellBook.GAS.Effects.SpawnVFXAction
   implements:
   - SpellBook.Core.Validation.IValidatable
   inheritedMembers:

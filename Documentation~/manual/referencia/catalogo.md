@@ -77,6 +77,15 @@ Aparece em: `Ability Description > Elements`.
 | [Template Element](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.TemplateElement.html) | Descrição | Modelo com marcadores trocados por atributos ou texto. |
 | [Text Element](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.TextElement.html) | Descrição | Texto fixo. |
 
+## `GameplayAction` {#spellbook-gas-actions-gameplayaction}
+
+Aparece em: `Gameplay Effect > On Applied`, `Gameplay Effect > On Removed`, `Gameplay Effect > On Tick`.
+
+| Tipo | Categoria | Resumo |
+|---|---|---|
+| [Debug Log Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Effects.DebugLogAction.html) | Depuração | Escreve uma mensagem colorida no Console quando o efeito roda. |
+| [Spawn VFX Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Effects.SpawnVFXAction.html) | Apresentação | Cria um efeito visual no alvo e, se marcado, o remove quando o efeito sai. |
+
 ## `AttributeChangeProcessor` {#spellbook-gas-attributes-attributechangeprocessor}
 
 Aparece em: `Attribute Definition > Processors`.
@@ -86,12 +95,3 @@ Aparece em: `Attribute Definition > Processors`.
 | [Absorb With Attribute](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Attributes.AbsorbWithAttribute.html) | Dano/Escudo | Desvia o dano para um atributo de escudo do dono. |
 | [Immune To Tags](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Attributes.ImmuneToTags.html) | Dano/Imunidade | Anula a alteração de efeitos com certas tags de dano. |
 | [Reduce By Attribute](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Attributes.ReduceByAttribute.html) | Dano/Redução | Reduz a alteração pelo valor de um atributo do dono. |
-
-## `EffectAction` {#spellbook-gas-effects-effectaction}
-
-Aparece em: `Gameplay Effect > On Application`, `Gameplay Effect > On Removal`, `Gameplay Effect > On Tick Actions`.
-
-| Tipo | Categoria | Resumo |
-|---|---|---|
-| [Debug Log Effect Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Effects.DebugLogEffectAction.html) | Depuração | Escreve uma mensagem colorida no Console quando o efeito roda. |
-| [Spawn VFX Effect Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Effects.SpawnVFXEffectAction.html) | Apresentação | Cria um efeito visual no alvo e, se marcado, o remove quando o efeito sai. |

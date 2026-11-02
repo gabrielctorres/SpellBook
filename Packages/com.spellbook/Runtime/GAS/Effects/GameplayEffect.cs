@@ -6,6 +6,7 @@ using SpellBook.Core.Validation;
 using UnityEngine;
 using UnityEngine.Serialization;
 using SpellBook.Tags;
+using SpellBook.GAS.Actions;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Values;
 
@@ -112,16 +113,22 @@ namespace SpellBook.GAS.Effects
         [Header("Actions")]
         [SerializeReference]
         [TypePicker]
-        public List<EffectAction> OnApplication = new List<EffectAction>();
+        [FormerlySerializedAs("OnApplication")]
+        [ActionEvent("Ao ser aplicado", DefaultTarget.Owner, true)]
+        public List<GameplayAction> OnApplied = new List<GameplayAction>();
 
         [SerializeReference]
         [TypePicker]
+        [FormerlySerializedAs("OnTickActions")]
+        [ActionEvent("A cada tick", DefaultTarget.Owner, true)]
         [Tooltip("Usado só quando Period > 0")]
-        public List<EffectAction> OnTickActions = new List<EffectAction>();
+        public List<GameplayAction> OnTick = new List<GameplayAction>();
 
         [SerializeReference]
         [TypePicker]
-        public List<EffectAction> OnRemoval = new List<EffectAction>();
+        [FormerlySerializedAs("OnRemoval")]
+        [ActionEvent("Ao ser removido", DefaultTarget.Owner, true)]
+        public List<GameplayAction> OnRemoved = new List<GameplayAction>();
 
         [Header("Gameplay Tags")]
         [Tooltip("Tipos de dano do efeito. Os processadores dos atributos (resistência, imunidade) casam pela hierarquia: Dano casa com Dano.Fogo.")]
