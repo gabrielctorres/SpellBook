@@ -409,6 +409,25 @@ items:
   - uid: SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors
     name: Projectile.MovementVectors
     type: Enum
+- uid: SpellBook.GAS.Actions
+  name: SpellBook.GAS.Actions
+  type: Namespace
+  items:
+  - uid: SpellBook.GAS.Actions.ActionContext
+    name: ActionContext
+    type: Class
+  - uid: SpellBook.GAS.Actions.ActionExecutionHandle
+    name: ActionExecutionHandle
+    type: Struct
+  - uid: SpellBook.GAS.Actions.ActionFrame
+    name: ActionFrame
+    type: Struct
+  - uid: SpellBook.GAS.Actions.ActionStatus
+    name: ActionStatus
+    type: Struct
+  - uid: SpellBook.GAS.Actions.GameplayAction
+    name: GameplayAction
+    type: Class
 - uid: SpellBook.GAS.Attributes
   name: SpellBook.GAS.Attributes
   type: Namespace

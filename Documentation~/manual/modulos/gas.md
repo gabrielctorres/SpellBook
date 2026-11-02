@@ -440,6 +440,22 @@ Os alvos num raio em volta da origem. Aceita `maxTargets` (prioriza os mais pró
 #### MouseTargetingStrategy {#mousetargetingstrategy}
 O alvo válido mais próximo do ponto mirado, num raio pequeno. Crie em **Create → GAS → Targeting → Mouse**.
 
+### 3.3 Base nova das ações {#gameplayaction}
+`GameplayAction` (namespace `SpellBook.GAS.Actions`) é a base única das ações da 3.0, e o `AbilitySystemComponent` tem o executor que a roda. Nesta versão de desenvolvimento, habilidades, efeitos e projéteis ainda usam `AbilityAction` e `EffectAction`. As próximas mudanças os passam para a base nova.
+
+Uma ação implementa `Execute(ActionContext context, ref ActionFrame frame)` e devolve um `ActionStatus`:
+
+- `ActionStatus.Done`: a ação terminou, e o executor passa à próxima da lista.
+- `ActionStatus.Wait(segundos)`: o executor chama a ação de novo depois desse tempo do ASC. Zero ou negativo não espera.
+
+A mesma instância da ação serve a todas as execuções. Guarde o estado de uma execução no `ActionFrame` (`Phase`, `Index`, `Count` e `Data`), nunca em campos da ação. O quadro chega zerado na primeira chamada. Uma ação que espera e depois age, por exemplo, devolve `Wait` com `Phase` em 0, muda `Phase` para 1 e, na chamada seguinte, faz o trabalho e devolve `Done`.
+
+Para rodar uma lista pelo código, chame `asc.RunActions(acoes, contexto, dono)`. As ações sem espera rodam na mesma chamada, e as esperas andam no `Tick` do ASC. Uma entrada nula da lista é pulada. O `dono` é qualquer objeto que identifique a execução, e `asc.HasRunningActions(dono)` diz se ainda há alguma dele em curso.
+
+Uma espera conta a partir do fim do passo anterior, no tempo do ASC. Um `Tick` no mesmo quadro em que a execução começou conta, e o excesso de um `Tick` grande passa para a espera seguinte: com duas esperas de 1 s, `Tick(1.5)` e depois `Tick(0.5)` terminam as duas.
+
+O `ActionContext` leva os dados da execução: `Owner` (o ASC que roda), `Instigator`, `EventTargets`, `Targets`, `Point` com `HasPoint`, `Ability`, `Spec`, `Level`, `EffectInstance`, `Effect` com `HasEffect`, `EventInstigator` e `CustomData`. Passe `null` como contexto para o ASC criar um, com ele mesmo como `Owner` e `Instigator`.
+
 ---
 
 ## 4. Ciclo de vida, cooldown e custo {#ciclo-de-vida}

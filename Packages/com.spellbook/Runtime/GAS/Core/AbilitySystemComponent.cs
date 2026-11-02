@@ -10,6 +10,7 @@ using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Effects;
 using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Conditions;
+using SpellBook.GAS.Actions;
 namespace SpellBook.GAS.Core
 {
     /// <summary>
@@ -35,6 +36,7 @@ namespace SpellBook.GAS.Core
         private ITimeSource _timeSourceOverride;
         private double _timeCursor;
         private double _tickedTime;
+        private ActionRunner _runner;
 
         // Contagem de referência: várias fontes podem conceder a mesma tag
         private readonly Dictionary<GameplayTag, int> _activeTags = new Dictionary<GameplayTag, int>();
@@ -225,6 +227,27 @@ namespace SpellBook.GAS.Core
                 spec.ChargeRechargeRemaining -= deltaTime;
                 AdvanceChargeRecharge(spec);
             }
+
+            _runner?.Tick();
+        }
+
+        internal ActionRunner Runner => _runner ??= new ActionRunner(this);
+
+        /// <summary>
+        /// Roda <paramref name="actions"/> em sequência no executor deste ASC (ADR 0034). As ações sem espera rodam já,
+        /// nesta chamada; as esperas andam no <see cref="Tick"/>. Com <paramref name="context"/> nulo, cria um contexto
+        /// com este ASC como dono e instigador. <paramref name="owner"/> é o dono lógico, consultado por
+        /// <see cref="HasRunningActions"/>; nulo deixa a execução sem dono.
+        /// </summary>
+        public ActionExecutionHandle RunActions(IReadOnlyList<GameplayAction> actions, ActionContext context, object owner)
+        {
+            return Runner.Run(actions, context, owner);
+        }
+
+        /// <summary>Se há execução em curso de <paramref name="owner"/>.</summary>
+        public bool HasRunningActions(object owner)
+        {
+            return _runner != null && _runner.HasRunning(owner);
         }
 
         public float GetAttributeValue(AttributeDefinition def)

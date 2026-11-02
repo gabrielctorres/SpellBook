@@ -1,0 +1,663 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Actions.GameplayAction
+  commentId: T:SpellBook.GAS.Actions.GameplayAction
+  id: GameplayAction
+  parent: SpellBook.GAS.Actions
+  children:
+  - SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
+  - SpellBook.GAS.Actions.GameplayAction.Execute(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
+  - SpellBook.GAS.Actions.GameplayAction.UsesTargets
+  - SpellBook.GAS.Actions.GameplayAction.Validate(SpellBook.Core.Validation.ValidationResult)
+  langs:
+  - csharp
+  - vb
+  name: GameplayAction
+  nameWithType: GameplayAction
+  fullName: SpellBook.GAS.Actions.GameplayAction
+  type: Class
+  namespace: SpellBook.GAS.Actions
+  summary: >-
+    Passo de uma lista de ações, rodado pelo executor do <xref href="SpellBook.GAS.Core.AbilitySystemComponent" data-throw-if-not-resolved="false"></xref> no <code>Tick</code>.
+
+    A ação é dado compartilhado por todas as execuções: o estado de uma execução fica no
+
+    <xref href="SpellBook.GAS.Actions.ActionFrame" data-throw-if-not-resolved="false"></xref> e no <xref href="SpellBook.GAS.Actions.ActionContext" data-throw-if-not-resolved="false"></xref>, nunca em campos da ação.
+  example: []
+  syntax:
+    content: >-
+      [Serializable]
+
+      public abstract class GameplayAction : IValidatable
+    content.vb: >-
+      <Serializable>
+
+      Public MustInherit Class GameplayAction Implements IValidatable
+  inheritance:
+  - System.Object
+  implements:
+  - SpellBook.Core.Validation.IValidatable
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.MemberwiseClone
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+  attributes:
+  - type: System.SerializableAttribute
+    ctor: System.SerializableAttribute.#ctor
+    arguments: []
+- uid: SpellBook.GAS.Actions.GameplayAction.UsesTargets
+  commentId: P:SpellBook.GAS.Actions.GameplayAction.UsesTargets
+  id: UsesTargets
+  parent: SpellBook.GAS.Actions.GameplayAction
+  langs:
+  - csharp
+  - vb
+  name: UsesTargets
+  nameWithType: GameplayAction.UsesTargets
+  fullName: SpellBook.GAS.Actions.GameplayAction.UsesTargets
+  type: Property
+  namespace: SpellBook.GAS.Actions
+  summary: Se a ação usa alvos. O Inspector mostra o alvo só quando é verdadeiro.
+  example: []
+  syntax:
+    content: public virtual bool UsesTargets { get; }
+    parameters: []
+    return:
+      type: System.Boolean
+    content.vb: Public Overridable ReadOnly Property UsesTargets As Boolean
+  overload: SpellBook.GAS.Actions.GameplayAction.UsesTargets*
+- uid: SpellBook.GAS.Actions.GameplayAction.Execute(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
+  commentId: M:SpellBook.GAS.Actions.GameplayAction.Execute(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
+  id: Execute(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
+  parent: SpellBook.GAS.Actions.GameplayAction
+  langs:
+  - csharp
+  - vb
+  name: Execute(ActionContext, ref ActionFrame)
+  nameWithType: GameplayAction.Execute(ActionContext, ref ActionFrame)
+  fullName: SpellBook.GAS.Actions.GameplayAction.Execute(SpellBook.GAS.Actions.ActionContext, ref SpellBook.GAS.Actions.ActionFrame)
+  type: Method
+  namespace: SpellBook.GAS.Actions
+  summary: >-
+    Avança a ação. Na primeira chamada, <code>frame</code> vem zerado. Devolva <xref href="SpellBook.GAS.Actions.ActionStatus.Done" data-throw-if-not-resolved="false"></xref> para
+
+    terminar, ou uma espera para ser chamada de novo depois dela.
+  example: []
+  syntax:
+    content: protected abstract ActionStatus Execute(ActionContext context, ref ActionFrame frame)
+    parameters:
+    - id: context
+      type: SpellBook.GAS.Actions.ActionContext
+    - id: frame
+      type: SpellBook.GAS.Actions.ActionFrame
+    return:
+      type: SpellBook.GAS.Actions.ActionStatus
+    content.vb: Protected MustOverride Function Execute(context As ActionContext, frame As ActionFrame) As ActionStatus
+  overload: SpellBook.GAS.Actions.GameplayAction.Execute*
+  nameWithType.vb: GameplayAction.Execute(ActionContext, ActionFrame)
+  fullName.vb: SpellBook.GAS.Actions.GameplayAction.Execute(SpellBook.GAS.Actions.ActionContext, SpellBook.GAS.Actions.ActionFrame)
+  name.vb: Execute(ActionContext, ActionFrame)
+- uid: SpellBook.GAS.Actions.GameplayAction.Validate(SpellBook.Core.Validation.ValidationResult)
+  commentId: M:SpellBook.GAS.Actions.GameplayAction.Validate(SpellBook.Core.Validation.ValidationResult)
+  id: Validate(SpellBook.Core.Validation.ValidationResult)
+  parent: SpellBook.GAS.Actions.GameplayAction
+  langs:
+  - csharp
+  - vb
+  name: Validate(ValidationResult)
+  nameWithType: GameplayAction.Validate(ValidationResult)
+  fullName: SpellBook.GAS.Actions.GameplayAction.Validate(SpellBook.Core.Validation.ValidationResult)
+  type: Method
+  namespace: SpellBook.GAS.Actions
+  summary: Acusa a configuração inválida da ação. O padrão não acusa nada.
+  example: []
+  syntax:
+    content: public virtual void Validate(ValidationResult result)
+    parameters:
+    - id: result
+      type: SpellBook.Core.Validation.ValidationResult
+    content.vb: Public Overridable Sub Validate(result As ValidationResult)
+  overload: SpellBook.GAS.Actions.GameplayAction.Validate*
+  implements:
+  - SpellBook.Core.Validation.IValidatable.Validate(SpellBook.Core.Validation.ValidationResult)
+- uid: SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
+  commentId: M:SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
+  id: CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
+  parent: SpellBook.GAS.Actions.GameplayAction
+  langs:
+  - csharp
+  - vb
+  name: CollectEffects(List<GameplayEffect>)
+  nameWithType: GameplayAction.CollectEffects(List<GameplayEffect>)
+  fullName: SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List<SpellBook.GAS.Effects.GameplayEffect>)
+  type: Method
+  namespace: SpellBook.GAS.Actions
+  summary: Acrescenta a <code class="paramref">results</code> os efeitos que a ação aplica. O padrão não acrescenta nada.
+  example: []
+  syntax:
+    content: public virtual void CollectEffects(List<GameplayEffect> results)
+    parameters:
+    - id: results
+      type: System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect}
+    content.vb: Public Overridable Sub CollectEffects(results As List(Of GameplayEffect))
+  overload: SpellBook.GAS.Actions.GameplayAction.CollectEffects*
+  nameWithType.vb: GameplayAction.CollectEffects(List(Of GameplayEffect))
+  fullName.vb: SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List(Of SpellBook.GAS.Effects.GameplayEffect))
+  name.vb: CollectEffects(List(Of GameplayEffect))
+references:
+- uid: SpellBook.GAS.Core.AbilitySystemComponent
+  commentId: T:SpellBook.GAS.Core.AbilitySystemComponent
+  parent: SpellBook.GAS.Core
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  name: AbilitySystemComponent
+  nameWithType: AbilitySystemComponent
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent
+- uid: SpellBook.GAS.Actions.ActionFrame
+  commentId: T:SpellBook.GAS.Actions.ActionFrame
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.ActionFrame.html
+  name: ActionFrame
+  nameWithType: ActionFrame
+  fullName: SpellBook.GAS.Actions.ActionFrame
+- uid: SpellBook.GAS.Actions.ActionContext
+  commentId: T:SpellBook.GAS.Actions.ActionContext
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.ActionContext.html
+  name: ActionContext
+  nameWithType: ActionContext
+  fullName: SpellBook.GAS.Actions.ActionContext
+- uid: SpellBook.GAS.Actions
+  commentId: N:SpellBook.GAS.Actions
+  name: SpellBook.GAS.Actions
+  nameWithType: SpellBook.GAS.Actions
+  fullName: SpellBook.GAS.Actions
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Actions
+    name: Actions
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Actions
+    name: Actions
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: SpellBook.Core.Validation.IValidatable
+  commentId: T:SpellBook.Core.Validation.IValidatable
+  parent: SpellBook.Core.Validation
+  href: SpellBook.Core.Validation.IValidatable.html
+  name: IValidatable
+  nameWithType: IValidatable
+  fullName: SpellBook.Core.Validation.IValidatable
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.MemberwiseClone
+  commentId: M:System.Object.MemberwiseClone
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  name: MemberwiseClone()
+  nameWithType: object.MemberwiseClone()
+  fullName: object.MemberwiseClone()
+  nameWithType.vb: Object.MemberwiseClone()
+  fullName.vb: Object.MemberwiseClone()
+  spec.csharp:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: SpellBook.GAS.Core
+  commentId: N:SpellBook.GAS.Core
+  name: SpellBook.GAS.Core
+  nameWithType: SpellBook.GAS.Core
+  fullName: SpellBook.GAS.Core
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Core
+    name: Core
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Core
+    name: Core
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: SpellBook.Core.Validation
+  commentId: N:SpellBook.Core.Validation
+  name: SpellBook.Core.Validation
+  nameWithType: SpellBook.Core.Validation
+  fullName: SpellBook.Core.Validation
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Validation
+    name: Validation
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Validation
+    name: Validation
+- uid: SpellBook.GAS.Actions.GameplayAction.UsesTargets*
+  commentId: Overload:SpellBook.GAS.Actions.GameplayAction.UsesTargets
+  href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_UsesTargets
+  name: UsesTargets
+  nameWithType: GameplayAction.UsesTargets
+  fullName: SpellBook.GAS.Actions.GameplayAction.UsesTargets
+- uid: System.Boolean
+  commentId: T:System.Boolean
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.boolean
+  name: bool
+  nameWithType: bool
+  fullName: bool
+  nameWithType.vb: Boolean
+  fullName.vb: Boolean
+  name.vb: Boolean
+- uid: SpellBook.GAS.Actions.ActionStatus.Done
+  commentId: P:SpellBook.GAS.Actions.ActionStatus.Done
+  href: SpellBook.GAS.Actions.ActionStatus.html#SpellBook_GAS_Actions_ActionStatus_Done
+  name: Done
+  nameWithType: ActionStatus.Done
+  fullName: SpellBook.GAS.Actions.ActionStatus.Done
+- uid: SpellBook.GAS.Actions.GameplayAction.Execute*
+  commentId: Overload:SpellBook.GAS.Actions.GameplayAction.Execute
+  href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_Execute_SpellBook_GAS_Actions_ActionContext_SpellBook_GAS_Actions_ActionFrame__
+  name: Execute
+  nameWithType: GameplayAction.Execute
+  fullName: SpellBook.GAS.Actions.GameplayAction.Execute
+- uid: SpellBook.GAS.Actions.ActionStatus
+  commentId: T:SpellBook.GAS.Actions.ActionStatus
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.ActionStatus.html
+  name: ActionStatus
+  nameWithType: ActionStatus
+  fullName: SpellBook.GAS.Actions.ActionStatus
+- uid: SpellBook.GAS.Actions.GameplayAction.Validate*
+  commentId: Overload:SpellBook.GAS.Actions.GameplayAction.Validate
+  href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_Validate_SpellBook_Core_Validation_ValidationResult_
+  name: Validate
+  nameWithType: GameplayAction.Validate
+  fullName: SpellBook.GAS.Actions.GameplayAction.Validate
+- uid: SpellBook.Core.Validation.IValidatable.Validate(SpellBook.Core.Validation.ValidationResult)
+  commentId: M:SpellBook.Core.Validation.IValidatable.Validate(SpellBook.Core.Validation.ValidationResult)
+  parent: SpellBook.Core.Validation.IValidatable
+  href: SpellBook.Core.Validation.IValidatable.html#SpellBook_Core_Validation_IValidatable_Validate_SpellBook_Core_Validation_ValidationResult_
+  name: Validate(ValidationResult)
+  nameWithType: IValidatable.Validate(ValidationResult)
+  fullName: SpellBook.Core.Validation.IValidatable.Validate(SpellBook.Core.Validation.ValidationResult)
+  spec.csharp:
+  - uid: SpellBook.Core.Validation.IValidatable.Validate(SpellBook.Core.Validation.ValidationResult)
+    name: Validate
+    href: SpellBook.Core.Validation.IValidatable.html#SpellBook_Core_Validation_IValidatable_Validate_SpellBook_Core_Validation_ValidationResult_
+  - name: (
+  - uid: SpellBook.Core.Validation.ValidationResult
+    name: ValidationResult
+    href: SpellBook.Core.Validation.ValidationResult.html
+  - name: )
+  spec.vb:
+  - uid: SpellBook.Core.Validation.IValidatable.Validate(SpellBook.Core.Validation.ValidationResult)
+    name: Validate
+    href: SpellBook.Core.Validation.IValidatable.html#SpellBook_Core_Validation_IValidatable_Validate_SpellBook_Core_Validation_ValidationResult_
+  - name: (
+  - uid: SpellBook.Core.Validation.ValidationResult
+    name: ValidationResult
+    href: SpellBook.Core.Validation.ValidationResult.html
+  - name: )
+- uid: SpellBook.Core.Validation.ValidationResult
+  commentId: T:SpellBook.Core.Validation.ValidationResult
+  parent: SpellBook.Core.Validation
+  href: SpellBook.Core.Validation.ValidationResult.html
+  name: ValidationResult
+  nameWithType: ValidationResult
+  fullName: SpellBook.Core.Validation.ValidationResult
+- uid: SpellBook.GAS.Actions.GameplayAction.CollectEffects*
+  commentId: Overload:SpellBook.GAS.Actions.GameplayAction.CollectEffects
+  href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_CollectEffects_System_Collections_Generic_List_SpellBook_GAS_Effects_GameplayEffect__
+  name: CollectEffects
+  nameWithType: GameplayAction.CollectEffects
+  fullName: SpellBook.GAS.Actions.GameplayAction.CollectEffects
+- uid: System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect}
+  commentId: T:System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.List`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  name: List<GameplayEffect>
+  nameWithType: List<GameplayEffect>
+  fullName: System.Collections.Generic.List<SpellBook.GAS.Effects.GameplayEffect>
+  nameWithType.vb: List(Of GameplayEffect)
+  fullName.vb: System.Collections.Generic.List(Of SpellBook.GAS.Effects.GameplayEffect)
+  name.vb: List(Of GameplayEffect)
+  spec.csharp:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: <
+  - uid: SpellBook.GAS.Effects.GameplayEffect
+    name: GameplayEffect
+    href: SpellBook.GAS.Effects.GameplayEffect.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: SpellBook.GAS.Effects.GameplayEffect
+    name: GameplayEffect
+    href: SpellBook.GAS.Effects.GameplayEffect.html
+  - name: )
+- uid: System.Collections.Generic.List`1
+  commentId: T:System.Collections.Generic.List`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  name: List<T>
+  nameWithType: List<T>
+  fullName: System.Collections.Generic.List<T>
+  nameWithType.vb: List(Of T)
+  fullName.vb: System.Collections.Generic.List(Of T)
+  name.vb: List(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic
+  commentId: N:System.Collections.Generic
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Collections.Generic
+  nameWithType: System.Collections.Generic
+  fullName: System.Collections.Generic
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic

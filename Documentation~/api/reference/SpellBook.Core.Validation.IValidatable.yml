@@ -54,6 +54,7 @@ items:
   - SpellBook.GAS.Abilities.Actions.WaitAction
   - SpellBook.GAS.Abilities.CooldownReductionPolicy
   - SpellBook.GAS.Abilities.GameplayAbility
+  - SpellBook.GAS.Actions.GameplayAction
   - SpellBook.GAS.Attributes.AttributeDefinition
   - SpellBook.GAS.Bridges.AbilityEventResponse
   - SpellBook.GAS.Bridges.AbilitySystemEventRelay

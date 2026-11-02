@@ -1,0 +1,76 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Actions
+  commentId: N:SpellBook.GAS.Actions
+  id: SpellBook.GAS.Actions
+  children:
+  - SpellBook.GAS.Actions.ActionContext
+  - SpellBook.GAS.Actions.ActionExecutionHandle
+  - SpellBook.GAS.Actions.ActionFrame
+  - SpellBook.GAS.Actions.ActionStatus
+  - SpellBook.GAS.Actions.GameplayAction
+  langs:
+  - csharp
+  - vb
+  name: SpellBook.GAS.Actions
+  nameWithType: SpellBook.GAS.Actions
+  fullName: SpellBook.GAS.Actions
+  type: Namespace
+references:
+- uid: SpellBook.GAS.Actions.ActionContext
+  commentId: T:SpellBook.GAS.Actions.ActionContext
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.ActionContext.html
+  name: ActionContext
+  nameWithType: ActionContext
+  fullName: SpellBook.GAS.Actions.ActionContext
+- uid: SpellBook.GAS.Actions.ActionExecutionHandle
+  commentId: T:SpellBook.GAS.Actions.ActionExecutionHandle
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.ActionExecutionHandle.html
+  name: ActionExecutionHandle
+  nameWithType: ActionExecutionHandle
+  fullName: SpellBook.GAS.Actions.ActionExecutionHandle
+- uid: SpellBook.GAS.Actions.ActionFrame
+  commentId: T:SpellBook.GAS.Actions.ActionFrame
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.ActionFrame.html
+  name: ActionFrame
+  nameWithType: ActionFrame
+  fullName: SpellBook.GAS.Actions.ActionFrame
+- uid: SpellBook.GAS.Actions.ActionStatus
+  commentId: T:SpellBook.GAS.Actions.ActionStatus
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.ActionStatus.html
+  name: ActionStatus
+  nameWithType: ActionStatus
+  fullName: SpellBook.GAS.Actions.ActionStatus
+- uid: SpellBook.GAS.Actions.GameplayAction
+  commentId: T:SpellBook.GAS.Actions.GameplayAction
+  href: SpellBook.GAS.Actions.GameplayAction.html
+  name: GameplayAction
+  nameWithType: GameplayAction
+  fullName: SpellBook.GAS.Actions.GameplayAction
+- uid: SpellBook.GAS.Actions
+  commentId: N:SpellBook.GAS.Actions
+  name: SpellBook.GAS.Actions
+  nameWithType: SpellBook.GAS.Actions
+  fullName: SpellBook.GAS.Actions
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Actions
+    name: Actions
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Actions
+    name: Actions
