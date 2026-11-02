@@ -22,6 +22,7 @@ nav:
       - inicio/instalacao.md
   - Sistemas de habilidade:
       - modulos/gas.md
+      - modulos/dano-escudo-e-morte.md
   - Sistemas de apoio:
       - modulos/eventos.md
       - modulos/tags.md

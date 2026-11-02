@@ -1,6 +1,7 @@
 using System;
 using SpellBook.Core.Conditions;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Effects;
 using UnityEngine;
@@ -78,6 +79,23 @@ namespace SpellBook.GAS.Conditions
             var effectContext = new EffectContext(context.Owner, context.Owner, context.Ability, context.Level, false, Vector3.zero, null);
             float threshold = value != null ? value.GetValue(in effectContext) : 0f;
             return Compare(current, threshold);
+        }
+
+        /// <summary>Acusa a condição sem atributo e o valor lido do chamador ou do alvo, que não existem na ativação.</summary>
+        public override void Validate(ValidationResult result, string propertyPath)
+        {
+            if (attribute == null)
+            {
+                result.AddError("Condição de atributo sem atributo: escolha o Attribute.", propertyPath + "." + nameof(attribute));
+            }
+
+            ModifierValueSource.SourceType type = value != null ? value.Type : ModifierValueSource.SourceType.Value;
+            if (type == ModifierValueSource.SourceType.SetByCaller || type == ModifierValueSource.SourceType.TargetAttribute)
+            {
+                result.AddError(
+                    $"Condição de atributo com valor {type}: na ativação não há chamador nem alvo; use Value, Attribute ou Formula.",
+                    propertyPath + "." + nameof(value));
+            }
         }
 
         private bool Compare(float current, float threshold)

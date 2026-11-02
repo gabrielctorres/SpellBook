@@ -12,6 +12,12 @@ using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Conditions;
 namespace SpellBook.GAS.Core
 {
+    /// <summary>
+    /// Ouvinte de um atributo que chegou a um limite. <paramref name="cause"/> é o relatório da alteração do pipeline
+    /// que o levou ao limite; sem ela (limite que mudou, modificador persistente), <c>IsValid</c> é falso.
+    /// </summary>
+    public delegate void AttributeLimitHandler(AttributeState state, in AttributeChangeReport cause);
+
     [RequireComponent(typeof(AttributeSet))]
     [HelpURL(DocUrls.Gas + "#abilitysystemcomponent")]
     public class AbilitySystemComponent : MonoBehaviour, IValidatable
@@ -79,6 +85,7 @@ namespace SpellBook.GAS.Core
         private void Awake()
         {
             if (attributeSet == null) attributeSet = GetComponent<AttributeSet>();
+            if (attributeSet != null) BindAttributeLimits();
 
             if (startingAbilities != null)
             {
@@ -170,6 +177,19 @@ namespace SpellBook.GAS.Core
                 if (i >= _activeEffects.Count) continue;
                 _activeEffects[i].Update(deltaTime);
             }
+
+            for (int i = 0; i < _abilities.Count; i++)
+            {
+                AbilitySpec spec = _abilities[i];
+                if (!HasCharges(spec)) continue;
+
+                // Uma recarga que o máximo novo acabou de começar não desconta este Tick
+                bool wasRecharging = spec.ChargeRecharging;
+                RefreshMaxCharges(spec);
+                if (!wasRecharging || !spec.ChargeRecharging) continue;
+                spec.ChargeRechargeRemaining -= deltaTime;
+                AdvanceChargeRecharge(spec);
+            }
         }
 
         public float GetAttributeValue(AttributeDefinition def)
@@ -216,6 +236,7 @@ namespace SpellBook.GAS.Core
             if (existing != null) return existing;
 
             var spec = new AbilitySpec(ability, ClampLevel(ability, level));
+            InitCharges(spec);
             _abilities.Add(spec);
             OnAbilityGranted?.Invoke(spec);
             return spec;
@@ -263,6 +284,7 @@ namespace SpellBook.GAS.Core
             if (after == before) return true;
 
             spec.Level = after;
+            if (HasCharges(spec)) RefreshMaxCharges(spec);
             OnAbilityLevelChanged?.Invoke(spec, before, after);
             return true;
         }
@@ -310,12 +332,15 @@ namespace SpellBook.GAS.Core
 
         /// <summary>
         /// Tira <paramref name="seconds"/> de toda instância que conta para a recarga da habilidade (o próprio
-        /// <c>CooldownEffect</c> ou uma tag filha); as que chegam a zero expiram. Segundos negativos ou NaN são ignorados com
-        /// aviso. Habilidade nula, sem recarga ou pronta: <c>false</c>.
+        /// <c>CooldownEffect</c> ou uma tag filha); as que chegam a zero expiram. Com cargas, tira também da recarga da carga
+        /// em curso, que pode devolver mais de uma carga. Segundos negativos ou NaN são ignorados com aviso. Habilidade nula,
+        /// sem recarga ou pronta: <c>false</c>.
         /// </summary>
         public bool ReduceCooldown(GameplayAbility ability, float seconds)
         {
-            if (!HasCooldownInstance(ability)) return false;
+            bool hasCooldown = HasCooldownInstance(ability);
+            AbilitySpec chargeSpec = FindRechargingSpec(ability);
+            if (!hasCooldown && chargeSpec == null) return false;
             if (!(seconds >= 0f))
             {
                 if (Debug.isDebugBuild) Debug.LogWarning($"[GAS] {nameof(ReduceCooldown)} ignorado: segundos inválidos ({seconds}) em '{ability.name}'.", this);
@@ -323,53 +348,97 @@ namespace SpellBook.GAS.Core
             }
 
             bool changed = false;
-            GameplayEffect cooldownEffect = ability.CooldownEffect;
-            for (int i = _activeEffects.Count - 1; i >= 0; i--)
+            if (hasCooldown)
             {
-                // Uma expiração pode disparar ouvintes que mexem na lista
-                if (i >= _activeEffects.Count) continue;
-                ActiveEffectInstance instance = _activeEffects[i];
-                if (IsCooldownMatch(instance.Effect, cooldownEffect)) changed |= ReduceEffectDuration(instance, seconds);
+                GameplayEffect cooldownEffect = ability.CooldownEffect;
+                for (int i = _activeEffects.Count - 1; i >= 0; i--)
+                {
+                    // Uma expiração pode disparar ouvintes que mexem na lista
+                    if (i >= _activeEffects.Count) continue;
+                    ActiveEffectInstance instance = _activeEffects[i];
+                    if (IsCooldownMatch(instance.Effect, cooldownEffect)) changed |= ReduceEffectDuration(instance, seconds);
+                }
+                if (changed) RaiseCooldownChanged(ability);
             }
-            if (changed) RaiseCooldownChanged(ability);
+
+            if (chargeSpec != null && chargeSpec.ChargeRecharging && seconds > 0f)
+            {
+                chargeSpec.ChargeRechargeRemaining -= seconds;
+                AdvanceChargeRecharge(chargeSpec);
+                changed = true;
+            }
             return changed;
         }
 
         /// <summary>
         /// Remove toda instância que conta para a recarga da habilidade (motivo <see cref="EffectRemovalReason.Removed"/>).
-        /// Uma tag de recarga dada fora de efeito (<see cref="AddTag"/>) continua bloqueando. Nula, sem recarga ou pronta: <c>false</c>.
+        /// Uma tag de recarga dada fora de efeito (<see cref="AddTag"/>) continua bloqueando. Com cargas e a recarga da carga
+        /// correndo, devolve uma carga e recomeça a próxima com a duração cheia (no máximo, para). Nula, sem recarga ou pronta:
+        /// <c>false</c>.
         /// </summary>
         public bool ResetCooldown(GameplayAbility ability)
         {
-            if (!HasCooldownInstance(ability)) return false;
+            bool hasCooldown = HasCooldownInstance(ability);
+            AbilitySpec chargeSpec = FindRechargingSpec(ability);
+            if (!hasCooldown && chargeSpec == null) return false;
 
-            GameplayEffect cooldownEffect = ability.CooldownEffect;
-            for (int i = _activeEffects.Count - 1; i >= 0; i--)
+            if (hasCooldown)
             {
-                if (i >= _activeEffects.Count) continue;
-                ActiveEffectInstance instance = _activeEffects[i];
-                if (IsCooldownMatch(instance.Effect, cooldownEffect)) RemoveEffectCore(instance, EffectRemovalReason.Removed);
+                GameplayEffect cooldownEffect = ability.CooldownEffect;
+                for (int i = _activeEffects.Count - 1; i >= 0; i--)
+                {
+                    if (i >= _activeEffects.Count) continue;
+                    ActiveEffectInstance instance = _activeEffects[i];
+                    if (IsCooldownMatch(instance.Effect, cooldownEffect)) RemoveEffectCore(instance, EffectRemovalReason.Removed);
+                }
+            }
+
+            if (chargeSpec != null && chargeSpec.ChargeRecharging)
+            {
+                // Recarga vencida sem sobra: volta uma carga e a próxima começa com a duração cheia
+                chargeSpec.ChargeRechargeRemaining = 0f;
+                AdvanceChargeRecharge(chargeSpec);
             }
             return true;
         }
 
         /// <summary>
-        /// Volta toda instância que conta para a recarga da habilidade à duração aplicada. Nula, sem recarga ou pronta: <c>false</c>.
+        /// Volta toda instância que conta para a recarga da habilidade à duração aplicada e, com cargas, a recarga da carga em
+        /// curso à duração aplicada dela. Nula, sem recarga ou pronta: <c>false</c>.
         /// </summary>
         public bool RestartCooldown(GameplayAbility ability)
         {
-            if (!HasCooldownInstance(ability)) return false;
+            bool hasCooldown = HasCooldownInstance(ability);
+            AbilitySpec chargeSpec = FindRechargingSpec(ability);
+            if (!hasCooldown && chargeSpec == null) return false;
 
             bool changed = false;
-            GameplayEffect cooldownEffect = ability.CooldownEffect;
-            for (int i = _activeEffects.Count - 1; i >= 0; i--)
+            if (hasCooldown)
             {
-                if (i >= _activeEffects.Count) continue;
-                ActiveEffectInstance instance = _activeEffects[i];
-                if (IsCooldownMatch(instance.Effect, cooldownEffect)) changed |= RestartEffectDuration(instance);
+                GameplayEffect cooldownEffect = ability.CooldownEffect;
+                for (int i = _activeEffects.Count - 1; i >= 0; i--)
+                {
+                    if (i >= _activeEffects.Count) continue;
+                    ActiveEffectInstance instance = _activeEffects[i];
+                    if (IsCooldownMatch(instance.Effect, cooldownEffect)) changed |= RestartEffectDuration(instance);
+                }
+                if (changed) RaiseCooldownChanged(ability);
             }
-            if (changed) RaiseCooldownChanged(ability);
+
+            if (chargeSpec != null && chargeSpec.ChargeRecharging
+                && chargeSpec.ChargeRechargeRemaining != chargeSpec.ChargeRechargeDuration)
+            {
+                chargeSpec.ChargeRechargeRemaining = chargeSpec.ChargeRechargeDuration;
+                changed = true;
+            }
             return changed;
+        }
+
+        /// <summary>Spec concedido da habilidade com a recarga de carga correndo, ou nulo.</summary>
+        private AbilitySpec FindRechargingSpec(GameplayAbility ability)
+        {
+            AbilitySpec spec = FindSpec(ability);
+            return HasCharges(spec) && spec.ChargeRecharging ? spec : null;
         }
 
         private bool HasCooldownInstance(GameplayAbility ability)
@@ -398,6 +467,145 @@ namespace SpellBook.GAS.Core
                 spec.CooldownTracked = false;
                 OnCooldownChanged?.Invoke(spec, CooldownChange.Ended);
             }
+        }
+        #endregion
+
+        #region Charges
+        /// <summary>
+        /// As cargas de uma habilidade mudaram de fato: (spec, antes, depois). Sai no gasto da ativação, a cada carga que volta
+        /// pela recarga (também pelas de <see cref="ReduceCooldown"/> e <see cref="ResetCooldown"/>), em
+        /// <see cref="AddCharges"/> e <see cref="RefillCharges"/>, e quando o máximo desce abaixo das cargas.
+        /// </summary>
+        public event Action<AbilitySpec, int, int> OnChargesChanged;
+
+        /// <summary>Cargas disponíveis do <paramref name="spec"/>; nulo ou sem cargas, 0.</summary>
+        public int GetCharges(AbilitySpec spec)
+        {
+            return HasCharges(spec) ? Mathf.Min(spec.Charges, spec.MaxCharges) : 0;
+        }
+
+        /// <summary>Máximo de cargas do <paramref name="spec"/>; nulo ou sem cargas, 0.</summary>
+        public int GetMaxCharges(AbilitySpec spec)
+        {
+            return HasCharges(spec) ? spec.MaxCharges : 0;
+        }
+
+        /// <summary>Segundos até a próxima carga; recarga parada, spec nulo ou sem cargas, 0.</summary>
+        public float GetChargeRechargeRemaining(AbilitySpec spec)
+        {
+            return HasCharges(spec) && spec.ChargeRecharging ? Mathf.Max(0f, spec.ChargeRechargeRemaining) : 0f;
+        }
+
+        /// <summary>Recarga da carga em curso, de 1 (acabou de começar) a 0, pela duração aplicada; parada, 0.</summary>
+        public float GetChargeRechargeNormalized(AbilitySpec spec)
+        {
+            if (!HasCharges(spec) || !spec.ChargeRecharging || !(spec.ChargeRechargeDuration > 0f)) return 0f;
+            return Mathf.Clamp01(spec.ChargeRechargeRemaining / spec.ChargeRechargeDuration);
+        }
+
+        /// <summary>
+        /// Soma <paramref name="count"/> cargas, limitadas ao máximo; no máximo, a recarga para. Devolve se as cargas mudaram:
+        /// <paramref name="count"/> ≤ 0, spec nulo, de outro ASC, sem cargas ou já cheio dão <c>false</c>.
+        /// </summary>
+        public bool AddCharges(AbilitySpec spec, int count)
+        {
+            if (count <= 0 || !HasCharges(spec) || !_abilities.Contains(spec)) return false;
+
+            int before = spec.Charges;
+            int after = spec.MaxCharges - before < count ? spec.MaxCharges : before + count;
+            if (after <= before) return false;
+
+            spec.Charges = after;
+            if (after >= spec.MaxCharges) StopChargeRecharge(spec);
+            OnChargesChanged?.Invoke(spec, before, after);
+            return true;
+        }
+
+        /// <summary>Enche as cargas até o máximo e para a recarga. Devolve se as cargas mudaram.</summary>
+        public bool RefillCharges(AbilitySpec spec)
+        {
+            return HasCharges(spec) && AddCharges(spec, spec.MaxCharges - spec.Charges);
+        }
+
+        private static bool HasCharges(AbilitySpec spec)
+        {
+            return spec != null && spec.Ability != null && spec.Ability.Charges.Enabled;
+        }
+
+        // Concessão: o máximo é avaliado no nível do spec e as cargas nascem cheias, com a recarga parada
+        private void InitCharges(AbilitySpec spec)
+        {
+            if (!HasCharges(spec)) return;
+
+            spec.MaxCharges = EvaluateMaxCharges(spec);
+            spec.Charges = spec.MaxCharges;
+            StopChargeRecharge(spec);
+        }
+
+        // Máximo no nível do spec, com a tabela da habilidade e o ASC como instigador: inteiro, para baixo, pelo menos 0
+        private int EvaluateMaxCharges(AbilitySpec spec)
+        {
+            var context = new EffectContext(this, this, spec.Ability, spec.Level, false, Vector3.zero, null);
+            return Mathf.Max(0, Mathf.FloorToInt(spec.Ability.Charges.MaxCharges.Evaluate(in context)));
+        }
+
+        // Reavalia o máximo (mudança de nível e cada Tick). O que desce limita as cargas e, no máximo, para a recarga; o que
+        // sobe não enche: abaixo do máximo, a recarga parada começa (R18)
+        private void RefreshMaxCharges(AbilitySpec spec)
+        {
+            int max = EvaluateMaxCharges(spec);
+            if (max == spec.MaxCharges) return;
+
+            spec.MaxCharges = max;
+            int before = spec.Charges;
+            if (before > max) spec.Charges = max;
+            if (spec.Charges >= max) StopChargeRecharge(spec);
+            else if (!spec.ChargeRecharging) StartChargeRecharge(spec, 0f);
+            if (spec.Charges != before) OnChargesChanged?.Invoke(spec, before, spec.Charges);
+        }
+
+        // Commit: gasta 1 carga; abaixo do máximo com a recarga parada, a recarga da próxima começa
+        private void SpendCharge(AbilitySpec spec)
+        {
+            int before = spec.Charges;
+            spec.Charges = before - 1;
+            if (!spec.ChargeRecharging && spec.Charges < spec.MaxCharges) StartChargeRecharge(spec, 0f);
+            OnChargesChanged?.Invoke(spec, before, spec.Charges);
+        }
+
+        // Repõe uma carga por recarga vencida, passando o excesso adiante (recarga sequencial); no máximo, para
+        private void AdvanceChargeRecharge(AbilitySpec spec)
+        {
+            while (spec.ChargeRecharging && spec.ChargeRechargeRemaining <= 0f)
+            {
+                if (spec.Charges >= spec.MaxCharges)
+                {
+                    StopChargeRecharge(spec);
+                    return;
+                }
+
+                int before = spec.Charges;
+                spec.Charges = before + 1;
+                if (spec.Charges < spec.MaxCharges) StartChargeRecharge(spec, spec.ChargeRechargeRemaining);
+                else StopChargeRecharge(spec);
+                OnChargesChanged?.Invoke(spec, before, spec.Charges);
+            }
+        }
+
+        private void StartChargeRecharge(AbilitySpec spec, float carriedOver)
+        {
+            GameplayAbility ability = spec.Ability;
+            float duration = ability.ApplyCooldownReduction(ability.Charges.RechargeTime.Evaluate(spec.Level, ability.Values), this);
+            spec.ChargeRecharging = true;
+            spec.ChargeRechargeDuration = duration;
+            spec.ChargeRechargeRemaining = duration + carriedOver;
+        }
+
+        private static void StopChargeRecharge(AbilitySpec spec)
+        {
+            spec.ChargeRecharging = false;
+            spec.ChargeRechargeRemaining = 0f;
+            spec.ChargeRechargeDuration = 0f;
         }
         #endregion
 
@@ -478,6 +686,11 @@ namespace SpellBook.GAS.Core
             if (IsBlockedByActiveAbility(ability))
             {
                 return Fail(AbilityActivationResult.BlockedByActiveAbility, ability.AbilityTag, out failure);
+            }
+            // Checagem 2: com cargas, "tem carga?" vem antes do Cooldown, que continua valendo entre usos (ADR 0032, item 5)
+            if (HasCharges(spec) && Mathf.Min(spec.Charges, spec.MaxCharges) < 1)
+            {
+                return Fail(AbilityActivationResult.NoCharges, default, out failure);
             }
             if (IsOnCooldown(ability.CooldownEffect)) return Fail(AbilityActivationResult.OnCooldown, default, out failure);
             if (!CanAffordCost(ability.CostEffect, ability, spec.Level))
@@ -593,6 +806,7 @@ namespace SpellBook.GAS.Core
                 }
             }
             if (ability.CostEffect != null) ApplyEffect(EffectSpec.ForAbility(ability.CostEffect, this, ability, spec.Level));
+            if (HasCharges(spec)) SpendCharge(spec);
 
             CancelAbilitiesWithTags(ability.CancelAbilitiesWithTag, spec);
 
@@ -1194,8 +1408,238 @@ namespace SpellBook.GAS.Core
                         : mod.ValueSource.Evaluate(in context);
                     accumulator.Accumulate(mod.Operation, value);
                 }
-                state.SetBaseValue(accumulator.Result());
+                float newBase = accumulator.Result();
+                ProcessChange(state, newBase - state.BaseValue, newBase, effect, in context, null, _changeDepth);
             }
+        }
+
+        private const int MaxChangeDepth = 8;
+
+        private AttributeChangeQueue _changeQueue;
+        // Atributos com processadores em execução, do mais externo ao atual; cada pipeline aninhado começa um trecho novo
+        private readonly AttributeDefinition[] _changeChain = new AttributeDefinition[MaxChangeDepth];
+        private int _changeDepth;
+        private HashSet<AttributeDefinition> _warnedChangeGuard;
+        private bool _hasActiveChange;
+        private GameplayEffect _activeChangeEffect;
+        private EffectContext _activeChangeContext;
+        // A alteração sendo gravada na base, para a causa dos eventos de limite; estado nulo fora da gravação
+        private AttributeState _activeChangeState;
+        private AttributeChange _activeChange;
+        private float _activeChangeBefore;
+
+        /// <summary>
+        /// Uma alteração da base passou pelo pipeline e foi aplicada (ADR 0033): uma vez por alteração, também a
+        /// redirecionada e a anulada, depois do <c>OnValueChanged</c>. Modificadores persistentes não disparam.
+        /// </summary>
+        public event AttributeChangeHandler OnAttributeChangeApplied;
+
+        /// <summary>
+        /// Muda a base de <paramref name="attribute"/> em <paramref name="delta"/> pelo pipeline de processadores, como um
+        /// efeito instantâneo faria. Devolve quanto a base mudou de fato; 0 se o ASC não tem o atributo.
+        /// </summary>
+        public float ApplyAttributeChange(AttributeDefinition attribute, float delta, in EffectContext context = default, GameplayEffect effect = null)
+        {
+            if (attribute == null || attributeSet == null || !attributeSet.TryGetState(attribute, out var state)) return 0f;
+            return ProcessChange(state, delta, state.BaseValue + delta, effect, in context, null, _changeDepth);
+        }
+
+        /// <summary>
+        /// Efeito e contexto da alteração do pipeline em curso, para quem ouve a mudança de valor. Num pipeline aninhado,
+        /// vale o nível mais interno. Fora de uma alteração, devolve falso, com efeito nulo e contexto vazio.
+        /// </summary>
+        public bool TryGetActiveChangeSource(out GameplayEffect effect, out EffectContext context)
+        {
+            effect = _activeChangeEffect;
+            context = _activeChangeContext;
+            return _hasActiveChange;
+        }
+
+        /// <summary>
+        /// Núcleo do pipeline: roda os processadores da definição na ordem da lista, aplica as alterações redirecionadas,
+        /// depois a original, e dispara o relatório de cada uma. <paramref name="requestedBase"/> é a base pedida, usada
+        /// sem conta nova quando nada mudou a variação. <paramref name="chainStart"/> é o início do trecho da cadeia deste
+        /// pipeline: atributo repetido no trecho ou cadeia com <see cref="MaxChangeDepth"/> atributos recebe direto.
+        /// </summary>
+        private float ProcessChange(
+            AttributeState state,
+            float delta,
+            float requestedBase,
+            GameplayEffect effect,
+            in EffectContext context,
+            AttributeDefinition redirectedFrom,
+            int chainStart)
+        {
+            AttributeDefinition definition = state.Definition;
+            var change = new AttributeChange(definition, delta, effect, redirectedFrom);
+            IReadOnlyList<AttributeChangeProcessor> processors = definition.Processors;
+            bool processed = processors != null && processors.Count > 0;
+            bool guarded = processed && (_changeDepth >= MaxChangeDepth || IsInChangeChain(definition, chainStart));
+            if (guarded)
+            {
+                WarnChangeGuard(definition);
+                processed = false;
+            }
+
+            bool hadActive = _hasActiveChange;
+            GameplayEffect previousEffect = _activeChangeEffect;
+            EffectContext previousContext = _activeChangeContext;
+            AttributeState previousState = _activeChangeState;
+            AttributeChange previousChange = _activeChange;
+            float previousBefore = _activeChangeBefore;
+            _hasActiveChange = true;
+            _activeChangeEffect = effect;
+            _activeChangeContext = context;
+            _activeChangeState = null;
+            if (processed) _changeChain[_changeDepth++] = definition;
+            try
+            {
+                float startBase = state.BaseValue;
+                if (processed) RunProcessors(processors, ref change, effect, in context, chainStart);
+
+                // Sem processadores (ou com a guarda), a base pedida vai direto, como antes do pipeline (CA1); com eles,
+                // final zero não aplica, e a base pedida só vale se as redirecionadas não mudaram este atributo. O meta
+                // descarta a variação final: a base fica e nenhum evento de valor dispara (ADR 0033, item 6)
+                float before = state.BaseValue;
+                _activeChangeState = state;
+                _activeChange = change;
+                _activeChangeBefore = before;
+                if (definition.IsMeta)
+                {
+                    // Nada a aplicar: o relatório sai com Final e Applied = 0
+                }
+                else if (!processed) state.SetBaseValue(requestedBase);
+                else if (change.Delta != 0f)
+                {
+                    bool unchanged = change.Delta == change.Requested && before == startBase;
+                    state.SetBaseValue(unchanged ? requestedBase : before + change.Delta);
+                }
+
+                _activeChangeState = null;
+                var report = new AttributeChangeReport(in change, state.BaseValue - before, in context);
+                OnAttributeChangeApplied?.Invoke(in report);
+                return report.Applied;
+            }
+            finally
+            {
+                if (processed) _changeChain[--_changeDepth] = null;
+                _hasActiveChange = hadActive;
+                _activeChangeEffect = previousEffect;
+                _activeChangeContext = previousContext;
+                _activeChangeState = previousState;
+                _activeChange = previousChange;
+                _activeChangeBefore = previousBefore;
+            }
+        }
+
+        /// <summary>
+        /// Um atributo chegou ao mínimo (morte, escudo quebrado, mana vazia), depois do <c>OnDepleted</c> do estado e da
+        /// tag de estado. A causa traz o efeito, o instigador (nulo se destruído) e os valores da alteração.
+        /// </summary>
+        public event AttributeLimitHandler OnAttributeDepleted;
+
+        /// <summary>Um atributo chegou ao máximo, depois do <c>OnReachedMax</c> do estado, com a causa como no <see cref="OnAttributeDepleted"/>.</summary>
+        public event AttributeLimitHandler OnAttributeReachedMax;
+
+        // Estados cuja tag de estado este ASC concedeu: só devolve o que deu, mesmo com ouvintes que curam dentro do evento
+        private readonly HashSet<AttributeState> _grantedStateTags = new HashSet<AttributeState>();
+
+        // Um delegate por evento, reaproveitado em todos os estados; o estado que nasce no mínimo recebe a tag aqui
+        private void BindAttributeLimits()
+        {
+            Action<AttributeState> depleted = HandleAttributeDepleted;
+            Action<AttributeState> reachedMax = HandleAttributeReachedMax;
+            Action<AttributeState> leftMin = HandleAttributeLeftMin;
+            IReadOnlyList<AttributeState> states = attributeSet.States;
+            for (int i = 0; i < states.Count; i++)
+            {
+                AttributeState state = states[i];
+                state.OnDepleted += depleted;
+                state.OnReachedMax += reachedMax;
+                state.OnLeftMin += leftMin;
+                GrantStateTag(state);
+            }
+        }
+
+        private void HandleAttributeDepleted(AttributeState state)
+        {
+            GrantStateTag(state);
+            if (OnAttributeDepleted == null) return;
+            AttributeChangeReport cause = GetLimitCause(state);
+            OnAttributeDepleted(state, in cause);
+        }
+
+        private void HandleAttributeReachedMax(AttributeState state)
+        {
+            if (OnAttributeReachedMax == null) return;
+            AttributeChangeReport cause = GetLimitCause(state);
+            OnAttributeReachedMax(state, in cause);
+        }
+
+        private void HandleAttributeLeftMin(AttributeState state)
+        {
+            if (!_grantedStateTags.Remove(state)) return;
+            RemoveTag(state.Definition.StateTagWhileDepleted);
+        }
+
+        private void GrantStateTag(AttributeState state)
+        {
+            GameplayTag tag = state.Definition.StateTagWhileDepleted;
+            if (!tag.IsValid || !state.IsAtMin || !_grantedStateTags.Add(state)) return;
+            AddTag(tag);
+        }
+
+        // Só a alteração do pipeline gravando a base deste estado é causa; a de outro atributo (limite ligado) não
+        private AttributeChangeReport GetLimitCause(AttributeState state)
+        {
+            if (!ReferenceEquals(_activeChangeState, state)) return default;
+            return new AttributeChangeReport(in _activeChange, state.BaseValue - _activeChangeBefore, in _activeChangeContext);
+        }
+
+        private void RunProcessors(
+            IReadOnlyList<AttributeChangeProcessor> processors,
+            ref AttributeChange change,
+            GameplayEffect effect,
+            in EffectContext context,
+            int chainStart)
+        {
+            AttributeChangeQueue queue = _changeQueue ??= new AttributeChangeQueue(this);
+            int queueStart = queue.Count;
+            try
+            {
+                for (int i = 0; i < processors.Count; i++) processors[i]?.Process(ref change, in context, queue);
+
+                // As redirecionadas vêm antes da original (ADR 0033, item 5); as que elas geram ficam depois de queueEnd
+                int queueEnd = queue.Count;
+                for (int i = queueStart; i < queueEnd; i++)
+                {
+                    AttributeChangeQueue.Entry entry = queue[i];
+                    if (!attributeSet.TryGetState(entry.Target, out var target)) continue;
+                    ProcessChange(target, entry.Delta, target.BaseValue + entry.Delta, effect, in context, change.Attribute, chainStart);
+                }
+            }
+            finally
+            {
+                queue.TrimTo(queueStart);
+            }
+        }
+
+        private bool IsInChangeChain(AttributeDefinition definition, int chainStart)
+        {
+            for (int i = chainStart; i < _changeDepth; i++)
+            {
+                if (ReferenceEquals(_changeChain[i], definition)) return true;
+            }
+            return false;
+        }
+
+        private void WarnChangeGuard(AttributeDefinition definition)
+        {
+            _warnedChangeGuard ??= new HashSet<AttributeDefinition>();
+            if (!_warnedChangeGuard.Add(definition) || !Debug.isDebugBuild) return;
+            Debug.LogWarning(
+                $"[GAS] Alteração de '{definition.name}' em '{name}' aplicada sem os processadores: o atributo já está na " +
+                $"cadeia de redirecionamento ou o pipeline passou de {MaxChangeDepth} níveis.", this);
         }
 
         private static bool IsAttributeHandledBefore(List<AttributeEffectModifier> modifiers, int index)

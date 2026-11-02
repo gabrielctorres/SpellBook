@@ -22,6 +22,12 @@ namespace SpellBook.GAS.Bridges
     {
     }
 
+    /// <summary>Resposta ao <see cref="AttributeLimitEventChannel"/>.</summary>
+    [Serializable, TypeCategory("Respostas")]
+    public sealed class AttributeLimitEventResponse : EventResponse<AttributeLimitEventData>
+    {
+    }
+
     /// <summary>Resposta ao <see cref="TagChangedEventChannel"/>.</summary>
     [Serializable, TypeCategory("Respostas")]
     public sealed class TagChangedEventResponse : EventResponse<TagChangedData>

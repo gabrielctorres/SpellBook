@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using SpellBook.Core;
+using SpellBook.Core.Conditions;
 using SpellBook.Core.Inspector;
 using SpellBook.Core.Validation;
 using UnityEngine;
 using SpellBook.GAS.Core;
 using SpellBook.Tags;
 using SpellBook.GAS.Attributes;
+using SpellBook.GAS.Conditions;
 using SpellBook.GAS.Effects;
 using SpellBook.GAS.Values;
 
@@ -44,6 +46,9 @@ namespace SpellBook.GAS.Abilities
 
         [Tooltip("Efeito Instant aplicado ao ativar (ex: Mana Add -20). A ativação falha se o atributo ficaria abaixo do MinValue.")]
         public GameplayEffect CostEffect;
+
+        [Tooltip("Cargas: cada ativação gasta uma, e elas voltam uma por vez. Desligadas por padrão.")]
+        [SerializeField] private ChargesConfig charges = new ChargesConfig();
 
         [Tooltip("Alcance da habilidade por nível, lido pela CastRangeCondition. 0 ou menos: sem limite.")]
         [SerializeField] private ScalableFloat castRange = ScalableFloat.Constant(0f);
@@ -130,6 +135,9 @@ namespace SpellBook.GAS.Abilities
             set => castRange = value ?? ScalableFloat.Constant(0f);
         }
 
+        /// <summary>Cargas da habilidade (desligadas por padrão). O estado de cada personagem fica no <see cref="AbilitySpec"/>.</summary>
+        public ChargesConfig Charges => charges ??= new ChargesConfig();
+
         /// <summary>Política de redução de recarga; nula usa <see cref="CooldownReductionPolicy.ApplyDefault"/>.</summary>
         public CooldownReductionPolicy CooldownReductionPolicy => cooldownReductionPolicy;
 
@@ -148,15 +156,18 @@ namespace SpellBook.GAS.Abilities
         {
             if (CooldownEffect == null) return 0f;
 
-            float duration = CooldownEffect.Duration.Evaluate(level, values);
-            if (CooldownReductionAttribute != null && asc != null)
-            {
-                float cdr = asc.GetAttributeValue(CooldownReductionAttribute);
-                duration = cooldownReductionPolicy != null
-                    ? cooldownReductionPolicy.Apply(duration, cdr)
-                    : CooldownReductionPolicy.ApplyDefault(duration, cdr);
-            }
-            return duration;
+            return ApplyCooldownReduction(CooldownEffect.Duration.Evaluate(level, values), asc);
+        }
+
+        // Conta única da redução (R17): a recarga do CooldownEffect e a recarga das cargas passam por aqui
+        internal float ApplyCooldownReduction(float baseDuration, AbilitySystemComponent asc)
+        {
+            if (CooldownReductionAttribute == null || asc == null) return baseDuration;
+
+            float cdr = asc.GetAttributeValue(CooldownReductionAttribute);
+            return cooldownReductionPolicy != null
+                ? cooldownReductionPolicy.Apply(baseDuration, cdr)
+                : CooldownReductionPolicy.ApplyDefault(baseDuration, cdr);
         }
 
         /// <summary>
@@ -186,6 +197,8 @@ namespace SpellBook.GAS.Abilities
             }
 
             ValidateEffectTableNames(result);
+            ValidateActivationRules(result);
+            charges?.Validate(result, nameof(charges), values);
 
             if (Actions == null) return;
 
@@ -228,6 +241,85 @@ namespace SpellBook.GAS.Abilities
                 // Um efeito usado em mais de um lugar é conferido uma vez
                 if (effect == null || effects.IndexOf(effect) != i) continue;
                 effect.ValidateTableNames(result, values, nameof(values));
+            }
+        }
+
+        private void ValidateActivationRules(ValidationResult result)
+        {
+            if (activationConditions == null) return;
+
+            bool usesCastRange = false;
+            for (int i = 0; i < activationConditions.Count; i++)
+            {
+                string path = $"{nameof(activationConditions)}.Array.data[{i}]";
+                ActivationRule rule = activationConditions[i];
+                if (rule == null)
+                {
+                    result.AddError("Regra de ativação vazia: escolha a Condition ou remova a regra.", path);
+                    continue;
+                }
+
+                rule.Validate(result, path);
+                usesCastRange |= UsesCastRange(rule.Condition);
+            }
+
+            if (usesCastRange) ValidateCastRange(result);
+        }
+
+        // Procura a CastRangeCondition também dentro das composições do GAS
+        private static bool UsesCastRange(Condition<ConditionContext> condition)
+        {
+            switch (condition)
+            {
+                case CastRangeCondition _:
+                    return true;
+                case NotCondition not:
+                    return UsesCastRange(not.Condition);
+                case AndCondition and:
+                    return AnyUsesCastRange(and.Conditions);
+                case OrCondition or:
+                    return AnyUsesCastRange(or.Conditions);
+                default:
+                    return false;
+            }
+        }
+
+        private static bool AnyUsesCastRange(List<Condition<ConditionContext>> conditions)
+        {
+            if (conditions == null) return false;
+
+            for (int i = 0; i < conditions.Count; i++)
+            {
+                if (UsesCastRange(conditions[i])) return true;
+            }
+
+            return false;
+        }
+
+        // Alcance negativo em algum nível é erro; alcance 0 em todos é "sem limite", e a CastRangeCondition sempre passa
+        private void ValidateCastRange(ValidationResult result)
+        {
+            ScalableFloat range = CastRange;
+            // Nome fora da tabela vale o fallback; avaliar sem a tabela evita o aviso no Console
+            bool hasName = range.Mode == ScalableFloat.ScalableMode.Table && values != null && values.IndexOf(range.TableName) >= 0;
+            AbilityValues table = hasName ? values : null;
+
+            bool limited = false;
+            for (int level = 1; level <= Mathf.Max(1, maxLevel); level++)
+            {
+                float value = range.Evaluate(level, table);
+                if (value < 0f)
+                {
+                    result.AddError($"Cast Range é {value} no nível {level}: o alcance não pode ser negativo.", nameof(castRange));
+                    return;
+                }
+
+                limited |= value > 0f;
+            }
+
+            if (!limited)
+            {
+                result.AddWarning("CastRangeCondition com Cast Range 0: sem limite, a condição sempre passa.", nameof(castRange));
             }
         }
 

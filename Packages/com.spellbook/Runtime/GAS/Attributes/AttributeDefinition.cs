@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
 using SpellBook.Core.Validation;
+using SpellBook.Tags;
 using UnityEngine;
 
 namespace SpellBook.GAS.Attributes
@@ -68,8 +69,30 @@ namespace SpellBook.GAS.Attributes
         [Tooltip("Como o valor aparece na interface: tipo, casas, prefixo, sufixo, direção boa, ordem, visibilidade e categoria")]
         public AttributeDisplay Display;
 
+        [Header("Damage")]
+        [SerializeReference, TypePicker]
+        [Tooltip("Processadores que mudam cada alteração da base por efeito instantâneo, tique ou código, na ordem da lista. Modificadores persistentes não passam por eles.")]
+        private List<AttributeChangeProcessor> processors = new List<AttributeChangeProcessor>();
+
+        [SerializeField]
+        [Tooltip("Meta-atributo: a alteração passa pelos processadores, que a convertem em alterações de outros atributos, e a variação final é descartada. A base continua 0 e nenhum evento de valor dispara.")]
+        private bool isMeta;
+
+        [SerializeField]
+        [Tooltip("Tag que o ASC tem enquanto o atributo está no mínimo: concedida ao chegar, devolvida ao sair. Vazia: desligado.")]
+        private GameplayTag stateTagWhileDepleted;
+
         /// <summary>A categoria do atributo, de <see cref="AttributeDisplay.Category"/> (R18).</summary>
         public AttributeCategory Category => Display.Category;
+
+        /// <summary>Pipeline de pré-alteração, na ordem de execução (ADR 0033). Entrada nula é pulada.</summary>
+        public IReadOnlyList<AttributeChangeProcessor> Processors => processors;
+
+        /// <summary>Meta-atributo (ADR 0033, item 6): só os processadores agem; a variação final nunca chega à base.</summary>
+        public bool IsMeta => isMeta;
+
+        /// <summary>Tag de estado enquanto o atributo está no mínimo (por exemplo, morto); inválida quando desligada.</summary>
+        public GameplayTag StateTagWhileDepleted => stateTagWhileDepleted;
 
         /// <summary>
         /// Erros: mínimo constante acima do máximo constante, fonte de limite sem atributo, apontando para o próprio

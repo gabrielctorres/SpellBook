@@ -298,6 +298,30 @@ Filhas nulas nas composições são ignoradas. No Inspector, um campo `[Serializ
 
 Para consultar as tags do ASC no código, sem alocar, use `asc.HasMatching(query)`, `asc.HasAll(tags)` e `asc.HasAny(tags)`. Os dois últimos aceitam um `GameplayTagContainer`, uma lista ou um array. Valem as regras de `HasTag`: a tag ativa filha satisfaz o pai e uma tag inválida não casa. A consulta vazia casa com qualquer ASC e a consulta nula não casa.
 
+##### Condição própria {#condicao-propria}
+Para criar uma condição, herde `Condition<ConditionContext>`, marque a classe com `[Serializable]` e sobrescreva `Evaluate`. A classe precisa ser concreta, não genérica e ter um construtor sem parâmetros: assim ela aparece no seletor ao lado das condições prontas. O `[TypeCategory]` dá a pasta no seletor, a dica (`Summary`) e o resumo de uma linha (`Line`), em que `{campo}` vira o valor do campo serializado.
+
+```csharp
+using System;
+using SpellBook.Core.Conditions;
+using SpellBook.Core.Inspector;
+using SpellBook.GAS.Conditions;
+using UnityEngine;
+
+[Serializable]
+[TypeCategory("Nível", Summary = "A habilidade está no nível mínimo.", Line = "Nível ≥ {minLevel}")]
+public sealed class MinLevelCondition : Condition<ConditionContext>
+{
+    [SerializeField] private int minLevel = 2;
+
+    public override string DefaultFailureKey => "game.activation.min_level";
+
+    public override bool Evaluate(in ConditionContext context) => context.Level >= minLevel;
+}
+```
+
+Em `Evaluate`, só leia o contexto: não mude o ASC, não guarde estado e não aloque, porque a consulta da UI chama a mesma condição a cada quadro. `DefaultFailureKey` é opcional e vale quando a regra deixa o **Failure Key** vazio. Para acusar configuração errada no validador, sobrescreva `Validate(result, propertyPath)` e passe o `propertyPath` nas mensagens.
+
 ### 1.5 AbilitySystemComponent (ASC) {#abilitysystemcomponent}
 O `AbilitySystemComponent` é o componente que guarda as habilidades concedidas, os atributos,
 os efeitos ativos e as tags de um personagem. Veja a seção [Ciclo de vida](#ciclo-de-vida).
@@ -429,11 +453,11 @@ O ASC só ativa habilidades concedidas. Use a lista `startingAbilities` no Inspe
 1. concedida (`NotGranted`) e não ativa (`AlreadyActive`);
 2. `BlockedTags` (`BlockedByTags`) e `RequiredTags` (`MissingRequiredTags`);
 3. `BlockAbilitiesWithTag` de habilidades ativas (`BlockedByActiveAbility`);
-4. cooldown (`OnCooldown`), pelas tags do `CooldownEffect` **ou** por uma instância ativa dele;
+4. [cargas](#cargas) (`NoCharges`), se a habilidade tem cargas, e depois cooldown (`OnCooldown`), pelas tags do `CooldownEffect` **ou** por uma instância ativa dele;
 5. custo (`CannotAffordCost`), só checado, sem aplicar;
 6. regras de ativação (`BlockedByCondition`), na ordem da lista; a primeira que falha decide.
 
-Nada é gasto antes do fim das checagens: a recarga e o custo saem só depois que todas passam. `NoCharges` fica reservado para as cargas.
+Nada é gasto antes do fim das checagens: a carga, a recarga e o custo saem só depois que todas passam.
 
 **Regras de ativação.** A lista **Activation Conditions** da habilidade (`ActivationConditions`) tem uma `ActivationRule` por entrada: uma [condição](#condicoes) e o motivo da falha, com **Failure Tag** (uma `GameplayTag`, opcional) e **Failure Key** (chave de texto). Com a chave vazia, vale a chave padrão da condição. Entradas vazias ou sem condição são puladas. As condições recebem o alvo da ativação no `ConditionContext.Target`.
 
@@ -447,6 +471,10 @@ Nada é gasto antes do fim das checagens: a recarga e o custo saem só depois qu
 | `ConditionIndex` e `Rule` | Índice e regra que falharam; -1 e nula fora das regras. |
 
 Com a regra "Mana `GreaterOrEqual` 20" e a tag `Fail.LowMana`, a Mana em 10 devolve `BlockedByCondition` com `ReasonTag` `Fail.LowMana`; em 30, a habilidade ativa.
+
+**Motivo na UI.** Para mostrar por que a habilidade não ativa, leia o `ActivationFailure` da consulta ou do `OnAbilityFailed`. Com `ReasonKey`, procure o texto pela chave; sem chave, escolha o texto pelo `Result` (`NoCharges`, `OnCooldown`, `CannotAffordCost` e os outros). Use a `ReasonTag` quando a lógica de jogo precisa reagir a um motivo, como tocar um som diferente para "sem mana".
+
+**No Inspector.** Abaixo dos campos da habilidade, a seção **Ativação** mostra uma linha por regra, na ordem da lista: o número, o resumo da condição e o motivo, como `1. Mana Greater Or Equal 20 → motivo: Fail.LowMana`. O motivo é a **Failure Tag**; sem ela, a chave efetiva (a **Failure Key** ou a chave padrão da condição). A condição de cada regra é escolhida no seletor de tipo da lista **Activation Conditions**, e as composições abrem as filhas no mesmo lugar.
 
 Em caso de sucesso, o ASC:
 
@@ -464,7 +492,7 @@ Para consultar sem ativar, use `ability.CanActivate(asc, out var reason)` ou, co
 - `asc.ResetCooldown(ability)` remove todas (motivo `Removed`), e a habilidade volta a ser ativável. Exceção: uma tag de recarga dada fora de efeito, com `AddTag`, continua bloqueando, porque não há instância para remover.
 - `asc.RestartCooldown(ability)` volta cada uma à duração aplicada, e não à `Duration` do asset.
 
-Os três devolvem se algo mudou. Habilidade nula, sem `CooldownEffect` ou pronta: `false`, sem exceção.
+Os três devolvem se algo mudou. Habilidade nula, sem `CooldownEffect` ou pronta: `false`, sem exceção. Numa habilidade com [cargas](#cargas), eles também agem sobre a recarga da carga em curso.
 
 **Evento de recarga.** `OnCooldownChanged(spec, mudança)` acompanha a recarga aplicada pela ativação de uma habilidade concedida, com o `CooldownChange`:
 
@@ -473,6 +501,51 @@ Os três devolvem se algo mudou. Habilidade nula, sem `CooldownEffect` ou pronta
 - `Ended`: a habilidade ficou pronta, porque as instâncias expiraram, foram reduzidas a 0 ou removidas (inclusive por `ResetCooldown`). Sai depois do `OnEffectRemoved` da instância que faltava.
 
 Recarga aplicada à mão, com `ApplyEffect`, não dispara o evento: ela aparece no tempo restante e em `OnEffectApplied`/`OnEffectRemoved`.
+
+#### Cargas {#cargas}
+Com cargas, a habilidade pode ser usada várias vezes seguidas, e as cargas voltam com o tempo. Ligue **Enabled** no bloco **Charges** da habilidade (`GameplayAbility.Charges`) e preencha:
+
+- **Max Charges:** o máximo de cargas, com as mesmas origens de um modificador: valor por nível, `%nome` da tabela, atributo ou fórmula. O valor é arredondado para baixo, e abaixo de 0 vale 0.
+- **Recharge Time:** os segundos para voltar uma carga, por nível ou por `%nome`.
+- **Mode:** só `Sequential`, uma carga por vez.
+
+As cargas nascem cheias ao conceder a habilidade, com o máximo avaliado no nível do spec. O ASC volta a avaliar o máximo a cada `SetAbilityLevel` e a cada `Tick`, então um `%nome` da tabela acompanha o nível e um atributo acompanha o valor dele. Com `%Charges` valendo 2, 3 e 4 nos níveis 1 a 3, a habilidade no nível 3 guarda até 4 cargas. Quando o máximo sobe, as cargas não enchem: se faltar alguma, a recarga começa. Quando o máximo desce abaixo das cargas, elas são limitadas a ele, com `OnChargesChanged`, e a recarga para.
+
+Cada ativação com sucesso gasta uma carga junto do custo. Se a recarga estava parada, ela começa. Quando a recarga termina, volta uma carga e, se ainda faltar alguma, a recarga da seguinte começa na hora, com o tempo que sobrou do `Tick` passado adiante. No máximo, a recarga para. Um `Tick` grande pode devolver mais de uma carga.
+
+O tempo de recarga passa pela mesma redução da recarga da habilidade: o `CooldownReductionAttribute` e a [CooldownReductionPolicy](#cooldownreductionpolicy), com piso e teto. Com **Max Reduction** 0,5 e **Min Duration** 1 s, uma recarga de 8 s com redução de 0,9 dura 4 s. O tempo anda só pelo [`Tick` do ASC](#tempo-do-asc), nunca pelo relógio da Unity.
+
+Na checagem, as cargas substituem a recarga: com uma carga ou mais, a habilidade ativa mesmo com a recarga de carga correndo, e sem carga o resultado é `NoCharges`. O `CooldownEffect` é opcional e continua valendo como tempo mínimo entre usos. Com carga disponível e o `CooldownEffect` correndo, o resultado é `OnCooldown`; sem carga, `NoCharges` vem primeiro. A recarga de carga não é efeito ativo: não concede tag, não aparece em `ActiveEffects` e não dispara `OnCooldownChanged`. Com **Enabled** desligado, a habilidade se comporta como antes.
+
+O estado fica no `AbilitySpec` (`Charges`, `MaxCharges`, `ChargeRechargeRemaining` e `ChargeRechargeDuration`, só leitura). Pelo ASC:
+
+| Membro | O que faz |
+|---|---|
+| `GetCharges(spec)` e `GetMaxCharges(spec)` | Cargas disponíveis e máximo. |
+| `GetChargeRechargeRemaining(spec)` | Segundos até a próxima carga; 0 com a recarga parada. |
+| `GetChargeRechargeNormalized(spec)` | De 1 a 0 pela duração aplicada da recarga em curso, para barras; 0 com a recarga parada. |
+| `AddCharges(spec, n)` | Soma `n` cargas, sem passar do máximo. Devolve `false` se nada mudou, inclusive com `n` ≤ 0. |
+| `RefillCharges(spec)` | Enche as cargas. Devolve `false` se já estavam cheias. |
+| `OnChargesChanged(spec, antes, depois)` | Sai só quando as cargas mudam: no gasto, a cada carga que volta, em `AddCharges` e `RefillCharges` e quando o máximo desce abaixo das cargas. |
+
+Com spec nulo ou sem cargas, as consultas devolvem 0 e os métodos, `false`. Encher pelo `AddCharges` ou pelo `RefillCharges` para a recarga.
+
+Os controles de recarga da habilidade também agem sobre a recarga da carga em curso, além do `CooldownEffect`:
+
+- `ReduceCooldown(ability, segundos)` tira o tempo da recarga da carga. Se passar do que falta, volta uma carga e o resto sai da recarga seguinte, então uma redução grande pode devolver mais de uma.
+- `ResetCooldown(ability)` devolve uma carga na hora e recomeça a recarga da seguinte com a duração cheia. No máximo, a recarga para.
+- `RestartCooldown(ability)` volta a recarga da carga à duração aplicada, já com a redução de recarga.
+
+Com a recarga da carga parada e sem `CooldownEffect` correndo, os três devolvem `false`.
+
+Com **Enabled** ligado, a seção **Ativação** do Inspector mostra a prévia das cargas no **Nível de prévia**, como `1 carga a cada 6 s, máximo 4 no nível 3`. A prévia não aplica a redução do atributo. Com **Max Charges** por atributo ou por fórmula, ela mostra o tipo da fonte no lugar do número, porque o valor depende do ASC.
+
+```csharp
+AbilitySpec spec = asc.FindSpec(dash);
+asc.OnChargesChanged += (s, antes, depois) => Debug.Log($"{s.Ability.name}: {antes} -> {depois}");
+asc.TryActivateAbility(dash, AbilityTarget.None); // 3 -> 2, a recarga começa
+float barra = asc.GetChargeRechargeNormalized(spec);
+```
 
 #### CooldownReductionPolicy {#cooldownreductionpolicy}
 A `CooldownReductionPolicy` diz como o valor do `CooldownReductionAttribute` vira duração de recarga. Crie o asset por *Create > GAS > Cooldown Reduction Policy* e escolha-o no campo **Cooldown Reduction Policy** da habilidade. A política só vale com um `CooldownReductionAttribute`; sem ele, a recarga usa a `Duration` do asset e o validador avisa.

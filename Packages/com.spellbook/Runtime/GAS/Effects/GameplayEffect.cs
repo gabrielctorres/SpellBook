@@ -124,6 +124,12 @@ namespace SpellBook.GAS.Effects
         public List<EffectAction> OnRemoval = new List<EffectAction>();
 
         [Header("Gameplay Tags")]
+        [Tooltip("Tipos de dano do efeito. Os processadores dos atributos (resistência, imunidade) casam pela hierarquia: Dano casa com Dano.Fogo.")]
+        [SerializeField] private GameplayTagContainer damageTags = new GameplayTagContainer();
+
+        /// <summary>Tipos de dano do efeito, lidos pelos processadores dos atributos (ADR 0033). Nunca nulo.</summary>
+        public GameplayTagContainer DamageTags => damageTags ??= new GameplayTagContainer();
+
         public List<GameplayTag> GrantedTags; 
         public List<GameplayTag> ApplicationRequirements;
         public List<GameplayTag> ApplicationImmunityTags;

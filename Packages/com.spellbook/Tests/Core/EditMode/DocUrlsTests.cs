@@ -29,6 +29,7 @@ namespace SpellBook.Core.Tests
         [TestCase("Pooling", "modulos/pooling/")]
         [TestCase("Tags", "modulos/tags/")]
         [TestCase("Gas", "modulos/gas/")]
+        [TestCase("Damage", "modulos/dano-escudo-e-morte/")]
         [TestCase("Validator", "ferramentas/validador/")]
         [TestCase("EventDebugger", "ferramentas/event-debugger/")]
         [TestCase("GasDebugger", "ferramentas/gas-debugger/")]

@@ -31,6 +31,7 @@ namespace SpellBook.GAS.Bridges.Tests
             { typeof(AttributeChangedEventChannel), typeof(AttributeChangedData) },
             { typeof(TagChangedEventChannel), typeof(TagChangedData) },
             { typeof(BlockedEventChannel), typeof(BlockedEventData) },
+            { typeof(AttributeLimitEventChannel), typeof(AttributeLimitEventData) },
         };
 
         private EventsFactory _events;
@@ -60,6 +61,7 @@ namespace SpellBook.GAS.Bridges.Tests
                 { GasMenuPrefix + "Attribute Changed Channel", typeof(AttributeChangedData) },
                 { GasMenuPrefix + "Tag Changed Channel", typeof(TagChangedData) },
                 { GasMenuPrefix + "Blocked Channel", typeof(BlockedEventData) },
+                { GasMenuPrefix + "Attribute Limit Channel", typeof(AttributeLimitEventData) },
             };
 
             Dictionary<string, Type> actual = MenuPayloads(GasMenuPrefix);
@@ -74,6 +76,21 @@ namespace SpellBook.GAS.Bridges.Tests
 
             Assembly bridges = typeof(EffectEventChannel).Assembly;
             Assert.That(MenuTypes(EventsMenuPrefix).Where(type => type.Assembly == bridges), Is.Empty);
+        }
+
+        [Test]
+        public void AttributeLimitChannel_HasMenuAndHelpUrl()
+        {
+            Type channel = typeof(AttributeLimitEventChannel);
+
+            var menu = channel.GetCustomAttribute<CreateAssetMenuAttribute>(false);
+            var help = channel.GetCustomAttribute<HelpURLAttribute>(false);
+            Assert.That(menu, Is.Not.Null);
+            Assert.That(menu.menuName, Is.EqualTo(GasMenuPrefix + "Attribute Limit Channel"));
+            Assert.That(ChannelPayloadOf(channel), Is.EqualTo(typeof(AttributeLimitEventData)));
+            Assert.That(help, Is.Not.Null);
+            Assert.That(help.URL, Is.EqualTo(DocUrls.Events + "#canais-do-gas"));
+            Assert.That(typeof(AttributeLimitEventResponse).GetCustomAttribute<TypeCategoryAttribute>(false).Path, Is.EqualTo("Respostas"));
         }
 
         [Test]

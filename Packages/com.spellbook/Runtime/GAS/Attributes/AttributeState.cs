@@ -51,6 +51,18 @@ namespace SpellBook.GAS.Attributes
         /// <summary>O valor atual entrou no máximo, com as mesmas regras do <see cref="OnDepleted"/>. Vem depois dele.</summary>
         public event Action<AttributeState> OnReachedMax;
 
+        /// <summary>O valor atual saiu do mínimo. Vem depois do <see cref="OnDepleted"/> e do <see cref="OnReachedMax"/> do mesmo recálculo.</summary>
+        public event Action<AttributeState> OnLeftMin;
+
+        /// <summary>O valor atual saiu do máximo, com as mesmas regras do <see cref="OnLeftMin"/>. Vem depois dele.</summary>
+        public event Action<AttributeState> OnLeftMax;
+
+        /// <summary>O valor atual está no mínimo, pelo último recálculo. Vale também para quem nasceu no mínimo.</summary>
+        public bool IsAtMin => _atMin;
+
+        /// <summary>O valor atual está no máximo, pelo último recálculo.</summary>
+        public bool IsAtMax => _atMax;
+
         public AttributeState(AttributeDefinition definition, float baseValue, AbilitySystemComponent owner)
         {
             Definition = definition;
@@ -125,6 +137,8 @@ namespace SpellBook.GAS.Attributes
             bool atMax = newVal >= MaxValue;
             bool depleted = atMin && !_atMin;
             bool reachedMax = atMax && !_atMax;
+            bool leftMin = !atMin && _atMin;
+            bool leftMax = !atMax && _atMax;
             _atMin = atMin;
             _atMax = atMax;
 
@@ -134,6 +148,8 @@ namespace SpellBook.GAS.Attributes
             }
             if (depleted) OnDepleted?.Invoke(this);
             if (reachedMax) OnReachedMax?.Invoke(this);
+            if (leftMin) OnLeftMin?.Invoke(this);
+            if (leftMax) OnLeftMax?.Invoke(this);
         }
 
         /// <summary>

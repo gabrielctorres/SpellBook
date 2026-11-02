@@ -1,6 +1,7 @@
 using System;
 using SpellBook.Core.Conditions;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using SpellBook.GAS.Conditions;
 using SpellBook.Tags;
 using UnityEngine;
@@ -58,5 +59,18 @@ namespace SpellBook.GAS.Abilities
 
         /// <summary>Chave efetiva do motivo: a da regra ou, vazia, a <see cref="Condition{TContext}.DefaultFailureKey"/>.</summary>
         public string EffectiveFailureKey => string.IsNullOrEmpty(failureKey) ? condition?.DefaultFailureKey : failureKey;
+
+        /// <summary>Acusa a regra sem condição e repassa a validação à condição. O caminho é o da regra.</summary>
+        public void Validate(ValidationResult result, string propertyPath)
+        {
+            string path = propertyPath + "." + nameof(condition);
+            if (condition == null)
+            {
+                result.AddError("Regra de ativação sem condição: escolha a Condition ou remova a regra.", path);
+                return;
+            }
+
+            condition.Validate(result, path);
+        }
     }
 }
