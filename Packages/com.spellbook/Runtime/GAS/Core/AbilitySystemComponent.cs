@@ -170,6 +170,14 @@ namespace SpellBook.GAS.Core
                 if (i >= _activeEffects.Count) continue;
                 _activeEffects[i].Update(deltaTime);
             }
+
+            for (int i = 0; i < _abilities.Count; i++)
+            {
+                AbilitySpec spec = _abilities[i];
+                if (!spec.ChargeRecharging || !HasCharges(spec)) continue;
+                spec.ChargeRechargeRemaining -= deltaTime;
+                AdvanceChargeRecharge(spec);
+            }
         }
 
         public float GetAttributeValue(AttributeDefinition def)
@@ -216,6 +224,7 @@ namespace SpellBook.GAS.Core
             if (existing != null) return existing;
 
             var spec = new AbilitySpec(ability, ClampLevel(ability, level));
+            InitCharges(spec);
             _abilities.Add(spec);
             OnAbilityGranted?.Invoke(spec);
             return spec;
@@ -401,6 +410,124 @@ namespace SpellBook.GAS.Core
         }
         #endregion
 
+        #region Charges
+        /// <summary>
+        /// As cargas de uma habilidade mudaram de fato: (spec, antes, depois). Sai no gasto da ativação, a cada carga que volta
+        /// pela recarga e em <see cref="AddCharges"/> e <see cref="RefillCharges"/>.
+        /// </summary>
+        public event Action<AbilitySpec, int, int> OnChargesChanged;
+
+        /// <summary>Cargas disponíveis do <paramref name="spec"/>; nulo ou sem cargas, 0.</summary>
+        public int GetCharges(AbilitySpec spec)
+        {
+            return HasCharges(spec) ? Mathf.Min(spec.Charges, spec.MaxCharges) : 0;
+        }
+
+        /// <summary>Máximo de cargas do <paramref name="spec"/>; nulo ou sem cargas, 0.</summary>
+        public int GetMaxCharges(AbilitySpec spec)
+        {
+            return HasCharges(spec) ? spec.MaxCharges : 0;
+        }
+
+        /// <summary>Segundos até a próxima carga; recarga parada, spec nulo ou sem cargas, 0.</summary>
+        public float GetChargeRechargeRemaining(AbilitySpec spec)
+        {
+            return HasCharges(spec) && spec.ChargeRecharging ? Mathf.Max(0f, spec.ChargeRechargeRemaining) : 0f;
+        }
+
+        /// <summary>Recarga da carga em curso, de 1 (acabou de começar) a 0, pela duração aplicada; parada, 0.</summary>
+        public float GetChargeRechargeNormalized(AbilitySpec spec)
+        {
+            if (!HasCharges(spec) || !spec.ChargeRecharging || !(spec.ChargeRechargeDuration > 0f)) return 0f;
+            return Mathf.Clamp01(spec.ChargeRechargeRemaining / spec.ChargeRechargeDuration);
+        }
+
+        /// <summary>
+        /// Soma <paramref name="count"/> cargas, limitadas ao máximo; no máximo, a recarga para. Devolve se as cargas mudaram:
+        /// <paramref name="count"/> ≤ 0, spec nulo, de outro ASC, sem cargas ou já cheio dão <c>false</c>.
+        /// </summary>
+        public bool AddCharges(AbilitySpec spec, int count)
+        {
+            if (count <= 0 || !HasCharges(spec) || !_abilities.Contains(spec)) return false;
+
+            int before = spec.Charges;
+            int after = spec.MaxCharges - before < count ? spec.MaxCharges : before + count;
+            if (after <= before) return false;
+
+            spec.Charges = after;
+            if (after >= spec.MaxCharges) StopChargeRecharge(spec);
+            OnChargesChanged?.Invoke(spec, before, after);
+            return true;
+        }
+
+        /// <summary>Enche as cargas até o máximo e para a recarga. Devolve se as cargas mudaram.</summary>
+        public bool RefillCharges(AbilitySpec spec)
+        {
+            return HasCharges(spec) && AddCharges(spec, spec.MaxCharges - spec.Charges);
+        }
+
+        private static bool HasCharges(AbilitySpec spec)
+        {
+            return spec != null && spec.Ability != null && spec.Ability.Charges.Enabled;
+        }
+
+        // Concessão: o máximo é avaliado no nível do spec e as cargas nascem cheias, com a recarga parada
+        private void InitCharges(AbilitySpec spec)
+        {
+            if (!HasCharges(spec)) return;
+
+            GameplayAbility ability = spec.Ability;
+            var context = new EffectContext(this, this, ability, spec.Level, false, Vector3.zero, null);
+            spec.MaxCharges = Mathf.Max(0, Mathf.FloorToInt(ability.Charges.MaxCharges.Evaluate(in context)));
+            spec.Charges = spec.MaxCharges;
+            StopChargeRecharge(spec);
+        }
+
+        // Commit: gasta 1 carga; abaixo do máximo com a recarga parada, a recarga da próxima começa
+        private void SpendCharge(AbilitySpec spec)
+        {
+            int before = spec.Charges;
+            spec.Charges = before - 1;
+            if (!spec.ChargeRecharging && spec.Charges < spec.MaxCharges) StartChargeRecharge(spec, 0f);
+            OnChargesChanged?.Invoke(spec, before, spec.Charges);
+        }
+
+        // Repõe uma carga por recarga vencida, passando o excesso adiante (recarga sequencial); no máximo, para
+        private void AdvanceChargeRecharge(AbilitySpec spec)
+        {
+            while (spec.ChargeRecharging && spec.ChargeRechargeRemaining <= 0f)
+            {
+                if (spec.Charges >= spec.MaxCharges)
+                {
+                    StopChargeRecharge(spec);
+                    return;
+                }
+
+                int before = spec.Charges;
+                spec.Charges = before + 1;
+                if (spec.Charges < spec.MaxCharges) StartChargeRecharge(spec, spec.ChargeRechargeRemaining);
+                else StopChargeRecharge(spec);
+                OnChargesChanged?.Invoke(spec, before, spec.Charges);
+            }
+        }
+
+        private void StartChargeRecharge(AbilitySpec spec, float carriedOver)
+        {
+            GameplayAbility ability = spec.Ability;
+            float duration = ability.ApplyCooldownReduction(ability.Charges.RechargeTime.Evaluate(spec.Level, ability.Values), this);
+            spec.ChargeRecharging = true;
+            spec.ChargeRechargeDuration = duration;
+            spec.ChargeRechargeRemaining = duration + carriedOver;
+        }
+
+        private static void StopChargeRecharge(AbilitySpec spec)
+        {
+            spec.ChargeRecharging = false;
+            spec.ChargeRechargeRemaining = 0f;
+            spec.ChargeRechargeDuration = 0f;
+        }
+        #endregion
+
         #region Ability Activation
         /// <summary>Resultado da ativação sem alvo (<see cref="AbilityTarget.None"/>), sem ativar nem mudar estado.</summary>
         public AbilityActivationResult GetActivationResult(GameplayAbility ability)
@@ -478,6 +605,11 @@ namespace SpellBook.GAS.Core
             if (IsBlockedByActiveAbility(ability))
             {
                 return Fail(AbilityActivationResult.BlockedByActiveAbility, ability.AbilityTag, out failure);
+            }
+            // Checagem 2: com cargas, "tem carga?" vem antes do Cooldown, que continua valendo entre usos (ADR 0032, item 5)
+            if (HasCharges(spec) && Mathf.Min(spec.Charges, spec.MaxCharges) < 1)
+            {
+                return Fail(AbilityActivationResult.NoCharges, default, out failure);
             }
             if (IsOnCooldown(ability.CooldownEffect)) return Fail(AbilityActivationResult.OnCooldown, default, out failure);
             if (!CanAffordCost(ability.CostEffect, ability, spec.Level))
@@ -593,6 +725,7 @@ namespace SpellBook.GAS.Core
                 }
             }
             if (ability.CostEffect != null) ApplyEffect(EffectSpec.ForAbility(ability.CostEffect, this, ability, spec.Level));
+            if (HasCharges(spec)) SpendCharge(spec);
 
             CancelAbilitiesWithTags(ability.CancelAbilitiesWithTag, spec);
 

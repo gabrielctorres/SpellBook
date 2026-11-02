@@ -45,6 +45,9 @@ namespace SpellBook.GAS.Abilities
         [Tooltip("Efeito Instant aplicado ao ativar (ex: Mana Add -20). A ativação falha se o atributo ficaria abaixo do MinValue.")]
         public GameplayEffect CostEffect;
 
+        [Tooltip("Cargas: cada ativação gasta uma, e elas voltam uma por vez. Desligadas por padrão.")]
+        [SerializeField] private ChargesConfig charges = new ChargesConfig();
+
         [Tooltip("Alcance da habilidade por nível, lido pela CastRangeCondition. 0 ou menos: sem limite.")]
         [SerializeField] private ScalableFloat castRange = ScalableFloat.Constant(0f);
 
@@ -130,6 +133,9 @@ namespace SpellBook.GAS.Abilities
             set => castRange = value ?? ScalableFloat.Constant(0f);
         }
 
+        /// <summary>Cargas da habilidade (desligadas por padrão). O estado de cada personagem fica no <see cref="AbilitySpec"/>.</summary>
+        public ChargesConfig Charges => charges ??= new ChargesConfig();
+
         /// <summary>Política de redução de recarga; nula usa <see cref="CooldownReductionPolicy.ApplyDefault"/>.</summary>
         public CooldownReductionPolicy CooldownReductionPolicy => cooldownReductionPolicy;
 
@@ -148,15 +154,18 @@ namespace SpellBook.GAS.Abilities
         {
             if (CooldownEffect == null) return 0f;
 
-            float duration = CooldownEffect.Duration.Evaluate(level, values);
-            if (CooldownReductionAttribute != null && asc != null)
-            {
-                float cdr = asc.GetAttributeValue(CooldownReductionAttribute);
-                duration = cooldownReductionPolicy != null
-                    ? cooldownReductionPolicy.Apply(duration, cdr)
-                    : CooldownReductionPolicy.ApplyDefault(duration, cdr);
-            }
-            return duration;
+            return ApplyCooldownReduction(CooldownEffect.Duration.Evaluate(level, values), asc);
+        }
+
+        // Conta única da redução (R17): a recarga do CooldownEffect e a recarga das cargas passam por aqui
+        internal float ApplyCooldownReduction(float baseDuration, AbilitySystemComponent asc)
+        {
+            if (CooldownReductionAttribute == null || asc == null) return baseDuration;
+
+            float cdr = asc.GetAttributeValue(CooldownReductionAttribute);
+            return cooldownReductionPolicy != null
+                ? cooldownReductionPolicy.Apply(baseDuration, cdr)
+                : CooldownReductionPolicy.ApplyDefault(baseDuration, cdr);
         }
 
         /// <summary>
