@@ -37,6 +37,24 @@ A 0003 juntou mais de 30 emendas em cinco dias. Mais da metade eram exceções �
 - Escrever emenda de ADR para uma exceção de tamanho.
 - O Examinador aprovar um diff acima do teto sem a linha do ticket no `decisoes.md`.
 
+## Emenda (2026-11-03): registro da exceção no Detalhe
+
+**Status da emenda: Aceita** (decisão do usuário, aprovada pelo usuário em 2026-11-03). Acompanha a emenda de 2026-11-03 "registro só no modo autônomo e `AGENTS.md` como fonte única" da 0002.
+
+**Contexto.** O `decisoes.md` virou um log de exceções de tamanho, com uma linha por ticket que passava do teto, além das decisões tomadas sem o usuário. O motivo da exceção já está no Detalhe, que o Examinador lê na revisão. Na faxina do processo, o usuário decidiu que o `decisoes.md` guarda só o que foi decidido na ausência dele.
+
+**Regra.**
+1. **Item 4 da Decisão.** Na exceção até +30%, quem detalha registra o motivo no Detalhe do ticket, na linha "Tamanho". No modo autônomo (usuário ausente), registra também numa linha do `decisoes.md`. O resto do item não muda: a exceção vale só para aquele ticket, termina no commit, sem emenda e sem pergunta, também quando o excesso aparece na implementação ou na revisão.
+2. **Item 3 da Decisão.** Não muda: o Detalhe e a linha do ticket no `decisoes.md`, quando houver, continuam fora da contagem.
+3. **Consequências.** O registro da exceção é o motivo no Detalhe, e no modo autônomo também a linha do `decisoes.md`. O resumo desta ADR fica no `AGENTS.md`, seção "Time de desenvolvimento", e as skills `/implementar` e `/revisao` e os agentes `fabrica` e `examinador` apontam para ela.
+4. **O que os agentes NÃO podem fazer.** Os itens sobre o `decisoes.md` passam a ser:
+   - passar de +30% sem dividir, ou passar do teto sem o motivo no Detalhe (no modo autônomo, também sem a linha no `decisoes.md`);
+   - o Examinador aprovar um diff acima do teto sem o motivo no Detalhe (no modo autônomo, também sem a linha do ticket no `decisoes.md`).
+
+**Consequências.**
+- Fora do modo autônomo, uma exceção de tamanho não gera linha no `decisoes.md`.
+- As linhas de exceção já gravadas no `decisoes.md` ficam como histórico.
+
 ## Relacionadas
 
 - 0002 (fluxo e Detalhe), 0003 (substituída, histórico), 0004 (testes primeiro), 0005 (trava e WIP), 0007 e 0040 (passe de documentação), 0008 (commits).

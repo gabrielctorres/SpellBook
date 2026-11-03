@@ -7,7 +7,7 @@ disable-model-invocation: true
 
 Publique o ticket aprovado: $ARGUMENTS
 
-O commit e o push do ticket aprovado na branch do lote fazem parte do fluxo (`CLAUDE.md`, "Time de desenvolvimento"). Abrir PR, criar tag e publicar release só com a confirmação do usuário.
+O commit e o push do ticket aprovado na branch do lote fazem parte do fluxo (`AGENTS.md`, "Time de desenvolvimento"). Abrir PR, criar tag e publicar release só com a confirmação do usuário.
 
 1. **Pré-condição.** Existe revisão APROVADO para o ticket e não há `.claude/editor.lock` na raiz do checkout. Se faltar algo, pare.
 2. **Branch.** Commite na branch do lote, nunca na `main`. Num worktree (ADR 0005), commite no worktree e leve o commit para a branch do lote com `git cherry-pick`, um commit por ticket.

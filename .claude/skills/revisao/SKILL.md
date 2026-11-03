@@ -11,10 +11,10 @@ Revise o ticket: $ARGUMENTS
    - até 10 arquivos: caminhos distintos no diff. Os outros tipos de arquivo contam só aqui;
    - não contam: `.meta`, saída gerada com guarda (0040), remoção pura, a entrada do `nav` da página criada ou apagada, o Detalhe do ticket e a linha dele no `decisoes.md`. A remoção pura é revisada pela lista de caminhos;
    - movimento puro (`R100`) conta 1 linha e nenhum arquivo;
-   - acima do teto e até +30%, exija a linha do ticket em `Documentation~/decisoes.md`; sem ela, é achado. Acima de +30%, reprove para dividir;
+   - acima do teto e até +30%, confira se o motivo está no Detalhe; no modo autônomo, também no `decisoes.md`. Acima de +30%, reprove para dividir;
    - paralelo (ADR 0005, emenda de 2026-11-03): o outro ticket em andamento não toca nenhum arquivo deste.
 2. **Checar quatro eixos.** Cada eixo vale 25%:
-   - **Padrões:** regras do `CLAUDE.md` (C#, Unity, testes, segurança), `.meta` presentes, sem suppressions, sem dependência nova.
+   - **Padrões:** regras do `AGENTS.md` (C#, Unity, testes, segurança), `.meta` presentes, sem suppressions, sem dependência nova.
    - **CA e Detalhe:** o ticket atende os CA que o Detalhe cita (no design doc `Documentation~/spec/<épico>.md`; num épico antigo, na Spec e no PRD) e o critério de pronto, sem nada a mais.
    - **ADR:** respeita as decisões aceitas em `Documentation~/adr/`. Não registre achado por falta de página do manual, nem por catálogo ou referência desatualizados (emenda de 2026-11-03 da 0007). Registre achado se faltar `[HelpURL]` com constante de `DocUrls`, ou `[TypeCategory]` com `Summary`, ou se faltar a entrada de quebra com migração no `CHANGELOG.md` de um ticket com `!`. No passe de documentação, confira a emenda de 2026-11-01 da 0007 pelas buscas da parte 7 do guia e pela declaração da humanizer. O Examinador não reaplica a humanizer.
    - **DS:** segue nomes, padrões de API e de Inspector de `Documentation~/ds/`. Enquanto `Documentation~/ds/` não existir, confira nomes, padrões de API e de Inspector contra as ADRs aceitas (0011, 0026) e o código vizinho do mesmo módulo, e escreva no veredito "DS: sem DS, conferido por ADR e vizinhança". O critério de nota não muda.
