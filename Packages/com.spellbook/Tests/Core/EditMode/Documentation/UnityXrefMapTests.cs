@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using SpellBook.Core.Editor.Documentation;
+using SpellBook.Core.Tests.Structure;
 
 namespace SpellBook.Core.Tests.Documentation
 {
@@ -11,19 +12,18 @@ namespace SpellBook.Core.Tests.Documentation
     {
         private const string ScriptReference = "https://docs.unity3d.com/ScriptReference/";
 
-        private static readonly string Root = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "spellbook-unity-xrefmap"));
+        private static readonly string Root = TestScratch.For("unity-xrefmap");
 
         [SetUp]
         public void SetUp()
         {
-            DeleteRoot();
-            Directory.CreateDirectory(Root);
+            TestScratch.Recreate(Root);
         }
 
         [TearDown]
         public void TearDown()
         {
-            DeleteRoot();
+            TestScratch.Delete(Root);
         }
 
         [Test]
@@ -256,14 +256,6 @@ namespace SpellBook.Core.Tests.Documentation
         private static void WriteYaml(string fileName, string text)
         {
             File.WriteAllText(Path.Combine(Root, fileName), text);
-        }
-
-        private static void DeleteRoot()
-        {
-            if (Directory.Exists(Root))
-            {
-                Directory.Delete(Root, true);
-            }
         }
     }
 }
