@@ -9,5 +9,7 @@ namespace SpellBook.GAS.Abilities
         Passive,
         /// <summary>Ativar liga e ativar de novo desliga. O custo só é cobrado ao ligar.</summary>
         Toggle,
+        /// <summary>Canaliza pela duração, ou até ser cancelada, e roda "A cada passo" no intervalo.</summary>
+        Channel,
     }
 }

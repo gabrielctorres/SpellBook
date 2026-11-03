@@ -14,6 +14,19 @@ namespace SpellBook.GAS.Abilities
         public bool IsActive { get; internal set; }
         /// <summary>A habilidade é <see cref="AbilityBehavior.Toggle"/> e está ligada.</summary>
         public bool IsToggledOn => IsActive && Ability.Behavior == AbilityBehavior.Toggle;
+        /// <summary>A habilidade é <see cref="AbilityBehavior.Channel"/> e está canalizando.</summary>
+        public bool IsChanneling => IsActive && Ability.Behavior == AbilityBehavior.Channel;
+        /// <summary>Duração aplicada da canalização em curso, em segundos. 0 é indeterminada ou fora da canalização.</summary>
+        public float ChannelDuration { get; internal set; }
+
+        /// <summary>Horário de início da canalização em curso, no <c>TickedTime</c> do ASC.</summary>
+        internal double ChannelStart;
+
+        /// <summary>Intervalo de "A cada passo" da canalização em curso, lido no início dela.</summary>
+        internal float ChannelInterval;
+
+        /// <summary>Horário do próximo passo de "A cada passo"; infinito sem passos.</summary>
+        internal double ChannelNextStep;
         /// <summary>A ativação em curso já cobrou a recarga, o custo e a carga. Volta a <c>false</c> a cada ativação.</summary>
         public bool IsCommitted { get; internal set; }
         /// <summary>Contexto da ativação em curso, preenchido até o fim da habilidade; nulo com ela inativa. É do ASC: não guarde depois do fim.</summary>

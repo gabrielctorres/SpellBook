@@ -65,8 +65,14 @@ namespace SpellBook.GAS.Abilities
         [Tooltip("Quando cobrar a recarga, o custo e a carga: na ativação, ou quando uma ação Commit rodar.")]
         [SerializeField] private CommitMode commitMode = CommitMode.OnStart;
 
-        [Tooltip("Instant termina ao fim de \"Ao ativar\". Passive ativa na concessão e fica ativa. Toggle liga e desliga a cada ativação.")]
+        [Tooltip("Instant termina ao fim de \"Ao ativar\". Passive ativa na concessão e fica ativa. Toggle liga e desliga a cada ativação. Channel canaliza pela duração.")]
         [SerializeField] private AbilityBehavior behavior = AbilityBehavior.Instant;
+
+        [Tooltip("Channel: duração da canalização por nível. 0: canaliza até ser cancelada.")]
+        [SerializeField] private ScalableFloat channelDuration = ScalableFloat.Constant(0f);
+
+        [Tooltip("Channel: segundos entre os passos de \"A cada passo\". 0: sem passos.")]
+        [SerializeField, Min(0f)] private float channelTickInterval;
 
         [Tooltip("Alcance da habilidade por nível, lido pela CastRangeCondition. 0 ou menos: sem limite.")]
         [SerializeField] private ScalableFloat castRange = ScalableFloat.Constant(0f);
@@ -111,6 +117,12 @@ namespace SpellBook.GAS.Abilities
         [TypePicker]
         [ActionEvent("Ao ser cancelada", DefaultTarget.EventTargets, true)]
         public List<GameplayAction> OnCancel = new List<GameplayAction>();
+
+        /// <summary>Roda a cada passo de uma habilidade <see cref="AbilityBehavior.Channel"/>, no intervalo dela.</summary>
+        [SerializeReference]
+        [TypePicker]
+        [ActionEvent("A cada passo", DefaultTarget.EventTargets, true)]
+        public List<GameplayAction> OnChannelTick = new List<GameplayAction>();
 
         /// <summary>Roda quando a habilidade é concedida, depois de <c>OnAbilityGranted</c>. Conceder de novo não roda.</summary>
         [SerializeReference]
@@ -202,8 +214,25 @@ namespace SpellBook.GAS.Abilities
             set => behavior = value;
         }
 
-        // A ativação não termina ao fim de OnActivate: fica até ser desligada, retirada ou cancelada
-        internal bool IsSustained => behavior == AbilityBehavior.Passive || behavior == AbilityBehavior.Toggle;
+        /// <summary>
+        /// Duração da canalização por nível, avaliada com a tabela <see cref="Values"/> na ativação. 0 ou menos canaliza
+        /// até ser cancelada. Atribuir nulo volta a 0.
+        /// </summary>
+        public ScalableFloat ChannelDuration
+        {
+            get => channelDuration ??= ScalableFloat.Constant(0f);
+            set => channelDuration = value ?? ScalableFloat.Constant(0f);
+        }
+
+        /// <summary>Segundos entre os passos de <see cref="OnChannelTick"/>. 0 é sem passos; negativo vira 0.</summary>
+        public float ChannelTickInterval
+        {
+            get => channelTickInterval;
+            set => channelTickInterval = Mathf.Max(0f, value);
+        }
+
+        // A ativação não termina ao fim de OnActivate: fica até ser desligada, retirada, cancelada ou até o fim da canalização
+        internal bool IsSustained => behavior != AbilityBehavior.Instant;
 
         /// <summary>Cargas da habilidade (desligadas por padrão). O estado de cada personagem fica no <see cref="AbilitySpec"/>.</summary>
         public ChargesConfig Charges => charges ??= new ChargesConfig();
@@ -244,7 +273,7 @@ namespace SpellBook.GAS.Abilities
         /// Acusa <c>MaxLevel</c> menor que 1, a tabela de valores (nomes e valores), a política de redução sem atributo de
         /// redução, cada nome do modo Table que um efeito usado pela habilidade lê e não está na tabela (recarga, custo e
         /// <see cref="CollectActionEffects"/>), e <c>MaxLevel</c> acima do tamanho de um array da tabela (aviso).
-        /// Repassa a validação a cada ação das cinco listas; ações vazias são ignoradas.
+        /// Repassa a validação a cada ação das seis listas; ações vazias são ignoradas.
         /// </summary>
         public virtual void Validate(ValidationResult result)
         {
@@ -273,19 +302,21 @@ namespace SpellBook.GAS.Abilities
             ValidateActions(OnActivate, result);
             ValidateActions(OnEnd, result);
             ValidateActions(OnCancel, result);
+            ValidateActions(OnChannelTick, result);
             ValidateActions(OnGranted, result);
             ValidateActions(OnRemoved, result);
         }
 
         /// <summary>
         /// Junta em <paramref name="results"/> os efeitos que as ações de "Ao ativar", "Ao terminar", "Ao ser cancelada",
-        /// "Ao ser concedida" e "Ao ser retirada" aplicam, pelo <see cref="GameplayAction.CollectEffects"/> de cada uma.
+        /// "A cada passo", "Ao ser concedida" e "Ao ser retirada" aplicam, pelo <see cref="GameplayAction.CollectEffects"/> de cada uma.
         /// </summary>
         public void CollectActionEffects(List<GameplayEffect> results)
         {
             CollectEffects(OnActivate, results);
             CollectEffects(OnEnd, results);
             CollectEffects(OnCancel, results);
+            CollectEffects(OnChannelTick, results);
             CollectEffects(OnGranted, results);
             CollectEffects(OnRemoved, results);
         }

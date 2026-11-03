@@ -249,7 +249,33 @@ namespace SpellBook.GAS.Core
 
             if (_runner == null) return;
             _runner.Tick();
+            AdvanceChannels();
             EndFinishedAbilities();
+        }
+
+        // Passos e fim das canalizações até o TickedTime, pelo cursor lógico: um Tick grande roda todos os passos que cobriu
+        private void AdvanceChannels()
+        {
+            for (int i = _abilities.Count - 1; i >= 0; i--)
+            {
+                // Um passo ou um OnAbilityEnded pode retirar habilidades
+                if (i >= _abilities.Count) continue;
+                AbilitySpec spec = _abilities[i];
+                if (!spec.IsChanneling) continue;
+
+                int activation = spec.ActivationId;
+                double end = spec.ChannelDuration > 0f ? spec.ChannelStart + spec.ChannelDuration : double.PositiveInfinity;
+                // O passo no mesmo horário do fim roda antes do fim
+                while (spec.ChannelNextStep <= _tickedTime && spec.ChannelNextStep <= end)
+                {
+                    spec.ChannelNextStep += spec.ChannelInterval;
+                    Runner.Run(spec.Ability.OnChannelTick, CopyActivationContext(spec.ActiveContext), spec);
+                    // Um passo pode ter cancelado ou terminado a canalização, ou começado outra
+                    if (!spec.IsActive || spec.ActivationId != activation) break;
+                }
+
+                if (spec.IsActive && spec.ActivationId == activation && _tickedTime >= end) EndSustained(spec);
+            }
         }
 
         // Termina as habilidades cujas execuções (o OnActivate e as atrasadas dele) acabaram neste Tick
@@ -371,7 +397,7 @@ namespace SpellBook.GAS.Core
             var spec = FindSpec(ability);
             if (spec == null) return;
 
-            if (spec.IsActive && spec.Ability.Behavior == AbilityBehavior.Passive) EndPassive(spec);
+            if (spec.IsActive && spec.Ability.Behavior == AbilityBehavior.Passive) EndSustained(spec);
             else CancelAbility(spec);
             UnindexTriggers(spec);
             if (!_abilities.Remove(spec)) return;
@@ -379,8 +405,8 @@ namespace SpellBook.GAS.Core
             RunGrantList(spec, spec.Ability.OnRemoved);
         }
 
-        // Retirada da passiva: cancela as execuções da ativação e termina normalmente ("Ao terminar")
-        private void EndPassive(AbilitySpec spec)
+        // Retirada da passiva e fim da canalização: cancela as execuções da ativação e termina normalmente ("Ao terminar")
+        private void EndSustained(AbilitySpec spec)
         {
             int activation = spec.ActivationId;
             try { CancelActions(spec); }
@@ -970,6 +996,7 @@ namespace SpellBook.GAS.Core
             int activation = ++spec.ActivationId;
             spec.IsActive = true;
             spec.ActiveContext = context;
+            if (ability.Behavior == AbilityBehavior.Channel) StartChannel(spec);
             AddTags(ability.ActivationOwnedTags);
 
             // Dispara eventos DEPOIS de aplicar o cooldown, para que a UI leia o tempo correto
@@ -990,7 +1017,8 @@ namespace SpellBook.GAS.Core
             // Uma ação pode ter terminado ou cancelado a ativação, ou começado outra
             if (!spec.IsActive || spec.ActivationId != activation) return;
 
-            // Passive e Toggle ficam ativas até serem desligadas, retiradas ou canceladas; as execuções seguem com o spec
+            // Passive, Toggle e Channel ficam ativas até serem desligadas, retiradas, canceladas ou até o fim da canalização;
+            // as execuções seguem com o spec
             if (ability.IsSustained) return;
 
             // A ativação só termina quando acabam todas as execuções do spec, inclusive as de uma DelayedAction
@@ -1054,6 +1082,46 @@ namespace SpellBook.GAS.Core
         }
         #endregion
 
+        #region Channel
+        // Duração aplicada, início e primeiro passo, gravados antes do OnAbilityActivated para a UI ler a duração nele
+        private void StartChannel(AbilitySpec spec)
+        {
+            GameplayAbility ability = spec.Ability;
+            // O intervalo vale para toda a ativação: mudá-lo durante a canalização só vale na próxima
+            float interval = ability.ChannelTickInterval;
+            spec.ChannelInterval = interval;
+            spec.ChannelDuration = Mathf.Max(0f, ability.ChannelDuration.Evaluate(spec.Level, ability.Values));
+            spec.ChannelStart = _tickedTime;
+            spec.ChannelNextStep = interval > 0f ? _tickedTime + interval : double.PositiveInfinity;
+        }
+
+        /// <summary>
+        /// Segundos desde o início da canalização de <paramref name="spec"/>, pelo <see cref="TickedTime"/>, limitados à
+        /// duração quando há duração. Spec nulo ou que não canaliza: 0.
+        /// </summary>
+        public float GetChannelElapsed(AbilitySpec spec)
+        {
+            if (spec == null || !spec.IsChanneling) return 0f;
+
+            float elapsed = (float)(_tickedTime - spec.ChannelStart);
+            return spec.ChannelDuration > 0f ? Mathf.Min(elapsed, spec.ChannelDuration) : elapsed;
+        }
+
+        /// <summary>Segundos até o fim da canalização de <paramref name="spec"/>. Indeterminada, nula ou fora da canalização: 0.</summary>
+        public float GetChannelRemaining(AbilitySpec spec)
+        {
+            if (spec == null || !(spec.ChannelDuration > 0f)) return 0f;
+            return spec.ChannelDuration - GetChannelElapsed(spec);
+        }
+
+        /// <summary>Progresso da canalização de <paramref name="spec"/>, em [0, 1]. Indeterminada, nula ou fora da canalização: 0.</summary>
+        public float GetChannelNormalized(AbilitySpec spec)
+        {
+            if (spec == null || !(spec.ChannelDuration > 0f)) return 0f;
+            return GetChannelElapsed(spec) / spec.ChannelDuration;
+        }
+        #endregion
+
         #region Ability Cancellation
         /// <summary>
         /// Interrompe a habilidade: chama OnCancel nas ações em execução, roda a lista "Ao ser cancelada" e termina.
@@ -1114,6 +1182,8 @@ namespace SpellBook.GAS.Core
             spec.IsActive = false;
             spec.Executing = false;
             spec.Execution = default;
+            // Antes das listas: uma ação de "Ao terminar" pode começar outra canalização, com a duração dela
+            spec.ChannelDuration = 0f;
 
             ActionContext context = spec.ActiveContext;
             List<GameplayAction> actions = cancelled ? spec.Ability.OnCancel : spec.Ability.OnEnd;
