@@ -181,6 +181,18 @@ Todos usam a Unity e seguem o WIP 1. Tempo por `ManualTimeSource`, aleatoriedade
 - Critério de pronto: testes verdes; nenhum consumidor ainda.
 - Tamanho estimado: ~220 linhas; 4 arquivos. Depende de: nada.
 
+### Detalhe (2026-11-03)
+- CA: nenhum CA do PRD diretamente; base do P7 e do Design 1 (ADR 0037, item 2; ADR 0012).
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/Core/Anchors/RuntimeAnchor.cs` (novo, namespace `SpellBook.Core`): `Value`, `HasValue`, `OnChanged`, `Provide`, `Unset`; registro das âncoras vivas numa classe interna não genérica `RuntimeAnchorRegistry` (a Unity não chama `RuntimeInitializeOnLoadMethod` em tipo genérico), com `ResetAllOnSessionStart` em `SubsystemRegistration`, como `Runtime/Time/TimeSourceAsset.cs:12,40-67`. O reset limpa o valor e os assinantes de `OnChanged`.
+  - `Runtime/Core/AssemblyInfo.cs` (novo): `InternalsVisibleTo("SpellBook.Core.Tests.EditMode")`, consequência direta (o teste chama o reset interno, como `Runtime/Time/AssemblyInfo.cs:3`).
+  - `Tests/Core/EditMode/RuntimeAnchorTests.cs` (novo, com `TestObjectAnchor : RuntimeAnchor<GameObject>`).
+  - Sem `conceitos.md` nem `CHANGELOG.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007), e o ticket não quebra nada.
+- Testes red (EditMode, `SpellBook.Core.Tests.EditMode`): `Provide_SetsAndNotifiesOnce_SameValueNoEvent`; `Unset_OnlyClearsSameValue`; `DestroyedValue_ReadsAsNull`; `SessionStart_ClearsAllAnchors`; `Value_IsNotSerialized`.
+- Critério de pronto: os 5 testes verdes pelo filtro `\.RuntimeAnchorTests\.`; nenhum consumidor ainda.
+- Tamanho: ~240 linhas e 3 arquivos, pela ADR 0042. Exceção: nenhuma.
+- Commit: `feat(core): RuntimeAnchor<T> com reset de sessão`
+
 ### CU2 — Módulo, definição, biblioteca e índice por tag
 - Escopo: `Runtime/Cues/SpellBook.Cues.asmdef` (novo; Core, Tags, Time), `CueDefinition.cs` (com os enums), `CueLibrary.cs` (com `CueIndex`), `CueItem.cs` (base, `CueParameters`, `CueHandle`, `CueSpawnRequest`, `CuePlacement`, `CueEnd`), `Tests/Cues/EditMode/SpellBook.Cues.Tests.EditMode.asmdef` (novo), `Tests/Cues/EditMode/CueIndexTests.cs` (novo), `AsmdefRulesTests.cs` (`Cues` em `RuntimeModules`; referências exatas: Core, Tags, Time), `DocUrls.cs` (`Cues = Base + "modulos/cues/"`), `Documentation~/manual/modulos/cues.md` (nova), `CHANGELOG.md`.
 - Testes red: `Index_MostSpecificMatch_FallsBackToParent_NoneFalse` (CA3, C3); `Index_Lookup_DoesNotAllocate`; `CueParameters_DefaultsAndWith`; `Handle_DefaultIsInvalid`; `CuesAsmdef_ReferencesCoreTagsTime` (CA17, parte).
