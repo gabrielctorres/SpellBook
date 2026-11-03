@@ -2,8 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
-using SpellBook.GAS.Core;
-using SpellBook.GAS.Effects;
+using SpellBook.GAS.Actions;
 using SpellBook.Core.Editor.Inspector;
 using SpellBook.Core.Inspector;
 using UnityEditor;
@@ -46,10 +45,10 @@ namespace SpellBook.Core.Tests.Inspector
         [Test]
         public void Candidates_IncludeDerivedFromAnotherAssembly()
         {
-            IEnumerable<Type> types = TypePickerCatalog.GetCandidates(typeof(EffectAction)).Select(e => e.Type);
+            IEnumerable<Type> types = TypePickerCatalog.GetCandidates(typeof(GameplayAction)).Select(e => e.Type);
 
-            Assert.That(typeof(PickEffectAction).Assembly, Is.Not.EqualTo(typeof(EffectAction).Assembly));
-            Assert.That(types, Does.Contain(typeof(PickEffectAction)));
+            Assert.That(typeof(PickGameplayAction).Assembly, Is.Not.EqualTo(typeof(GameplayAction).Assembly));
+            Assert.That(types, Does.Contain(typeof(PickGameplayAction)));
         }
 
         [Test]
@@ -170,11 +169,8 @@ namespace SpellBook.Core.Tests.Inspector
     internal class PickConcreteChild : PickConcreteRoot { }
 
     [Serializable]
-    internal class PickEffectAction : EffectAction
+    internal class PickGameplayAction : GameplayAction
     {
-        public override void Execute(AbilitySystemComponent source, AbilitySystemComponent target,
-            ActiveEffectInstance instance = null)
-        {
-        }
+        protected override ActionStatus Execute(ActionContext context, ref ActionFrame frame) => ActionStatus.Done;
     }
 }

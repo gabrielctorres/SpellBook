@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using SpellBook.GAS.Abilities;
+using SpellBook.GAS.Abilities.Actions;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Values;
@@ -160,7 +161,8 @@ namespace SpellBook.GAS.Tests
         {
             AbilitySystemComponent asc = CreateManualAsc();
             GameplayAbility charged = CreateChargedAbility(3, 2f);
-            GameplayAbility plain = _gas.CreateAbilityWithCooldown(5f);
+            GameplayAbility plain = _gas.CreateAbility(new WaitAction { Duration = 100f }); // sem Tick, segue ativa
+            plain.CooldownEffect = _gas.CreateDurationEffect(5f);
             AbilitySpec chargedSpec = asc.GiveAbility(charged);
             AbilitySpec plainSpec = asc.GiveAbility(plain);
             int changes = 0;

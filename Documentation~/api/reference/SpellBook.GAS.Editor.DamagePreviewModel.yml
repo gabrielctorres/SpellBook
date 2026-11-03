@@ -1,0 +1,902 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Editor.DamagePreviewModel
+  commentId: T:SpellBook.GAS.Editor.DamagePreviewModel
+  id: DamagePreviewModel
+  parent: SpellBook.GAS.Editor
+  children:
+  - SpellBook.GAS.Editor.DamagePreviewModel.#ctor(SpellBook.GAS.Attributes.AttributeDefinition)
+  - SpellBook.GAS.Editor.DamagePreviewModel.Attributes
+  - SpellBook.GAS.Editor.DamagePreviewModel.Compute
+  - SpellBook.GAS.Editor.DamagePreviewModel.DefaultValue
+  - SpellBook.GAS.Editor.DamagePreviewModel.Dispose
+  - SpellBook.GAS.Editor.DamagePreviewModel.GetValue(SpellBook.GAS.Attributes.AttributeDefinition)
+  - SpellBook.GAS.Editor.DamagePreviewModel.RefreshAttributes
+  - SpellBook.GAS.Editor.DamagePreviewModel.SampleDamage
+  - SpellBook.GAS.Editor.DamagePreviewModel.SetValue(SpellBook.GAS.Attributes.AttributeDefinition,System.Single)
+  langs:
+  - csharp
+  - vb
+  name: DamagePreviewModel
+  nameWithType: DamagePreviewModel
+  fullName: SpellBook.GAS.Editor.DamagePreviewModel
+  type: Class
+  namespace: SpellBook.GAS.Editor
+  summary: >-
+    Prévia "dano → processadores → alterações" do <xref href="SpellBook.GAS.Editor.AttributeDefinitionEditor" data-throw-if-not-resolved="false"></xref> (ADR 0033). Roda o mesmo
+
+    pipeline do jogo, pelo <xref href="SpellBook.GAS.Core.AbilitySystemComponent.ApplyAttributeChange(SpellBook.GAS.Attributes.AttributeDefinition%2cSystem.Single%2cSpellBook.GAS.Effects.EffectContext%40%2cSpellBook.GAS.Effects.GameplayEffect)" data-throw-if-not-resolved="false"></xref>, num ASC temporário oculto
+
+    (<xref href="UnityEngine.HideFlags.HideAndDontSave" data-throw-if-not-resolved="false"></xref>) com o atributo e os atributos que os processadores citam. O ASC nasce
+
+    com o modelo e é destruído no <xref href="SpellBook.GAS.Editor.DamagePreviewModel.Dispose" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: 'public sealed class DamagePreviewModel : IDisposable'
+    content.vb: Public NotInheritable Class DamagePreviewModel Implements IDisposable
+  inheritance:
+  - System.Object
+  implements:
+  - System.IDisposable
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+- uid: SpellBook.GAS.Editor.DamagePreviewModel.DefaultValue
+  commentId: F:SpellBook.GAS.Editor.DamagePreviewModel.DefaultValue
+  id: DefaultValue
+  parent: SpellBook.GAS.Editor.DamagePreviewModel
+  langs:
+  - csharp
+  - vb
+  name: DefaultValue
+  nameWithType: DamagePreviewModel.DefaultValue
+  fullName: SpellBook.GAS.Editor.DamagePreviewModel.DefaultValue
+  type: Field
+  namespace: SpellBook.GAS.Editor
+  summary: Valor inicial de um atributo sem valor dado por <xref href="SpellBook.GAS.Editor.DamagePreviewModel.SetValue(SpellBook.GAS.Attributes.AttributeDefinition%2cSystem.Single)" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public const float DefaultValue = 100
+    return:
+      type: System.Single
+    content.vb: Public Const DefaultValue As Single = 100
+- uid: SpellBook.GAS.Editor.DamagePreviewModel.#ctor(SpellBook.GAS.Attributes.AttributeDefinition)
+  commentId: M:SpellBook.GAS.Editor.DamagePreviewModel.#ctor(SpellBook.GAS.Attributes.AttributeDefinition)
+  id: '#ctor(SpellBook.GAS.Attributes.AttributeDefinition)'
+  parent: SpellBook.GAS.Editor.DamagePreviewModel
+  langs:
+  - csharp
+  - vb
+  name: DamagePreviewModel(AttributeDefinition)
+  nameWithType: DamagePreviewModel.DamagePreviewModel(AttributeDefinition)
+  fullName: SpellBook.GAS.Editor.DamagePreviewModel.DamagePreviewModel(SpellBook.GAS.Attributes.AttributeDefinition)
+  type: Constructor
+  namespace: SpellBook.GAS.Editor
+  syntax:
+    content: public DamagePreviewModel(AttributeDefinition definition)
+    parameters:
+    - id: definition
+      type: SpellBook.GAS.Attributes.AttributeDefinition
+    content.vb: Public Sub New(definition As AttributeDefinition)
+  overload: SpellBook.GAS.Editor.DamagePreviewModel.#ctor*
+  nameWithType.vb: DamagePreviewModel.New(AttributeDefinition)
+  fullName.vb: SpellBook.GAS.Editor.DamagePreviewModel.New(SpellBook.GAS.Attributes.AttributeDefinition)
+  name.vb: New(AttributeDefinition)
+- uid: SpellBook.GAS.Editor.DamagePreviewModel.SampleDamage
+  commentId: P:SpellBook.GAS.Editor.DamagePreviewModel.SampleDamage
+  id: SampleDamage
+  parent: SpellBook.GAS.Editor.DamagePreviewModel
+  langs:
+  - csharp
+  - vb
+  name: SampleDamage
+  nameWithType: DamagePreviewModel.SampleDamage
+  fullName: SpellBook.GAS.Editor.DamagePreviewModel.SampleDamage
+  type: Property
+  namespace: SpellBook.GAS.Editor
+  summary: 'Dano de exemplo, positivo: a prévia aplica <code>-SampleDamage</code> ao atributo.'
+  example: []
+  syntax:
+    content: public float SampleDamage { get; set; }
+    parameters: []
+    return:
+      type: System.Single
+    content.vb: Public Property SampleDamage As Single
+  overload: SpellBook.GAS.Editor.DamagePreviewModel.SampleDamage*
+- uid: SpellBook.GAS.Editor.DamagePreviewModel.Attributes
+  commentId: P:SpellBook.GAS.Editor.DamagePreviewModel.Attributes
+  id: Attributes
+  parent: SpellBook.GAS.Editor.DamagePreviewModel
+  langs:
+  - csharp
+  - vb
+  name: Attributes
+  nameWithType: DamagePreviewModel.Attributes
+  fullName: SpellBook.GAS.Editor.DamagePreviewModel.Attributes
+  type: Property
+  namespace: SpellBook.GAS.Editor
+  summary: O atributo da prévia e, depois dele, os atributos citados pelos processadores, sem repetição.
+  example: []
+  syntax:
+    content: public IReadOnlyList<AttributeDefinition> Attributes { get; }
+    parameters: []
+    return:
+      type: System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Attributes.AttributeDefinition}
+    content.vb: Public ReadOnly Property Attributes As IReadOnlyList(Of AttributeDefinition)
+  overload: SpellBook.GAS.Editor.DamagePreviewModel.Attributes*
+- uid: SpellBook.GAS.Editor.DamagePreviewModel.GetValue(SpellBook.GAS.Attributes.AttributeDefinition)
+  commentId: M:SpellBook.GAS.Editor.DamagePreviewModel.GetValue(SpellBook.GAS.Attributes.AttributeDefinition)
+  id: GetValue(SpellBook.GAS.Attributes.AttributeDefinition)
+  parent: SpellBook.GAS.Editor.DamagePreviewModel
+  langs:
+  - csharp
+  - vb
+  name: GetValue(AttributeDefinition)
+  nameWithType: DamagePreviewModel.GetValue(AttributeDefinition)
+  fullName: SpellBook.GAS.Editor.DamagePreviewModel.GetValue(SpellBook.GAS.Attributes.AttributeDefinition)
+  type: Method
+  namespace: SpellBook.GAS.Editor
+  summary: Valor inicial do atributo na prévia; <xref href="SpellBook.GAS.Editor.DamagePreviewModel.DefaultValue" data-throw-if-not-resolved="false"></xref> se nenhum foi dado.
+  example: []
+  syntax:
+    content: public float GetValue(AttributeDefinition attribute)
+    parameters:
+    - id: attribute
+      type: SpellBook.GAS.Attributes.AttributeDefinition
+    return:
+      type: System.Single
+    content.vb: Public Function GetValue(attribute As AttributeDefinition) As Single
+  overload: SpellBook.GAS.Editor.DamagePreviewModel.GetValue*
+- uid: SpellBook.GAS.Editor.DamagePreviewModel.SetValue(SpellBook.GAS.Attributes.AttributeDefinition,System.Single)
+  commentId: M:SpellBook.GAS.Editor.DamagePreviewModel.SetValue(SpellBook.GAS.Attributes.AttributeDefinition,System.Single)
+  id: SetValue(SpellBook.GAS.Attributes.AttributeDefinition,System.Single)
+  parent: SpellBook.GAS.Editor.DamagePreviewModel
+  langs:
+  - csharp
+  - vb
+  name: SetValue(AttributeDefinition, float)
+  nameWithType: DamagePreviewModel.SetValue(AttributeDefinition, float)
+  fullName: SpellBook.GAS.Editor.DamagePreviewModel.SetValue(SpellBook.GAS.Attributes.AttributeDefinition, float)
+  type: Method
+  namespace: SpellBook.GAS.Editor
+  summary: Muda o valor inicial do atributo na prévia; vale no próximo <xref href="SpellBook.GAS.Editor.DamagePreviewModel.Compute" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public void SetValue(AttributeDefinition attribute, float value)
+    parameters:
+    - id: attribute
+      type: SpellBook.GAS.Attributes.AttributeDefinition
+    - id: value
+      type: System.Single
+    content.vb: Public Sub SetValue(attribute As AttributeDefinition, value As Single)
+  overload: SpellBook.GAS.Editor.DamagePreviewModel.SetValue*
+  nameWithType.vb: DamagePreviewModel.SetValue(AttributeDefinition, Single)
+  fullName.vb: SpellBook.GAS.Editor.DamagePreviewModel.SetValue(SpellBook.GAS.Attributes.AttributeDefinition, Single)
+  name.vb: SetValue(AttributeDefinition, Single)
+- uid: SpellBook.GAS.Editor.DamagePreviewModel.RefreshAttributes
+  commentId: M:SpellBook.GAS.Editor.DamagePreviewModel.RefreshAttributes
+  id: RefreshAttributes
+  parent: SpellBook.GAS.Editor.DamagePreviewModel
+  langs:
+  - csharp
+  - vb
+  name: RefreshAttributes()
+  nameWithType: DamagePreviewModel.RefreshAttributes()
+  fullName: SpellBook.GAS.Editor.DamagePreviewModel.RefreshAttributes()
+  type: Method
+  namespace: SpellBook.GAS.Editor
+  summary: >-
+    Relê os atributos citados pelos processadores (o asset pode ter mudado) e devolve se a lista mudou. O ASC
+
+    temporário é refeito só quando a lista muda.
+  example: []
+  syntax:
+    content: public bool RefreshAttributes()
+    return:
+      type: System.Boolean
+    content.vb: Public Function RefreshAttributes() As Boolean
+  overload: SpellBook.GAS.Editor.DamagePreviewModel.RefreshAttributes*
+- uid: SpellBook.GAS.Editor.DamagePreviewModel.Compute
+  commentId: M:SpellBook.GAS.Editor.DamagePreviewModel.Compute
+  id: Compute
+  parent: SpellBook.GAS.Editor.DamagePreviewModel
+  langs:
+  - csharp
+  - vb
+  name: Compute()
+  nameWithType: DamagePreviewModel.Compute()
+  fullName: SpellBook.GAS.Editor.DamagePreviewModel.Compute()
+  type: Method
+  namespace: SpellBook.GAS.Editor
+  summary: >-
+    Põe cada atributo no valor inicial, aplica o dano de exemplo e devolve as alterações na ordem em que foram
+
+    aplicadas: as redirecionadas antes da original. Depois do <xref href="SpellBook.GAS.Editor.DamagePreviewModel.Dispose" data-throw-if-not-resolved="false"></xref>, devolve uma lista vazia.
+  example: []
+  syntax:
+    content: public IReadOnlyList<DamagePreviewRow> Compute()
+    return:
+      type: System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Editor.DamagePreviewRow}
+    content.vb: Public Function Compute() As IReadOnlyList(Of DamagePreviewRow)
+  overload: SpellBook.GAS.Editor.DamagePreviewModel.Compute*
+- uid: SpellBook.GAS.Editor.DamagePreviewModel.Dispose
+  commentId: M:SpellBook.GAS.Editor.DamagePreviewModel.Dispose
+  id: Dispose
+  parent: SpellBook.GAS.Editor.DamagePreviewModel
+  langs:
+  - csharp
+  - vb
+  name: Dispose()
+  nameWithType: DamagePreviewModel.Dispose()
+  fullName: SpellBook.GAS.Editor.DamagePreviewModel.Dispose()
+  type: Method
+  namespace: SpellBook.GAS.Editor
+  summary: Destrói o ASC temporário. A prévia não o recria depois.
+  example: []
+  syntax:
+    content: public void Dispose()
+    content.vb: Public Sub Dispose()
+  overload: SpellBook.GAS.Editor.DamagePreviewModel.Dispose*
+  implements:
+  - System.IDisposable.Dispose
+references:
+- uid: SpellBook.GAS.Editor.AttributeDefinitionEditor
+  commentId: T:SpellBook.GAS.Editor.AttributeDefinitionEditor
+  href: SpellBook.GAS.Editor.AttributeDefinitionEditor.html
+  name: AttributeDefinitionEditor
+  nameWithType: AttributeDefinitionEditor
+  fullName: SpellBook.GAS.Editor.AttributeDefinitionEditor
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.ApplyAttributeChange(SpellBook.GAS.Attributes.AttributeDefinition,System.Single,SpellBook.GAS.Effects.EffectContext@,SpellBook.GAS.Effects.GameplayEffect)
+  commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.ApplyAttributeChange(SpellBook.GAS.Attributes.AttributeDefinition,System.Single,SpellBook.GAS.Effects.EffectContext@,SpellBook.GAS.Effects.GameplayEffect)
+  isExternal: true
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_ApplyAttributeChange_SpellBook_GAS_Attributes_AttributeDefinition_System_Single_SpellBook_GAS_Effects_EffectContext__SpellBook_GAS_Effects_GameplayEffect_
+  name: ApplyAttributeChange(AttributeDefinition, float, in EffectContext, GameplayEffect)
+  nameWithType: AbilitySystemComponent.ApplyAttributeChange(AttributeDefinition, float, in EffectContext, GameplayEffect)
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.ApplyAttributeChange(SpellBook.GAS.Attributes.AttributeDefinition, float, in SpellBook.GAS.Effects.EffectContext, SpellBook.GAS.Effects.GameplayEffect)
+  nameWithType.vb: AbilitySystemComponent.ApplyAttributeChange(AttributeDefinition, Single, EffectContext, GameplayEffect)
+  fullName.vb: SpellBook.GAS.Core.AbilitySystemComponent.ApplyAttributeChange(SpellBook.GAS.Attributes.AttributeDefinition, Single, SpellBook.GAS.Effects.EffectContext, SpellBook.GAS.Effects.GameplayEffect)
+  name.vb: ApplyAttributeChange(AttributeDefinition, Single, EffectContext, GameplayEffect)
+  spec.csharp:
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent.ApplyAttributeChange(SpellBook.GAS.Attributes.AttributeDefinition,System.Single,SpellBook.GAS.Effects.EffectContext@,SpellBook.GAS.Effects.GameplayEffect)
+    name: ApplyAttributeChange
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_ApplyAttributeChange_SpellBook_GAS_Attributes_AttributeDefinition_System_Single_SpellBook_GAS_Effects_EffectContext__SpellBook_GAS_Effects_GameplayEffect_
+  - name: (
+  - uid: SpellBook.GAS.Attributes.AttributeDefinition
+    name: AttributeDefinition
+    href: SpellBook.GAS.Attributes.AttributeDefinition.html
+  - name: ','
+  - name: " "
+  - uid: System.Single
+    name: float
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.single
+  - name: ','
+  - name: " "
+  - name: in
+  - name: " "
+  - uid: SpellBook.GAS.Effects.EffectContext
+    name: EffectContext
+    href: SpellBook.GAS.Effects.EffectContext.html
+  - name: ','
+  - name: " "
+  - uid: SpellBook.GAS.Effects.GameplayEffect
+    name: GameplayEffect
+    href: SpellBook.GAS.Effects.GameplayEffect.html
+  - name: )
+  spec.vb:
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent.ApplyAttributeChange(SpellBook.GAS.Attributes.AttributeDefinition,System.Single,SpellBook.GAS.Effects.EffectContext@,SpellBook.GAS.Effects.GameplayEffect)
+    name: ApplyAttributeChange
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_ApplyAttributeChange_SpellBook_GAS_Attributes_AttributeDefinition_System_Single_SpellBook_GAS_Effects_EffectContext__SpellBook_GAS_Effects_GameplayEffect_
+  - name: (
+  - uid: SpellBook.GAS.Attributes.AttributeDefinition
+    name: AttributeDefinition
+    href: SpellBook.GAS.Attributes.AttributeDefinition.html
+  - name: ','
+  - name: " "
+  - uid: System.Single
+    name: Single
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.single
+  - name: ','
+  - name: " "
+  - uid: SpellBook.GAS.Effects.EffectContext
+    name: EffectContext
+    href: SpellBook.GAS.Effects.EffectContext.html
+  - name: ','
+  - name: " "
+  - uid: SpellBook.GAS.Effects.GameplayEffect
+    name: GameplayEffect
+    href: SpellBook.GAS.Effects.GameplayEffect.html
+  - name: )
+- uid: UnityEngine.HideFlags.HideAndDontSave
+  commentId: F:UnityEngine.HideFlags.HideAndDontSave
+  isExternal: true
+  name: HideAndDontSave
+  nameWithType: HideFlags.HideAndDontSave
+  fullName: UnityEngine.HideFlags.HideAndDontSave
+- uid: SpellBook.GAS.Editor.DamagePreviewModel.Dispose
+  commentId: M:SpellBook.GAS.Editor.DamagePreviewModel.Dispose
+  href: SpellBook.GAS.Editor.DamagePreviewModel.html#SpellBook_GAS_Editor_DamagePreviewModel_Dispose
+  name: Dispose()
+  nameWithType: DamagePreviewModel.Dispose()
+  fullName: SpellBook.GAS.Editor.DamagePreviewModel.Dispose()
+  spec.csharp:
+  - uid: SpellBook.GAS.Editor.DamagePreviewModel.Dispose
+    name: Dispose
+    href: SpellBook.GAS.Editor.DamagePreviewModel.html#SpellBook_GAS_Editor_DamagePreviewModel_Dispose
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: SpellBook.GAS.Editor.DamagePreviewModel.Dispose
+    name: Dispose
+    href: SpellBook.GAS.Editor.DamagePreviewModel.html#SpellBook_GAS_Editor_DamagePreviewModel_Dispose
+  - name: (
+  - name: )
+- uid: SpellBook.GAS.Editor
+  commentId: N:SpellBook.GAS.Editor
+  name: SpellBook.GAS.Editor
+  nameWithType: SpellBook.GAS.Editor
+  fullName: SpellBook.GAS.Editor
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Editor
+    name: Editor
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Editor
+    name: Editor
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.IDisposable
+  commentId: T:System.IDisposable
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.idisposable
+  name: IDisposable
+  nameWithType: IDisposable
+  fullName: System.IDisposable
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: SpellBook.GAS.Editor.DamagePreviewModel.SetValue(SpellBook.GAS.Attributes.AttributeDefinition,System.Single)
+  commentId: M:SpellBook.GAS.Editor.DamagePreviewModel.SetValue(SpellBook.GAS.Attributes.AttributeDefinition,System.Single)
+  isExternal: true
+  href: SpellBook.GAS.Editor.DamagePreviewModel.html#SpellBook_GAS_Editor_DamagePreviewModel_SetValue_SpellBook_GAS_Attributes_AttributeDefinition_System_Single_
+  name: SetValue(AttributeDefinition, float)
+  nameWithType: DamagePreviewModel.SetValue(AttributeDefinition, float)
+  fullName: SpellBook.GAS.Editor.DamagePreviewModel.SetValue(SpellBook.GAS.Attributes.AttributeDefinition, float)
+  nameWithType.vb: DamagePreviewModel.SetValue(AttributeDefinition, Single)
+  fullName.vb: SpellBook.GAS.Editor.DamagePreviewModel.SetValue(SpellBook.GAS.Attributes.AttributeDefinition, Single)
+  name.vb: SetValue(AttributeDefinition, Single)
+  spec.csharp:
+  - uid: SpellBook.GAS.Editor.DamagePreviewModel.SetValue(SpellBook.GAS.Attributes.AttributeDefinition,System.Single)
+    name: SetValue
+    href: SpellBook.GAS.Editor.DamagePreviewModel.html#SpellBook_GAS_Editor_DamagePreviewModel_SetValue_SpellBook_GAS_Attributes_AttributeDefinition_System_Single_
+  - name: (
+  - uid: SpellBook.GAS.Attributes.AttributeDefinition
+    name: AttributeDefinition
+    href: SpellBook.GAS.Attributes.AttributeDefinition.html
+  - name: ','
+  - name: " "
+  - uid: System.Single
+    name: float
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.single
+  - name: )
+  spec.vb:
+  - uid: SpellBook.GAS.Editor.DamagePreviewModel.SetValue(SpellBook.GAS.Attributes.AttributeDefinition,System.Single)
+    name: SetValue
+    href: SpellBook.GAS.Editor.DamagePreviewModel.html#SpellBook_GAS_Editor_DamagePreviewModel_SetValue_SpellBook_GAS_Attributes_AttributeDefinition_System_Single_
+  - name: (
+  - uid: SpellBook.GAS.Attributes.AttributeDefinition
+    name: AttributeDefinition
+    href: SpellBook.GAS.Attributes.AttributeDefinition.html
+  - name: ','
+  - name: " "
+  - uid: System.Single
+    name: Single
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.single
+  - name: )
+- uid: System.Single
+  commentId: T:System.Single
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.single
+  name: float
+  nameWithType: float
+  fullName: float
+  nameWithType.vb: Single
+  fullName.vb: Single
+  name.vb: Single
+- uid: SpellBook.GAS.Editor.DamagePreviewModel.#ctor*
+  commentId: Overload:SpellBook.GAS.Editor.DamagePreviewModel.#ctor
+  href: SpellBook.GAS.Editor.DamagePreviewModel.html#SpellBook_GAS_Editor_DamagePreviewModel__ctor_SpellBook_GAS_Attributes_AttributeDefinition_
+  name: DamagePreviewModel
+  nameWithType: DamagePreviewModel.DamagePreviewModel
+  fullName: SpellBook.GAS.Editor.DamagePreviewModel.DamagePreviewModel
+  nameWithType.vb: DamagePreviewModel.New
+  fullName.vb: SpellBook.GAS.Editor.DamagePreviewModel.New
+  name.vb: New
+- uid: SpellBook.GAS.Attributes.AttributeDefinition
+  commentId: T:SpellBook.GAS.Attributes.AttributeDefinition
+  parent: SpellBook.GAS.Attributes
+  href: SpellBook.GAS.Attributes.AttributeDefinition.html
+  name: AttributeDefinition
+  nameWithType: AttributeDefinition
+  fullName: SpellBook.GAS.Attributes.AttributeDefinition
+- uid: SpellBook.GAS.Attributes
+  commentId: N:SpellBook.GAS.Attributes
+  name: SpellBook.GAS.Attributes
+  nameWithType: SpellBook.GAS.Attributes
+  fullName: SpellBook.GAS.Attributes
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Attributes
+    name: Attributes
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Attributes
+    name: Attributes
+- uid: SpellBook.GAS.Editor.DamagePreviewModel.SampleDamage*
+  commentId: Overload:SpellBook.GAS.Editor.DamagePreviewModel.SampleDamage
+  href: SpellBook.GAS.Editor.DamagePreviewModel.html#SpellBook_GAS_Editor_DamagePreviewModel_SampleDamage
+  name: SampleDamage
+  nameWithType: DamagePreviewModel.SampleDamage
+  fullName: SpellBook.GAS.Editor.DamagePreviewModel.SampleDamage
+- uid: SpellBook.GAS.Editor.DamagePreviewModel.Attributes*
+  commentId: Overload:SpellBook.GAS.Editor.DamagePreviewModel.Attributes
+  href: SpellBook.GAS.Editor.DamagePreviewModel.html#SpellBook_GAS_Editor_DamagePreviewModel_Attributes
+  name: Attributes
+  nameWithType: DamagePreviewModel.Attributes
+  fullName: SpellBook.GAS.Editor.DamagePreviewModel.Attributes
+- uid: System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Attributes.AttributeDefinition}
+  commentId: T:System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Attributes.AttributeDefinition}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IReadOnlyList`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  name: IReadOnlyList<AttributeDefinition>
+  nameWithType: IReadOnlyList<AttributeDefinition>
+  fullName: System.Collections.Generic.IReadOnlyList<SpellBook.GAS.Attributes.AttributeDefinition>
+  nameWithType.vb: IReadOnlyList(Of AttributeDefinition)
+  fullName.vb: System.Collections.Generic.IReadOnlyList(Of SpellBook.GAS.Attributes.AttributeDefinition)
+  name.vb: IReadOnlyList(Of AttributeDefinition)
+  spec.csharp:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: <
+  - uid: SpellBook.GAS.Attributes.AttributeDefinition
+    name: AttributeDefinition
+    href: SpellBook.GAS.Attributes.AttributeDefinition.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: SpellBook.GAS.Attributes.AttributeDefinition
+    name: AttributeDefinition
+    href: SpellBook.GAS.Attributes.AttributeDefinition.html
+  - name: )
+- uid: System.Collections.Generic.IReadOnlyList`1
+  commentId: T:System.Collections.Generic.IReadOnlyList`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  name: IReadOnlyList<T>
+  nameWithType: IReadOnlyList<T>
+  fullName: System.Collections.Generic.IReadOnlyList<T>
+  nameWithType.vb: IReadOnlyList(Of T)
+  fullName.vb: System.Collections.Generic.IReadOnlyList(Of T)
+  name.vb: IReadOnlyList(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic
+  commentId: N:System.Collections.Generic
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Collections.Generic
+  nameWithType: System.Collections.Generic
+  fullName: System.Collections.Generic
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+- uid: SpellBook.GAS.Editor.DamagePreviewModel.DefaultValue
+  commentId: F:SpellBook.GAS.Editor.DamagePreviewModel.DefaultValue
+  href: SpellBook.GAS.Editor.DamagePreviewModel.html#SpellBook_GAS_Editor_DamagePreviewModel_DefaultValue
+  name: DefaultValue
+  nameWithType: DamagePreviewModel.DefaultValue
+  fullName: SpellBook.GAS.Editor.DamagePreviewModel.DefaultValue
+- uid: SpellBook.GAS.Editor.DamagePreviewModel.GetValue*
+  commentId: Overload:SpellBook.GAS.Editor.DamagePreviewModel.GetValue
+  href: SpellBook.GAS.Editor.DamagePreviewModel.html#SpellBook_GAS_Editor_DamagePreviewModel_GetValue_SpellBook_GAS_Attributes_AttributeDefinition_
+  name: GetValue
+  nameWithType: DamagePreviewModel.GetValue
+  fullName: SpellBook.GAS.Editor.DamagePreviewModel.GetValue
+- uid: SpellBook.GAS.Editor.DamagePreviewModel.Compute
+  commentId: M:SpellBook.GAS.Editor.DamagePreviewModel.Compute
+  href: SpellBook.GAS.Editor.DamagePreviewModel.html#SpellBook_GAS_Editor_DamagePreviewModel_Compute
+  name: Compute()
+  nameWithType: DamagePreviewModel.Compute()
+  fullName: SpellBook.GAS.Editor.DamagePreviewModel.Compute()
+  spec.csharp:
+  - uid: SpellBook.GAS.Editor.DamagePreviewModel.Compute
+    name: Compute
+    href: SpellBook.GAS.Editor.DamagePreviewModel.html#SpellBook_GAS_Editor_DamagePreviewModel_Compute
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: SpellBook.GAS.Editor.DamagePreviewModel.Compute
+    name: Compute
+    href: SpellBook.GAS.Editor.DamagePreviewModel.html#SpellBook_GAS_Editor_DamagePreviewModel_Compute
+  - name: (
+  - name: )
+- uid: SpellBook.GAS.Editor.DamagePreviewModel.SetValue*
+  commentId: Overload:SpellBook.GAS.Editor.DamagePreviewModel.SetValue
+  href: SpellBook.GAS.Editor.DamagePreviewModel.html#SpellBook_GAS_Editor_DamagePreviewModel_SetValue_SpellBook_GAS_Attributes_AttributeDefinition_System_Single_
+  name: SetValue
+  nameWithType: DamagePreviewModel.SetValue
+  fullName: SpellBook.GAS.Editor.DamagePreviewModel.SetValue
+- uid: SpellBook.GAS.Editor.DamagePreviewModel.RefreshAttributes*
+  commentId: Overload:SpellBook.GAS.Editor.DamagePreviewModel.RefreshAttributes
+  href: SpellBook.GAS.Editor.DamagePreviewModel.html#SpellBook_GAS_Editor_DamagePreviewModel_RefreshAttributes
+  name: RefreshAttributes
+  nameWithType: DamagePreviewModel.RefreshAttributes
+  fullName: SpellBook.GAS.Editor.DamagePreviewModel.RefreshAttributes
+- uid: System.Boolean
+  commentId: T:System.Boolean
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.boolean
+  name: bool
+  nameWithType: bool
+  fullName: bool
+  nameWithType.vb: Boolean
+  fullName.vb: Boolean
+  name.vb: Boolean
+- uid: SpellBook.GAS.Editor.DamagePreviewModel.Compute*
+  commentId: Overload:SpellBook.GAS.Editor.DamagePreviewModel.Compute
+  href: SpellBook.GAS.Editor.DamagePreviewModel.html#SpellBook_GAS_Editor_DamagePreviewModel_Compute
+  name: Compute
+  nameWithType: DamagePreviewModel.Compute
+  fullName: SpellBook.GAS.Editor.DamagePreviewModel.Compute
+- uid: System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Editor.DamagePreviewRow}
+  commentId: T:System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Editor.DamagePreviewRow}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IReadOnlyList`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  name: IReadOnlyList<DamagePreviewRow>
+  nameWithType: IReadOnlyList<DamagePreviewRow>
+  fullName: System.Collections.Generic.IReadOnlyList<SpellBook.GAS.Editor.DamagePreviewRow>
+  nameWithType.vb: IReadOnlyList(Of DamagePreviewRow)
+  fullName.vb: System.Collections.Generic.IReadOnlyList(Of SpellBook.GAS.Editor.DamagePreviewRow)
+  name.vb: IReadOnlyList(Of DamagePreviewRow)
+  spec.csharp:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: <
+  - uid: SpellBook.GAS.Editor.DamagePreviewRow
+    name: DamagePreviewRow
+    href: SpellBook.GAS.Editor.DamagePreviewRow.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: SpellBook.GAS.Editor.DamagePreviewRow
+    name: DamagePreviewRow
+    href: SpellBook.GAS.Editor.DamagePreviewRow.html
+  - name: )
+- uid: SpellBook.GAS.Editor.DamagePreviewModel.Dispose*
+  commentId: Overload:SpellBook.GAS.Editor.DamagePreviewModel.Dispose
+  href: SpellBook.GAS.Editor.DamagePreviewModel.html#SpellBook_GAS_Editor_DamagePreviewModel_Dispose
+  name: Dispose
+  nameWithType: DamagePreviewModel.Dispose
+  fullName: SpellBook.GAS.Editor.DamagePreviewModel.Dispose
+- uid: System.IDisposable.Dispose
+  commentId: M:System.IDisposable.Dispose
+  parent: System.IDisposable
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.idisposable.dispose
+  name: Dispose()
+  nameWithType: IDisposable.Dispose()
+  fullName: System.IDisposable.Dispose()
+  spec.csharp:
+  - uid: System.IDisposable.Dispose
+    name: Dispose
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.idisposable.dispose
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.IDisposable.Dispose
+    name: Dispose
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.idisposable.dispose
+  - name: (
+  - name: )

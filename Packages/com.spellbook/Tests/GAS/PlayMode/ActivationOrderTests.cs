@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using SpellBook.Core.Conditions;
 using SpellBook.GAS.Abilities;
+using SpellBook.GAS.Actions;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Conditions;
 using SpellBook.GAS.Core;
@@ -279,11 +280,11 @@ namespace SpellBook.GAS.Tests
             }
         }
 
-        private sealed class WaitForeverAction : AbilityAction
+        private sealed class WaitForeverAction : GameplayAction
         {
-            public override System.Collections.IEnumerator Execute(AbilityContext context)
+            protected override ActionStatus Execute(ActionContext context, ref ActionFrame frame)
             {
-                while (true) yield return null;
+                return ActionStatus.Wait(float.MaxValue);
             }
         }
     }

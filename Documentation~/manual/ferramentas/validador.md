@@ -61,6 +61,13 @@ O validador acusa erro em:
   [AttributeDefinition](../modulos/gas.md#attributedefinition));
 - um `AbilitySystemComponent` com entrada vazia em **Starting Effects** (veja
   [Efeitos de partida](../modulos/gas.md#starting-effects));
+- um `AttributeDefinition` com processador vazio em **Processors**, com `AbsorbWithAttribute` sem
+  escudo, com o próprio atributo como escudo ou com **Fraction** fora de 0 a 1, com
+  `ReduceByAttribute` sem atributo, ou com **State Tag While Depleted** apontando para uma tag que
+  foi apagada. Num meta-atributo, o escudo igual ao próprio atributo aparece como ciclo. Um
+  `GameplayEffect` com meta-atributo em **Modifiers** de efeito com duração ou infinito também é
+  erro, porque o meta só muda pela base. A mensagem aponta o campo do processador (veja
+  [Dano, escudo e morte](../modulos/dano-escudo-e-morte.md));
 - uma habilidade com **Max Level** menor que 1, com nome vazio, inválido ou repetido na tabela
   **Values**, ou com uma entrada da tabela que lê outra (modo `Table`) (veja
   [Níveis e tabela de valores](../modulos/gas.md#abilityvalues));
@@ -69,7 +76,7 @@ O validador acusa erro em:
   confere a recarga, o custo e os efeitos de cada `ApplyEffectAction`, inclusive dentro de
   `RepeatAction`, `ParallelAction`, `ConditionalAction` e das **On Hit Actions** do
   `SpawnProjectileAction`. Uma ação sua que aplica efeitos entra na conferência ao sobrescrever
-  `AbilityAction.CollectEffects`;
+  `GameplayAction.CollectEffects`;
 - um `GameplayEffect` com valor por nível inválido (array vazio, curva sem definir ou modo `Table`
   sem nome) na duração ou num modificador, com nome de **SetByCaller** vazio ou fora de letras,
   dígitos e `_`, ou com modificadores **Live** em ciclo, em que um atributo depende do outro (veja
@@ -86,14 +93,17 @@ O validador acusa erro em:
 - uma `CooldownReductionPolicy` com **Min Duration** negativo ou **Max Reduction** fora de 0 a 1
   (veja [CooldownReductionPolicy](../modulos/gas.md#cooldownreductionpolicy));
 - uma linha vazia num `GameplayTagContainer` ou numa lista de um `GameplayTagQuery`, e a mesma tag
-  em duas listas da consulta, nos campos cujo dono repassa a validação (veja
+  em duas listas da consulta, nos campos cujo dono repassa a validação, como as **Damage Tags** do
+  `GameplayEffect` (veja
   [Validação](../modulos/tags.md#validacao) em Tags);
 - uma referência `[SerializeReference]` cujo tipo não existe mais (abaixo);
 - um `MonoBehaviour` ou `ScriptableObject` público e concreto do SpellBook sem `[HelpURL]`, ou com
   `[HelpURL]` fora do manual (abaixo).
 
 E acusa aviso numa tag repetida num conjunto ou numa lista da consulta, numa consulta com as três
-listas vazias, num `AttributeDefinition` com **Hidden** sem **Category**, num `GameplayEffect` com **Is Buff** e
+listas vazias, num `AttributeDefinition` com **Hidden** sem **Category**, num meta-atributo sem processadores (a
+alteração não afeta ninguém), num `AbilitySystemComponent` cujo **Attribute Set** tem um atributo com
+processador que cita outro atributo fora do conjunto (em runtime, o processador não faz nada), num `GameplayEffect` com **Is Buff** e
 **Is Debuff** ligados juntos (veja [Gameplay Effects](../modulos/gas.md#gameplayeffect)), num `GameplayEffect`
 com **SetByCaller** sem padrão (sem o valor do chamador, vale 0), com modo **Live** em efeito `Instant` ou
 em modificador periódico, onde o modo não tem efeito, numa habilidade com **Cooldown Reduction Policy** sem
@@ -150,24 +160,12 @@ Para não rodar os testes do pacote inteiro, escreva um teste seu, num asmdef de
 que referencie o `SpellBook.Core` e o `SpellBook.Core.Editor`:
 
 ```csharp
-using System.Collections.Generic;
-using System.Linq;
-using NUnit.Framework;
-using SpellBook.Core.Editor;
-using SpellBook.Core.Validation;
-
-public class ValidacaoDoProjetoTests
-{
-    [Test]
-    public void Projeto_SemErrosDeValidacao()
-    {
-        var mensagens = new List<ValidationMessage>();
-
-        ProjectValidator.Validate(ProjectValidator.CollectProjectTargets(), mensagens);
-
-        Assert.That(mensagens.Where(m => m.Severity == ValidationSeverity.Error).Select(m => m.Message), Is.Empty);
-    }
-}
+--8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-collections"
+--8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-linq"
+--8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-nunit"
+--8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-core-editor"
+--8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-validation"
+--8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:project-validation-test"
 ```
 
 ## Validar um tipo seu {#ivalidatable}
@@ -177,20 +175,9 @@ Implemente `IValidatable` (`SpellBook.Core.Validation`) num `MonoBehaviour`, num
 mensagens: não muda o objeto, não escreve no console e não usa `UnityEditor`.
 
 ```csharp
-using SpellBook.Core.Validation;
-using UnityEngine;
-
-public class Porta : MonoBehaviour, IValidatable
-{
-    [SerializeField] private GameObject chave;
-    [SerializeField] private float tempoAberta = 2f;
-
-    public void Validate(ValidationResult result)
-    {
-        if (chave == null) result.AddError("Porta sem chave: escolha a Chave.", nameof(chave));
-        if (tempoAberta <= 0f) result.AddWarning("Tempo aberta zero: a porta fecha na hora.", nameof(tempoAberta));
-    }
-}
+--8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-validation"
+--8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-unityengine"
+--8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:porta"
 ```
 
 - `AddError` e `AddWarning` recebem uma mensagem curta, que diz o que corrigir, e o nome do campo

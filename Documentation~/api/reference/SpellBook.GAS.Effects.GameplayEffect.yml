@@ -21,9 +21,9 @@ items:
   - SpellBook.GAS.Effects.GameplayEffect.IsPurgable
   - SpellBook.GAS.Effects.GameplayEffect.MaxStacks
   - SpellBook.GAS.Effects.GameplayEffect.Modifiers
-  - SpellBook.GAS.Effects.GameplayEffect.OnApplication
-  - SpellBook.GAS.Effects.GameplayEffect.OnRemoval
-  - SpellBook.GAS.Effects.GameplayEffect.OnTickActions
+  - SpellBook.GAS.Effects.GameplayEffect.OnApplied
+  - SpellBook.GAS.Effects.GameplayEffect.OnRemoved
+  - SpellBook.GAS.Effects.GameplayEffect.OnTick
   - SpellBook.GAS.Effects.GameplayEffect.Period
   - SpellBook.GAS.Effects.GameplayEffect.PeriodicModifiers
   - SpellBook.GAS.Effects.GameplayEffect.RefreshDurationOnStack
@@ -443,16 +443,16 @@ items:
       type: System.Boolean
     content.vb: Public ReadOnly Property IsPurgable As Boolean
   overload: SpellBook.GAS.Effects.GameplayEffect.IsPurgable*
-- uid: SpellBook.GAS.Effects.GameplayEffect.OnApplication
-  commentId: F:SpellBook.GAS.Effects.GameplayEffect.OnApplication
-  id: OnApplication
+- uid: SpellBook.GAS.Effects.GameplayEffect.OnApplied
+  commentId: F:SpellBook.GAS.Effects.GameplayEffect.OnApplied
+  id: OnApplied
   parent: SpellBook.GAS.Effects.GameplayEffect
   langs:
   - csharp
   - vb
-  name: OnApplication
-  nameWithType: GameplayEffect.OnApplication
-  fullName: SpellBook.GAS.Effects.GameplayEffect.OnApplication
+  name: OnApplied
+  nameWithType: GameplayEffect.OnApplied
+  fullName: SpellBook.GAS.Effects.GameplayEffect.OnApplied
   type: Field
   namespace: SpellBook.GAS.Effects
   syntax:
@@ -461,15 +461,23 @@ items:
 
       [SerializeReference]
 
-      public List<EffectAction> OnApplication
+      [FormerlySerializedAs("OnApplication")]
+
+      [ActionEvent("Ao ser aplicado", DefaultTarget.Owner, true)]
+
+      public List<GameplayAction> OnApplied
     return:
-      type: System.Collections.Generic.List{SpellBook.GAS.Effects.EffectAction}
+      type: System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction}
     content.vb: >-
       <Header("Actions")>
 
       <SerializeReference>
 
-      Public OnApplication As List(Of EffectAction)
+      <FormerlySerializedAs("OnApplication")>
+
+      <ActionEvent("Ao ser aplicado", DefaultTarget.Owner, True)>
+
+      Public OnApplied As List(Of GameplayAction)
   attributes:
   - type: UnityEngine.HeaderAttribute
     ctor: UnityEngine.HeaderAttribute.#ctor(System.String)
@@ -479,69 +487,127 @@ items:
   - type: UnityEngine.SerializeReference
     ctor: UnityEngine.SerializeReference.#ctor
     arguments: []
-- uid: SpellBook.GAS.Effects.GameplayEffect.OnTickActions
-  commentId: F:SpellBook.GAS.Effects.GameplayEffect.OnTickActions
-  id: OnTickActions
+  - type: UnityEngine.Serialization.FormerlySerializedAsAttribute
+    ctor: UnityEngine.Serialization.FormerlySerializedAsAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: OnApplication
+  - type: SpellBook.GAS.Actions.ActionEventAttribute
+    ctor: SpellBook.GAS.Actions.ActionEventAttribute.#ctor(System.String,SpellBook.GAS.Actions.DefaultTarget,System.Boolean)
+    arguments:
+    - type: System.String
+      value: Ao ser aplicado
+    - type: SpellBook.GAS.Actions.DefaultTarget
+      value: 1
+    - type: System.Boolean
+      value: true
+- uid: SpellBook.GAS.Effects.GameplayEffect.OnTick
+  commentId: F:SpellBook.GAS.Effects.GameplayEffect.OnTick
+  id: OnTick
   parent: SpellBook.GAS.Effects.GameplayEffect
   langs:
   - csharp
   - vb
-  name: OnTickActions
-  nameWithType: GameplayEffect.OnTickActions
-  fullName: SpellBook.GAS.Effects.GameplayEffect.OnTickActions
+  name: OnTick
+  nameWithType: GameplayEffect.OnTick
+  fullName: SpellBook.GAS.Effects.GameplayEffect.OnTick
   type: Field
   namespace: SpellBook.GAS.Effects
   syntax:
     content: >-
       [SerializeReference]
 
+      [FormerlySerializedAs("OnTickActions")]
+
+      [ActionEvent("A cada tick", DefaultTarget.Owner, true)]
+
       [Tooltip("Usado só quando Period > 0")]
 
-      public List<EffectAction> OnTickActions
+      public List<GameplayAction> OnTick
     return:
-      type: System.Collections.Generic.List{SpellBook.GAS.Effects.EffectAction}
+      type: System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction}
     content.vb: >-
       <SerializeReference>
 
+      <FormerlySerializedAs("OnTickActions")>
+
+      <ActionEvent("A cada tick", DefaultTarget.Owner, True)>
+
       <Tooltip("Usado só quando Period > 0")>
 
-      Public OnTickActions As List(Of EffectAction)
+      Public OnTick As List(Of GameplayAction)
   attributes:
   - type: UnityEngine.SerializeReference
     ctor: UnityEngine.SerializeReference.#ctor
     arguments: []
+  - type: UnityEngine.Serialization.FormerlySerializedAsAttribute
+    ctor: UnityEngine.Serialization.FormerlySerializedAsAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: OnTickActions
+  - type: SpellBook.GAS.Actions.ActionEventAttribute
+    ctor: SpellBook.GAS.Actions.ActionEventAttribute.#ctor(System.String,SpellBook.GAS.Actions.DefaultTarget,System.Boolean)
+    arguments:
+    - type: System.String
+      value: A cada tick
+    - type: SpellBook.GAS.Actions.DefaultTarget
+      value: 1
+    - type: System.Boolean
+      value: true
   - type: UnityEngine.TooltipAttribute
     ctor: UnityEngine.TooltipAttribute.#ctor(System.String)
     arguments:
     - type: System.String
       value: Usado só quando Period > 0
-- uid: SpellBook.GAS.Effects.GameplayEffect.OnRemoval
-  commentId: F:SpellBook.GAS.Effects.GameplayEffect.OnRemoval
-  id: OnRemoval
+- uid: SpellBook.GAS.Effects.GameplayEffect.OnRemoved
+  commentId: F:SpellBook.GAS.Effects.GameplayEffect.OnRemoved
+  id: OnRemoved
   parent: SpellBook.GAS.Effects.GameplayEffect
   langs:
   - csharp
   - vb
-  name: OnRemoval
-  nameWithType: GameplayEffect.OnRemoval
-  fullName: SpellBook.GAS.Effects.GameplayEffect.OnRemoval
+  name: OnRemoved
+  nameWithType: GameplayEffect.OnRemoved
+  fullName: SpellBook.GAS.Effects.GameplayEffect.OnRemoved
   type: Field
   namespace: SpellBook.GAS.Effects
   syntax:
     content: >-
       [SerializeReference]
 
-      public List<EffectAction> OnRemoval
+      [FormerlySerializedAs("OnRemoval")]
+
+      [ActionEvent("Ao ser removido", DefaultTarget.Owner, true)]
+
+      public List<GameplayAction> OnRemoved
     return:
-      type: System.Collections.Generic.List{SpellBook.GAS.Effects.EffectAction}
+      type: System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction}
     content.vb: >-
       <SerializeReference>
 
-      Public OnRemoval As List(Of EffectAction)
+      <FormerlySerializedAs("OnRemoval")>
+
+      <ActionEvent("Ao ser removido", DefaultTarget.Owner, True)>
+
+      Public OnRemoved As List(Of GameplayAction)
   attributes:
   - type: UnityEngine.SerializeReference
     ctor: UnityEngine.SerializeReference.#ctor
     arguments: []
+  - type: UnityEngine.Serialization.FormerlySerializedAsAttribute
+    ctor: UnityEngine.Serialization.FormerlySerializedAsAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: OnRemoval
+  - type: SpellBook.GAS.Actions.ActionEventAttribute
+    ctor: SpellBook.GAS.Actions.ActionEventAttribute.#ctor(System.String,SpellBook.GAS.Actions.DefaultTarget,System.Boolean)
+    arguments:
+    - type: System.String
+      value: Ao ser removido
+    - type: SpellBook.GAS.Actions.DefaultTarget
+      value: 1
+    - type: System.Boolean
+      value: true
 - uid: SpellBook.GAS.Effects.GameplayEffect.DamageTags
   commentId: P:SpellBook.GAS.Effects.GameplayEffect.DamageTags
   id: DamageTags
@@ -716,7 +782,9 @@ items:
   summary: >-
     Acusa Is Buff com Is Debuff, cada <xref href="SpellBook.GAS.Values.ScalableFloat" data-throw-if-not-resolved="false"></xref> inválido (duração e valores), SetByCaller sem nome
 
-    válido (erro) ou sem padrão (aviso), modo Live onde não tem efeito (aviso) e ciclo ao vivo entre atributos (erro).
+    válido (erro) ou sem padrão (aviso), modo Live onde não tem efeito (aviso), ciclo ao vivo entre atributos (erro),
+
+    tag de dano vazia ou repetida e meta-atributo em <code>Modifiers</code> de efeito com duração ou infinito (erro).
 
     Os nomes do modo Table são conferidos pela habilidade que usa o efeito.
   example: []
@@ -5814,26 +5882,26 @@ references:
   name: IsPurgable
   nameWithType: GameplayEffect.IsPurgable
   fullName: SpellBook.GAS.Effects.GameplayEffect.IsPurgable
-- uid: System.Collections.Generic.List{SpellBook.GAS.Effects.EffectAction}
-  commentId: T:System.Collections.Generic.List{SpellBook.GAS.Effects.EffectAction}
+- uid: System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction}
+  commentId: T:System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction}
   parent: System.Collections.Generic
   definition: System.Collections.Generic.List`1
   href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
-  name: List<EffectAction>
-  nameWithType: List<EffectAction>
-  fullName: System.Collections.Generic.List<SpellBook.GAS.Effects.EffectAction>
-  nameWithType.vb: List(Of EffectAction)
-  fullName.vb: System.Collections.Generic.List(Of SpellBook.GAS.Effects.EffectAction)
-  name.vb: List(Of EffectAction)
+  name: List<GameplayAction>
+  nameWithType: List<GameplayAction>
+  fullName: System.Collections.Generic.List<SpellBook.GAS.Actions.GameplayAction>
+  nameWithType.vb: List(Of GameplayAction)
+  fullName.vb: System.Collections.Generic.List(Of SpellBook.GAS.Actions.GameplayAction)
+  name.vb: List(Of GameplayAction)
   spec.csharp:
   - uid: System.Collections.Generic.List`1
     name: List
     isExternal: true
     href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
   - name: <
-  - uid: SpellBook.GAS.Effects.EffectAction
-    name: EffectAction
-    href: SpellBook.GAS.Effects.EffectAction.html
+  - uid: SpellBook.GAS.Actions.GameplayAction
+    name: GameplayAction
+    href: SpellBook.GAS.Actions.GameplayAction.html
   - name: '>'
   spec.vb:
   - uid: System.Collections.Generic.List`1
@@ -5843,9 +5911,9 @@ references:
   - name: (
   - name: Of
   - name: " "
-  - uid: SpellBook.GAS.Effects.EffectAction
-    name: EffectAction
-    href: SpellBook.GAS.Effects.EffectAction.html
+  - uid: SpellBook.GAS.Actions.GameplayAction
+    name: GameplayAction
+    href: SpellBook.GAS.Actions.GameplayAction.html
   - name: )
 - uid: SpellBook.GAS.Effects.GameplayEffect.DamageTags*
   commentId: Overload:SpellBook.GAS.Effects.GameplayEffect.DamageTags

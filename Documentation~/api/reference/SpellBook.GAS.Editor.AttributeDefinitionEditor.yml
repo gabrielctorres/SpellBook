@@ -6,8 +6,13 @@ items:
   parent: SpellBook.GAS.Editor
   children:
   - SpellBook.GAS.Editor.AttributeDefinitionEditor.BuildAfterDefault(UnityEngine.UIElements.VisualElement)
+  - SpellBook.GAS.Editor.AttributeDefinitionEditor.DamageSampleFieldName
+  - SpellBook.GAS.Editor.AttributeDefinitionEditor.DamageSectionName
+  - SpellBook.GAS.Editor.AttributeDefinitionEditor.DefaultDamage
   - SpellBook.GAS.Editor.AttributeDefinitionEditor.DefaultSample
   - SpellBook.GAS.Editor.AttributeDefinitionEditor.PreviewLabelName
+  - SpellBook.GAS.Editor.AttributeDefinitionEditor.PreviewRowClass
+  - SpellBook.GAS.Editor.AttributeDefinitionEditor.ProcessorRowClass
   - SpellBook.GAS.Editor.AttributeDefinitionEditor.SampleFieldName
   langs:
   - csharp
@@ -22,7 +27,11 @@ items:
 
     a prévia do <xref href="SpellBook.GAS.Attributes.AttributeDisplay.Format(System.Single%2cSystem.IFormatProvider)" data-throw-if-not-resolved="false"></xref> dele na cultura atual, refeita ao
 
-    editar o exemplo ou o asset.
+    editar o exemplo ou o asset. Com um asset selecionado, vem depois a seção "Dano": uma linha de resumo por
+
+    processador e a prévia "dano → processadores → alterações" do <xref href="SpellBook.GAS.Editor.DamagePreviewModel" data-throw-if-not-resolved="false"></xref>, com um campo de
+
+    valor por atributo. O ASC temporário da prévia é destruído quando o Inspector fecha.
   example: []
   syntax:
     content: >-
@@ -220,6 +229,91 @@ items:
     return:
       type: System.Single
     content.vb: Public Const DefaultSample As Single = 1
+- uid: SpellBook.GAS.Editor.AttributeDefinitionEditor.DamageSectionName
+  commentId: F:SpellBook.GAS.Editor.AttributeDefinitionEditor.DamageSectionName
+  id: DamageSectionName
+  parent: SpellBook.GAS.Editor.AttributeDefinitionEditor
+  langs:
+  - csharp
+  - vb
+  name: DamageSectionName
+  nameWithType: AttributeDefinitionEditor.DamageSectionName
+  fullName: SpellBook.GAS.Editor.AttributeDefinitionEditor.DamageSectionName
+  type: Field
+  namespace: SpellBook.GAS.Editor
+  syntax:
+    content: public const string DamageSectionName = "spellbook-attribute-damage"
+    return:
+      type: System.String
+    content.vb: Public Const DamageSectionName As String = "spellbook-attribute-damage"
+- uid: SpellBook.GAS.Editor.AttributeDefinitionEditor.ProcessorRowClass
+  commentId: F:SpellBook.GAS.Editor.AttributeDefinitionEditor.ProcessorRowClass
+  id: ProcessorRowClass
+  parent: SpellBook.GAS.Editor.AttributeDefinitionEditor
+  langs:
+  - csharp
+  - vb
+  name: ProcessorRowClass
+  nameWithType: AttributeDefinitionEditor.ProcessorRowClass
+  fullName: SpellBook.GAS.Editor.AttributeDefinitionEditor.ProcessorRowClass
+  type: Field
+  namespace: SpellBook.GAS.Editor
+  syntax:
+    content: public const string ProcessorRowClass = "spellbook-attribute-processor-row"
+    return:
+      type: System.String
+    content.vb: Public Const ProcessorRowClass As String = "spellbook-attribute-processor-row"
+- uid: SpellBook.GAS.Editor.AttributeDefinitionEditor.DamageSampleFieldName
+  commentId: F:SpellBook.GAS.Editor.AttributeDefinitionEditor.DamageSampleFieldName
+  id: DamageSampleFieldName
+  parent: SpellBook.GAS.Editor.AttributeDefinitionEditor
+  langs:
+  - csharp
+  - vb
+  name: DamageSampleFieldName
+  nameWithType: AttributeDefinitionEditor.DamageSampleFieldName
+  fullName: SpellBook.GAS.Editor.AttributeDefinitionEditor.DamageSampleFieldName
+  type: Field
+  namespace: SpellBook.GAS.Editor
+  syntax:
+    content: public const string DamageSampleFieldName = "spellbook-attribute-damage-sample"
+    return:
+      type: System.String
+    content.vb: Public Const DamageSampleFieldName As String = "spellbook-attribute-damage-sample"
+- uid: SpellBook.GAS.Editor.AttributeDefinitionEditor.PreviewRowClass
+  commentId: F:SpellBook.GAS.Editor.AttributeDefinitionEditor.PreviewRowClass
+  id: PreviewRowClass
+  parent: SpellBook.GAS.Editor.AttributeDefinitionEditor
+  langs:
+  - csharp
+  - vb
+  name: PreviewRowClass
+  nameWithType: AttributeDefinitionEditor.PreviewRowClass
+  fullName: SpellBook.GAS.Editor.AttributeDefinitionEditor.PreviewRowClass
+  type: Field
+  namespace: SpellBook.GAS.Editor
+  syntax:
+    content: public const string PreviewRowClass = "spellbook-attribute-damage-row"
+    return:
+      type: System.String
+    content.vb: Public Const PreviewRowClass As String = "spellbook-attribute-damage-row"
+- uid: SpellBook.GAS.Editor.AttributeDefinitionEditor.DefaultDamage
+  commentId: F:SpellBook.GAS.Editor.AttributeDefinitionEditor.DefaultDamage
+  id: DefaultDamage
+  parent: SpellBook.GAS.Editor.AttributeDefinitionEditor
+  langs:
+  - csharp
+  - vb
+  name: DefaultDamage
+  nameWithType: AttributeDefinitionEditor.DefaultDamage
+  fullName: SpellBook.GAS.Editor.AttributeDefinitionEditor.DefaultDamage
+  type: Field
+  namespace: SpellBook.GAS.Editor
+  syntax:
+    content: public const float DefaultDamage = 10
+    return:
+      type: System.Single
+    content.vb: Public Const DefaultDamage As Single = 10
 - uid: SpellBook.GAS.Editor.AttributeDefinitionEditor.BuildAfterDefault(UnityEngine.UIElements.VisualElement)
   commentId: M:SpellBook.GAS.Editor.AttributeDefinitionEditor.BuildAfterDefault(UnityEngine.UIElements.VisualElement)
   id: BuildAfterDefault(UnityEngine.UIElements.VisualElement)
@@ -292,6 +386,12 @@ references:
     isExternal: true
     href: https://learn.microsoft.com/dotnet/api/system.iformatprovider
   - name: )
+- uid: SpellBook.GAS.Editor.DamagePreviewModel
+  commentId: T:SpellBook.GAS.Editor.DamagePreviewModel
+  href: SpellBook.GAS.Editor.DamagePreviewModel.html
+  name: DamagePreviewModel
+  nameWithType: DamagePreviewModel
+  fullName: SpellBook.GAS.Editor.DamagePreviewModel
 - uid: SpellBook.GAS.Editor
   commentId: N:SpellBook.GAS.Editor
   name: SpellBook.GAS.Editor

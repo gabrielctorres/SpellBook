@@ -5,6 +5,7 @@ using NUnit.Framework;
 using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Abilities.Actions;
 using SpellBook.GAS.Abilities.Projectiles;
+using SpellBook.GAS.Actions;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
@@ -41,15 +42,16 @@ namespace SpellBook.GAS.Tests
             _gas.Dispose();
         }
 
-        // Guarda o contexto da ativação, para montar specs e projéteis com a habilidade e o nível reais.
-        private sealed class CaptureContextAction : AbilityAction
+        // Guarda o contexto da ativação, para montar specs e projéteis com a habilidade e o nível reais. Segura a
+        // habilidade ativa, para o contexto não voltar ao pool do executor durante o teste.
+        private sealed class CaptureContextAction : GameplayAction
         {
-            public AbilityContext Context;
+            public ActionContext Context;
 
-            public override IEnumerator Execute(AbilityContext context)
+            protected override ActionStatus Execute(ActionContext context, ref ActionFrame frame)
             {
                 Context = context;
-                yield break;
+                return ActionStatus.Wait(float.MaxValue);
             }
         }
 
@@ -66,7 +68,7 @@ namespace SpellBook.GAS.Tests
             return asc;
         }
 
-        private GameplayAbility CreateAbility(int maxLevel, params AbilityAction[] actions)
+        private GameplayAbility CreateAbility(int maxLevel, params GameplayAction[] actions)
         {
             GameplayAbility ability = _gas.CreateAbility(actions);
             var so = new SerializedObject(ability);
@@ -92,14 +94,14 @@ namespace SpellBook.GAS.Tests
             return effect;
         }
 
-        private static AbilityContext Activate(AbilitySystemComponent caster, GameplayAbility ability, int level, CaptureContextAction capture)
+        private static ActionContext Activate(AbilitySystemComponent caster, GameplayAbility ability, int level, CaptureContextAction capture)
         {
             caster.GiveAbility(ability, level);
             caster.TryActivateAbility(ability, Vector3.zero);
             return capture.Context;
         }
 
-        private AbilityContext ActivateAndCapture(AbilitySystemComponent asc, int level, Vector3 targetPosition, out GameplayAbility ability)
+        private ActionContext ActivateAndCapture(AbilitySystemComponent asc, int level, Vector3 targetPosition, out GameplayAbility ability)
         {
             var capture = new CaptureContextAction();
             ability = CreateAbility(4, capture);
@@ -154,12 +156,12 @@ namespace SpellBook.GAS.Tests
             AttributeDefinition damage = _gas.CreateAttribute("Damage");
             AbilitySystemComponent caster = CreateAsc();
             AbilitySystemComponent target = CreateAsc((damage, 0f));
-            AbilityContext activation = ActivateAndCapture(caster, 3, Vector3.zero, out _);
+            ActionContext activation = ActivateAndCapture(caster, 3, Vector3.zero, out _);
             GameplayEffect damageEffect = CreateInstantAdd(damage, ScalableFloat.FromTable("damage"));
             var go = new GameObject("Projectile_Test");
             _objects.Add(go);
             var projectile = go.AddComponent<TestProjectile>();
-            projectile.Setup(null, activation, new List<AbilityAction>
+            projectile.Setup(null, activation, new List<GameplayAction>
             {
                 new ApplyEffectAction { Effects = new List<GameplayEffect> { damageEffect } }
             });
@@ -176,24 +178,24 @@ namespace SpellBook.GAS.Tests
             AbilitySystemComponent caster = CreateAsc();
             AbilitySystemComponent target = CreateAsc();
             var impact = new Vector3(1f, 2f, 3f);
-            AbilityContext activation = ActivateAndCapture(caster, 2, impact, out GameplayAbility ability);
-            activation.Targets.Add(target);
+            ActionContext activation = ActivateAndCapture(caster, 2, impact, out GameplayAbility ability);
+            ActionContext context = activation.CreateDerived(impact);
+            context.EventTargets.Add(target);
             GameplayEffect effect = _gas.CreateDurationEffect(5f);
             var action = new ApplyEffectAction { Effects = new List<GameplayEffect> { effect } };
 
-            IEnumerator run = action.Execute(activation);
-            while (run.MoveNext()) { }
+            caster.RunActions(new GameplayAction[] { action }, context, null);
             yield return null;
 
             Assert.That(target.ActiveEffects, Has.Count.EqualTo(1));
-            EffectContext context = target.ActiveEffects[0].Context;
-            Assert.That(context.Instigator, Is.SameAs(caster));
-            Assert.That(context.Target, Is.SameAs(target));
-            Assert.That(context.Ability, Is.SameAs(ability));
-            Assert.That(context.Level, Is.EqualTo(2));
-            Assert.That(context.Table, Is.SameAs(ability.Values));
-            Assert.That(context.HasImpactPoint, Is.True);
-            Assert.That(context.ImpactPoint, Is.EqualTo(impact));
+            EffectContext applied = target.ActiveEffects[0].Context;
+            Assert.That(applied.Instigator, Is.SameAs(caster));
+            Assert.That(applied.Target, Is.SameAs(target));
+            Assert.That(applied.Ability, Is.SameAs(ability));
+            Assert.That(applied.Level, Is.EqualTo(2));
+            Assert.That(applied.Table, Is.SameAs(ability.Values));
+            Assert.That(applied.HasImpactPoint, Is.True);
+            Assert.That(applied.ImpactPoint, Is.EqualTo(impact));
         }
 
         [Test]
@@ -256,8 +258,8 @@ namespace SpellBook.GAS.Tests
             GameplayAbility ability = CreateAbility(3, capture);
             ability.Values.Add("duracao", ScalableFloat.FromArray(4f, 5f, 6f));
             // Um conjurador por nível: a primeira ativação ainda roda no mesmo quadro
-            AbilityContext levelOne = Activate(CreateAsc(), ability, 1, capture);
-            AbilityContext levelThree = Activate(CreateAsc(), ability, 3, capture);
+            ActionContext levelOne = Activate(CreateAsc(), ability, 1, capture);
+            ActionContext levelThree = Activate(CreateAsc(), ability, 3, capture);
 
             ActiveEffectInstance instance = target.ApplyEffect(EffectSpec.FromAbility(effect, levelOne));
             Assert.That(instance.AppliedDuration, Is.EqualTo(4f), "nível 1");
@@ -277,7 +279,7 @@ namespace SpellBook.GAS.Tests
             AttributeDefinition damage = _gas.CreateAttribute("Damage");
             AbilitySystemComponent caster = CreateAsc();
             AbilitySystemComponent target = CreateAsc((damage, 0f));
-            AbilityContext activation = ActivateAndCapture(caster, 3, Vector3.zero, out _);
+            ActionContext activation = ActivateAndCapture(caster, 3, Vector3.zero, out _);
             GameplayEffect effect = CreateInstantAdd(damage, ScalableFloat.FromTable("damage"));
             EffectSpec spec = EffectSpec.FromAbility(effect, activation);
             target.TryApplyEffect(in spec, out _);

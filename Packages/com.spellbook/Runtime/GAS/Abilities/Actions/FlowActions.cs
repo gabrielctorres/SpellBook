@@ -1,40 +1,54 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using SpellBook.Core.Inspector;
 using UnityEngine;
 using SpellBook.Tags;
+using SpellBook.GAS.Actions;
 using SpellBook.GAS.Effects;
 
 namespace SpellBook.GAS.Abilities.Actions
 {
     /// <summary>
-    /// Executa a lista de ações várias vezes, com intervalo opcional entre repetições.
+    /// Executa a lista de ações várias vezes, com intervalo opcional entre repetições. Sem intervalo, as repetições
+    /// rodam na mesma chamada.
     /// </summary>
     [Serializable, TypeCategory("Fluxo", Summary = "Repete as ações várias vezes, com intervalo opcional.")]
-    public class RepeatAction : AbilityAction
+    public class RepeatAction : GameplayAction
     {
         [Min(1)] public int Count = 2;
         [Min(0)] public float Interval = 0f;
 
         [SerializeReference]
         [TypePicker]
-        public List<AbilityAction> Actions = new List<AbilityAction>();
+        public List<GameplayAction> Actions = new List<GameplayAction>();
 
-        public override IEnumerator Execute(AbilityContext context)
+        public override bool UsesTargets => false;
+
+        // frame.Index: repetição atual; frame.Phase 1: as filhas da repetição acabaram de rodar
+        protected override ActionStatus Execute(ActionContext context, ref ActionFrame frame)
         {
-            for (int i = 0; i < Count; i++)
+            if (frame.Phase == 1)
             {
-                if (context.IsCancelled) yield break;
-                yield return RunSequence(Actions, context);
-
-                if (Interval > 0f && i < Count - 1) yield return context.WaitSeconds(Interval);
+                frame.Index++;
+                if (frame.Index >= Count) return ActionStatus.Done;
+                if (Interval > 0f)
+                {
+                    frame.Phase = 0;
+                    return ActionStatus.Wait(Interval);
+                }
             }
+            else if (frame.Index >= Count)
+            {
+                return ActionStatus.Done;
+            }
+
+            frame.Phase = 1;
+            return ActionStatus.Run(Actions);
         }
 
         public override void CollectEffects(List<GameplayEffect> effects)
         {
-            CollectEffects(Actions, effects);
+            ActionLists.CollectEffects(Actions, effects);
         }
     }
 
@@ -42,41 +56,25 @@ namespace SpellBook.GAS.Abilities.Actions
     /// Executa todas as ações ao mesmo tempo e espera todas terminarem.
     /// </summary>
     [Serializable, TypeCategory("Fluxo", Summary = "Roda as ações ao mesmo tempo e espera todas terminarem.")]
-    public class ParallelAction : AbilityAction
+    public class ParallelAction : GameplayAction
     {
         [SerializeReference]
         [TypePicker]
-        public List<AbilityAction> Actions = new List<AbilityAction>();
+        public List<GameplayAction> Actions = new List<GameplayAction>();
 
-        public override IEnumerator Execute(AbilityContext context)
+        public override bool UsesTargets => false;
+
+        protected override ActionStatus Execute(ActionContext context, ref ActionFrame frame)
         {
-            if (Actions == null || context.Source == null) yield break;
+            if (frame.Phase != 0 || Actions == null) return ActionStatus.Done;
 
-            var pending = new int[1];
-            foreach (var action in Actions)
-            {
-                if (action == null) continue;
-
-                pending[0]++;
-                if (context.StartChildRoutine(RunAndSignal(action, context, pending)) == null)
-                {
-                    // Não foi possível iniciar (ASC desativado)
-                    pending[0]--;
-                }
-            }
-
-            while (pending[0] > 0 && !context.IsCancelled) yield return null;
-        }
-
-        private static IEnumerator RunAndSignal(AbilityAction action, AbilityContext context, int[] pending)
-        {
-            yield return Run(action, context);
-            pending[0]--;
+            frame.Phase = 1;
+            return ActionStatus.RunParallel(Actions);
         }
 
         public override void CollectEffects(List<GameplayEffect> effects)
         {
-            CollectEffects(Actions, effects);
+            ActionLists.CollectEffects(Actions, effects);
         }
     }
 
@@ -84,7 +82,7 @@ namespace SpellBook.GAS.Abilities.Actions
     /// Executa "Then" ou "Else" conforme uma condição avaliada no momento da execução.
     /// </summary>
     [Serializable, TypeCategory("Fluxo", Summary = "Roda as ações de Then ou de Else conforme a condição.")]
-    public class ConditionalAction : AbilityAction
+    public class ConditionalAction : GameplayAction
     {
         public enum ConditionType
         {
@@ -99,35 +97,55 @@ namespace SpellBook.GAS.Abilities.Actions
 
         [SerializeReference]
         [TypePicker]
-        public List<AbilityAction> Then = new List<AbilityAction>();
+        public List<GameplayAction> Then = new List<GameplayAction>();
 
         [SerializeReference]
         [TypePicker]
-        public List<AbilityAction> Else = new List<AbilityAction>();
+        public List<GameplayAction> Else = new List<GameplayAction>();
 
-        public override IEnumerator Execute(AbilityContext context)
+        public override bool UsesTargets => false;
+
+        protected override ActionStatus Execute(ActionContext context, ref ActionFrame frame)
         {
-            yield return RunSequence(Evaluate(context) ? Then : Else, context);
+            if (frame.Phase != 0) return ActionStatus.Done;
+
+            frame.Phase = 1;
+            return ActionStatus.Run(Evaluate(context) ? Then : Else);
         }
 
         public override void CollectEffects(List<GameplayEffect> effects)
         {
-            CollectEffects(Then, effects);
-            CollectEffects(Else, effects);
+            ActionLists.CollectEffects(Then, effects);
+            ActionLists.CollectEffects(Else, effects);
         }
 
-        private bool Evaluate(AbilityContext context)
+        private bool Evaluate(ActionContext context)
         {
             switch (Condition)
             {
                 case ConditionType.SourceHasAllTags:
-                    return context.Source != null && context.Source.HasAllTags(Tags);
+                    return context.Instigator != null && context.Instigator.HasAllTags(Tags);
                 case ConditionType.SourceHasAnyTag:
-                    return context.Source != null && context.Source.HasAnyTag(Tags);
+                    return context.Instigator != null && context.Instigator.HasAnyTag(Tags);
                 case ConditionType.HasTargets:
-                    return context.GetValidTargets().Count > 0;
+                    context.EventTargets.RemoveAll(t => t == null);
+                    return context.EventTargets.Count > 0;
                 default:
                     return false;
+            }
+        }
+    }
+
+    internal static class ActionLists
+    {
+        /// <summary>Repassa <see cref="GameplayAction.CollectEffects"/> a cada ação não nula de <paramref name="actions"/>.</summary>
+        public static void CollectEffects(IList<GameplayAction> actions, List<GameplayEffect> effects)
+        {
+            if (actions == null) return;
+
+            for (int i = 0; i < actions.Count; i++)
+            {
+                actions[i]?.CollectEffects(effects);
             }
         }
     }

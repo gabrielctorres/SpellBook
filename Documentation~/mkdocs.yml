@@ -1,7 +1,8 @@
 # Site do manual público do SpellBook (ADR 0025). Só a pasta manual/ vira site.
 # Ferramenta: MkDocs com o tema Material, versões travadas em requirements-docs.txt.
 # Com nav explícito: o build falha se uma página ficar fora do nav ou se o nav apontar para página que não existe (ADR 0007, I26, emenda de 2026-11-01).
-# Build: mkdocs build --strict -f Documentation~/mkdocs.yml
+# Build, de dentro de Documentation~/: mkdocs build --strict -f mkdocs.yml
+# O pymdownx.snippets resolve as inclusões a partir da pasta onde o MkDocs roda: ".." é a raiz do repositório.
 site_name: SpellBook
 site_url: https://gabrielctorres.github.io/SpellBook/
 site_description: Manual do SpellBook, pacote de ferramentas reutilizáveis para Unity.
@@ -58,3 +59,9 @@ markdown_extensions:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
+  # Exemplos de código incluídos de arquivos de teste (Spec referencia-catalogo-e-api.md, D9; ADR 0041).
+  - pymdownx.snippets:
+      base_path: [".."]
+      check_paths: true
+      restrict_base_path: true
+      dedent_subsections: true

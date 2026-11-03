@@ -1,10 +1,17 @@
 using System;
 using System.Collections.Generic;
+using SpellBook.GAS.Actions;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 
 namespace SpellBook.GAS.Effects
 {
+    /// <summary>Ação que guarda dados na instância por <see cref="ActiveEffectInstance.AddActionData"/> e os libera na remoção.</summary>
+    internal interface IEffectActionCleanup
+    {
+        void Cleanup(ActiveEffectInstance instance, List<object> data);
+    }
+
     public class ActiveEffectInstance
     {
         public GameplayEffect Effect { get; private set; }
@@ -38,7 +45,7 @@ namespace SpellBook.GAS.Effects
 
         // Último valor de cada modificador periódico que lê o instigador; o tique usa este valor se o instigador foi destruído.
         private readonly float[] _lastTickValues;
-        private readonly Dictionary<EffectAction, List<object>> _actionData = new Dictionary<EffectAction, List<object>>();
+        private readonly Dictionary<GameplayAction, List<object>> _actionData = new Dictionary<GameplayAction, List<object>>();
 
         // Modificadores persistentes com o valor de uma pilha; nulo em efeito sem modificador persistente
         private List<TrackedModifier> _trackedModifiers;
@@ -150,20 +157,35 @@ namespace SpellBook.GAS.Effects
 
         private void Initialize()
         {
-            // Trigger Application Actions
-            if (Effect.OnApplication != null)
-            {
-                foreach (var action in Effect.OnApplication) action?.Execute(Source, Target, this);
-            }
+            RunActions(Effect.OnApplied, EffectEvent.Applied);
         }
 
-        public void AddActionData(EffectAction action, object data)
+        /// <summary>
+        /// Roda <paramref name="actions"/> no executor do <see cref="Target"/>, com esta instância como dono: a remoção cancela
+        /// as execuções em curso.
+        /// </summary>
+        private void RunActions(List<GameplayAction> actions, EffectEvent effectEvent)
+        {
+            if (actions == null || actions.Count == 0 || Target == null) return;
+
+            ActionContext context = Target.Runner.RentContext();
+            if (Source != null) context.Instigator = Source;
+            context.Level = Context.Level;
+            context.EffectInstance = this;
+            context.EffectDefinition = Effect;
+            context.EffectEvent = effectEvent;
+            context.SetEffect(Context);
+            context.EventTargets.Add(Target);
+            Target.RunActions(actions, context, this);
+        }
+
+        public void AddActionData(GameplayAction action, object data)
         {
             if (!_actionData.ContainsKey(action)) _actionData[action] = new List<object>();
             _actionData[action].Add(data);
         }
 
-        public bool TryGetActionData<T>(EffectAction action, out List<T> data)
+        public bool TryGetActionData<T>(GameplayAction action, out List<T> data)
         {
             if (_actionData.TryGetValue(action, out var list))
             {
@@ -324,15 +346,7 @@ namespace SpellBook.GAS.Effects
                     _timeSinceLastTick -= Effect.Period;
                     OnTick?.Invoke(this);
 
-                    // Trigger Periodic Actions
-                    if (Effect.OnTickActions != null)
-                    {
-                        foreach (var action in Effect.OnTickActions)
-                        {
-                            if (IsRemoved) break;
-                            action?.Execute(Source, Target, this);
-                        }
-                    }
+                    if (!IsRemoved) RunActions(Effect.OnTick, EffectEvent.Tick);
 
                     // Um ouvinte ou uma ação do tique removeu a instância
                     if (IsRemoved) return;
@@ -351,23 +365,14 @@ namespace SpellBook.GAS.Effects
 
         public void Cleanup()
         {
-            // Cleanup state for all actions that were executed
-            if (Effect.OnApplication != null)
+            // Libera o que as ações guardaram na instância (ex.: VFX a devolver)
+            foreach (KeyValuePair<GameplayAction, List<object>> pair in _actionData)
             {
-                foreach (var action in Effect.OnApplication) action?.Cleanup(Source, Target, this);
+                if (pair.Key is IEffectActionCleanup cleanup) cleanup.Cleanup(this, pair.Value);
             }
+            _actionData.Clear();
 
-            if (Effect.OnTickActions != null)
-            {
-                foreach (var action in Effect.OnTickActions) action?.Cleanup(Source, Target, this);
-            }
-
-            // Trigger Removal Actions
-            if (Effect.OnRemoval != null)
-            {
-                foreach (var action in Effect.OnRemoval) action?.Execute(Source, Target, this);
-            }
+            RunActions(Effect.OnRemoved, EffectEvent.Removed);
         }
     }
 }
-

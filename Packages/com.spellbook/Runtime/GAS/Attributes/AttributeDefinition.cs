@@ -97,7 +97,8 @@ namespace SpellBook.GAS.Attributes
         /// <summary>
         /// Erros: mínimo constante acima do máximo constante, fonte de limite sem atributo, apontando para o próprio
         /// atributo, fechando um ciclo de fontes ou derivada de uma fórmula que lê este atributo, e <c>Decimals</c>
-        /// negativo. Aviso: <c>Hidden</c> sem categoria (R26).
+        /// negativo. Aviso: <c>Hidden</c> sem categoria (R26). No dano: processador nulo, erro de cada processador, tag de
+        /// estado apontando para uma definição apagada (erros) e meta-atributo sem processadores (aviso).
         /// </summary>
         public void Validate(ValidationResult result)
         {
@@ -117,6 +118,37 @@ namespace SpellBook.GAS.Attributes
             if (Display.Hidden && Display.Category == null)
             {
                 result.AddWarning("Atributo oculto sem categoria.", nameof(Display) + "." + nameof(AttributeDisplay.Category));
+            }
+
+            ValidateDamage(result);
+        }
+
+        private void ValidateDamage(ValidationResult result)
+        {
+            int count = processors != null ? processors.Count : 0;
+            for (int i = 0; i < count; i++)
+            {
+                string path = $"{nameof(processors)}.Array.data[{i}]";
+                if (processors[i] == null)
+                {
+                    result.AddError($"Processador vazio (posição {i}). Escolha um tipo ou remova a linha.", path);
+                }
+                else
+                {
+                    processors[i].Validate(result, path, this);
+                }
+            }
+
+            if (isMeta && count == 0)
+            {
+                result.AddWarning("Meta-atributo sem processadores: a alteração é descartada e não afeta ninguém.", nameof(isMeta));
+            }
+
+            // Referência a um asset de tag apagado: o campo está preenchido, mas a definição é nula.
+            GameplayTagDefinition tagDefinition = stateTagWhileDepleted.GetDefinition();
+            if (!ReferenceEquals(tagDefinition, null) && tagDefinition == null)
+            {
+                result.AddError("State Tag While Depleted aponta para uma tag que não existe mais.", nameof(stateTagWhileDepleted));
             }
         }
 

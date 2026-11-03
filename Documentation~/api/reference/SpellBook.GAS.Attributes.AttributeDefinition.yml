@@ -595,7 +595,9 @@ items:
 
     atributo, fechando um ciclo de fontes ou derivada de uma fórmula que lê este atributo, e <code>Decimals</code>
 
-    negativo. Aviso: <code>Hidden</code> sem categoria (R26).
+    negativo. Aviso: <code>Hidden</code> sem categoria (R26). No dano: processador nulo, erro de cada processador, tag de
+
+    estado apontando para uma definição apagada (erros) e meta-atributo sem processadores (aviso).
   example: []
   syntax:
     content: public void Validate(ValidationResult result)

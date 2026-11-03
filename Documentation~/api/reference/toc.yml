@@ -296,15 +296,9 @@ items:
   name: SpellBook.GAS.Abilities
   type: Namespace
   items:
-  - uid: SpellBook.GAS.Abilities.AbilityAction
-    name: AbilityAction
-    type: Class
   - uid: SpellBook.GAS.Abilities.AbilityActivationResult
     name: AbilityActivationResult
     type: Enum
-  - uid: SpellBook.GAS.Abilities.AbilityContext
-    name: AbilityContext
-    type: Class
   - uid: SpellBook.GAS.Abilities.AbilityDescription
     name: AbilityDescription
     type: Class
@@ -409,6 +403,34 @@ items:
   - uid: SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors
     name: Projectile.MovementVectors
     type: Enum
+- uid: SpellBook.GAS.Actions
+  name: SpellBook.GAS.Actions
+  type: Namespace
+  items:
+  - uid: SpellBook.GAS.Actions.ActionContext
+    name: ActionContext
+    type: Class
+  - uid: SpellBook.GAS.Actions.ActionEventAttribute
+    name: ActionEventAttribute
+    type: Class
+  - uid: SpellBook.GAS.Actions.ActionExecutionHandle
+    name: ActionExecutionHandle
+    type: Struct
+  - uid: SpellBook.GAS.Actions.ActionFrame
+    name: ActionFrame
+    type: Struct
+  - uid: SpellBook.GAS.Actions.ActionStatus
+    name: ActionStatus
+    type: Struct
+  - uid: SpellBook.GAS.Actions.DefaultTarget
+    name: DefaultTarget
+    type: Enum
+  - uid: SpellBook.GAS.Actions.EffectEvent
+    name: EffectEvent
+    type: Enum
+  - uid: SpellBook.GAS.Actions.GameplayAction
+    name: GameplayAction
+    type: Class
 - uid: SpellBook.GAS.Attributes
   name: SpellBook.GAS.Attributes
   type: Namespace
@@ -665,6 +687,12 @@ items:
   - uid: SpellBook.GAS.Editor.AttributeDefinitionEditor
     name: AttributeDefinitionEditor
     type: Class
+  - uid: SpellBook.GAS.Editor.DamagePreviewModel
+    name: DamagePreviewModel
+    type: Class
+  - uid: SpellBook.GAS.Editor.DamagePreviewRow
+    name: DamagePreviewRow
+    type: Struct
   - uid: SpellBook.GAS.Editor.GameplayAbilityEditor
     name: GameplayAbilityEditor
     type: Class
@@ -687,11 +715,8 @@ items:
   - uid: SpellBook.GAS.Effects.AttributeEffectModifier
     name: AttributeEffectModifier
     type: Class
-  - uid: SpellBook.GAS.Effects.DebugLogEffectAction
-    name: DebugLogEffectAction
-    type: Class
-  - uid: SpellBook.GAS.Effects.EffectAction
-    name: EffectAction
+  - uid: SpellBook.GAS.Effects.DebugLogAction
+    name: DebugLogAction
     type: Class
   - uid: SpellBook.GAS.Effects.EffectApplicationResult
     name: EffectApplicationResult
@@ -720,8 +745,8 @@ items:
   - uid: SpellBook.GAS.Effects.SetByCallerValues
     name: SetByCallerValues
     type: Class
-  - uid: SpellBook.GAS.Effects.SpawnVFXEffectAction
-    name: SpawnVFXEffectAction
+  - uid: SpellBook.GAS.Effects.SpawnVFXAction
+    name: SpawnVFXAction
     type: Class
 - uid: SpellBook.GAS.Targeting
   name: SpellBook.GAS.Targeting

@@ -50,23 +50,6 @@ Aparece em: `Delayed Reaction > Reactions`, `Event Response`1 > Reactions`.
 | [Set Active Reaction](https://gabrielctorres.github.io/SpellBook/api/SpellBook.Events.SetActiveReaction.html) | Objeto | Ativa ou desativa um GameObject. |
 | [Toggle Component Reaction](https://gabrielctorres.github.io/SpellBook/api/SpellBook.Events.ToggleComponentReaction.html) | Objeto | Liga, desliga ou inverte um componente. |
 
-## `AbilityAction` {#spellbook-gas-abilities-abilityaction}
-
-Aparece em: `Conditional Action > Else`, `Conditional Action > Then`, `Gameplay Ability > Actions`, `Parallel Action > Actions`, `Repeat Action > Actions`, `Spawn Projectile Action > On Hit Actions`.
-
-| Tipo | Categoria | Resumo |
-|---|---|---|
-| [Animation Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.AnimationAction.html) | Apresentação | Muda um parâmetro do Animator de quem lançou. |
-| [Apply Effect Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.ApplyEffectAction.html) | Efeito | Aplica efeitos nos alvos e, se marcado, em quem lançou. |
-| [Conditional Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.ConditionalAction.html) | Fluxo | Roda as ações de Then ou de Else conforme a condição. |
-| [Parallel Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.ParallelAction.html) | Fluxo | Roda as ações ao mesmo tempo e espera todas terminarem. |
-| [Play Cue Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.PlayCueAction.html) | Apresentação | Cria um efeito visual e toca um som em quem lançou, no alvo ou no ponto. |
-| [Raise Event Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Bridges.RaiseEventAction.html) | Eventos | Dispara um canal de eventos com um payload fixo ou da habilidade. |
-| [Repeat Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.RepeatAction.html) | Fluxo | Repete as ações várias vezes, com intervalo opcional. |
-| [Spawn Projectile Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.html) | Mundo | Lança projéteis que rodam ações ao acertar. |
-| [Targeting Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.TargetingAction.html) | Alvo | Busca alvos com uma estratégia e troca ou soma aos alvos atuais. |
-| [Wait Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.WaitAction.html) | Fluxo | Espera alguns segundos no tempo do sistema de habilidades do ator. |
-
 ## `DescriptionElement` {#spellbook-gas-abilities-descriptionelement}
 
 Aparece em: `Ability Description > Elements`.
@@ -77,6 +60,25 @@ Aparece em: `Ability Description > Elements`.
 | [Template Element](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.TemplateElement.html) | Descrição | Modelo com marcadores trocados por atributos ou texto. |
 | [Text Element](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.TextElement.html) | Descrição | Texto fixo. |
 
+## `GameplayAction` {#spellbook-gas-actions-gameplayaction}
+
+Aparece em: `Conditional Action > Else`, `Conditional Action > Then`, `Gameplay Ability > On Activate`, `Gameplay Effect > On Applied`, `Gameplay Effect > On Removed`, `Gameplay Effect > On Tick`, `Parallel Action > Actions`, `Repeat Action > Actions`, `Spawn Projectile Action > On Hit Actions`.
+
+| Tipo | Categoria | Resumo |
+|---|---|---|
+| [Animation Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.AnimationAction.html) | Apresentação | Muda um parâmetro do Animator de quem lançou. |
+| [Apply Effect Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.ApplyEffectAction.html) | Efeito | Aplica efeitos nos alvos e, se marcado, em quem lançou. |
+| [Conditional Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.ConditionalAction.html) | Fluxo | Roda as ações de Then ou de Else conforme a condição. |
+| [Debug Log Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Effects.DebugLogAction.html) | Depuração | Escreve uma mensagem colorida no Console quando o efeito roda. |
+| [Parallel Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.ParallelAction.html) | Fluxo | Roda as ações ao mesmo tempo e espera todas terminarem. |
+| [Play Cue Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.PlayCueAction.html) | Apresentação | Cria um efeito visual e toca um som em quem lançou, no alvo ou no ponto. |
+| [Raise Event Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Bridges.RaiseEventAction.html) | Eventos | Dispara um canal de eventos com um payload fixo ou da habilidade. |
+| [Repeat Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.RepeatAction.html) | Fluxo | Repete as ações várias vezes, com intervalo opcional. |
+| [Spawn Projectile Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.html) | Mundo | Lança projéteis que rodam ações ao acertar. |
+| [Spawn VFX Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Effects.SpawnVFXAction.html) | Apresentação | Cria um efeito visual no alvo e, se marcado, o remove quando o efeito sai. |
+| [Targeting Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.TargetingAction.html) | Alvo | Busca alvos com uma estratégia e troca ou soma aos alvos atuais. |
+| [Wait Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.WaitAction.html) | Fluxo | Espera alguns segundos no tempo do sistema de habilidades do ator. |
+
 ## `AttributeChangeProcessor` {#spellbook-gas-attributes-attributechangeprocessor}
 
 Aparece em: `Attribute Definition > Processors`.
@@ -86,12 +88,3 @@ Aparece em: `Attribute Definition > Processors`.
 | [Absorb With Attribute](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Attributes.AbsorbWithAttribute.html) | Dano/Escudo | Desvia o dano para um atributo de escudo do dono. |
 | [Immune To Tags](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Attributes.ImmuneToTags.html) | Dano/Imunidade | Anula a alteração de efeitos com certas tags de dano. |
 | [Reduce By Attribute](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Attributes.ReduceByAttribute.html) | Dano/Redução | Reduz a alteração pelo valor de um atributo do dono. |
-
-## `EffectAction` {#spellbook-gas-effects-effectaction}
-
-Aparece em: `Gameplay Effect > On Application`, `Gameplay Effect > On Removal`, `Gameplay Effect > On Tick Actions`.
-
-| Tipo | Categoria | Resumo |
-|---|---|---|
-| [Debug Log Effect Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Effects.DebugLogEffectAction.html) | Depuração | Escreve uma mensagem colorida no Console quando o efeito roda. |
-| [Spawn VFX Effect Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Effects.SpawnVFXEffectAction.html) | Apresentação | Cria um efeito visual no alvo e, se marcado, o remove quando o efeito sai. |

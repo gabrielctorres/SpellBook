@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using NUnit.Framework;
+using SpellBook.GAS.Actions;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
@@ -128,7 +129,7 @@ namespace SpellBook.GAS.Tests
             AbilitySystemComponent asc = CreateManualAsc();
             var application = new CountingAction();
             GameplayEffect effect = _gas.CreateDurationEffect(AssetDuration);
-            effect.OnApplication.Add(application);
+            effect.OnApplied.Add(application);
             asc.ApplyEffect(effect);
 
             asc.ApplyEffect(effect);
@@ -166,13 +167,14 @@ namespace SpellBook.GAS.Tests
         }
 
         /// <summary>Conta quantas vezes rodou.</summary>
-        private sealed class CountingAction : EffectAction
+        private sealed class CountingAction : GameplayAction
         {
             public int Count { get; private set; }
 
-            public override void Execute(AbilitySystemComponent source, AbilitySystemComponent target, ActiveEffectInstance instance = null)
+            protected override ActionStatus Execute(ActionContext context, ref ActionFrame frame)
             {
                 Count++;
+                return ActionStatus.Done;
             }
         }
     }

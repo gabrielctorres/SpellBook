@@ -6,7 +6,8 @@ items:
   parent: SpellBook.GAS.Abilities.Actions
   children:
   - SpellBook.GAS.Abilities.Actions.WaitAction.Duration
-  - SpellBook.GAS.Abilities.Actions.WaitAction.Execute(SpellBook.GAS.Abilities.AbilityContext)
+  - SpellBook.GAS.Abilities.Actions.WaitAction.Execute(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
+  - SpellBook.GAS.Abilities.Actions.WaitAction.UsesTargets
   langs:
   - csharp
   - vb
@@ -21,25 +22,22 @@ items:
 
       [TypeCategory("Fluxo", Summary = "Espera alguns segundos no tempo do sistema de habilidades do ator.")]
 
-      public class WaitAction : AbilityAction, IValidatable
+      public class WaitAction : GameplayAction, IValidatable
     content.vb: >-
       <Serializable>
 
       <TypeCategory("Fluxo", Summary:="Espera alguns segundos no tempo do sistema de habilidades do ator.")>
 
-      Public Class WaitAction Inherits AbilityAction Implements IValidatable
+      Public Class WaitAction Inherits GameplayAction Implements IValidatable
   inheritance:
   - System.Object
-  - SpellBook.GAS.Abilities.AbilityAction
+  - SpellBook.GAS.Actions.GameplayAction
   implements:
   - SpellBook.Core.Validation.IValidatable
   inheritedMembers:
-  - SpellBook.GAS.Abilities.AbilityAction.OnCancel(SpellBook.GAS.Abilities.AbilityContext)
-  - SpellBook.GAS.Abilities.AbilityAction.Validate(SpellBook.Core.Validation.ValidationResult)
-  - SpellBook.GAS.Abilities.AbilityAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
-  - SpellBook.GAS.Abilities.AbilityAction.CollectEffects(System.Collections.Generic.IList{SpellBook.GAS.Abilities.AbilityAction},System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
-  - SpellBook.GAS.Abilities.AbilityAction.Run(SpellBook.GAS.Abilities.AbilityAction,SpellBook.GAS.Abilities.AbilityContext)
-  - SpellBook.GAS.Abilities.AbilityAction.RunSequence(System.Collections.Generic.IList{SpellBook.GAS.Abilities.AbilityAction},SpellBook.GAS.Abilities.AbilityContext)
+  - SpellBook.GAS.Actions.GameplayAction.OnCancel(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
+  - SpellBook.GAS.Actions.GameplayAction.Validate(SpellBook.Core.Validation.ValidationResult)
+  - SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
   - System.Object.Equals(System.Object)
   - System.Object.Equals(System.Object,System.Object)
   - System.Object.GetHashCode
@@ -72,36 +70,67 @@ items:
   fullName: SpellBook.GAS.Abilities.Actions.WaitAction.Duration
   type: Field
   namespace: SpellBook.GAS.Abilities.Actions
-  summary: Segundos do tempo do ASC. Zero ou menos espera exatamente um quadro, como na 2.x.
+  summary: Segundos do tempo do ASC, contados do fim do passo anterior. Zero ou menos não espera.
   example: []
   syntax:
     content: public float Duration
     return:
       type: System.Single
     content.vb: Public Duration As Single
-- uid: SpellBook.GAS.Abilities.Actions.WaitAction.Execute(SpellBook.GAS.Abilities.AbilityContext)
-  commentId: M:SpellBook.GAS.Abilities.Actions.WaitAction.Execute(SpellBook.GAS.Abilities.AbilityContext)
-  id: Execute(SpellBook.GAS.Abilities.AbilityContext)
+- uid: SpellBook.GAS.Abilities.Actions.WaitAction.UsesTargets
+  commentId: P:SpellBook.GAS.Abilities.Actions.WaitAction.UsesTargets
+  id: UsesTargets
   parent: SpellBook.GAS.Abilities.Actions.WaitAction
   langs:
   - csharp
   - vb
-  name: Execute(AbilityContext)
-  nameWithType: WaitAction.Execute(AbilityContext)
-  fullName: SpellBook.GAS.Abilities.Actions.WaitAction.Execute(SpellBook.GAS.Abilities.AbilityContext)
-  type: Method
+  name: UsesTargets
+  nameWithType: WaitAction.UsesTargets
+  fullName: SpellBook.GAS.Abilities.Actions.WaitAction.UsesTargets
+  type: Property
   namespace: SpellBook.GAS.Abilities.Actions
+  summary: Se a ação usa alvos. O Inspector mostra o alvo só quando é verdadeiro.
   example: []
   syntax:
-    content: public override IEnumerator Execute(AbilityContext context)
+    content: public override bool UsesTargets { get; }
+    parameters: []
+    return:
+      type: System.Boolean
+    content.vb: Public Overrides ReadOnly Property UsesTargets As Boolean
+  overridden: SpellBook.GAS.Actions.GameplayAction.UsesTargets
+  overload: SpellBook.GAS.Abilities.Actions.WaitAction.UsesTargets*
+- uid: SpellBook.GAS.Abilities.Actions.WaitAction.Execute(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
+  commentId: M:SpellBook.GAS.Abilities.Actions.WaitAction.Execute(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
+  id: Execute(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
+  parent: SpellBook.GAS.Abilities.Actions.WaitAction
+  langs:
+  - csharp
+  - vb
+  name: Execute(ActionContext, ref ActionFrame)
+  nameWithType: WaitAction.Execute(ActionContext, ref ActionFrame)
+  fullName: SpellBook.GAS.Abilities.Actions.WaitAction.Execute(SpellBook.GAS.Actions.ActionContext, ref SpellBook.GAS.Actions.ActionFrame)
+  type: Method
+  namespace: SpellBook.GAS.Abilities.Actions
+  summary: >-
+    Avança a ação. Na primeira chamada, <code>frame</code> vem zerado. Devolva <xref href="SpellBook.GAS.Actions.ActionStatus.Done" data-throw-if-not-resolved="false"></xref> para
+
+    terminar, ou uma espera ou lista filha para ser chamada de novo depois dela. Quem chama é o executor.
+  example: []
+  syntax:
+    content: protected override ActionStatus Execute(ActionContext context, ref ActionFrame frame)
     parameters:
     - id: context
-      type: SpellBook.GAS.Abilities.AbilityContext
+      type: SpellBook.GAS.Actions.ActionContext
+    - id: frame
+      type: SpellBook.GAS.Actions.ActionFrame
     return:
-      type: System.Collections.IEnumerator
-    content.vb: Public Overrides Function Execute(context As AbilityContext) As IEnumerator
-  overridden: SpellBook.GAS.Abilities.AbilityAction.Execute(SpellBook.GAS.Abilities.AbilityContext)
+      type: SpellBook.GAS.Actions.ActionStatus
+    content.vb: Protected Overrides Function Execute(context As ActionContext, frame As ActionFrame) As ActionStatus
+  overridden: SpellBook.GAS.Actions.GameplayAction.Execute(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
   overload: SpellBook.GAS.Abilities.Actions.WaitAction.Execute*
+  nameWithType.vb: WaitAction.Execute(ActionContext, ActionFrame)
+  fullName.vb: SpellBook.GAS.Abilities.Actions.WaitAction.Execute(SpellBook.GAS.Actions.ActionContext, SpellBook.GAS.Actions.ActionFrame)
+  name.vb: Execute(ActionContext, ActionFrame)
 references:
 - uid: SpellBook.GAS.Abilities.Actions
   commentId: N:SpellBook.GAS.Abilities.Actions
@@ -143,13 +172,13 @@ references:
   nameWithType.vb: Object
   fullName.vb: Object
   name.vb: Object
-- uid: SpellBook.GAS.Abilities.AbilityAction
-  commentId: T:SpellBook.GAS.Abilities.AbilityAction
-  parent: SpellBook.GAS.Abilities
-  href: SpellBook.GAS.Abilities.AbilityAction.html
-  name: AbilityAction
-  nameWithType: AbilityAction
-  fullName: SpellBook.GAS.Abilities.AbilityAction
+- uid: SpellBook.GAS.Actions.GameplayAction
+  commentId: T:SpellBook.GAS.Actions.GameplayAction
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.GameplayAction.html
+  name: GameplayAction
+  nameWithType: GameplayAction
+  fullName: SpellBook.GAS.Actions.GameplayAction
 - uid: SpellBook.Core.Validation.IValidatable
   commentId: T:SpellBook.Core.Validation.IValidatable
   parent: SpellBook.Core.Validation
@@ -157,71 +186,86 @@ references:
   name: IValidatable
   nameWithType: IValidatable
   fullName: SpellBook.Core.Validation.IValidatable
-- uid: SpellBook.GAS.Abilities.AbilityAction.OnCancel(SpellBook.GAS.Abilities.AbilityContext)
-  commentId: M:SpellBook.GAS.Abilities.AbilityAction.OnCancel(SpellBook.GAS.Abilities.AbilityContext)
-  parent: SpellBook.GAS.Abilities.AbilityAction
-  href: SpellBook.GAS.Abilities.AbilityAction.html#SpellBook_GAS_Abilities_AbilityAction_OnCancel_SpellBook_GAS_Abilities_AbilityContext_
-  name: OnCancel(AbilityContext)
-  nameWithType: AbilityAction.OnCancel(AbilityContext)
-  fullName: SpellBook.GAS.Abilities.AbilityAction.OnCancel(SpellBook.GAS.Abilities.AbilityContext)
+- uid: SpellBook.GAS.Actions.GameplayAction.OnCancel(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
+  commentId: M:SpellBook.GAS.Actions.GameplayAction.OnCancel(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
+  parent: SpellBook.GAS.Actions.GameplayAction
+  href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_OnCancel_SpellBook_GAS_Actions_ActionContext_SpellBook_GAS_Actions_ActionFrame__
+  name: OnCancel(ActionContext, ref ActionFrame)
+  nameWithType: GameplayAction.OnCancel(ActionContext, ref ActionFrame)
+  fullName: SpellBook.GAS.Actions.GameplayAction.OnCancel(SpellBook.GAS.Actions.ActionContext, ref SpellBook.GAS.Actions.ActionFrame)
+  nameWithType.vb: GameplayAction.OnCancel(ActionContext, ActionFrame)
+  fullName.vb: SpellBook.GAS.Actions.GameplayAction.OnCancel(SpellBook.GAS.Actions.ActionContext, SpellBook.GAS.Actions.ActionFrame)
+  name.vb: OnCancel(ActionContext, ActionFrame)
   spec.csharp:
-  - uid: SpellBook.GAS.Abilities.AbilityAction.OnCancel(SpellBook.GAS.Abilities.AbilityContext)
+  - uid: SpellBook.GAS.Actions.GameplayAction.OnCancel(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
     name: OnCancel
-    href: SpellBook.GAS.Abilities.AbilityAction.html#SpellBook_GAS_Abilities_AbilityAction_OnCancel_SpellBook_GAS_Abilities_AbilityContext_
+    href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_OnCancel_SpellBook_GAS_Actions_ActionContext_SpellBook_GAS_Actions_ActionFrame__
   - name: (
-  - uid: SpellBook.GAS.Abilities.AbilityContext
-    name: AbilityContext
-    href: SpellBook.GAS.Abilities.AbilityContext.html
+  - uid: SpellBook.GAS.Actions.ActionContext
+    name: ActionContext
+    href: SpellBook.GAS.Actions.ActionContext.html
+  - name: ','
+  - name: " "
+  - name: ref
+  - name: " "
+  - uid: SpellBook.GAS.Actions.ActionFrame
+    name: ActionFrame
+    href: SpellBook.GAS.Actions.ActionFrame.html
   - name: )
   spec.vb:
-  - uid: SpellBook.GAS.Abilities.AbilityAction.OnCancel(SpellBook.GAS.Abilities.AbilityContext)
+  - uid: SpellBook.GAS.Actions.GameplayAction.OnCancel(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
     name: OnCancel
-    href: SpellBook.GAS.Abilities.AbilityAction.html#SpellBook_GAS_Abilities_AbilityAction_OnCancel_SpellBook_GAS_Abilities_AbilityContext_
+    href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_OnCancel_SpellBook_GAS_Actions_ActionContext_SpellBook_GAS_Actions_ActionFrame__
   - name: (
-  - uid: SpellBook.GAS.Abilities.AbilityContext
-    name: AbilityContext
-    href: SpellBook.GAS.Abilities.AbilityContext.html
+  - uid: SpellBook.GAS.Actions.ActionContext
+    name: ActionContext
+    href: SpellBook.GAS.Actions.ActionContext.html
+  - name: ','
+  - name: " "
+  - uid: SpellBook.GAS.Actions.ActionFrame
+    name: ActionFrame
+    href: SpellBook.GAS.Actions.ActionFrame.html
   - name: )
-- uid: SpellBook.GAS.Abilities.AbilityAction.Validate(SpellBook.Core.Validation.ValidationResult)
-  commentId: M:SpellBook.GAS.Abilities.AbilityAction.Validate(SpellBook.Core.Validation.ValidationResult)
-  parent: SpellBook.GAS.Abilities.AbilityAction
-  href: SpellBook.GAS.Abilities.AbilityAction.html#SpellBook_GAS_Abilities_AbilityAction_Validate_SpellBook_Core_Validation_ValidationResult_
+- uid: SpellBook.GAS.Actions.GameplayAction.Validate(SpellBook.Core.Validation.ValidationResult)
+  commentId: M:SpellBook.GAS.Actions.GameplayAction.Validate(SpellBook.Core.Validation.ValidationResult)
+  parent: SpellBook.GAS.Actions.GameplayAction
+  href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_Validate_SpellBook_Core_Validation_ValidationResult_
   name: Validate(ValidationResult)
-  nameWithType: AbilityAction.Validate(ValidationResult)
-  fullName: SpellBook.GAS.Abilities.AbilityAction.Validate(SpellBook.Core.Validation.ValidationResult)
+  nameWithType: GameplayAction.Validate(ValidationResult)
+  fullName: SpellBook.GAS.Actions.GameplayAction.Validate(SpellBook.Core.Validation.ValidationResult)
   spec.csharp:
-  - uid: SpellBook.GAS.Abilities.AbilityAction.Validate(SpellBook.Core.Validation.ValidationResult)
+  - uid: SpellBook.GAS.Actions.GameplayAction.Validate(SpellBook.Core.Validation.ValidationResult)
     name: Validate
-    href: SpellBook.GAS.Abilities.AbilityAction.html#SpellBook_GAS_Abilities_AbilityAction_Validate_SpellBook_Core_Validation_ValidationResult_
+    href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_Validate_SpellBook_Core_Validation_ValidationResult_
   - name: (
   - uid: SpellBook.Core.Validation.ValidationResult
     name: ValidationResult
     href: SpellBook.Core.Validation.ValidationResult.html
   - name: )
   spec.vb:
-  - uid: SpellBook.GAS.Abilities.AbilityAction.Validate(SpellBook.Core.Validation.ValidationResult)
+  - uid: SpellBook.GAS.Actions.GameplayAction.Validate(SpellBook.Core.Validation.ValidationResult)
     name: Validate
-    href: SpellBook.GAS.Abilities.AbilityAction.html#SpellBook_GAS_Abilities_AbilityAction_Validate_SpellBook_Core_Validation_ValidationResult_
+    href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_Validate_SpellBook_Core_Validation_ValidationResult_
   - name: (
   - uid: SpellBook.Core.Validation.ValidationResult
     name: ValidationResult
     href: SpellBook.Core.Validation.ValidationResult.html
   - name: )
-- uid: SpellBook.GAS.Abilities.AbilityAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
-  commentId: M:SpellBook.GAS.Abilities.AbilityAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
-  parent: SpellBook.GAS.Abilities.AbilityAction
+- uid: SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
+  commentId: M:SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
+  parent: SpellBook.GAS.Actions.GameplayAction
   isExternal: true
-  href: SpellBook.GAS.Abilities.AbilityAction.html#SpellBook_GAS_Abilities_AbilityAction_CollectEffects_System_Collections_Generic_List_SpellBook_GAS_Effects_GameplayEffect__
+  href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_CollectEffects_System_Collections_Generic_List_SpellBook_GAS_Effects_GameplayEffect__
   name: CollectEffects(List<GameplayEffect>)
-  nameWithType: AbilityAction.CollectEffects(List<GameplayEffect>)
-  fullName: SpellBook.GAS.Abilities.AbilityAction.CollectEffects(System.Collections.Generic.List<SpellBook.GAS.Effects.GameplayEffect>)
-  nameWithType.vb: AbilityAction.CollectEffects(List(Of GameplayEffect))
-  fullName.vb: SpellBook.GAS.Abilities.AbilityAction.CollectEffects(System.Collections.Generic.List(Of SpellBook.GAS.Effects.GameplayEffect))
+  nameWithType: GameplayAction.CollectEffects(List<GameplayEffect>)
+  fullName: SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List<SpellBook.GAS.Effects.GameplayEffect>)
+  nameWithType.vb: GameplayAction.CollectEffects(List(Of GameplayEffect))
+  fullName.vb: SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List(Of SpellBook.GAS.Effects.GameplayEffect))
   name.vb: CollectEffects(List(Of GameplayEffect))
   spec.csharp:
-  - uid: SpellBook.GAS.Abilities.AbilityAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
+  - uid: SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
     name: CollectEffects
-    href: SpellBook.GAS.Abilities.AbilityAction.html#SpellBook_GAS_Abilities_AbilityAction_CollectEffects_System_Collections_Generic_List_SpellBook_GAS_Effects_GameplayEffect__
+    href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_CollectEffects_System_Collections_Generic_List_SpellBook_GAS_Effects_GameplayEffect__
   - name: (
   - uid: System.Collections.Generic.List`1
     name: List
@@ -234,9 +278,9 @@ references:
   - name: '>'
   - name: )
   spec.vb:
-  - uid: SpellBook.GAS.Abilities.AbilityAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
+  - uid: SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
     name: CollectEffects
-    href: SpellBook.GAS.Abilities.AbilityAction.html#SpellBook_GAS_Abilities_AbilityAction_CollectEffects_System_Collections_Generic_List_SpellBook_GAS_Effects_GameplayEffect__
+    href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_CollectEffects_System_Collections_Generic_List_SpellBook_GAS_Effects_GameplayEffect__
   - name: (
   - uid: System.Collections.Generic.List`1
     name: List
@@ -249,161 +293,6 @@ references:
     name: GameplayEffect
     href: SpellBook.GAS.Effects.GameplayEffect.html
   - name: )
-  - name: )
-- uid: SpellBook.GAS.Abilities.AbilityAction.CollectEffects(System.Collections.Generic.IList{SpellBook.GAS.Abilities.AbilityAction},System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
-  commentId: M:SpellBook.GAS.Abilities.AbilityAction.CollectEffects(System.Collections.Generic.IList{SpellBook.GAS.Abilities.AbilityAction},System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
-  parent: SpellBook.GAS.Abilities.AbilityAction
-  isExternal: true
-  href: SpellBook.GAS.Abilities.AbilityAction.html#SpellBook_GAS_Abilities_AbilityAction_CollectEffects_System_Collections_Generic_IList_SpellBook_GAS_Abilities_AbilityAction__System_Collections_Generic_List_SpellBook_GAS_Effects_GameplayEffect__
-  name: CollectEffects(IList<AbilityAction>, List<GameplayEffect>)
-  nameWithType: AbilityAction.CollectEffects(IList<AbilityAction>, List<GameplayEffect>)
-  fullName: SpellBook.GAS.Abilities.AbilityAction.CollectEffects(System.Collections.Generic.IList<SpellBook.GAS.Abilities.AbilityAction>, System.Collections.Generic.List<SpellBook.GAS.Effects.GameplayEffect>)
-  nameWithType.vb: AbilityAction.CollectEffects(IList(Of AbilityAction), List(Of GameplayEffect))
-  fullName.vb: SpellBook.GAS.Abilities.AbilityAction.CollectEffects(System.Collections.Generic.IList(Of SpellBook.GAS.Abilities.AbilityAction), System.Collections.Generic.List(Of SpellBook.GAS.Effects.GameplayEffect))
-  name.vb: CollectEffects(IList(Of AbilityAction), List(Of GameplayEffect))
-  spec.csharp:
-  - uid: SpellBook.GAS.Abilities.AbilityAction.CollectEffects(System.Collections.Generic.IList{SpellBook.GAS.Abilities.AbilityAction},System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
-    name: CollectEffects
-    href: SpellBook.GAS.Abilities.AbilityAction.html#SpellBook_GAS_Abilities_AbilityAction_CollectEffects_System_Collections_Generic_IList_SpellBook_GAS_Abilities_AbilityAction__System_Collections_Generic_List_SpellBook_GAS_Effects_GameplayEffect__
-  - name: (
-  - uid: System.Collections.Generic.IList`1
-    name: IList
-    isExternal: true
-    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
-  - name: <
-  - uid: SpellBook.GAS.Abilities.AbilityAction
-    name: AbilityAction
-    href: SpellBook.GAS.Abilities.AbilityAction.html
-  - name: '>'
-  - name: ','
-  - name: " "
-  - uid: System.Collections.Generic.List`1
-    name: List
-    isExternal: true
-    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
-  - name: <
-  - uid: SpellBook.GAS.Effects.GameplayEffect
-    name: GameplayEffect
-    href: SpellBook.GAS.Effects.GameplayEffect.html
-  - name: '>'
-  - name: )
-  spec.vb:
-  - uid: SpellBook.GAS.Abilities.AbilityAction.CollectEffects(System.Collections.Generic.IList{SpellBook.GAS.Abilities.AbilityAction},System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
-    name: CollectEffects
-    href: SpellBook.GAS.Abilities.AbilityAction.html#SpellBook_GAS_Abilities_AbilityAction_CollectEffects_System_Collections_Generic_IList_SpellBook_GAS_Abilities_AbilityAction__System_Collections_Generic_List_SpellBook_GAS_Effects_GameplayEffect__
-  - name: (
-  - uid: System.Collections.Generic.IList`1
-    name: IList
-    isExternal: true
-    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
-  - name: (
-  - name: Of
-  - name: " "
-  - uid: SpellBook.GAS.Abilities.AbilityAction
-    name: AbilityAction
-    href: SpellBook.GAS.Abilities.AbilityAction.html
-  - name: )
-  - name: ','
-  - name: " "
-  - uid: System.Collections.Generic.List`1
-    name: List
-    isExternal: true
-    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
-  - name: (
-  - name: Of
-  - name: " "
-  - uid: SpellBook.GAS.Effects.GameplayEffect
-    name: GameplayEffect
-    href: SpellBook.GAS.Effects.GameplayEffect.html
-  - name: )
-  - name: )
-- uid: SpellBook.GAS.Abilities.AbilityAction.Run(SpellBook.GAS.Abilities.AbilityAction,SpellBook.GAS.Abilities.AbilityContext)
-  commentId: M:SpellBook.GAS.Abilities.AbilityAction.Run(SpellBook.GAS.Abilities.AbilityAction,SpellBook.GAS.Abilities.AbilityContext)
-  parent: SpellBook.GAS.Abilities.AbilityAction
-  href: SpellBook.GAS.Abilities.AbilityAction.html#SpellBook_GAS_Abilities_AbilityAction_Run_SpellBook_GAS_Abilities_AbilityAction_SpellBook_GAS_Abilities_AbilityContext_
-  name: Run(AbilityAction, AbilityContext)
-  nameWithType: AbilityAction.Run(AbilityAction, AbilityContext)
-  fullName: SpellBook.GAS.Abilities.AbilityAction.Run(SpellBook.GAS.Abilities.AbilityAction, SpellBook.GAS.Abilities.AbilityContext)
-  spec.csharp:
-  - uid: SpellBook.GAS.Abilities.AbilityAction.Run(SpellBook.GAS.Abilities.AbilityAction,SpellBook.GAS.Abilities.AbilityContext)
-    name: Run
-    href: SpellBook.GAS.Abilities.AbilityAction.html#SpellBook_GAS_Abilities_AbilityAction_Run_SpellBook_GAS_Abilities_AbilityAction_SpellBook_GAS_Abilities_AbilityContext_
-  - name: (
-  - uid: SpellBook.GAS.Abilities.AbilityAction
-    name: AbilityAction
-    href: SpellBook.GAS.Abilities.AbilityAction.html
-  - name: ','
-  - name: " "
-  - uid: SpellBook.GAS.Abilities.AbilityContext
-    name: AbilityContext
-    href: SpellBook.GAS.Abilities.AbilityContext.html
-  - name: )
-  spec.vb:
-  - uid: SpellBook.GAS.Abilities.AbilityAction.Run(SpellBook.GAS.Abilities.AbilityAction,SpellBook.GAS.Abilities.AbilityContext)
-    name: Run
-    href: SpellBook.GAS.Abilities.AbilityAction.html#SpellBook_GAS_Abilities_AbilityAction_Run_SpellBook_GAS_Abilities_AbilityAction_SpellBook_GAS_Abilities_AbilityContext_
-  - name: (
-  - uid: SpellBook.GAS.Abilities.AbilityAction
-    name: AbilityAction
-    href: SpellBook.GAS.Abilities.AbilityAction.html
-  - name: ','
-  - name: " "
-  - uid: SpellBook.GAS.Abilities.AbilityContext
-    name: AbilityContext
-    href: SpellBook.GAS.Abilities.AbilityContext.html
-  - name: )
-- uid: SpellBook.GAS.Abilities.AbilityAction.RunSequence(System.Collections.Generic.IList{SpellBook.GAS.Abilities.AbilityAction},SpellBook.GAS.Abilities.AbilityContext)
-  commentId: M:SpellBook.GAS.Abilities.AbilityAction.RunSequence(System.Collections.Generic.IList{SpellBook.GAS.Abilities.AbilityAction},SpellBook.GAS.Abilities.AbilityContext)
-  parent: SpellBook.GAS.Abilities.AbilityAction
-  isExternal: true
-  href: SpellBook.GAS.Abilities.AbilityAction.html#SpellBook_GAS_Abilities_AbilityAction_RunSequence_System_Collections_Generic_IList_SpellBook_GAS_Abilities_AbilityAction__SpellBook_GAS_Abilities_AbilityContext_
-  name: RunSequence(IList<AbilityAction>, AbilityContext)
-  nameWithType: AbilityAction.RunSequence(IList<AbilityAction>, AbilityContext)
-  fullName: SpellBook.GAS.Abilities.AbilityAction.RunSequence(System.Collections.Generic.IList<SpellBook.GAS.Abilities.AbilityAction>, SpellBook.GAS.Abilities.AbilityContext)
-  nameWithType.vb: AbilityAction.RunSequence(IList(Of AbilityAction), AbilityContext)
-  fullName.vb: SpellBook.GAS.Abilities.AbilityAction.RunSequence(System.Collections.Generic.IList(Of SpellBook.GAS.Abilities.AbilityAction), SpellBook.GAS.Abilities.AbilityContext)
-  name.vb: RunSequence(IList(Of AbilityAction), AbilityContext)
-  spec.csharp:
-  - uid: SpellBook.GAS.Abilities.AbilityAction.RunSequence(System.Collections.Generic.IList{SpellBook.GAS.Abilities.AbilityAction},SpellBook.GAS.Abilities.AbilityContext)
-    name: RunSequence
-    href: SpellBook.GAS.Abilities.AbilityAction.html#SpellBook_GAS_Abilities_AbilityAction_RunSequence_System_Collections_Generic_IList_SpellBook_GAS_Abilities_AbilityAction__SpellBook_GAS_Abilities_AbilityContext_
-  - name: (
-  - uid: System.Collections.Generic.IList`1
-    name: IList
-    isExternal: true
-    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
-  - name: <
-  - uid: SpellBook.GAS.Abilities.AbilityAction
-    name: AbilityAction
-    href: SpellBook.GAS.Abilities.AbilityAction.html
-  - name: '>'
-  - name: ','
-  - name: " "
-  - uid: SpellBook.GAS.Abilities.AbilityContext
-    name: AbilityContext
-    href: SpellBook.GAS.Abilities.AbilityContext.html
-  - name: )
-  spec.vb:
-  - uid: SpellBook.GAS.Abilities.AbilityAction.RunSequence(System.Collections.Generic.IList{SpellBook.GAS.Abilities.AbilityAction},SpellBook.GAS.Abilities.AbilityContext)
-    name: RunSequence
-    href: SpellBook.GAS.Abilities.AbilityAction.html#SpellBook_GAS_Abilities_AbilityAction_RunSequence_System_Collections_Generic_IList_SpellBook_GAS_Abilities_AbilityAction__SpellBook_GAS_Abilities_AbilityContext_
-  - name: (
-  - uid: System.Collections.Generic.IList`1
-    name: IList
-    isExternal: true
-    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1
-  - name: (
-  - name: Of
-  - name: " "
-  - uid: SpellBook.GAS.Abilities.AbilityAction
-    name: AbilityAction
-    href: SpellBook.GAS.Abilities.AbilityAction.html
-  - name: )
-  - name: ','
-  - name: " "
-  - uid: SpellBook.GAS.Abilities.AbilityContext
-    name: AbilityContext
-    href: SpellBook.GAS.Abilities.AbilityContext.html
   - name: )
 - uid: System.Object.Equals(System.Object)
   commentId: M:System.Object.Equals(System.Object)
@@ -631,11 +520,11 @@ references:
   name: System
   nameWithType: System
   fullName: System
-- uid: SpellBook.GAS.Abilities
-  commentId: N:SpellBook.GAS.Abilities
-  name: SpellBook.GAS.Abilities
-  nameWithType: SpellBook.GAS.Abilities
-  fullName: SpellBook.GAS.Abilities
+- uid: SpellBook.GAS.Actions
+  commentId: N:SpellBook.GAS.Actions
+  name: SpellBook.GAS.Actions
+  nameWithType: SpellBook.GAS.Actions
+  fullName: SpellBook.GAS.Actions
   spec.csharp:
   - uid: SpellBook
     name: SpellBook
@@ -643,8 +532,8 @@ references:
   - uid: SpellBook.GAS
     name: GAS
   - name: .
-  - uid: SpellBook.GAS.Abilities
-    name: Abilities
+  - uid: SpellBook.GAS.Actions
+    name: Actions
   spec.vb:
   - uid: SpellBook
     name: SpellBook
@@ -652,8 +541,8 @@ references:
   - uid: SpellBook.GAS
     name: GAS
   - name: .
-  - uid: SpellBook.GAS.Abilities
-    name: Abilities
+  - uid: SpellBook.GAS.Actions
+    name: Actions
 - uid: SpellBook.Core.Validation
   commentId: N:SpellBook.Core.Validation
   name: SpellBook.Core.Validation
@@ -688,76 +577,100 @@ references:
   nameWithType.vb: Single
   fullName.vb: Single
   name.vb: Single
-- uid: SpellBook.GAS.Abilities.AbilityAction.Execute(SpellBook.GAS.Abilities.AbilityContext)
-  commentId: M:SpellBook.GAS.Abilities.AbilityAction.Execute(SpellBook.GAS.Abilities.AbilityContext)
-  parent: SpellBook.GAS.Abilities.AbilityAction
-  href: SpellBook.GAS.Abilities.AbilityAction.html#SpellBook_GAS_Abilities_AbilityAction_Execute_SpellBook_GAS_Abilities_AbilityContext_
-  name: Execute(AbilityContext)
-  nameWithType: AbilityAction.Execute(AbilityContext)
-  fullName: SpellBook.GAS.Abilities.AbilityAction.Execute(SpellBook.GAS.Abilities.AbilityContext)
+- uid: SpellBook.GAS.Actions.GameplayAction.UsesTargets
+  commentId: P:SpellBook.GAS.Actions.GameplayAction.UsesTargets
+  parent: SpellBook.GAS.Actions.GameplayAction
+  href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_UsesTargets
+  name: UsesTargets
+  nameWithType: GameplayAction.UsesTargets
+  fullName: SpellBook.GAS.Actions.GameplayAction.UsesTargets
+- uid: SpellBook.GAS.Abilities.Actions.WaitAction.UsesTargets*
+  commentId: Overload:SpellBook.GAS.Abilities.Actions.WaitAction.UsesTargets
+  href: SpellBook.GAS.Abilities.Actions.WaitAction.html#SpellBook_GAS_Abilities_Actions_WaitAction_UsesTargets
+  name: UsesTargets
+  nameWithType: WaitAction.UsesTargets
+  fullName: SpellBook.GAS.Abilities.Actions.WaitAction.UsesTargets
+- uid: System.Boolean
+  commentId: T:System.Boolean
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.boolean
+  name: bool
+  nameWithType: bool
+  fullName: bool
+  nameWithType.vb: Boolean
+  fullName.vb: Boolean
+  name.vb: Boolean
+- uid: SpellBook.GAS.Actions.ActionStatus.Done
+  commentId: P:SpellBook.GAS.Actions.ActionStatus.Done
+  href: SpellBook.GAS.Actions.ActionStatus.html#SpellBook_GAS_Actions_ActionStatus_Done
+  name: Done
+  nameWithType: ActionStatus.Done
+  fullName: SpellBook.GAS.Actions.ActionStatus.Done
+- uid: SpellBook.GAS.Actions.GameplayAction.Execute(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
+  commentId: M:SpellBook.GAS.Actions.GameplayAction.Execute(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
+  parent: SpellBook.GAS.Actions.GameplayAction
+  href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_Execute_SpellBook_GAS_Actions_ActionContext_SpellBook_GAS_Actions_ActionFrame__
+  name: Execute(ActionContext, ref ActionFrame)
+  nameWithType: GameplayAction.Execute(ActionContext, ref ActionFrame)
+  fullName: SpellBook.GAS.Actions.GameplayAction.Execute(SpellBook.GAS.Actions.ActionContext, ref SpellBook.GAS.Actions.ActionFrame)
+  nameWithType.vb: GameplayAction.Execute(ActionContext, ActionFrame)
+  fullName.vb: SpellBook.GAS.Actions.GameplayAction.Execute(SpellBook.GAS.Actions.ActionContext, SpellBook.GAS.Actions.ActionFrame)
+  name.vb: Execute(ActionContext, ActionFrame)
   spec.csharp:
-  - uid: SpellBook.GAS.Abilities.AbilityAction.Execute(SpellBook.GAS.Abilities.AbilityContext)
+  - uid: SpellBook.GAS.Actions.GameplayAction.Execute(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
     name: Execute
-    href: SpellBook.GAS.Abilities.AbilityAction.html#SpellBook_GAS_Abilities_AbilityAction_Execute_SpellBook_GAS_Abilities_AbilityContext_
+    href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_Execute_SpellBook_GAS_Actions_ActionContext_SpellBook_GAS_Actions_ActionFrame__
   - name: (
-  - uid: SpellBook.GAS.Abilities.AbilityContext
-    name: AbilityContext
-    href: SpellBook.GAS.Abilities.AbilityContext.html
+  - uid: SpellBook.GAS.Actions.ActionContext
+    name: ActionContext
+    href: SpellBook.GAS.Actions.ActionContext.html
+  - name: ','
+  - name: " "
+  - name: ref
+  - name: " "
+  - uid: SpellBook.GAS.Actions.ActionFrame
+    name: ActionFrame
+    href: SpellBook.GAS.Actions.ActionFrame.html
   - name: )
   spec.vb:
-  - uid: SpellBook.GAS.Abilities.AbilityAction.Execute(SpellBook.GAS.Abilities.AbilityContext)
+  - uid: SpellBook.GAS.Actions.GameplayAction.Execute(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
     name: Execute
-    href: SpellBook.GAS.Abilities.AbilityAction.html#SpellBook_GAS_Abilities_AbilityAction_Execute_SpellBook_GAS_Abilities_AbilityContext_
+    href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_Execute_SpellBook_GAS_Actions_ActionContext_SpellBook_GAS_Actions_ActionFrame__
   - name: (
-  - uid: SpellBook.GAS.Abilities.AbilityContext
-    name: AbilityContext
-    href: SpellBook.GAS.Abilities.AbilityContext.html
+  - uid: SpellBook.GAS.Actions.ActionContext
+    name: ActionContext
+    href: SpellBook.GAS.Actions.ActionContext.html
+  - name: ','
+  - name: " "
+  - uid: SpellBook.GAS.Actions.ActionFrame
+    name: ActionFrame
+    href: SpellBook.GAS.Actions.ActionFrame.html
   - name: )
 - uid: SpellBook.GAS.Abilities.Actions.WaitAction.Execute*
   commentId: Overload:SpellBook.GAS.Abilities.Actions.WaitAction.Execute
-  href: SpellBook.GAS.Abilities.Actions.WaitAction.html#SpellBook_GAS_Abilities_Actions_WaitAction_Execute_SpellBook_GAS_Abilities_AbilityContext_
+  href: SpellBook.GAS.Abilities.Actions.WaitAction.html#SpellBook_GAS_Abilities_Actions_WaitAction_Execute_SpellBook_GAS_Actions_ActionContext_SpellBook_GAS_Actions_ActionFrame__
   name: Execute
   nameWithType: WaitAction.Execute
   fullName: SpellBook.GAS.Abilities.Actions.WaitAction.Execute
-- uid: SpellBook.GAS.Abilities.AbilityContext
-  commentId: T:SpellBook.GAS.Abilities.AbilityContext
-  parent: SpellBook.GAS.Abilities
-  href: SpellBook.GAS.Abilities.AbilityContext.html
-  name: AbilityContext
-  nameWithType: AbilityContext
-  fullName: SpellBook.GAS.Abilities.AbilityContext
-- uid: System.Collections.IEnumerator
-  commentId: T:System.Collections.IEnumerator
-  parent: System.Collections
-  isExternal: true
-  href: https://learn.microsoft.com/dotnet/api/system.collections.ienumerator
-  name: IEnumerator
-  nameWithType: IEnumerator
-  fullName: System.Collections.IEnumerator
-- uid: System.Collections
-  commentId: N:System.Collections
-  isExternal: true
-  href: https://learn.microsoft.com/dotnet/api/system
-  name: System.Collections
-  nameWithType: System.Collections
-  fullName: System.Collections
-  spec.csharp:
-  - uid: System
-    name: System
-    isExternal: true
-    href: https://learn.microsoft.com/dotnet/api/system
-  - name: .
-  - uid: System.Collections
-    name: Collections
-    isExternal: true
-    href: https://learn.microsoft.com/dotnet/api/system.collections
-  spec.vb:
-  - uid: System
-    name: System
-    isExternal: true
-    href: https://learn.microsoft.com/dotnet/api/system
-  - name: .
-  - uid: System.Collections
-    name: Collections
-    isExternal: true
-    href: https://learn.microsoft.com/dotnet/api/system.collections
+- uid: SpellBook.GAS.Actions.ActionContext
+  commentId: T:SpellBook.GAS.Actions.ActionContext
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.ActionContext.html
+  name: ActionContext
+  nameWithType: ActionContext
+  fullName: SpellBook.GAS.Actions.ActionContext
+- uid: SpellBook.GAS.Actions.ActionFrame
+  commentId: T:SpellBook.GAS.Actions.ActionFrame
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.ActionFrame.html
+  name: ActionFrame
+  nameWithType: ActionFrame
+  fullName: SpellBook.GAS.Actions.ActionFrame
+- uid: SpellBook.GAS.Actions.ActionStatus
+  commentId: T:SpellBook.GAS.Actions.ActionStatus
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.ActionStatus.html
+  name: ActionStatus
+  nameWithType: ActionStatus
+  fullName: SpellBook.GAS.Actions.ActionStatus

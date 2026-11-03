@@ -9,15 +9,10 @@ fontes precisa referenciar o `SpellBook.Time`. Veja [Conceitos](../inicio/concei
 
 ## ITimeSource {#itimesource}
 
-Toda fonte implementa a mesma interface, só de consulta:
-
-```csharp
-public interface ITimeSource
-{
-    double ElapsedTime { get; } // tempo acumulado da fonte, em segundos
-    float DeltaTime { get; }    // delta do quadro atual, já com a pausa da fonte aplicada
-}
-```
+Toda fonte implementa a mesma interface, só de consulta, com duas propriedades. O `ElapsedTime`
+(`double`) é o tempo acumulado da fonte, em segundos. O `DeltaTime` (`float`) é o delta do quadro
+atual, já com a pausa da fonte aplicada. A declaração está na
+[página do `ITimeSource` na API](https://gabrielctorres.github.io/SpellBook/api/SpellBook.Time.ITimeSource.html).
 
 A interface não tem evento de tick nem `Update`. Quem consome a fonte é que a lê quando precisa.
 
@@ -66,10 +61,7 @@ código. Arraste o asset para o evento `OnClick` de um botão e escolha
 como função dinâmica (o valor do toggle vira o estado de pausa). Por código:
 
 ```csharp
-[SerializeField] private PausableTimeSource gameplay;
-
-public void AbrirMenu()  { gameplay.Pause(); }
-public void FecharMenu() { gameplay.Resume(); }
+--8<-- "Packages/com.spellbook/Tests/Time/EditMode/Examples/TimeManualExamples.cs:menu-de-pausa"
 ```
 
 O grupo **segue o tempo escalado** da Unity e **só pausa**: não tem escala própria. Por isso:
@@ -90,11 +82,9 @@ define o `DeltaTime` como `seconds`. Um valor negativo ou NaN lança `ArgumentOu
 Ela não tem item de menu. Crie por código, em testes ou simulações:
 
 ```csharp
-var tempo = ScriptableObject.CreateInstance<ManualTimeSource>();
-tempo.Advance(1.5f);   // ElapsedTime 1.5, DeltaTime 1.5
-tempo.Advance(0.5f);   // ElapsedTime 2.0, DeltaTime 0.5
-// ...
-Object.DestroyImmediate(tempo);   // no TearDown do teste
+--8<-- "Packages/com.spellbook/Tests/Time/EditMode/Examples/TimeManualExamples.cs:manual-criar"
+--8<-- "Packages/com.spellbook/Tests/Time/EditMode/Examples/TimeManualExamples.cs:manual-avancar"
+--8<-- "Packages/com.spellbook/Tests/Time/EditMode/Examples/TimeManualExamples.cs:manual-destruir"
 ```
 
 Como é um `TimeSourceAsset`, ela entra em qualquer campo de fonte. O teste fica determinístico e
@@ -106,32 +96,9 @@ O jeito certo de consumir uma fonte é guardar o último `ElapsedTime` lido (o *
 pela diferença:
 
 ```csharp
-using SpellBook.Time;
-using UnityEngine;
-
-public sealed class Cronometro : MonoBehaviour
-{
-    [SerializeField] private TimeSourceAsset timeSource;   // vazio: fonte escalada padrão
-    [SerializeField] private float duracao = 3f;
-
-    private ITimeSource _fonte;
-    private double _cursor;
-    private float _restante;
-
-    private void OnEnable()
-    {
-        _fonte = timeSource != null ? timeSource : TimeSourceAsset.Scaled;
-        _cursor = _fonte.ElapsedTime;   // sem salto no primeiro quadro
-        _restante = duracao;
-    }
-
-    private void Update()
-    {
-        double agora = _fonte.ElapsedTime;
-        _restante -= (float)(agora - _cursor);
-        _cursor = agora;
-    }
-}
+--8<-- "Packages/com.spellbook/Tests/Time/EditMode/Examples/TimeManualExamples.cs:using-time"
+--8<-- "Packages/com.spellbook/Tests/Time/EditMode/Examples/TimeManualExamples.cs:using-unityengine"
+--8<-- "Packages/com.spellbook/Tests/Time/EditMode/Examples/TimeManualExamples.cs:cronometro"
 ```
 
 - O cursor recebe o valor atual ao ligar o componente e ao trocar de fonte. Sem isso, o primeiro
@@ -159,21 +126,9 @@ Se você criar sua própria fonte herdando de `TimeSourceAsset`:
 ### O nome `Time` em `namespace SpellBook.*` {#armadilha-nome-time}
 
 Dentro de um `namespace SpellBook.Alguma.Coisa`, o nome `Time` passa a ser o namespace
-`SpellBook.Time`, e não mais a classe `UnityEngine.Time`. Código assim deixa de compilar quando o
-assembly referencia o `SpellBook.Time`:
-
-```csharp
-namespace SpellBook.MeuJogo
-{
-    public class Exemplo : MonoBehaviour
-    {
-        private void Update()
-        {
-            float dt = Time.deltaTime;   // erro: 'Time' é um namespace
-        }
-    }
-}
-```
+`SpellBook.Time`, e não mais a classe `UnityEngine.Time`. Quando o assembly referencia o
+`SpellBook.Time`, um `MonoBehaviour` declarado em `namespace SpellBook.MeuJogo` que lê
+`Time.deltaTime` no `Update` deixa de compilar: o erro diz que `Time` é um namespace.
 
 Para corrigir, leia uma fonte de tempo (o recomendado) ou escreva `UnityEngine.Time.deltaTime`
 por extenso.

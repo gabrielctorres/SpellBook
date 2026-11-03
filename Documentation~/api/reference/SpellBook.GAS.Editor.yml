@@ -5,6 +5,8 @@ items:
   id: SpellBook.GAS.Editor
   children:
   - SpellBook.GAS.Editor.AttributeDefinitionEditor
+  - SpellBook.GAS.Editor.DamagePreviewModel
+  - SpellBook.GAS.Editor.DamagePreviewRow
   - SpellBook.GAS.Editor.GameplayAbilityEditor
   - SpellBook.GAS.Editor.GasAssetMigration
   - SpellBook.GAS.Editor.ScalableFloatDrawer
@@ -23,6 +25,18 @@ references:
   name: AttributeDefinitionEditor
   nameWithType: AttributeDefinitionEditor
   fullName: SpellBook.GAS.Editor.AttributeDefinitionEditor
+- uid: SpellBook.GAS.Editor.DamagePreviewRow
+  commentId: T:SpellBook.GAS.Editor.DamagePreviewRow
+  href: SpellBook.GAS.Editor.DamagePreviewRow.html
+  name: DamagePreviewRow
+  nameWithType: DamagePreviewRow
+  fullName: SpellBook.GAS.Editor.DamagePreviewRow
+- uid: SpellBook.GAS.Editor.DamagePreviewModel
+  commentId: T:SpellBook.GAS.Editor.DamagePreviewModel
+  href: SpellBook.GAS.Editor.DamagePreviewModel.html
+  name: DamagePreviewModel
+  nameWithType: DamagePreviewModel
+  fullName: SpellBook.GAS.Editor.DamagePreviewModel
 - uid: SpellBook.GAS.Editor.GameplayAbilityEditor
   commentId: T:SpellBook.GAS.Editor.GameplayAbilityEditor
   href: SpellBook.GAS.Editor.GameplayAbilityEditor.html

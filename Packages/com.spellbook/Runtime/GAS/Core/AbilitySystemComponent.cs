@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using SpellBook.Core;
@@ -10,6 +9,7 @@ using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Effects;
 using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Conditions;
+using SpellBook.GAS.Actions;
 namespace SpellBook.GAS.Core
 {
     /// <summary>
@@ -35,6 +35,7 @@ namespace SpellBook.GAS.Core
         private ITimeSource _timeSourceOverride;
         private double _timeCursor;
         private double _tickedTime;
+        private ActionRunner _runner;
 
         // Contagem de referência: várias fontes podem conceder a mesma tag
         private readonly Dictionary<GameplayTag, int> _activeTags = new Dictionary<GameplayTag, int>();
@@ -117,14 +118,49 @@ namespace SpellBook.GAS.Core
             }
         }
 
+        /// <summary>
+        /// Erro: entrada vazia em Starting Effects. Aviso: processador de um atributo do <see cref="AttributeSet"/> que
+        /// cita um atributo ausente do mesmo conjunto; em runtime esse processador não faz nada.
+        /// </summary>
         public void Validate(ValidationResult result)
         {
-            if (startingEffects == null) return;
-            for (int i = 0; i < startingEffects.Count; i++)
+            if (startingEffects != null)
             {
-                if (startingEffects[i] == null)
+                for (int i = 0; i < startingEffects.Count; i++)
                 {
-                    result.AddError($"Starting Effects tem uma entrada vazia (elemento {i}).", $"{nameof(startingEffects)}.Array.data[{i}]");
+                    if (startingEffects[i] == null)
+                    {
+                        result.AddError($"Starting Effects tem uma entrada vazia (elemento {i}).", $"{nameof(startingEffects)}.Array.data[{i}]");
+                    }
+                }
+            }
+
+            ValidateProcessorAttributes(result);
+        }
+
+        private void ValidateProcessorAttributes(ValidationResult result)
+        {
+            AttributeSet set = attributeSet != null ? attributeSet : GetComponent<AttributeSet>();
+            if (set == null) return;
+
+            var cited = new List<AttributeDefinition>();
+            for (int i = 0; i < set.StartingAttributeCount; i++)
+            {
+                AttributeDefinition owner = set.GetStartingAttribute(i);
+                if (owner == null) continue;
+
+                IReadOnlyList<AttributeChangeProcessor> processors = owner.Processors;
+                for (int p = 0; p < processors.Count; p++)
+                {
+                    cited.Clear();
+                    processors[p]?.CollectAttributes(cited);
+                    for (int c = 0; c < cited.Count; c++)
+                    {
+                        if (set.DeclaresAttribute(cited[c])) continue;
+                        result.AddWarning(
+                            $"O processador {processors[p].GetType().Name} de {owner.name} cita {cited[c].name}, que não está no Attribute Set: em runtime ele não faz nada.",
+                            nameof(attributeSet));
+                    }
                 }
             }
         }
@@ -190,6 +226,50 @@ namespace SpellBook.GAS.Core
                 spec.ChargeRechargeRemaining -= deltaTime;
                 AdvanceChargeRecharge(spec);
             }
+
+            if (_runner == null) return;
+            _runner.Tick();
+            EndFinishedAbilities();
+        }
+
+        // Termina as habilidades cuja lista OnActivate acabou neste Tick
+        private void EndFinishedAbilities()
+        {
+            for (int i = _abilities.Count - 1; i >= 0; i--)
+            {
+                // Um OnAbilityEnded pode retirar habilidades
+                if (i >= _abilities.Count) continue;
+                AbilitySpec spec = _abilities[i];
+                if (spec.IsActive && spec.Executing && !spec.Execution.IsRunning) EndAbility(spec, false);
+            }
+        }
+
+        internal ActionRunner Runner => _runner ??= new ActionRunner(this);
+
+        /// <summary>
+        /// Roda <paramref name="actions"/> em sequência no executor deste ASC (ADR 0034). As ações sem espera rodam já,
+        /// nesta chamada; as esperas andam no <see cref="Tick"/>. O executor fica com <paramref name="context"/> e o
+        /// devolve ao pool no fim; nulo usa um contexto do pool com este ASC como dono e instigador.
+        /// <paramref name="owner"/> é o dono lógico, usado por <see cref="CancelActions"/>; nulo deixa a execução sem dono.
+        /// </summary>
+        public ActionExecutionHandle RunActions(IReadOnlyList<GameplayAction> actions, ActionContext context, object owner)
+        {
+            return Runner.Run(actions, context, owner);
+        }
+
+        /// <summary>
+        /// Cancela as execuções de <paramref name="owner"/>. Cada ação em curso recebe <c>OnCancel</c>, das execuções
+        /// filhas antes das mães e, em cada execução, do topo para a base.
+        /// </summary>
+        public void CancelActions(object owner)
+        {
+            _runner?.Cancel(owner);
+        }
+
+        /// <summary>Se há execução em curso de <paramref name="owner"/>.</summary>
+        public bool HasRunningActions(object owner)
+        {
+            return _runner != null && _runner.HasRunning(owner);
         }
 
         public float GetAttributeValue(AttributeDefinition def)
@@ -810,13 +890,13 @@ namespace SpellBook.GAS.Core
 
             CancelAbilitiesWithTags(ability.CancelAbilitiesWithTag, spec);
 
-            var context = new AbilityContext(this, targetPos)
-            {
-                Ability = ability,
-                Spec = spec,
-                Level = spec.Level
-            };
+            ActionContext context = Runner.RentContext();
+            context.Ability = ability;
+            context.Spec = spec;
+            context.Level = spec.Level;
+            context.SetPoint(targetPos);
 
+            int activation = ++spec.ActivationId;
             spec.IsActive = true;
             spec.ActiveContext = context;
             AddTags(ability.ActivationOwnedTags);
@@ -824,18 +904,23 @@ namespace SpellBook.GAS.Core
             // Dispara eventos DEPOIS de aplicar o cooldown, para que a UI leia o tempo correto
             OnAbilityActivated?.Invoke(spec);
 
-            // A tag concedida acima pode ter cancelado a própria habilidade
-            if (!spec.IsActive || spec.ActiveContext != context) return;
+            // A tag concedida acima pode ter cancelado a própria habilidade; o contexto, sem execução, não volta ao pool
+            if (!spec.IsActive || spec.ActivationId != activation) return;
 
-            var routine = StartCoroutine(RunAbility(spec, context));
-            // Se a habilidade terminou de forma síncrona, não guarda a rotina
-            if (spec.IsActive && spec.ActiveContext == context) spec.Routine = routine;
-        }
+            // O dono das execuções é o spec: uma ativação por vez, e cancelar a habilidade cancela as ações dela
+            ActionExecutionHandle execution = Runner.Run(ability.OnActivate, context, spec);
+            // Uma ação pode ter terminado ou cancelado a ativação, ou começado outra
+            if (!spec.IsActive || spec.ActivationId != activation) return;
 
-        private IEnumerator RunAbility(AbilitySpec spec, AbilityContext context)
-        {
-            yield return AbilityAction.RunSequence(spec.Ability.Actions, context);
-            if (spec.IsActive && spec.ActiveContext == context) EndAbility(spec, false);
+            if (execution.IsRunning)
+            {
+                spec.Execution = execution;
+                spec.Executing = true;
+            }
+            else
+            {
+                EndAbility(spec, false);
+            }
         }
         #endregion
 
@@ -847,25 +932,15 @@ namespace SpellBook.GAS.Core
         {
             if (spec == null || !spec.IsActive) return;
 
-            var context = spec.ActiveContext;
-            context.IsCancelled = true;
-
-            if (spec.Routine != null) StopCoroutine(spec.Routine);
-            foreach (var child in spec.ChildRoutines)
-            {
-                if (child != null) StopCoroutine(child);
-            }
+            int activation = spec.ActivationId;
+            spec.Executing = false;
 
             // Ordem reversa: as ações mais internas restauram estado primeiro
-            var running = context.RunningActions.ToArray();
-            context.RunningActions.Clear();
-            for (int i = running.Length - 1; i >= 0; i--)
-            {
-                try { running[i].OnCancel(context); }
-                catch (Exception e) { Debug.LogException(e, this); }
-            }
+            try { CancelActions(spec); }
+            catch (Exception e) { Debug.LogException(e, this); }
 
-            EndAbility(spec, true);
+            // Um OnCancel pode ter terminado a habilidade ou começado outra ativação
+            if (spec.ActivationId == activation) EndAbility(spec, true);
         }
 
         public void CancelAbility(GameplayAbility ability) => CancelAbility(FindSpec(ability));
@@ -907,8 +982,8 @@ namespace SpellBook.GAS.Core
             if (!spec.IsActive) return;
 
             spec.IsActive = false;
-            spec.Routine = null;
-            spec.ChildRoutines.Clear();
+            spec.Executing = false;
+            spec.Execution = default;
             spec.ActiveContext = null;
 
             RemoveTags(spec.Ability.ActivationOwnedTags);
@@ -1129,7 +1204,7 @@ namespace SpellBook.GAS.Core
                 return EffectApplicationResult.Stacked;
             }
 
-            // Sem CanStack: renova a instância existente, sem reaplicar modificadores, tags nem OnApplication.
+            // Sem CanStack: renova a instância existente, sem reaplicar modificadores, tags nem OnApplied.
             existing.Renew(hasOverride ? durationOverride : existing.AppliedDuration);
             return EffectApplicationResult.Refreshed;
         }
@@ -1325,10 +1400,18 @@ namespace SpellBook.GAS.Core
 
         private void ApplyInstantEffect(GameplayEffect effect, in EffectContext context)
         {
-            // Trigger Application Actions
-            if (effect.OnApplication != null)
+            List<GameplayAction> actions = effect.OnApplied;
+            if (actions != null && actions.Count > 0)
             {
-                foreach (var action in effect.OnApplication) action?.Execute(context.Instigator, this);
+                // Sem instância: a execução fica sem dono, com o asset e o contexto do efeito
+                ActionContext actionContext = Runner.RentContext();
+                if (context.Instigator != null) actionContext.Instigator = context.Instigator;
+                actionContext.Level = context.Level;
+                actionContext.EffectDefinition = effect;
+                actionContext.EffectEvent = EffectEvent.Applied;
+                actionContext.SetEffect(in context);
+                actionContext.EventTargets.Add(this);
+                RunActions(actions, actionContext, null);
             }
 
             ApplyModifiersToBase(effect, effect.Modifiers, in context);
@@ -1809,6 +1892,8 @@ namespace SpellBook.GAS.Core
 
             instance.IsRemoved = true;
             instance.DisposeLiveBindings();
+            // As ações em curso da instância param antes das ações de remoção
+            CancelActions(instance);
             instance.Cleanup();
             instance.OnEffectExpired -= HandleEffectExpired;
             instance.OnTick -= HandleEffectTick;

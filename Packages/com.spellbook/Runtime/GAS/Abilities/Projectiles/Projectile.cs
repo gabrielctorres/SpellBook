@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using SpellBook.Core;
+using SpellBook.GAS.Actions;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Abilities;
 using SpellBook.Time;
@@ -56,7 +58,7 @@ namespace SpellBook.GAS.Abilities.Projectiles
         [SerializeField] private TimeSourceAsset timeSource;
 
         // O que o projétil fará ao colidir
-        [HideInInspector] public List<AbilityAction> OnHitActions;
+        [HideInInspector, FormerlySerializedAs("OnHitActions")] public List<GameplayAction> OnImpact;
         [HideInInspector] public AbilitySystemComponent Source;
         
         // Spawner que criou o projétil; vazio volta pelo SpawnerAsset.Default
@@ -99,21 +101,30 @@ namespace SpellBook.GAS.Abilities.Projectiles
             _initialLocalScale = transform.localScale;
         }
 
-        // Contexto da habilidade que disparou o projétil (habilidade e nível são herdados no impacto)
-        protected AbilityContext _parentContext;
+        // Contexto do impacto, derivado no Setup do contexto de quem disparou (habilidade, nível e instigador). É
+        // derivado já no Setup porque o contexto de quem disparou volta ao pool do executor quando a lista dele acaba.
+        private ActionContext _impactContext;
 
-        public void Setup(SpawnerAsset spawner, AbilitySystemComponent source, List<AbilityAction> onHitActions)
+        public void Setup(SpawnerAsset spawner, AbilitySystemComponent source, List<GameplayAction> onImpact)
         {
             _spawner = spawner;
             Source = source;
-            OnHitActions = onHitActions;
-            _parentContext = null;
+            OnImpact = onImpact;
+            _impactContext = null;
         }
 
-        public void Setup(SpawnerAsset spawner, AbilityContext parentContext, List<AbilityAction> onHitActions)
+        /// <summary>
+        /// Como <see cref="Setup(SpawnerAsset, AbilitySystemComponent, List{GameplayAction})"/>, com o instigador de
+        /// <paramref name="parentContext"/> como <see cref="Source"/>. O impacto roda num contexto derivado dele
+        /// (<see cref="ActionContext.CreateDerived"/>), com o ponto de impacto.
+        /// </summary>
+        public void Setup(SpawnerAsset spawner, ActionContext parentContext, List<GameplayAction> onImpact)
         {
-            Setup(spawner, parentContext?.Source, onHitActions);
-            _parentContext = parentContext;
+            Setup(spawner, parentContext?.Instigator, onImpact);
+            if (parentContext != null && onImpact != null && onImpact.Count > 0)
+            {
+                _impactContext = parentContext.CreateDerived(parentContext.Point);
+            }
         }
 
         protected virtual void OnEnable()
@@ -311,18 +322,16 @@ namespace SpellBook.GAS.Abilities.Projectiles
 
         protected virtual void HandleImpact(Vector3 impactPoint, AbilitySystemComponent hitTarget)
         {
-            if (OnHitActions != null && OnHitActions.Count > 0 && Source != null)
+            ActionContext impactContext = _impactContext;
+            _impactContext = null;
+            if (OnImpact != null && OnImpact.Count > 0 && Source != null && Source.isActiveAndEnabled)
             {
-                var impactContext = _parentContext != null
-                    ? _parentContext.CreateDerived(impactPoint)
-                    : new AbilityContext(Source, impactPoint);
-                if (hitTarget != null) impactContext.Targets.Add(hitTarget);
+                impactContext ??= Source.Runner.RentContext();
+                impactContext.SetPoint(impactPoint);
+                if (hitTarget != null) impactContext.EventTargets.Add(hitTarget);
 
-                // Roda no ASC do conjurador, pois o projétil volta ao pool logo abaixo
-                if (Source.isActiveAndEnabled)
-                {
-                    Source.StartCoroutine(AbilityAction.RunSequence(OnHitActions, impactContext));
-                }
+                // Roda no ASC de quem lançou, sem dono: o projétil volta ao pool logo abaixo
+                Source.RunActions(OnImpact, impactContext, null);
             }
 
             ReturnToPool();

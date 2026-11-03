@@ -4,6 +4,8 @@ using SpellBook.Core.Conditions;
 using SpellBook.Core.Inspector;
 using SpellBook.Core.Validation;
 using UnityEngine;
+using UnityEngine.Serialization;
+using SpellBook.GAS.Actions;
 using SpellBook.GAS.Core;
 using SpellBook.Tags;
 using SpellBook.GAS.Attributes;
@@ -78,7 +80,9 @@ namespace SpellBook.GAS.Abilities
         [Header("Execução")]
         [SerializeReference]
         [TypePicker]
-        public List<AbilityAction> Actions = new List<AbilityAction>();
+        [FormerlySerializedAs("Actions")]
+        [ActionEvent("Ao ativar", DefaultTarget.EventTargets, true)]
+        public List<GameplayAction> OnActivate = new List<GameplayAction>();
 
         /// <summary>
         /// Verifica se a habilidade pode ser ativada pelo ASC, informando o motivo em caso de falha.
@@ -173,7 +177,7 @@ namespace SpellBook.GAS.Abilities
         /// <summary>
         /// Acusa <c>MaxLevel</c> menor que 1, a tabela de valores (nomes e valores), a política de redução sem atributo de
         /// redução, cada nome do modo Table que um efeito usado pela habilidade lê e não está na tabela (recarga, custo e
-        /// <see cref="AbilityAction.CollectEffects"/>), e <c>MaxLevel</c> acima do tamanho de um array da tabela (aviso).
+        /// <see cref="GameplayAction.CollectEffects"/>), e <c>MaxLevel</c> acima do tamanho de um array da tabela (aviso).
         /// Repassa a validação a cada ação da lista; ações vazias são ignoradas.
         /// </summary>
         public virtual void Validate(ValidationResult result)
@@ -200,11 +204,11 @@ namespace SpellBook.GAS.Abilities
             ValidateActivationRules(result);
             charges?.Validate(result, nameof(charges), values);
 
-            if (Actions == null) return;
+            if (OnActivate == null) return;
 
-            for (int i = 0; i < Actions.Count; i++)
+            for (int i = 0; i < OnActivate.Count; i++)
             {
-                Actions[i]?.Validate(result);
+                OnActivate[i]?.Validate(result);
             }
         }
 
@@ -227,11 +231,11 @@ namespace SpellBook.GAS.Abilities
             var effects = new List<GameplayEffect>();
             if (CooldownEffect != null) effects.Add(CooldownEffect);
             if (CostEffect != null) effects.Add(CostEffect);
-            if (Actions != null)
+            if (OnActivate != null)
             {
-                for (int i = 0; i < Actions.Count; i++)
+                for (int i = 0; i < OnActivate.Count; i++)
                 {
-                    Actions[i]?.CollectEffects(effects);
+                    OnActivate[i]?.CollectEffects(effects);
                 }
             }
 

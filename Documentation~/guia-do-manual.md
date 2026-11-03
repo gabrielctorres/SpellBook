@@ -138,7 +138,7 @@ Quem implementa e quem revisa rodam estas conferências a partir da raiz do repo
 - Imagem: `grep -rnE '!\[|<img' Documentation~/manual` não acha nada.
 - Sigla em título: `grep -rnE '^#{1,6} .*\b[A-Z]{2,}\b' Documentation~/manual` só acha nomes de tipo em código, GAS (pela exceção da parte 3) e nomes de produto (Unity, JSON).
 - Diagrama sem legenda: todo bloco ```` ```mermaid ```` tem uma linha de legenda logo abaixo do fechamento.
-- Build: `mkdocs build --strict -f Documentation~/mkdocs.yml`, com o site gerado fora do repositório (`-d` para uma pasta temporária).
+- Build: de dentro de `Documentation~/`, `mkdocs build --strict -f mkdocs.yml`, com o site gerado fora do repositório (`-d` para uma pasta temporária). De outra pasta, as inclusões de exemplo não acham o arquivo e o build falha.
 - Diagrama novo: abra a página no site gerado, porque o `--strict` confere o Markdown e o navegador é que desenha o Mermaid.
 
 ## 8. Catálogo e referência da API gerados
@@ -160,3 +160,53 @@ Para ver o site sem a Unity, rode dentro de `Documentation~/`:
 A Action `docs` roda nos pull requests que mexem no manual, na API, na configuração do DocFX ou no próprio workflow. Ela monta o manual e a API como na publicação, mas não publica. Depois, confere cada link `api/...html` do catálogo no site montado, porque o MkDocs não valida link absoluto. Se um link aponta para um tipo sem página, o build falha e mostra o caminho. Isso costuma acontecer quando o código muda e a geração não roda de novo.
 
 A versão do DocFX fica travada em `.config/dotnet-tools.json`. Se você trocar essa versão, a impressão digital muda e a geração precisa rodar de novo.
+
+## 9. Exemplos de código
+
+Todo bloco C# do manual sai de um arquivo de exemplos que compila e roda com os testes do pacote (Spec `referencia-catalogo-e-api.md`, D9; ADR 0041). A página não tem código escrito à mão: o bloco só tem linhas `--8<--`, que o `pymdownx.snippets` troca pelo trecho na hora do build.
+
+O arquivo de exemplos de cada módulo é `Packages/com.spellbook/Tests/<Módulo>/EditMode/Examples/<Módulo>ManualExamples.cs`, no assembly de testes que o módulo já tem. O do Core é o `CoreManualExamples.cs`, com os exemplos de `inicio/conceitos.md`. A classe tem o nome do arquivo e fica no namespace `<namespace raiz dos testes>.Examples`, como `SpellBook.Core.Tests.Examples`. Só a página `exemplos/sandbox.md` pode incluir de `Packages/com.spellbook/Samples~/Sandbox/Scripts/`.
+
+No arquivo, marque o trecho com dois comentários. O nome da seção tem letras minúsculas, números, `-` e `_`, e é único no arquivo:
+
+   ```csharp
+   [Test]
+   public void MathTools_Map_DistanceToVolume()
+   {
+       float distance = 5f;
+
+       // --8<-- [start:mathtools-map]
+       float volume = MathTools.Map(distance, 0f, 20f, 1f, 0f);
+       // --8<-- [end:mathtools-map]
+
+       Assert.That(volume, Is.EqualTo(0.75f).Within(1e-5f));
+   }
+   ```
+
+Na página, inclua a seção pelo caminho a partir da raiz do repositório:
+
+   ````markdown
+   ```csharp
+   --8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:mathtools-map"
+   ```
+   ````
+
+Regras do arquivo de exemplos:
+
+- O trecho que é chamada fica dentro de um `[Test]`, e o teste confere o que o texto da página diz do resultado. A preparação (as variáveis que o trecho usa) e as asserções ficam fora da seção.
+- Uma declaração de tipo fica no namespace, fora da classe de testes, entre os marcadores. Um `[Test]` do mesmo arquivo usa o tipo e confere o que a página diz dele. Tipo de apoio que a página só cita, como o contexto `MyContext`, fica fora de qualquer seção.
+- O `using` que a página mostra fica numa seção própria no topo do arquivo, com a linha em branco que o separa do resto dentro da seção. O bloco da página tem então duas linhas `--8<--`, uma para o `using` e outra para o trecho, nessa ordem.
+- O recuo sai sozinho: o `mkdocs.yml` liga o `dedent_subsections`, que tira o recuo comum das linhas da seção. Um membro de classe (um campo, um método) ou uma linha dentro de um método aparece na página a partir da coluna zero.
+- Um bloco pode ter mais de uma linha `--8<--`, uma por seção, quando junta partes de lugares diferentes do arquivo.
+
+O `mkdocs build --strict` falha se o arquivo ou a seção não existe, pelo `check_paths`. O `ManualCodeExamplesTests` confere, na Unity:
+
+- `NoHandWrittenCSharpBlocks`: nenhum bloco ` ```csharp `, ` ```cs ` ou ` ```c# ` tem linha que não seja `--8<--`, fora as páginas da lista de pendências. A lista só diminui, e a página que sai dela não volta;
+- `SnippetsPointToExistingSections`: cada inclusão aponta para um arquivo que existe e para uma seção com `start` e `end`;
+- `SnippetSourcesAreCompiledCode`: a inclusão vem de `Packages/com.spellbook/Tests/`, ou de `Samples~/Sandbox/Scripts/` só no Sandbox.
+
+Configuração de asset e do Inspector continua em texto. Um bloco que não pode virar código que compila, como uma assinatura solta ou um contraexemplo que não compila, vira texto ou um link para a API, e não um bloco ` ```text `.
+
+No texto em volta de um exemplo, um tipo da Unity aponta para a página mais recente do ScriptReference, sem versão na URL (`https://docs.unity3d.com/ScriptReference/MonoBehaviour.html`), como o mapa da parte 8. Um tipo do .NET não ganha link escrito à mão. Quem quiser o link encontra na página do tipo na API, que o DocFX liga ao learn.microsoft.com.
+
+Mudar um arquivo de exemplos também dispara a Action `docs`, porque o site muda junto.

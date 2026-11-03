@@ -1,25 +1,37 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
+using SpellBook.GAS.Actions;
 using SpellBook.GAS.Core;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace SpellBook.GAS.Effects
 {
-    [Serializable, TypeCategory("Depuração", Summary = "Escreve uma mensagem colorida no Console quando o efeito roda.")]
-    public class DebugLogEffectAction : EffectAction
+    [Serializable, TypeCategory("Depuração", Summary = "Escreve uma mensagem colorida no Console quando o efeito roda.",
+        Line = "Log: {Message}")]
+    [MovedFrom(false, sourceClassName: "DebugLogEffectAction")]
+    public class DebugLogAction : GameplayAction
     {
         public string Message = "Effect Triggered!";
         public Color LogColor = Color.white;
 
-        public override void Execute(AbilitySystemComponent source, AbilitySystemComponent target, ActiveEffectInstance instance = null)
+        public override bool UsesTargets => false;
+
+        protected override ActionStatus Execute(ActionContext context, ref ActionFrame frame)
         {
-            Debug.Log($"<color=#{ColorUtility.ToHtmlStringRGB(LogColor)}>[EffectAction]</color> {Message} (Source: {source.name}, Target: {target.name})");
+            string source = context.Instigator != null ? context.Instigator.name : "-";
+            string target = context.Owner != null ? context.Owner.name : "-";
+            Debug.Log($"<color=#{ColorUtility.ToHtmlStringRGB(LogColor)}>[DebugLogAction]</color> {Message} (Source: {source}, Target: {target})");
+            return ActionStatus.Done;
         }
     }
 
-    [Serializable, TypeCategory("Apresentação", Summary = "Cria um efeito visual no alvo e, se marcado, o remove quando o efeito sai.")]
-    public class SpawnVFXEffectAction : EffectAction
+    [Serializable, TypeCategory("Apresentação", Summary = "Cria um efeito visual no alvo e, se marcado, o remove quando o efeito sai.",
+        Line = "VFX {Prefab}")]
+    [MovedFrom(false, sourceClassName: "SpawnVFXEffectAction")]
+    public class SpawnVFXAction : GameplayAction, IEffectActionCleanup
     {
         public GameObject Prefab;
         [Tooltip("Cria e devolve o VFX. Vazio usa o spawner padrão, por Instantiate.")]
@@ -29,12 +41,12 @@ namespace SpellBook.GAS.Effects
         public Vector3 Offset = Vector3.zero;
         public bool DestroyOnRemoval = true;
 
-        public override void Execute(AbilitySystemComponent source, AbilitySystemComponent target, ActiveEffectInstance instance = null)
+        protected override ActionStatus Execute(ActionContext context, ref ActionFrame frame)
         {
-            if (Prefab == null) return;
+            AbilitySystemComponent target = context.Owner;
+            if (Prefab == null || target == null) return ActionStatus.Done;
 
             Transform parent = target.transform;
-            // Basic attach point search (could be improved with a dedicated component)
             if (!string.IsNullOrEmpty(AttachPointName))
             {
                 Transform found = FindRecursive(target.transform, AttachPointName);
@@ -47,10 +59,11 @@ namespace SpellBook.GAS.Effects
             if (vfxInstance == null)
             {
                 // Spawner sem instância (ex.: pool vazio que não cresce): falha de configuração, não exceção
-                Debug.LogWarning($"[SpawnVFXEffectAction] O spawner '{spawner.name}' não criou uma instância de '{Prefab.name}'.", spawner);
-                return;
+                Debug.LogWarning($"[SpawnVFXAction] O spawner '{spawner.name}' não criou uma instância de '{Prefab.name}'.", spawner);
+                return ActionStatus.Done;
             }
 
+            ActiveEffectInstance instance = context.EffectInstance;
             if (DestroyOnRemoval && instance != null)
             {
                 instance.AddActionData(this, vfxInstance);
@@ -60,20 +73,15 @@ namespace SpellBook.GAS.Effects
                 // Sem dono para devolver: volta ao spawner quando a partícula parar
                 spawner.ReleaseWhenParticlesStop(vfxInstance);
             }
+            return ActionStatus.Done;
         }
 
-        public override void Cleanup(AbilitySystemComponent source, AbilitySystemComponent target, ActiveEffectInstance instance)
+        void IEffectActionCleanup.Cleanup(ActiveEffectInstance instance, List<object> data)
         {
-            if (DestroyOnRemoval && instance != null)
+            SpawnerAsset spawner = SpawnerAsset.OrDefault(Spawner);
+            foreach (object item in data)
             {
-                if (instance.TryGetActionData<GameObject>(this, out var vfxInstances))
-                {
-                    SpawnerAsset spawner = SpawnerAsset.OrDefault(Spawner);
-                    foreach (var vfx in vfxInstances)
-                    {
-                        if (vfx != null) spawner.Release(vfx);
-                    }
-                }
+                if (item is GameObject vfx && vfx != null) spawner.Release(vfx);
             }
         }
 

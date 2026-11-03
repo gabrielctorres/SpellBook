@@ -1,13 +1,15 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using SpellBook.Core.Inspector;
 using UnityEngine;
 using SpellBook.Core;
+using SpellBook.GAS.Actions;
+using SpellBook.GAS.Core;
 
 namespace SpellBook.GAS.Abilities.Actions
 {
     [Serializable, TypeCategory("Apresentação", Summary = "Cria um efeito visual e toca um som em quem lançou, no alvo ou no ponto.")]
-    public class PlayCueAction : AbilityAction
+    public class PlayCueAction : GameplayAction
     {
         public GameObject VFX_Prefab;
         [Tooltip("Cria o VFX. Vazio usa o spawner padrão, por Instantiate. O VFX não é devolvido (até o módulo Cues).")]
@@ -18,16 +20,17 @@ namespace SpellBook.GAS.Abilities.Actions
         public AbilityTargetSource TargetSource = AbilityTargetSource.Location;
         public bool AttachToTransform = false;
 
-        public override IEnumerator Execute(AbilityContext context)
+        protected override ActionStatus Execute(ActionContext context, ref ActionFrame frame)
         {
-            Vector3 spawnPos = context.TargetPosition;
+            Vector3 spawnPos = context.Point;
             Transform parent = null;
-            var targets = context.GetValidTargets();
+            List<AbilitySystemComponent> targets = context.EventTargets;
+            targets.RemoveAll(t => t == null);
 
-            if (TargetSource == AbilityTargetSource.Caster && context.Source != null)
+            if (TargetSource == AbilityTargetSource.Caster && context.Instigator != null)
             {
-                spawnPos = context.Source.transform.position;
-                if (AttachToTransform) parent = context.Source.transform;
+                spawnPos = context.Instigator.transform.position;
+                if (AttachToTransform) parent = context.Instigator.transform;
             }
             else if (TargetSource == AbilityTargetSource.Target && targets.Count > 0)
             {
@@ -43,9 +46,7 @@ namespace SpellBook.GAS.Abilities.Actions
 
             if (SFX_Clip) AudioSource.PlayClipAtPoint(SFX_Clip, spawnPos);
 
-            yield return null;
+            return ActionStatus.Done;
         }
     }
 }
-
-

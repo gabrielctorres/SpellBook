@@ -1,5 +1,4 @@
-using System.Collections.Generic;
-using UnityEngine;
+using SpellBook.GAS.Actions;
 
 namespace SpellBook.GAS.Abilities
 {
@@ -13,7 +12,17 @@ namespace SpellBook.GAS.Abilities
         /// <summary>Nível atual, em [1, MaxLevel]. Muda por <c>AbilitySystemComponent.SetAbilityLevel</c>.</summary>
         public int Level { get; internal set; }
         public bool IsActive { get; internal set; }
-        public AbilityContext ActiveContext { get; internal set; }
+        /// <summary>Contexto da ativação em curso; nulo com a habilidade inativa. É do executor: não guarde depois do fim.</summary>
+        public ActionContext ActiveContext { get; internal set; }
+
+        /// <summary>Execução de <c>OnActivate</c> da ativação em curso; só vale com <see cref="Executing"/>.</summary>
+        internal ActionExecutionHandle Execution;
+
+        /// <summary>A execução de <c>OnActivate</c> ficou rodando depois da ativação; o ASC termina a habilidade quando ela acaba.</summary>
+        internal bool Executing;
+
+        /// <summary>Conta as ativações, para distinguir a ativação em curso de uma anterior que usou o mesmo contexto do pool.</summary>
+        internal int ActivationId;
 
         /// <summary>A ativação aplicou a recarga e o <c>Ended</c> ainda não saiu.</summary>
         internal bool CooldownTracked;
@@ -35,9 +44,6 @@ namespace SpellBook.GAS.Abilities
 
         /// <summary>A recarga de carga está correndo.</summary>
         internal bool ChargeRecharging;
-
-        internal Coroutine Routine;
-        internal readonly List<Coroutine> ChildRoutines = new List<Coroutine>();
 
         internal AbilitySpec(GameplayAbility ability, int level)
         {

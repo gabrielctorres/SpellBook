@@ -1,4 +1,5 @@
 using SpellBook.GAS.Abilities;
+using SpellBook.GAS.Actions;
 using SpellBook.GAS.Core;
 using UnityEngine;
 
@@ -24,17 +25,17 @@ namespace SpellBook.GAS.Effects
         }
 
         /// <summary>
-        /// Spec de uma ação de habilidade: instigador, habilidade e nível do <paramref name="context"/>, e o
-        /// <see cref="AbilityContext.TargetPosition"/> como ponto de impacto. Contexto nulo vira <see cref="Create"/> sem instigador.
+        /// Spec de uma ação: instigador, habilidade e nível do <paramref name="context"/>, e o
+        /// <see cref="ActionContext.Point"/> como ponto de impacto. Contexto nulo vira <see cref="Create"/> sem instigador.
         /// </summary>
-        public static EffectSpec FromAbility(GameplayEffect effect, AbilityContext context)
+        public static EffectSpec FromAbility(GameplayEffect effect, ActionContext context)
         {
             if (context == null) return Create(effect, null);
 
             EffectSpec spec = context.Ability != null
-                ? ForAbility(effect, context.Source, context.Ability, context.Level)
-                : Create(effect, context.Source);
-            return spec.WithImpactPoint(context.TargetPosition);
+                ? ForAbility(effect, context.Instigator, context.Ability, context.Level)
+                : Create(effect, context.Instigator);
+            return spec.WithImpactPoint(context.Point);
         }
 
         internal static EffectSpec ForAbility(GameplayEffect effect, AbilitySystemComponent instigator, GameplayAbility ability, int level)

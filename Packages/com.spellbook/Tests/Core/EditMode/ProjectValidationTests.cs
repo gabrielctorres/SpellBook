@@ -250,7 +250,7 @@ namespace SpellBook.Core.Tests
             GameplayAbility ability = _gas.CreateAbility(new RaiseEventAction());
             using (var serialized = new SerializedObject(ability))
             {
-                serialized.FindProperty(nameof(GameplayAbility.Actions)).GetArrayElementAtIndex(0)
+                serialized.FindProperty(nameof(GameplayAbility.OnActivate)).GetArrayElementAtIndex(0)
                     .FindPropertyRelative("emission").managedReferenceValue =
                     channel != null ? EventEmission.CreateFor(channel) : new EventEmission<int>();
                 serialized.ApplyModifiedPropertiesWithoutUndo();

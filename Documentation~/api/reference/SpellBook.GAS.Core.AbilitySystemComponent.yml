@@ -19,6 +19,7 @@ items:
   - SpellBook.GAS.Core.AbilitySystemComponent.CancelAbilitiesWithTags(System.Collections.Generic.IEnumerable{SpellBook.Tags.GameplayTag},SpellBook.GAS.Abilities.AbilitySpec)
   - SpellBook.GAS.Core.AbilitySystemComponent.CancelAbility(SpellBook.GAS.Abilities.AbilitySpec)
   - SpellBook.GAS.Core.AbilitySystemComponent.CancelAbility(SpellBook.GAS.Abilities.GameplayAbility)
+  - SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(System.Object)
   - SpellBook.GAS.Core.AbilitySystemComponent.CancelAllAbilities
   - SpellBook.GAS.Core.AbilitySystemComponent.ExtendEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance,System.Single)
   - SpellBook.GAS.Core.AbilitySystemComponent.FindEffects(SpellBook.GAS.Effects.GameplayEffect,System.Collections.Generic.List{SpellBook.GAS.Effects.ActiveEffectInstance})
@@ -47,6 +48,7 @@ items:
   - SpellBook.GAS.Core.AbilitySystemComponent.HasAttribute(SpellBook.GAS.Attributes.AttributeDefinition)
   - SpellBook.GAS.Core.AbilitySystemComponent.HasEffectWithTag(SpellBook.Tags.GameplayTag)
   - SpellBook.GAS.Core.AbilitySystemComponent.HasMatching(SpellBook.Tags.GameplayTagQuery)
+  - SpellBook.GAS.Core.AbilitySystemComponent.HasRunningActions(System.Object)
   - SpellBook.GAS.Core.AbilitySystemComponent.HasTag(SpellBook.Tags.GameplayTag)
   - SpellBook.GAS.Core.AbilitySystemComponent.IsAbilityActive(SpellBook.GAS.Abilities.GameplayAbility)
   - SpellBook.GAS.Core.AbilitySystemComponent.IsOnCooldown(SpellBook.GAS.Effects.GameplayEffect)
@@ -81,6 +83,7 @@ items:
   - SpellBook.GAS.Core.AbilitySystemComponent.ResetCooldown(SpellBook.GAS.Abilities.GameplayAbility)
   - SpellBook.GAS.Core.AbilitySystemComponent.RestartCooldown(SpellBook.GAS.Abilities.GameplayAbility)
   - SpellBook.GAS.Core.AbilitySystemComponent.RestartEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance)
+  - SpellBook.GAS.Core.AbilitySystemComponent.RunActions(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction},SpellBook.GAS.Actions.ActionContext,System.Object)
   - SpellBook.GAS.Core.AbilitySystemComponent.SetAbilityLevel(SpellBook.GAS.Abilities.GameplayAbility,System.Int32)
   - SpellBook.GAS.Core.AbilitySystemComponent.SetEffectStacks(SpellBook.GAS.Effects.ActiveEffectInstance,System.Int32)
   - SpellBook.GAS.Core.AbilitySystemComponent.SetTimeSource(SpellBook.Time.ITimeSource)
@@ -525,6 +528,10 @@ items:
   fullName: SpellBook.GAS.Core.AbilitySystemComponent.Validate(SpellBook.Core.Validation.ValidationResult)
   type: Method
   namespace: SpellBook.GAS.Core
+  summary: >-
+    Erro: entrada vazia em Starting Effects. Aviso: processador de um atributo do <xref href="SpellBook.GAS.Core.AbilitySystemComponent.AttributeSet" data-throw-if-not-resolved="false"></xref> que
+
+    cita um atributo ausente do mesmo conjunto; em runtime esse processador não faz nada.
   example: []
   syntax:
     content: public void Validate(ValidationResult result)
@@ -586,6 +593,96 @@ items:
   nameWithType.vb: AbilitySystemComponent.Tick(Single)
   fullName.vb: SpellBook.GAS.Core.AbilitySystemComponent.Tick(Single)
   name.vb: Tick(Single)
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.RunActions(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction},SpellBook.GAS.Actions.ActionContext,System.Object)
+  commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.RunActions(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction},SpellBook.GAS.Actions.ActionContext,System.Object)
+  id: RunActions(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction},SpellBook.GAS.Actions.ActionContext,System.Object)
+  parent: SpellBook.GAS.Core.AbilitySystemComponent
+  langs:
+  - csharp
+  - vb
+  name: RunActions(IReadOnlyList<GameplayAction>, ActionContext, object)
+  nameWithType: AbilitySystemComponent.RunActions(IReadOnlyList<GameplayAction>, ActionContext, object)
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.RunActions(System.Collections.Generic.IReadOnlyList<SpellBook.GAS.Actions.GameplayAction>, SpellBook.GAS.Actions.ActionContext, object)
+  type: Method
+  namespace: SpellBook.GAS.Core
+  summary: >-
+    Roda <code class="paramref">actions</code> em sequência no executor deste ASC (ADR 0034). As ações sem espera rodam já,
+
+    nesta chamada; as esperas andam no <xref href="SpellBook.GAS.Core.AbilitySystemComponent.Tick(System.Single)" data-throw-if-not-resolved="false"></xref>. O executor fica com <code class="paramref">context</code> e o
+
+    devolve ao pool no fim; nulo usa um contexto do pool com este ASC como dono e instigador.
+
+    <code class="paramref">owner</code> é o dono lógico, usado por <xref href="SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(System.Object)" data-throw-if-not-resolved="false"></xref>; nulo deixa a execução sem dono.
+  example: []
+  syntax:
+    content: public ActionExecutionHandle RunActions(IReadOnlyList<GameplayAction> actions, ActionContext context, object owner)
+    parameters:
+    - id: actions
+      type: System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction}
+    - id: context
+      type: SpellBook.GAS.Actions.ActionContext
+    - id: owner
+      type: System.Object
+    return:
+      type: SpellBook.GAS.Actions.ActionExecutionHandle
+    content.vb: Public Function RunActions(actions As IReadOnlyList(Of GameplayAction), context As ActionContext, owner As Object) As ActionExecutionHandle
+  overload: SpellBook.GAS.Core.AbilitySystemComponent.RunActions*
+  nameWithType.vb: AbilitySystemComponent.RunActions(IReadOnlyList(Of GameplayAction), ActionContext, Object)
+  fullName.vb: SpellBook.GAS.Core.AbilitySystemComponent.RunActions(System.Collections.Generic.IReadOnlyList(Of SpellBook.GAS.Actions.GameplayAction), SpellBook.GAS.Actions.ActionContext, Object)
+  name.vb: RunActions(IReadOnlyList(Of GameplayAction), ActionContext, Object)
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(System.Object)
+  commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(System.Object)
+  id: CancelActions(System.Object)
+  parent: SpellBook.GAS.Core.AbilitySystemComponent
+  langs:
+  - csharp
+  - vb
+  name: CancelActions(object)
+  nameWithType: AbilitySystemComponent.CancelActions(object)
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(object)
+  type: Method
+  namespace: SpellBook.GAS.Core
+  summary: >-
+    Cancela as execuções de <code class="paramref">owner</code>. Cada ação em curso recebe <code>OnCancel</code>, das execuções
+
+    filhas antes das mães e, em cada execução, do topo para a base.
+  example: []
+  syntax:
+    content: public void CancelActions(object owner)
+    parameters:
+    - id: owner
+      type: System.Object
+    content.vb: Public Sub CancelActions(owner As Object)
+  overload: SpellBook.GAS.Core.AbilitySystemComponent.CancelActions*
+  nameWithType.vb: AbilitySystemComponent.CancelActions(Object)
+  fullName.vb: SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(Object)
+  name.vb: CancelActions(Object)
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.HasRunningActions(System.Object)
+  commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.HasRunningActions(System.Object)
+  id: HasRunningActions(System.Object)
+  parent: SpellBook.GAS.Core.AbilitySystemComponent
+  langs:
+  - csharp
+  - vb
+  name: HasRunningActions(object)
+  nameWithType: AbilitySystemComponent.HasRunningActions(object)
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.HasRunningActions(object)
+  type: Method
+  namespace: SpellBook.GAS.Core
+  summary: Se há execução em curso de <code class="paramref">owner</code>.
+  example: []
+  syntax:
+    content: public bool HasRunningActions(object owner)
+    parameters:
+    - id: owner
+      type: System.Object
+    return:
+      type: System.Boolean
+    content.vb: Public Function HasRunningActions(owner As Object) As Boolean
+  overload: SpellBook.GAS.Core.AbilitySystemComponent.HasRunningActions*
+  nameWithType.vb: AbilitySystemComponent.HasRunningActions(Object)
+  fullName.vb: SpellBook.GAS.Core.AbilitySystemComponent.HasRunningActions(Object)
+  name.vb: HasRunningActions(Object)
 - uid: SpellBook.GAS.Core.AbilitySystemComponent.GetAttributeValue(SpellBook.GAS.Attributes.AttributeDefinition)
   commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.GetAttributeValue(SpellBook.GAS.Attributes.AttributeDefinition)
   id: GetAttributeValue(SpellBook.GAS.Attributes.AttributeDefinition)
@@ -10471,6 +10568,12 @@ references:
   nameWithType.vb: Double
   fullName.vb: Double
   name.vb: Double
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.AttributeSet
+  commentId: P:SpellBook.GAS.Core.AbilitySystemComponent.AttributeSet
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_AttributeSet
+  name: AttributeSet
+  nameWithType: AbilitySystemComponent.AttributeSet
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.AttributeSet
 - uid: SpellBook.GAS.Core.AbilitySystemComponent.Validate*
   commentId: Overload:SpellBook.GAS.Core.AbilitySystemComponent.Validate
   href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_Validate_SpellBook_Core_Validation_ValidationResult_
@@ -10544,6 +10647,135 @@ references:
   nameWithType.vb: Single
   fullName.vb: Single
   name.vb: Single
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(System.Object)
+  commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(System.Object)
+  isExternal: true
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_CancelActions_System_Object_
+  name: CancelActions(object)
+  nameWithType: AbilitySystemComponent.CancelActions(object)
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(object)
+  nameWithType.vb: AbilitySystemComponent.CancelActions(Object)
+  fullName.vb: SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(Object)
+  name.vb: CancelActions(Object)
+  spec.csharp:
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(System.Object)
+    name: CancelActions
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_CancelActions_System_Object_
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(System.Object)
+    name: CancelActions
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_CancelActions_System_Object_
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.RunActions*
+  commentId: Overload:SpellBook.GAS.Core.AbilitySystemComponent.RunActions
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_RunActions_System_Collections_Generic_IReadOnlyList_SpellBook_GAS_Actions_GameplayAction__SpellBook_GAS_Actions_ActionContext_System_Object_
+  name: RunActions
+  nameWithType: AbilitySystemComponent.RunActions
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.RunActions
+- uid: System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction}
+  commentId: T:System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.IReadOnlyList`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  name: IReadOnlyList<GameplayAction>
+  nameWithType: IReadOnlyList<GameplayAction>
+  fullName: System.Collections.Generic.IReadOnlyList<SpellBook.GAS.Actions.GameplayAction>
+  nameWithType.vb: IReadOnlyList(Of GameplayAction)
+  fullName.vb: System.Collections.Generic.IReadOnlyList(Of SpellBook.GAS.Actions.GameplayAction)
+  name.vb: IReadOnlyList(Of GameplayAction)
+  spec.csharp:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: <
+  - uid: SpellBook.GAS.Actions.GameplayAction
+    name: GameplayAction
+    href: SpellBook.GAS.Actions.GameplayAction.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.IReadOnlyList`1
+    name: IReadOnlyList
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: SpellBook.GAS.Actions.GameplayAction
+    name: GameplayAction
+    href: SpellBook.GAS.Actions.GameplayAction.html
+  - name: )
+- uid: SpellBook.GAS.Actions.ActionContext
+  commentId: T:SpellBook.GAS.Actions.ActionContext
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.ActionContext.html
+  name: ActionContext
+  nameWithType: ActionContext
+  fullName: SpellBook.GAS.Actions.ActionContext
+- uid: SpellBook.GAS.Actions.ActionExecutionHandle
+  commentId: T:SpellBook.GAS.Actions.ActionExecutionHandle
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.ActionExecutionHandle.html
+  name: ActionExecutionHandle
+  nameWithType: ActionExecutionHandle
+  fullName: SpellBook.GAS.Actions.ActionExecutionHandle
+- uid: SpellBook.GAS.Actions
+  commentId: N:SpellBook.GAS.Actions
+  name: SpellBook.GAS.Actions
+  nameWithType: SpellBook.GAS.Actions
+  fullName: SpellBook.GAS.Actions
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Actions
+    name: Actions
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Actions
+    name: Actions
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.CancelActions*
+  commentId: Overload:SpellBook.GAS.Core.AbilitySystemComponent.CancelActions
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_CancelActions_System_Object_
+  name: CancelActions
+  nameWithType: AbilitySystemComponent.CancelActions
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.CancelActions
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.HasRunningActions*
+  commentId: Overload:SpellBook.GAS.Core.AbilitySystemComponent.HasRunningActions
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_HasRunningActions_System_Object_
+  name: HasRunningActions
+  nameWithType: AbilitySystemComponent.HasRunningActions
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.HasRunningActions
+- uid: System.Boolean
+  commentId: T:System.Boolean
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.boolean
+  name: bool
+  nameWithType: bool
+  fullName: bool
+  nameWithType.vb: Boolean
+  fullName.vb: Boolean
+  name.vb: Boolean
 - uid: SpellBook.GAS.Core.AbilitySystemComponent.GetAttributeValue*
   commentId: Overload:SpellBook.GAS.Core.AbilitySystemComponent.GetAttributeValue
   href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_GetAttributeValue_SpellBook_GAS_Attributes_AttributeDefinition_
@@ -10605,17 +10837,6 @@ references:
   name: TryGetAttributeValue
   nameWithType: AbilitySystemComponent.TryGetAttributeValue
   fullName: SpellBook.GAS.Core.AbilitySystemComponent.TryGetAttributeValue
-- uid: System.Boolean
-  commentId: T:System.Boolean
-  parent: System
-  isExternal: true
-  href: https://learn.microsoft.com/dotnet/api/system.boolean
-  name: bool
-  nameWithType: bool
-  fullName: bool
-  nameWithType.vb: Boolean
-  fullName.vb: Boolean
-  name.vb: Boolean
 - uid: SpellBook.GAS.Attributes.AttributeSet.GetValueOrDefault(SpellBook.GAS.Attributes.AttributeDefinition,System.Single)
   commentId: M:SpellBook.GAS.Attributes.AttributeSet.GetValueOrDefault(SpellBook.GAS.Attributes.AttributeDefinition,System.Single)
   isExternal: true

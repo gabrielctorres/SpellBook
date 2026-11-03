@@ -6,6 +6,7 @@ using SpellBook.Core.Validation;
 using UnityEngine;
 using UnityEngine.Serialization;
 using SpellBook.Tags;
+using SpellBook.GAS.Actions;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Values;
 
@@ -112,16 +113,22 @@ namespace SpellBook.GAS.Effects
         [Header("Actions")]
         [SerializeReference]
         [TypePicker]
-        public List<EffectAction> OnApplication = new List<EffectAction>();
+        [FormerlySerializedAs("OnApplication")]
+        [ActionEvent("Ao ser aplicado", DefaultTarget.Owner, true)]
+        public List<GameplayAction> OnApplied = new List<GameplayAction>();
 
         [SerializeReference]
         [TypePicker]
+        [FormerlySerializedAs("OnTickActions")]
+        [ActionEvent("A cada tick", DefaultTarget.Owner, true)]
         [Tooltip("Usado só quando Period > 0")]
-        public List<EffectAction> OnTickActions = new List<EffectAction>();
+        public List<GameplayAction> OnTick = new List<GameplayAction>();
 
         [SerializeReference]
         [TypePicker]
-        public List<EffectAction> OnRemoval = new List<EffectAction>();
+        [FormerlySerializedAs("OnRemoval")]
+        [ActionEvent("Ao ser removido", DefaultTarget.Owner, true)]
+        public List<GameplayAction> OnRemoved = new List<GameplayAction>();
 
         [Header("Gameplay Tags")]
         [Tooltip("Tipos de dano do efeito. Os processadores dos atributos (resistência, imunidade) casam pela hierarquia: Dano casa com Dano.Fogo.")]
@@ -154,7 +161,8 @@ namespace SpellBook.GAS.Effects
 
         /// <summary>
         /// Acusa Is Buff com Is Debuff, cada <see cref="ScalableFloat"/> inválido (duração e valores), SetByCaller sem nome
-        /// válido (erro) ou sem padrão (aviso), modo Live onde não tem efeito (aviso) e ciclo ao vivo entre atributos (erro).
+        /// válido (erro) ou sem padrão (aviso), modo Live onde não tem efeito (aviso), ciclo ao vivo entre atributos (erro),
+        /// tag de dano vazia ou repetida e meta-atributo em <c>Modifiers</c> de efeito com duração ou infinito (erro).
         /// Os nomes do modo Table são conferidos pela habilidade que usa o efeito.
         /// </summary>
         public void Validate(ValidationResult result)
@@ -172,11 +180,30 @@ namespace SpellBook.GAS.Effects
             ValidateModifiers(result, PeriodicModifiers, nameof(PeriodicModifiers), false,
                 "Modo Live em modificador periódico não tem efeito: o tique já calcula o valor de novo.");
 
+            damageTags?.Validate(result, nameof(damageTags));
+            if (liveHasEffect) ValidateMetaModifiers(result);
+
             if (liveHasEffect && HasLiveCycle())
             {
                 result.AddError(
                     "Os modificadores Live formam um ciclo entre atributos (um depende do outro). Em runtime o ciclo é cortado e mantém o último valor.",
                     nameof(Modifiers));
+            }
+        }
+
+        // O meta-atributo só passa pelo pipeline na mudança da base: num modificador persistente ele não faz nada.
+        private void ValidateMetaModifiers(ValidationResult result)
+        {
+            if (Modifiers == null) return;
+
+            for (int i = 0; i < Modifiers.Count; i++)
+            {
+                AttributeDefinition attribute = Modifiers[i]?.Attribute;
+                if (attribute != null && attribute.IsMeta)
+                {
+                    result.AddError($"Meta-atributo {attribute.name} em modificador de efeito com duração ou infinito: use um efeito Instant ou periódico.",
+                        $"{nameof(Modifiers)}.Array.data[{i}].{nameof(AttributeEffectModifier.Attribute)}");
+                }
             }
         }
 

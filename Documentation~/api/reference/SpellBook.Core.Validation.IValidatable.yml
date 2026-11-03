@@ -42,7 +42,6 @@ items:
   - SpellBook.Events.ToggleComponentReaction
   - SpellBook.Events.Vector3EventResponse
   - SpellBook.Events.VoidEventResponse
-  - SpellBook.GAS.Abilities.AbilityAction
   - SpellBook.GAS.Abilities.Actions.AnimationAction
   - SpellBook.GAS.Abilities.Actions.ApplyEffectAction
   - SpellBook.GAS.Abilities.Actions.ConditionalAction
@@ -54,6 +53,7 @@ items:
   - SpellBook.GAS.Abilities.Actions.WaitAction
   - SpellBook.GAS.Abilities.CooldownReductionPolicy
   - SpellBook.GAS.Abilities.GameplayAbility
+  - SpellBook.GAS.Actions.GameplayAction
   - SpellBook.GAS.Attributes.AttributeDefinition
   - SpellBook.GAS.Bridges.AbilityEventResponse
   - SpellBook.GAS.Bridges.AbilitySystemEventRelay
@@ -64,7 +64,9 @@ items:
   - SpellBook.GAS.Bridges.RaiseEventAction
   - SpellBook.GAS.Bridges.TagChangedEventResponse
   - SpellBook.GAS.Core.AbilitySystemComponent
+  - SpellBook.GAS.Effects.DebugLogAction
   - SpellBook.GAS.Effects.GameplayEffect
+  - SpellBook.GAS.Effects.SpawnVFXAction
   - SpellBook.Pooling.PooledSpawnerAsset
 - uid: SpellBook.Core.Validation.IValidatable.Validate(SpellBook.Core.Validation.ValidationResult)
   commentId: M:SpellBook.Core.Validation.IValidatable.Validate(SpellBook.Core.Validation.ValidationResult)

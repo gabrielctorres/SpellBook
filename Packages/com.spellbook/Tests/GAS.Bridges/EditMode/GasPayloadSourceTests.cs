@@ -112,14 +112,14 @@ namespace SpellBook.GAS.Bridges.Tests
             GameplayAbility ability = _gas.CreateAbility(new RaiseEventAction());
             using (var serialized = new SerializedObject(ability))
             {
-                SerializedProperty action = serialized.FindProperty(nameof(GameplayAbility.Actions)).GetArrayElementAtIndex(0);
+                SerializedProperty action = serialized.FindProperty(nameof(GameplayAbility.OnActivate)).GetArrayElementAtIndex(0);
                 action.FindPropertyRelative("emission").managedReferenceValue = EventEmission.CreateFor(channel);
                 action.FindPropertyRelative("payloadSource").enumValueIndex = (int)source;
                 action.FindPropertyRelative("attribute").objectReferenceValue = attribute;
                 serialized.ApplyModifiedPropertiesWithoutUndo();
             }
 
-            return (RaiseEventAction)ability.Actions[0];
+            return (RaiseEventAction)ability.OnActivate[0];
         }
     }
 }

@@ -6,6 +6,7 @@ using SpellBook.Core;
 using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Abilities.Actions;
 using SpellBook.GAS.Abilities.Projectiles;
+using SpellBook.GAS.Actions;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
 using SpellBook.Testing;
@@ -41,10 +42,10 @@ namespace SpellBook.GAS.Tests
             prefab.AddComponent<Projectile>();
             AbilitySystemComponent caster = _gas.CreateAsc();
             var action = new SpawnProjectileAction { ProjectilePrefab = prefab };
-            AbilityContext context = GasFactory.CreateAbilityContext(caster, new Vector3(0f, 0f, 10f));
+            ActionContext context = GasFactory.CreateActionContext(caster, new Vector3(0f, 0f, 10f));
             HashSet<Projectile> existing = FindExisting<Projectile>();
 
-            Assert.DoesNotThrow(() => RunToEnd(action.Execute(context)));
+            Assert.DoesNotThrow(() => RunToEnd(action, context));
 
             List<Projectile> spawned = TrackSpawned(existing);
             Assert.That(spawned, Has.Count.EqualTo(1), "o projétil deveria ter sido criado pelo spawner padrão");
@@ -56,10 +57,10 @@ namespace SpellBook.GAS.Tests
             GameObject prefab = _spawn.CreateParticlePrefab("Cue_Test");
             var position = new Vector3(3f, 0f, 4f);
             var action = new PlayCueAction { VFX_Prefab = prefab, TargetSource = AbilityTargetSource.Location };
-            AbilityContext context = GasFactory.CreateAbilityContext(_gas.CreateAsc(), position);
+            ActionContext context = GasFactory.CreateActionContext(_gas.CreateAsc(), position);
             HashSet<ParticleSystem> existing = FindExisting<ParticleSystem>();
 
-            Assert.DoesNotThrow(() => RunToEnd(action.Execute(context)));
+            Assert.DoesNotThrow(() => RunToEnd(action, context));
 
             List<ParticleSystem> spawned = TrackSpawned(existing);
             Assert.That(spawned, Has.Count.EqualTo(1), "o VFX deveria ter sido criado pelo spawner padrão");
@@ -70,7 +71,7 @@ namespace SpellBook.GAS.Tests
         public void SpawnVfx_ReleasesThroughConfiguredSpawner()
         {
             RecordingSpawner spawner = CreateRecordingSpawner();
-            var action = new SpawnVFXEffectAction
+            var action = new SpawnVFXAction
             {
                 Prefab = _spawn.CreatePrefab("Vfx_Test"),
                 AttachPointName = string.Empty,
@@ -78,7 +79,7 @@ namespace SpellBook.GAS.Tests
                 Spawner = spawner,
             };
             GameplayEffect effect = _gas.CreateDurationEffect(2f);
-            effect.OnApplication = new List<EffectAction> { action };
+            effect.OnApplied.Add(action);
             AbilitySystemComponent target = _gas.CreateAsc();
             ActiveEffectInstance instance = target.ApplyEffect(effect);
 
@@ -89,13 +90,37 @@ namespace SpellBook.GAS.Tests
         }
 
         [Test]
+        public void SpawnVfx_ReleasedOnRemoval()
+        {
+            RecordingSpawner spawner = CreateRecordingSpawner();
+            var action = new SpawnVFXAction
+            {
+                Prefab = _spawn.CreatePrefab("Vfx_Test"),
+                AttachPointName = string.Empty,
+                DestroyOnRemoval = true,
+                Spawner = spawner,
+            };
+            GameplayEffect effect = _gas.CreateDurationEffect(2f);
+            effect.OnApplied.Add(action);
+            AbilitySystemComponent target = _gas.CreateAsc();
+            ActiveEffectInstance instance = target.ApplyEffect(effect);
+            int releasedWhileActive = spawner.Released.Count;
+
+            target.RemoveEffect(instance);
+
+            Assert.That(spawner.Spawned, Has.Count.EqualTo(1), "o VFX não foi criado na aplicação");
+            Assert.That(releasedWhileActive, Is.EqualTo(0), "o VFX voltou antes da remoção");
+            Assert.That(spawner.Released, Is.EqualTo(spawner.Spawned), "o VFX não voltou na remoção");
+        }
+
+        [Test]
         public void Projectile_ReturnsThroughSpawner()
         {
             RecordingSpawner spawner = CreateRecordingSpawner();
             GameObject go = _spawn.Track(new GameObject("Projectile_Test"));
             var projectile = go.AddComponent<Projectile>();
-            AbilityContext context = GasFactory.CreateAbilityContext(_gas.CreateAsc(), Vector3.zero);
-            projectile.Setup(spawner, context, new List<AbilityAction>());
+            ActionContext context = GasFactory.CreateActionContext(_gas.CreateAsc(), Vector3.zero);
+            projectile.Setup(spawner, context, new List<GameplayAction>());
 
             projectile.ReturnToPool();
 
@@ -109,11 +134,11 @@ namespace SpellBook.GAS.Tests
             GameObject prefab = _spawn.CreatePrefab("Projectile_Test");
             prefab.AddComponent<Projectile>();
             var action = new SpawnProjectileAction { ProjectilePrefab = prefab, Spawner = spawner, ProjectileCount = 2 };
-            AbilityContext context = GasFactory.CreateAbilityContext(_gas.CreateAsc(), new Vector3(0f, 0f, 10f));
+            ActionContext context = GasFactory.CreateActionContext(_gas.CreateAsc(), new Vector3(0f, 0f, 10f));
             LogAssert.Expect(LogType.Warning, SpawnFailedWarning(spawner, prefab));
             LogAssert.Expect(LogType.Warning, SpawnFailedWarning(spawner, prefab));
 
-            Assert.DoesNotThrow(() => RunToEnd(action.Execute(context)));
+            Assert.DoesNotThrow(() => RunToEnd(action, context));
 
             Assert.That(spawner.SpawnCalls, Is.EqualTo(2), "cada tiro da rajada deveria pedir uma instância ao spawner");
         }
@@ -126,10 +151,10 @@ namespace SpellBook.GAS.Tests
             prefab.AddComponent<Projectile>();
             AbilitySystemComponent caster = _gas.CreateAsc();
             var action = new SpawnProjectileAction { ProjectilePrefab = prefab, Spawner = spawner, ProjectileCount = 2 };
-            AbilityContext context = GasFactory.CreateAbilityContext(caster, new Vector3(0f, 0f, 10f));
+            ActionContext context = GasFactory.CreateActionContext(caster, new Vector3(0f, 0f, 10f));
             LogAssert.Expect(LogType.Warning, SpawnFailedWarning(spawner, prefab));
 
-            RunToEnd(action.Execute(context));
+            RunToEnd(action, context);
 
             Assert.That(spawner.Spawned, Has.Count.EqualTo(1), "o segundo tiro deveria sair depois do primeiro falhar");
             Projectile projectile = spawner.Spawned[0].GetComponent<Projectile>();
@@ -141,7 +166,7 @@ namespace SpellBook.GAS.Tests
         {
             NullSpawner spawner = CreateNullSpawner(nullCalls: int.MaxValue);
             GameObject prefab = _spawn.CreatePrefab("Vfx_Test");
-            var action = new SpawnVFXEffectAction
+            var action = new SpawnVFXAction
             {
                 Prefab = prefab,
                 AttachPointName = string.Empty,
@@ -151,7 +176,7 @@ namespace SpellBook.GAS.Tests
             AbilitySystemComponent target = _gas.CreateAsc();
             LogAssert.Expect(LogType.Warning, SpawnFailedWarning(spawner, prefab));
 
-            Assert.DoesNotThrow(() => action.Execute(target, target, null));
+            Assert.DoesNotThrow(() => target.RunActions(new GameplayAction[] { action }, null, null));
         }
 
         [Test]
@@ -159,7 +184,7 @@ namespace SpellBook.GAS.Tests
         {
             NullSpawner spawner = CreateNullSpawner(nullCalls: int.MaxValue);
             GameObject prefab = _spawn.CreatePrefab("Vfx_Test");
-            var action = new SpawnVFXEffectAction
+            var action = new SpawnVFXAction
             {
                 Prefab = prefab,
                 AttachPointName = string.Empty,
@@ -167,7 +192,7 @@ namespace SpellBook.GAS.Tests
                 Spawner = spawner,
             };
             GameplayEffect effect = _gas.CreateDurationEffect(2f);
-            effect.OnApplication = new List<EffectAction> { action };
+            effect.OnApplied.Add(action);
             AbilitySystemComponent target = _gas.CreateAsc();
             LogAssert.Expect(LogType.Warning, SpawnFailedWarning(spawner, prefab));
             ActiveEffectInstance instance = target.ApplyEffect(effect);
@@ -222,9 +247,11 @@ namespace SpellBook.GAS.Tests
             return spawned;
         }
 
-        private static void RunToEnd(IEnumerator routine)
+        // Roda a ação pelo executor do instigador do contexto; as ações destes testes terminam na mesma chamada
+        private static void RunToEnd(GameplayAction action, ActionContext context)
         {
-            while (routine.MoveNext()) { }
+            ActionExecutionHandle run = context.Instigator.RunActions(new[] { action }, context, null);
+            Assert.That(run.IsRunning, Is.False, "a ação não terminou na mesma chamada");
         }
 
         /// <summary>Spawner que cria por <c>Instantiate</c> e anota o que criou e o que recebeu de volta.</summary>

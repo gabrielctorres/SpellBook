@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using SpellBook.GAS.Abilities;
+using SpellBook.GAS.Actions;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
@@ -104,7 +105,7 @@ namespace SpellBook.Testing
         /// Habilidade sem tag, sem custo, sem recarga e sem tags de bloqueio, que roda as <paramref name="actions"/> em sequência.
         /// Sem ações, ela termina na própria ativação.
         /// </summary>
-        public GameplayAbility CreateAbility(params AbilityAction[] actions)
+        public GameplayAbility CreateAbility(params GameplayAction[] actions)
         {
             var ability = Track(ScriptableObject.CreateInstance<GameplayAbility>(), "GA_Test");
             ability.BlockedTags = new List<GameplayTag>();
@@ -113,12 +114,12 @@ namespace SpellBook.Testing
             ability.CancelAbilitiesWithTag = new List<GameplayTag>();
             ability.BlockAbilitiesWithTag = new List<GameplayTag>();
             ability.CancelledByTags = new List<GameplayTag>();
-            ability.Actions = new List<AbilityAction>(actions);
+            ability.OnActivate = new List<GameplayAction>(actions);
             return ability;
         }
 
-        /// <summary>Como <see cref="CreateAbility(AbilityAction[])"/>, com a <paramref name="abilityTag"/> como tag da habilidade.</summary>
-        public GameplayAbility CreateAbility(GameplayTag abilityTag, params AbilityAction[] actions)
+        /// <summary>Como <see cref="CreateAbility(GameplayAction[])"/>, com a <paramref name="abilityTag"/> como tag da habilidade.</summary>
+        public GameplayAbility CreateAbility(GameplayTag abilityTag, params GameplayAction[] actions)
         {
             GameplayAbility ability = CreateAbility(actions);
             ability.AbilityTag = abilityTag;
@@ -134,16 +135,18 @@ namespace SpellBook.Testing
         }
 
         /// <summary>
-        /// Contexto de habilidade com o <paramref name="source"/> como conjurador, sem habilidade e nível 1,
-        /// como o de uma ação rodada fora da ativação. Os <paramref name="targets"/> entram em <c>Targets</c>.
+        /// Contexto de ações com o <paramref name="source"/> como instigador, o <paramref name="point"/> como ponto, sem
+        /// habilidade e nível 1, como o de uma ação rodada fora da ativação. Os <paramref name="targets"/> entram em
+        /// <c>EventTargets</c>. Rode com <c>RunActions</c> do ASC; o executor fica com o contexto.
         /// </summary>
-        public static AbilityContext CreateAbilityContext(
+        public static ActionContext CreateActionContext(
             AbilitySystemComponent source,
-            Vector3 targetPosition,
+            Vector3 point,
             params AbilitySystemComponent[] targets)
         {
-            var context = new AbilityContext(source, targetPosition);
-            context.Targets.AddRange(targets);
+            var context = new ActionContext { Instigator = source };
+            context.SetPoint(point);
+            context.EventTargets.AddRange(targets);
             return context;
         }
 

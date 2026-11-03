@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using SpellBook.Events;
 using SpellBook.GAS.Abilities;
+using SpellBook.GAS.Actions;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.Testing;
@@ -15,7 +16,7 @@ using Object = UnityEngine.Object;
 namespace SpellBook.GAS.Bridges.Tests
 {
     /// <summary>
-    /// Payload dinâmico da <see cref="RaiseEventAction"/>: o valor sai do <see cref="AbilityContext"/> na hora do disparo,
+    /// Payload dinâmico da <see cref="RaiseEventAction"/>: o valor sai do <see cref="ActionContext"/> na hora do disparo,
     /// e o payload fixo continua igual (CA23).
     /// </summary>
     public class RaiseEventPayloadTests
@@ -46,7 +47,7 @@ namespace SpellBook.GAS.Bridges.Tests
             var channel = _events.CreateChannel<FloatEventChannel>();
             RaiseEventAction action = CreateAction(channel, GasPayloadSource.AttributeValue, health);
 
-            List<float> received = RunAndCollect(channel, action, GasFactory.CreateAbilityContext(caster, Vector3.zero, target));
+            List<float> received = RunAndCollect(channel, action, GasFactory.CreateActionContext(caster, Vector3.zero, target));
 
             Assert.That(received, Is.EqualTo(new[] { 80f }));
         }
@@ -83,9 +84,9 @@ namespace SpellBook.GAS.Bridges.Tests
             RaiseEventAction targetAction = CreateAction(channel, GasPayloadSource.TargetObject, null);
 
             List<GameObject> fromSource = RunAndCollect(channel, sourceAction,
-                GasFactory.CreateAbilityContext(caster, Vector3.zero, destroyed, target));
+                GasFactory.CreateActionContext(caster, Vector3.zero, destroyed, target));
             List<GameObject> fromTarget = RunAndCollect(channel, targetAction,
-                GasFactory.CreateAbilityContext(caster, Vector3.zero, destroyed, target));
+                GasFactory.CreateActionContext(caster, Vector3.zero, destroyed, target));
 
             Assert.That(fromSource, Is.EqualTo(new[] { caster.gameObject }), "SourceObject não é o conjurador");
             Assert.That(fromTarget, Is.EqualTo(new[] { target.gameObject }), "TargetObject não é o primeiro alvo válido");
@@ -98,7 +99,7 @@ namespace SpellBook.GAS.Bridges.Tests
             var channel = _events.CreateChannel<GameObjectEventChannel>();
             RaiseEventAction action = CreateAction(channel, GasPayloadSource.TargetObject, null);
 
-            List<GameObject> received = RunAndCollect(channel, action, GasFactory.CreateAbilityContext(caster, Vector3.zero));
+            List<GameObject> received = RunAndCollect(channel, action, GasFactory.CreateActionContext(caster, Vector3.zero));
 
             Assert.That(received, Is.Empty);
         }
@@ -132,7 +133,7 @@ namespace SpellBook.GAS.Bridges.Tests
             var channel = _events.CreateChannel<IntEventChannel>();
             RaiseEventAction action = CreateAction(channel, GasPayloadSource.Fixed, null, p => p.intValue = 7);
 
-            List<int> received = RunAndCollect(channel, action, GasFactory.CreateAbilityContext(_gas.CreateAsc(), Vector3.zero));
+            List<int> received = RunAndCollect(channel, action, GasFactory.CreateActionContext(_gas.CreateAsc(), Vector3.zero));
 
             Assert.That(received, Is.EqualTo(new[] { 7 }));
         }
@@ -142,7 +143,7 @@ namespace SpellBook.GAS.Bridges.Tests
         {
             var channel = _events.CreateChannel<IntEventChannel>();
             RaiseEventAction action = CreateAction(channel, GasPayloadSource.AbilityName, null, p => p.intValue = 7);
-            AbilityContext context = GasFactory.CreateAbilityContext(_gas.CreateAsc(), Vector3.zero);
+            ActionContext context = GasFactory.CreateActionContext(_gas.CreateAsc(), Vector3.zero);
 
             List<int> received = null;
             Assert.DoesNotThrow(() => received = RunAndCollect(channel, action, context));
@@ -150,15 +151,16 @@ namespace SpellBook.GAS.Bridges.Tests
             Assert.That(received, Is.Empty, "fonte incompatível disparou o canal");
         }
 
-        private static List<T> RunAndCollect<T>(EventChannel<T> channel, RaiseEventAction action, AbilityContext context)
+        // Roda a ação pelo executor de um ASC à parte; o instigador é o do contexto
+        private List<T> RunAndCollect<T>(EventChannel<T> channel, RaiseEventAction action, ActionContext context)
         {
             var received = new List<T>();
             Action<T> onRaised = received.Add;
             channel.Raised += onRaised;
             try
             {
-                IEnumerator run = action.Execute(context);
-                while (run.MoveNext()) { }
+                ActionExecutionHandle run = _gas.CreateAsc().RunActions(new GameplayAction[] { action }, context, null);
+                Assert.That(run.IsRunning, Is.False, "a ação não terminou na mesma chamada");
             }
             finally
             {
@@ -173,7 +175,7 @@ namespace SpellBook.GAS.Bridges.Tests
         {
             GameplayAbility ability = _gas.CreateAbility(new RaiseEventAction());
             Configure(ability, channel, source, attribute, configurePayload);
-            return (RaiseEventAction)ability.Actions[0];
+            return (RaiseEventAction)ability.OnActivate[0];
         }
 
         // Configura a primeira ação da habilidade pelo SerializedProperty, como o Inspector faz.
@@ -182,7 +184,7 @@ namespace SpellBook.GAS.Bridges.Tests
         {
             using (var serialized = new SerializedObject(ability))
             {
-                SerializedProperty action = serialized.FindProperty(nameof(GameplayAbility.Actions)).GetArrayElementAtIndex(0);
+                SerializedProperty action = serialized.FindProperty(nameof(GameplayAbility.OnActivate)).GetArrayElementAtIndex(0);
                 SerializedProperty emission = action.FindPropertyRelative("emission");
                 emission.managedReferenceValue = EventEmission.CreateFor(channel);
                 configurePayload?.Invoke(emission.FindPropertyRelative("payload"));

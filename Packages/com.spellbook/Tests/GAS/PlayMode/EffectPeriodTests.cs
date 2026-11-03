@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using NUnit.Framework;
+using SpellBook.GAS.Actions;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
@@ -50,7 +51,7 @@ namespace SpellBook.GAS.Tests
             AbilitySystemComponent asc = CreateManualAsc((hits, 0f));
             GameplayEffect effect = CreatePeriodicEffect(EffectDurationPolicy.HasDuration, 4f, 0.5f, hits);
             var tick = new TickProbe();
-            effect.OnTickActions.Add(tick);
+            effect.OnTick.Add(tick);
             asc.ApplyEffect(effect);
 
             TickTimes(asc, 10);
@@ -67,8 +68,8 @@ namespace SpellBook.GAS.Tests
             effect.Period = 0.5f;
             var removal = new RemovalProbe();
             var tick = new TickProbe(removal);
-            effect.OnTickActions.Add(tick);
-            effect.OnRemoval.Add(removal);
+            effect.OnTick.Add(tick);
+            effect.OnRemoved.Add(removal);
             asc.ApplyEffect(effect);
 
             TickTimes(asc, 10);
@@ -86,8 +87,8 @@ namespace SpellBook.GAS.Tests
             GameplayEffect effect = CreatePeriodicEffect(EffectDurationPolicy.HasDuration, 1f, 0.5f, hits);
             var removal = new RemovalProbe();
             var tick = new TickProbe(removal, removeOnCount: 2);
-            effect.OnTickActions.Add(tick);
-            effect.OnRemoval.Add(removal);
+            effect.OnTick.Add(tick);
+            effect.OnRemoved.Add(removal);
             asc.ApplyEffect(effect);
 
             TickTimes(asc, 4);
@@ -108,8 +109,8 @@ namespace SpellBook.GAS.Tests
             effect.GrantedTags.Add(poisoned);
             var removal = new RemovalProbe();
             var tick = new TickProbe(removal);
-            effect.OnTickActions.Add(tick);
-            effect.OnRemoval.Add(removal);
+            effect.OnTick.Add(tick);
+            effect.OnRemoved.Add(removal);
             asc.ApplyEffect(effect);
 
             asc.Tick(10f);
@@ -128,7 +129,7 @@ namespace SpellBook.GAS.Tests
             AbilitySystemComponent asc = CreateManualAsc((hits, 0f));
             GameplayEffect effect = CreatePeriodicEffect(EffectDurationPolicy.HasDuration, 4f, 1.5f, hits);
             var tick = new TickProbe();
-            effect.OnTickActions.Add(tick);
+            effect.OnTick.Add(tick);
             asc.ApplyEffect(effect);
 
             TickTimes(asc, 2); // 1 s
@@ -153,7 +154,7 @@ namespace SpellBook.GAS.Tests
             AbilitySystemComponent asc = CreateManualAsc((hits, 0f));
             GameplayEffect effect = CreatePeriodicEffect(EffectDurationPolicy.Infinite, 0f, 0.5f, hits);
             var tick = new TickProbe();
-            effect.OnTickActions.Add(tick);
+            effect.OnTick.Add(tick);
             asc.ApplyEffect(effect);
 
             TickTimes(asc, 8); // 4 s
@@ -195,13 +196,14 @@ namespace SpellBook.GAS.Tests
         }
 
         /// <summary>Ação de remoção que conta quantas vezes rodou.</summary>
-        private sealed class RemovalProbe : EffectAction
+        private sealed class RemovalProbe : GameplayAction
         {
             public int Count { get; private set; }
 
-            public override void Execute(AbilitySystemComponent source, AbilitySystemComponent target, ActiveEffectInstance instance = null)
+            protected override ActionStatus Execute(ActionContext context, ref ActionFrame frame)
             {
                 Count++;
+                return ActionStatus.Done;
             }
         }
 
@@ -209,7 +211,7 @@ namespace SpellBook.GAS.Tests
         /// Ação de tique que conta as execuções e as que vieram depois da <see cref="RemovalProbe"/>.
         /// Com <c>removeOnCount</c>, remove a própria instância na execução de número dado.
         /// </summary>
-        private sealed class TickProbe : EffectAction
+        private sealed class TickProbe : GameplayAction
         {
             private readonly RemovalProbe _removal;
             private readonly int _removeOnCount;
@@ -223,11 +225,12 @@ namespace SpellBook.GAS.Tests
             public int Count { get; private set; }
             public int CountAfterRemoval { get; private set; }
 
-            public override void Execute(AbilitySystemComponent source, AbilitySystemComponent target, ActiveEffectInstance instance = null)
+            protected override ActionStatus Execute(ActionContext context, ref ActionFrame frame)
             {
                 Count++;
                 if (_removal != null && _removal.Count > 0) CountAfterRemoval++;
-                if (Count == _removeOnCount) target.RemoveEffect(instance);
+                if (Count == _removeOnCount) context.Owner.RemoveEffect(context.EffectInstance);
+                return ActionStatus.Done;
             }
         }
     }

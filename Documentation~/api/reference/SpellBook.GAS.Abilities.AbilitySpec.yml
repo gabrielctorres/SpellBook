@@ -110,12 +110,14 @@ items:
   fullName: SpellBook.GAS.Abilities.AbilitySpec.ActiveContext
   type: Property
   namespace: SpellBook.GAS.Abilities
+  summary: 'Contexto da ativação em curso; nulo com a habilidade inativa. É do executor: não guarde depois do fim.'
+  example: []
   syntax:
-    content: public AbilityContext ActiveContext { get; }
+    content: public ActionContext ActiveContext { get; }
     parameters: []
     return:
-      type: SpellBook.GAS.Abilities.AbilityContext
-    content.vb: Public Property ActiveContext As AbilityContext
+      type: SpellBook.GAS.Actions.ActionContext
+    content.vb: Public Property ActiveContext As ActionContext
   overload: SpellBook.GAS.Abilities.AbilitySpec.ActiveContext*
 - uid: SpellBook.GAS.Abilities.AbilitySpec.Charges
   commentId: P:SpellBook.GAS.Abilities.AbilitySpec.Charges
@@ -518,13 +520,36 @@ references:
   name: ActiveContext
   nameWithType: AbilitySpec.ActiveContext
   fullName: SpellBook.GAS.Abilities.AbilitySpec.ActiveContext
-- uid: SpellBook.GAS.Abilities.AbilityContext
-  commentId: T:SpellBook.GAS.Abilities.AbilityContext
-  parent: SpellBook.GAS.Abilities
-  href: SpellBook.GAS.Abilities.AbilityContext.html
-  name: AbilityContext
-  nameWithType: AbilityContext
-  fullName: SpellBook.GAS.Abilities.AbilityContext
+- uid: SpellBook.GAS.Actions.ActionContext
+  commentId: T:SpellBook.GAS.Actions.ActionContext
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.ActionContext.html
+  name: ActionContext
+  nameWithType: ActionContext
+  fullName: SpellBook.GAS.Actions.ActionContext
+- uid: SpellBook.GAS.Actions
+  commentId: N:SpellBook.GAS.Actions
+  name: SpellBook.GAS.Actions
+  nameWithType: SpellBook.GAS.Actions
+  fullName: SpellBook.GAS.Actions
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Actions
+    name: Actions
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Actions
+    name: Actions
 - uid: SpellBook.GAS.Abilities.AbilitySpec.Charges*
   commentId: Overload:SpellBook.GAS.Abilities.AbilitySpec.Charges
   href: SpellBook.GAS.Abilities.AbilitySpec.html#SpellBook_GAS_Abilities_AbilitySpec_Charges

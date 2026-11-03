@@ -67,8 +67,7 @@ O seletor de tipo do Inspector só oferece tipos concretos e não genéricos. Po
 as três bases sobre o próprio contexto, com classes como esta:
 
 ```csharp
-[Serializable]
-public sealed class MyAndCondition : AndConditionBase<MyContext> { }
+--8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:and-condition"
 ```
 
 Um campo `[SerializeReference] Condition<MyContext>` oferece só as condições desse contexto.
@@ -77,19 +76,7 @@ Para o Inspector mostrar a condição numa linha, use o `Line` do `[TypeCategory
 valor do campo serializado e `{Campo?texto}` mostra o texto quando o `bool` é verdadeiro:
 
 ```csharp
-[Serializable]
-[TypeCategory("Exemplo", Line = "Vida abaixo de {Threshold}{Percent?%}")]
-public sealed class LowHealthCondition : Condition<MyContext>
-{
-    [SerializeField] private float threshold = 30f;
-    [SerializeField] private bool percent = true;
-
-    public override bool Evaluate(in MyContext context)
-    {
-        float health = percent ? context.Health / context.MaxHealth * 100f : context.Health;
-        return health < threshold;
-    }
-}
+--8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:low-health-condition"
 ```
 
 ### `Void` {#void}
@@ -104,8 +91,7 @@ os inimigos vivos na cena. Para usar, crie uma classe concreta que herda dele co
 item. `Add` ignora um item que já está na lista, e `Remove` ignora um item que não está.
 
 ```csharp
-[CreateAssetMenu(menuName = "Game/Enemy Set")]
-public class EnemySet : RuntimeSet<Enemy> { }
+--8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:enemy-set"
 ```
 
 ### `MathTools` {#math-tools}
@@ -125,9 +111,8 @@ cena: chame os métodos direto.
 | `CenterOfMass(points)` | Média dos pontos de um array. |
 
 ```csharp
-using SpellBook.Core;
-
-float volume = MathTools.Map(distance, 0f, 20f, 1f, 0f);
+--8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:mathtools-using"
+--8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:mathtools-map"
 ```
 
 Na 2.x, `MathTools` ficava aninhada no componente `Math` (`SpellBook.MathTools.Math.MathTools`).

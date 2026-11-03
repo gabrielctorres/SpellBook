@@ -1,37 +1,42 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using SpellBook.Core.Inspector;
-using UnityEngine;
+using SpellBook.GAS.Actions;
+using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
 
 namespace SpellBook.GAS.Abilities.Actions
 {
-    /// <summary>Aplica os efeitos com a habilidade, o nível e o ponto de alvo do contexto (<see cref="EffectSpec.FromAbility"/>).</summary>
+    /// <summary>
+    /// Aplica os efeitos com a habilidade, o nível e o ponto do contexto (<see cref="EffectSpec.FromAbility"/>) nos alvos
+    /// do evento e, com <see cref="ApplyToSource"/>, em quem lançou.
+    /// </summary>
     [Serializable, TypeCategory("Efeito", Summary = "Aplica efeitos nos alvos e, se marcado, em quem lançou.")]
-    public class ApplyEffectAction : AbilityAction
+    public class ApplyEffectAction : GameplayAction
     {
         public List<GameplayEffect> Effects;
         public bool ApplyToSource = false;
 
-        public override IEnumerator Execute(AbilityContext context)
+        protected override ActionStatus Execute(ActionContext context, ref ActionFrame frame)
         {
-            if (Effects == null || context.Source == null) yield break;
+            if (Effects == null || context.Instigator == null) return ActionStatus.Done;
 
             if (ApplyToSource)
             {
-                foreach (var effect in Effects) context.Source.ApplyEffect(EffectSpec.FromAbility(effect, context));
+                foreach (var effect in Effects) context.Instigator.ApplyEffect(EffectSpec.FromAbility(effect, context));
             }
 
+            List<AbilitySystemComponent> targets = context.EventTargets;
+            targets.RemoveAll(t => t == null);
             // Cópia: aplicar um efeito pode disparar ações que alteram a lista de alvos
-            var targets = context.GetValidTargets().ToArray();
-            foreach (var target in targets)
+            var snapshot = targets.ToArray();
+            foreach (var target in snapshot)
             {
                 if (target == null) continue;
                 foreach (var effect in Effects) target.ApplyEffect(EffectSpec.FromAbility(effect, context));
             }
 
-            yield return null;
+            return ActionStatus.Done;
         }
 
         public override void CollectEffects(List<GameplayEffect> effects)

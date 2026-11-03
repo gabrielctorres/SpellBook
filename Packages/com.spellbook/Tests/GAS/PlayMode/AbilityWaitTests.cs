@@ -5,7 +5,9 @@ using SpellBook.Core;
 using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Abilities.Actions;
 using SpellBook.GAS.Abilities.Projectiles;
+using SpellBook.GAS.Actions;
 using SpellBook.GAS.Core;
+using SpellBook.GAS.Effects;
 using SpellBook.Testing;
 using SpellBook.Time;
 using UnityEditor;
@@ -16,7 +18,8 @@ namespace SpellBook.GAS.Tests
 {
     /// <summary>
     /// Esperas das ações e do projétil contam o tempo do ASC ou da fonte de tempo, não o relógio da Unity (CA10; Spec 4.4).
-    /// Os ASCs têm <c>autoTick</c> desligado: só avançam por <c>Tick</c>.
+    /// As ações rodam pelo executor do ASC: sem espera, na mesma chamada (R8); a espera conta do fim do passo anterior,
+    /// também com um <c>Tick</c> no mesmo quadro (R6). Os ASCs têm <c>autoTick</c> desligado: só avançam por <c>Tick</c>.
     /// </summary>
     public class AbilityWaitTests
     {
@@ -67,8 +70,8 @@ namespace SpellBook.GAS.Tests
             Assert.That(asc.IsAbilityActive(ability), Is.False, "a espera não terminou depois do Tick");
         }
 
-        [UnityTest]
-        public IEnumerator WaitAction_ZeroDuration_WaitsOneFrame()
+        [Test]
+        public void WaitAction_ZeroOrNegative_CompletesInSameCall()
         {
             foreach (float duration in new[] { 0f, -1f })
             {
@@ -76,13 +79,43 @@ namespace SpellBook.GAS.Tests
                 AbilitySystemComponent asc = CreateManualAsc(ability);
 
                 asc.TryActivateAbility(ability, Vector3.zero);
-                bool activeAfterStart = asc.IsAbilityActive(ability);
-                yield return null;
-                yield return null;
 
-                Assert.That(activeAfterStart, Is.True, $"Duration {duration}: a espera terminou sem ceder um quadro");
-                Assert.That(asc.IsAbilityActive(ability), Is.False, $"Duration {duration}: a espera não terminou no quadro seguinte");
+                Assert.That(asc.IsAbilityActive(ability), Is.False, $"Duration {duration}: a espera custou um quadro");
             }
+        }
+
+        [TestCase(WaitStep.Wait)]
+        [TestCase(WaitStep.RepeatInterval)]
+        [TestCase(WaitStep.DelayBetweenShots)]
+        public void TickInSameFrameAsStepEnd_CountsForWait(WaitStep step)
+        {
+            var counter = new CountingAction();
+            CountingSpawner spawner = CreateCountingSpawner();
+            GameplayAbility ability = _gas.CreateAbility(CreateStepsWithWait(step, counter, spawner));
+            AbilitySystemComponent asc = CreateManualAsc(ability);
+
+            asc.TryActivateAbility(ability, new Vector3(0f, 0f, 10f));
+            int runsBeforeTick = step == WaitStep.DelayBetweenShots ? spawner.Count : counter.Count;
+            asc.Tick(1f); // no mesmo quadro em que o passo anterior terminou
+            int runsAfterTick = step == WaitStep.DelayBetweenShots ? spawner.Count : counter.Count;
+
+            Assert.That(runsBeforeTick, Is.EqualTo(1), "o passo antes da espera não rodou na ativação");
+            Assert.That(runsAfterTick, Is.EqualTo(2), "o Tick no mesmo quadro não contou para a espera");
+        }
+
+        [Test]
+        public void RepeatCount3Interval0_SameCall()
+        {
+            var counter = new CountingAction();
+            var repeat = new RepeatAction { Count = 3, Interval = 0f };
+            repeat.Actions.Add(counter);
+            GameplayAbility ability = _gas.CreateAbility(repeat);
+            AbilitySystemComponent asc = CreateManualAsc(ability);
+
+            asc.TryActivateAbility(ability, Vector3.zero);
+
+            Assert.That(counter.Count, Is.EqualTo(3), "as repetições sem intervalo não rodaram na mesma chamada");
+            Assert.That(asc.IsAbilityActive(ability), Is.False, "a habilidade não terminou na mesma chamada");
         }
 
         [UnityTest]
@@ -95,9 +128,7 @@ namespace SpellBook.GAS.Tests
             AbilitySystemComponent asc = CreateManualAsc(ability);
 
             asc.TryActivateAbility(ability, Vector3.zero);
-            // A 1ª repetição termina na hora, e a Unity só retoma o RepeatAction no quadro seguinte (corrotina
-            // aninhada que termina sem ceder custa um quadro ao pai): o intervalo começa a contar ali, como na 2.x.
-            // Dois quadros, para não depender da ordem das corrotinas dentro do quadro.
+            // A 1ª repetição termina na ativação, e o intervalo conta dali; os quadros sem Tick não contam
             yield return null;
             yield return null;
             asc.Tick(0.5f);
@@ -137,33 +168,35 @@ namespace SpellBook.GAS.Tests
         }
 
         [Test]
-        public void WaitSeconds_CountsRemainingAcrossTicks()
+        public void SameAction_InAbilityAndEffectLists()
         {
-            AbilitySystemComponent asc = CreateManualAsc();
-            IEnumerator wait = GasFactory.CreateAbilityContext(asc, Vector3.zero).WaitSeconds(1f);
+            var counter = new CountingAction();
+            GameplayAbility ability = _gas.CreateAbility(counter);
+            GameplayEffect effect = _gas.CreateDurationEffect(5f);
+            effect.OnApplied.Add(counter);
+            AbilitySystemComponent asc = CreateManualAsc(ability);
 
-            bool waitingAtStart = wait.MoveNext();
-            asc.Tick(0.4f);
-            bool waitingAfter0_4 = wait.MoveNext();
-            asc.Tick(0.7f);
-            bool waitingAfter1_1 = wait.MoveNext();
+            asc.TryActivateAbility(ability, Vector3.zero);
+            asc.ApplyEffect(effect);
 
-            Assert.That(waitingAtStart, Is.True);
-            Assert.That(waitingAfter0_4, Is.True, "a espera terminou antes de 1 s de Tick");
-            Assert.That(waitingAfter1_1, Is.False, "a espera não terminou depois de 1,1 s de Tick");
+            Assert.That(counter.Count, Is.EqualTo(2), "a mesma ação não rodou nas duas listas");
+            Assert.That(asc.IsAbilityActive(ability), Is.False);
         }
 
-        [UnityTest]
-        public IEnumerator WaitSeconds_SourceDestroyed_Ends()
+        [Test]
+        public void Projectile_ImpactRunsOnCasterAsc()
         {
-            AbilitySystemComponent asc = CreateManualAsc();
-            IEnumerator wait = GasFactory.CreateAbilityContext(asc, Vector3.zero).WaitSeconds(1f);
-            Assert.That(wait.MoveNext(), Is.True);
+            var counter = new CountingAction();
+            AbilitySystemComponent caster = CreateManualAsc();
+            CollidingProjectile projectile = CreateCollidingProjectile();
+            projectile.Setup(CreateCountingSpawner(), caster, new List<GameplayAction> { new WaitAction { Duration = 1f }, counter });
 
-            Object.Destroy(asc.gameObject);
-            yield return null;
+            projectile.Collide(_gas.CreateAsc().gameObject);
+            int runsBeforeTick = counter.Count;
+            caster.Tick(1f);
 
-            Assert.That(wait.MoveNext(), Is.False, "a espera continuou com o ASC destruído");
+            Assert.That(runsBeforeTick, Is.EqualTo(0), "a ação depois da espera rodou antes do Tick");
+            Assert.That(counter.Count, Is.EqualTo(1), "a lista do impacto não andou pelo Tick do ASC de quem lançou");
         }
 
         [UnityTest]
@@ -205,7 +238,7 @@ namespace SpellBook.GAS.Tests
                 projectile.Speed = 0f;
                 SetTimeSource(projectile, source);
                 go.SetActive(true);
-                projectile.Setup(spawner, _gas.CreateAsc(), new List<AbilityAction>());
+                projectile.Setup(spawner, _gas.CreateAsc(), new List<GameplayAction>());
 
                 source.Advance(1.2f);
                 yield return null; // o Destroy do spawner só vale no fim do quadro
@@ -231,7 +264,7 @@ namespace SpellBook.GAS.Tests
             projectile.Speed = 0f;
             SetTimeSource(projectile, source);
             go.SetActive(true);
-            projectile.Setup(spawner, _gas.CreateAsc(), new List<AbilityAction>());
+            projectile.Setup(spawner, _gas.CreateAsc(), new List<GameplayAction>());
             GameObject target = _gas.CreateAsc().gameObject;
 
             projectile.Collide(target);
@@ -257,7 +290,7 @@ namespace SpellBook.GAS.Tests
             projectile.Speed = 0f;
             SetTimeSource(projectile, source);
             go.SetActive(true);
-            projectile.Setup(spawner, _gas.CreateAsc(), new List<AbilityAction>());
+            projectile.Setup(spawner, _gas.CreateAsc(), new List<GameplayAction>());
 
             source.Advance(1f);
             yield return new WaitForFixedUpdate();
@@ -271,6 +304,52 @@ namespace SpellBook.GAS.Tests
             var serialized = new SerializedObject(projectile);
             serialized.FindProperty("timeSource").objectReferenceValue = source;
             serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>Passo que muda a contagem (ação ou tiro), uma espera de 1 s e o mesmo passo de novo.</summary>
+        private GameplayAction[] CreateStepsWithWait(WaitStep step, CountingAction counter, CountingSpawner spawner)
+        {
+            switch (step)
+            {
+                case WaitStep.Wait:
+                    return new GameplayAction[] { counter, new WaitAction { Duration = 1f }, counter };
+                case WaitStep.RepeatInterval:
+                    var repeat = new RepeatAction { Count = 2, Interval = 1f };
+                    repeat.Actions.Add(counter);
+                    return new GameplayAction[] { repeat };
+                default:
+                    return new GameplayAction[]
+                    {
+                        new SpawnProjectileAction
+                        {
+                            ProjectilePrefab = _spawn.CreatePrefab("Shot_Test"),
+                            Spawner = spawner,
+                            ProjectileCount = 2,
+                            DelayBetweenShots = 1f,
+                        },
+                    };
+            }
+        }
+
+        private CountingSpawner CreateCountingSpawner()
+        {
+            var spawner = _spawn.Track(ScriptableObject.CreateInstance<CountingSpawner>());
+            spawner.Factory = _spawn;
+            return spawner;
+        }
+
+        /// <summary>Projétil parado, sem limite de vida e sem invulnerabilidade.</summary>
+        private CollidingProjectile CreateCollidingProjectile()
+        {
+            var go = _spawn.Track(new GameObject("Projectile_Test"));
+            go.SetActive(false);
+            var projectile = go.AddComponent<CollidingProjectile>();
+            projectile.InitialInvulnerabilityDuration = 0f;
+            projectile.Lifetime = 0f;
+            projectile.Speed = 0f;
+            SetTimeSource(projectile, _time.CreateManual());
+            go.SetActive(true);
+            return projectile;
         }
 
         /// <summary>ASC com fonte manual e <c>autoTick</c> desligado, com as <paramref name="abilities"/> concedidas.</summary>
@@ -287,14 +366,16 @@ namespace SpellBook.GAS.Tests
             return asc;
         }
 
-        private sealed class CountingAction : AbilityAction
+        public enum WaitStep { Wait, RepeatInterval, DelayBetweenShots }
+
+        private sealed class CountingAction : GameplayAction
         {
             public int Count;
 
-            public override IEnumerator Execute(AbilityContext context)
+            protected override ActionStatus Execute(ActionContext context, ref ActionFrame frame)
             {
                 Count++;
-                yield break;
+                return ActionStatus.Done;
             }
         }
 
