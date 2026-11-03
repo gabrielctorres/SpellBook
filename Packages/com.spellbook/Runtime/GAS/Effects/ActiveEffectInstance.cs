@@ -166,24 +166,20 @@ namespace SpellBook.GAS.Effects
         /// </summary>
         private void RunActions(List<GameplayAction> actions, EffectEvent effectEvent)
         {
-            RunActions(actions, effectEvent, null, Target, default);
+            EffectEventCause cause = EffectEventCause.Lifecycle(Target);
+            RunActions(actions, effectEvent, in cause);
         }
 
         /// <summary>
-        /// Roda a reação <paramref name="actions"/> pelo mesmo caminho das outras listas: os alvos do evento são
-        /// <paramref name="eventInstigator"/> (nenhum se nulo ou destruído), e a ação sem seletor recebe o dono do efeito.
+        /// Roda a reação <paramref name="actions"/> pelo mesmo caminho das outras listas: os alvos do evento e o ponto vêm de
+        /// <paramref name="cause"/>, e a ação sem seletor recebe o dono do efeito.
         /// </summary>
-        internal void RunReaction(List<GameplayAction> actions, EffectEvent effectEvent, AbilitySystemComponent eventInstigator, in AttributeChangeReport change)
+        internal void RunReaction(List<GameplayAction> actions, EffectEvent effectEvent, in EffectEventCause cause)
         {
-            RunActions(actions, effectEvent, eventInstigator, eventInstigator, in change);
+            RunActions(actions, effectEvent, in cause);
         }
 
-        private void RunActions(
-            List<GameplayAction> actions,
-            EffectEvent effectEvent,
-            AbilitySystemComponent eventInstigator,
-            AbilitySystemComponent eventTarget,
-            in AttributeChangeReport change)
+        private void RunActions(List<GameplayAction> actions, EffectEvent effectEvent, in EffectEventCause cause)
         {
             if (actions == null || actions.Count == 0 || Target == null) return;
 
@@ -194,10 +190,11 @@ namespace SpellBook.GAS.Effects
             context.EffectDefinition = Effect;
             context.EffectEvent = effectEvent;
             context.SetEffect(Context);
-            context.EventInstigator = eventInstigator;
-            context.Change = change;
+            context.EventInstigator = cause.EventInstigator;
+            context.Change = cause.Change;
             context.DefaultTarget = DefaultTarget.Owner;
-            if (eventTarget != null) context.EventTargets.Add(eventTarget);
+            if (cause.HasPoint) context.SetPoint(cause.Point);
+            if (cause.EventTarget != null) context.EventTargets.Add(cause.EventTarget);
             Target.RunActions(actions, context, this);
         }
 

@@ -142,6 +142,12 @@ namespace SpellBook.GAS.Effects
         [Tooltip("Roda quando o atributo de morte do dono chega ao mínimo. Os alvos do evento são quem matou.")]
         public List<GameplayAction> OnDeath = new List<GameplayAction>();
 
+        [SerializeReference]
+        [TypePicker]
+        [ActionEvent("Ao executar habilidade", DefaultTarget.Owner, true)]
+        [Tooltip("Roda quando o dono ativa uma habilidade. Os alvos do evento são a unidade-alvo da ativação.")]
+        public List<GameplayAction> OnAbilityExecuted = new List<GameplayAction>();
+
         [Tooltip("Atributos cujo dano dispara \"Ao receber dano\". Vazio aceita qualquer atributo.")]
         [SerializeField] private List<AttributeDefinition> damageAttributes = new List<AttributeDefinition>();
 
@@ -155,7 +161,10 @@ namespace SpellBook.GAS.Effects
         public AttributeDefinition DeathAttribute => deathAttribute;
 
         // Só as instâncias de efeito com reação entram no despacho do ASC
-        internal bool HasReactions => (OnTakeDamage != null && OnTakeDamage.Count > 0) || (OnDeath != null && OnDeath.Count > 0);
+        internal bool HasReactions =>
+            (OnTakeDamage != null && OnTakeDamage.Count > 0)
+            || (OnDeath != null && OnDeath.Count > 0)
+            || (OnAbilityExecuted != null && OnAbilityExecuted.Count > 0);
 
         [Header("Gameplay Tags")]
         [Tooltip("Tipos de dano do efeito. Os processadores dos atributos (resistência, imunidade) casam pela hierarquia: Dano casa com Dano.Fogo.")]

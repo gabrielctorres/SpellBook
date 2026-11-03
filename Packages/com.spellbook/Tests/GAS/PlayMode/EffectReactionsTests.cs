@@ -2,13 +2,16 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
+using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Abilities.Actions;
+using SpellBook.GAS.Abilities.Triggers;
 using SpellBook.GAS.Actions;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
 using SpellBook.GAS.Targeting;
 using SpellBook.GAS.Values;
+using SpellBook.Tags;
 using SpellBook.Testing;
 using UnityEditor;
 using UnityEngine;
@@ -18,7 +21,7 @@ using Is = UnityEngine.TestTools.Constraints.Is;
 
 namespace SpellBook.GAS.Tests
 {
-    /// <summary>Reações do efeito a dano e morte (EV11a: CA23 sem OnAbilityExecuted, C15, P11, P12).</summary>
+    /// <summary>Reações do efeito a dano, morte e execução de habilidade (EV11a e EV11b: CA23, C15, P11, P12).</summary>
     public class EffectReactionsTests
     {
         private GasFactory _gas;
@@ -225,6 +228,157 @@ namespace SpellBook.GAS.Tests
             Assert.That(count.Count, Is.EqualTo(2002));
         }
 
+        [Test]
+        public void OnAbilityExecuted_AfterActivatedEvent_BeforeOnActivate()
+        {
+            AbilitySystemComponent b = CreateAsc();
+            var log = new List<string>();
+            GameplayAbility ability = _gas.CreateAbility(new LogAction("on-activate", log));
+            b.GiveAbility(ability);
+            b.ApplyEffect(Executing(new LogAction("executed-reaction", log)), b);
+            b.OnAbilityActivated += spec => log.Add("activated-event");
+
+            b.TryActivateAbility(ability, AbilityTarget.None);
+            b.TryActivateAbility(ability, AbilityTarget.None);
+
+            Assert.That(log, Is.EqualTo(new[]
+            {
+                "activated-event", "executed-reaction", "on-activate",
+                "activated-event", "executed-reaction", "on-activate"
+            }));
+        }
+
+        [Test]
+        public void OnAbilityExecuted_Context_UnitPointInstigatorAndDefaultOwner()
+        {
+            AbilitySystemComponent b = CreateAsc();
+            AbilitySystemComponent c = CreateAsc();
+            var records = new List<Record>();
+            var toEvent = new RecordAction("evento", records) { Target = new EventTargetsSelector() };
+            b.ApplyEffect(Executing(new RecordAction("padrão", records), toEvent), b);
+            GameplayAbility ability = _gas.CreateAbility();
+            b.GiveAbility(ability);
+            var point = new Vector3(1f, 2f, 3f);
+
+            b.TryActivateAbility(ability, AbilityTarget.AtUnit(c, point));
+
+            Record atUnit = records.Find(r => r.Name == "padrão");
+            Assert.That(atUnit.Event, Is.EqualTo(EffectEvent.AbilityExecuted));
+            Assert.That(atUnit.EventInstigator, Is.SameAs(b), "quem ativou");
+            Assert.That(atUnit.EventTargets, Is.EqualTo(new[] { c }), "a unidade-alvo da ativação");
+            Assert.That(atUnit.HasPoint, Is.True);
+            Assert.That(atUnit.Point, Is.EqualTo(point));
+            Assert.That(atUnit.Change.IsValid, Is.False);
+            Assert.That(atUnit.Ability, Is.Null, "a reação é do efeito, não da habilidade");
+            Assert.That(atUnit.Spec, Is.Null);
+            Assert.That(atUnit.Targets, Is.EqualTo(new[] { b }), "sem seletor, o dono do efeito");
+            Assert.That(records.Find(r => r.Name == "evento").Targets, Is.EqualTo(new[] { c }), "alvos do evento, a unidade-alvo");
+
+            records.Clear();
+            b.TryActivateAbility(ability, AbilityTarget.AtPoint(point));
+            Record atPoint = records.Find(r => r.Name == "padrão");
+            Assert.That(atPoint.Event, Is.EqualTo(EffectEvent.AbilityExecuted));
+            Assert.That(atPoint.EventTargets, Is.Empty, "só ponto, sem unidade");
+            Assert.That(atPoint.HasPoint, Is.True);
+            Assert.That(atPoint.Point, Is.EqualTo(point));
+
+            records.Clear();
+            b.TryActivateAbility(ability, AbilityTarget.None);
+            Record none = records.Find(r => r.Name == "padrão");
+            Assert.That(none.Event, Is.EqualTo(EffectEvent.AbilityExecuted));
+            Assert.That(none.HasPoint, Is.False, "sem alvo, sem ponto");
+        }
+
+        [Test]
+        public void OnAbilityExecuted_FailedActivation_DoesNotRun_TriggerActivationRuns()
+        {
+            AbilitySystemComponent b = CreateAsc((_mana, 5f));
+            var count = new CountAction();
+            b.ApplyEffect(Executing(count), b);
+            GameplayAbility costly = _gas.CreateAbility();
+            costly.CostEffect = Hit(_mana, -10f);
+            b.GiveAbility(costly);
+            GameplayTag hit = _gas.CreateTag("Evento.Acerto");
+            GameplayAbility triggered = _gas.CreateAbility();
+            triggered.Triggers.Add(new GameplayEventTrigger { Tag = hit });
+            b.GiveAbility(triggered);
+
+            AbilityActivationResult failed = b.TryActivateAbility(costly, AbilityTarget.None);
+            int afterFailure = count.Count;
+            b.SendGameplayEvent(hit, new GameplayEventData(b, null, 0f));
+
+            Assert.That(failed, Is.EqualTo(AbilityActivationResult.CannotAffordCost));
+            Assert.That(afterFailure, Is.EqualTo(0), "ativação que falha não reage");
+            Assert.That(count.Count, Is.EqualTo(1), "a ativação pelo gatilho reage uma vez");
+        }
+
+        [Test]
+        public void OnAbilityExecuted_ReactionCancelsActivation_OnActivateSkipped()
+        {
+            AbilitySystemComponent b = CreateAsc();
+            GameplayTag cancel = _gas.CreateTag("Cancela");
+            var onActivate = new CountAction();
+            GameplayAbility ability = _gas.CreateAbility(onActivate);
+            ability.CancelledByTags.Add(cancel);
+            b.GiveAbility(ability);
+            GameplayEffect cancelling = _gas.CreateEffect(EffectDurationPolicy.Infinite, 0f, cancel);
+            b.ApplyEffect(Executing(new ApplyEffectAction { Effects = new List<GameplayEffect> { cancelling }, ApplyToSource = true }), b);
+
+            Assert.DoesNotThrow(() => b.TryActivateAbility(ability, AbilityTarget.None));
+
+            Assert.That(b.HasTag(cancel), Is.True, "a reação aplicou a tag no dono");
+            Assert.That(onActivate.Count, Is.EqualTo(0), "a ativação cancelada pela reação não roda o OnActivate");
+            Assert.That(b.IsAbilityActive(ability), Is.False);
+        }
+
+        [Test]
+        public void OnAbilityExecuted_ReactionActivatesAbility_NoLoop()
+        {
+            AbilitySystemComponent b = CreateAsc();
+            GameplayTag echo = _gas.CreateTag("Evento.Eco");
+            var reactions = new CountAction();
+            var second = new CountAction();
+            b.ApplyEffect(Executing(reactions, new SendGameplayEventAction { Tag = echo }), b);
+            GameplayAbility first = _gas.CreateAbility();
+            b.GiveAbility(first);
+            GameplayAbility triggered = _gas.CreateAbility(second);
+            triggered.Triggers.Add(new GameplayEventTrigger { Tag = echo });
+            b.GiveAbility(triggered);
+
+            b.TryActivateAbility(first, AbilityTarget.None);
+            b.TryActivateAbility(first, AbilityTarget.None);
+
+            Assert.That(reactions.Count, Is.EqualTo(2), "uma reação por ativação externa; a ativação aninhada é ignorada");
+            Assert.That(second.Count, Is.EqualTo(2), "a segunda habilidade roda o OnActivate dela");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [Test]
+        public void OnAbilityExecuted_RemovedEffect_StopsReacting_AfterWarmupNoAlloc()
+        {
+            AbilitySystemComponent b = CreateAsc();
+            var count = new CountAction();
+            ActiveEffectInstance instance = b.ApplyEffect(Executing(count), b);
+            GameplayAbility ability = _gas.CreateAbility();
+            b.GiveAbility(ability);
+            b.TryActivateAbility(ability, AbilityTarget.None);
+
+            Assert.That(() => { for (int i = 0; i < 1000; i++) b.TryActivateAbility(ability, AbilityTarget.None); }, Is.Not.AllocatingGCMemory());
+            Assert.That(count.Count, Is.EqualTo(1001));
+
+            b.RemoveEffect(instance);
+            b.TryActivateAbility(ability, AbilityTarget.None);
+
+            Assert.That(count.Count, Is.EqualTo(1001), "removido, o efeito não reage");
+        }
+
+        private GameplayEffect Executing(params GameplayAction[] actions)
+        {
+            GameplayEffect effect = _gas.CreateEffect(EffectDurationPolicy.Infinite, 0f);
+            effect.OnAbilityExecuted.AddRange(actions);
+            return effect;
+        }
+
         private GameplayEffect Reacting(GameplayAction onTakeDamage = null, GameplayAction onDeath = null)
         {
             return Reacting(onTakeDamage != null ? new[] { onTakeDamage } : null, onDeath);
@@ -316,6 +470,10 @@ namespace SpellBook.GAS.Tests
             public readonly AbilitySystemComponent[] EventTargets;
             public readonly AbilitySystemComponent[] Targets;
             public readonly AttributeChangeReport Change;
+            public readonly bool HasPoint;
+            public readonly Vector3 Point;
+            public readonly GameplayAbility Ability;
+            public readonly AbilitySpec Spec;
 
             public Record(string name, ActionContext context)
             {
@@ -325,6 +483,10 @@ namespace SpellBook.GAS.Tests
                 EventTargets = context.EventTargets.ToArray();
                 Targets = context.Targets.ToArray();
                 Change = context.Change;
+                HasPoint = context.HasPoint;
+                Point = context.Point;
+                Ability = context.Ability;
+                Spec = context.Spec;
             }
         }
 

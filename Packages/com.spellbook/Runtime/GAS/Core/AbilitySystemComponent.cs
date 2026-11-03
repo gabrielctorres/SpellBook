@@ -924,6 +924,8 @@ namespace SpellBook.GAS.Core
 
             // Dispara eventos DEPOIS de aplicar o cooldown, para que a UI leia o tempo correto
             OnAbilityActivated?.Invoke(spec);
+            // A reação "Ao executar habilidade" vem depois do evento público e antes do OnActivate; se cancelar, a guarda abaixo para
+            _reactions?.AfterAbilityActivated(in target);
 
             // A tag concedida acima pode ter cancelado a própria habilidade; o EndAbility já devolveu o contexto
             if (!spec.IsActive || spec.ActivationId != activation) return;
