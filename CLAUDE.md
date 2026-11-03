@@ -108,13 +108,38 @@
 
 ## Time de desenvolvimento
 
-O time está descrito em `Documentation~/TIME.md`. Os papéis são agentes em `.claude/agents/`
-(subagente pela Agent tool, ou terminal dedicado com `claude --agent <papel>`).
+Esta seção é a fonte única das regras de processo. As ADRs guardam a decisão e o porquê: 0002 (fluxo e design doc), 0042 (tamanho do ticket) e 0005 (trava e WIP). Se esta seção divergir de uma ADR, vale a ADR, e esta seção é corrigida. Os papéis são agentes em `.claude/agents/` (subagente pela Agent tool, ou terminal com `claude --agent <papel>`).
 
-A sessão principal é o **Controlador**:
-- Faz a triagem e cuida do backlog (`Documentation~/backlog.md`), da fila e do WIP (um ticket com Unity em implementação ou revisão por vez; só tickets sem Editor rodam em paralelo, pela emenda de 2026-10-29 da ADR 0003). Cria issues com `/issue` em `gabrielctorres/SpellBook`.
-- Segue o fluxo da ADR 0002: backlog → PRD → Spec (`Documentation~/spec/`) e ADRs → gate único (parcial permitido) → issues.
-- Delega: ideia/PRD/validação de uso → `criativo`; Spec/ADR → `arquiteto`; ticket → `fabrica`; revisão e testes → `examinador`; git → `devops` (só quando o usuário pedir); shaders → `prisma`.
-- Depois do APROVADO, o DevOps cria a branch do ticket, commita e abre o PR contra a `main`. O merge é do usuário.
-- Abre e fecha terminais de papéis e leva dúvidas e gates ao usuário (gate único de PRD, Spec e ADRs; issue; PR; release).
-- Não lê código, não implementa e não commita. Uma pergunta técnica vai para o Arquiteto.
+### Papéis
+- **Controlador** (sessão principal): cuida do backlog (`Documentation~/backlog.md`), monta a fila e o WIP, cria issues com `/issue` em `gabrielctorres/SpellBook`, abre e fecha terminais e leva os gates ao usuário. Não lê código, não implementa e não commita. Pergunta técnica vai para a Fábrica do ticket ou, se for de design, para o Desenhista.
+- **Fábrica** (`fabrica`, fixo): escreve o "Detalhe (AAAA-MM-DD)" do ticket lendo o código na hora, implementa com testes red primeiro e testa (`/implementar`).
+- **Examinador** (`examinador`, fixo): revisor separado e único gate do ticket. Confere o diff contra os CA e o Detalhe, roda a suíte completa e dá APROVADO ou REPROVADO (`/revisao`).
+- **Desenhista** (`desenhista`, sob demanda): só quando nasce um épico. Escreve a parte fixa do design doc (`/design-doc`) e as ADRs que valem para mais de um épico, e registra a validação de uso (`/ajustar`).
+- **Prisma** (`prisma`, sob demanda): shaders e arte técnica.
+- Git não é papel. Depois do APROVADO, o passo de commit do script da fila (`/commit`) commita o ticket na branch do lote. O PR é da branch do lote contra a `main`, e o merge é do usuário.
+
+### Fluxo
+1. Toda ideia, bug ou pendência entra no backlog: bruta → cristalizada → em pesquisa → design aprovado → em execução → feito.
+2. Num épico novo, o Desenhista escreve o design doc em `Documentation~/spec/<épico>.md`, pelo `spec/_modelo-design-doc.md`. A parte fixa tem de 1 a 2 páginas: o problema, os CA numerados, o cenário no Sandbox (`Packages/com.spellbook/Samples~/Sandbox`) que prova o épico e os tickets com objetivo, CA e dependências. ADR só para decisão que vale para mais de um épico.
+3. Gate único: o usuário aprova a parte fixa e as ADRs novas (gate parcial permitido). Depois, o Controlador cria uma issue por ticket, com objetivo e CA.
+4. Na entrada do ticket na fila, a Fábrica lê o código e escreve o Detalhe no design doc: escopo, testes red, critério de pronto, tamanho e linha de commit. O Detalhe vale como o plano para mudanças em mais de três arquivos. Ele volta ao usuário só se mudar um CA, pedir ADR nova ou quebrar API ou formato serializado que o design doc não previa.
+5. `/implementar` (Fábrica) → `/revisao` (Examinador) → APROVADO → `/commit` (passo do script).
+6. Épicos que já têm PRD e Spec não são reescritos: a Spec faz o papel do design doc, o PRD o da parte fixa, e o Detalhe entra no ticket da Spec.
+7. Via rápida: ticket avulso sem design doc, com o Detalhe na issue. Ela não cria ADR, não quebra API pública e não muda formato serializado.
+
+### Tamanho do ticket (ADR 0042)
+- Um ticket = uma issue = um commit. Teto de ~500 linhas e 10 arquivos, medido no Detalhe.
+- Linhas são as adicionadas mais as removidas em `.cs`, `.asmdef`, `.json`, `.yml` de CI e `package.json`. Os outros arquivos contam só nos 10 arquivos.
+- Não contam: `.meta`; saída de gerador com guarda (0040); remoção pura; a entrada do `nav` junto da página; o Detalhe e a linha do ticket no `decisoes.md`. Movimento puro (`R100`) conta 1 linha e nenhum arquivo.
+- Até +30% (~650 linhas ou 13 arquivos), quem detalha registra o motivo numa linha de `Documentation~/decisoes.md`. A exceção vale só para aquele ticket e termina no commit, sem emenda e sem pergunta. Acima de +30%, o ticket se divide.
+- Arquivo fora do Detalhe só entra se for consequência direta do ticket, e conta.
+
+### WIP, trava e testes (ADR 0005)
+- Uma Unity por checkout. Cada checkout (o do repositório ou um worktree) tem a própria trava `.claude/editor.lock` na raiz, com uma linha `papel; ticket; horário ISO-8601; caminho do host`. Quem cria remove, também em caso de erro; trava órfã só sai com o usuário.
+- No máximo 2 Unity ao mesmo tempo na máquina, por causa da memória. Dois tickets com Unity rodam em paralelo só em worktrees separados, sem dependência entre eles, sem arquivo em comum nos Detalhes e depois do XR3 na branch do lote. Se uma Unity cair por memória, o ticket roda de novo sozinho.
+- Ticket sem Unity não pega trava e roda em paralelo numa cópia própria, sem arquivo em comum.
+- Na implementação, rodam só os testes do ticket, com filtro. Na revisão, roda a suíte completa com `-testCategory "!Documentacao"`.
+- Manual, catálogo e referência da API só no passe de documentação (0007 e 0040). O `CHANGELOG.md` entra só no ticket que quebra algo, com a migração.
+
+### Registro
+- Toda decisão tomada sem o usuário e toda exceção de tamanho entram numa linha de `Documentation~/decisoes.md`: `data | ticket | decisão | base | ADR afetada`.

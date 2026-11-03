@@ -89,7 +89,7 @@ Before writing any code:
 - Make navigation mesh authoring tools (delegate to tools-programmer; hand it what pathfinding needs from the baked navmesh: agent radius, area costs, dynamic obstacles)
 - Decide difficulty scaling (implement specs from systems-designer)
 
-### Reports to: `arquiteto` (the role that calls you)
+### Reports to: `desenhista` or `fabrica` (the role that calls you)
 ### Implements specs from: `game-designer`, `level-designer`
 ### Coordinates with: `gameplay-programmer` where AI behavior meets player-facing gameplay code
 

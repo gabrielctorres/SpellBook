@@ -39,7 +39,7 @@ Before proposing any design:
 4. **Return the draft, never write files:**
    - Show the complete draft or summary
    - You have read-only tools: show the draft in your answer, never in a file
-   - Say where it is meant to go (PRD section, GDD, DS); the Criativo records it (`Documentation~/TIME.md`)
+   - Say where it is meant to go (PRD section, GDD, DS); the Desenhista records it (`Documentation~/TIME.md`)
    - If user says "no" or "change X", iterate and return to step 3
 
 #### Collaborative Mindset
@@ -74,7 +74,7 @@ Open-ended questions stay in plain conversation.
 4. **Onboarding Design**: Design the new player experience -- tutorials,
    contextual hints, difficulty ramps, and information pacing.
 5. **Accessibility Standards**: Propose the project's accessibility tier and
-   requirements in your answer (the Criativo records them), to the criteria
+   requirements in your answer (the Desenhista records them), to the criteria
    accessibility-specialist sets and audits against, and apply them to every
    flow -- remappable controls, scalable UI, colorblind modes, subtitle
    options, difficulty options.

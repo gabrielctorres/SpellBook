@@ -1,6 +1,6 @@
 # Guia do manual
 
-Documento interno de quem escreve ou revisa o manual público em `Documentation~/manual/`. Ele fica fora de `manual/`, então o site não o publica. Vale pela emenda de 2026-11-01 da ADR 0007 e pelo D1 ao D6 da Spec `spec/manual-reorganizacao.md`.
+Documento interno de quem escreve ou revisa o manual público em `Documentation~/manual/`. Ele fica fora de `manual/`, então o site não o publica. Vale pela emenda de 2026-11-01 da ADR 0007 e pelo D1 ao D6 da Spec `spec/manual-reorganizacao.md`. As regras de processo (quem escreve no manual, quando e como o ticket conta) estão no `CLAUDE.md`, seção "Time de desenvolvimento". Este guia só diz como escrever e como conferir.
 
 ## 1. Molde da página de sistema
 
@@ -147,7 +147,7 @@ O catálogo (`manual/referencia/catalogo.md`), os YAML da API (`api/reference/`)
 
 Na API, os tipos da Unity levam à documentação da Unity pelo mapa, que a geração monta a partir dos YAML (0041). Os módulos do motor apontam para o ScriptReference mais recente, sem versão na URL. Os pacotes `com.unity.*` apontam para a versão instalada no projeto, então quem atualiza um desses pacotes precisa gerar a referência de novo. Os tipos do .NET levam ao learn.microsoft.com pelo `href` que o `docfx metadata` grava nos YAML. O `docfx.json` não declara mapa do .NET, e o build não usa a rede.
 
-As guardas que comparam o código com o manual ou com a referência commitada ficam na categoria `Documentacao` do NUnit: o `ReferenceUpToDateTests`, o `ManualCodeExamplesTests` e três testes do `ManualLinksTests`. A suíte dos tickets roda com `-testCategory "!Documentacao"`. Por isso, um ticket que muda um `.cs` não regenera a referência nem mexe no manual (emenda de 2026-11-03 da 0007). Isso fica para o passe de documentação.
+As guardas que comparam o código com o manual ou com a referência commitada ficam na categoria `Documentacao` do NUnit: o `ReferenceUpToDateTests`, o `ManualCodeExamplesTests` e três testes do `ManualLinksTests`. Quando cada suíte roda, e o que um ticket de código deixa para o passe de documentação, está no `CLAUDE.md`, seção "Time de desenvolvimento".
 
 No passe de documentação:
 

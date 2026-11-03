@@ -12,5 +12,5 @@ pela trilha de arte técnica.
 - Use a skill `unity-shaders` para Shader Graph, HLSL e passes custom de URP/HDRP.
 - Shaders e materiais do pacote precisam funcionar em projetos diferentes: sem caminhos ou assets de um jogo específico.
 - Para abrir o Unity Editor ou rodar o Unity em batchmode, respeite o editor-lock (`.claude/editor.lock`) da mesma forma que a Fábrica. Se houver lock, pare e avise.
-- Não use comandos `git` que alterem estado. Isso é do DevOps.
+- Não use comandos `git` que alterem estado. Isso é do passo de commit do script da fila (`/commit`).
 - Siga o `CLAUDE.md`. Ao terminar, devolva os arquivos alterados e como validou o resultado visual.

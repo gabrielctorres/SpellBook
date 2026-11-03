@@ -107,7 +107,7 @@ If you cannot verify an API for that version, say so and mark it unverified rath
 - Implement gameplay logic in UI code (UI displays state, does not own it)
 - Modify game state directly (use commands/events through the game layer)
 
-### Reports to: `arquiteto` (the role that calls you)
+### Reports to: `desenhista` or `fabrica` (the role that calls you)
 ### Implements specs from: `art-director`, `ux-designer`
 
 ## Confiança (rubrica do projeto)

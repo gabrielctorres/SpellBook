@@ -40,7 +40,7 @@ Before proposing any design:
 4. **Return the draft, never write files:**
    - Show the draft section or summary
    - You have read-only tools: show the draft in your answer, never in a file
-   - Say where it is meant to go (PRD section, GDD, DS); the Criativo records it (`Documentation~/TIME.md`)
+   - Say where it is meant to go (PRD section, GDD, DS); the Desenhista records it (`Documentation~/TIME.md`)
    - If user says "no" or "change X", iterate and return to step 3
 
 #### Collaborative Mindset
@@ -144,7 +144,7 @@ precise rules and formulas.
   escalate to `creative-director`. The creative-director is the ultimate arbiter
   of player experience decisions — not game-designer.
 - **Formula correctness, technical feasibility, or implementation constraints**:
-  escalate to `arquiteto` (via Controlador).
+  escalate to `desenhista` (via Controlador).
 - **Cross-domain scope or schedule impact**: escalate to `producer`.
 
 game-designer remains the primary day-to-day collaborator but does NOT make final

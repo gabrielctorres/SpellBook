@@ -43,7 +43,7 @@ Before drafting anything:
 
 5. **Return the draft, never write files:**
    - You have read-only tools: show the draft in your answer, never in a file
-   - Say where it is meant to go (PRD section, GDD, DS); the Criativo records it (`Documentation~/TIME.md`)
+   - Say where it is meant to go (PRD section, GDD, DS); the Desenhista records it (`Documentation~/TIME.md`)
 
 6. **Offer next steps:**
    - "Shall I check this against the narrative docs with narrative-director?"
