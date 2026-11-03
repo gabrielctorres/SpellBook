@@ -817,11 +817,46 @@ Detalhe pela emenda de 2026-11-03 da ADR 0002, lido no código da branch `feat/g
 - Critério de pronto: testes verdes; parte do CA31 (S) no host (abas, contador, linha legível, 50 ações sem engasgo).
 - Tamanho estimado: ~500 linhas; 10 arquivos. Depende de: EV16, AV9.
 
+#### EV17a — Inspector: lista e linha recolhida (divisão de 2026-11-03 do EV17)
+O Detalhe do EV17 (#191) mediu 694 linhas (499 de editor, 195 de testes) e 9 arquivos na implementação, acima de +30% do teto da ADR 0042; o Controlador aprovou a divisão em EV17a e EV17b.
+
+##### Detalhe (2026-11-03)
+- CA: CA31 (S), parte da lista e da linha recolhida (DS 4.1 sem menu e teclado, 4.2 sem chip, 4.3 sem o aviso de troca de tipo). As abas, os editores, "Várias seleções" e "Dono sem nenhuma ação" ficam no EV17b; o chip no EV18, as filhas no EV19, o menu e o teclado no EV20.
+- Escopo:
+  - `Editor/GAS/Actions/ActionRowView.cs` (novo, `internal sealed`): seta de dobra, pastilha e barra de categoria pela raiz do `[TypeCategory]` (`:28-32`), resumo pelo `SummaryFormatter` com tooltip do texto inteiro, "(Escolha uma ação)" com o botão do seletor na ação nula (`:129-137`), ícone de validação só com mensagem cujo caminho fica sob o elemento (`IsUnder`, `:76-81`; `data[1]` não casa com `data[10]`), corpo expandido por `PropertyField` (`:117-127`; o `TypePickerDrawer` dá o botão de trocar tipo).
+  - `Editor/GAS/Actions/ActionListView.cs` (novo): `ListView` ligado à lista (reordenável, virtualizado, altura dinâmica), "Expandir tudo"/"Recolher tudo", texto da lista vazia, "+ Adicionar ação" pelo `TypePickerPopup` (nova ação expandida) e o contador "N ações"; `Refresh(messages)` repassa as mensagens às linhas. Não depende do `ActionEventsView`: quem o monta e o atualiza é a aba do EV17b.
+  - `Editor/GAS/Actions/ActionInspector.uss` (novo): tokens de categoria, aviso e erro nos temas claro e escuro (`.unity-theme-dark`/`.unity-theme-light` não existem no Inspector; o tema vem de `EditorGUIUtility.isProSkin`, que põe a classe `action-inspector--light` na raiz). Entra inteiro, com as classes das abas; quem carrega a folha é o `ActionEventsView` (EV17b).
+  - `Editor/GAS/AssemblyInfo.cs` (novo): `InternalsVisibleTo("SpellBook.GAS.Tests.EditMode")`. Consequência direta: os testes da linha montam o `ActionRowView` sem painel.
+  - `Tests/GAS/EditMode/ActionInspectorTests.cs` (novo): só os testes `Row_*` e o auxiliar `BindRows`.
+  - Fora: nenhum Inspector muda; a lista e a linha só aparecem no host com o EV17b. `gas.md` vai para o passe de documentação; sem `!`, sem CHANGELOG. O `Line` das ações do pacote ("Esperar 2 s") não entra: sem ele, a linha mostra o nome do tipo, como o DS manda.
+- Testes red (EditMode, `ActionInspectorTests`): `Row_SummaryFromLine_NoLineShowsTypeName_NullShowsChoose`; `Row_ValidationIcon_OnlyWithMessage`.
+- Critério de pronto: os 2 testes verdes; guardas verdes: `ActivationInspectorTests` e `SpellBookEditorCoverageTests`. Sem conferência no host neste ticket.
+- Tamanho: medido em 310 linhas (234 de editor, 76 de testes) e 5 arquivos (o `.uss` conta só no número de arquivos). Exceção: nenhuma.
+- Commit: `feat(editor): lista e linha recolhida das ações`
+
+#### EV17b — Inspector: abas de eventos e editores (divisão de 2026-11-03 do EV17)
+Depende de: EV17a.
+
+##### Detalhe (2026-11-03)
+- CA: CA31 (S), parte das abas (DS 3, 9 "Várias seleções" e "Dono sem nenhuma ação"), com a lista e a linha do EV17a dentro de cada aba.
+- Escopo:
+  - `Editor/GAS/Actions/ActionEventsView.cs` (novo, `internal sealed`): descobre os campos `[ActionEvent]` do alvo e monta o `TabView` com um `ActionListView` por aba; rótulo com contador (`Ao ativar · 3`), ponto de validação pelas mensagens cujo `PropertyPath` começa no campo, subtítulo do alvo padrão, rótulo de grupo "Reações" no cabeçalho da primeira aba de reação, aba oculta pelo predicado do dono com aviso quando tem ações, aba lembrada por asset no `SessionState`, texto de dono sem ações, "Edição múltipla não mostra ações" em multi-seleção. Carrega o `ActionInspector.uss` e põe `action-inspector--light` pelo `isProSkin`. Esconde as `PropertyField` padrão das listas.
+  - `Editor/GAS/GameplayAbilityEditor.cs:35-52`: a vista no fim do `BuildAfterDefault`, com a aba "A cada passo" só em `Channel`.
+  - `Editor/GAS/GameplayEffectEditor.cs` (novo; sai de `GasEditors.cs:24-26`): a vista, com as três reações agrupadas.
+  - `Editor/GAS/GasEditors.cs:6` e `:24-26`: sai o `GameplayEffectEditor` vazio e o `using` dele.
+  - `Tests/GAS/EditMode/ActionInspectorTests.cs`: os testes abaixo, o `TearDown` que apaga a chave da sessão e destrói os editores, e os auxiliares `CreateInspector` e `CreateView`.
+  - O código já escrito está guardado fora do repositório (`ev17b-guardado`, com os `.meta` da Unity).
+  - Fora: `gas.md` vai para o passe de documentação; sem `!`, sem CHANGELOG. O `ProjectileEditor` não muda (o `OnImpact` é `HideInInspector`; o impacto aparece nas filhas do `SpawnProjectile`, EV19).
+- Testes red (EditMode, `ActionInspectorTests`): `Tabs_OnePerActionEvent_CounterAndValidationDot`; `EffectTabs_ReactionsGrouped`; `ChannelTab_OnlyWithChannel_HiddenWithWarning`; `TabRemembered_PerAssetInSession`; `MultiSelection_HidesTabs`.
+- Critério de pronto: os 5 testes verdes e os `Row_*` do EV17a seguem verdes; guardas verdes: `ActivationInspectorTests` e `SpellBookEditorCoverageTests`. No host (Examinador): abas, contador, linha legível e 50 ações sem engasgo.
+- Tamanho: estimado em ~385 linhas (265 de editor, ~120 de testes) e 5 arquivos, pelo código guardado. Exceção: nenhuma.
+- Commit: `feat(editor): abas de eventos das ações nos editores`
+
 ### EV18 — Inspector: chip de alvo e bloco "Alvo"
 - Escopo: `Editor/GAS/Actions/TargetChipView.cs` (novo), `ActionRowView.cs`, `ActionInspector.uss`, `Tests/GAS/EditMode/TargetChipTests.cs` (novo), `CHANGELOG.md`.
 - Testes red: `Chip_TextPerSelector_AreaSummary`; `Chip_IncompatibleWithEvent_RedNotBlocked`; `AreaSelector_OpensTargetBlockBeforeActionFields`; `ForEachChild_ChipTooltipSaysCurrentTarget`.
 - Critério de pronto: testes verdes; seletor inline conferido no host (CA31, parte).
-- Tamanho estimado: ~380 linhas; 5 arquivos. Depende de: EV17.
+- Tamanho estimado: ~380 linhas; 5 arquivos. Depende de: EV17b (era EV17, divisão de 2026-11-03).
 
 ### EV19 — Inspector: ações aninhadas e arrastar entre listas
 - Escopo: `ActionListView.cs`, `ActionRowView.cs`, `ActionInspector.uss`, `Tests/GAS/EditMode/NestedActionListTests.cs` (novo), `CHANGELOG.md`.
@@ -874,8 +909,9 @@ Detalhe pela emenda de 2026-11-03 da ADR 0002, lido no código da branch `feat/g
 | EV14 | sim | EV13 | ~490 / 7 |
 | EV15 | sim | EV14, RL7 | ~480 / 9 (emenda de 2026-11-01) |
 | EV16 | sim | EV15, AV8 | ~460 / 10 |
-| EV17 | sim | EV16, AV9 | ~500 / 10 |
-| EV18 | sim | EV17 | ~380 / 5 |
+| EV17a | sim | EV16, AV9 | 310 / 5 (divisão de 2026-11-03 do EV17, que mediu 694 / 9; era ~500 / 10) |
+| EV17b | sim | EV17a | ~385 / 5 (divisão de 2026-11-03 do EV17) |
+| EV18 | sim | EV17b (era EV17) | ~380 / 5 |
 | EV19 | sim | EV18 | ~380 / 5 |
 | EV20 | sim | EV19 | ~420 / 5 |
 | EV22 | sim | EV20 | ~300 / 9 |
