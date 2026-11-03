@@ -21,7 +21,7 @@ namespace SpellBook.GAS.Actions
     /// <summary>O que o executor faz depois de uma chamada a <see cref="GameplayAction.Execute"/>.</summary>
     public readonly struct ActionStatus
     {
-        internal enum StatusKind : byte { Done, Wait, Run, RunParallel }
+        internal enum StatusKind : byte { Done, Wait, Run, RunParallel, WaitUntilCancelled }
 
         internal readonly StatusKind Kind;
         internal readonly float Seconds;
@@ -42,6 +42,12 @@ namespace SpellBook.GAS.Actions
         /// anterior. Zero ou negativo não espera: a ação é chamada de novo na mesma chamada.
         /// </summary>
         public static ActionStatus Wait(float seconds) => new ActionStatus(StatusKind.Wait, seconds, null);
+
+        /// <summary>
+        /// Para a execução até ela ser cancelada (ADR 0036, item 4). Não lê o relógio: nenhum <c>Tick</c> a termina, e a
+        /// ação recebe <c>OnCancel</c> quando o dono a cancela.
+        /// </summary>
+        public static ActionStatus WaitUntilCancelled => new ActionStatus(StatusKind.WaitUntilCancelled, 0f, null);
 
         /// <summary>Roda <paramref name="children"/> em sequência e chama a ação de novo quando terminam.</summary>
         public static ActionStatus Run(IReadOnlyList<GameplayAction> children) => new ActionStatus(StatusKind.Run, 0f, children);

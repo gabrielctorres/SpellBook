@@ -211,6 +211,20 @@ Todos usam a Unity e seguem o WIP 1. Tempo por `asc.Tick` com `ManualTimeSource`
 - Critério de pronto: testes verdes; a suíte do B-012 sem edição.
 - Tamanho estimado: ~320 linhas; 7 arquivos. Depende de: EV21.
 
+### Detalhe (2026-11-03)
+- CA: nenhum CA do PRD diretamente; base do CA5 (TK5) e do cue contínuo (CU8). Design 1 e ADR 0036, itens 4 e 5.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/GAS/Actions/ExecutionLink.cs` (novo): `public enum ExecutionLink { Holds, FollowsOwner }`.
+  - `Runtime/GAS/Actions/ActionStatus.cs:24,44`: `StatusKind.WaitUntilCancelled` e `public static ActionStatus WaitUntilCancelled`.
+  - `Runtime/GAS/Actions/ActionRunner.cs`: estado `EntryState.Suspended` (`:82`), que pára o avanço sem ler o relógio (`:246-255`, `:288-303`); campo `Execution.Link` (`:96-114`); `Run(..., link)` (`:133-152`); `HasRunning` ignora as `FollowsOwner` (`:154-161`); `Start` recebe o vínculo (`:208-223`), herdado pelas filhas em paralelo (`:403-417`) e pela execução agendada do `DelayedAction` com dono (`:357-377`).
+  - `Runtime/GAS/Core/AbilitySystemComponent.cs`: `RunActions(actions, context, owner, ExecutionLink link = ExecutionLink.Holds)` (`:365-375`); doc de `HasRunningActions` (`:385-390`); `EndAbility` cancela as execuções que restam do spec antes das listas "Ao terminar"/"Ao ser cancelada" e do `OnAbilityEnded` (`:1275-1297`). A remoção da instância de efeito já cancela tudo do dono (`:2336`), sem mudança.
+  - `Tests/GAS/PlayMode/ExecutionLinkTests.cs` (novo).
+  - Sem `gas.md` nem `CHANGELOG.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007), e o ticket não quebra nada (parâmetro opcional).
+- Testes red (PlayMode, `SpellBook.GAS.Tests.PlayMode`, classe `ExecutionLinkTests`): `FollowsOwner_CancelledWhenActivationEnds_DoesNotHoldIt`; `FollowsOwner_CancelledWithEffectRemoval_AllReasons` (Removed, RemovedByTag, Expired, StacksDepleted); `FollowsOwner_CancelledOnAbilityCancel`; `WaitUntilCancelled_NeverEndsByTime`; `Holds_StillDefault_DelayedRuleUnchanged`; `FollowsOwner_DoesNotAllocate_AfterWarmup`.
+- Critério de pronto: os testes acima verdes pelo filtro `\.ExecutionLinkTests\.`, e `ActionRunnerTests`, `DelayedActionTests`, `AbilityEndCancelListsTests`, `EffectEventActionsTests` e `RunningActionsQueryTests` (suíte do B-012) verdes sem edição.
+- Tamanho: ~360 linhas e 5 arquivos, pela ADR 0042 (medido no diff: 357 linhas). Exceção: nenhuma.
+- Commit: `feat(gas): vínculo FollowsOwner e espera até cancelar`
+
 ### TK2 — Projétil: ASC no pai, perfuração e um acerto por alvo
 - Escopo: `Runtime/GAS/Abilities/Projectiles/Projectile.cs`, `Tests/GAS/PlayMode/ProjectilePierceTests.cs` (novo), `Tests/Testing/GasFactory.cs` (`CreateProjectile`, alvo com colisor filho), `gas.md` (`#projectile`), `CHANGELOG.md` (correção do ASC no pai).
 - Testes red:

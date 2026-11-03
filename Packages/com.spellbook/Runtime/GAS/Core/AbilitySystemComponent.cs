@@ -368,10 +368,14 @@ namespace SpellBook.GAS.Core
         /// nesta chamada; as esperas andam no <see cref="Tick"/>. O executor fica com <paramref name="context"/> e o
         /// devolve ao pool no fim; nulo usa um contexto do pool com este ASC como dono e instigador.
         /// <paramref name="owner"/> é o dono lógico, usado por <see cref="CancelActions"/>; nulo deixa a execução sem dono.
+        /// <paramref name="link"/> diz como a execução se liga ao dono (ADR 0036): com <see cref="ExecutionLink.Holds"/>, a
+        /// ativação dona espera a execução terminar; com <see cref="ExecutionLink.FollowsOwner"/>, não espera, e a execução é
+        /// cancelada quando o dono termina ou é cancelado.
         /// </summary>
-        public ActionExecutionHandle RunActions(IReadOnlyList<GameplayAction> actions, ActionContext context, object owner)
+        public ActionExecutionHandle RunActions(IReadOnlyList<GameplayAction> actions, ActionContext context, object owner,
+            ExecutionLink link = ExecutionLink.Holds)
         {
-            return Runner.Run(actions, context, owner);
+            return Runner.Run(actions, context, owner, link);
         }
 
         /// <summary>
@@ -383,7 +387,10 @@ namespace SpellBook.GAS.Core
             _runner?.Cancel(owner);
         }
 
-        /// <summary>Se há execução em curso de <paramref name="owner"/>.</summary>
+        /// <summary>
+        /// Se há execução em curso de <paramref name="owner"/> que o segura (<see cref="ExecutionLink.Holds"/>). As
+        /// <see cref="ExecutionLink.FollowsOwner"/> não contam.
+        /// </summary>
         public bool HasRunningActions(object owner)
         {
             return _runner != null && _runner.HasRunning(owner);
@@ -1281,6 +1288,10 @@ namespace SpellBook.GAS.Core
             spec.Execution = default;
             // Antes das listas: uma ação de "Ao terminar" pode começar outra canalização, com a duração dela
             spec.ChannelDuration = 0f;
+
+            // As execuções FollowsOwner da ativação acabam com ela, antes das listas e do OnAbilityEnded (ADR 0036)
+            try { CancelActions(spec); }
+            catch (Exception e) { Debug.LogException(e, this); }
 
             ActionContext context = spec.ActiveContext;
             List<GameplayAction> actions = cancelled ? spec.Ability.OnCancel : spec.Ability.OnEnd;
