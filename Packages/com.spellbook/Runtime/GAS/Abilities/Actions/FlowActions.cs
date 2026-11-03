@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using SpellBook.Core.Conditions;
 using SpellBook.Core.Inspector;
 using UnityEngine;
-using SpellBook.Tags;
 using SpellBook.GAS.Actions;
+using SpellBook.GAS.Conditions;
 using SpellBook.GAS.Effects;
 
 namespace SpellBook.GAS.Abilities.Actions
@@ -79,21 +80,15 @@ namespace SpellBook.GAS.Abilities.Actions
     }
 
     /// <summary>
-    /// Executa "Then" ou "Else" conforme uma condição avaliada no momento da execução.
+    /// Executa "Then" ou "Else" conforme a <see cref="Condition"/>, avaliada no momento da execução com os alvos da ação e
+    /// o nível da execução. Sem condição, executa "Else".
     /// </summary>
     [Serializable, TypeCategory("Fluxo", Summary = "Roda as ações de Then ou de Else conforme a condição.")]
     public class ConditionalAction : GameplayAction
     {
-        public enum ConditionType
-        {
-            SourceHasAllTags,
-            SourceHasAnyTag,
-            HasTargets
-        }
-
-        public ConditionType Condition = ConditionType.HasTargets;
-        [Tooltip("Usado pelas condições de tag.")]
-        public List<GameplayTag> Tags = new List<GameplayTag>();
+        [SerializeReference]
+        [TypePicker]
+        public Condition<ConditionContext> Condition;
 
         [SerializeReference]
         [TypePicker]
@@ -110,29 +105,15 @@ namespace SpellBook.GAS.Abilities.Actions
             if (frame.Phase != 0) return ActionStatus.Done;
 
             frame.Phase = 1;
-            return ActionStatus.Run(Evaluate(context) ? Then : Else);
+            ConditionContext conditionContext = context.ToConditionContext();
+            bool passes = Condition != null && Condition.Evaluate(in conditionContext);
+            return ActionStatus.Run(passes ? Then : Else);
         }
 
         public override void CollectEffects(List<GameplayEffect> effects)
         {
             ActionLists.CollectEffects(Then, effects);
             ActionLists.CollectEffects(Else, effects);
-        }
-
-        private bool Evaluate(ActionContext context)
-        {
-            switch (Condition)
-            {
-                case ConditionType.SourceHasAllTags:
-                    return context.Instigator != null && context.Instigator.HasAllTags(Tags);
-                case ConditionType.SourceHasAnyTag:
-                    return context.Instigator != null && context.Instigator.HasAnyTag(Tags);
-                case ConditionType.HasTargets:
-                    context.EventTargets.RemoveAll(t => t == null);
-                    return context.EventTargets.Count > 0;
-                default:
-                    return false;
-            }
         }
     }
 

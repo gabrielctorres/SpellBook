@@ -372,9 +372,6 @@ items:
   - uid: SpellBook.GAS.Abilities.Actions.ConditionalAction
     name: ConditionalAction
     type: Class
-  - uid: SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType
-    name: ConditionalAction.ConditionType
-    type: Enum
   - uid: SpellBook.GAS.Abilities.Actions.ParallelAction
     name: ParallelAction
     type: Class

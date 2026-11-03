@@ -9,7 +9,6 @@ items:
   - SpellBook.GAS.Abilities.Actions.ConditionalAction.Condition
   - SpellBook.GAS.Abilities.Actions.ConditionalAction.Else
   - SpellBook.GAS.Abilities.Actions.ConditionalAction.Execute(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
-  - SpellBook.GAS.Abilities.Actions.ConditionalAction.Tags
   - SpellBook.GAS.Abilities.Actions.ConditionalAction.Then
   - SpellBook.GAS.Abilities.Actions.ConditionalAction.UsesTargets
   langs:
@@ -20,7 +19,10 @@ items:
   fullName: SpellBook.GAS.Abilities.Actions.ConditionalAction
   type: Class
   namespace: SpellBook.GAS.Abilities.Actions
-  summary: Executa "Then" ou "Else" conforme uma condição avaliada no momento da execução.
+  summary: >-
+    Executa "Then" ou "Else" conforme a <xref href="SpellBook.GAS.Abilities.Actions.ConditionalAction.Condition" data-throw-if-not-resolved="false"></xref>, avaliada no momento da execução com os alvos da ação e
+
+    o nível da execução. Sem condição, executa "Else".
   example: []
   syntax:
     content: >-
@@ -77,39 +79,20 @@ items:
   type: Field
   namespace: SpellBook.GAS.Abilities.Actions
   syntax:
-    content: public ConditionalAction.ConditionType Condition
-    return:
-      type: SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType
-    content.vb: Public Condition As ConditionalAction.ConditionType
-- uid: SpellBook.GAS.Abilities.Actions.ConditionalAction.Tags
-  commentId: F:SpellBook.GAS.Abilities.Actions.ConditionalAction.Tags
-  id: Tags
-  parent: SpellBook.GAS.Abilities.Actions.ConditionalAction
-  langs:
-  - csharp
-  - vb
-  name: Tags
-  nameWithType: ConditionalAction.Tags
-  fullName: SpellBook.GAS.Abilities.Actions.ConditionalAction.Tags
-  type: Field
-  namespace: SpellBook.GAS.Abilities.Actions
-  syntax:
     content: >-
-      [Tooltip("Usado pelas condições de tag.")]
+      [SerializeReference]
 
-      public List<GameplayTag> Tags
+      public Condition<ConditionContext> Condition
     return:
-      type: System.Collections.Generic.List{SpellBook.Tags.GameplayTag}
+      type: SpellBook.Core.Conditions.Condition{SpellBook.GAS.Conditions.ConditionContext}
     content.vb: >-
-      <Tooltip("Usado pelas condições de tag.")>
+      <SerializeReference>
 
-      Public Tags As List(Of GameplayTag)
+      Public Condition As Condition(Of ConditionContext)
   attributes:
-  - type: UnityEngine.TooltipAttribute
-    ctor: UnityEngine.TooltipAttribute.#ctor(System.String)
-    arguments:
-    - type: System.String
-      value: Usado pelas condições de tag.
+  - type: UnityEngine.SerializeReference
+    ctor: UnityEngine.SerializeReference.#ctor
+    arguments: []
 - uid: SpellBook.GAS.Abilities.Actions.ConditionalAction.Then
   commentId: F:SpellBook.GAS.Abilities.Actions.ConditionalAction.Then
   id: Then
@@ -244,6 +227,12 @@ items:
   fullName.vb: SpellBook.GAS.Abilities.Actions.ConditionalAction.CollectEffects(System.Collections.Generic.List(Of SpellBook.GAS.Effects.GameplayEffect))
   name.vb: CollectEffects(List(Of GameplayEffect))
 references:
+- uid: SpellBook.GAS.Abilities.Actions.ConditionalAction.Condition
+  commentId: F:SpellBook.GAS.Abilities.Actions.ConditionalAction.Condition
+  href: SpellBook.GAS.Abilities.Actions.ConditionalAction.html#SpellBook_GAS_Abilities_Actions_ConditionalAction_Condition
+  name: Condition
+  nameWithType: ConditionalAction.Condition
+  fullName: SpellBook.GAS.Abilities.Actions.ConditionalAction.Condition
 - uid: SpellBook.GAS.Abilities.Actions
   commentId: N:SpellBook.GAS.Abilities.Actions
   name: SpellBook.GAS.Abilities.Actions
@@ -642,49 +631,105 @@ references:
   - name: .
   - uid: SpellBook.Core.Validation
     name: Validation
-- uid: SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType
-  commentId: T:SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType
-  parent: SpellBook.GAS.Abilities.Actions
-  href: SpellBook.GAS.Abilities.Actions.ConditionalAction.html
-  name: ConditionalAction.ConditionType
-  nameWithType: ConditionalAction.ConditionType
-  fullName: SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType
+- uid: SpellBook.Core.Conditions.Condition{SpellBook.GAS.Conditions.ConditionContext}
+  commentId: T:SpellBook.Core.Conditions.Condition{SpellBook.GAS.Conditions.ConditionContext}
+  parent: SpellBook.Core.Conditions
+  definition: SpellBook.Core.Conditions.Condition`1
+  href: SpellBook.Core.Conditions.Condition-1.html
+  name: Condition<ConditionContext>
+  nameWithType: Condition<ConditionContext>
+  fullName: SpellBook.Core.Conditions.Condition<SpellBook.GAS.Conditions.ConditionContext>
+  nameWithType.vb: Condition(Of ConditionContext)
+  fullName.vb: SpellBook.Core.Conditions.Condition(Of SpellBook.GAS.Conditions.ConditionContext)
+  name.vb: Condition(Of ConditionContext)
   spec.csharp:
-  - uid: SpellBook.GAS.Abilities.Actions.ConditionalAction
-    name: ConditionalAction
-    href: SpellBook.GAS.Abilities.Actions.ConditionalAction.html
-  - name: .
-  - uid: SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType
-    name: ConditionType
-    href: SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType.html
+  - uid: SpellBook.Core.Conditions.Condition`1
+    name: Condition
+    href: SpellBook.Core.Conditions.Condition-1.html
+  - name: <
+  - uid: SpellBook.GAS.Conditions.ConditionContext
+    name: ConditionContext
+    href: SpellBook.GAS.Conditions.ConditionContext.html
+  - name: '>'
   spec.vb:
-  - uid: SpellBook.GAS.Abilities.Actions.ConditionalAction
-    name: ConditionalAction
-    href: SpellBook.GAS.Abilities.Actions.ConditionalAction.html
+  - uid: SpellBook.Core.Conditions.Condition`1
+    name: Condition
+    href: SpellBook.Core.Conditions.Condition-1.html
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: SpellBook.GAS.Conditions.ConditionContext
+    name: ConditionContext
+    href: SpellBook.GAS.Conditions.ConditionContext.html
+  - name: )
+- uid: SpellBook.Core.Conditions.Condition`1
+  commentId: T:SpellBook.Core.Conditions.Condition`1
+  href: SpellBook.Core.Conditions.Condition-1.html
+  name: Condition<TContext>
+  nameWithType: Condition<TContext>
+  fullName: SpellBook.Core.Conditions.Condition<TContext>
+  nameWithType.vb: Condition(Of TContext)
+  fullName.vb: SpellBook.Core.Conditions.Condition(Of TContext)
+  name.vb: Condition(Of TContext)
+  spec.csharp:
+  - uid: SpellBook.Core.Conditions.Condition`1
+    name: Condition
+    href: SpellBook.Core.Conditions.Condition-1.html
+  - name: <
+  - name: TContext
+  - name: '>'
+  spec.vb:
+  - uid: SpellBook.Core.Conditions.Condition`1
+    name: Condition
+    href: SpellBook.Core.Conditions.Condition-1.html
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TContext
+  - name: )
+- uid: SpellBook.Core.Conditions
+  commentId: N:SpellBook.Core.Conditions
+  name: SpellBook.Core.Conditions
+  nameWithType: SpellBook.Core.Conditions
+  fullName: SpellBook.Core.Conditions
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
   - name: .
-  - uid: SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType
-    name: ConditionType
-    href: SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType.html
-- uid: System.Collections.Generic.List{SpellBook.Tags.GameplayTag}
-  commentId: T:System.Collections.Generic.List{SpellBook.Tags.GameplayTag}
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Conditions
+    name: Conditions
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Conditions
+    name: Conditions
+- uid: System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction}
+  commentId: T:System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction}
   parent: System.Collections.Generic
   definition: System.Collections.Generic.List`1
   href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
-  name: List<GameplayTag>
-  nameWithType: List<GameplayTag>
-  fullName: System.Collections.Generic.List<SpellBook.Tags.GameplayTag>
-  nameWithType.vb: List(Of GameplayTag)
-  fullName.vb: System.Collections.Generic.List(Of SpellBook.Tags.GameplayTag)
-  name.vb: List(Of GameplayTag)
+  name: List<GameplayAction>
+  nameWithType: List<GameplayAction>
+  fullName: System.Collections.Generic.List<SpellBook.GAS.Actions.GameplayAction>
+  nameWithType.vb: List(Of GameplayAction)
+  fullName.vb: System.Collections.Generic.List(Of SpellBook.GAS.Actions.GameplayAction)
+  name.vb: List(Of GameplayAction)
   spec.csharp:
   - uid: System.Collections.Generic.List`1
     name: List
     isExternal: true
     href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
   - name: <
-  - uid: SpellBook.Tags.GameplayTag
-    name: GameplayTag
-    href: SpellBook.Tags.GameplayTag.html
+  - uid: SpellBook.GAS.Actions.GameplayAction
+    name: GameplayAction
+    href: SpellBook.GAS.Actions.GameplayAction.html
   - name: '>'
   spec.vb:
   - uid: System.Collections.Generic.List`1
@@ -694,9 +739,9 @@ references:
   - name: (
   - name: Of
   - name: " "
-  - uid: SpellBook.Tags.GameplayTag
-    name: GameplayTag
-    href: SpellBook.Tags.GameplayTag.html
+  - uid: SpellBook.GAS.Actions.GameplayAction
+    name: GameplayAction
+    href: SpellBook.GAS.Actions.GameplayAction.html
   - name: )
 - uid: System.Collections.Generic.List`1
   commentId: T:System.Collections.Generic.List`1
@@ -763,39 +808,6 @@ references:
     name: Generic
     isExternal: true
     href: https://learn.microsoft.com/dotnet/api/system.collections.generic
-- uid: System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction}
-  commentId: T:System.Collections.Generic.List{SpellBook.GAS.Actions.GameplayAction}
-  parent: System.Collections.Generic
-  definition: System.Collections.Generic.List`1
-  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
-  name: List<GameplayAction>
-  nameWithType: List<GameplayAction>
-  fullName: System.Collections.Generic.List<SpellBook.GAS.Actions.GameplayAction>
-  nameWithType.vb: List(Of GameplayAction)
-  fullName.vb: System.Collections.Generic.List(Of SpellBook.GAS.Actions.GameplayAction)
-  name.vb: List(Of GameplayAction)
-  spec.csharp:
-  - uid: System.Collections.Generic.List`1
-    name: List
-    isExternal: true
-    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
-  - name: <
-  - uid: SpellBook.GAS.Actions.GameplayAction
-    name: GameplayAction
-    href: SpellBook.GAS.Actions.GameplayAction.html
-  - name: '>'
-  spec.vb:
-  - uid: System.Collections.Generic.List`1
-    name: List
-    isExternal: true
-    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
-  - name: (
-  - name: Of
-  - name: " "
-  - uid: SpellBook.GAS.Actions.GameplayAction
-    name: GameplayAction
-    href: SpellBook.GAS.Actions.GameplayAction.html
-  - name: )
 - uid: SpellBook.GAS.Actions.GameplayAction.UsesTargets
   commentId: P:SpellBook.GAS.Actions.GameplayAction.UsesTargets
   parent: SpellBook.GAS.Actions.GameplayAction

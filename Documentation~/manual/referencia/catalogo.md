@@ -5,7 +5,7 @@ Esta página lista os tipos que o seletor do Inspector oferece nos campos de aç
 
 ## `Condition<ConditionContext>` {#spellbook-core-conditions-condition-spellbook-gas-conditions-conditioncontext}
 
-Aparece em: `Activation Rule > Condition`.
+Aparece em: `Activation Rule > Condition`, `Conditional Action > Condition`.
 
 | Tipo | Categoria | Resumo |
 |---|---|---|

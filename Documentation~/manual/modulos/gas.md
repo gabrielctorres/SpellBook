@@ -278,6 +278,7 @@ O `ConditionContext` é o mesmo para toda condição do GAS e é somente leitura
 | `Spec` | `AbilitySpec` da habilidade concedida, ou nulo. |
 | `Target` | `AbilityTarget`: o ponto do alvo (`HasPoint` e `Point`), ou `AbilityTarget.None`. |
 | `Targets` | Unidades-alvo. Nunca é nulo: sem alvos, é uma lista vazia. |
+| `Action` | O `ActionContext` da execução, quando a condição roda numa lista de ações (na `ConditionalAction`). Fora dela, como nas regras de ativação, é nulo. |
 
 Condições prontas:
 
@@ -359,7 +360,7 @@ A lista **Starting Effects** do ASC aplica cada efeito no `Awake`, na ordem da l
 - **SpawnProjectileAction:** dispara projéteis (detalhes em [Projéteis](#projectile)).
 - **RepeatAction:** repete uma lista de ações N vezes, com intervalo opcional.
 - **ParallelAction:** executa várias ações ao mesmo tempo e espera todas terminarem.
-- **ConditionalAction:** executa `Then` ou `Else` conforme tags do conjurador ou existência de alvos.
+- **ConditionalAction:** roda `Then` se a `Condition` for verdadeira e `Else` se for falsa ou estiver vazia. A `Condition` é uma [condição do GAS](#condicoes), com `AndCondition`, `OrCondition` e `NotCondition` para combinar outras. Ela é avaliada quando a ação roda: `Owner` é o ASC da execução, `Ability` e `Level` são os da execução, `Target` é o ponto do evento e `Targets` são os alvos da ação. Numa habilidade de nível 2, uma `AttributeThresholdCondition` com valor `%minMana` lê o `minMana` do nível 2.
 - **RaiseEventAction:** dispara um canal de eventos (detalhes em [RaiseEventAction](#raiseeventaction)).
 - **ChanceAction:** roda as ações filhas com uma chance por nível, de 0 a 1 (`Probability`). O sorteio usa a fonte de aleatoriedade do ASC ([Alvo de cada ação](#alvo-da-acao)). Com `Probability` 0,3, um sorteio de 0,2 roda as filhas e um de 0,5 não roda.
 - **ForEachTargetAction:** roda as ações filhas uma vez para cada alvo dela, e cada filha sem seletor recebe só o alvo da vez ([Alvo de cada ação](#alvo-da-acao)).

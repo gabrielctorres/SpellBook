@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.GAS.Abilities;
+using SpellBook.GAS.Conditions;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
 using UnityEngine;
@@ -102,6 +103,13 @@ namespace SpellBook.GAS.Actions
 
         // O executor aponta Targets para o buffer do quadro da ação corrente; nulo volta à lista própria
         internal void SetTargets(List<AbilitySystemComponent> targets) => _targets = targets;
+
+        // Contexto das condições avaliadas nesta execução: alvos da ação corrente e o ponto do evento
+        internal ConditionContext ToConditionContext()
+        {
+            AbilityTarget target = HasPoint ? AbilityTarget.AtPoint(Point) : AbilityTarget.None;
+            return new ConditionContext(Owner, Ability, Level, Spec, target, Targets, this);
+        }
 
         internal void SetEffect(in EffectContext effect)
         {

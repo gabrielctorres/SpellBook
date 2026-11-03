@@ -5,8 +5,9 @@ items:
   id: ConditionContext
   parent: SpellBook.GAS.Conditions
   children:
-  - SpellBook.GAS.Conditions.ConditionContext.#ctor(SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Abilities.GameplayAbility,System.Int32,SpellBook.GAS.Abilities.AbilitySpec,SpellBook.GAS.Abilities.AbilityTarget,System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Core.AbilitySystemComponent})
+  - SpellBook.GAS.Conditions.ConditionContext.#ctor(SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Abilities.GameplayAbility,System.Int32,SpellBook.GAS.Abilities.AbilitySpec,SpellBook.GAS.Abilities.AbilityTarget,System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Core.AbilitySystemComponent},SpellBook.GAS.Actions.ActionContext)
   - SpellBook.GAS.Conditions.ConditionContext.Ability
+  - SpellBook.GAS.Conditions.ConditionContext.Action
   - SpellBook.GAS.Conditions.ConditionContext.Level
   - SpellBook.GAS.Conditions.ConditionContext.Owner
   - SpellBook.GAS.Conditions.ConditionContext.Spec
@@ -21,9 +22,11 @@ items:
   type: Struct
   namespace: SpellBook.GAS.Conditions
   summary: >-
-    Contexto único das condições do GAS (ADR 0032, item 2): quem avalia, a habilidade, o nível e os alvos.
+    Contexto único das condições do GAS (ADR 0032, item 2): quem avalia, a habilidade, o nível, os alvos e, dentro
 
-    Somente leitura; as condições não podem mudar o estado do <xref href="SpellBook.GAS.Conditions.ConditionContext.Owner" data-throw-if-not-resolved="false"></xref>.
+    de uma lista de ações, a execução em curso. Somente leitura; as condições não podem mudar o estado do
+
+    <xref href="SpellBook.GAS.Conditions.ConditionContext.Owner" data-throw-if-not-resolved="false"></xref>.
   example: []
   syntax:
     content: public readonly struct ConditionContext
@@ -35,20 +38,20 @@ items:
   - System.Object.Equals(System.Object,System.Object)
   - System.Object.GetType
   - System.Object.ReferenceEquals(System.Object,System.Object)
-- uid: SpellBook.GAS.Conditions.ConditionContext.#ctor(SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Abilities.GameplayAbility,System.Int32,SpellBook.GAS.Abilities.AbilitySpec,SpellBook.GAS.Abilities.AbilityTarget,System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Core.AbilitySystemComponent})
-  commentId: M:SpellBook.GAS.Conditions.ConditionContext.#ctor(SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Abilities.GameplayAbility,System.Int32,SpellBook.GAS.Abilities.AbilitySpec,SpellBook.GAS.Abilities.AbilityTarget,System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Core.AbilitySystemComponent})
-  id: '#ctor(SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Abilities.GameplayAbility,System.Int32,SpellBook.GAS.Abilities.AbilitySpec,SpellBook.GAS.Abilities.AbilityTarget,System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Core.AbilitySystemComponent})'
+- uid: SpellBook.GAS.Conditions.ConditionContext.#ctor(SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Abilities.GameplayAbility,System.Int32,SpellBook.GAS.Abilities.AbilitySpec,SpellBook.GAS.Abilities.AbilityTarget,System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Core.AbilitySystemComponent},SpellBook.GAS.Actions.ActionContext)
+  commentId: M:SpellBook.GAS.Conditions.ConditionContext.#ctor(SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Abilities.GameplayAbility,System.Int32,SpellBook.GAS.Abilities.AbilitySpec,SpellBook.GAS.Abilities.AbilityTarget,System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Core.AbilitySystemComponent},SpellBook.GAS.Actions.ActionContext)
+  id: '#ctor(SpellBook.GAS.Core.AbilitySystemComponent,SpellBook.GAS.Abilities.GameplayAbility,System.Int32,SpellBook.GAS.Abilities.AbilitySpec,SpellBook.GAS.Abilities.AbilityTarget,System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Core.AbilitySystemComponent},SpellBook.GAS.Actions.ActionContext)'
   parent: SpellBook.GAS.Conditions.ConditionContext
   langs:
   - csharp
   - vb
-  name: ConditionContext(AbilitySystemComponent, GameplayAbility, int, AbilitySpec, AbilityTarget, IReadOnlyList<AbilitySystemComponent>)
-  nameWithType: ConditionContext.ConditionContext(AbilitySystemComponent, GameplayAbility, int, AbilitySpec, AbilityTarget, IReadOnlyList<AbilitySystemComponent>)
-  fullName: SpellBook.GAS.Conditions.ConditionContext.ConditionContext(SpellBook.GAS.Core.AbilitySystemComponent, SpellBook.GAS.Abilities.GameplayAbility, int, SpellBook.GAS.Abilities.AbilitySpec, SpellBook.GAS.Abilities.AbilityTarget, System.Collections.Generic.IReadOnlyList<SpellBook.GAS.Core.AbilitySystemComponent>)
+  name: ConditionContext(AbilitySystemComponent, GameplayAbility, int, AbilitySpec, AbilityTarget, IReadOnlyList<AbilitySystemComponent>, ActionContext)
+  nameWithType: ConditionContext.ConditionContext(AbilitySystemComponent, GameplayAbility, int, AbilitySpec, AbilityTarget, IReadOnlyList<AbilitySystemComponent>, ActionContext)
+  fullName: SpellBook.GAS.Conditions.ConditionContext.ConditionContext(SpellBook.GAS.Core.AbilitySystemComponent, SpellBook.GAS.Abilities.GameplayAbility, int, SpellBook.GAS.Abilities.AbilitySpec, SpellBook.GAS.Abilities.AbilityTarget, System.Collections.Generic.IReadOnlyList<SpellBook.GAS.Core.AbilitySystemComponent>, SpellBook.GAS.Actions.ActionContext)
   type: Constructor
   namespace: SpellBook.GAS.Conditions
   syntax:
-    content: public ConditionContext(AbilitySystemComponent owner, GameplayAbility ability, int level, AbilitySpec spec, AbilityTarget target, IReadOnlyList<AbilitySystemComponent> targets)
+    content: public ConditionContext(AbilitySystemComponent owner, GameplayAbility ability, int level, AbilitySpec spec, AbilityTarget target, IReadOnlyList<AbilitySystemComponent> targets, ActionContext action = null)
     parameters:
     - id: owner
       type: SpellBook.GAS.Core.AbilitySystemComponent
@@ -62,11 +65,13 @@ items:
       type: SpellBook.GAS.Abilities.AbilityTarget
     - id: targets
       type: System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Core.AbilitySystemComponent}
-    content.vb: Public Sub New(owner As AbilitySystemComponent, ability As GameplayAbility, level As Integer, spec As AbilitySpec, target As AbilityTarget, targets As IReadOnlyList(Of AbilitySystemComponent))
+    - id: action
+      type: SpellBook.GAS.Actions.ActionContext
+    content.vb: Public Sub New(owner As AbilitySystemComponent, ability As GameplayAbility, level As Integer, spec As AbilitySpec, target As AbilityTarget, targets As IReadOnlyList(Of AbilitySystemComponent), action As ActionContext = Nothing)
   overload: SpellBook.GAS.Conditions.ConditionContext.#ctor*
-  nameWithType.vb: ConditionContext.New(AbilitySystemComponent, GameplayAbility, Integer, AbilitySpec, AbilityTarget, IReadOnlyList(Of AbilitySystemComponent))
-  fullName.vb: SpellBook.GAS.Conditions.ConditionContext.New(SpellBook.GAS.Core.AbilitySystemComponent, SpellBook.GAS.Abilities.GameplayAbility, Integer, SpellBook.GAS.Abilities.AbilitySpec, SpellBook.GAS.Abilities.AbilityTarget, System.Collections.Generic.IReadOnlyList(Of SpellBook.GAS.Core.AbilitySystemComponent))
-  name.vb: New(AbilitySystemComponent, GameplayAbility, Integer, AbilitySpec, AbilityTarget, IReadOnlyList(Of AbilitySystemComponent))
+  nameWithType.vb: ConditionContext.New(AbilitySystemComponent, GameplayAbility, Integer, AbilitySpec, AbilityTarget, IReadOnlyList(Of AbilitySystemComponent), ActionContext)
+  fullName.vb: SpellBook.GAS.Conditions.ConditionContext.New(SpellBook.GAS.Core.AbilitySystemComponent, SpellBook.GAS.Abilities.GameplayAbility, Integer, SpellBook.GAS.Abilities.AbilitySpec, SpellBook.GAS.Abilities.AbilityTarget, System.Collections.Generic.IReadOnlyList(Of SpellBook.GAS.Core.AbilitySystemComponent), SpellBook.GAS.Actions.ActionContext)
+  name.vb: New(AbilitySystemComponent, GameplayAbility, Integer, AbilitySpec, AbilityTarget, IReadOnlyList(Of AbilitySystemComponent), ActionContext)
 - uid: SpellBook.GAS.Conditions.ConditionContext.Owner
   commentId: P:SpellBook.GAS.Conditions.ConditionContext.Owner
   id: Owner
@@ -193,6 +198,27 @@ items:
       type: System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Core.AbilitySystemComponent}
     content.vb: Public ReadOnly Property Targets As IReadOnlyList(Of AbilitySystemComponent)
   overload: SpellBook.GAS.Conditions.ConditionContext.Targets*
+- uid: SpellBook.GAS.Conditions.ConditionContext.Action
+  commentId: P:SpellBook.GAS.Conditions.ConditionContext.Action
+  id: Action
+  parent: SpellBook.GAS.Conditions.ConditionContext
+  langs:
+  - csharp
+  - vb
+  name: Action
+  nameWithType: ConditionContext.Action
+  fullName: SpellBook.GAS.Conditions.ConditionContext.Action
+  type: Property
+  namespace: SpellBook.GAS.Conditions
+  summary: Execução de ações em curso; nula fora de uma lista de ações, como nas regras de ativação.
+  example: []
+  syntax:
+    content: public ActionContext Action { get; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Actions.ActionContext
+    content.vb: Public ReadOnly Property Action As ActionContext
+  overload: SpellBook.GAS.Conditions.ConditionContext.Action*
 references:
 - uid: SpellBook.GAS.Conditions.ConditionContext.Owner
   commentId: P:SpellBook.GAS.Conditions.ConditionContext.Owner
@@ -442,7 +468,7 @@ references:
   fullName: System
 - uid: SpellBook.GAS.Conditions.ConditionContext.#ctor*
   commentId: Overload:SpellBook.GAS.Conditions.ConditionContext.#ctor
-  href: SpellBook.GAS.Conditions.ConditionContext.html#SpellBook_GAS_Conditions_ConditionContext__ctor_SpellBook_GAS_Core_AbilitySystemComponent_SpellBook_GAS_Abilities_GameplayAbility_System_Int32_SpellBook_GAS_Abilities_AbilitySpec_SpellBook_GAS_Abilities_AbilityTarget_System_Collections_Generic_IReadOnlyList_SpellBook_GAS_Core_AbilitySystemComponent__
+  href: SpellBook.GAS.Conditions.ConditionContext.html#SpellBook_GAS_Conditions_ConditionContext__ctor_SpellBook_GAS_Core_AbilitySystemComponent_SpellBook_GAS_Abilities_GameplayAbility_System_Int32_SpellBook_GAS_Abilities_AbilitySpec_SpellBook_GAS_Abilities_AbilityTarget_System_Collections_Generic_IReadOnlyList_SpellBook_GAS_Core_AbilitySystemComponent__SpellBook_GAS_Actions_ActionContext_
   name: ConditionContext
   nameWithType: ConditionContext.ConditionContext
   fullName: SpellBook.GAS.Conditions.ConditionContext.ConditionContext
@@ -521,6 +547,13 @@ references:
     name: AbilitySystemComponent
     href: SpellBook.GAS.Core.AbilitySystemComponent.html
   - name: )
+- uid: SpellBook.GAS.Actions.ActionContext
+  commentId: T:SpellBook.GAS.Actions.ActionContext
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.ActionContext.html
+  name: ActionContext
+  nameWithType: ActionContext
+  fullName: SpellBook.GAS.Actions.ActionContext
 - uid: SpellBook.GAS.Core
   commentId: N:SpellBook.GAS.Core
   name: SpellBook.GAS.Core
@@ -632,6 +665,29 @@ references:
     name: Generic
     isExternal: true
     href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+- uid: SpellBook.GAS.Actions
+  commentId: N:SpellBook.GAS.Actions
+  name: SpellBook.GAS.Actions
+  nameWithType: SpellBook.GAS.Actions
+  fullName: SpellBook.GAS.Actions
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Actions
+    name: Actions
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Actions
+    name: Actions
 - uid: SpellBook.GAS.Conditions.ConditionContext.Owner*
   commentId: Overload:SpellBook.GAS.Conditions.ConditionContext.Owner
   href: SpellBook.GAS.Conditions.ConditionContext.html#SpellBook_GAS_Conditions_ConditionContext_Owner
@@ -674,3 +730,9 @@ references:
   name: Targets
   nameWithType: ConditionContext.Targets
   fullName: SpellBook.GAS.Conditions.ConditionContext.Targets
+- uid: SpellBook.GAS.Conditions.ConditionContext.Action*
+  commentId: Overload:SpellBook.GAS.Conditions.ConditionContext.Action
+  href: SpellBook.GAS.Conditions.ConditionContext.html#SpellBook_GAS_Conditions_ConditionContext_Action
+  name: Action
+  nameWithType: ConditionContext.Action
+  fullName: SpellBook.GAS.Conditions.ConditionContext.Action
