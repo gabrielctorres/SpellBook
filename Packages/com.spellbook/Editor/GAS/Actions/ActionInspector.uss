@@ -46,6 +46,12 @@
 .action-row__validation--warning { color: var(--spellbook-warning); }
 .action-row__validation--error { color: var(--spellbook-error); }
 .action-row__body { padding-left: 16px; }
+.action-row__level { color: var(--spellbook-text-secondary); margin: 0 4px; }
+.action-row__child-label { color: var(--spellbook-text-secondary); margin: 2px 0 0 4px; }
+
+/* Filhas de uma ação de fluxo (DS 4.4): barra na cor de "Fluxo"; o recuo para no nível 3 */
+.action-list--nested { border-left-width: 2px; border-left-color: var(--spellbook-cat-flow); padding-left: 2px; }
+.action-list--indented { margin-left: 16px; }
 
 .action-row--cat-flow { border-left-color: var(--spellbook-cat-flow); }
 .action-row--cat-flow .action-row__icon { background-color: var(--spellbook-cat-flow); }
