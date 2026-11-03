@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using SpellBook.Core;
 using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
@@ -28,7 +29,8 @@ namespace SpellBook.GAS.Actions
     public sealed class ActionContext
     {
         private readonly List<AbilitySystemComponent> _eventTargets = new List<AbilitySystemComponent>();
-        private readonly List<AbilitySystemComponent> _targets = new List<AbilitySystemComponent>();
+        private readonly List<AbilitySystemComponent> _ownTargets = new List<AbilitySystemComponent>();
+        private List<AbilitySystemComponent> _targets;
         private Dictionary<string, object> _customData;
         private EffectContext _effect;
 
@@ -38,8 +40,11 @@ namespace SpellBook.GAS.Actions
         public AbilitySystemComponent Owner { get; internal set; }
         /// <summary>Alvos do evento que disparou a lista.</summary>
         public List<AbilitySystemComponent> EventTargets => _eventTargets;
-        /// <summary>Alvos resolvidos para a ação corrente.</summary>
-        public List<AbilitySystemComponent> Targets => _targets;
+        /// <summary>
+        /// Alvos resolvidos para a ação corrente: os do seletor dela, ou os alvos do evento quando ela não tem seletor.
+        /// O executor resolve quando a ação começa, e a lista vale até ela terminar.
+        /// </summary>
+        public List<AbilitySystemComponent> Targets => _targets ?? _ownTargets;
         /// <summary>Ponto do evento. Só vale com <see cref="HasPoint"/>.</summary>
         public Vector3 Point { get; private set; }
         public bool HasPoint { get; private set; }
@@ -59,6 +64,8 @@ namespace SpellBook.GAS.Actions
         public EffectContext Effect => _effect;
         /// <summary>Quem causou o evento de reação ou de gameplay. Nulo nos outros eventos.</summary>
         public AbilitySystemComponent EventInstigator { get; internal set; }
+        /// <summary>Fonte de aleatoriedade do ASC em que a execução roda. Nula sem <see cref="Owner"/>.</summary>
+        public IRandomSource Random => Owner != null ? Owner.Random : null;
         /// <summary>Verdadeiro depois que o dono da execução é cancelado.</summary>
         public bool IsCancelled { get; internal set; }
 
@@ -91,6 +98,9 @@ namespace SpellBook.GAS.Actions
             HasPoint = true;
         }
 
+        // O executor aponta Targets para o buffer do quadro da ação corrente; nulo volta à lista própria
+        internal void SetTargets(List<AbilitySystemComponent> targets) => _targets = targets;
+
         internal void SetEffect(in EffectContext effect)
         {
             _effect = effect;
@@ -121,7 +131,8 @@ namespace SpellBook.GAS.Actions
         internal void Reset()
         {
             _eventTargets.Clear();
-            _targets.Clear();
+            _ownTargets.Clear();
+            _targets = null;
             // Um contexto do pool nunca herda o comparador de outra execução
             if (_customData != null && !Equals(_customData.Comparer, EqualityComparer<string>.Default)) _customData = null;
             else _customData?.Clear();

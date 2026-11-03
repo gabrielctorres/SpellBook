@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SpellBook.GAS.Core;
+using SpellBook.GAS.Targeting;
 
 namespace SpellBook.GAS.Actions
 {
@@ -36,11 +37,15 @@ namespace SpellBook.GAS.Actions
             public ActionFrame Frame;
             public EntryState State;
             public double Deadline;
+            // Os alvos da ação corrente já foram resolvidos
+            public bool Started;
         }
 
         internal sealed class Execution
         {
             public Entry[] Stack = new Entry[4];
+            // Buffer de alvos de cada quadro da pilha, reutilizado entre execuções
+            public List<AbilitySystemComponent>[] Targets = new List<AbilitySystemComponent>[4];
             public int Depth;
             public double Cursor;
             public object Owner;
@@ -145,7 +150,14 @@ namespace SpellBook.GAS.Actions
 
         private static void Push(Execution execution, IReadOnlyList<GameplayAction> list, int index, int end)
         {
-            if (execution.Depth == execution.Stack.Length) Array.Resize(ref execution.Stack, execution.Depth * 2);
+            if (execution.Depth == execution.Stack.Length)
+            {
+                Array.Resize(ref execution.Stack, execution.Depth * 2);
+                Array.Resize(ref execution.Targets, execution.Stack.Length);
+            }
+            List<AbilitySystemComponent> targets = execution.Targets[execution.Depth];
+            if (targets == null) execution.Targets[execution.Depth] = new List<AbilitySystemComponent>();
+            else targets.Clear();
             execution.Stack[execution.Depth++] = new Entry { List = list, Index = index, End = end };
         }
 
@@ -171,6 +183,7 @@ namespace SpellBook.GAS.Actions
                 if (top.List == null || top.Index >= top.End)
                 {
                     top = default;
+                    execution.Targets[execution.Depth - 1].Clear();
                     execution.Depth--;
                     continue;
                 }
@@ -182,6 +195,14 @@ namespace SpellBook.GAS.Actions
                     continue;
                 }
 
+                List<AbilitySystemComponent> targets = execution.Targets[execution.Depth - 1];
+                if (!top.Started)
+                {
+                    top.Started = true;
+                    ResolveTargets(action, execution.Context, targets);
+                }
+                execution.Context.SetTargets(targets);
+
                 ActionStatus status = action.InvokeExecute(execution.Context, ref top.Frame);
                 // A própria ação pode ter cancelado esta execução
                 if (execution.Version != version || !execution.Running) return;
@@ -191,6 +212,7 @@ namespace SpellBook.GAS.Actions
                     case ActionStatus.StatusKind.Done:
                         top.Index++;
                         top.Frame = default;
+                        top.Started = false;
                         break;
                     case ActionStatus.StatusKind.Wait:
                         double deadline = status.Seconds > 0f ? execution.Cursor + status.Seconds : execution.Cursor;
@@ -215,6 +237,23 @@ namespace SpellBook.GAS.Actions
             }
             execution.Advancing = false;
             if (execution.Depth == 0) Finish(execution);
+        }
+
+        /// <summary>Põe em <paramref name="targets"/> os alvos do seletor da ação ou, sem seletor, os alvos do evento.</summary>
+        private static void ResolveTargets(GameplayAction action, ActionContext context, List<AbilitySystemComponent> targets)
+        {
+            targets.Clear();
+            TargetSelector selector = action.Target;
+            if (selector != null)
+            {
+                selector.Select(context, targets);
+                return;
+            }
+            List<AbilitySystemComponent> eventTargets = context.EventTargets;
+            for (int i = 0; i < eventTargets.Count; i++)
+            {
+                if (eventTargets[i] != null) targets.Add(eventTargets[i]);
+            }
         }
 
         private void StartParallel(Execution mother, IReadOnlyList<GameplayAction> children)
@@ -260,7 +299,9 @@ namespace SpellBook.GAS.Actions
                 ref Entry entry = ref execution.Stack[d];
                 if (entry.List == null || entry.Index >= entry.End) continue;
                 GameplayAction action = entry.List[entry.Index];
-                if (action != null) action.InvokeCancel(execution.Context, ref entry.Frame);
+                if (action == null) continue;
+                execution.Context.SetTargets(execution.Targets[d]);
+                action.InvokeCancel(execution.Context, ref entry.Frame);
             }
             Release(execution);
         }
@@ -277,10 +318,13 @@ namespace SpellBook.GAS.Actions
             int index = _executions.IndexOf(execution);
             if (index >= 0) _executions.RemoveAt(index);
             Array.Clear(execution.Stack, 0, execution.Depth);
+            for (int i = 0; i < execution.Depth; i++) execution.Targets[i].Clear();
             execution.Depth = 0;
             execution.Running = false;
             execution.Advancing = false;
             execution.Version++;
+            // O contexto pode sobreviver à execução (o da ativação, ou o de uma mãe em paralelo): solta o buffer dela
+            if (execution.Context != null) execution.Context.SetTargets(null);
             if (execution.OwnsContext && execution.Context != null) ReturnContext(execution.Context);
             execution.Context = null;
             execution.Owner = null;

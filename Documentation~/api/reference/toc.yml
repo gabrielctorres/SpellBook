@@ -7,6 +7,9 @@ items:
   - uid: SpellBook.Core.DocUrls
     name: DocUrls
     type: Class
+  - uid: SpellBook.Core.IRandomSource
+    name: IRandomSource
+    type: Interface
   - uid: SpellBook.Core.InstantiateSpawnerAsset
     name: InstantiateSpawnerAsset
     type: Class
@@ -15,6 +18,9 @@ items:
     type: Class
   - uid: SpellBook.Core.RuntimeSet`1
     name: RuntimeSet<T>
+    type: Class
+  - uid: SpellBook.Core.SeededRandomSource
+    name: SeededRandomSource
     type: Class
   - uid: SpellBook.Core.SpawnerAsset
     name: SpawnerAsset
@@ -752,8 +758,14 @@ items:
   name: SpellBook.GAS.Targeting
   type: Namespace
   items:
+  - uid: SpellBook.GAS.Targeting.CasterSelector
+    name: CasterSelector
+    type: Class
   - uid: SpellBook.GAS.Targeting.CircleTargeting
     name: CircleTargeting
+    type: Class
+  - uid: SpellBook.GAS.Targeting.EventTargetsSelector
+    name: EventTargetsSelector
     type: Class
   - uid: SpellBook.GAS.Targeting.MouseTargetingStrategy
     name: MouseTargetingStrategy
@@ -761,6 +773,12 @@ items:
   - uid: SpellBook.GAS.Targeting.PhysicsMode
     name: PhysicsMode
     type: Enum
+  - uid: SpellBook.GAS.Targeting.PointSelector
+    name: PointSelector
+    type: Class
+  - uid: SpellBook.GAS.Targeting.TargetSelector
+    name: TargetSelector
+    type: Class
   - uid: SpellBook.GAS.Targeting.TargetingStrategy
     name: TargetingStrategy
     type: Class

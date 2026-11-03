@@ -36,6 +36,7 @@ items:
   - SpellBook.Core.Validation.IValidatable
   - UnityEngine.ISerializationCallbackReceiver
   inheritedMembers:
+  - SpellBook.GAS.Actions.GameplayAction.Target
   - SpellBook.GAS.Actions.GameplayAction.OnCancel(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
   - SpellBook.GAS.Actions.GameplayAction.Validate(SpellBook.Core.Validation.ValidationResult)
   - SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
@@ -199,6 +200,13 @@ references:
   name: ISerializationCallbackReceiver
   nameWithType: ISerializationCallbackReceiver
   fullName: UnityEngine.ISerializationCallbackReceiver
+- uid: SpellBook.GAS.Actions.GameplayAction.Target
+  commentId: P:SpellBook.GAS.Actions.GameplayAction.Target
+  parent: SpellBook.GAS.Actions.GameplayAction
+  href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_Target
+  name: Target
+  nameWithType: GameplayAction.Target
+  fullName: SpellBook.GAS.Actions.GameplayAction.Target
 - uid: SpellBook.GAS.Actions.GameplayAction.OnCancel(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
   commentId: M:SpellBook.GAS.Actions.GameplayAction.OnCancel(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
   parent: SpellBook.GAS.Actions.GameplayAction

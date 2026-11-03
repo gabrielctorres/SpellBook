@@ -69,6 +69,7 @@ items:
   - SpellBook.GAS.Core.AbilitySystemComponent.OnEffectRemoved
   - SpellBook.GAS.Core.AbilitySystemComponent.OnEffectStacksChanged
   - SpellBook.GAS.Core.AbilitySystemComponent.OnTagChanged
+  - SpellBook.GAS.Core.AbilitySystemComponent.Random
   - SpellBook.GAS.Core.AbilitySystemComponent.ReduceCooldown(SpellBook.GAS.Abilities.GameplayAbility,System.Single)
   - SpellBook.GAS.Core.AbilitySystemComponent.ReduceEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance,System.Single)
   - SpellBook.GAS.Core.AbilitySystemComponent.RefillCharges(SpellBook.GAS.Abilities.AbilitySpec)
@@ -86,6 +87,7 @@ items:
   - SpellBook.GAS.Core.AbilitySystemComponent.RunActions(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction},SpellBook.GAS.Actions.ActionContext,System.Object)
   - SpellBook.GAS.Core.AbilitySystemComponent.SetAbilityLevel(SpellBook.GAS.Abilities.GameplayAbility,System.Int32)
   - SpellBook.GAS.Core.AbilitySystemComponent.SetEffectStacks(SpellBook.GAS.Effects.ActiveEffectInstance,System.Int32)
+  - SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource(SpellBook.Core.IRandomSource)
   - SpellBook.GAS.Core.AbilitySystemComponent.SetTimeSource(SpellBook.Time.ITimeSource)
   - SpellBook.GAS.Core.AbilitySystemComponent.TagCounts
   - SpellBook.GAS.Core.AbilitySystemComponent.Tick(System.Single)
@@ -593,6 +595,51 @@ items:
   nameWithType.vb: AbilitySystemComponent.Tick(Single)
   fullName.vb: SpellBook.GAS.Core.AbilitySystemComponent.Tick(Single)
   name.vb: Tick(Single)
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.Random
+  commentId: P:SpellBook.GAS.Core.AbilitySystemComponent.Random
+  id: Random
+  parent: SpellBook.GAS.Core.AbilitySystemComponent
+  langs:
+  - csharp
+  - vb
+  name: Random
+  nameWithType: AbilitySystemComponent.Random
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.Random
+  type: Property
+  namespace: SpellBook.GAS.Core
+  summary: >-
+    Fonte de aleatoriedade das ações deste ASC (<xref href="SpellBook.GAS.Actions.ActionContext.Random" data-throw-if-not-resolved="false"></xref>). O padrão é uma
+
+    <xref href="SpellBook.Core.SeededRandomSource" data-throw-if-not-resolved="false"></xref> com semente do relógio; troque por <xref href="SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource(SpellBook.Core.IRandomSource)" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public IRandomSource Random { get; }
+    parameters: []
+    return:
+      type: SpellBook.Core.IRandomSource
+    content.vb: Public ReadOnly Property Random As IRandomSource
+  overload: SpellBook.GAS.Core.AbilitySystemComponent.Random*
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource(SpellBook.Core.IRandomSource)
+  commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource(SpellBook.Core.IRandomSource)
+  id: SetRandomSource(SpellBook.Core.IRandomSource)
+  parent: SpellBook.GAS.Core.AbilitySystemComponent
+  langs:
+  - csharp
+  - vb
+  name: SetRandomSource(IRandomSource)
+  nameWithType: AbilitySystemComponent.SetRandomSource(IRandomSource)
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource(SpellBook.Core.IRandomSource)
+  type: Method
+  namespace: SpellBook.GAS.Core
+  summary: Troca a fonte de aleatoriedade, por exemplo por uma com semente fixa num teste ou replay.
+  example: []
+  syntax:
+    content: public void SetRandomSource(IRandomSource source)
+    parameters:
+    - id: source
+      type: SpellBook.Core.IRandomSource
+    content.vb: Public Sub SetRandomSource(source As IRandomSource)
+  overload: SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource*
 - uid: SpellBook.GAS.Core.AbilitySystemComponent.RunActions(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction},SpellBook.GAS.Actions.ActionContext,System.Object)
   commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.RunActions(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction},SpellBook.GAS.Actions.ActionContext,System.Object)
   id: RunActions(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction},SpellBook.GAS.Actions.ActionContext,System.Object)
@@ -10647,6 +10694,78 @@ references:
   nameWithType.vb: Single
   fullName.vb: Single
   name.vb: Single
+- uid: SpellBook.GAS.Actions.ActionContext.Random
+  commentId: P:SpellBook.GAS.Actions.ActionContext.Random
+  href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_Random
+  name: Random
+  nameWithType: ActionContext.Random
+  fullName: SpellBook.GAS.Actions.ActionContext.Random
+- uid: SpellBook.Core.SeededRandomSource
+  commentId: T:SpellBook.Core.SeededRandomSource
+  href: SpellBook.Core.SeededRandomSource.html
+  name: SeededRandomSource
+  nameWithType: SeededRandomSource
+  fullName: SpellBook.Core.SeededRandomSource
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource(SpellBook.Core.IRandomSource)
+  commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource(SpellBook.Core.IRandomSource)
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_SetRandomSource_SpellBook_Core_IRandomSource_
+  name: SetRandomSource(IRandomSource)
+  nameWithType: AbilitySystemComponent.SetRandomSource(IRandomSource)
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource(SpellBook.Core.IRandomSource)
+  spec.csharp:
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource(SpellBook.Core.IRandomSource)
+    name: SetRandomSource
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_SetRandomSource_SpellBook_Core_IRandomSource_
+  - name: (
+  - uid: SpellBook.Core.IRandomSource
+    name: IRandomSource
+    href: SpellBook.Core.IRandomSource.html
+  - name: )
+  spec.vb:
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource(SpellBook.Core.IRandomSource)
+    name: SetRandomSource
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_SetRandomSource_SpellBook_Core_IRandomSource_
+  - name: (
+  - uid: SpellBook.Core.IRandomSource
+    name: IRandomSource
+    href: SpellBook.Core.IRandomSource.html
+  - name: )
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.Random*
+  commentId: Overload:SpellBook.GAS.Core.AbilitySystemComponent.Random
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_Random
+  name: Random
+  nameWithType: AbilitySystemComponent.Random
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.Random
+- uid: SpellBook.Core.IRandomSource
+  commentId: T:SpellBook.Core.IRandomSource
+  parent: SpellBook.Core
+  href: SpellBook.Core.IRandomSource.html
+  name: IRandomSource
+  nameWithType: IRandomSource
+  fullName: SpellBook.Core.IRandomSource
+- uid: SpellBook.Core
+  commentId: N:SpellBook.Core
+  name: SpellBook.Core
+  nameWithType: SpellBook.Core
+  fullName: SpellBook.Core
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource*
+  commentId: Overload:SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_SetRandomSource_SpellBook_Core_IRandomSource_
+  name: SetRandomSource
+  nameWithType: AbilitySystemComponent.SetRandomSource
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource
 - uid: SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(System.Object)
   commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(System.Object)
   isExternal: true

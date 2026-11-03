@@ -21,6 +21,7 @@ items:
   - SpellBook.GAS.Actions.ActionContext.Level
   - SpellBook.GAS.Actions.ActionContext.Owner
   - SpellBook.GAS.Actions.ActionContext.Point
+  - SpellBook.GAS.Actions.ActionContext.Random
   - SpellBook.GAS.Actions.ActionContext.SetCustomDataComparer(System.Collections.Generic.IEqualityComparer{System.String})
   - SpellBook.GAS.Actions.ActionContext.SetPoint(UnityEngine.Vector3)
   - SpellBook.GAS.Actions.ActionContext.Spec
@@ -127,7 +128,10 @@ items:
   fullName: SpellBook.GAS.Actions.ActionContext.Targets
   type: Property
   namespace: SpellBook.GAS.Actions
-  summary: Alvos resolvidos para a ação corrente.
+  summary: >-
+    Alvos resolvidos para a ação corrente: os do seletor dela, ou os alvos do evento quando ela não tem seletor.
+
+    O executor resolve quando a ação começa, e a lista vale até ela terminar.
   example: []
   syntax:
     content: public List<AbilitySystemComponent> Targets { get; }
@@ -361,6 +365,27 @@ items:
       type: SpellBook.GAS.Core.AbilitySystemComponent
     content.vb: Public Property EventInstigator As AbilitySystemComponent
   overload: SpellBook.GAS.Actions.ActionContext.EventInstigator*
+- uid: SpellBook.GAS.Actions.ActionContext.Random
+  commentId: P:SpellBook.GAS.Actions.ActionContext.Random
+  id: Random
+  parent: SpellBook.GAS.Actions.ActionContext
+  langs:
+  - csharp
+  - vb
+  name: Random
+  nameWithType: ActionContext.Random
+  fullName: SpellBook.GAS.Actions.ActionContext.Random
+  type: Property
+  namespace: SpellBook.GAS.Actions
+  summary: Fonte de aleatoriedade do ASC em que a execução roda. Nula sem <xref href="SpellBook.GAS.Actions.ActionContext.Owner" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public IRandomSource Random { get; }
+    parameters: []
+    return:
+      type: SpellBook.Core.IRandomSource
+    content.vb: Public ReadOnly Property Random As IRandomSource
+  overload: SpellBook.GAS.Actions.ActionContext.Random*
 - uid: SpellBook.GAS.Actions.ActionContext.IsCancelled
   commentId: P:SpellBook.GAS.Actions.ActionContext.IsCancelled
   id: IsCancelled
@@ -1142,6 +1167,42 @@ references:
   name: EventInstigator
   nameWithType: ActionContext.EventInstigator
   fullName: SpellBook.GAS.Actions.ActionContext.EventInstigator
+- uid: SpellBook.GAS.Actions.ActionContext.Owner
+  commentId: P:SpellBook.GAS.Actions.ActionContext.Owner
+  href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_Owner
+  name: Owner
+  nameWithType: ActionContext.Owner
+  fullName: SpellBook.GAS.Actions.ActionContext.Owner
+- uid: SpellBook.GAS.Actions.ActionContext.Random*
+  commentId: Overload:SpellBook.GAS.Actions.ActionContext.Random
+  href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_Random
+  name: Random
+  nameWithType: ActionContext.Random
+  fullName: SpellBook.GAS.Actions.ActionContext.Random
+- uid: SpellBook.Core.IRandomSource
+  commentId: T:SpellBook.Core.IRandomSource
+  parent: SpellBook.Core
+  href: SpellBook.Core.IRandomSource.html
+  name: IRandomSource
+  nameWithType: IRandomSource
+  fullName: SpellBook.Core.IRandomSource
+- uid: SpellBook.Core
+  commentId: N:SpellBook.Core
+  name: SpellBook.Core
+  nameWithType: SpellBook.Core
+  fullName: SpellBook.Core
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
 - uid: SpellBook.GAS.Actions.ActionContext.IsCancelled*
   commentId: Overload:SpellBook.GAS.Actions.ActionContext.IsCancelled
   href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_IsCancelled

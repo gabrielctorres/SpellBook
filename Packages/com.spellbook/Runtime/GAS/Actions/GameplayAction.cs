@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using SpellBook.Core.Inspector;
 using SpellBook.Core.Validation;
 using SpellBook.GAS.Effects;
+using SpellBook.GAS.Targeting;
+using UnityEngine;
 
 namespace SpellBook.GAS.Actions
 {
@@ -13,6 +16,18 @@ namespace SpellBook.GAS.Actions
     [Serializable]
     public abstract class GameplayAction : IValidatable
     {
+        [SerializeReference, TypePicker] private TargetSelector target;
+
+        /// <summary>
+        /// Seletor dos alvos da ação, resolvido quando ela começa e entregue em <see cref="ActionContext.Targets"/>.
+        /// Nulo usa o alvo padrão do evento: os alvos do evento que disparou a lista.
+        /// </summary>
+        public TargetSelector Target
+        {
+            get => target;
+            set => target = value;
+        }
+
         /// <summary>Se a ação usa alvos. O Inspector mostra o alvo só quando é verdadeiro.</summary>
         public virtual bool UsesTargets => true;
 

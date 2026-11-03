@@ -88,3 +88,13 @@ Aparece em: `Attribute Definition > Processors`.
 | [Absorb With Attribute](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Attributes.AbsorbWithAttribute.html) | Dano/Escudo | Desvia o dano para um atributo de escudo do dono. |
 | [Immune To Tags](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Attributes.ImmuneToTags.html) | Dano/Imunidade | Anula a alteração de efeitos com certas tags de dano. |
 | [Reduce By Attribute](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Attributes.ReduceByAttribute.html) | Dano/Redução | Reduz a alteração pelo valor de um atributo do dono. |
+
+## `TargetSelector` {#spellbook-gas-targeting-targetselector}
+
+Aparece em: `Gameplay Action > Target`.
+
+| Tipo | Categoria | Resumo |
+|---|---|---|
+| [Caster Selector](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Targeting.CasterSelector.html) | Alvo | Escolhe quem lançou a habilidade ou aplicou o efeito. |
+| [Event Targets Selector](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Targeting.EventTargetsSelector.html) | Alvo | Escolhe os alvos do evento que disparou a lista. |
+| [Point Selector](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Targeting.PointSelector.html) | Alvo | Não escolhe unidade; a ação usa o ponto do evento. |

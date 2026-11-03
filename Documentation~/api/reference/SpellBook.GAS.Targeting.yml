@@ -4,9 +4,13 @@ items:
   commentId: N:SpellBook.GAS.Targeting
   id: SpellBook.GAS.Targeting
   children:
+  - SpellBook.GAS.Targeting.CasterSelector
   - SpellBook.GAS.Targeting.CircleTargeting
+  - SpellBook.GAS.Targeting.EventTargetsSelector
   - SpellBook.GAS.Targeting.MouseTargetingStrategy
   - SpellBook.GAS.Targeting.PhysicsMode
+  - SpellBook.GAS.Targeting.PointSelector
+  - SpellBook.GAS.Targeting.TargetSelector
   - SpellBook.GAS.Targeting.TargetingStrategy
   langs:
   - csharp
@@ -42,6 +46,31 @@ references:
   name: TargetingStrategy
   nameWithType: TargetingStrategy
   fullName: SpellBook.GAS.Targeting.TargetingStrategy
+- uid: SpellBook.GAS.Targeting.TargetSelector
+  commentId: T:SpellBook.GAS.Targeting.TargetSelector
+  parent: SpellBook.GAS.Targeting
+  href: SpellBook.GAS.Targeting.TargetSelector.html
+  name: TargetSelector
+  nameWithType: TargetSelector
+  fullName: SpellBook.GAS.Targeting.TargetSelector
+- uid: SpellBook.GAS.Targeting.CasterSelector
+  commentId: T:SpellBook.GAS.Targeting.CasterSelector
+  href: SpellBook.GAS.Targeting.CasterSelector.html
+  name: CasterSelector
+  nameWithType: CasterSelector
+  fullName: SpellBook.GAS.Targeting.CasterSelector
+- uid: SpellBook.GAS.Targeting.EventTargetsSelector
+  commentId: T:SpellBook.GAS.Targeting.EventTargetsSelector
+  href: SpellBook.GAS.Targeting.EventTargetsSelector.html
+  name: EventTargetsSelector
+  nameWithType: EventTargetsSelector
+  fullName: SpellBook.GAS.Targeting.EventTargetsSelector
+- uid: SpellBook.GAS.Targeting.PointSelector
+  commentId: T:SpellBook.GAS.Targeting.PointSelector
+  href: SpellBook.GAS.Targeting.PointSelector.html
+  name: PointSelector
+  nameWithType: PointSelector
+  fullName: SpellBook.GAS.Targeting.PointSelector
 - uid: SpellBook.GAS.Targeting
   commentId: N:SpellBook.GAS.Targeting
   name: SpellBook.GAS.Targeting

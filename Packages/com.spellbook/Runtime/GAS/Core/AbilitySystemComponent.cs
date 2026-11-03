@@ -36,6 +36,7 @@ namespace SpellBook.GAS.Core
         private double _timeCursor;
         private double _tickedTime;
         private ActionRunner _runner;
+        private IRandomSource _random;
 
         // Contagem de referência: várias fontes podem conceder a mesma tag
         private readonly Dictionary<GameplayTag, int> _activeTags = new Dictionary<GameplayTag, int>();
@@ -85,6 +86,7 @@ namespace SpellBook.GAS.Core
 
         private void Awake()
         {
+            _random ??= CreateDefaultRandom();
             if (attributeSet == null) attributeSet = GetComponent<AttributeSet>();
             if (attributeSet != null) BindAttributeLimits();
 
@@ -245,6 +247,20 @@ namespace SpellBook.GAS.Core
         }
 
         internal ActionRunner Runner => _runner ??= new ActionRunner(this);
+
+        /// <summary>
+        /// Fonte de aleatoriedade das ações deste ASC (<see cref="ActionContext.Random"/>). O padrão é uma
+        /// <see cref="SeededRandomSource"/> com semente do relógio; troque por <see cref="SetRandomSource"/>.
+        /// </summary>
+        public IRandomSource Random => _random ??= CreateDefaultRandom();
+
+        /// <summary>Troca a fonte de aleatoriedade, por exemplo por uma com semente fixa num teste ou replay.</summary>
+        public void SetRandomSource(IRandomSource source)
+        {
+            _random = source ?? throw new ArgumentNullException(nameof(source));
+        }
+
+        private static IRandomSource CreateDefaultRandom() => new SeededRandomSource(Environment.TickCount);
 
         /// <summary>
         /// Roda <paramref name="actions"/> em sequência no executor deste ASC (ADR 0034). As ações sem espera rodam já,

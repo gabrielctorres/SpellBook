@@ -428,7 +428,7 @@ Herde de `GameplayAction` e sobrescreva `Execute(ActionContext context, ref Acti
 - A mesma instância da ação é compartilhada por todos que usam a habilidade. Guarde o estado da execução no `ActionFrame` ou no `context.CustomData`, nunca em campos.
 - Sobrescreva `OnCancel(context, ref frame)` para restaurar estado se a habilidade for cancelada no meio da ação (ex: reabilitar movimento após um dash).
 - Para rodar sub-ações, devolva `ActionStatus.Run(lista)`, ou `ActionStatus.RunParallel(lista)` para rodá-las ao mesmo tempo. O cancelamento da habilidade chega às filhas.
-- Quem lançou está em `context.Instigator`, e o ponto em `context.Point`. Os alvos que a `TargetingAction` encontra ficam em `context.EventTargets`; tire da lista os alvos destruídos antes de usá-la.
+- Quem lançou está em `context.Instigator`, e o ponto em `context.Point`. Os alvos da ação estão em `context.Targets`, já sem os destruídos quando ela começa ([Alvo de cada ação](#alvo-da-acao)). Os alvos que a `TargetingAction` encontra ficam em `context.EventTargets`.
 - Para esperar, devolva `ActionStatus.Wait(segundos)`, que conta o tempo do ASC ([Ações que esperam](#acoes-que-esperam)).
 - Para acusar uma configuração inválida, sobrescreva `Validate(ValidationResult result)` e chame `result.AddError(...)`. O `GameplayAbility` repassa a validação a cada ação da lista.
 
@@ -468,13 +468,30 @@ No cancelamento, cada ação em curso recebe `OnCancel`. As filhas paralelas rec
 
 Uma espera conta a partir do fim do passo anterior, no tempo do ASC. Um `Tick` no mesmo quadro em que a execução começou conta, e o excesso de um `Tick` grande passa para a espera seguinte: com duas esperas de 1 s, `Tick(1.5)` e depois `Tick(0.5)` terminam as duas.
 
-O `ActionContext` leva os dados da execução: `Owner` (o ASC que roda), `Instigator`, `EventTargets`, `Targets`, `Point` com `HasPoint`, `Ability`, `Spec`, `Level`, `EffectInstance`, `Effect` com `HasEffect`, `EventInstigator`, `IsCancelled` e `CustomData`. Passe `null` como contexto para o ASC usar um, com ele mesmo como `Owner` e `Instigator`.
+O `ActionContext` leva os dados da execução: `Owner` (o ASC que roda), `Instigator`, `EventTargets`, `Targets`, `Point` com `HasPoint`, `Ability`, `Spec`, `Level`, `EffectInstance`, `Effect` com `HasEffect`, `EventInstigator`, `Random`, `IsCancelled` e `CustomData`. Passe `null` como contexto para o ASC usar um, com ele mesmo como `Owner` e `Instigator`.
 
 O ASC guarda execuções e contextos em pool, e rodar a mesma lista de novo não aloca. Se você passar um contexto seu, o executor fica com ele e o devolve ao pool quando a execução termina ou é cancelada. Não use essa referência depois disso. Um `ActionExecutionHandle` antigo continua dizendo que a execução não roda, mesmo depois que o pool a reaproveita.
 
 As chaves do `CustomData` usam o comparador padrão. Para usar outro, como `StringComparer.OrdinalIgnoreCase`, chame `context.SetCustomDataComparer(comparador)` antes de gravar a primeira chave. Com chaves gravadas, a chamada lança `InvalidOperationException`. Um contexto que volta do pool vem com o comparador padrão.
 
 `context.CreateDerived(ponto)` devolve um contexto novo com esse ponto, o mesmo `Owner`, `Instigator`, `Ability` e `Level`, e uma cópia rasa do `CustomData`, com o mesmo comparador. Uma chave acrescentada no derivado não aparece no original, mas um valor que é objeto fica compartilhado. O derivado não tem vínculo de cancelamento com a execução de origem.
+
+### 3.4 Alvo de cada ação {#alvo-da-acao}
+Toda ação tem o campo **Target**, um `TargetSelector` que escolhe os alvos dela. O executor chama o seletor quando a ação começa e põe o resultado em `context.Targets`, que vale até a ação terminar, mesmo que ela espere ou rode filhas. Assim, duas ações da mesma lista agem em ASCs diferentes: um dano com **Alvos do evento** acerta o inimigo, e uma cura com **Quem lançou** volta para o conjurador.
+
+| Seletor | Alvos |
+|---|---|
+| `CasterSelector` | Quem lançou (`context.Instigator`): o dono da habilidade, ou quem aplicou o efeito. |
+| `EventTargetsSelector` | Os alvos do evento (`context.EventTargets`), sem os destruídos. |
+| `PointSelector` | Nenhuma unidade. A ação usa o ponto do evento (`context.Point`). |
+
+Sem seletor, a ação recebe os alvos do evento, sem os destruídos. Na ativação, são os que uma ação anterior pôs em `EventTargets`, como a `TargetingAction`. No impacto do projétil, é quem foi atingido, e numa lista de efeito, o dono do efeito. Escolher os alvos não aloca.
+
+As ações prontas (`ApplyEffectAction`, `PlayCueAction`, `SpawnProjectileAction` e `RaiseEventAction`) ainda leem `context.EventTargets` e ignoram o seletor. Uma ação própria que lê `context.Targets` já respeita o campo.
+
+Para escrever um seletor, herde de `TargetSelector` e sobrescreva `Select(context, resultados)`, que recebe a lista vazia e só acrescenta. Use listas e buffers reutilizados, porque o executor chama o método a cada ação que começa. Sobrescreva `NeedsEventTargets` para devolver `true` se o seletor lê os alvos do evento.
+
+Cada ASC tem uma fonte de aleatoriedade, `asc.Random`, que as ações leem em `context.Random`. É um `IRandomSource` do Core: `Value()` devolve um número em [0, 1) e `Range(n)`, um inteiro de 0 a n − 1. A fonte padrão é uma `SeededRandomSource` com semente do relógio. Para repetir os sorteios num teste ou num replay, troque por uma semente fixa com `asc.SetRandomSource(new SeededRandomSource(42))`, e a mesma semente dá sempre a mesma sequência.
 
 ---
 
