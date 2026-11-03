@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SpellBook.Core;
+using SpellBook.Core.Validation;
 using UnityEngine;
 
 namespace SpellBook.Teams
@@ -11,7 +12,7 @@ namespace SpellBook.Teams
     /// </summary>
     [HelpURL(DocUrls.Teams + "#teamrelationmatrix")]
     [CreateAssetMenu(fileName = "NewTeamRelationMatrix", menuName = "SpellBook/Teams/Relation Matrix")]
-    public sealed class TeamRelationMatrix : ScriptableObject
+    public sealed class TeamRelationMatrix : ScriptableObject, IValidatable
     {
         [SerializeField] private List<TeamDefinition> teams = new List<TeamDefinition>();
         [SerializeField] private List<TeamRelationEntry> entries = new List<TeamRelationEntry>();
@@ -44,6 +45,70 @@ namespace SpellBook.Teams
             }
 
             return cells[row * index.Count + column];
+        }
+
+        /// <summary>
+        /// Erro para time vazio ou repetido na lista, célula sem time ou com time fora da lista e par repetido. Aviso
+        /// para a lista vazia.
+        /// </summary>
+        public void Validate(ValidationResult result)
+        {
+            if (teams.Count == 0)
+            {
+                result.AddWarning("A matriz não tem times. Toda consulta usa a relação de sem time.", nameof(teams));
+            }
+
+            var seen = new HashSet<TeamDefinition>();
+            for (int i = 0; i < teams.Count; i++)
+            {
+                string path = $"{nameof(teams)}.Array.data[{i}]";
+                if (teams[i] == null)
+                {
+                    result.AddError($"Time vazio em teams (posição {i}). Escolha um time ou remova a linha.", path);
+                }
+                else if (!seen.Add(teams[i]))
+                {
+                    result.AddError($"Time '{teams[i].name}' repetido em teams. Remova a repetição.", path);
+                }
+            }
+
+            var pairs = new HashSet<(TeamDefinition, TeamDefinition)>();
+            for (int i = 0; i < entries.Count; i++)
+            {
+                TeamRelationEntry entry = entries[i];
+                string path = $"{nameof(entries)}.Array.data[{i}]";
+                bool fromValid = ValidateCellTeam(result, entry.From, i, path + ".from");
+                bool toValid = ValidateCellTeam(result, entry.To, i, path + ".to");
+                if (fromValid && toValid && !pairs.Add((entry.From, entry.To)))
+                {
+                    result.AddError($"O par '{entry.From.name}' → '{entry.To.name}' já tem célula. Vale a última; " +
+                        "remova a repetição.", path);
+                }
+            }
+        }
+
+        /// <summary>Se <paramref name="team"/> está na lista de times da matriz.</summary>
+        internal bool Contains(TeamDefinition team)
+        {
+            return team != null && teams.Contains(team);
+        }
+
+        private bool ValidateCellTeam(ValidationResult result, TeamDefinition team, int index, string path)
+        {
+            if (team == null)
+            {
+                result.AddError($"A célula {index} está sem time. Escolha um time ou remova a célula.", path);
+                return false;
+            }
+
+            if (!teams.Contains(team))
+            {
+                result.AddError($"A célula {index} usa o time '{team.name}', que não está em teams. Ponha o time na " +
+                    "lista ou remova a célula.", path);
+                return false;
+            }
+
+            return true;
         }
 
         private void OnValidate()

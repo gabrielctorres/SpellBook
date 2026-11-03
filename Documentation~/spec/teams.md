@@ -197,6 +197,20 @@ Todos usam a Unity e seguem o WIP 1. TM1 a TM4 não dependem de item aberto. Tes
 - Critério de pronto: CA9 verde.
 - Tamanho estimado: ~300 linhas; 6 arquivos. Depende de: TM2.
 
+### Detalhe (2026-11-03)
+- CA: CA9 (a parte de máscara vazia fica com a `TeamRelationCondition`, no TM5); Design 3, validação.
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/Teams/TeamDefinition.cs:9` (+`IValidatable`: nome de exibição vazio, aviso em `displayName`);
+  - `Runtime/Teams/TeamRelationMatrix.cs:14` (+`IValidatable`: time nulo em `teams.Array.data[i]` (erro); time repetido, na repetição (erro); célula com time nulo ou fora da lista, em `entries.Array.data[i].from`/`.to` (erro); par repetido, na célula seguinte (erro: a última vence); lista vazia em `teams` (aviso); `internal bool Contains(TeamDefinition)` lendo a lista, sem montar o índice);
+  - `Runtime/Teams/TeamMember.cs:9` (+`IValidatable`: sem matriz em `matrix` (aviso); sem time em `team` (aviso); time fora da matriz em `team` (aviso));
+  - `Tests/Teams/EditMode/SpellBook.Teams.Tests.EditMode.asmdef:4-11` (+`SpellBook.Core.Editor`, para o `ProjectValidator`, como o dos Tags);
+  - `Tests/Teams/EditMode/TeamsValidationTests.cs` (novo; usa a `TeamsFactory`).
+  - Fora, pela emenda de 2026-11-03 da 0007: `manual/ferramentas/validador.md` e `CHANGELOG.md` (sem quebra).
+- Testes red (EditMode, `TeamsValidationTests`): `Matrix_NullDuplicateUnknownTeam_RepeatedPair_EmptyList`, `Member_NoMatrix_NoTeam_TeamOutsideMatrix`, `Matrix_CellWithoutTeam_IsError`, `Definition_EmptyDisplayName_IsWarning`, `ValidSetup_HasNoMessages`, `ProjectValidator_ReportsTeamsAssetsClickable`.
+- Critério de pronto: `TeamsValidationTests` (6), `TeamMemberTests` e `TeamRelationMatrixTests` verdes com filtro; `HelpUrlTests` verde.
+- Tamanho: ~330 linhas e 5 arquivos, pela ADR 0042. Exceção: nenhuma.
+- Commit: `feat(teams): validação de times, matriz e membros`
+
 ### TM4 — Inspector: tabela, "Espelhar" e máscara
 - Escopo: `Editor/Teams/SpellBook.Teams.Editor.asmdef` (novo; Core, Teams, Core.Editor), `Editor/Teams/TeamsEditors.cs` (Inspectors do `TeamDefinition` e do `TeamMember`), `TeamRelationMatrixEditor.cs`, `TeamRelationMaskDrawer.cs`, `TeamMatrixEditing.cs` (novos), `Tests/Teams/EditMode/SpellBook.Teams.Tests.EditMode.asmdef` (+Teams.Editor, como no TG5), `Tests/Teams/EditMode/TeamMatrixEditingTests.cs` (novo), `AsmdefRulesTests.cs` (`Teams` em `EditorModules`; referências exatas), `SpellBookEditorCoverageTests.cs` (+`SpellBook.Teams`), `CHANGELOG.md`.
 - Testes red: `Mirror_CopiesAtoBIntoBtoA_Undoable`; `MirrorAll_MakesMatrixSymmetric`; `Clear_FallsBackToDefault`; `TeamsEditorAsmdef_References`; coverage com o Teams.

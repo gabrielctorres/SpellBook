@@ -3,6 +3,7 @@
     "rootNamespace": "SpellBook.Teams.Tests",
     "references": [
         "SpellBook.Core",
+        "SpellBook.Core.Editor",
         "SpellBook.Teams",
         "SpellBook.Time",
         "SpellBook.Testing",
