@@ -428,14 +428,23 @@ items:
   - uid: SpellBook.GAS.Actions.ActionStatus
     name: ActionStatus
     type: Struct
+  - uid: SpellBook.GAS.Actions.ChanceAction
+    name: ChanceAction
+    type: Class
   - uid: SpellBook.GAS.Actions.DefaultTarget
     name: DefaultTarget
     type: Enum
   - uid: SpellBook.GAS.Actions.EffectEvent
     name: EffectEvent
     type: Enum
+  - uid: SpellBook.GAS.Actions.ForEachTargetAction
+    name: ForEachTargetAction
+    type: Class
   - uid: SpellBook.GAS.Actions.GameplayAction
     name: GameplayAction
+    type: Class
+  - uid: SpellBook.GAS.Actions.RemoveEffectAction
+    name: RemoveEffectAction
     type: Class
 - uid: SpellBook.GAS.Attributes
   name: SpellBook.GAS.Attributes

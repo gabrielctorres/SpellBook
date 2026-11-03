@@ -18,6 +18,7 @@ items:
   - SpellBook.GAS.Actions.ActionContext.HasPoint
   - SpellBook.GAS.Actions.ActionContext.Instigator
   - SpellBook.GAS.Actions.ActionContext.IsCancelled
+  - SpellBook.GAS.Actions.ActionContext.LastRemovedStacks
   - SpellBook.GAS.Actions.ActionContext.Level
   - SpellBook.GAS.Actions.ActionContext.Owner
   - SpellBook.GAS.Actions.ActionContext.Point
@@ -407,6 +408,27 @@ items:
       type: System.Boolean
     content.vb: Public Property IsCancelled As Boolean
   overload: SpellBook.GAS.Actions.ActionContext.IsCancelled*
+- uid: SpellBook.GAS.Actions.ActionContext.LastRemovedStacks
+  commentId: P:SpellBook.GAS.Actions.ActionContext.LastRemovedStacks
+  id: LastRemovedStacks
+  parent: SpellBook.GAS.Actions.ActionContext
+  langs:
+  - csharp
+  - vb
+  name: LastRemovedStacks
+  nameWithType: ActionContext.LastRemovedStacks
+  fullName: SpellBook.GAS.Actions.ActionContext.LastRemovedStacks
+  type: Property
+  namespace: SpellBook.GAS.Actions
+  summary: Soma das pilhas que a última <xref href="SpellBook.GAS.Actions.RemoveEffectAction" data-throw-if-not-resolved="false"></xref> da execução removeu. 0 antes da primeira.
+  example: []
+  syntax:
+    content: public int LastRemovedStacks { get; }
+    parameters: []
+    return:
+      type: System.Int32
+    content.vb: Public Property LastRemovedStacks As Integer
+  overload: SpellBook.GAS.Actions.ActionContext.LastRemovedStacks*
 - uid: SpellBook.GAS.Actions.ActionContext.CustomData
   commentId: P:SpellBook.GAS.Actions.ActionContext.CustomData
   id: CustomData
@@ -1209,6 +1231,18 @@ references:
   name: IsCancelled
   nameWithType: ActionContext.IsCancelled
   fullName: SpellBook.GAS.Actions.ActionContext.IsCancelled
+- uid: SpellBook.GAS.Actions.RemoveEffectAction
+  commentId: T:SpellBook.GAS.Actions.RemoveEffectAction
+  href: SpellBook.GAS.Actions.RemoveEffectAction.html
+  name: RemoveEffectAction
+  nameWithType: RemoveEffectAction
+  fullName: SpellBook.GAS.Actions.RemoveEffectAction
+- uid: SpellBook.GAS.Actions.ActionContext.LastRemovedStacks*
+  commentId: Overload:SpellBook.GAS.Actions.ActionContext.LastRemovedStacks
+  href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_LastRemovedStacks
+  name: LastRemovedStacks
+  nameWithType: ActionContext.LastRemovedStacks
+  fullName: SpellBook.GAS.Actions.ActionContext.LastRemovedStacks
 - uid: SpellBook.GAS.Actions.ActionContext.SetCustomDataComparer(System.Collections.Generic.IEqualityComparer{System.String})
   commentId: M:SpellBook.GAS.Actions.ActionContext.SetCustomDataComparer(System.Collections.Generic.IEqualityComparer{System.String})
   isExternal: true

@@ -9,9 +9,12 @@ items:
   - SpellBook.GAS.Actions.ActionExecutionHandle
   - SpellBook.GAS.Actions.ActionFrame
   - SpellBook.GAS.Actions.ActionStatus
+  - SpellBook.GAS.Actions.ChanceAction
   - SpellBook.GAS.Actions.DefaultTarget
   - SpellBook.GAS.Actions.EffectEvent
+  - SpellBook.GAS.Actions.ForEachTargetAction
   - SpellBook.GAS.Actions.GameplayAction
+  - SpellBook.GAS.Actions.RemoveEffectAction
   langs:
   - csharp
   - vb
@@ -69,6 +72,18 @@ references:
   name: ActionStatus
   nameWithType: ActionStatus
   fullName: SpellBook.GAS.Actions.ActionStatus
+- uid: SpellBook.GAS.Actions.ChanceAction
+  commentId: T:SpellBook.GAS.Actions.ChanceAction
+  href: SpellBook.GAS.Actions.ChanceAction.html
+  name: ChanceAction
+  nameWithType: ChanceAction
+  fullName: SpellBook.GAS.Actions.ChanceAction
+- uid: SpellBook.GAS.Actions.ForEachTargetAction
+  commentId: T:SpellBook.GAS.Actions.ForEachTargetAction
+  href: SpellBook.GAS.Actions.ForEachTargetAction.html
+  name: ForEachTargetAction
+  nameWithType: ForEachTargetAction
+  fullName: SpellBook.GAS.Actions.ForEachTargetAction
 - uid: SpellBook.GAS.Actions.GameplayAction
   commentId: T:SpellBook.GAS.Actions.GameplayAction
   parent: SpellBook.GAS.Actions
@@ -76,6 +91,12 @@ references:
   name: GameplayAction
   nameWithType: GameplayAction
   fullName: SpellBook.GAS.Actions.GameplayAction
+- uid: SpellBook.GAS.Actions.RemoveEffectAction
+  commentId: T:SpellBook.GAS.Actions.RemoveEffectAction
+  href: SpellBook.GAS.Actions.RemoveEffectAction.html
+  name: RemoveEffectAction
+  nameWithType: RemoveEffectAction
+  fullName: SpellBook.GAS.Actions.RemoveEffectAction
 - uid: SpellBook.GAS.Actions
   commentId: N:SpellBook.GAS.Actions
   name: SpellBook.GAS.Actions

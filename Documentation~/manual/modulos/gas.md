@@ -361,6 +361,9 @@ A lista **Starting Effects** do ASC aplica cada efeito no `Awake`, na ordem da l
 - **ParallelAction:** executa várias ações ao mesmo tempo e espera todas terminarem.
 - **ConditionalAction:** executa `Then` ou `Else` conforme tags do conjurador ou existência de alvos.
 - **RaiseEventAction:** dispara um canal de eventos (detalhes em [RaiseEventAction](#raiseeventaction)).
+- **ChanceAction:** roda as ações filhas com uma chance por nível, de 0 a 1 (`Probability`). O sorteio usa a fonte de aleatoriedade do ASC ([Alvo de cada ação](#alvo-da-acao)). Com `Probability` 0,3, um sorteio de 0,2 roda as filhas e um de 0,5 não roda.
+- **ForEachTargetAction:** roda as ações filhas uma vez para cada alvo dela, e cada filha sem seletor recebe só o alvo da vez ([Alvo de cada ação](#alvo-da-acao)).
+- **RemoveEffectAction:** remove de cada alvo as instâncias do `Effect` e as que concedem a `Tag` ou uma filha dela. A soma das pilhas removidas fica em `context.LastRemovedStacks` para as ações seguintes da lista. Sem efeito e sem tag, a ação não remove nada.
 
 #### Ações que esperam {#acoes-que-esperam}
 O `Duration` da `WaitAction`, o `Interval` da `RepeatAction` e o `DelayBetweenShots` da `SpawnProjectileAction` contam o tempo do ASC que conjurou, o [`TickedTime`](#tempo-do-asc), e não o relógio da Unity.
@@ -494,7 +497,9 @@ Toda ação tem o campo **Target**, um `TargetSelector` que escolhe os alvos del
 
 Sem seletor, a ação recebe os alvos do evento, sem os destruídos. Na ativação, são os que uma ação anterior pôs em `EventTargets`, como a `TargetingAction`. No impacto do projétil, é quem foi atingido, e numa lista de efeito, o dono do efeito. Escolher os alvos não aloca.
 
-As ações prontas (`ApplyEffectAction`, `PlayCueAction`, `SpawnProjectileAction` e `RaiseEventAction`) ainda leem `context.EventTargets` e ignoram o seletor. Uma ação própria que lê `context.Targets` já respeita o campo.
+Dentro de uma `ForEachTargetAction`, a filha sem seletor recebe só o alvo da repetição em curso. A `ForEachTargetAction` copia os alvos dela quando começa, e é essa cópia que ela percorre: se uma filha trocar os alvos do evento, o número de repetições continua o mesmo. Um alvo destruído antes da vez dele é pulado.
+
+As ações prontas (`ApplyEffectAction`, `PlayCueAction`, `SpawnProjectileAction` e `RaiseEventAction`) ainda leem `context.EventTargets` e ignoram o seletor. A `RemoveEffectAction`, a `ForEachTargetAction` e uma ação própria que lê `context.Targets` já respeitam o campo.
 
 Para escrever um seletor, herde de `TargetSelector` e sobrescreva `Select(context, resultados)`, que recebe a lista vazia e só acrescenta. Use listas e buffers reutilizados, porque o executor chama o método a cada ação que começa. Sobrescreva `NeedsEventTargets` para devolver `true` se o seletor lê os alvos do evento.
 

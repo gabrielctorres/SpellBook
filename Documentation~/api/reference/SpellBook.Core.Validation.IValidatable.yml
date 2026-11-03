@@ -53,7 +53,10 @@ items:
   - SpellBook.GAS.Abilities.Actions.WaitAction
   - SpellBook.GAS.Abilities.CooldownReductionPolicy
   - SpellBook.GAS.Abilities.GameplayAbility
+  - SpellBook.GAS.Actions.ChanceAction
+  - SpellBook.GAS.Actions.ForEachTargetAction
   - SpellBook.GAS.Actions.GameplayAction
+  - SpellBook.GAS.Actions.RemoveEffectAction
   - SpellBook.GAS.Attributes.AttributeDefinition
   - SpellBook.GAS.Bridges.AbilityEventResponse
   - SpellBook.GAS.Bridges.AbilitySystemEventRelay

@@ -68,6 +68,8 @@ namespace SpellBook.GAS.Actions
         public IRandomSource Random => Owner != null ? Owner.Random : null;
         /// <summary>Verdadeiro depois que o dono da execução é cancelado.</summary>
         public bool IsCancelled { get; internal set; }
+        /// <summary>Soma das pilhas que a última <see cref="RemoveEffectAction"/> da execução removeu. 0 antes da primeira.</summary>
+        public int LastRemovedStacks { get; internal set; }
 
         /// <summary>
         /// Dados livres da execução, criados no primeiro acesso. As chaves usam o comparador de
@@ -150,6 +152,7 @@ namespace SpellBook.GAS.Actions
             EffectEvent = EffectEvent.None;
             EventInstigator = null;
             IsCancelled = false;
+            LastRemovedStacks = 0;
         }
     }
 }

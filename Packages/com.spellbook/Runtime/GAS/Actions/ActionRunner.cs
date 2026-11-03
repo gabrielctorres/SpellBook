@@ -199,7 +199,7 @@ namespace SpellBook.GAS.Actions
                 if (!top.Started)
                 {
                     top.Started = true;
-                    ResolveTargets(action, execution.Context, targets);
+                    ResolveTargets(action, execution, targets);
                 }
                 execution.Context.SetTargets(targets);
 
@@ -239,21 +239,51 @@ namespace SpellBook.GAS.Actions
             if (execution.Depth == 0) Finish(execution);
         }
 
-        /// <summary>Põe em <paramref name="targets"/> os alvos do seletor da ação ou, sem seletor, os alvos do evento.</summary>
-        private static void ResolveTargets(GameplayAction action, ActionContext context, List<AbilitySystemComponent> targets)
+        /// <summary>
+        /// Põe em <paramref name="targets"/> os alvos do seletor da ação. Sem seletor, o alvo corrente do
+        /// <see cref="ForEachTargetAction"/> mais próximo que a contém ou, fora dele, os alvos do evento.
+        /// </summary>
+        private static void ResolveTargets(GameplayAction action, Execution execution, List<AbilitySystemComponent> targets)
         {
             targets.Clear();
+            ActionContext context = execution.Context;
             TargetSelector selector = action.Target;
             if (selector != null)
             {
                 selector.Select(context, targets);
                 return;
             }
+            if (TryAddForEachTarget(execution, targets)) return;
+
             List<AbilitySystemComponent> eventTargets = context.EventTargets;
             for (int i = 0; i < eventTargets.Count; i++)
             {
                 if (eventTargets[i] != null) targets.Add(eventTargets[i]);
             }
+        }
+
+        // Procura nos quadros que contêm a ação corrente, desta execução e das mães (filhas em paralelo), o ForEach mais
+        // próximo, e acrescenta o alvo da repetição em curso dele.
+        private static bool TryAddForEachTarget(Execution execution, List<AbilitySystemComponent> targets)
+        {
+            // Na execução da ação, o topo é a própria ação; nas mães, o topo é a ação que rodou as filhas em paralelo
+            int depth = execution.Depth - 2;
+            for (Execution current = execution; current != null; current = current.Mother)
+            {
+                for (int d = depth; d >= 0; d--)
+                {
+                    ref Entry entry = ref current.Stack[d];
+                    if (entry.List == null || entry.Index >= entry.End) continue;
+                    if (!(entry.List[entry.Index] is ForEachTargetAction)) continue;
+
+                    // Alvo destruído no meio da repetição: a filha fica sem alvo, sem cair nos alvos do evento
+                    AbilitySystemComponent target = ForEachTargetAction.CurrentTarget(entry.Frame, current.Targets[d]);
+                    if (target != null) targets.Add(target);
+                    return true;
+                }
+                if (current.Mother != null) depth = current.Mother.Depth - 1;
+            }
+            return false;
         }
 
         private void StartParallel(Execution mother, IReadOnlyList<GameplayAction> children)

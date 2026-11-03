@@ -47,6 +47,9 @@ items:
   - SpellBook.GAS.Abilities.Actions.SpawnProjectileAction
   - SpellBook.GAS.Abilities.Actions.TargetingAction
   - SpellBook.GAS.Abilities.Actions.WaitAction
+  - SpellBook.GAS.Actions.ChanceAction
+  - SpellBook.GAS.Actions.ForEachTargetAction
+  - SpellBook.GAS.Actions.RemoveEffectAction
   - SpellBook.GAS.Bridges.RaiseEventAction
   - SpellBook.GAS.Effects.DebugLogAction
   - SpellBook.GAS.Effects.SpawnVFXAction
