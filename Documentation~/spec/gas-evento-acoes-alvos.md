@@ -849,7 +849,7 @@ Depende de: EV17a.
   - Fora: `gas.md` vai para o passe de documentação; sem `!`, sem CHANGELOG. O `ProjectileEditor` não muda (o `OnImpact` é `HideInInspector`; o impacto aparece nas filhas do `SpawnProjectile`, EV19).
 - Testes red (EditMode, `ActionInspectorTests`): `Tabs_OnePerActionEvent_CounterAndValidationDot`; `EffectTabs_ReactionsGrouped`; `ChannelTab_OnlyWithChannel_HiddenWithWarning`; `TabRemembered_PerAssetInSession`; `MultiSelection_HidesTabs`.
 - Critério de pronto: os 5 testes verdes e os `Row_*` do EV17a seguem verdes; guardas verdes: `ActivationInspectorTests` e `SpellBookEditorCoverageTests`. No host (Examinador): abas, contador, linha legível e 50 ações sem engasgo.
-- Tamanho: estimado em ~385 linhas (265 de editor, ~120 de testes) e 5 arquivos, pelo código guardado. Exceção: nenhuma.
+- Tamanho: medido em 385 linhas (265 de editor, 120 de testes) e 5 arquivos. Exceção: nenhuma.
 - Commit: `feat(editor): abas de eventos das ações nos editores`
 
 ### EV18 — Inspector: chip de alvo e bloco "Alvo"

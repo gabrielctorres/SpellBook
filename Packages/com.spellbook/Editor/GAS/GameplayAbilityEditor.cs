@@ -4,6 +4,7 @@ using SpellBook.Core.Editor;
 using SpellBook.Core.Editor.Inspector;
 using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Attributes;
+using SpellBook.GAS.Editor.Actions;
 using SpellBook.GAS.Effects;
 using SpellBook.GAS.Values;
 using UnityEditor;
@@ -15,7 +16,8 @@ namespace SpellBook.GAS.Editor
     /// <summary>
     /// Inspector da <see cref="GameplayAbility"/> (R29). Depois do Inspector padrão: o "nível de prévia", limitado a
     /// [1, MaxLevel], e a prévia nesse nível de cada valor da tabela e da recarga (sem a redução do atributo); a seção
-    /// "Ativação", com uma linha por regra (resumo da condição e motivo da falha); e a prévia das cargas no mesmo nível.
+    /// "Ativação", com uma linha por regra (resumo da condição e motivo da falha); a prévia das cargas no mesmo nível; e as
+    /// abas de ações por evento, com "A cada passo" só em <see cref="AbilityBehavior.Channel"/>.
     /// </summary>
     [CustomEditor(typeof(GameplayAbility))]
     [CanEditMultipleObjects]
@@ -47,9 +49,19 @@ namespace SpellBook.GAS.Editor
             activation.Add(_charges);
             root.Add(activation);
 
+            ActionEventsView.HideDefaultFields(root, typeof(GameplayAbility));
+            root.Add(new ActionEventsView(serializedObject,
+                "Esta habilidade ainda não faz nada. Adicione uma ação em \"Ao ativar\".",
+                field => field != nameof(GameplayAbility.OnChannelTick) || IsChannel()));
+
             _level.RegisterValueChangedCallback(evt => SetPreviewLevel(evt.newValue));
             root.TrackSerializedObjectValue(serializedObject, _ => SetPreviewLevel(_level.value));
             SetPreviewLevel(1);
+        }
+
+        private bool IsChannel()
+        {
+            return target is GameplayAbility ability && ability.Behavior == AbilityBehavior.Channel;
         }
 
         /// <summary>Muda o nível de prévia, limitado a [1, MaxLevel], e refaz a prévia.</summary>
