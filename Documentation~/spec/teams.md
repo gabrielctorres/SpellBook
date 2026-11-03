@@ -176,6 +176,21 @@ Todos usam a Unity e seguem o WIP 1. TM1 a TM4 não dependem de item aberto. Tes
 - Critério de pronto: CA2, CA3, CA6, CA8 e CA19 verdes.
 - Tamanho estimado: ~420 linhas; 8 arquivos. Depende de: TM1.
 
+### Detalhe (2026-11-03)
+- CA: CA2, CA3, CA6, CA8, CA16 (parte: consultas entre membros), CA19.
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/Teams/ITeamMember.cs` (novo: `Team` e `Matrix`);
+  - `Runtime/Teams/TeamMember.cs` (novo: `[SerializeField]` `team` e `matrix`, `[HelpURL(DocUrls.Teams + "#teammember")]`, `SetTeam`, `OnTeamChanged(membro, antes, depois)` disparado só em mudança real e com o time já gravado);
+  - `Runtime/Teams/TeamQueries.cs` (novo: `GetRelation(this ITeamMember a, ITeamMember b)` com a matriz de `a`, depois a de `b`, depois `Neutral`; membro nulo conta como sem time; `IsAllied`, `IsHostile`, `IsNeutral`; `Matches(mask, a, b)` com `Self` quando `a` não é nulo e `ReferenceEquals(a, b)`);
+  - `Tests/Testing/TeamsFactory.cs` (novo, `#if UNITY_EDITOR` como o `EventsFactory`: time, matriz com padrão, célula, objeto com `TeamMember`; tudo destruído no `Dispose`);
+  - `Tests/Testing/SpellBook.Testing.asmdef:4-9` (+`SpellBook.Teams`);
+  - `Tests/Teams/EditMode/TeamMemberTests.cs` (novo; inclui a guarda textual de CA19 sobre `Runtime/Teams/**`, no padrão do `GasSourceScanTests`).
+  - Fora, pela emenda de 2026-11-03 da 0007: `times.md` e `CHANGELOG.md` (sem quebra). `IValidatable` do `TeamMember` entra no TM3. O `TeamRelationMatrixTests` do TM1 não passa a usar a factory (fora do ticket).
+- Testes red (EditMode, `TeamMemberTests`): `IsAllied_IsHostile_IsNeutral_BetweenMembers`, `SameMember_ReturnsSameTeamRelation`, `NoMemberOrNoTeam_UsesNoTeamRelation_NoException`, `MatrixFromAsker_ThenOther_ThenNeutral`, `SetTeam_FiresOnce_SameTeamDoesNot_ListenerChangingAgainIsSafe`, `CustomITeamMember_ParticipatesInQueries`, `Queries_DoNotAllocate`, `TeamsSources_NoSingletonOrFind`.
+- Critério de pronto: `TeamMemberTests` (8) e `TeamRelationMatrixTests` verdes com filtro; `HelpUrlTests` e `AsmdefRulesTests` verdes (`TeamMember` novo e `Testing` com Teams).
+- Tamanho: ~430 linhas e 6 arquivos, pela ADR 0042. Exceção: nenhuma.
+- Commit: `feat(teams): membros, consultas e troca de time em runtime`
+
 ### TM3 — Validação
 - Escopo: `TeamDefinition.cs`, `TeamRelationMatrix.cs`, `TeamMember.cs` (`Validate`), `Tests/Teams/EditMode/TeamsValidationTests.cs` (novo), `Documentation~/manual/ferramentas/validador.md`, `CHANGELOG.md`.
 - Testes red: `Matrix_NullDuplicateUnknownTeam_RepeatedPair_EmptyList` (CA9); `Member_NoMatrix_NoTeam_TeamOutsideMatrix` (CA9); `ProjectValidator_ReportsTeamsAssetsClickable` (C8).
