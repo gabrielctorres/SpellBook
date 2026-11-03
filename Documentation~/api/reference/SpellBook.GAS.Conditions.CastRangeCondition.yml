@@ -7,6 +7,7 @@ items:
   children:
   - SpellBook.GAS.Conditions.CastRangeCondition.DefaultFailureKey
   - SpellBook.GAS.Conditions.CastRangeCondition.Evaluate(SpellBook.GAS.Conditions.ConditionContext@)
+  - SpellBook.GAS.Conditions.CastRangeCondition.Measure
   langs:
   - csharp
   - vb
@@ -16,23 +17,25 @@ items:
   type: Class
   namespace: SpellBook.GAS.Conditions
   summary: >-
-    Verdadeira se o ponto-alvo está a até <xref href="SpellBook.GAS.Abilities.GameplayAbility.CastRange" data-throw-if-not-resolved="false"></xref> (avaliado no nível do contexto) da
+    Verdadeira se o alvo está a até <xref href="SpellBook.GAS.Abilities.GameplayAbility.CastRange" data-throw-if-not-resolved="false"></xref> (avaliado no nível do contexto) da
 
-    posição do <xref href="SpellBook.GAS.Conditions.ConditionContext.Owner" data-throw-if-not-resolved="false"></xref>. Alcance ≤ 0, ou sem habilidade, é "sem limite": verdadeira, com ou
+    posição do <xref href="SpellBook.GAS.Conditions.ConditionContext.Owner" data-throw-if-not-resolved="false"></xref>. Com unidade, mede até ela pelo <xref href="SpellBook.GAS.Conditions.CastRangeCondition.Measure" data-throw-if-not-resolved="false"></xref>; sem
 
-    sem ponto. Com alcance &gt; 0, sem ponto ou sem dono, é falsa.
+    unidade, até o ponto. Alcance ≤ 0, ou sem habilidade, é "sem limite": verdadeira, com ou sem alvo. Com
+
+    alcance &gt; 0, sem ponto ou sem dono, é falsa.
   example: []
   syntax:
     content: >-
       [Serializable]
 
-      [TypeCategory("Alvos", Summary = "O ponto-alvo está dentro do alcance da habilidade.", Line = "Dentro do alcance")]
+      [TypeCategory("Alvos", Summary = "O alvo está dentro do alcance da habilidade.", Line = "Dentro do alcance")]
 
       public sealed class CastRangeCondition : Condition<ConditionContext>
     content.vb: >-
       <Serializable>
 
-      <TypeCategory("Alvos", Summary:="O ponto-alvo está dentro do alcance da habilidade.", Line:="Dentro do alcance")>
+      <TypeCategory("Alvos", Summary:="O alvo está dentro do alcance da habilidade.", Line:="Dentro do alcance")>
 
       Public NotInheritable Class CastRangeCondition Inherits Condition(Of ConditionContext)
   inheritance:
@@ -58,10 +61,31 @@ items:
     namedArguments:
     - name: Summary
       type: System.String
-      value: O ponto-alvo está dentro do alcance da habilidade.
+      value: O alvo está dentro do alcance da habilidade.
     - name: Line
       type: System.String
       value: Dentro do alcance
+- uid: SpellBook.GAS.Conditions.CastRangeCondition.Measure
+  commentId: P:SpellBook.GAS.Conditions.CastRangeCondition.Measure
+  id: Measure
+  parent: SpellBook.GAS.Conditions.CastRangeCondition
+  langs:
+  - csharp
+  - vb
+  name: Measure
+  nameWithType: CastRangeCondition.Measure
+  fullName: SpellBook.GAS.Conditions.CastRangeCondition.Measure
+  type: Property
+  namespace: SpellBook.GAS.Conditions
+  summary: Até onde medir quando o alvo é uma unidade. O padrão é <xref href="SpellBook.GAS.Conditions.RangeMeasure.Center" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public RangeMeasure Measure { get; set; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Conditions.RangeMeasure
+    content.vb: Public Property Measure As RangeMeasure
+  overload: SpellBook.GAS.Conditions.CastRangeCondition.Measure*
 - uid: SpellBook.GAS.Conditions.CastRangeCondition.DefaultFailureKey
   commentId: P:SpellBook.GAS.Conditions.CastRangeCondition.DefaultFailureKey
   id: DefaultFailureKey
@@ -127,6 +151,12 @@ references:
   name: Owner
   nameWithType: ConditionContext.Owner
   fullName: SpellBook.GAS.Conditions.ConditionContext.Owner
+- uid: SpellBook.GAS.Conditions.CastRangeCondition.Measure
+  commentId: P:SpellBook.GAS.Conditions.CastRangeCondition.Measure
+  href: SpellBook.GAS.Conditions.CastRangeCondition.html#SpellBook_GAS_Conditions_CastRangeCondition_Measure
+  name: Measure
+  nameWithType: CastRangeCondition.Measure
+  fullName: SpellBook.GAS.Conditions.CastRangeCondition.Measure
 - uid: SpellBook.GAS.Conditions
   commentId: N:SpellBook.GAS.Conditions
   name: SpellBook.GAS.Conditions
@@ -523,6 +553,25 @@ references:
     isExternal: true
     href: https://learn.microsoft.com/dotnet/api/system.string
   - name: )
+- uid: SpellBook.GAS.Conditions.RangeMeasure.Center
+  commentId: F:SpellBook.GAS.Conditions.RangeMeasure.Center
+  href: SpellBook.GAS.Conditions.RangeMeasure.html#SpellBook_GAS_Conditions_RangeMeasure_Center
+  name: Center
+  nameWithType: RangeMeasure.Center
+  fullName: SpellBook.GAS.Conditions.RangeMeasure.Center
+- uid: SpellBook.GAS.Conditions.CastRangeCondition.Measure*
+  commentId: Overload:SpellBook.GAS.Conditions.CastRangeCondition.Measure
+  href: SpellBook.GAS.Conditions.CastRangeCondition.html#SpellBook_GAS_Conditions_CastRangeCondition_Measure
+  name: Measure
+  nameWithType: CastRangeCondition.Measure
+  fullName: SpellBook.GAS.Conditions.CastRangeCondition.Measure
+- uid: SpellBook.GAS.Conditions.RangeMeasure
+  commentId: T:SpellBook.GAS.Conditions.RangeMeasure
+  parent: SpellBook.GAS.Conditions
+  href: SpellBook.GAS.Conditions.RangeMeasure.html
+  name: RangeMeasure
+  nameWithType: RangeMeasure
+  fullName: SpellBook.GAS.Conditions.RangeMeasure
 - uid: SpellBook.Core.Conditions.Condition{SpellBook.GAS.Conditions.ConditionContext}.DefaultFailureKey
   commentId: P:SpellBook.Core.Conditions.Condition{SpellBook.GAS.Conditions.ConditionContext}.DefaultFailureKey
   parent: SpellBook.Core.Conditions.Condition{SpellBook.GAS.Conditions.ConditionContext}

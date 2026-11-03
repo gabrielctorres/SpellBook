@@ -276,7 +276,7 @@ O `ConditionContext` é o mesmo para toda condição do GAS e é somente leitura
 | `Owner` | ASC que avalia a condição. |
 | `Ability` e `Level` | Habilidade em avaliação e o nível dela. A habilidade pode ser nula. |
 | `Spec` | `AbilitySpec` da habilidade concedida, ou nulo. |
-| `Target` | `AbilityTarget`: o ponto do alvo (`HasPoint` e `Point`), ou `AbilityTarget.None`. |
+| `Target` | `AbilityTarget`: o ponto do alvo (`HasPoint` e `Point`) e a unidade-alvo (`Unit`, nula num alvo só de ponto), ou `AbilityTarget.None`. |
 | `Targets` | Unidades-alvo. Nunca é nulo: sem alvos, é uma lista vazia. |
 | `Action` | O `ActionContext` da execução, quando a condição roda numa lista de ações (na `ConditionalAction`). Fora dela, como nas regras de ativação, é nulo. |
 
@@ -284,18 +284,18 @@ Condições prontas:
 
 | Condição | Verdadeira quando | Chave padrão do motivo |
 |---|---|---|
-| `TagQueryCondition` | As tags ativas do `Owner` satisfazem a **Query** (todas, alguma e nenhuma, como a [`GameplayTagQuery`](tags.md#gameplaytagquery)). Sem `Owner`, é falsa. | `gas.activation.tag_query` |
+| `TagQueryCondition` | As tags ativas do **Subject** satisfazem a **Query** (todas, alguma e nenhuma, como a [`GameplayTagQuery`](tags.md#gameplaytagquery)). Com `Owner`, o padrão, lê as tags de quem avalia; com `Target Unit`, as da unidade do `Target`. Sem `Owner`, ou sem unidade com `Target Unit`, é falsa. | `gas.activation.tag_query` |
 | `HasTargetsCondition` | Há ao menos um alvo em `Targets`. Alvos destruídos não contam. | `gas.activation.has_targets` |
 | `AttributeThresholdCondition` | O valor atual do **Attribute** no `Owner` compara com o **Value** pela **Comparison** (`Greater`, `GreaterOrEqual`, `Less`, `LessOrEqual` ou `Equal`, com tolerância de 0,0001). Com **Use Ratio**, compara o valor dividido pelo máximo efetivo do atributo; máximo 0 ou menor dá falso. Atributo ausente no `Owner`, ou sem `Owner`, dá falso, sem aviso. | `gas.activation.attribute_threshold` |
 | `HasTargetPointCondition` | A ativação tem um ponto-alvo (`Target.HasPoint`). | `gas.activation.no_target` |
-| `CastRangeCondition` | O ponto-alvo está a até `CastRange` da habilidade, medido da posição do `Owner`. Com `CastRange` 0 ou menor, ou sem habilidade, é verdadeira, com ou sem ponto. Com alcance maior que 0 e sem ponto, é falsa. | `gas.activation.cast_range` |
+| `CastRangeCondition` | O alvo está a até `CastRange` da habilidade, medido da posição do `Owner` até o ponto ou, com unidade-alvo, até a unidade pelo **Measure**. Com `CastRange` 0 ou menor, ou sem habilidade, é verdadeira, com ou sem ponto. Com alcance maior que 0 e sem ponto, é falsa. | `gas.activation.cast_range` |
 | `AndCondition` | Todas as filhas são verdadeiras. Lista vazia é verdadeira. | — |
 | `OrCondition` | Alguma filha é verdadeira. Lista vazia é falsa. | — |
 | `NotCondition` | A filha é falsa. Sem filha, é falsa. | — |
 
 O **Value** da `AttributeThresholdCondition` é uma fonte de valor, como a de um modificador: um valor por nível (inclusive `%nome` da tabela da habilidade), um atributo ou uma fórmula. Ele é avaliado com o `Owner` como instigador e alvo, na habilidade e no nível do contexto. Com a Mana em 30, "Mana `GreaterOrEqual` 20" passa e, com a Mana em 10, falha.
 
-O alcance mora na habilidade: o campo **Cast Range** da `GameplayAbility` (`CastRange`, um `ScalableFloat` avaliado no nível e na tabela da habilidade) nasce 0, "sem limite". A `CastRangeCondition` mede a distância em 3D até o ponto: com alcance 5, um ponto a 3 m passa e um a 8 m falha. Para que a falta de ponto tenha motivo próprio (`no_target`) em vez de `cast_range`, ponha a `HasTargetPointCondition` antes da `CastRangeCondition`.
+O alcance mora na habilidade: o campo **Cast Range** da `GameplayAbility` (`CastRange`, um `ScalableFloat` avaliado no nível e na tabela da habilidade) nasce 0, "sem limite". A `CastRangeCondition` mede a distância em 3D até o ponto: com alcance 5, um ponto a 3 m passa e um a 8 m falha. Com unidade-alvo, o **Measure** escolhe até onde medir. `Center`, o padrão, mede até a posição da unidade. `Edge` mede até o ponto do colisor da unidade mais perto de quem lança, e uma unidade grande com o centro a 6 m e a borda a 4 m fica no alcance 5. Sem colisor, `Edge` mede até o centro. Para que a falta de ponto tenha motivo próprio (`no_target`) em vez de `cast_range`, ponha a `HasTargetPointCondition` antes da `CastRangeCondition`.
 
 Filhas nulas nas composições são ignoradas. No Inspector, um campo `[SerializeReference] Condition<ConditionContext>` só oferece essas condições e as suas, e cada uma aparece numa linha, como "Alguma (2)" ou "Não Tem alvos".
 
@@ -452,8 +452,9 @@ O `AreaSelector` escolhe as unidades num raio. Ele procura o `AbilitySystemCompo
 | `Max Targets` | O máximo de alvos; 0 é ilimitado. |
 | `Order` | `Nearest` fica com os mais perto do centro. `Random` sorteia sem repetir, com a fonte de aleatoriedade do ASC. |
 | `Layers` | As camadas em que a busca procura. Vem com todas. |
+| `Filter` | Uma condição avaliada para cada candidato, com o candidato como unidade do `Target`. Só fica quem passa. Vazio aceita todos. |
 
-Para o alvo mais perto do ponto mirado, use `Origin` Point, `Max Targets` 1 e `Order` Nearest. Com a mesma semente em `asc.SetRandomSource`, o sorteio escolhe os mesmos alvos na mesma ordem. A busca vê até 64 colliders, usa buffers de cada ASC e não aloca.
+Para o alvo mais perto do ponto mirado, use `Origin` Point, `Max Targets` 1 e `Order` Nearest. Para ficar só com quem tem `State.Alive`, ponha no `Filter` uma `TagQueryCondition` com `Subject` Target Unit e a tag em `All`. O filtro roda antes de `Max Targets`, então o máximo conta só quem passou. Com a mesma semente em `asc.SetRandomSource`, o sorteio escolhe os mesmos alvos na mesma ordem. A busca vê até 64 colliders, usa buffers de cada ASC e não aloca.
 
 ### 3.3 Base nova das ações {#gameplayaction}
 `GameplayAction` (namespace `SpellBook.GAS.Actions`) é a base única das ações da 3.0, e o `AbilitySystemComponent` tem o executor que a roda. A lista `OnActivate` da habilidade, as listas do efeito e o `OnImpact` do projétil usam essa base, e a mesma instância de ação pode estar em listas de donos diferentes.
@@ -532,7 +533,7 @@ Uma habilidade sem ações, ou só com ações sem espera, termina dentro do `Tr
 
 **Regras de ativação.** A lista **Activation Conditions** da habilidade (`ActivationConditions`) tem uma `ActivationRule` por entrada: uma [condição](#condicoes) e o motivo da falha, com **Failure Tag** (uma `GameplayTag`, opcional) e **Failure Key** (chave de texto). Com a chave vazia, vale a chave padrão da condição. Entradas vazias ou sem condição são puladas. As condições recebem o alvo da ativação no `ConditionContext.Target`.
 
-**Alvo e motivo.** `asc.TryActivateAbility(ability, alvo)` recebe um `AbilityTarget` (`AbilityTarget.AtPoint(ponto)` ou `AbilityTarget.None`); a forma com `Vector3` usa `AtPoint`. Para consultar sem ativar, `asc.GetActivationResult(ability, alvo, out ActivationFailure falha)` passa pelas mesmas checagens, na mesma ordem, sem mudar o ASC, sem disparar evento e sem alocar; `GetActivationResult(ability)` consulta sem alvo. O `ActivationFailure` traz:
+**Alvo e motivo.** `asc.TryActivateAbility(ability, alvo)` recebe um `AbilityTarget` (`AbilityTarget.AtPoint(ponto)`, `AbilityTarget.AtUnit(asc)` ou `AbilityTarget.None`); a forma com `Vector3` usa `AtPoint`. Com `AtUnit`, a unidade entra nos alvos do evento do `OnActivate` e a posição dela vira o ponto. Uma unidade nula dá `None`. Para consultar sem ativar, `asc.GetActivationResult(ability, alvo, out ActivationFailure falha)` passa pelas mesmas checagens, na mesma ordem, sem mudar o ASC, sem disparar evento e sem alocar; `GetActivationResult(ability)` consulta sem alvo. O `ActivationFailure` traz:
 
 | Campo | O que é |
 |---|---|

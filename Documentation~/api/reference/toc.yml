@@ -642,6 +642,9 @@ items:
   - uid: SpellBook.GAS.Conditions.ConditionContext
     name: ConditionContext
     type: Struct
+  - uid: SpellBook.GAS.Conditions.ConditionSubject
+    name: ConditionSubject
+    type: Enum
   - uid: SpellBook.GAS.Conditions.HasTargetPointCondition
     name: HasTargetPointCondition
     type: Class
@@ -654,6 +657,9 @@ items:
   - uid: SpellBook.GAS.Conditions.OrCondition
     name: OrCondition
     type: Class
+  - uid: SpellBook.GAS.Conditions.RangeMeasure
+    name: RangeMeasure
+    type: Enum
   - uid: SpellBook.GAS.Conditions.TagQueryCondition
     name: TagQueryCondition
     type: Class

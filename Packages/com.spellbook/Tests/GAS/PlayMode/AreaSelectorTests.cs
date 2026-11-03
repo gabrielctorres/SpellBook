@@ -4,9 +4,11 @@ using NUnit.Framework;
 using SpellBook.Core;
 using SpellBook.GAS.Abilities.Actions;
 using SpellBook.GAS.Actions;
+using SpellBook.GAS.Conditions;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Targeting;
 using SpellBook.GAS.Values;
+using SpellBook.Tags;
 using SpellBook.Testing;
 using UnityEngine;
 using UnityEngine.TestTools.Constraints;
@@ -15,7 +17,7 @@ using Object = UnityEngine.Object;
 
 namespace SpellBook.GAS.Tests
 {
-    /// <summary>Seletor de área e <c>TargetingAction</c> com seletor (B-012, EV4b; CA13 e parte do CA34).</summary>
+    /// <summary>Seletor de área e <c>TargetingAction</c> com seletor (B-012, EV4b e EV8; CA12, CA13 e CA34).</summary>
     public class AreaSelectorTests
     {
         private static readonly object Owner = new object();
@@ -141,6 +143,72 @@ namespace SpellBook.GAS.Tests
                 for (int i = 0; i < 10000; i++) caster.RunActions(actions, null, Owner);
             }, Is.Not.AllocatingGCMemory());
             Assert.That(counter.Total, Is.EqualTo(30000), "o sorteio achou 3 alvos em cada execução");
+        }
+
+        [Test]
+        public void Area_FilterTagOnTarget_Max2_ExcludesOwner()
+        {
+            GameplayTag alive = _gas.CreateTag("State.Alive");
+            GameplayTag stunned = _gas.CreateTag("State.Stunned");
+            AbilitySystemComponent caster = CreateUnit3D(Vector3.zero);
+            AbilitySystemComponent untagged = CreateUnit3D(new Vector3(1f, 0f, 0f));
+            AbilitySystemComponent ignored = CreateUnit3D(new Vector3(1.5f, 0f, 0f));
+            AbilitySystemComponent near = CreateUnit3D(new Vector3(2f, 0f, 0f));
+            AbilitySystemComponent middle = CreateUnit3D(new Vector3(3f, 0f, 0f));
+            AbilitySystemComponent last = CreateUnit3D(new Vector3(4f, 0f, 0f));
+            caster.AddTag(alive);
+            ignored.AddTag(alive);
+            ignored.AddTag(stunned);
+            near.AddTag(alive);
+            middle.AddTag(alive);
+            last.AddTag(alive);
+            var filter = new TagQueryCondition { Subject = ConditionSubject.TargetUnit };
+            filter.Query.All.Add(alive);
+            filter.Query.None.Add(stunned);
+            var area = new AreaSelector { Radius = ScalableFloat.Constant(5f), MaxTargets = 2, Filter = filter };
+
+            List<AbilitySystemComponent> withoutOwner = Select(caster, area);
+            area.IncludeOwner = true;
+            List<AbilitySystemComponent> withOwner = Select(caster, area);
+            area.MaxTargets = 0;
+            List<AbilitySystemComponent> unlimited = Select(caster, area);
+            area.Filter = null;
+            List<AbilitySystemComponent> noFilter = Select(caster, area);
+
+            Assert.That(withoutOwner, Is.EqualTo(new[] { near, middle }), "os 2 mais perto com a tag exigida e sem a ignorada, sem o dono");
+            Assert.That(withOwner, Is.EqualTo(new[] { caster, near }), "o dono com a tag entra quando incluído");
+            Assert.That(unlimited, Is.EqualTo(new[] { caster, near, middle, last }),
+                "sem limite, ficam de fora só quem não tem a tag exigida e quem tem a ignorada");
+            Assert.That(noFilter, Is.EqualTo(new[] { caster, untagged, ignored, near, middle, last }), "sem filtro, aceita todos");
+        }
+
+        [Test]
+        public void Sequence3Actions_AreaWithFilter_10000_DoNotAllocate()
+        {
+            GameplayTag alive = _gas.CreateTag("State.Alive");
+            AbilitySystemComponent caster = CreateUnit3D(Vector3.zero);
+            for (int i = 1; i <= 4; i++) CreateUnit3D(new Vector3(i, 0f, 0f)).AddTag(alive);
+            CreateUnit3D(new Vector3(0f, 0f, 1f));
+            var filter = new TagQueryCondition { Subject = ConditionSubject.TargetUnit };
+            filter.Query.All.Add(alive);
+            var counter = new CountTargetsAction
+            {
+                Target = new AreaSelector { Radius = ScalableFloat.Constant(10f), Filter = filter },
+            };
+            var actions = new GameplayAction[]
+            {
+                new CountTargetsAction { Target = new CasterSelector() },
+                new CountTargetsAction { Target = new AreaSelector { Radius = ScalableFloat.Constant(10f), MaxTargets = 2, Filter = filter } },
+                counter,
+            };
+            caster.RunActions(actions, null, Owner);
+            counter.Total = 0;
+
+            Assert.That(() =>
+            {
+                for (int i = 0; i < 10000; i++) caster.RunActions(actions, null, Owner);
+            }, Is.Not.AllocatingGCMemory());
+            Assert.That(counter.Total, Is.EqualTo(40000), "o filtro deixou só as 4 unidades com a tag em cada execução");
         }
 
         private List<AbilitySystemComponent> Select(AbilitySystemComponent caster, TargetSelector selector)

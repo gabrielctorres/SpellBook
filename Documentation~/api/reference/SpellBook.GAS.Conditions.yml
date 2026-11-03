@@ -9,10 +9,12 @@ items:
   - SpellBook.GAS.Conditions.AttributeThresholdCondition.Comparison
   - SpellBook.GAS.Conditions.CastRangeCondition
   - SpellBook.GAS.Conditions.ConditionContext
+  - SpellBook.GAS.Conditions.ConditionSubject
   - SpellBook.GAS.Conditions.HasTargetPointCondition
   - SpellBook.GAS.Conditions.HasTargetsCondition
   - SpellBook.GAS.Conditions.NotCondition
   - SpellBook.GAS.Conditions.OrCondition
+  - SpellBook.GAS.Conditions.RangeMeasure
   - SpellBook.GAS.Conditions.TagQueryCondition
   langs:
   - csharp
@@ -51,6 +53,13 @@ references:
   - uid: SpellBook.GAS.Conditions.AttributeThresholdCondition.Comparison
     name: Comparison
     href: SpellBook.GAS.Conditions.AttributeThresholdCondition.Comparison.html
+- uid: SpellBook.GAS.Conditions.RangeMeasure
+  commentId: T:SpellBook.GAS.Conditions.RangeMeasure
+  parent: SpellBook.GAS.Conditions
+  href: SpellBook.GAS.Conditions.RangeMeasure.html
+  name: RangeMeasure
+  nameWithType: RangeMeasure
+  fullName: SpellBook.GAS.Conditions.RangeMeasure
 - uid: SpellBook.GAS.Conditions.CastRangeCondition
   commentId: T:SpellBook.GAS.Conditions.CastRangeCondition
   href: SpellBook.GAS.Conditions.CastRangeCondition.html
@@ -94,6 +103,13 @@ references:
   name: HasTargetsCondition
   nameWithType: HasTargetsCondition
   fullName: SpellBook.GAS.Conditions.HasTargetsCondition
+- uid: SpellBook.GAS.Conditions.ConditionSubject
+  commentId: T:SpellBook.GAS.Conditions.ConditionSubject
+  parent: SpellBook.GAS.Conditions
+  href: SpellBook.GAS.Conditions.ConditionSubject.html
+  name: ConditionSubject
+  nameWithType: ConditionSubject
+  fullName: SpellBook.GAS.Conditions.ConditionSubject
 - uid: SpellBook.GAS.Conditions.TagQueryCondition
   commentId: T:SpellBook.GAS.Conditions.TagQueryCondition
   href: SpellBook.GAS.Conditions.TagQueryCondition.html

@@ -5,6 +5,7 @@ items:
   id: AreaSelector
   parent: SpellBook.GAS.Targeting
   children:
+  - SpellBook.GAS.Targeting.AreaSelector.Filter
   - SpellBook.GAS.Targeting.AreaSelector.IncludeOwner
   - SpellBook.GAS.Targeting.AreaSelector.Layers
   - SpellBook.GAS.Targeting.AreaSelector.MaxTargets
@@ -27,7 +28,9 @@ items:
 
     pais, e cada unidade conta uma vez. O ASC que roda a lista (<xref href="SpellBook.GAS.Actions.ActionContext.Owner" data-throw-if-not-resolved="false"></xref>) fica de fora,
 
-    a menos que <xref href="SpellBook.GAS.Targeting.AreaSelector.IncludeOwner" data-throw-if-not-resolved="false"></xref> esteja ligado. A busca vê até 64 colliders.
+    a menos que <xref href="SpellBook.GAS.Targeting.AreaSelector.IncludeOwner" data-throw-if-not-resolved="false"></xref> esteja ligado. O <xref href="SpellBook.GAS.Targeting.AreaSelector.Filter" data-throw-if-not-resolved="false"></xref> decide, candidato a candidato, quem pode
+
+    ser alvo (ADR 0035). A busca vê até 64 colliders.
   example: []
   syntax:
     content: >-
@@ -205,6 +208,32 @@ items:
       type: UnityEngine.LayerMask
     content.vb: Public Property Layers As LayerMask
   overload: SpellBook.GAS.Targeting.AreaSelector.Layers*
+- uid: SpellBook.GAS.Targeting.AreaSelector.Filter
+  commentId: P:SpellBook.GAS.Targeting.AreaSelector.Filter
+  id: Filter
+  parent: SpellBook.GAS.Targeting.AreaSelector
+  langs:
+  - csharp
+  - vb
+  name: Filter
+  nameWithType: AreaSelector.Filter
+  fullName: SpellBook.GAS.Targeting.AreaSelector.Filter
+  type: Property
+  namespace: SpellBook.GAS.Targeting
+  summary: >-
+    Filtro de candidato (ADR 0035), avaliado uma vez por candidato com <code>Owner</code> = quem procura e
+
+    <code>Target</code> = <xref href="SpellBook.GAS.Abilities.AbilityTarget.AtUnit(SpellBook.GAS.Core.AbilitySystemComponent)" data-throw-if-not-resolved="false"></xref> do candidato, na habilidade, no spec e no nível da execução.
+
+    <code>Targets</code> são os alvos do evento. Nulo aceita todos.
+  example: []
+  syntax:
+    content: public Condition<ConditionContext> Filter { get; set; }
+    parameters: []
+    return:
+      type: SpellBook.Core.Conditions.Condition{SpellBook.GAS.Conditions.ConditionContext}
+    content.vb: Public Property Filter As Condition(Of ConditionContext)
+  overload: SpellBook.GAS.Targeting.AreaSelector.Filter*
 - uid: SpellBook.GAS.Targeting.AreaSelector.NeedsEventTargets
   commentId: P:SpellBook.GAS.Targeting.AreaSelector.NeedsEventTargets
   id: NeedsEventTargets
@@ -270,6 +299,12 @@ references:
   name: IncludeOwner
   nameWithType: AreaSelector.IncludeOwner
   fullName: SpellBook.GAS.Targeting.AreaSelector.IncludeOwner
+- uid: SpellBook.GAS.Targeting.AreaSelector.Filter
+  commentId: P:SpellBook.GAS.Targeting.AreaSelector.Filter
+  href: SpellBook.GAS.Targeting.AreaSelector.html#SpellBook_GAS_Targeting_AreaSelector_Filter
+  name: Filter
+  nameWithType: AreaSelector.Filter
+  fullName: SpellBook.GAS.Targeting.AreaSelector.Filter
 - uid: SpellBook.GAS.Targeting
   commentId: N:SpellBook.GAS.Targeting
   name: SpellBook.GAS.Targeting
@@ -641,6 +676,115 @@ references:
   name: UnityEngine
   nameWithType: UnityEngine
   fullName: UnityEngine
+- uid: SpellBook.GAS.Abilities.AbilityTarget.AtUnit(SpellBook.GAS.Core.AbilitySystemComponent)
+  commentId: M:SpellBook.GAS.Abilities.AbilityTarget.AtUnit(SpellBook.GAS.Core.AbilitySystemComponent)
+  href: SpellBook.GAS.Abilities.AbilityTarget.html#SpellBook_GAS_Abilities_AbilityTarget_AtUnit_SpellBook_GAS_Core_AbilitySystemComponent_
+  name: AtUnit(AbilitySystemComponent)
+  nameWithType: AbilityTarget.AtUnit(AbilitySystemComponent)
+  fullName: SpellBook.GAS.Abilities.AbilityTarget.AtUnit(SpellBook.GAS.Core.AbilitySystemComponent)
+  spec.csharp:
+  - uid: SpellBook.GAS.Abilities.AbilityTarget.AtUnit(SpellBook.GAS.Core.AbilitySystemComponent)
+    name: AtUnit
+    href: SpellBook.GAS.Abilities.AbilityTarget.html#SpellBook_GAS_Abilities_AbilityTarget_AtUnit_SpellBook_GAS_Core_AbilitySystemComponent_
+  - name: (
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent
+    name: AbilitySystemComponent
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  - name: )
+  spec.vb:
+  - uid: SpellBook.GAS.Abilities.AbilityTarget.AtUnit(SpellBook.GAS.Core.AbilitySystemComponent)
+    name: AtUnit
+    href: SpellBook.GAS.Abilities.AbilityTarget.html#SpellBook_GAS_Abilities_AbilityTarget_AtUnit_SpellBook_GAS_Core_AbilitySystemComponent_
+  - name: (
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent
+    name: AbilitySystemComponent
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  - name: )
+- uid: SpellBook.GAS.Targeting.AreaSelector.Filter*
+  commentId: Overload:SpellBook.GAS.Targeting.AreaSelector.Filter
+  href: SpellBook.GAS.Targeting.AreaSelector.html#SpellBook_GAS_Targeting_AreaSelector_Filter
+  name: Filter
+  nameWithType: AreaSelector.Filter
+  fullName: SpellBook.GAS.Targeting.AreaSelector.Filter
+- uid: SpellBook.Core.Conditions.Condition{SpellBook.GAS.Conditions.ConditionContext}
+  commentId: T:SpellBook.Core.Conditions.Condition{SpellBook.GAS.Conditions.ConditionContext}
+  parent: SpellBook.Core.Conditions
+  definition: SpellBook.Core.Conditions.Condition`1
+  href: SpellBook.Core.Conditions.Condition-1.html
+  name: Condition<ConditionContext>
+  nameWithType: Condition<ConditionContext>
+  fullName: SpellBook.Core.Conditions.Condition<SpellBook.GAS.Conditions.ConditionContext>
+  nameWithType.vb: Condition(Of ConditionContext)
+  fullName.vb: SpellBook.Core.Conditions.Condition(Of SpellBook.GAS.Conditions.ConditionContext)
+  name.vb: Condition(Of ConditionContext)
+  spec.csharp:
+  - uid: SpellBook.Core.Conditions.Condition`1
+    name: Condition
+    href: SpellBook.Core.Conditions.Condition-1.html
+  - name: <
+  - uid: SpellBook.GAS.Conditions.ConditionContext
+    name: ConditionContext
+    href: SpellBook.GAS.Conditions.ConditionContext.html
+  - name: '>'
+  spec.vb:
+  - uid: SpellBook.Core.Conditions.Condition`1
+    name: Condition
+    href: SpellBook.Core.Conditions.Condition-1.html
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: SpellBook.GAS.Conditions.ConditionContext
+    name: ConditionContext
+    href: SpellBook.GAS.Conditions.ConditionContext.html
+  - name: )
+- uid: SpellBook.Core.Conditions.Condition`1
+  commentId: T:SpellBook.Core.Conditions.Condition`1
+  href: SpellBook.Core.Conditions.Condition-1.html
+  name: Condition<TContext>
+  nameWithType: Condition<TContext>
+  fullName: SpellBook.Core.Conditions.Condition<TContext>
+  nameWithType.vb: Condition(Of TContext)
+  fullName.vb: SpellBook.Core.Conditions.Condition(Of TContext)
+  name.vb: Condition(Of TContext)
+  spec.csharp:
+  - uid: SpellBook.Core.Conditions.Condition`1
+    name: Condition
+    href: SpellBook.Core.Conditions.Condition-1.html
+  - name: <
+  - name: TContext
+  - name: '>'
+  spec.vb:
+  - uid: SpellBook.Core.Conditions.Condition`1
+    name: Condition
+    href: SpellBook.Core.Conditions.Condition-1.html
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TContext
+  - name: )
+- uid: SpellBook.Core.Conditions
+  commentId: N:SpellBook.Core.Conditions
+  name: SpellBook.Core.Conditions
+  nameWithType: SpellBook.Core.Conditions
+  fullName: SpellBook.Core.Conditions
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Conditions
+    name: Conditions
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Conditions
+    name: Conditions
 - uid: SpellBook.GAS.Targeting.TargetSelector.NeedsEventTargets
   commentId: P:SpellBook.GAS.Targeting.TargetSelector.NeedsEventTargets
   parent: SpellBook.GAS.Targeting.TargetSelector

@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using SpellBook.Core;
+using SpellBook.Core.Conditions;
 using SpellBook.Core.Inspector;
+using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Actions;
+using SpellBook.GAS.Conditions;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Values;
 using UnityEngine;
@@ -36,7 +39,8 @@ namespace SpellBook.GAS.Targeting
     /// <summary>
     /// Escolhe as unidades num raio em volta de um centro, com física 2D ou 3D. O ASC é procurado no collider ou nos
     /// pais, e cada unidade conta uma vez. O ASC que roda a lista (<see cref="ActionContext.Owner"/>) fica de fora,
-    /// a menos que <see cref="IncludeOwner"/> esteja ligado. A busca vê até 64 colliders.
+    /// a menos que <see cref="IncludeOwner"/> esteja ligado. O <see cref="Filter"/> decide, candidato a candidato, quem pode
+    /// ser alvo (ADR 0035). A busca vê até 64 colliders.
     /// </summary>
     [Serializable, TypeCategory("Alvo", Summary = "Escolhe as unidades num raio, as mais perto ou sorteadas.", Line = "Área")]
     public sealed class AreaSelector : TargetSelector
@@ -57,6 +61,8 @@ namespace SpellBook.GAS.Targeting
         [SerializeField, Min(0)] private int maxTargets;
         [SerializeField] private AreaOrder order = AreaOrder.Nearest;
         [SerializeField] private LayerMask layers = ~0;
+        [Tooltip("Filtro de candidato: o candidato fica se a condição for verdadeira. Vazio aceita todos.")]
+        [SerializeReference, TypePicker] private Condition<ConditionContext> filter;
 
         public AreaOrigin Origin { get => origin; set => origin = value; }
 
@@ -73,6 +79,13 @@ namespace SpellBook.GAS.Targeting
         public AreaOrder Order { get => order; set => order = value; }
 
         public LayerMask Layers { get => layers; set => layers = value; }
+
+        /// <summary>
+        /// Filtro de candidato (ADR 0035), avaliado uma vez por candidato com <c>Owner</c> = quem procura e
+        /// <c>Target</c> = <see cref="AbilityTarget.AtUnit"/> do candidato, na habilidade, no spec e no nível da execução.
+        /// <c>Targets</c> são os alvos do evento. Nulo aceita todos.
+        /// </summary>
+        public Condition<ConditionContext> Filter { get => filter; set => filter = value; }
 
         public override bool NeedsEventTargets => origin == AreaOrigin.FirstEventTarget;
 
@@ -92,7 +105,7 @@ namespace SpellBook.GAS.Targeting
                 int count = UnityEngine.Physics.OverlapSphereNonAlloc(center, range, buffers.Colliders3D, layers);
                 for (int i = 0; i < count; i++)
                 {
-                    TryAdd(buffers, buffers.Colliders3D[i].GetComponentInParent<AbilitySystemComponent>(), excluded, results);
+                    TryAdd(context, owner, buffers, buffers.Colliders3D[i].GetComponentInParent<AbilitySystemComponent>(), excluded, results);
                 }
                 Array.Clear(buffers.Colliders3D, 0, count);
             }
@@ -103,7 +116,7 @@ namespace SpellBook.GAS.Targeting
                 Physics2D.OverlapCircle(center, range, filter, buffers.Colliders2D);
                 for (int i = 0; i < buffers.Colliders2D.Count; i++)
                 {
-                    TryAdd(buffers, buffers.Colliders2D[i].GetComponentInParent<AbilitySystemComponent>(), excluded, results);
+                    TryAdd(context, owner, buffers, buffers.Colliders2D[i].GetComponentInParent<AbilitySystemComponent>(), excluded, results);
                 }
                 buffers.Colliders2D.Clear();
             }
@@ -148,10 +161,16 @@ namespace SpellBook.GAS.Targeting
             return buffers;
         }
 
-        private static void TryAdd(Buffers buffers, AbilitySystemComponent candidate, AbilitySystemComponent excluded,
-            List<AbilitySystemComponent> results)
+        private void TryAdd(ActionContext context, AbilitySystemComponent owner, Buffers buffers,
+            AbilitySystemComponent candidate, AbilitySystemComponent excluded, List<AbilitySystemComponent> results)
         {
             if (candidate == null || candidate == excluded || !buffers.Seen.Add(candidate)) return;
+            if (filter != null)
+            {
+                var candidateContext = new ConditionContext(owner, context.Ability, context.Level, context.Spec,
+                    AbilityTarget.AtUnit(candidate), context.EventTargets, context);
+                if (!filter.Evaluate(in candidateContext)) return;
+            }
             results.Add(candidate);
         }
 

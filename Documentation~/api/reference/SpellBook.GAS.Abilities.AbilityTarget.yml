@@ -6,9 +6,11 @@ items:
   parent: SpellBook.GAS.Abilities
   children:
   - SpellBook.GAS.Abilities.AbilityTarget.AtPoint(UnityEngine.Vector3)
+  - SpellBook.GAS.Abilities.AbilityTarget.AtUnit(SpellBook.GAS.Core.AbilitySystemComponent)
   - SpellBook.GAS.Abilities.AbilityTarget.HasPoint
   - SpellBook.GAS.Abilities.AbilityTarget.None
   - SpellBook.GAS.Abilities.AbilityTarget.Point
+  - SpellBook.GAS.Abilities.AbilityTarget.Unit
   langs:
   - csharp
   - vb
@@ -18,9 +20,9 @@ items:
   type: Struct
   namespace: SpellBook.GAS.Abilities
   summary: >-
-    Alvo de uma ativação ou de uma condição (ADR 0032, item 8): por enquanto só um ponto no mundo.
+    Alvo de uma ativação ou de uma condição (ADR 0032, item 8): um ponto no mundo e, opcionalmente, uma unidade.
 
-    <xref href="SpellBook.GAS.Abilities.AbilityTarget.None" data-throw-if-not-resolved="false"></xref> é o alvo vazio, sem ponto.
+    <xref href="SpellBook.GAS.Abilities.AbilityTarget.None" data-throw-if-not-resolved="false"></xref> é o alvo vazio, sem ponto e sem unidade.
   example: []
   syntax:
     content: public readonly struct AbilityTarget
@@ -44,7 +46,7 @@ items:
   fullName: SpellBook.GAS.Abilities.AbilityTarget.None
   type: Property
   namespace: SpellBook.GAS.Abilities
-  summary: Alvo vazio, sem ponto.
+  summary: Alvo vazio, sem ponto e sem unidade.
   example: []
   syntax:
     content: public static AbilityTarget None { get; }
@@ -95,6 +97,27 @@ items:
       type: UnityEngine.Vector3
     content.vb: Public ReadOnly Property Point As Vector3
   overload: SpellBook.GAS.Abilities.AbilityTarget.Point*
+- uid: SpellBook.GAS.Abilities.AbilityTarget.Unit
+  commentId: P:SpellBook.GAS.Abilities.AbilityTarget.Unit
+  id: Unit
+  parent: SpellBook.GAS.Abilities.AbilityTarget
+  langs:
+  - csharp
+  - vb
+  name: Unit
+  nameWithType: AbilityTarget.Unit
+  fullName: SpellBook.GAS.Abilities.AbilityTarget.Unit
+  type: Property
+  namespace: SpellBook.GAS.Abilities
+  summary: Unidade-alvo; nula num alvo só de ponto.
+  example: []
+  syntax:
+    content: public AbilitySystemComponent Unit { get; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Core.AbilitySystemComponent
+    content.vb: Public ReadOnly Property Unit As AbilitySystemComponent
+  overload: SpellBook.GAS.Abilities.AbilityTarget.Unit*
 - uid: SpellBook.GAS.Abilities.AbilityTarget.AtPoint(UnityEngine.Vector3)
   commentId: M:SpellBook.GAS.Abilities.AbilityTarget.AtPoint(UnityEngine.Vector3)
   id: AtPoint(UnityEngine.Vector3)
@@ -107,7 +130,7 @@ items:
   fullName: SpellBook.GAS.Abilities.AbilityTarget.AtPoint(UnityEngine.Vector3)
   type: Method
   namespace: SpellBook.GAS.Abilities
-  summary: Alvo no ponto <code class="paramref">point</code>.
+  summary: Alvo no ponto <code class="paramref">point</code>, sem unidade.
   example: []
   syntax:
     content: public static AbilityTarget AtPoint(Vector3 point)
@@ -118,6 +141,29 @@ items:
       type: SpellBook.GAS.Abilities.AbilityTarget
     content.vb: Public Shared Function AtPoint(point As Vector3) As AbilityTarget
   overload: SpellBook.GAS.Abilities.AbilityTarget.AtPoint*
+- uid: SpellBook.GAS.Abilities.AbilityTarget.AtUnit(SpellBook.GAS.Core.AbilitySystemComponent)
+  commentId: M:SpellBook.GAS.Abilities.AbilityTarget.AtUnit(SpellBook.GAS.Core.AbilitySystemComponent)
+  id: AtUnit(SpellBook.GAS.Core.AbilitySystemComponent)
+  parent: SpellBook.GAS.Abilities.AbilityTarget
+  langs:
+  - csharp
+  - vb
+  name: AtUnit(AbilitySystemComponent)
+  nameWithType: AbilityTarget.AtUnit(AbilitySystemComponent)
+  fullName: SpellBook.GAS.Abilities.AbilityTarget.AtUnit(SpellBook.GAS.Core.AbilitySystemComponent)
+  type: Method
+  namespace: SpellBook.GAS.Abilities
+  summary: Alvo na unidade <code class="paramref">unit</code>, com a posição dela como ponto. Unidade nula dá <xref href="SpellBook.GAS.Abilities.AbilityTarget.None" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public static AbilityTarget AtUnit(AbilitySystemComponent unit)
+    parameters:
+    - id: unit
+      type: SpellBook.GAS.Core.AbilitySystemComponent
+    return:
+      type: SpellBook.GAS.Abilities.AbilityTarget
+    content.vb: Public Shared Function AtUnit(unit As AbilitySystemComponent) As AbilityTarget
+  overload: SpellBook.GAS.Abilities.AbilityTarget.AtUnit*
 references:
 - uid: SpellBook.GAS.Abilities.AbilityTarget.None
   commentId: P:SpellBook.GAS.Abilities.AbilityTarget.None
@@ -432,9 +478,51 @@ references:
   name: UnityEngine
   nameWithType: UnityEngine
   fullName: UnityEngine
+- uid: SpellBook.GAS.Abilities.AbilityTarget.Unit*
+  commentId: Overload:SpellBook.GAS.Abilities.AbilityTarget.Unit
+  href: SpellBook.GAS.Abilities.AbilityTarget.html#SpellBook_GAS_Abilities_AbilityTarget_Unit
+  name: Unit
+  nameWithType: AbilityTarget.Unit
+  fullName: SpellBook.GAS.Abilities.AbilityTarget.Unit
+- uid: SpellBook.GAS.Core.AbilitySystemComponent
+  commentId: T:SpellBook.GAS.Core.AbilitySystemComponent
+  parent: SpellBook.GAS.Core
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  name: AbilitySystemComponent
+  nameWithType: AbilitySystemComponent
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent
+- uid: SpellBook.GAS.Core
+  commentId: N:SpellBook.GAS.Core
+  name: SpellBook.GAS.Core
+  nameWithType: SpellBook.GAS.Core
+  fullName: SpellBook.GAS.Core
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Core
+    name: Core
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Core
+    name: Core
 - uid: SpellBook.GAS.Abilities.AbilityTarget.AtPoint*
   commentId: Overload:SpellBook.GAS.Abilities.AbilityTarget.AtPoint
   href: SpellBook.GAS.Abilities.AbilityTarget.html#SpellBook_GAS_Abilities_AbilityTarget_AtPoint_UnityEngine_Vector3_
   name: AtPoint
   nameWithType: AbilityTarget.AtPoint
   fullName: SpellBook.GAS.Abilities.AbilityTarget.AtPoint
+- uid: SpellBook.GAS.Abilities.AbilityTarget.AtUnit*
+  commentId: Overload:SpellBook.GAS.Abilities.AbilityTarget.AtUnit
+  href: SpellBook.GAS.Abilities.AbilityTarget.html#SpellBook_GAS_Abilities_AbilityTarget_AtUnit_SpellBook_GAS_Core_AbilitySystemComponent_
+  name: AtUnit
+  nameWithType: AbilityTarget.AtUnit
+  fullName: SpellBook.GAS.Abilities.AbilityTarget.AtUnit

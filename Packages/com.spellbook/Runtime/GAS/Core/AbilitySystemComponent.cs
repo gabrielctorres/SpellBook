@@ -760,7 +760,7 @@ namespace SpellBook.GAS.Core
                 return failure.Result;
             }
 
-            ActivateSpec(spec, target.Point);
+            ActivateSpec(spec, in target);
             return AbilityActivationResult.Success;
         }
 
@@ -885,7 +885,7 @@ namespace SpellBook.GAS.Core
             return false;
         }
 
-        private void ActivateSpec(AbilitySpec spec, Vector3 targetPos)
+        private void ActivateSpec(AbilitySpec spec, in AbilityTarget target)
         {
             var ability = spec.Ability;
 
@@ -910,7 +910,9 @@ namespace SpellBook.GAS.Core
             context.Ability = ability;
             context.Spec = spec;
             context.Level = spec.Level;
-            context.SetPoint(targetPos);
+            context.SetPoint(target.Point);
+            // A unidade-alvo é o alvo padrão do OnActivate (alvos do evento)
+            if (target.Unit != null) context.EventTargets.Add(target.Unit);
 
             int activation = ++spec.ActivationId;
             spec.IsActive = true;

@@ -5,18 +5,18 @@ Esta página lista os tipos que o seletor do Inspector oferece nos campos de aç
 
 ## `Condition<ConditionContext>` {#spellbook-core-conditions-condition-spellbook-gas-conditions-conditioncontext}
 
-Aparece em: `Activation Rule > Condition`, `Conditional Action > Condition`.
+Aparece em: `Activation Rule > Condition`, `Area Selector > Filter`, `Conditional Action > Condition`.
 
 | Tipo | Categoria | Resumo |
 |---|---|---|
 | [And Condition](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Conditions.AndCondition.html) | Lógica | Todas as condições valem. |
 | [Attribute Threshold Condition](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Conditions.AttributeThresholdCondition.html) | Atributos | Compara um atributo do dono com um valor. |
-| [Cast Range Condition](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Conditions.CastRangeCondition.html) | Alvos | O ponto-alvo está dentro do alcance da habilidade. |
+| [Cast Range Condition](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Conditions.CastRangeCondition.html) | Alvos | O alvo está dentro do alcance da habilidade. |
 | [Has Target Point Condition](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Conditions.HasTargetPointCondition.html) | Alvos | A ativação tem um ponto-alvo. |
 | [Has Targets Condition](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Conditions.HasTargetsCondition.html) | Alvos | Há ao menos um alvo. |
 | [Not Condition](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Conditions.NotCondition.html) | Lógica | A condição não vale. |
 | [Or Condition](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Conditions.OrCondition.html) | Lógica | Alguma condição vale. |
-| [Tag Query Condition](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Conditions.TagQueryCondition.html) | Tags | As tags do dono satisfazem a consulta. |
+| [Tag Query Condition](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Conditions.TagQueryCondition.html) | Tags | As tags do dono ou da unidade-alvo satisfazem a consulta. |
 
 ## `EventResponse` {#spellbook-events-eventresponse}
 
