@@ -10,7 +10,8 @@ namespace SpellBook.Cues
     /// Item de VFX: cria o prefab pelo spawner, posiciona em relação ao alvo, ajusta a escala pela magnitude e toca as
     /// partículas da raiz. O roteador devolve o objeto ao spawner no fim escolhido.
     /// </summary>
-    [Serializable, TypeCategory("Apresentação", Summary = "Cria um prefab de VFX no alvo ou no ponto do cue e o devolve ao spawner no fim.")]
+    [Serializable, TypeCategory("Apresentação", Summary = "Cria um prefab de VFX no alvo ou no ponto do cue e o devolve ao spawner no fim.",
+        Line = "VFX {Prefab} · {Placement} · {End}")]
     public sealed class VfxCueItem : CueItem
     {
         [Tooltip("Objeto criado a cada vez que o cue toca.")]

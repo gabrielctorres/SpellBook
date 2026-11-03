@@ -11,7 +11,8 @@ namespace SpellBook.Cues
     /// Item de som: toca o clipe num objeto do prefab de áudio do roteador, criado pelo spawner, com volume e altura
     /// sorteados nas faixas. O roteador devolve o objeto quando o clipe acaba, ou no <c>Remove</c> com loop.
     /// </summary>
-    [Serializable, TypeCategory("Apresentação", Summary = "Toca um clipe num objeto de áudio do spawner e o devolve no fim do clipe.")]
+    [Serializable, TypeCategory("Apresentação", Summary = "Toca um clipe num objeto de áudio do spawner e o devolve no fim do clipe.",
+        Line = "Som {Clip}{Loop? · loop}")]
     public sealed class SoundCueItem : CueItem
     {
         [Tooltip("Clipe tocado.")]

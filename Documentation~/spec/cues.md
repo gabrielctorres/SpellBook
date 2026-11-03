@@ -365,6 +365,23 @@ Depende de: CU3b.
 - Critério de pronto: CA19 (S) conferido pelo Examinador no host: listas com resumo e "Testar" em Play, com som real que volta ao pool.
 - Tamanho estimado: ~420 linhas; 9 arquivos. Depende de: CU6, AV1.
 
+### Detalhe (2026-11-03)
+- CA: CA19 (C14, S: listas com resumo de uma linha e "Testar" em Play) e CA17 (parte: asmdef do Editor do Cues).
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Editor/Cues/SpellBook.Cues.Editor.asmdef` (novo; Core, Tags, Time, Cues e Core.Editor por GUID, como `Editor/Time/SpellBook.Time.Editor.asmdef`).
+  - `Editor/Cues/AssemblyInfo.cs` (novo): `InternalsVisibleTo("SpellBook.Cues.Tests.EditMode")`, como `Editor/Core/AssemblyInfo.cs`. Consequência direta: os testes chamam o "Testar" e o botão do prefab sem painel.
+  - `Editor/Cues/CueDefinitionEditor.cs` (novo, herda de `SpellBookEditor`): antes do Inspector padrão, uma linha por item e por som pelo `SummaryFormatter.Format`, refeita no `TrackSerializedObjectValue`, como `Editor/GAS/AttributeDefinitionEditor.cs:114-122`. Depois do padrão, o botão "Testar", ativo só em Play, como `Editor/Events/EventChannelEditor.cs:34-55`. O "Testar" toca pelo primeiro `CueRouter` ativo de `FindObjectsByType`, pela tag da definição, com a API pública: `Execute` num `Burst` e `Add` num `Looping`; com um `Looping` ligado, o botão vira "Parar" e chama `Remove`. O ponto é a seleção (`CueParameters.On`) ou, sem seleção na cena, a posição e a rotação da `Camera.main`. A definição só toca se estiver numa biblioteca do roteador; senão vale o aviso de tag sem definição do roteador. Sem roteador ativo, avisa no Console.
+  - `Editor/Cues/CuesEditors.cs` (novo): `CueLibraryEditor` com um campo de busca por tag que lista as definições cujo nome da tag contém o texto (clique seleciona a definição); `CueRouterEditor` com o botão "Usar prefab de áudio do pacote", que põe `Runtime/Cues/Prefabs/CueAudioSource.prefab` no `audioPrefab` pelo `SerializedObject` (com desfazer); `CueRouterAnchorEditor` e `CueAudioPlayerEditor` de uma linha (cobertura).
+  - `Runtime/Cues/VfxCueItem.cs:14` e `Runtime/Cues/SoundCueItem.cs:15`: `Line` no `[TypeCategory]` (`"VFX {Prefab} · {Placement} · {End}"` e `"Som {Clip}{Loop? · loop}"`).
+  - `Tests/Core/EditMode/Structure/AsmdefRulesTests.cs:23` (`Cues` em `EditorModules`) e teste novo `CuesEditorAsmdef_References`.
+  - `Tests/Core/EditMode/Inspector/SpellBookEditorCoverageTests.cs:18-22` (+`SpellBook.Cues`; o assert de tipos esperados ganha `CueRouter`).
+  - `Tests/Cues/EditMode/SpellBook.Cues.Tests.EditMode.asmdef:4-12` (+`SpellBook.Cues.Editor`) e `Tests/Cues/EditMode/CueEditorsTests.cs` (novo).
+  - Sem `cues.md` nem `CHANGELOG.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007), e o ticket não quebra nada.
+- Testes red: EditMode, `SpellBook.Core.Tests.EditMode`: `AsmdefRulesTests.CuesEditorAsmdef_References` e `AllExpectedAssembliesExist` (com o `Cues` em `EditorModules`); `SpellBookEditorCoverageTests.EveryPublicConcreteMbAndSo_InRuntimeAssemblies_UsesSpellBookEditor` (com o Cues). EditMode, `SpellBook.Cues.Tests.EditMode`, classe `CueEditorsTests`: `ItemLine_SummaryFromTypeCategory`; `DefinitionEditor_ListsItemAndSoundLines_TestDisabledOutsidePlay`; `Test_BurstExecutes_LoopingTogglesAddRemove`; `Test_Point_SelectionThenCamera`; `UsePackageAudioPrefab_FillsRouterField`.
+- Critério de pronto: os testes acima verdes pelo filtro `\.CueEditorsTests\.;\.AsmdefRulesTests\.;\.SpellBookEditorCoverageTests\.` no EditMode, com `total` conferido no XML. CA19 conferido no Editor pelo Examinador no host (passos no relatório da Fábrica).
+- Tamanho: ~450 linhas e 10 arquivos, pela ADR 0042. Exceção: nenhuma. Medido na implementação: 405 linhas e 10 arquivos.
+- Commit: `feat(cues): Inspector de cues e botão Testar`
+
 ### CU8 — Cues no GAS: `ExecuteCueAction` e `AddCueAction`
 - Escopo: `Runtime/GAS.Bridges/SpellBook.GAS.Bridges.asmdef` (+Cues), `Runtime/GAS.Bridges/Cues/ExecuteCueAction.cs`, `AddCueAction.cs` (com `CueWatchAction` interna), `CueMagnitude.cs` (novos), `Tests/GAS.Bridges/PlayMode/SpellBook.GAS.Bridges.Tests.PlayMode.asmdef` (+Cues), `Tests/GAS.Bridges/PlayMode/CueActionsTests.cs` (novo), `AsmdefRulesTests.cs` (referências do Bridges), `cues.md` (seção "Cues no GAS", com a tabela dos momentos), `CHANGELOG.md`.
 - Testes red:
