@@ -1,0 +1,20 @@
+{
+    "name": "SpellBook.Teams.Editor",
+    "rootNamespace": "SpellBook.Teams.Editor",
+    "references": [
+        "GUID:7834e8f3d0902ad45bfb6fab58f7b919",
+        "GUID:da013ad8e923f3e409400f697f4f54de",
+        "GUID:d0725186a5ff669448a26295c851b9c6"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

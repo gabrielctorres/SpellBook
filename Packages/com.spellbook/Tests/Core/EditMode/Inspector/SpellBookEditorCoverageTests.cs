@@ -18,7 +18,7 @@ namespace SpellBook.Core.Tests.Inspector
         private static readonly string[] CoveredAssemblies =
         {
             "SpellBook.Core", "SpellBook.Time", "SpellBook.Tags", "SpellBook.Pooling",
-            "SpellBook.GAS", "SpellBook.Events", "SpellBook.GAS.Bridges",
+            "SpellBook.GAS", "SpellBook.Events", "SpellBook.GAS.Bridges", "SpellBook.Teams",
         };
 
         private readonly List<Object> _created = new List<Object>();

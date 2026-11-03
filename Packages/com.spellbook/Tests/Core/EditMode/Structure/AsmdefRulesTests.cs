@@ -20,7 +20,7 @@ namespace SpellBook.Core.Tests.Structure
             "Core", "Time", "Events", "Pooling", "Tags", "GAS", "GAS.Bridges", "Teams",
         };
 
-        private static readonly string[] EditorModules = { "Core", "Events", "Time", "Tags", "Pooling", "GAS", "GAS.Bridges" };
+        private static readonly string[] EditorModules = { "Core", "Events", "Time", "Tags", "Pooling", "GAS", "GAS.Bridges", "Teams" };
 
         private static readonly string[] PlayModeModules = { "Core", "Time", "Events", "GAS", "GAS.Bridges" };
 
@@ -331,6 +331,20 @@ namespace SpellBook.Core.Tests.Structure
                 editor.ReferenceNames.Where(r => r.StartsWith("SpellBook.", StringComparison.Ordinal)),
                 Is.EquivalentTo(new[] { "SpellBook.Core", "SpellBook.Tags", "SpellBook.Time", "SpellBook.GAS", "SpellBook.Core.Editor" }));
             Assert.That(LoadedAssembly("SpellBook.GAS.Editor"), Is.Not.Null, "o assembly SpellBook.GAS.Editor não foi compilado");
+        }
+
+        [Test]
+        public void TeamsEditorAsmdef_References()
+        {
+            AsmdefFile editor = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.Teams.Editor");
+
+            Assert.That(editor, Is.Not.Null, "não existe asmdef SpellBook.Teams.Editor");
+            Assert.That(editor.Path, Is.EqualTo("Editor/Teams/SpellBook.Teams.Editor.asmdef"));
+            Assert.That(editor.Kind, Is.EqualTo(AsmdefKind.Editor));
+            Assert.That(
+                editor.ReferenceNames.Where(r => r.StartsWith("SpellBook.", StringComparison.Ordinal)),
+                Is.EquivalentTo(new[] { "SpellBook.Core", "SpellBook.Teams", "SpellBook.Core.Editor" }));
+            Assert.That(LoadedAssembly("SpellBook.Teams.Editor"), Is.Not.Null, "o assembly SpellBook.Teams.Editor não foi compilado");
         }
 
         [Test]
