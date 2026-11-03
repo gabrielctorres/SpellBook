@@ -62,7 +62,7 @@ Aparece em: `Ability Description > Elements`.
 
 ## `GameplayAction` {#spellbook-gas-actions-gameplayaction}
 
-Aparece em: `Conditional Action > Else`, `Conditional Action > Then`, `Gameplay Ability > On Activate`, `Gameplay Effect > On Applied`, `Gameplay Effect > On Removed`, `Gameplay Effect > On Tick`, `Parallel Action > Actions`, `Repeat Action > Actions`, `Spawn Projectile Action > On Hit Actions`.
+Aparece em: `Conditional Action > Else`, `Conditional Action > Then`, `Gameplay Ability > On Activate`, `Gameplay Ability > On Cancel`, `Gameplay Ability > On End`, `Gameplay Effect > On Applied`, `Gameplay Effect > On Removed`, `Gameplay Effect > On Tick`, `Parallel Action > Actions`, `Repeat Action > Actions`, `Spawn Projectile Action > On Hit Actions`.
 
 | Tipo | Categoria | Resumo |
 |---|---|---|

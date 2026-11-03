@@ -904,11 +904,12 @@ namespace SpellBook.GAS.Core
             // Dispara eventos DEPOIS de aplicar o cooldown, para que a UI leia o tempo correto
             OnAbilityActivated?.Invoke(spec);
 
-            // A tag concedida acima pode ter cancelado a própria habilidade; o contexto, sem execução, não volta ao pool
+            // A tag concedida acima pode ter cancelado a própria habilidade; o EndAbility já devolveu o contexto
             if (!spec.IsActive || spec.ActivationId != activation) return;
 
-            // O dono das execuções é o spec: uma ativação por vez, e cancelar a habilidade cancela as ações dela
-            ActionExecutionHandle execution = Runner.Run(ability.OnActivate, context, spec);
+            // O dono das execuções é o spec: uma ativação por vez, e cancelar a habilidade cancela as ações dela.
+            // O contexto é do ASC até o EndAbility, que o copia para "Ao terminar" ou "Ao ser cancelada"
+            ActionExecutionHandle execution = Runner.Run(ability.OnActivate, context, spec, false);
             // Uma ação pode ter terminado ou cancelado a ativação, ou começado outra
             if (!spec.IsActive || spec.ActivationId != activation) return;
 
@@ -926,7 +927,7 @@ namespace SpellBook.GAS.Core
 
         #region Ability Cancellation
         /// <summary>
-        /// Interrompe a habilidade, chamando OnCancel nas ações em execução.
+        /// Interrompe a habilidade: chama OnCancel nas ações em execução, roda a lista "Ao ser cancelada" e termina.
         /// </summary>
         public void CancelAbility(AbilitySpec spec)
         {
@@ -984,10 +985,30 @@ namespace SpellBook.GAS.Core
             spec.IsActive = false;
             spec.Executing = false;
             spec.Execution = default;
-            spec.ActiveContext = null;
+
+            ActionContext context = spec.ActiveContext;
+            List<GameplayAction> actions = cancelled ? spec.Ability.OnCancel : spec.Ability.OnEnd;
+            // Execução sem dono: uma espera na lista continua depois do fim, e uma nova ativação não a cancela
+            if (context != null && actions != null && actions.Count > 0) Runner.Run(actions, CopyActivationContext(context), null);
+
+            // Uma ação da lista pode ter começado outra ativação, com outro contexto
+            if (spec.ActiveContext == context) spec.ActiveContext = null;
+            if (context != null) Runner.ReturnContext(context);
 
             RemoveTags(spec.Ability.ActivationOwnedTags);
             OnAbilityEnded?.Invoke(spec, cancelled);
+        }
+
+        private ActionContext CopyActivationContext(ActionContext activation)
+        {
+            ActionContext context = Runner.RentContext();
+            context.Ability = activation.Ability;
+            context.Spec = activation.Spec;
+            context.Level = activation.Level;
+            context.Instigator = activation.Instigator;
+            if (activation.HasPoint) context.SetPoint(activation.Point);
+            context.EventTargets.AddRange(activation.EventTargets);
+            return context;
         }
 
         private void HandleTagChangedForCancellation(GameplayTag tag, bool added)
@@ -1040,12 +1061,24 @@ namespace SpellBook.GAS.Core
         public void AddTags(IEnumerable<GameplayTag> tags)
         {
             if (tags == null) return;
+            // Por índice na List: o foreach pela interface encaixota o enumerador a cada ativação
+            if (tags is List<GameplayTag> list)
+            {
+                for (int i = 0; i < list.Count; i++) AddTag(list[i]);
+                return;
+            }
             foreach (var tag in tags) AddTag(tag);
         }
 
         public void RemoveTags(IEnumerable<GameplayTag> tags)
         {
             if (tags == null) return;
+            // Por índice na List: o foreach pela interface encaixota o enumerador a cada ativação
+            if (tags is List<GameplayTag> list)
+            {
+                for (int i = 0; i < list.Count; i++) RemoveTag(list[i]);
+                return;
+            }
             foreach (var tag in tags) RemoveTag(tag);
         }
 

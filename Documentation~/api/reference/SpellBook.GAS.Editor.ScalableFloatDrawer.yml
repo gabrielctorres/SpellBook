@@ -246,7 +246,7 @@ items:
   summary: >-
     Habilidades cuja tabela vale para um campo do <code class="paramref">owner</code>: a própria habilidade, ou as que usam o
 
-    efeito (recarga, custo e efeitos das ações, por <xref href="SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List%7bSpellBook.GAS.Effects.GameplayEffect%7d)" data-throw-if-not-resolved="false"></xref>).
+    efeito (recarga, custo e efeitos das ações das três listas, por <xref href="SpellBook.GAS.Abilities.GameplayAbility.CollectActionEffects(System.Collections.Generic.List%7bSpellBook.GAS.Effects.GameplayEffect%7d)" data-throw-if-not-resolved="false"></xref>).
   example: []
   syntax:
     content: public static List<GameplayAbility> TableOwners(Object owner, IEnumerable<GameplayAbility> abilities)
@@ -805,21 +805,20 @@ references:
   name: UnityEngine
   nameWithType: UnityEngine
   fullName: UnityEngine
-- uid: SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
-  commentId: M:SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
-  parent: SpellBook.GAS.Actions.GameplayAction
+- uid: SpellBook.GAS.Abilities.GameplayAbility.CollectActionEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
+  commentId: M:SpellBook.GAS.Abilities.GameplayAbility.CollectActionEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
   isExternal: true
-  href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_CollectEffects_System_Collections_Generic_List_SpellBook_GAS_Effects_GameplayEffect__
-  name: CollectEffects(List<GameplayEffect>)
-  nameWithType: GameplayAction.CollectEffects(List<GameplayEffect>)
-  fullName: SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List<SpellBook.GAS.Effects.GameplayEffect>)
-  nameWithType.vb: GameplayAction.CollectEffects(List(Of GameplayEffect))
-  fullName.vb: SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List(Of SpellBook.GAS.Effects.GameplayEffect))
-  name.vb: CollectEffects(List(Of GameplayEffect))
+  href: SpellBook.GAS.Abilities.GameplayAbility.html#SpellBook_GAS_Abilities_GameplayAbility_CollectActionEffects_System_Collections_Generic_List_SpellBook_GAS_Effects_GameplayEffect__
+  name: CollectActionEffects(List<GameplayEffect>)
+  nameWithType: GameplayAbility.CollectActionEffects(List<GameplayEffect>)
+  fullName: SpellBook.GAS.Abilities.GameplayAbility.CollectActionEffects(System.Collections.Generic.List<SpellBook.GAS.Effects.GameplayEffect>)
+  nameWithType.vb: GameplayAbility.CollectActionEffects(List(Of GameplayEffect))
+  fullName.vb: SpellBook.GAS.Abilities.GameplayAbility.CollectActionEffects(System.Collections.Generic.List(Of SpellBook.GAS.Effects.GameplayEffect))
+  name.vb: CollectActionEffects(List(Of GameplayEffect))
   spec.csharp:
-  - uid: SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
-    name: CollectEffects
-    href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_CollectEffects_System_Collections_Generic_List_SpellBook_GAS_Effects_GameplayEffect__
+  - uid: SpellBook.GAS.Abilities.GameplayAbility.CollectActionEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
+    name: CollectActionEffects
+    href: SpellBook.GAS.Abilities.GameplayAbility.html#SpellBook_GAS_Abilities_GameplayAbility_CollectActionEffects_System_Collections_Generic_List_SpellBook_GAS_Effects_GameplayEffect__
   - name: (
   - uid: System.Collections.Generic.List`1
     name: List
@@ -832,9 +831,9 @@ references:
   - name: '>'
   - name: )
   spec.vb:
-  - uid: SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
-    name: CollectEffects
-    href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_CollectEffects_System_Collections_Generic_List_SpellBook_GAS_Effects_GameplayEffect__
+  - uid: SpellBook.GAS.Abilities.GameplayAbility.CollectActionEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
+    name: CollectActionEffects
+    href: SpellBook.GAS.Abilities.GameplayAbility.html#SpellBook_GAS_Abilities_GameplayAbility_CollectActionEffects_System_Collections_Generic_List_SpellBook_GAS_Effects_GameplayEffect__
   - name: (
   - uid: System.Collections.Generic.List`1
     name: List
@@ -927,13 +926,6 @@ references:
     name: GameplayAbility
     href: SpellBook.GAS.Abilities.GameplayAbility.html
   - name: )
-- uid: SpellBook.GAS.Actions.GameplayAction
-  commentId: T:SpellBook.GAS.Actions.GameplayAction
-  parent: SpellBook.GAS.Actions
-  href: SpellBook.GAS.Actions.GameplayAction.html
-  name: GameplayAction
-  nameWithType: GameplayAction
-  fullName: SpellBook.GAS.Actions.GameplayAction
 - uid: System.Collections.Generic.IEnumerable`1
   commentId: T:System.Collections.Generic.IEnumerable`1
   isExternal: true
@@ -1027,29 +1019,6 @@ references:
   - name: " "
   - name: T
   - name: )
-- uid: SpellBook.GAS.Actions
-  commentId: N:SpellBook.GAS.Actions
-  name: SpellBook.GAS.Actions
-  nameWithType: SpellBook.GAS.Actions
-  fullName: SpellBook.GAS.Actions
-  spec.csharp:
-  - uid: SpellBook
-    name: SpellBook
-  - name: .
-  - uid: SpellBook.GAS
-    name: GAS
-  - name: .
-  - uid: SpellBook.GAS.Actions
-    name: Actions
-  spec.vb:
-  - uid: SpellBook
-    name: SpellBook
-  - name: .
-  - uid: SpellBook.GAS
-    name: GAS
-  - name: .
-  - uid: SpellBook.GAS.Actions
-    name: Actions
 - uid: SpellBook.GAS.Editor.ScalableFloatDrawer.TableNames*
   commentId: Overload:SpellBook.GAS.Editor.ScalableFloatDrawer.TableNames
   href: SpellBook.GAS.Editor.ScalableFloatDrawer.html#SpellBook_GAS_Editor_ScalableFloatDrawer_TableNames_System_Collections_Generic_IEnumerable_SpellBook_GAS_Abilities_GameplayAbility__

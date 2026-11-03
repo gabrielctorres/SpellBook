@@ -12,7 +12,7 @@ namespace SpellBook.GAS.Abilities
         /// <summary>Nível atual, em [1, MaxLevel]. Muda por <c>AbilitySystemComponent.SetAbilityLevel</c>.</summary>
         public int Level { get; internal set; }
         public bool IsActive { get; internal set; }
-        /// <summary>Contexto da ativação em curso; nulo com a habilidade inativa. É do executor: não guarde depois do fim.</summary>
+        /// <summary>Contexto da ativação em curso, preenchido até o fim da habilidade; nulo com ela inativa. É do ASC: não guarde depois do fim.</summary>
         public ActionContext ActiveContext { get; internal set; }
 
         /// <summary>Execução de <c>OnActivate</c> da ativação em curso; só vale com <see cref="Executing"/>.</summary>

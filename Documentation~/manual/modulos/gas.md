@@ -447,6 +447,10 @@ O alvo válido mais próximo do ponto mirado, num raio pequeno. Crie em **Create
 
 A ativação roda o `OnActivate` com o spec como dono e termina quando a execução acaba, na mesma chamada se nenhuma ação esperar. `CancelAbility` cancela as execuções desse dono antes de terminar a habilidade.
 
+A habilidade tem mais duas listas. `OnEnd` ("Ao terminar") roda quando o `OnActivate` acaba. `OnCancel` ("Ao ser cancelada") roda no `CancelAbility`, depois do `OnCancel` das ações em curso. Só uma das duas roda em cada ativação, e sempre antes de a habilidade devolver as `ActivationOwnedTags` e disparar o `OnAbilityEnded`. Cada lista recebe um contexto novo com a habilidade, o spec, o nível, o instigador, o ponto e os alvos do evento da ativação, inclusive os que uma `TargetingAction` achou durante o `OnActivate`. A execução não tem dono: as ações sem espera rodam antes do fim da habilidade, e uma espera continua depois dele, sem deixar a habilidade ativa. Uma nova ativação não cancela essa espera. Com as duas listas vazias, nada muda e nada aloca.
+
+`AbilitySpec.ActiveContext` é o contexto da ativação e fica preenchido até o fim da habilidade, também dentro de `OnEnd` e `OnCancel`. No `OnAbilityEnded` ele já é nulo. O contexto é do ASC; não guarde a referência depois do fim.
+
 Uma ação implementa `Execute(ActionContext context, ref ActionFrame frame)` e devolve um `ActionStatus`:
 
 - `ActionStatus.Done`: a ação terminou, e o executor passa à próxima da lista.
@@ -596,7 +600,7 @@ Sem política, a habilidade usa `CooldownReductionPolicy.ApplyDefault`: piso de 
 `CostEffect` é um GameplayEffect Instant, normalmente com modifier `Add` negativo (ex: `Mana Add -20`). A ativação falha se algum atributo ficaria abaixo do `MinValue`.
 
 ### 4.4 Cancelamento
-- `asc.CancelAbility(ability)` interrompe a habilidade e chama `OnCancel` nas ações em execução.
+- `asc.CancelAbility(ability)` interrompe a habilidade e chama `OnCancel` nas ações em execução. Depois roda a lista `OnCancel` ("Ao ser cancelada") da habilidade e só então termina, com `OnAbilityEnded(spec, true)`. A lista `OnEnd` não roda (veja [Base nova das ações](#gameplayaction)).
 - `CancelledByTags`: a habilidade é cancelada quando o dono recebe uma destas tags (ex: `State.Stunned`).
 - Desativar o GameObject do ASC cancela todas as habilidades ativas.
 

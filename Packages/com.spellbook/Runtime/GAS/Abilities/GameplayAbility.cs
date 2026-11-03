@@ -84,6 +84,18 @@ namespace SpellBook.GAS.Abilities
         [ActionEvent("Ao ativar", DefaultTarget.EventTargets, true)]
         public List<GameplayAction> OnActivate = new List<GameplayAction>();
 
+        /// <summary>Roda quando a lista "Ao ativar" acaba, antes de a habilidade devolver as tags e terminar.</summary>
+        [SerializeReference]
+        [TypePicker]
+        [ActionEvent("Ao terminar", DefaultTarget.EventTargets, true)]
+        public List<GameplayAction> OnEnd = new List<GameplayAction>();
+
+        /// <summary>Roda quando a habilidade é cancelada, depois do cancelamento das ações em curso e antes do fim.</summary>
+        [SerializeReference]
+        [TypePicker]
+        [ActionEvent("Ao ser cancelada", DefaultTarget.EventTargets, true)]
+        public List<GameplayAction> OnCancel = new List<GameplayAction>();
+
         /// <summary>
         /// Verifica se a habilidade pode ser ativada pelo ASC, informando o motivo em caso de falha.
         /// </summary>
@@ -177,8 +189,8 @@ namespace SpellBook.GAS.Abilities
         /// <summary>
         /// Acusa <c>MaxLevel</c> menor que 1, a tabela de valores (nomes e valores), a política de redução sem atributo de
         /// redução, cada nome do modo Table que um efeito usado pela habilidade lê e não está na tabela (recarga, custo e
-        /// <see cref="GameplayAction.CollectEffects"/>), e <c>MaxLevel</c> acima do tamanho de um array da tabela (aviso).
-        /// Repassa a validação a cada ação da lista; ações vazias são ignoradas.
+        /// <see cref="CollectActionEffects"/>), e <c>MaxLevel</c> acima do tamanho de um array da tabela (aviso).
+        /// Repassa a validação a cada ação das três listas; ações vazias são ignoradas.
         /// </summary>
         public virtual void Validate(ValidationResult result)
         {
@@ -204,11 +216,37 @@ namespace SpellBook.GAS.Abilities
             ValidateActivationRules(result);
             charges?.Validate(result, nameof(charges), values);
 
-            if (OnActivate == null) return;
+            ValidateActions(OnActivate, result);
+            ValidateActions(OnEnd, result);
+            ValidateActions(OnCancel, result);
+        }
 
-            for (int i = 0; i < OnActivate.Count; i++)
+        /// <summary>
+        /// Junta em <paramref name="results"/> os efeitos que as ações de "Ao ativar", "Ao terminar" e "Ao ser cancelada"
+        /// aplicam, pelo <see cref="GameplayAction.CollectEffects"/> de cada uma.
+        /// </summary>
+        public void CollectActionEffects(List<GameplayEffect> results)
+        {
+            CollectEffects(OnActivate, results);
+            CollectEffects(OnEnd, results);
+            CollectEffects(OnCancel, results);
+        }
+
+        private static void ValidateActions(List<GameplayAction> actions, ValidationResult result)
+        {
+            if (actions == null) return;
+            for (int i = 0; i < actions.Count; i++)
             {
-                OnActivate[i]?.Validate(result);
+                actions[i]?.Validate(result);
+            }
+        }
+
+        private static void CollectEffects(List<GameplayAction> actions, List<GameplayEffect> results)
+        {
+            if (actions == null) return;
+            for (int i = 0; i < actions.Count; i++)
+            {
+                actions[i]?.CollectEffects(results);
             }
         }
 
@@ -231,13 +269,7 @@ namespace SpellBook.GAS.Abilities
             var effects = new List<GameplayEffect>();
             if (CooldownEffect != null) effects.Add(CooldownEffect);
             if (CostEffect != null) effects.Add(CostEffect);
-            if (OnActivate != null)
-            {
-                for (int i = 0; i < OnActivate.Count; i++)
-                {
-                    OnActivate[i]?.CollectEffects(effects);
-                }
-            }
+            CollectActionEffects(effects);
 
             for (int i = 0; i < effects.Count; i++)
             {

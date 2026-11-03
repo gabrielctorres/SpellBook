@@ -1508,7 +1508,7 @@ items:
   fullName: SpellBook.GAS.Core.AbilitySystemComponent.CancelAbility(SpellBook.GAS.Abilities.AbilitySpec)
   type: Method
   namespace: SpellBook.GAS.Core
-  summary: Interrompe a habilidade, chamando OnCancel nas ações em execução.
+  summary: 'Interrompe a habilidade: chama OnCancel nas ações em execução, roda a lista "Ao ser cancelada" e termina.'
   example: []
   syntax:
     content: public void CancelAbility(AbilitySpec spec)

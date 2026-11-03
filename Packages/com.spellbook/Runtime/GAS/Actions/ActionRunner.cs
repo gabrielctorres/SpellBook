@@ -70,11 +70,20 @@ namespace SpellBook.GAS.Actions
 
         public ActionExecutionHandle Run(IReadOnlyList<GameplayAction> actions, ActionContext context, object owner)
         {
+            return Run(actions, context, owner, true);
+        }
+
+        /// <summary>
+        /// Como <see cref="Run(IReadOnlyList{GameplayAction}, ActionContext, object)"/>. Com <paramref name="ownsContext"/>
+        /// falso, o contexto não volta ao pool no fim: quem chamou o devolve por <see cref="ReturnContext"/>.
+        /// </summary>
+        internal ActionExecutionHandle Run(IReadOnlyList<GameplayAction> actions, ActionContext context, object owner, bool ownsContext)
+        {
             if (context == null) context = RentContext();
             else if (context.Owner == null) context.Owner = _asc;
 
             Execution execution = Start(actions, 0, actions != null ? actions.Count : 0, context, owner, null, _asc.TickedTime);
-            execution.OwnsContext = true;
+            execution.OwnsContext = ownsContext;
             var handle = new ActionExecutionHandle(execution);
             Advance(execution);
             return handle;
@@ -256,6 +265,13 @@ namespace SpellBook.GAS.Actions
             Release(execution);
         }
 
+        /// <summary>Zera <paramref name="context"/> e o devolve ao pool.</summary>
+        internal void ReturnContext(ActionContext context)
+        {
+            context.Reset();
+            _contextPool.Push(context);
+        }
+
         private void Release(Execution execution)
         {
             int index = _executions.IndexOf(execution);
@@ -265,11 +281,7 @@ namespace SpellBook.GAS.Actions
             execution.Running = false;
             execution.Advancing = false;
             execution.Version++;
-            if (execution.OwnsContext && execution.Context != null)
-            {
-                execution.Context.Reset();
-                _contextPool.Push(execution.Context);
-            }
+            if (execution.OwnsContext && execution.Context != null) ReturnContext(execution.Context);
             execution.Context = null;
             execution.Owner = null;
             execution.Mother = null;
