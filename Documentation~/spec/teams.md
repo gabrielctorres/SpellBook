@@ -236,9 +236,17 @@ Todos usam a Unity e seguem o WIP 1. TM1 a TM4 não dependem de item aberto. Tes
 - Tamanho: ~525 linhas e 9 arquivos, pela ADR 0042. Exceção: linha de 2026-11-03 do TM4a no `decisoes.md`.
 - Commit: `feat(teams): Inspector da matriz com tabela e Espelhar`
 
-### Detalhe (2026-11-03) — TM4b (#315): máscara (rascunho)
-- Objetivo: drawer de todo `TeamRelationMask` com quatro caixas (Self, Aliado, Hostil e Neutro), Undo, multisseleção com valor misto e o fallback IMGUI de uma linha. Fecha o CA17 (quatro caixas na máscara).
-- Rascunho do escopo: `Editor/Teams/TeamRelationMaskDrawer.cs` (novo, `public`) e `Tests/Teams/EditMode/TeamsInspectorTests.cs` (+`MaskDrawer_FourToggles_WriteFlags`, `MaskDrawer_AfterUndo_TogglesFollowMask`, `MaskDrawer_MultipleTargets_ShowsMixed_WritesOnlyTheFlag` e o `MaskHost` de teste). ~230 linhas e 2 arquivos. Depende de: TM4a. O Detalhe final sai quando o ticket entrar na fila.
+### Detalhe (2026-11-03) — TM4b (#315): máscara
+- Objetivo: drawer de todo `TeamRelationMask` com quatro caixas (Self, Aliado, Hostil e Neutro), Undo, multisseleção com valor misto e o fallback IMGUI de uma linha. Depende de: TM4a.
+- CA: CA17 (S), a parte das quatro caixas na máscara (a conferência no Editor interativo fica com o Examinador); Design 3, Inspector.
+- Escopo (caminhos relativos a `Packages/com.spellbook/`, salvo o `.gitignore`):
+  - `Editor/Teams/TeamRelationMaskDrawer.cs` (novo, `public sealed`, `[CustomPropertyDrawer(typeof(TeamRelationMask))]`: rótulo e quatro `Toggle`; cada caixa grava só a sua relação em cada objeto selecionado, num grupo de `Undo`; `TrackPropertyValue` refaz as caixas no Undo e em outro Inspector; caixa mista quando os objetos discordam; `OnGUI` com um `HelpBox` de uma linha, pela ADR 0026). `Refresh` e `SetFlag` ficam privados;
+  - `Tests/Teams/EditMode/TeamsInspectorTests.cs:29` (TearDown apaga `Assets/UI Toolkit/UnityThemes/UnityDefaultRuntimeTheme.tss` e as pastas que ficarem vazias, só quando o teste os criou) e, depois de `:35`, os quatro testes, o `CreateHost`, o `ShowMask` (painel de runtime de um `UIDocument` com `PanelSettings`, que roda com `-nographics`) e a classe de teste `MaskHost`;
+  - `.gitignore` da raiz (+`/[Aa]ssets/UI Toolkit/`, proteção contra o tema que a Unity gera ao criar o painel de runtime).
+  - Fora, pela emenda de 2026-11-03 da 0007: manual, catálogo, referência e `CHANGELOG.md` (sem quebra).
+- Testes red (EditMode, `[UnityTest]`): `TeamsInspectorTests.MaskDrawer_FourToggles_WriteFlags`, `MaskDrawer_AfterUndo_TogglesFollowMask`, `MaskDrawer_MultipleTargets_ShowsMixed_WritesOnlyTheFlag`, `MaskDrawer_MultipleTargets_AfterUndo_MixedReturns`.
+- Critério de pronto: os quatro testes e o `MatrixEditor_TableHasCellPerPair_EmptyCellShowsDefault` verdes com filtro `\.TeamsInspectorTests\.`; depois da rodada, `Assets/UI Toolkit/` não existe no checkout; CA17 (quatro caixas) conferido pelo Examinador no Editor.
+- Tamanho: ~260 linhas e 3 arquivos, pela ADR 0042. Exceção: nenhuma.
 - Commit: `feat(teams): drawer da máscara de relação`
 
 ### TM5 — Times no GAS: `TeamRelationCondition` e filtro de área
