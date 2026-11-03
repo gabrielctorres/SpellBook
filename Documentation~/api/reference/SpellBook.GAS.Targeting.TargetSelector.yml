@@ -32,6 +32,7 @@ items:
   inheritance:
   - System.Object
   derivedClasses:
+  - SpellBook.GAS.Targeting.AreaSelector
   - SpellBook.GAS.Targeting.CasterSelector
   - SpellBook.GAS.Targeting.EventTargetsSelector
   - SpellBook.GAS.Targeting.PointSelector

@@ -344,7 +344,7 @@ A lista **Starting Effects** do ASC aplica cada efeito no `Awake`, na ordem da l
 ### Exemplo: habilidade de área (explosão)
 1. **Action 0 (AnimationAction):** Trigger: "Attack".
 2. **Action 1 (WaitAction):** Duration: 0.5s.
-3. **Action 2 (TargetingAction):** Strategy: (arraste um TS_Circle).
+3. **Action 2 (TargetingAction):** Target: `AreaSelector`, com `Origin` Point e `Radius` 3.
 4. **Action 3 (PlayCueAction):** VFX_Prefab: (Explosão), SFX_Clip: (Explosão).
 5. **Action 4 (ApplyEffectAction):** Effects: (arraste um GE_Damage).
 
@@ -352,7 +352,7 @@ A lista **Starting Effects** do ASC aplica cada efeito no `Awake`, na ordem da l
 
 ## 3. Lista de ações disponíveis {#acoes}
 - **WaitAction:** pausa a execução por X segundos do tempo do ASC, com a duração por nível (veja [Ações que esperam](#acoes-que-esperam)).
-- **TargetingAction:** busca alvos usando uma estratégia (Raio, Mouse...). `Mode` Replace substitui os alvos atuais, Append adiciona.
+- **TargetingAction:** põe nos alvos do evento os alvos do seletor dela (veja [Targeting](#targeting)). `Mode` Replace substitui os alvos atuais, Append adiciona.
 - **ApplyEffectAction:** aplica GameplayEffects aos alvos ou ao conjurador.
 - **PlayCueAction:** dispara efeitos visuais e sonoros (veja [Ações de spawn](#acoes-de-spawn)).
 - **AnimationAction:** altera parâmetros (Trigger, Bool, Int) no Animator do personagem.
@@ -433,16 +433,22 @@ Herde de `GameplayAction` e sobrescreva `Execute(ActionContext context, ref Acti
 - Para acusar uma configuração inválida, sobrescreva `Validate(ValidationResult result)` e chame `result.AddError(...)`. O `GameplayAbility` repassa a validação a cada ação da lista.
 
 ### 3.2 Targeting {#targeting}
-`TargetingStrategy` respeita `physicsMode` (2D/3D), procura o `AbilitySystemComponent` no collider ou nos pais (sem duplicatas) e filtra por:
+A `TargetingAction` põe nos alvos do evento (`context.EventTargets`) os alvos que o seletor do campo **Target** escolheu. Com `Mode` Replace, ela troca os alvos atuais; com Append, soma os novos aos atuais, sem repetir. As ações seguintes da lista recebem esses alvos quando não têm seletor próprio.
 
-- `includeSelf` (padrão: falso);
-- `requiredTargetTags` / `ignoredTargetTags` (ex: ignorar a tag do próprio time).
+#### AreaSelector {#areaselector}
+O `AreaSelector` escolhe as unidades num raio. Ele procura o `AbilitySystemComponent` no collider ou nos pais, e uma unidade com vários colliders conta uma vez.
 
-#### CircleTargeting {#circletargeting}
-Os alvos num raio em volta da origem. Aceita `maxTargets` (prioriza os mais próximos). Crie em **Create → GAS → Targeting → Circle**.
+| Campo | O que faz |
+|---|---|
+| `Origin` | O centro da busca: `Caster` (quem lançou), `Point` (o ponto do evento) ou `FirstEventTarget` (o primeiro alvo do evento). |
+| `Physics` | `Physics3D` ou `Physics2D`. |
+| `Radius` | O raio, por nível. Zero ou menos não acha ninguém. |
+| `Include Owner` | Deixa o ASC que roda a lista entre os alvos. Vem desligado. |
+| `Max Targets` | O máximo de alvos; 0 é ilimitado. |
+| `Order` | `Nearest` fica com os mais perto do centro. `Random` sorteia sem repetir, com a fonte de aleatoriedade do ASC. |
+| `Layers` | As camadas em que a busca procura. Vem com todas. |
 
-#### MouseTargetingStrategy {#mousetargetingstrategy}
-O alvo válido mais próximo do ponto mirado, num raio pequeno. Crie em **Create → GAS → Targeting → Mouse**.
+Para o alvo mais perto do ponto mirado, use `Origin` Point, `Max Targets` 1 e `Order` Nearest. Com a mesma semente em `asc.SetRandomSource`, o sorteio escolhe os mesmos alvos na mesma ordem. A busca vê até 64 colliders, usa buffers de cada ASC e não aloca.
 
 ### 3.3 Base nova das ações {#gameplayaction}
 `GameplayAction` (namespace `SpellBook.GAS.Actions`) é a base única das ações da 3.0, e o `AbilitySystemComponent` tem o executor que a roda. A lista `OnActivate` da habilidade, as listas do efeito e o `OnImpact` do projétil usam essa base, e a mesma instância de ação pode estar em listas de donos diferentes.
@@ -484,6 +490,7 @@ Toda ação tem o campo **Target**, um `TargetSelector` que escolhe os alvos del
 | `CasterSelector` | Quem lançou (`context.Instigator`): o dono da habilidade, ou quem aplicou o efeito. |
 | `EventTargetsSelector` | Os alvos do evento (`context.EventTargets`), sem os destruídos. |
 | `PointSelector` | Nenhuma unidade. A ação usa o ponto do evento (`context.Point`). |
+| `AreaSelector` | As unidades num raio em volta de quem lançou, do ponto ou do primeiro alvo do evento ([AreaSelector](#areaselector)). |
 
 Sem seletor, a ação recebe os alvos do evento, sem os destruídos. Na ativação, são os que uma ação anterior pôs em `EventTargets`, como a `TargetingAction`. No impacto do projétil, é quem foi atingido, e numa lista de efeito, o dono do efeito. Escolher os alvos não aloca.
 

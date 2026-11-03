@@ -76,7 +76,7 @@ Aparece em: `Conditional Action > Else`, `Conditional Action > Then`, `Gameplay 
 | [Repeat Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.RepeatAction.html) | Fluxo | Repete as ações várias vezes, com intervalo opcional. |
 | [Spawn Projectile Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.html) | Mundo | Lança projéteis que rodam ações ao acertar. |
 | [Spawn VFX Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Effects.SpawnVFXAction.html) | Apresentação | Cria um efeito visual no alvo e, se marcado, o remove quando o efeito sai. |
-| [Targeting Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.TargetingAction.html) | Alvo | Busca alvos com uma estratégia e troca ou soma aos alvos atuais. |
+| [Targeting Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.TargetingAction.html) | Alvo | Troca ou soma aos alvos do evento os alvos que o seletor escolheu. |
 | [Wait Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.WaitAction.html) | Fluxo | Espera alguns segundos no tempo do sistema de habilidades do ator. |
 
 ## `AttributeChangeProcessor` {#spellbook-gas-attributes-attributechangeprocessor}
@@ -95,6 +95,7 @@ Aparece em: `Gameplay Action > Target`.
 
 | Tipo | Categoria | Resumo |
 |---|---|---|
+| [Area Selector](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Targeting.AreaSelector.html) | Alvo | Escolhe as unidades num raio, as mais perto ou sorteadas. |
 | [Caster Selector](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Targeting.CasterSelector.html) | Alvo | Escolhe quem lançou a habilidade ou aplicou o efeito. |
 | [Event Targets Selector](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Targeting.EventTargetsSelector.html) | Alvo | Escolhe os alvos do evento que disparou a lista. |
 | [Point Selector](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Targeting.PointSelector.html) | Alvo | Não escolhe unidade; a ação usa o ponto do evento. |

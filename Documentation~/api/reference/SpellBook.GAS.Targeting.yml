@@ -4,14 +4,14 @@ items:
   commentId: N:SpellBook.GAS.Targeting
   id: SpellBook.GAS.Targeting
   children:
+  - SpellBook.GAS.Targeting.AreaOrder
+  - SpellBook.GAS.Targeting.AreaOrigin
+  - SpellBook.GAS.Targeting.AreaSelector
   - SpellBook.GAS.Targeting.CasterSelector
-  - SpellBook.GAS.Targeting.CircleTargeting
   - SpellBook.GAS.Targeting.EventTargetsSelector
-  - SpellBook.GAS.Targeting.MouseTargetingStrategy
   - SpellBook.GAS.Targeting.PhysicsMode
   - SpellBook.GAS.Targeting.PointSelector
   - SpellBook.GAS.Targeting.TargetSelector
-  - SpellBook.GAS.Targeting.TargetingStrategy
   langs:
   - csharp
   - vb
@@ -20,18 +20,6 @@ items:
   fullName: SpellBook.GAS.Targeting
   type: Namespace
 references:
-- uid: SpellBook.GAS.Targeting.CircleTargeting
-  commentId: T:SpellBook.GAS.Targeting.CircleTargeting
-  href: SpellBook.GAS.Targeting.CircleTargeting.html
-  name: CircleTargeting
-  nameWithType: CircleTargeting
-  fullName: SpellBook.GAS.Targeting.CircleTargeting
-- uid: SpellBook.GAS.Targeting.MouseTargetingStrategy
-  commentId: T:SpellBook.GAS.Targeting.MouseTargetingStrategy
-  href: SpellBook.GAS.Targeting.MouseTargetingStrategy.html
-  name: MouseTargetingStrategy
-  nameWithType: MouseTargetingStrategy
-  fullName: SpellBook.GAS.Targeting.MouseTargetingStrategy
 - uid: SpellBook.GAS.Targeting.PhysicsMode
   commentId: T:SpellBook.GAS.Targeting.PhysicsMode
   parent: SpellBook.GAS.Targeting
@@ -39,13 +27,26 @@ references:
   name: PhysicsMode
   nameWithType: PhysicsMode
   fullName: SpellBook.GAS.Targeting.PhysicsMode
-- uid: SpellBook.GAS.Targeting.TargetingStrategy
-  commentId: T:SpellBook.GAS.Targeting.TargetingStrategy
+- uid: SpellBook.GAS.Targeting.AreaOrigin
+  commentId: T:SpellBook.GAS.Targeting.AreaOrigin
   parent: SpellBook.GAS.Targeting
-  href: SpellBook.GAS.Targeting.TargetingStrategy.html
-  name: TargetingStrategy
-  nameWithType: TargetingStrategy
-  fullName: SpellBook.GAS.Targeting.TargetingStrategy
+  href: SpellBook.GAS.Targeting.AreaOrigin.html
+  name: AreaOrigin
+  nameWithType: AreaOrigin
+  fullName: SpellBook.GAS.Targeting.AreaOrigin
+- uid: SpellBook.GAS.Targeting.AreaOrder
+  commentId: T:SpellBook.GAS.Targeting.AreaOrder
+  parent: SpellBook.GAS.Targeting
+  href: SpellBook.GAS.Targeting.AreaOrder.html
+  name: AreaOrder
+  nameWithType: AreaOrder
+  fullName: SpellBook.GAS.Targeting.AreaOrder
+- uid: SpellBook.GAS.Targeting.AreaSelector
+  commentId: T:SpellBook.GAS.Targeting.AreaSelector
+  href: SpellBook.GAS.Targeting.AreaSelector.html
+  name: AreaSelector
+  nameWithType: AreaSelector
+  fullName: SpellBook.GAS.Targeting.AreaSelector
 - uid: SpellBook.GAS.Targeting.TargetSelector
   commentId: T:SpellBook.GAS.Targeting.TargetSelector
   parent: SpellBook.GAS.Targeting

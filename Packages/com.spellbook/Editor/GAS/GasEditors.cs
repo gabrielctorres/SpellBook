@@ -4,7 +4,6 @@ using SpellBook.GAS.Abilities.Projectiles;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
-using SpellBook.GAS.Targeting;
 using UnityEditor;
 
 namespace SpellBook.GAS.Editor
@@ -33,10 +32,6 @@ namespace SpellBook.GAS.Editor
     [CustomEditor(typeof(Formula), true)]
     [CanEditMultipleObjects]
     internal sealed class FormulaEditor : SpellBookEditor { }
-
-    [CustomEditor(typeof(TargetingStrategy), true)]
-    [CanEditMultipleObjects]
-    internal sealed class TargetingStrategyEditor : SpellBookEditor { }
 
     [CustomEditor(typeof(Projectile))]
     [CanEditMultipleObjects]

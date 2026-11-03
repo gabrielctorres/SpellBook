@@ -758,17 +758,20 @@ items:
   name: SpellBook.GAS.Targeting
   type: Namespace
   items:
+  - uid: SpellBook.GAS.Targeting.AreaOrder
+    name: AreaOrder
+    type: Enum
+  - uid: SpellBook.GAS.Targeting.AreaOrigin
+    name: AreaOrigin
+    type: Enum
+  - uid: SpellBook.GAS.Targeting.AreaSelector
+    name: AreaSelector
+    type: Class
   - uid: SpellBook.GAS.Targeting.CasterSelector
     name: CasterSelector
     type: Class
-  - uid: SpellBook.GAS.Targeting.CircleTargeting
-    name: CircleTargeting
-    type: Class
   - uid: SpellBook.GAS.Targeting.EventTargetsSelector
     name: EventTargetsSelector
-    type: Class
-  - uid: SpellBook.GAS.Targeting.MouseTargetingStrategy
-    name: MouseTargetingStrategy
     type: Class
   - uid: SpellBook.GAS.Targeting.PhysicsMode
     name: PhysicsMode
@@ -778,9 +781,6 @@ items:
     type: Class
   - uid: SpellBook.GAS.Targeting.TargetSelector
     name: TargetSelector
-    type: Class
-  - uid: SpellBook.GAS.Targeting.TargetingStrategy
-    name: TargetingStrategy
     type: Class
 - uid: SpellBook.GAS.Values
   name: SpellBook.GAS.Values
