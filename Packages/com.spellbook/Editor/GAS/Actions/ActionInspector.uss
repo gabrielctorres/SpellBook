@@ -63,3 +63,11 @@
 .action-row--cat-debug .action-row__icon { background-color: var(--spellbook-cat-debug); }
 .action-row--cat-other { border-left-color: var(--spellbook-cat-other); }
 .action-row--cat-other .action-row__icon { background-color: var(--spellbook-cat-other); }
+
+.target-chip { margin: 0 4px; padding: 0 6px; border-radius: 8px; border-width: 1px; border-color: var(--spellbook-cat-target); flex-shrink: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.target-chip:hover { background-color: rgba(128, 128, 128, 0.2); }
+.target-chip:focus { border-width: 2px; }
+.target-chip--default { color: var(--spellbook-text-secondary); border-color: var(--spellbook-text-secondary); }
+.target-chip--error { color: var(--spellbook-error); border-color: var(--spellbook-error); }
+.action-row__target-block { border-left-width: 4px; border-left-color: var(--spellbook-cat-target); padding-left: 4px; margin-bottom: 4px; }
+.action-row__target-block > Label { -unity-font-style: bold; }

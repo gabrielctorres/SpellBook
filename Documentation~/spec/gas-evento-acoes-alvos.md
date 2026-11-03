@@ -858,6 +858,22 @@ Depende de: EV17a.
 - Critério de pronto: testes verdes; seletor inline conferido no host (CA31, parte).
 - Tamanho estimado: ~380 linhas; 5 arquivos. Depende de: EV17b (era EV17, divisão de 2026-11-03).
 
+#### Detalhe (2026-11-03)
+- CA: CA31 (S), parte do seletor de alvo inline (DS 4.2 item 4, 5.1, 5.2 e 5.3). As filhas com a mesma linha ficam no EV19; o teclado do chip (`Enter`/`Esc`), no EV20.
+- Escopo:
+  - `Editor/GAS/Actions/TargetChipView.cs` (novo, `internal sealed`): chip `→ <texto>` pelo `target` da ação; oculto em ação nula ou com `UsesTargets` falso; sem seletor, `→ Padrão do evento` com tooltip do alvo padrão do evento (achado pelo `[ActionEvent]` do campo raiz do caminho) ou "o alvo corrente" sob um `ForEachTargetAction`; `AreaSelector` como `Área 5 m · 2 alvos · <resumo do filtro>`; outros seletores pelo `SummaryFormatter`. Mensagens sob `<ação>.target` pintam o chip de vermelho com ✖ e a mensagem no tooltip, sem desabilitar. O clique abre o `TypePickerPopup` de `TargetSelector` com "(Padrão do evento)"; seletor com campos expande a ação. Também monta o bloco "Alvo" (`BuildTargetBlock`): um `PropertyField` por campo visível do seletor.
+  - `Editor/GAS/Actions/ActionRowView.cs:45-66` (chip no cabeçalho, entre o resumo e a validação), `:83-107` (`Bind` repassa ao chip), `:117-127` (bloco "Alvo" antes do `PropertyField` da ação).
+  - `Editor/GAS/Actions/ActionInspector.uss`: classes do chip (padrão tracejado, cheio, erro) e do bloco, com a barra na cor da categoria "Alvo".
+  - `Editor/Core/Inspector/TypePickerTree.cs:73-81` e `TypePickerPopup.cs:36-44`: sobrecarga aditiva com o rótulo do item nulo (`noneLabel`), padrão "(Nenhum)". Consequência direta: o DS 5.2 pede "(Padrão do evento)" no popup.
+  - `Runtime/GAS/Actions/GameplayAction.cs:19`: `[HideInInspector]` no `target`, para o seletor não aparecer duas vezes (chip e bloco, e de novo nos campos da ação). Até o EV19, as filhas aninhadas, desenhadas pelo `TypePickerDrawer`, ficam sem o campo de alvo no Inspector; linha no `decisoes.md`.
+  - `Runtime/GAS/Targeting/AreaSelector.cs:60-67`: a declaração do `filter` sobe para depois do `radius`, na ordem dos campos do DS 5.2 (o formato serializado é por nome e não muda).
+  - `Tests/GAS/EditMode/TargetChipTests.cs` (novo).
+  - Fora: sem `!`, sem CHANGELOG (nenhuma quebra); `gas.md` vai para o passe de documentação.
+- Testes red (EditMode, `TargetChipTests`): `Chip_TextPerSelector_AreaSummary` (padrão, Quem lançou, Alvos do evento, Ponto, Área com raio, máximo e filtro; oculto em `Wait`); `Chip_IncompatibleWithEvent_RedNotBlocked` (`EventTargetsSelector` em "Ao ser concedida", pelo validador real); `AreaSelector_OpensTargetBlockBeforeActionFields`; `ForEachChild_ChipTooltipSaysCurrentTarget`; `Picker_NoneLabel_ReadsEventDefault`.
+- Critério de pronto: os 5 testes verdes; guardas verdes: `ActionInspectorTests`, `TypePickerTreeTests`, `ActionModelValidationTests` e `SpellBookEditorCoverageTests`. No host (Examinador): chip clicável, troca na hora e bloco "Alvo" com os campos da Área.
+- Tamanho: medido em 326 linhas (186 de editor e runtime, 140 de testes) e 8 arquivos (o `.uss` conta só no número de arquivos). Exceção: nenhuma.
+- Commit: `feat(editor): chip de alvo e bloco Alvo nas ações`
+
 ### EV19 — Inspector: ações aninhadas e arrastar entre listas
 - Escopo: `ActionListView.cs`, `ActionRowView.cs`, `ActionInspector.uss`, `Tests/GAS/EditMode/NestedActionListTests.cs` (novo), `CHANGELOG.md`.
 - Testes red: `FlowChildren_IndentedUpTo3_Level4Indicator`; `CollapsedFlow_ShowsChildCount`; `DragBetweenListsSameTab_Moves_UndoRestores`.

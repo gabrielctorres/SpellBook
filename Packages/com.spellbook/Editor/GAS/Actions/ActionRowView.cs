@@ -14,7 +14,7 @@ namespace SpellBook.GAS.Editor.Actions
 {
     /// <summary>
     /// Linha de uma ação (DS do Inspector de ações, 4.2 e 4.3): seta de dobra, pastilha e barra da categoria, resumo de uma
-    /// linha e ícone de validação. Expandida, mostra os campos da ação abaixo do cabeçalho.
+    /// linha, chip de alvo e ícone de validação. Expandida, mostra o bloco "Alvo" e os campos da ação abaixo do cabeçalho.
     /// </summary>
     internal sealed class ActionRowView : VisualElement
     {
@@ -57,6 +57,7 @@ namespace SpellBook.GAS.Editor.Actions
             header.Add(_icon);
             header.Add(_summary);
             header.Add(_choose);
+            header.Add(Chip);
             header.Add(ValidationIcon);
             _choose.RegisterCallback<ClickEvent>(evt => evt.StopPropagation());
             header.RegisterCallback<ClickEvent>(_ => Toggle());
@@ -68,6 +69,9 @@ namespace SpellBook.GAS.Editor.Actions
 
         /// <summary>Resumo mostrado na linha.</summary>
         internal string SummaryText => _summary.text;
+
+        /// <summary>Chip do seletor de alvo da ação.</summary>
+        internal TargetChipView Chip { get; } = new TargetChipView();
 
         /// <summary>Ícone de aviso ou erro, visível só quando a ação tem mensagem.</summary>
         internal Label ValidationIcon { get; }
@@ -104,6 +108,7 @@ namespace SpellBook.GAS.Editor.Actions
             ValidationIcon.EnableInClassList(ErrorClass, error);
             ValidationIcon.EnableInClassList(WarningClass, own.Count > 0 && !error);
             Show(ValidationIcon, own.Count > 0);
+            Chip.Bind(element, messages);
             RefreshBody();
         }
 
@@ -121,6 +126,8 @@ namespace SpellBook.GAS.Editor.Actions
             _body.Clear();
             Show(_body, expanded);
             if (!expanded) return;
+            VisualElement block = TargetChipView.BuildTargetBlock(_element);
+            if (block != null) _body.Add(block);
             var field = new PropertyField(_element, "Tipo");
             field.BindProperty(_element);
             _body.Add(field);

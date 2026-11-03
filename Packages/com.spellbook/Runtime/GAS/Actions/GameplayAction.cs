@@ -16,7 +16,8 @@ namespace SpellBook.GAS.Actions
     [Serializable]
     public abstract class GameplayAction : IValidatable
     {
-        [SerializeReference, TypePicker] private TargetSelector target;
+        // O Inspector de ações edita o seletor pelo chip e pelo bloco "Alvo", fora dos campos da ação
+        [SerializeReference, TypePicker, HideInInspector] private TargetSelector target;
 
         /// <summary>
         /// Seletor dos alvos da ação, resolvido quando ela começa e entregue em <see cref="ActionContext.Targets"/>.

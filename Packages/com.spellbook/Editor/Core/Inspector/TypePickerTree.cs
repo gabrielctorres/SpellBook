@@ -72,13 +72,19 @@ namespace SpellBook.Core.Editor.Inspector
 
         public static TypePickerTree Build(IEnumerable<TypePickerEntry> entries)
         {
+            return Build(entries, NoneLabel);
+        }
+
+        /// <summary>Como <see cref="Build(IEnumerable{TypePickerEntry})"/>, com <paramref name="noneLabel"/> no item que deixa o campo nulo.</summary>
+        public static TypePickerTree Build(IEnumerable<TypePickerEntry> entries, string noneLabel)
+        {
             if (entries == null)
             {
                 throw new ArgumentNullException(nameof(entries));
             }
 
             var tree = new TypePickerTree(entries.OrderBy(e => e.DisplayName, StringComparer.OrdinalIgnoreCase).ToList());
-            tree.Add(tree.Root, new TypePickerNode(TypePickerNodeKind.None, NoneLabel, string.Empty, default));
+            tree.Add(tree.Root, new TypePickerNode(TypePickerNodeKind.None, noneLabel ?? NoneLabel, string.Empty, default));
             var categories = new Dictionary<string, TypePickerNode>(StringComparer.Ordinal);
             foreach (TypePickerEntry entry in tree._entries)
             {
