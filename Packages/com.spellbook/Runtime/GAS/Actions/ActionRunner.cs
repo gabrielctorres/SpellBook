@@ -52,6 +52,9 @@ namespace SpellBook.GAS.Actions
             public ActionContext Context;
             public bool OwnsContext;
             public Execution Mother;
+            // Alvos padrão herdados da DelayedAction que agendou esta execução
+            public readonly List<AbilitySystemComponent> Inherited = new List<AbilitySystemComponent>();
+            public bool HasInherited;
             public int Pending;
             public int Version;
             public bool Running;
@@ -62,6 +65,8 @@ namespace SpellBook.GAS.Actions
         private readonly List<Execution> _executions = new List<Execution>();
         private readonly Stack<Execution> _executionPool = new Stack<Execution>();
         private readonly Stack<ActionContext> _contextPool = new Stack<ActionContext>();
+        // Execução cuja ação está em Execute agora; lida pela DelayedAction
+        private Execution _current;
 
         public ActionRunner(AbilitySystemComponent asc) => _asc = asc;
 
@@ -203,7 +208,11 @@ namespace SpellBook.GAS.Actions
                 }
                 execution.Context.SetTargets(targets);
 
-                ActionStatus status = action.InvokeExecute(execution.Context, ref top.Frame);
+                Execution previous = _current;
+                _current = execution;
+                ActionStatus status;
+                try { status = action.InvokeExecute(execution.Context, ref top.Frame); }
+                finally { _current = previous; }
                 // A própria ação pode ter cancelado esta execução
                 if (execution.Version != version || !execution.Running) return;
 
@@ -255,11 +264,44 @@ namespace SpellBook.GAS.Actions
             }
             if (TryAddForEachTarget(execution, targets)) return;
 
-            List<AbilitySystemComponent> eventTargets = context.EventTargets;
-            for (int i = 0; i < eventTargets.Count; i++)
+            Execution root = execution;
+            while (root.Mother != null) root = root.Mother;
+            AddLiving(root.HasInherited ? root.Inherited : context.EventTargets, targets);
+        }
+
+        private static void AddLiving(List<AbilitySystemComponent> source, List<AbilitySystemComponent> targets)
+        {
+            for (int i = 0; i < source.Count; i++)
             {
-                if (eventTargets[i] != null) targets.Add(eventTargets[i]);
+                if (source[i] != null) targets.Add(source[i]);
             }
+        }
+
+        /// <summary>
+        /// Agenda <paramref name="actions"/> numa execução nova, com o cursor <paramref name="delay"/> segundos depois do
+        /// cursor da execução corrente, numa cópia do contexto dela. As filhas sem seletor recebem os alvos da ação que
+        /// agendou. A execução nova é do mesmo dono, ou fica sem dono com <paramref name="withoutOwner"/>.
+        /// </summary>
+        internal void Schedule(IReadOnlyList<GameplayAction> actions, float delay, bool withoutOwner)
+        {
+            Execution current = _current;
+            if (current == null || actions == null || actions.Count == 0) return;
+
+            ActionContext source = current.Context;
+            ActionContext context = RentContext();
+            CopyContext(source, context);
+            Execution execution = Start(actions, 0, actions.Count, context, withoutOwner ? null : current.Owner, null,
+                current.Cursor);
+            execution.OwnsContext = true;
+            execution.Inherited.AddRange(source.Targets);
+            execution.HasInherited = true;
+            if (delay > 0f)
+            {
+                ref Entry top = ref execution.Stack[0];
+                top.Deadline = current.Cursor + delay;
+                top.State = EntryState.Waiting;
+            }
+            Advance(execution);
         }
 
         // Procura nos quadros que contêm a ação corrente, desta execução e das mães (filhas em paralelo), o ForEach mais
@@ -314,6 +356,28 @@ namespace SpellBook.GAS.Actions
             if (mother.Pending == 0 && !mother.Advancing) Advance(mother);
         }
 
+        // Cópia para uma execução agendada: tudo menos os alvos da ação corrente, o cancelamento e o LastRemovedStacks
+        private static void CopyContext(ActionContext source, ActionContext copy)
+        {
+            copy.Owner = source.Owner;
+            copy.Instigator = source.Instigator;
+            copy.EventTargets.AddRange(source.EventTargets);
+            if (source.HasPoint) copy.SetPoint(source.Point);
+            copy.Ability = source.Ability;
+            copy.Spec = source.Spec;
+            copy.Level = source.Level;
+            copy.EffectInstance = source.EffectInstance;
+            copy.EffectDefinition = source.EffectDefinition;
+            copy.EffectEvent = source.EffectEvent;
+            if (source.HasEffect) copy.SetEffect(source.Effect);
+            copy.EventInstigator = source.EventInstigator;
+            // Cópia rasa, como no CreateDerived; o dicionário da fonte vem do pool com o contexto dela
+            Dictionary<string, object> data = source.CustomData;
+            if (data.Count == 0) return;
+            copy.SetCustomDataComparer(data.Comparer);
+            foreach (KeyValuePair<string, object> pair in data) copy.CustomData[pair.Key] = pair.Value;
+        }
+
         private void CancelExecution(Execution execution)
         {
             execution.Running = false;
@@ -359,6 +423,8 @@ namespace SpellBook.GAS.Actions
             execution.Context = null;
             execution.Owner = null;
             execution.Mother = null;
+            execution.Inherited.Clear();
+            execution.HasInherited = false;
             _executionPool.Push(execution);
         }
     }

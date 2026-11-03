@@ -11,6 +11,7 @@ items:
   - SpellBook.GAS.Actions.ActionStatus
   - SpellBook.GAS.Actions.ChanceAction
   - SpellBook.GAS.Actions.DefaultTarget
+  - SpellBook.GAS.Actions.DelayedAction
   - SpellBook.GAS.Actions.EffectEvent
   - SpellBook.GAS.Actions.ForEachTargetAction
   - SpellBook.GAS.Actions.GameplayAction
@@ -78,6 +79,12 @@ references:
   name: ChanceAction
   nameWithType: ChanceAction
   fullName: SpellBook.GAS.Actions.ChanceAction
+- uid: SpellBook.GAS.Actions.DelayedAction
+  commentId: T:SpellBook.GAS.Actions.DelayedAction
+  href: SpellBook.GAS.Actions.DelayedAction.html
+  name: DelayedAction
+  nameWithType: DelayedAction
+  fullName: SpellBook.GAS.Actions.DelayedAction
 - uid: SpellBook.GAS.Actions.ForEachTargetAction
   commentId: T:SpellBook.GAS.Actions.ForEachTargetAction
   href: SpellBook.GAS.Actions.ForEachTargetAction.html

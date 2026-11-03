@@ -62,7 +62,7 @@ Aparece em: `Ability Description > Elements`.
 
 ## `GameplayAction` {#spellbook-gas-actions-gameplayaction}
 
-Aparece em: `Chance Action > Actions`, `Conditional Action > Else`, `Conditional Action > Then`, `For Each Target Action > Actions`, `Gameplay Ability > On Activate`, `Gameplay Ability > On Cancel`, `Gameplay Ability > On End`, `Gameplay Effect > On Applied`, `Gameplay Effect > On Removed`, `Gameplay Effect > On Tick`, `Parallel Action > Actions`, `Repeat Action > Actions`, `Spawn Projectile Action > On Hit Actions`.
+Aparece em: `Chance Action > Actions`, `Conditional Action > Else`, `Conditional Action > Then`, `Delayed Action > Actions`, `For Each Target Action > Actions`, `Gameplay Ability > On Activate`, `Gameplay Ability > On Cancel`, `Gameplay Ability > On End`, `Gameplay Effect > On Applied`, `Gameplay Effect > On Removed`, `Gameplay Effect > On Tick`, `Parallel Action > Actions`, `Repeat Action > Actions`, `Spawn Projectile Action > On Hit Actions`.
 
 | Tipo | Categoria | Resumo |
 |---|---|---|
@@ -71,6 +71,7 @@ Aparece em: `Chance Action > Actions`, `Conditional Action > Else`, `Conditional
 | [Chance Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Actions.ChanceAction.html) | Fluxo | Roda as ações com uma chance, sorteada no ASC. |
 | [Conditional Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.ConditionalAction.html) | Fluxo | Roda as ações de Then ou de Else conforme a condição. |
 | [Debug Log Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Effects.DebugLogAction.html) | Depuração | Escreve uma mensagem colorida no Console quando o efeito roda. |
+| [Delayed Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Actions.DelayedAction.html) | Fluxo | Roda as ações depois de um tempo, sem esperar por elas. |
 | [For Each Target Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Actions.ForEachTargetAction.html) | Fluxo | Roda as ações uma vez por alvo, com o alvo corrente como padrão. |
 | [Parallel Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.ParallelAction.html) | Fluxo | Roda as ações ao mesmo tempo e espera todas terminarem. |
 | [Play Cue Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.PlayCueAction.html) | Apresentação | Cria um efeito visual e toca um som em quem lançou, no alvo ou no ponto. |

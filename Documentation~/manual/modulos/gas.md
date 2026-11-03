@@ -364,6 +364,7 @@ A lista **Starting Effects** do ASC aplica cada efeito no `Awake`, na ordem da l
 - **ChanceAction:** roda as ações filhas com uma chance por nível, de 0 a 1 (`Probability`). O sorteio usa a fonte de aleatoriedade do ASC ([Alvo de cada ação](#alvo-da-acao)). Com `Probability` 0,3, um sorteio de 0,2 roda as filhas e um de 0,5 não roda.
 - **ForEachTargetAction:** roda as ações filhas uma vez para cada alvo dela, e cada filha sem seletor recebe só o alvo da vez ([Alvo de cada ação](#alvo-da-acao)).
 - **RemoveEffectAction:** remove de cada alvo as instâncias do `Effect` e as que concedem a `Tag` ou uma filha dela. A soma das pilhas removidas fica em `context.LastRemovedStacks` para as ações seguintes da lista. Sem efeito e sem tag, a ação não remove nada.
+- **DelayedAction:** agenda as ações filhas para `Delay` segundos depois, no tempo do ASC, sem segurar a lista: a ação seguinte roda na mesma chamada. As filhas pertencem ao dono da lista. Numa habilidade, ela continua ativa até as filhas rodarem, e cancelar a habilidade as cancela; num efeito, remover o efeito as cancela. Com `ContinueIfOwnerEnds` ligado, as filhas rodam mesmo assim, e a habilidade termina sem esperar por elas. A filha sem seletor recebe os alvos que a `DelayedAction` recebeu.
 
 #### Ações que esperam {#acoes-que-esperam}
 O `Duration` da `WaitAction`, o `Interval` da `RepeatAction` e o `DelayBetweenShots` da `SpawnProjectileAction` contam o tempo do ASC que conjurou, o [`TickedTime`](#tempo-do-asc), e não o relógio da Unity.

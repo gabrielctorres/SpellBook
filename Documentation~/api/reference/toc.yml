@@ -434,6 +434,9 @@ items:
   - uid: SpellBook.GAS.Actions.DefaultTarget
     name: DefaultTarget
     type: Enum
+  - uid: SpellBook.GAS.Actions.DelayedAction
+    name: DelayedAction
+    type: Class
   - uid: SpellBook.GAS.Actions.EffectEvent
     name: EffectEvent
     type: Enum

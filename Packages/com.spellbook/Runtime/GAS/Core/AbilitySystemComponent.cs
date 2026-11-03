@@ -234,7 +234,7 @@ namespace SpellBook.GAS.Core
             EndFinishedAbilities();
         }
 
-        // Termina as habilidades cuja lista OnActivate acabou neste Tick
+        // Termina as habilidades cujas execuções (o OnActivate e as atrasadas dele) acabaram neste Tick
         private void EndFinishedAbilities()
         {
             for (int i = _abilities.Count - 1; i >= 0; i--)
@@ -242,7 +242,7 @@ namespace SpellBook.GAS.Core
                 // Um OnAbilityEnded pode retirar habilidades
                 if (i >= _abilities.Count) continue;
                 AbilitySpec spec = _abilities[i];
-                if (spec.IsActive && spec.Executing && !spec.Execution.IsRunning) EndAbility(spec, false);
+                if (spec.IsActive && spec.Executing && !_runner.HasRunning(spec)) EndAbility(spec, false);
             }
         }
 
@@ -929,7 +929,8 @@ namespace SpellBook.GAS.Core
             // Uma ação pode ter terminado ou cancelado a ativação, ou começado outra
             if (!spec.IsActive || spec.ActivationId != activation) return;
 
-            if (execution.IsRunning)
+            // A ativação só termina quando acabam todas as execuções do spec, inclusive as de uma DelayedAction
+            if (Runner.HasRunning(spec))
             {
                 spec.Execution = execution;
                 spec.Executing = true;
