@@ -137,10 +137,42 @@ Vale para todo ticket que começar depois da aceitação. Um ticket que já est�
 - O site publicado fica atrás do código até o passe. O manual e a referência commitados também.
 - "Documentação escrita depois não é escrita" (Motivo): o risco é aceito pelo usuário. Ele é reduzido porque o escopo e os CA de cada ticket ficam na Spec, e as quebras ficam no CHANGELOG.
 
+## Emenda (2026-11-03): quem revisa o passe de documentação
+
+**Status da emenda: Aceita** (decisão do usuário, aprovada pelo usuário em 2026-11-03, issue #325). Revê o item 2 da emenda de 2026-11-01 e os itens 5 e 6 da emenda "manual e referência só no passe de documentação", acima. Responde ao "Em aberto" da 0002.
+
+**Contexto.** Pela emenda de 2026-11-03 da 0002 ("gate do Examinador só para código"), o Examinador revisa e reprova só pelo código, e o texto de um ticket não gera achado. As páginas do manual são texto. Assim, as conferências da emenda de 2026-11-01 (molde, siglas, `nav`, humanizer, imagens e legenda dos diagramas) ficaram sem quem as fizesse. As guardas da categoria `Documentacao` também ficaram sem dono, e elas precisam da Unity.
+
+**Regra.**
+1. **Texto do passe: o Controlador** (item 2 da emenda de 2026-11-01). As conferências que aquele item dava ao Examinador passam ao Controlador, no ticket do passe. Antes do `/commit`, o Controlador:
+   - roda `git diff --check` no diff do ticket;
+   - roda as conferências por busca da seção 7 do `guia-do-manual.md`;
+   - confere o molde, as siglas, o `nav` e as legendas dos diagramas pelas regras do guia;
+   - lê o texto novo do manual pelas regras da humanizer (`C:/Users/gabri/.claude/skills/humanizer/SKILL.md`) e confere a declaração da Fábrica no relatório;
+   - roda o `mkdocs build --strict` como manda a seção 7 do guia.
+
+   Um problema encontrado volta à Fábrica, e o ticket não segue para o `/commit` até o Controlador repetir a conferência. O usuário lê o texto no PR da branch do lote.
+2. **Guardas de documentação: o Examinador** (itens 5 e 6 da emenda "manual e referência só no passe de documentação"). Todo ticket do passe passa pelo `/revisao`, mesmo que seja só de texto. Nele, o Examinador pega a trava de Editor (0005) e roda a suíte com `-testCategory "Documentacao"`.
+   - Se uma guarda falhar, ele reprova pela guarda.
+   - Ele não registra achado sobre o texto: molde, escrita e humanizer ficam com o Controlador (item 1).
+   - Se o ticket do passe tem código (por exemplo, `.cs` dos exemplos incluídos de testes), o Examinador também o revisa pela regra de código da 0002, e roda a suíte completa como em qualquer ticket com código.
+   - Se o texto muda depois que as guardas passaram, elas rodam de novo antes do `/commit`.
+3. **Ordem e fim do passe.** O ticket do passe só vai ao `/commit` com as duas partes aprovadas para o diff final: a conferência do Controlador (item 1) e o APROVADO do Examinador (item 2). O passe termina quando o último ticket fecha com as guardas verdes e o `mkdocs build --strict` sem erro.
+4. **Detalhe do passe** (item 6 da emenda "manual e referência só no passe de documentação"). Onde lá diz "o Arquiteto detalha o passe em tickets", passa a valer o fluxo da 0002: a Fábrica escreve o Detalhe de cada ticket do passe na entrada da fila e o implementa.
+
+**Motivo.**
+- O texto fica com dois olhares, como no resto do processo: o Controlador antes do commit e o usuário no PR.
+- As guardas precisam da Unity e da trava de Editor, e o Examinador já roda a suíte. Ele fica com o que é verificado por teste, sem voltar a revisar texto.
+
+**Consequências.**
+- O ticket do passe só de texto é uma exceção ao item 3 da emenda "gate do Examinador só para código" da 0002: ele passa pelo `/revisao`, mas só para as guardas.
+- O Controlador lê páginas do manual. Elas são texto, e os exemplos de código nelas são incluídos de testes e conferidos pelas guardas, então ele continua sem ler código.
+- Com esta emenda aceita, um ticket da via rápida alinha ao texto dela: o `AGENTS.md` (seção "Time de desenvolvimento": os papéis do Controlador e do Examinador, o item 5 do Fluxo e "WIP, trava e testes", que hoje tira `Documentacao` da revisão), a skill `/revisao`, o agente `examinador` e o agente `controlador`. A seção 7 do `guia-do-manual.md` já fala de "quem revisa" e não muda.
+
 ## Em aberto
 
 Nada.
 
 ## Relacionadas
 
-- 0001 (pastas), 0003 (tamanho de ticket), 0004 (teste de validadores), 0011 (`ISelfValidator`), 0013 (`[SerializeReference]`), 0025 (ferramenta do site).
+- 0001 (pastas), 0002 (fluxo e papéis), 0003 (tamanho de ticket), 0005 (trava), 0004 (teste de validadores), 0011 (`ISelfValidator`), 0013 (`[SerializeReference]`), 0025 (ferramenta do site).
