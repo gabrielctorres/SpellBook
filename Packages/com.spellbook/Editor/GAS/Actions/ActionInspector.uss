@@ -46,6 +46,7 @@
 .action-row__validation--warning { color: var(--spellbook-warning); }
 .action-row__validation--error { color: var(--spellbook-error); }
 .action-row__body { padding-left: 16px; }
+.action-row__menu { margin: 0 0 0 2px; padding: 0 4px; min-width: 18px; }
 .action-row__level { color: var(--spellbook-text-secondary); margin: 0 4px; }
 .action-row__child-label { color: var(--spellbook-text-secondary); margin: 2px 0 0 4px; }
 

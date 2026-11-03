@@ -15,8 +15,9 @@ namespace SpellBook.GAS.Editor.Actions
 {
     /// <summary>
     /// Linha de uma ação (DS do Inspector de ações, 4.2 e 4.3): seta de dobra, pastilha e barra da categoria, resumo de uma
-    /// linha, chip de alvo e ícone de validação. Expandida, mostra o bloco "Alvo" e os campos da ação abaixo do cabeçalho.
-    /// As listas filhas de uma ação de fluxo aparecem como <see cref="ActionListView"/> aninhadas, com a mesma linha (4.4).
+    /// linha, chip de alvo, ícone de validação e menu (botão ⋯ e botão direito). Expandida, mostra o bloco "Alvo" e os
+    /// campos da ação abaixo do cabeçalho. As listas filhas de uma ação de fluxo aparecem como <see cref="ActionListView"/>
+    /// aninhadas, com a mesma linha (4.4).
     /// </summary>
     internal sealed class ActionRowView : VisualElement
     {
@@ -28,6 +29,8 @@ namespace SpellBook.GAS.Editor.Actions
         /// <summary>Nível a partir do qual o recuo não aumenta e a linha mostra o indicador do nível (DS 4.4).</summary>
         internal const int FlatDepth = 4;
         private const string CategoryPrefix = "action-row--cat-";
+        private const string ArrayData = ".Array.data[";
+        private const string DiscardText = "Os dados desta ação serão descartados.";
 
         private static readonly Dictionary<string, string> Categories = new Dictionary<string, string>
         {
@@ -74,8 +77,24 @@ namespace SpellBook.GAS.Editor.Actions
             header.Add(_choose);
             header.Add(Chip);
             header.Add(ValidationIcon);
+            var menu = new Button { text = "⋯", tooltip = "Menu da ação" };
+            menu.AddToClassList(ClassName + "__menu");
+            menu.clicked += () => ShowMenu(menu);
+            header.Add(menu);
             _choose.RegisterCallback<ClickEvent>(evt => evt.StopPropagation());
+            menu.RegisterCallback<ClickEvent>(evt => evt.StopPropagation());
             header.RegisterCallback<ClickEvent>(_ => Toggle());
+            // Só no cabeçalho: os campos da ação mantêm o menu deles, e a linha de fora não repete os itens de uma filha
+            header.AddManipulator(new ContextualMenuManipulator(evt =>
+            {
+                foreach (ActionMenuEntry entry in MenuEntries())
+                {
+                    evt.menu.AppendAction(entry.Name, _ => RunCommand(entry.Command),
+                        entry.Enabled ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+                }
+
+                evt.StopPropagation();
+            }));
             _body = new VisualElement();
             _body.AddToClassList(ClassName + "__body");
             _children = new VisualElement();
@@ -196,7 +215,7 @@ namespace SpellBook.GAS.Editor.Actions
         }
 
         // Campos List<GameplayAction> serializados e visíveis do tipo concreto, na ordem da declaração
-        private static List<SerializedProperty> ChildLists(SerializedProperty action)
+        internal static List<SerializedProperty> ChildLists(SerializedProperty action)
         {
             var lists = new List<SerializedProperty>();
             for (Type type = action.managedReferenceValue?.GetType(); type != null && type != typeof(GameplayAction);
@@ -219,14 +238,97 @@ namespace SpellBook.GAS.Editor.Actions
             SerializedProperty element = _element;
             TypePickerPopup.Show(anchor.worldBound, typeof(GameplayAction), picked =>
             {
-                TypePickerCatalog.Assign(element, picked);
-                element.isExpanded = true;
+                if (ChangeType(element, picked)) element.isExpanded = true;
             });
+        }
+
+        /// <summary>
+        /// Troca a ação do <paramref name="element"/> por uma nova do <paramref name="type"/>, num passo de Undo (DS 4.3). Se a
+        /// ação tinha algum campo fora do padrão, pede confirmação antes; devolve <c>false</c> se o usuário cancelou.
+        /// </summary>
+        internal static bool ChangeType(SerializedProperty element, Type type)
+        {
+            object value = element.managedReferenceValue;
+            if (value != null && !IsDefault(value) && !ActionListView.Confirm("Trocar tipo", DiscardText)) return false;
+            Undo.IncrementCurrentGroup();
+            Undo.SetCurrentGroupName("Trocar tipo da ação");
+            TypePickerCatalog.Assign(element, type);
+            return true;
+        }
+
+        /// <summary>Itens do menu da linha (DS 4.1 e 4.5), na ordem, com os que não valem nesta posição desabilitados.</summary>
+        internal IEnumerable<ActionMenuEntry> MenuEntries()
+        {
+            int count = OwningList(out int index)?.arraySize ?? 0;
+            bool filled = _element?.managedReferenceValue != null;
+            bool up = index > 0;
+            bool down = index >= 0 && index < count - 1;
+            yield return new ActionMenuEntry("Duplicar", ActionCommand.Duplicate, filled);
+            yield return new ActionMenuEntry("Copiar", ActionCommand.Copy, filled);
+            yield return new ActionMenuEntry("Colar", ActionCommand.Paste, ActionClipboard.CanPaste(ActionClipboard.SystemText));
+            yield return new ActionMenuEntry("Mover para cima", ActionCommand.MoveUp, up);
+            yield return new ActionMenuEntry("Mover para baixo", ActionCommand.MoveDown, down);
+            yield return new ActionMenuEntry("Mover para o topo", ActionCommand.MoveTop, up);
+            yield return new ActionMenuEntry("Mover para o fim", ActionCommand.MoveBottom, down);
+            yield return new ActionMenuEntry("Remover", ActionCommand.Remove, index >= 0);
+        }
+
+        // Ação com os mesmos dados de uma instância nova do tipo: trocar não descarta nada
+        private static bool IsDefault(object value)
+        {
+            return EditorJsonUtility.ToJson(value) == EditorJsonUtility.ToJson(Activator.CreateInstance(value.GetType(), true));
+        }
+
+        private SerializedProperty OwningList(out int index)
+        {
+            index = -1;
+            string path = _element?.propertyPath;
+            int open = path == null ? -1 : path.LastIndexOf(ArrayData, StringComparison.Ordinal);
+            if (open < 0 || !path.EndsWith("]", StringComparison.Ordinal)) return null;
+            int start = open + ArrayData.Length;
+            index = int.Parse(path.Substring(start, path.Length - start - 1));
+            return _element.serializedObject.FindProperty(path.Substring(0, open));
+        }
+
+        private void RunCommand(ActionCommand command)
+        {
+            SerializedProperty list = OwningList(out int index);
+            if (list == null) return;
+            ActionListView owner = GetFirstAncestorOfType<ActionListView>();
+            if (owner != null) owner.Run(command, index);
+            else ActionListView.Execute(list, index, command, out _);
+        }
+
+        private void ShowMenu(VisualElement anchor)
+        {
+            var menu = new GenericMenu();
+            foreach (ActionMenuEntry entry in MenuEntries())
+            {
+                if (entry.Enabled) menu.AddItem(new GUIContent(entry.Name), false, () => RunCommand(entry.Command));
+                else menu.AddDisabledItem(new GUIContent(entry.Name));
+            }
+
+            menu.DropDown(anchor.worldBound);
         }
 
         private static void Show(VisualElement element, bool visible)
         {
             element.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
         }
+    }
+
+    /// <summary>Item do menu da linha de ação: o texto, o comando da lista e se vale na posição da ação.</summary>
+    internal readonly struct ActionMenuEntry
+    {
+        internal ActionMenuEntry(string name, ActionCommand command, bool enabled)
+        {
+            Name = name;
+            Command = command;
+            Enabled = enabled;
+        }
+
+        internal string Name { get; }
+        internal ActionCommand Command { get; }
+        internal bool Enabled { get; }
     }
 }

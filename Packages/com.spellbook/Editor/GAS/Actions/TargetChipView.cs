@@ -8,6 +8,7 @@ using SpellBook.GAS.Actions;
 using SpellBook.GAS.Targeting;
 using UnityEditor;
 using UnityEditor.UIElements;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace SpellBook.GAS.Editor.Actions
@@ -35,6 +36,13 @@ namespace SpellBook.GAS.Editor.Actions
             RegisterCallback<ClickEvent>(evt =>
             {
                 evt.StopPropagation();
+                Pick();
+            });
+            // Enter abre o popup, que fecha com Esc (DS 7); a tecla não chega à lista, que expandiria a linha
+            RegisterCallback<KeyDownEvent>(evt =>
+            {
+                if (evt.keyCode != KeyCode.Return && evt.keyCode != KeyCode.KeypadEnter) return;
+                evt.StopImmediatePropagation();
                 Pick();
             });
         }
