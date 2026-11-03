@@ -68,6 +68,9 @@ namespace SpellBook.GAS.Abilities
         [Tooltip("Instant termina ao fim de \"Ao ativar\". Passive ativa na concessão e fica ativa. Toggle liga e desliga a cada ativação. Channel canaliza pela duração.")]
         [SerializeField] private AbilityBehavior behavior = AbilityBehavior.Instant;
 
+        [Tooltip("Passive: tenta ativar de novo a cada Tick enquanto estiver inativa (falhou na concessão ou foi cancelada).")]
+        [SerializeField] private bool reactivatePassive;
+
         [Tooltip("Channel: duração da canalização por nível. 0: canaliza até ser cancelada.")]
         [SerializeField] private ScalableFloat channelDuration = ScalableFloat.Constant(0f);
 
@@ -137,6 +140,9 @@ namespace SpellBook.GAS.Abilities
         public List<GameplayAction> OnRemoved = new List<GameplayAction>();
 
         [Header("Gatilhos")]
+        [Tooltip("Interruptor que liga os gatilhos \"só com autocast\". Só em Instant e Channel.")]
+        [SerializeField] private AutocastConfig autocast = new AutocastConfig();
+
         [Tooltip("Causas que tentam ativar a habilidade sozinha, pelas mesmas checagens da ativação manual.")]
         [SerializeReference, TypePicker] private List<AbilityTrigger> triggers = new List<AbilityTrigger>();
 
@@ -199,6 +205,19 @@ namespace SpellBook.GAS.Abilities
         /// Gatilhos da habilidade. O ASC os lê na concessão: mudar a lista depois só vale para a próxima concessão.
         /// </summary>
         public List<AbilityTrigger> Triggers => triggers ??= new List<AbilityTrigger>();
+
+        /// <summary>Autocast da habilidade (não permitido por padrão). O estado de cada personagem fica no <see cref="AbilitySpec"/>.</summary>
+        public AutocastConfig Autocast => autocast ??= new AutocastConfig();
+
+        /// <summary>
+        /// <see cref="AbilityBehavior.Passive"/>: tenta ativar de novo a cada <c>Tick</c> enquanto inativa, em modo
+        /// silencioso. O ASC lê na concessão, como os <see cref="Triggers"/>.
+        /// </summary>
+        public bool ReactivatePassive
+        {
+            get => reactivatePassive;
+            set => reactivatePassive = value;
+        }
 
         /// <summary>Quando a habilidade cobra a recarga, o custo e a carga. O padrão é <see cref="CommitMode.OnStart"/>.</summary>
         public CommitMode CommitMode

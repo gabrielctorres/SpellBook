@@ -27,6 +27,12 @@ namespace SpellBook.GAS.Abilities
 
         /// <summary>Horário do próximo passo de "A cada passo"; infinito sem passos.</summary>
         internal double ChannelNextStep;
+
+        /// <summary>O autocast está ligado. Nasce de <see cref="AutocastConfig.StartsOn"/>; muda por <c>AbilitySystemComponent.SetAutocast</c>.</summary>
+        public bool AutocastEnabled { get; internal set; }
+
+        /// <summary>Índice do último <c>Tick</c> em que a passada "quando pronta" tentou este spec.</summary>
+        internal int WhenReadyTick;
         /// <summary>A ativação em curso já cobrou a recarga, o custo e a carga. Volta a <c>false</c> a cada ativação.</summary>
         public bool IsCommitted { get; internal set; }
         /// <summary>Contexto da ativação em curso, preenchido até o fim da habilidade; nulo com ela inativa. É do ASC: não guarde depois do fim.</summary>

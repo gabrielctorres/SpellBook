@@ -11,6 +11,7 @@ using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Abilities.Triggers;
 using SpellBook.GAS.Conditions;
 using SpellBook.GAS.Actions;
+using SpellBook.GAS.Targeting;
 namespace SpellBook.GAS.Core
 {
     /// <summary>
@@ -50,6 +51,12 @@ namespace SpellBook.GAS.Core
         private readonly List<TriggerEntry> _triggers = new List<TriggerEntry>();
         private readonly List<AbilitySpec> _triggering = new List<AbilitySpec>();
         private bool _warnedTriggerDepth;
+
+        // Passada "quando pronta" (P16): os WhenReadyTrigger e as passivas que se reativam, na ordem da concessão (gatilho
+        // nulo é a passiva), o buffer do seletor e o índice do Tick, para no máximo uma tentativa por spec por Tick
+        private readonly List<TriggerEntry> _whenReady = new List<TriggerEntry>();
+        private readonly List<AbilitySystemComponent> _whenReadyTargets = new List<AbilitySystemComponent>();
+        private int _tickIndex;
 
         // Reações dos efeitos ativos; nulo até o primeiro efeito com reação
         private EffectReactions _reactions;
@@ -227,6 +234,7 @@ namespace SpellBook.GAS.Core
             if (!(deltaTime > 0f)) return;
 
             _tickedTime += deltaTime;
+            _tickIndex++;
             for (int i = _activeEffects.Count - 1; i >= 0; i--)
             {
                 // Uma remoção no Update de uma instância pode tirar outras da lista
@@ -247,10 +255,59 @@ namespace SpellBook.GAS.Core
                 AdvanceChargeRecharge(spec);
             }
 
-            if (_runner == null) return;
-            _runner.Tick();
-            AdvanceChannels();
-            EndFinishedAbilities();
+            if (_runner != null)
+            {
+                _runner.Tick();
+                AdvanceChannels();
+                EndFinishedAbilities();
+            }
+
+            if (_whenReady.Count > 0) RunWhenReady();
+        }
+
+        // Por último no Tick: tenta, em modo silencioso, cada spec inativo com "quando pronta" elegível, uma vez por Tick
+        private void RunWhenReady()
+        {
+            for (int i = 0; i < _whenReady.Count; i++)
+            {
+                TriggerEntry entry = _whenReady[i];
+                AbilitySpec spec = entry.Spec;
+                if (spec.IsActive || spec.WhenReadyTick == _tickIndex || _triggering.Contains(spec)) continue;
+                if (entry.Trigger != null && entry.Trigger.OnlyWithAutocast && !spec.AutocastEnabled) continue;
+
+                AbilityTarget target = AbilityTarget.None;
+                TargetSelector selector = (entry.Trigger as WhenReadyTrigger)?.Selector;
+                // Seletor sem resultado: pula, sem custo e sem evento
+                if (selector != null && !TrySelectWhenReadyTarget(spec, selector, out target)) continue;
+
+                spec.WhenReadyTick = _tickIndex;
+                _triggering.Add(spec);
+                try
+                {
+                    TryActivate(spec, spec.Ability, in target, true);
+                }
+                finally
+                {
+                    _triggering.RemoveAt(_triggering.Count - 1);
+                }
+            }
+        }
+
+        // O seletor roda a partir de quem lança, num contexto do pool; a tentativa usa a primeira unidade
+        private bool TrySelectWhenReadyTarget(AbilitySpec spec, TargetSelector selector, out AbilityTarget target)
+        {
+            ActionContext context = Runner.RentContext();
+            context.Ability = spec.Ability;
+            context.Spec = spec;
+            context.Level = spec.Level;
+            _whenReadyTargets.Clear();
+            try { selector.Select(context, _whenReadyTargets); }
+            finally { Runner.ReturnContext(context); }
+
+            AbilitySystemComponent unit = _whenReadyTargets.Count > 0 ? _whenReadyTargets[0] : null;
+            _whenReadyTargets.Clear();
+            target = unit != null ? AbilityTarget.AtUnit(unit) : AbilityTarget.None;
+            return unit != null;
         }
 
         // Passos e fim das canalizações até o TickedTime, pelo cursor lógico: um Tick grande roda todos os passos que cobriu
@@ -377,6 +434,8 @@ namespace SpellBook.GAS.Core
 
             var spec = new AbilitySpec(ability, ClampLevel(ability, level));
             InitCharges(spec);
+            AutocastConfig autocast = ability.Autocast;
+            spec.AutocastEnabled = autocast.Allowed && autocast.StartsOn && SupportsAutocast(ability);
             _abilities.Add(spec);
             IndexTriggers(spec);
             OnAbilityGranted?.Invoke(spec);
@@ -427,6 +486,33 @@ namespace SpellBook.GAS.Core
             context.DefaultTarget = DefaultTarget.Owner;
             Runner.Run(actions, context, null);
         }
+
+        /// <summary>Autocast ligado ou desligado por <see cref="SetAutocast"/>: (spec, ligado). Só em mudança real.</summary>
+        public event Action<AbilitySpec, bool> OnAutocastChanged;
+
+        /// <summary>
+        /// Liga ou desliga o autocast de <paramref name="spec"/>. Devolve falso, sem mudar nada, com spec nulo ou de outro
+        /// ASC, sem <see cref="AutocastConfig.Allowed"/>, em <see cref="AbilityBehavior.Passive"/> ou
+        /// <see cref="AbilityBehavior.Toggle"/>, ou sem mudança de estado.
+        /// </summary>
+        public bool SetAutocast(AbilitySpec spec, bool on)
+        {
+            if (spec == null || !_abilities.Contains(spec)) return false;
+            if (!spec.Ability.Autocast.Allowed || !SupportsAutocast(spec.Ability) || spec.AutocastEnabled == on) return false;
+
+            spec.AutocastEnabled = on;
+            OnAutocastChanged?.Invoke(spec, on);
+            return true;
+        }
+
+        // Passive já é automática, e o Toggle tem o próprio interruptor (R40)
+        private static bool SupportsAutocast(GameplayAbility ability)
+        {
+            return ability.Behavior != AbilityBehavior.Passive && ability.Behavior != AbilityBehavior.Toggle;
+        }
+
+        /// <summary>Se o autocast de <paramref name="spec"/> está ligado. Spec nulo: falso.</summary>
+        public bool IsAutocastEnabled(AbilitySpec spec) => spec != null && spec.AutocastEnabled;
 
         /// <summary>Habilidade nova concedida, já na lista. Conceder de novo não dispara; as de <c>startingAbilities</c> disparam no <c>Awake</c>.</summary>
         public event Action<AbilitySpec> OnAbilityGranted;
@@ -1383,8 +1469,9 @@ namespace SpellBook.GAS.Core
             for (int i = 0; i < _triggers.Count; i++)
             {
                 TriggerEntry entry = _triggers[i];
-                // O autocast ainda não existe: os gatilhos "só com autocast" ficam desligados
-                if (entry.Trigger.OnlyWithAutocast || !entry.Trigger.ListensTo(cause, tag)) continue;
+                // "Só com autocast" fica desligado com o autocast desligado; ligado, a tentativa é de autocast e é silenciosa
+                bool autocast = entry.Trigger.OnlyWithAutocast;
+                if (autocast && !entry.Spec.AutocastEnabled || !entry.Trigger.ListensTo(cause, tag)) continue;
                 if (_triggering.Contains(entry.Spec)) continue;
 
                 if (_triggering.Count >= MaxTriggerDepth)
@@ -1400,7 +1487,7 @@ namespace SpellBook.GAS.Core
                 _triggering.Add(entry.Spec);
                 try
                 {
-                    TryActivate(entry.Spec, entry.Spec.Ability, in target);
+                    TryActivate(entry.Spec, entry.Spec.Ability, in target, autocast);
                 }
                 finally
                 {
@@ -1414,7 +1501,13 @@ namespace SpellBook.GAS.Core
             List<AbilityTrigger> triggers = spec.Ability.Triggers;
             for (int i = 0; i < triggers.Count; i++)
             {
-                if (triggers[i] != null) _triggers.Add(new TriggerEntry(spec, triggers[i]));
+                if (triggers[i] is WhenReadyTrigger) _whenReady.Add(new TriggerEntry(spec, triggers[i]));
+                else if (triggers[i] != null) _triggers.Add(new TriggerEntry(spec, triggers[i]));
+            }
+
+            if (spec.Ability.Behavior == AbilityBehavior.Passive && spec.Ability.ReactivatePassive)
+            {
+                _whenReady.Add(new TriggerEntry(spec, null));
             }
         }
 
@@ -1423,6 +1516,11 @@ namespace SpellBook.GAS.Core
             for (int i = _triggers.Count - 1; i >= 0; i--)
             {
                 if (_triggers[i].Spec == spec) _triggers.RemoveAt(i);
+            }
+
+            for (int i = _whenReady.Count - 1; i >= 0; i--)
+            {
+                if (_whenReady[i].Spec == spec) _whenReady.RemoveAt(i);
             }
         }
 
