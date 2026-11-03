@@ -733,6 +733,34 @@ Emenda de 2026-11-01 (perguntas do RL6): este ticket passa a entregar o lado do 
 - Critério de pronto: um só tipo de ação de evento; CA21 e CA22 do B-004 verdes; CA30 do B-004 mantido para o comportamento.
 - Tamanho estimado: ~480 linhas; 9 arquivos. Depende de: EV14, RL7.
 
+#### Detalhe (2026-11-03)
+
+Detalhe pela emenda de 2026-11-03 da ADR 0002, lido no código da branch `feat/gas-lote-c` depois do EV14 (`979be63`). Caminhos relativos a `Packages/com.spellbook/`.
+
+- CA: CA21 e CA22 do B-004 (R15, R16; cenário C8); CA23 e CA30 do B-004 mantidos. Tabela do Design 4 da Spec `gas-resultado-de-aplicacao-e-relay.md` e validação do Design 5 de lá (`modifierIndex` negativo).
+- Contexto no código: `Runtime/GAS.Bridges/RaiseEventAction.cs:25-120` (campos, `Execute`, `Validate`, `RaiseDynamic`, tudo pelo lado da habilidade); `GasPayloadSource.cs:9-23` (seis valores) e `:32-50` (`Supports`); `Editor/GAS.Bridges/RaiseEventDrawer.cs:20-22`, `:44`, `:66-75`, `:90-102`; `Runtime/GAS/Actions/ActionContext.cs:58-66` (`EffectInstance`, `EffectDefinition`, `EffectEvent`, `HasEffect`, `Effect`); `Runtime/GAS/Effects/ActiveEffectInstance.cs:185-198` e `AbilitySystemComponent.cs:1825-1841` (quem preenche o contexto do efeito, também no instantâneo); `ModifierValueSource.GetValue(in EffectContext)` (público; o `Evaluate` é `internal` e o Bridges não o vê); `GameplayAbility.cs:343-350` valida as ações com o `ValidationResult` da habilidade; o `GameplayEffect.Validate` não valida as listas de ações (isso é do EV16).
+- Comportamento:
+  - **Enum.** `ModifierMagnitude`, `Stacks` e `EffectName` entram no fim do `GasPayloadSource` (ordem da serialização; o `Fixed` continua 0).
+  - **Tabela.** `Supports(fonte, tipo, bool inEffectList)` (novo) aplica o Design 4: `ModifierMagnitude` e `Stacks` com Float e `EffectName` com String só em lista de efeito; `AbilityName` só fora dela; `EventData` com `EffectEventData` em lista de efeito e com `AbilityEventData` fora dela. `Supports(fonte, tipo)` continua com o resultado de hoje e passa a ser o caso de fora da lista de efeito.
+  - **Runtime.** A lista é de efeito quando `context.HasEffect`. Fonte que não serve não dispara, sem exceção. No efeito: `AttributeValue` lê o dono do efeito (`context.Owner`); `SourceObject`, quem aplicou (`Instigator`); `TargetObject`, o dono do efeito; `ModifierMagnitude` avalia `PeriodicModifiers[modifierIndex]` com `EffectEvent.Tick` e `Modifiers[modifierIndex]` nos outros eventos, por `ValueSource.GetValue(in context.Effect)` (nível e tabela do `EffectContext`, ADR 0030); `Stacks`, `EffectInstance.CurrentStacks` (instantâneo: 1); `EffectName`, `EffectDefinition.name`; `EventData`, um `EffectEventData` com `Owner`, `Source`, `Effect`, `Stacks` e `PreviousStacks` iguais às pilhas atuais. Índice além da lista (ou modificador sem fonte): não dispara e avisa uma vez por ação. Fora de efeito, nada muda.
+  - **Validação.** Fonte que não serve para o canal no lugar da ação: a lista conta como de efeito quando o `result.Context` é um `GameplayEffect`, que é o asset validado (habilidade, projétil ou contexto nulo contam como fora). `modifierIndex` negativo com `ModifierMagnitude`: erro. O índice além da lista fica para o runtime, como o Design 5 do B-004 diz.
+  - **Drawer.** O popup filtra pelo canal e pelo lugar (`serializedObject.targetObject is GameplayEffect`); o campo `modifier-index` aparece só com `ModifierMagnitude`.
+- Escopo (6 arquivos contados):
+  - `Runtime/GAS.Bridges/GasPayloadSource.cs:9-23`, `:32-50`: três valores e `Supports` com `inEffectList`.
+  - `Runtime/GAS.Bridges/RaiseEventAction.cs:25-120`: campo `modifierIndex`, o lado do efeito em `Execute`/`RaiseDynamic`, `Validate`.
+  - `Editor/GAS.Bridges/RaiseEventDrawer.cs:20-22`, `:44`, `:66-75`, `:90-102`: campo de índice e filtro pelo lugar.
+  - `Tests/GAS.Bridges/PlayMode/RaiseEventEffectPayloadTests.cs` (novo; o `.meta` não conta).
+  - `Tests/GAS.Bridges/EditMode/GasPayloadSourceTests.cs`: `Enum_Order` adaptado aos valores novos, tabela de efeito e validação.
+  - `Tests/GAS.Bridges/EditMode/RaiseEventDrawerTests.cs`: teste do drawer em lista de efeito.
+  - Sem manual, catálogo, referência da API nem CHANGELOG (emendas de 2026-11-03 da 0007 e da 0040; o enum cresce no fim e nada quebra).
+- Testes red:
+  - PlayMode, `RaiseEventEffectPayloadTests`: `RaiseEvent_InEffectTick_UsesInstance_InAbility_UsesCaster` (`AttributeValue` e `Stacks` no tique leem o dono e a instância com 2 pilhas; na habilidade, o conjurador); `OnTick_RaisesOncePerTick` (CA21, C8); `Float_TickDamage_AtContextLevel` (CA22; nível 3 diferente do nível 1); `String_EffectName` (CA22); `GameObject_Owner` (CA22; `TargetObject` dá o dono, `SourceObject` quem aplicou); `InstantEffect_RaisesWithEffectNameAndStacks1`; `EventData_InEffect_FillsEffectEventData`; `ModifierIndexOutOfRange_RaisesNothing_WarnsOnce`; `EffectSources_OutsideEffect_RaiseNothing`.
+  - EditMode, `GasPayloadSourceTests`: `ModifierMagnitude_OnlyInEffectContext_ValidatorWhenNotSupported`; `Supports_EffectList_Table` (casos); `NegativeModifierIndex_ValidatorError`; `Enum_Order` (adaptado).
+  - EditMode, `RaiseEventDrawerTests`: `Drawer_EffectList_ListsEffectSources_ShowsIndexOnlyForModifierMagnitude`.
+- Critério de pronto: os testes acima verdes; `RaiseEventPayloadTests`, `RaiseEventAbilityTests`, `RaiseEventActionTests` e o resto de `GasPayloadSourceTests` e `RaiseEventDrawerTests` verdes sem edição (CA23, CA30); um só tipo de ação de evento.
+- Tamanho: ~619 linhas e 6 arquivos contados (testes ~413, `RaiseEventAction.cs` ~128, `GasPayloadSource.cs` ~49, `RaiseEventDrawer.cs` ~29). Exceção: +24%, linha do EV15 de 2026-11-03 no `decisoes.md`.
+- Commit: `feat(gas-bridges): payload do efeito na RaiseEventAction`
+
 ### EV16 — Validação do modelo
 - Escopo: `GameplayAbility.cs`, `GameplayEffect.cs` (`Validate`), `FlowActions.cs`, `ChanceAction.cs`, `DelayedAction.cs`, `ForEachTargetAction.cs`, `RemoveEffectAction.cs`, `AbilityTrigger.cs` (`Validate`), `Tests/GAS/EditMode/ActionModelValidationTests.cs` (novo), `manual/ferramentas/validador.md`.
 - Testes red: um por regra do Design 9 (CA32, CA41), com `propertyPath`; `Chance_OutOfRange_Error` (CA14 completo). Da emenda de 2026-10-31 (ADR 0035): `TagQueryTargetUnit_OutsideCandidateFilter_Warns` (em regra de ativação e em `ConditionalAction`).
