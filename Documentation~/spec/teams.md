@@ -145,6 +145,23 @@ Todos usam a Unity e seguem o WIP 1. TM1 a TM4 não dependem de item aberto. Tes
 - Critério de pronto: testes verdes; `HelpUrlTests` e `ManualLinksTests` verdes.
 - Tamanho estimado: ~430 linhas; 10 arquivos (1 página).
 
+### Detalhe (2026-11-03)
+- CA: CA1, CA3 (parte: time nulo ou fora da matriz), CA4, CA5, CA7, CA10, CA16 (parte: `GetRelation`).
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/Teams/SpellBook.Teams.asmdef` (novo; só Core);
+  - `Runtime/Teams/TeamRelation.cs` (novo: `TeamRelation`, `TeamRelationMask`, `TeamRelationMaskExtensions.Matches`);
+  - `Runtime/Teams/TeamDefinition.cs` (novo: `displayName`, `color`, `[HelpURL]`, `[CreateAssetMenu]`);
+  - `Runtime/Teams/TeamRelationMatrix.cs` (novo: listas `teams` e `entries`, os três padrões, `GetRelation` com índice preguiçoso `Dictionary<TeamDefinition, int>` + `TeamRelation[n*n]`, refeito no `OnValidate`; `TeamRelationEntry` serializável interno no mesmo arquivo; par repetido: a última entrada vence);
+  - `Runtime/Core/DocUrls.cs:20` (+`Teams = Base + "modulos/times/"`);
+  - `Tests/Teams/EditMode/SpellBook.Teams.Tests.EditMode.asmdef` (novo; Core, Teams, Time, Testing e o runner, como o dos Tags);
+  - `Tests/Teams/EditMode/TeamRelationMatrixTests.cs` (novo; times e matriz por `ScriptableObject.CreateInstance` e células por `SerializedObject`, destruídos no `TearDown`);
+  - `Tests/Core/EditMode/Structure/AsmdefRulesTests.cs:18-21` (`Teams` em `RuntimeModules`) e teste novo `TeamsAsmdef_ReferencesOnlyCore` depois de `:245`.
+  - Fora, pela emenda de 2026-11-03 da 0007: a página `manual/modulos/times.md` e o `CHANGELOG.md` (sem quebra) ficam para o passe de documentação. `IValidatable` e `Validate` entram no TM3.
+- Testes red (EditMode): `TeamRelationMatrixTests.Matrix_Hostile_Allied_Neutral_PerCell`, `Matrix_SameTeamWithoutCell_IsAllied_DefaultChangeable`, `Matrix_MissingPair_UsesDefault`, `Matrix_IsDirectional`, `Matrix_NullOrUnknownTeam_UsesNoTeamRelation`, `Mask_EachCombination_SelfOnlyWhenSame_EmptyMatchesNothing`, `GetRelation_DoesNotAllocate_AfterFirstCall`; `AsmdefRulesTests.TeamsAsmdef_ReferencesOnlyCore` (e `AllExpectedAssembliesExist`, `EachRuntimeModuleHasEditModeTests` com o Teams).
+- Critério de pronto: os testes acima verdes com filtro, e `HelpUrlTests` verde. `ManualLinksTests` (categoria `Documentacao`) fica para o passe de documentação, junto com a página.
+- Tamanho: ~410 linhas e 8 arquivos, pela ADR 0042. Exceção: nenhuma.
+- Commit: `feat(teams): módulo Teams com times, matriz e consulta`
+
 ### TM2 — Membros, consultas e troca em runtime
 - Escopo: `Runtime/Teams/ITeamMember.cs`, `TeamMember.cs`, `TeamQueries.cs` (novos), `Tests/Teams/EditMode/TeamMemberTests.cs` (novo), `Tests/Testing/TeamsFactory.cs` (novo: times, matriz com células, objeto com `TeamMember`), `Tests/Testing/SpellBook.Testing.asmdef` (+Teams), `times.md` (membro, consultas, componente próprio), `CHANGELOG.md`.
 - Testes red:
@@ -159,17 +176,78 @@ Todos usam a Unity e seguem o WIP 1. TM1 a TM4 não dependem de item aberto. Tes
 - Critério de pronto: CA2, CA3, CA6, CA8 e CA19 verdes.
 - Tamanho estimado: ~420 linhas; 8 arquivos. Depende de: TM1.
 
+### Detalhe (2026-11-03)
+- CA: CA2, CA3, CA6, CA8, CA16 (parte: consultas entre membros), CA19.
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/Teams/ITeamMember.cs` (novo: `Team` e `Matrix`);
+  - `Runtime/Teams/TeamMember.cs` (novo: `[SerializeField]` `team` e `matrix`, `[HelpURL(DocUrls.Teams + "#teammember")]`, `SetTeam`, `OnTeamChanged(membro, antes, depois)` disparado só em mudança real e com o time já gravado);
+  - `Runtime/Teams/TeamQueries.cs` (novo: `GetRelation(this ITeamMember a, ITeamMember b)` com a matriz de `a`, depois a de `b`, depois `Neutral`; membro nulo conta como sem time; `IsAllied`, `IsHostile`, `IsNeutral`; `Matches(mask, a, b)` com `Self` quando `a` não é nulo e `ReferenceEquals(a, b)`);
+  - `Tests/Testing/TeamsFactory.cs` (novo, `#if UNITY_EDITOR` como o `EventsFactory`: time, matriz com padrão, célula, objeto com `TeamMember`; tudo destruído no `Dispose`);
+  - `Tests/Testing/SpellBook.Testing.asmdef:4-9` (+`SpellBook.Teams`);
+  - `Tests/Teams/EditMode/TeamMemberTests.cs` (novo; inclui a guarda textual de CA19 sobre `Runtime/Teams/**`, no padrão do `GasSourceScanTests`).
+  - Fora, pela emenda de 2026-11-03 da 0007: `times.md` e `CHANGELOG.md` (sem quebra). `IValidatable` do `TeamMember` entra no TM3. O `TeamRelationMatrixTests` do TM1 não passa a usar a factory (fora do ticket).
+- Testes red (EditMode, `TeamMemberTests`): `IsAllied_IsHostile_IsNeutral_BetweenMembers`, `SameMember_ReturnsSameTeamRelation`, `NoMemberOrNoTeam_UsesNoTeamRelation_NoException`, `MatrixFromAsker_ThenOther_ThenNeutral`, `SetTeam_FiresOnce_SameTeamDoesNot_ListenerChangingAgainIsSafe`, `CustomITeamMember_ParticipatesInQueries`, `Queries_DoNotAllocate`, `TeamsSources_NoSingletonOrFind`.
+- Critério de pronto: `TeamMemberTests` (8) e `TeamRelationMatrixTests` verdes com filtro; `HelpUrlTests` e `AsmdefRulesTests` verdes (`TeamMember` novo e `Testing` com Teams).
+- Tamanho: ~430 linhas e 6 arquivos, pela ADR 0042. Exceção: nenhuma.
+- Commit: `feat(teams): membros, consultas e troca de time em runtime`
+
 ### TM3 — Validação
 - Escopo: `TeamDefinition.cs`, `TeamRelationMatrix.cs`, `TeamMember.cs` (`Validate`), `Tests/Teams/EditMode/TeamsValidationTests.cs` (novo), `Documentation~/manual/ferramentas/validador.md`, `CHANGELOG.md`.
 - Testes red: `Matrix_NullDuplicateUnknownTeam_RepeatedPair_EmptyList` (CA9); `Member_NoMatrix_NoTeam_TeamOutsideMatrix` (CA9); `ProjectValidator_ReportsTeamsAssetsClickable` (C8).
 - Critério de pronto: CA9 verde.
 - Tamanho estimado: ~300 linhas; 6 arquivos. Depende de: TM2.
 
+### Detalhe (2026-11-03)
+- CA: CA9 (a parte de máscara vazia fica com a `TeamRelationCondition`, no TM5); Design 3, validação.
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/Teams/TeamDefinition.cs:9` (+`IValidatable`: nome de exibição vazio, aviso em `displayName`);
+  - `Runtime/Teams/TeamRelationMatrix.cs:14` (+`IValidatable`: time nulo em `teams.Array.data[i]` (erro); time repetido, na repetição (erro); célula com time nulo ou fora da lista, em `entries.Array.data[i].from`/`.to` (erro); par repetido, na célula seguinte (erro: a última vence); lista vazia em `teams` (aviso); `internal bool Contains(TeamDefinition)` lendo a lista, sem montar o índice);
+  - `Runtime/Teams/TeamMember.cs:9` (+`IValidatable`: sem matriz em `matrix` (aviso); sem time em `team` (aviso); time fora da matriz em `team` (aviso));
+  - `Tests/Teams/EditMode/SpellBook.Teams.Tests.EditMode.asmdef:4-11` (+`SpellBook.Core.Editor`, para o `ProjectValidator`, como o dos Tags);
+  - `Tests/Teams/EditMode/TeamsValidationTests.cs` (novo; usa a `TeamsFactory`).
+  - Fora, pela emenda de 2026-11-03 da 0007: `manual/ferramentas/validador.md` e `CHANGELOG.md` (sem quebra).
+- Testes red (EditMode, `TeamsValidationTests`): `Matrix_NullDuplicateUnknownTeam_RepeatedPair_EmptyList`, `Member_NoMatrix_NoTeam_TeamOutsideMatrix`, `Matrix_CellWithoutTeam_IsError`, `Definition_EmptyDisplayName_IsWarning`, `ValidSetup_HasNoMessages`, `ProjectValidator_ReportsTeamsAssetsClickable`.
+- Critério de pronto: `TeamsValidationTests` (6), `TeamMemberTests` e `TeamRelationMatrixTests` verdes com filtro; `HelpUrlTests` verde.
+- Tamanho: ~330 linhas e 5 arquivos, pela ADR 0042. Exceção: nenhuma.
+- Commit: `feat(teams): validação de times, matriz e membros`
+
 ### TM4 — Inspector: tabela, "Espelhar" e máscara
 - Escopo: `Editor/Teams/SpellBook.Teams.Editor.asmdef` (novo; Core, Teams, Core.Editor), `Editor/Teams/TeamsEditors.cs` (Inspectors do `TeamDefinition` e do `TeamMember`), `TeamRelationMatrixEditor.cs`, `TeamRelationMaskDrawer.cs`, `TeamMatrixEditing.cs` (novos), `Tests/Teams/EditMode/SpellBook.Teams.Tests.EditMode.asmdef` (+Teams.Editor, como no TG5), `Tests/Teams/EditMode/TeamMatrixEditingTests.cs` (novo), `AsmdefRulesTests.cs` (`Teams` em `EditorModules`; referências exatas), `SpellBookEditorCoverageTests.cs` (+`SpellBook.Teams`), `CHANGELOG.md`.
 - Testes red: `Mirror_CopiesAtoBIntoBtoA_Undoable`; `MirrorAll_MakesMatrixSymmetric`; `Clear_FallsBackToDefault`; `TeamsEditorAsmdef_References`; coverage com o Teams.
 - Critério de pronto: testes verdes; CA17 (S) conferido pelo Examinador no host: a tabela, "Espelhar", quatro caixas na máscara e o `TeamMember` com time e matriz.
 - Tamanho estimado: ~480 linhas; 10 arquivos. Depende de: TM3.
+
+### Detalhe (2026-11-03) — TM4a (#201): tabela, "Espelhar" e editores
+- Divisão de 2026-11-03: o TM4 passou de +30% (~697 linhas) e se divide em TM4a (aqui) e TM4b (a máscara, abaixo).
+- CA: CA17 (S), a parte da tabela, do "Espelhar" e do `TeamMember` com time e matriz (a conferência no host fica com o Examinador); Design 3, Inspector e `TeamMatrixEditing`.
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Editor/Teams/SpellBook.Teams.Editor.asmdef` (novo; Core, Teams e Core.Editor por GUID, como o dos Tags);
+  - `Editor/Teams/TeamsEditors.cs` (novo: `TeamDefinitionEditor` com a faixa da cor antes do padrão e `TeamMemberEditor`, os dois `internal` derivados de `SpellBookEditor`);
+  - `Editor/Teams/TeamMatrixEditing.cs` (novo, `public static`: `TryGet`, `Set`, `Mirror`, `MirrorAll`, `Clear` por `SerializedObject`, cada um num grupo de `Undo`; `Set` grava todas as células do par; `Clear` remove todas; `Mirror` copia `a → b` em `b → a` e limpa `b → a` se `a → b` não tem célula; `MirrorAll` copia, para cada par da lista, a célula do time que vem antes e, se ela não existe, a do outro). Os campos da matriz continuam privados; nada muda no runtime;
+  - `Editor/Teams/TeamRelationMatrixEditor.cs` (novo: tabela depois do padrão, linhas = de e colunas = para, `EnumField` por célula, célula vazia mostra o padrão em cinza, botões "Espelhar" e "Limpar" por célula e "Espelhar tudo"; a tabela se refaz quando o objeto muda, inclusive no Undo);
+  - `Tests/Teams/EditMode/SpellBook.Teams.Tests.EditMode.asmdef:8` (+`SpellBook.Teams.Editor`);
+  - `Tests/Teams/EditMode/TeamMatrixEditingTests.cs` (novo; usa a `TeamsFactory`);
+  - `Tests/Teams/EditMode/TeamsInspectorTests.cs` (novo: a tabela do editor da matriz; o TM4b soma os testes da máscara);
+  - `Tests/Core/EditMode/Structure/AsmdefRulesTests.cs:23` (`Teams` em `EditorModules`) e teste novo `TeamsEditorAsmdef_References` depois de `:315`;
+  - `Tests/Core/EditMode/Inspector/SpellBookEditorCoverageTests.cs:21` (+`SpellBook.Teams`).
+  - Fora, pela emenda de 2026-11-03 da 0007: `CHANGELOG.md` (sem quebra).
+- Testes red (EditMode): `TeamMatrixEditingTests.Set_CreatesThenUpdatesCell`, `Mirror_CopiesAtoBIntoBtoA_Undoable`, `Mirror_EmptySource_ClearsTarget`, `MirrorAll_MakesMatrixSymmetric`, `Clear_FallsBackToDefault`; `TeamsInspectorTests.MatrixEditor_TableHasCellPerPair_EmptyCellShowsDefault`; `AsmdefRulesTests.TeamsEditorAsmdef_References` (e `AllExpectedAssembliesExist` com o `Teams.Editor`); `SpellBookEditorCoverageTests` com o Teams.
+- Critério de pronto: os testes acima verdes com filtro, mais `TeamsValidationTests`, `TeamMemberTests`, `TeamRelationMatrixTests` e `AsmdefRulesTests` verdes; CA17 (tabela, "Espelhar" e `TeamMember`) conferido pelo Examinador no host.
+- Tamanho: ~525 linhas e 9 arquivos, pela ADR 0042. Exceção: linha de 2026-11-03 do TM4a no `decisoes.md`.
+- Commit: `feat(teams): Inspector da matriz com tabela e Espelhar`
+
+### Detalhe (2026-11-03) — TM4b (#315): máscara
+- Objetivo: drawer de todo `TeamRelationMask` com quatro caixas (Self, Aliado, Hostil e Neutro), Undo, multisseleção com valor misto e o fallback IMGUI de uma linha. Depende de: TM4a.
+- CA: CA17 (S), a parte das quatro caixas na máscara (a conferência no Editor interativo fica com o Examinador); Design 3, Inspector.
+- Escopo (caminhos relativos a `Packages/com.spellbook/`, salvo o `.gitignore`):
+  - `Editor/Teams/TeamRelationMaskDrawer.cs` (novo, `public sealed`, `[CustomPropertyDrawer(typeof(TeamRelationMask))]`: rótulo e quatro `Toggle`; cada caixa grava só a sua relação em cada objeto selecionado, num grupo de `Undo`; `TrackPropertyValue` refaz as caixas no Undo e em outro Inspector; caixa mista quando os objetos discordam; `OnGUI` com um `HelpBox` de uma linha, pela ADR 0026). `Refresh` e `SetFlag` ficam privados;
+  - `Tests/Teams/EditMode/TeamsInspectorTests.cs:29` (TearDown apaga `Assets/UI Toolkit/UnityThemes/UnityDefaultRuntimeTheme.tss` e as pastas que ficarem vazias, só quando o teste os criou) e, depois de `:35`, os quatro testes, o `CreateHost`, o `ShowMask` (painel de runtime de um `UIDocument` com `PanelSettings`, que roda com `-nographics`) e a classe de teste `MaskHost`;
+  - `.gitignore` da raiz (+`/[Aa]ssets/UI Toolkit/`, proteção contra o tema que a Unity gera ao criar o painel de runtime).
+  - Fora, pela emenda de 2026-11-03 da 0007: manual, catálogo, referência e `CHANGELOG.md` (sem quebra).
+- Testes red (EditMode, `[UnityTest]`): `TeamsInspectorTests.MaskDrawer_FourToggles_WriteFlags`, `MaskDrawer_AfterUndo_TogglesFollowMask`, `MaskDrawer_MultipleTargets_ShowsMixed_WritesOnlyTheFlag`, `MaskDrawer_MultipleTargets_AfterUndo_MixedReturns`.
+- Critério de pronto: os quatro testes e o `MatrixEditor_TableHasCellPerPair_EmptyCellShowsDefault` verdes com filtro `\.TeamsInspectorTests\.`; depois da rodada, `Assets/UI Toolkit/` não existe no checkout; CA17 (quatro caixas) conferido pelo Examinador no Editor.
+- Tamanho: ~260 linhas e 3 arquivos, pela ADR 0042. Exceção: nenhuma.
+- Commit: `feat(teams): drawer da máscara de relação`
 
 ### TM5 — Times no GAS: `TeamRelationCondition` e filtro de área
 - Escopo: `Runtime/GAS.Bridges/SpellBook.GAS.Bridges.asmdef` (+Teams), `Runtime/GAS.Bridges/Teams/AscTeams.cs`, `TeamRelationCondition.cs` (novos), `Tests/GAS.Bridges/PlayMode/SpellBook.GAS.Bridges.Tests.PlayMode.asmdef` (+Teams), `Tests/GAS.Bridges/PlayMode/TeamRelationConditionTests.cs`, `TeamAreaFilterTests.cs` (novos), `AsmdefRulesTests.cs` (referências do Bridges e do teste), `times.md` (seção "Times no GAS", com "só inimigos" e "só aliados", e a regra da `HasTargetPointCondition` antes da de time quando o motivo "sem alvo" importa), `CHANGELOG.md`.
@@ -184,6 +262,26 @@ Todos usam a Unity e seguem o WIP 1. TM1 a TM4 não dependem de item aberto. Tes
   - `Lookup_10000_Condition_10000_DoNotAllocate` (CA16, C11).
 - Critério de pronto: CA11 a CA16 verdes; CA18 (E) conferido: página com o exemplo, `[HelpURL]` nos tipos, CHANGELOG com o R20.
 - Tamanho estimado: ~480 linhas; 9 arquivos (a emenda de 2026-11-01 soma dois testes e nenhum arquivo). Depende de: TM2, AV2, AV3 (a `HasTargetPointCondition` do teste de regras), EV8 (com a emenda da ADR 0035).
+
+### Detalhe (2026-11-03)
+- CA: CA11, CA12, CA13, CA14, CA15, CA16 (parte: busca do membro e condição); CA9 (parte: máscara vazia, deixada pelo TM3); emenda de 2026-11-01.
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/GAS.Bridges/SpellBook.GAS.Bridges.asmdef:4-10` (+GUID do `SpellBook.Teams`);
+  - `Runtime/GAS.Bridges/Teams/AscTeams.cs` (novo, namespace `SpellBook.GAS.Bridges`: `GetMember(asc)` sobe de `asc.transform` pelos pais com `TryGetComponent<ITeamMember>`; nulo sem membro ou sem ASC);
+  - `Runtime/GAS.Bridges/Teams/TeamRelationCondition.cs` (novo: `[Serializable] sealed`, `[TypeCategory("Time", Summary = ..., Line = "Relação com o alvo: {mask}")]`; o `Line` usa o nome do campo serializado, como os outros tipos; campo `mask = Hostile` com propriedade `Mask`; `Evaluate` como no Design 2; sem `Target.Unit`, falso; `DefaultFailureKey` = `teams.condition.relation`; `Validate`: máscara vazia é aviso em `<caminho>.mask`);
+  - `Tests/Testing/TeamsFactory.cs:73` (+`AddMember(GameObject, team, matrix)`, para pôr o membro no objeto do ASC ou num pai; consequência direta: o `CreateMember` só cria objeto novo);
+  - `Tests/GAS.Bridges/PlayMode/SpellBook.GAS.Bridges.Tests.PlayMode.asmdef:4-12` (+`SpellBook.Teams`);
+  - `Tests/GAS.Bridges/PlayMode/TeamRelationConditionTests.cs` (novo, `#if UNITY_EDITOR` como os outros PlayMode com factory);
+  - `Tests/GAS.Bridges/PlayMode/TeamAreaFilterTests.cs` (novo; `AreaSelector` com física 3D, no padrão do `AreaSelectorTests`);
+  - `Tests/Core/EditMode/Structure/AsmdefRulesTests.cs:245` (referências exatas do Bridges com `SpellBook.Teams`) e teste novo `BridgesReferencesTeams_GasDoesNot` depois de `:261`.
+  - Fora, pela emenda de 2026-11-03 da 0007: `times.md` ("Times no GAS") e `CHANGELOG.md` (sem quebra). O CA18 (página e CHANGELOG com o R20) fica para o passe de documentação.
+- Testes red:
+  - PlayMode, `TeamRelationConditionTests`: `Member_OnSameObjectAndParent_Found_NoneIsNoTeam`, `Condition_PassesAndFailsByMask_ReasonKey`, `Condition_NoTargetUnit_False_NoException_RelationKey`, `Rules_HasTargetPointBeforeTeam_NoTargetFailsWithNoTargetKey`, `NoTeamOnBothSides_UsesNoTeamRelation`, `Validate_EmptyMask_Warns`, `Lookup_10000_Condition_10000_DoNotAllocate`;
+  - PlayMode, `TeamAreaFilterTests`: `AreaFilter_OnlyHostiles_AlliesPlusSelf`;
+  - EditMode, `AsmdefRulesTests`: `BridgesReferencesTeams_GasDoesNot` e `AsmdefRules_BridgesDoesNotReferencePooling` (lista com o Teams).
+- Critério de pronto: os testes acima verdes com filtro (total do XML igual ao número de testes); `AsmdefRulesTests` inteiro verde (mapa de dependências com o Bridges → Teams).
+- Tamanho: ~455 linhas e 8 arquivos, pela ADR 0042. Exceção: nenhuma.
+- Commit: `feat(gas): TeamRelationCondition e filtro de área por time`
 
 ### Ordem e resumo
 

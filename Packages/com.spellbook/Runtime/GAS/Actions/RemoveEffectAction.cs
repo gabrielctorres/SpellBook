@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
 using SpellBook.Tags;
@@ -46,6 +47,15 @@ namespace SpellBook.GAS.Actions
             }
             context.LastRemovedStacks = removed;
             return ActionStatus.Done;
+        }
+
+        /// <summary>Acusa a ação sem efeito e sem tag, que não remove nada (erro).</summary>
+        public override void Validate(ValidationResult result)
+        {
+            if (effect == null && !tag.IsValid)
+            {
+                result.AddError("RemoveEffect sem efeito e sem tag: escolha o que remover.", nameof(effect));
+            }
         }
     }
 }

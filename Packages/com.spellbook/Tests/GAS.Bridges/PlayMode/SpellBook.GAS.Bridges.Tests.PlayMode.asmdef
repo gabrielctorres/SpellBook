@@ -8,6 +8,7 @@
         "SpellBook.GAS",
         "SpellBook.Events",
         "SpellBook.GAS.Bridges",
+        "SpellBook.Teams",
         "SpellBook.Testing",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"

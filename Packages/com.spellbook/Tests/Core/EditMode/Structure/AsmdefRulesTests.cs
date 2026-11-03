@@ -17,10 +17,10 @@ namespace SpellBook.Core.Tests.Structure
         /// <summary>Módulos de runtime da lista final do CA1 e do CA32.</summary>
         private static readonly string[] RuntimeModules =
         {
-            "Core", "Time", "Events", "Pooling", "Tags", "GAS", "GAS.Bridges",
+            "Core", "Time", "Events", "Pooling", "Tags", "GAS", "GAS.Bridges", "Teams", "Cues",
         };
 
-        private static readonly string[] EditorModules = { "Core", "Events", "Time", "Tags", "Pooling", "GAS", "GAS.Bridges" };
+        private static readonly string[] EditorModules = { "Core", "Events", "Time", "Tags", "Pooling", "GAS", "GAS.Bridges", "Teams" };
 
         private static readonly string[] PlayModeModules = { "Core", "Time", "Events", "GAS", "GAS.Bridges" };
 
@@ -242,8 +242,55 @@ namespace SpellBook.Core.Tests.Structure
                 "o Bridges referencia um assembly de Editor");
             Assert.That(
                 bridges.ReferenceNames.Where(r => r.StartsWith("SpellBook.", StringComparison.Ordinal)),
-                Is.EquivalentTo(new[] { "SpellBook.Core", "SpellBook.Tags", "SpellBook.Time", "SpellBook.GAS", "SpellBook.Events" }));
+                Is.EquivalentTo(new[]
+                {
+                    "SpellBook.Core", "SpellBook.Tags", "SpellBook.Time", "SpellBook.GAS", "SpellBook.Events", "SpellBook.Teams",
+                }));
             Assert.That(LoadedAssembly("SpellBook.GAS.Bridges"), Is.Not.Null, "o assembly SpellBook.GAS.Bridges não foi compilado");
+        }
+
+        [Test]
+        public void BridgesReferencesTeams_GasDoesNot()
+        {
+            List<AsmdefFile> asmdefs = PackageFiles.Asmdefs().ToList();
+            AsmdefFile bridges = asmdefs.Single(a => a.Data.name == "SpellBook.GAS.Bridges");
+            AsmdefFile gas = asmdefs.Single(a => a.Data.name == "SpellBook.GAS");
+            AsmdefFile teams = asmdefs.Single(a => a.Data.name == "SpellBook.Teams");
+
+            Assert.That(bridges.ReferenceNames, Does.Contain("SpellBook.Teams"), "o Bridges não referencia o Teams");
+            Assert.That(gas.ReferenceNames, Has.None.EqualTo("SpellBook.Teams"), "o GAS referencia o Teams");
+            Assert.That(teams.ReferenceNames.Where(r => r.StartsWith("SpellBook.GAS", StringComparison.Ordinal)), Is.Empty,
+                "o Teams referencia o GAS ou o Bridges");
+            Assert.That(LoadedAssembly("SpellBook.GAS").GetReferencedAssemblies().Select(a => a.Name),
+                Has.None.EqualTo("SpellBook.Teams"), "o assembly do GAS compilou com o Teams");
+        }
+
+        [Test]
+        public void TeamsAsmdef_ReferencesOnlyCore()
+        {
+            AsmdefFile teams = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.Teams");
+
+            Assert.That(teams, Is.Not.Null, "não existe asmdef SpellBook.Teams");
+            Assert.That(teams.Path, Is.EqualTo("Runtime/Teams/SpellBook.Teams.asmdef"));
+            Assert.That(teams.Kind, Is.EqualTo(AsmdefKind.Runtime));
+            Assert.That(
+                teams.ReferenceNames.Where(r => r.StartsWith("SpellBook.", StringComparison.Ordinal)),
+                Is.EquivalentTo(new[] { "SpellBook.Core" }));
+            Assert.That(LoadedAssembly("SpellBook.Teams"), Is.Not.Null, "o assembly SpellBook.Teams não foi compilado");
+        }
+
+        [Test]
+        public void CuesAsmdef_ReferencesCoreTagsTime()
+        {
+            AsmdefFile cues = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.Cues");
+
+            Assert.That(cues, Is.Not.Null, "não existe asmdef SpellBook.Cues");
+            Assert.That(cues.Path, Is.EqualTo("Runtime/Cues/SpellBook.Cues.asmdef"));
+            Assert.That(cues.Kind, Is.EqualTo(AsmdefKind.Runtime));
+            Assert.That(
+                cues.ReferenceNames.Where(r => r.StartsWith("SpellBook.", StringComparison.Ordinal)),
+                Is.EquivalentTo(new[] { "SpellBook.Core", "SpellBook.Tags", "SpellBook.Time" }));
+            Assert.That(LoadedAssembly("SpellBook.Cues"), Is.Not.Null, "o assembly SpellBook.Cues não foi compilado");
         }
 
         [Test]
@@ -298,6 +345,20 @@ namespace SpellBook.Core.Tests.Structure
                 editor.ReferenceNames.Where(r => r.StartsWith("SpellBook.", StringComparison.Ordinal)),
                 Is.EquivalentTo(new[] { "SpellBook.Core", "SpellBook.Tags", "SpellBook.Time", "SpellBook.GAS", "SpellBook.Core.Editor" }));
             Assert.That(LoadedAssembly("SpellBook.GAS.Editor"), Is.Not.Null, "o assembly SpellBook.GAS.Editor não foi compilado");
+        }
+
+        [Test]
+        public void TeamsEditorAsmdef_References()
+        {
+            AsmdefFile editor = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.Teams.Editor");
+
+            Assert.That(editor, Is.Not.Null, "não existe asmdef SpellBook.Teams.Editor");
+            Assert.That(editor.Path, Is.EqualTo("Editor/Teams/SpellBook.Teams.Editor.asmdef"));
+            Assert.That(editor.Kind, Is.EqualTo(AsmdefKind.Editor));
+            Assert.That(
+                editor.ReferenceNames.Where(r => r.StartsWith("SpellBook.", StringComparison.Ordinal)),
+                Is.EquivalentTo(new[] { "SpellBook.Core", "SpellBook.Teams", "SpellBook.Core.Editor" }));
+            Assert.That(LoadedAssembly("SpellBook.Teams.Editor"), Is.Not.Null, "o assembly SpellBook.Teams.Editor não foi compilado");
         }
 
         [Test]

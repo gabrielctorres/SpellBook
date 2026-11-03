@@ -5,6 +5,7 @@ using SpellBook.Core.Editor.Inspector;
 using SpellBook.Events;
 using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Bridges.Editor;
+using SpellBook.GAS.Effects;
 using SpellBook.Testing;
 using UnityEditor;
 using UnityEngine;
@@ -89,6 +90,24 @@ namespace SpellBook.GAS.Bridges.Tests
         }
 
         [Test]
+        public void Drawer_EffectList_ListsEffectSources_ShowsIndexOnlyForModifierMagnitude()
+        {
+            VisualElement floatRoot = DrawInEffect(_events.CreateChannel<FloatEventChannel>(), GasPayloadSource.ModifierMagnitude);
+            Assert.That(Popup(floatRoot).choices, Is.EqualTo(new[]
+            {
+                GasPayloadSource.Fixed, GasPayloadSource.AttributeValue, GasPayloadSource.ModifierMagnitude, GasPayloadSource.Stacks
+            }));
+            Assert.That(Element(floatRoot, RaiseEventDrawer.ModifierIndexName).style.display.value, Is.EqualTo(DisplayStyle.Flex));
+
+            VisualElement stringRoot = DrawInEffect(_events.CreateChannel<StringEventChannel>(), GasPayloadSource.EffectName);
+            Assert.That(Popup(stringRoot).choices, Is.EqualTo(new[] { GasPayloadSource.Fixed, GasPayloadSource.EffectName }));
+            Assert.That(Element(stringRoot, RaiseEventDrawer.ModifierIndexName).style.display.value, Is.EqualTo(DisplayStyle.None));
+
+            VisualElement inAbility = Draw(_events.CreateChannel<FloatEventChannel>(), GasPayloadSource.AttributeValue);
+            Assert.That(Element(inAbility, RaiseEventDrawer.ModifierIndexName).style.display.value, Is.EqualTo(DisplayStyle.None));
+        }
+
+        [Test]
         public void RaiseEventAction_HasHelpUrl()
         {
             var help = typeof(RaiseEventAction).GetCustomAttribute<HelpURLAttribute>();
@@ -113,6 +132,20 @@ namespace SpellBook.GAS.Bridges.Tests
             action.FindPropertyRelative("payloadSource").enumValueIndex = (int)source;
             _serializedObject.ApplyModifiedPropertiesWithoutUndo();
             return action;
+        }
+
+        // Ação na lista de tique de um efeito, configurada como a da habilidade.
+        private VisualElement DrawInEffect(EventChannel channel, GasPayloadSource source)
+        {
+            GameplayEffect effect = _gas.CreateDurationEffect(5f);
+            effect.OnTick.Add(new RaiseEventAction());
+            _serializedObject?.Dispose();
+            _serializedObject = new SerializedObject(effect);
+            SerializedProperty action = _serializedObject.FindProperty(nameof(GameplayEffect.OnTick)).GetArrayElementAtIndex(0);
+            action.FindPropertyRelative("emission").managedReferenceValue = EventEmission.CreateFor(channel);
+            action.FindPropertyRelative("payloadSource").enumValueIndex = (int)source;
+            _serializedObject.ApplyModifiedPropertiesWithoutUndo();
+            return new RaiseEventDrawer().CreatePropertyGUI(action);
         }
 
         private static PopupField<GasPayloadSource> Popup(VisualElement root)

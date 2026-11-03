@@ -77,6 +77,12 @@ namespace SpellBook.GAS.Abilities.Actions
             ActionLists.CollectEffects(OnHitActions, effects);
         }
 
+        // O impacto é um evento próprio, com o acertado como alvo
+        internal override void CollectChildLists(List<ChildActionList> results)
+        {
+            results.Add(new ChildActionList(nameof(OnHitActions), OnHitActions, ownEvent: true));
+        }
+
         private Burst Aim(AbilitySystemComponent caster, Vector3 point)
         {
             Transform transform = caster.transform;

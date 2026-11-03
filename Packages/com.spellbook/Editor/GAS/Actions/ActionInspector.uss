@@ -1,0 +1,65 @@
+/* Tokens do Inspector de ações (DS 6.2). O tema escuro é o padrão; .action-inspector--light troca os valores. */
+.action-inspector {
+    --spellbook-cat-flow: #5aa9e6;
+    --spellbook-cat-effect: #e6735a;
+    --spellbook-cat-target: #e6c85a;
+    --spellbook-cat-world: #6cc77a;
+    --spellbook-cat-present: #c17ae6;
+    --spellbook-cat-event: #e65aa6;
+    --spellbook-cat-debug: #9a9a9a;
+    --spellbook-cat-other: #7a8ca0;
+    --spellbook-warning: #e6b400;
+    --spellbook-error: #ff5c5c;
+    --spellbook-text-secondary: #9a9a9a;
+}
+
+.action-inspector--light {
+    --spellbook-cat-flow: #1f6fb0;
+    --spellbook-cat-effect: #b0401f;
+    --spellbook-cat-target: #8a6d00;
+    --spellbook-cat-world: #2e7d3a;
+    --spellbook-cat-present: #7a2eb0;
+    --spellbook-cat-event: #b01f6a;
+    --spellbook-cat-debug: #5a5a5a;
+    --spellbook-cat-other: #4a5a6e;
+    --spellbook-warning: #8a6400;
+    --spellbook-error: #c00000;
+    --spellbook-text-secondary: #5a5a5a;
+}
+
+.action-events__tab--empty { color: var(--spellbook-text-secondary); }
+.action-events__group { -unity-font-style: bold; margin-right: 6px; padding-left: 6px; border-left-width: 1px; border-left-color: var(--spellbook-text-secondary); }
+.action-events__dot { margin-left: 4px; padding: 0 4px; border-radius: 6px; font-size: 10px; color: #000000; }
+.action-events__dot--warning { background-color: var(--spellbook-warning); }
+.action-events__dot--error { background-color: var(--spellbook-error); }
+#action-events__subtitle { color: var(--spellbook-text-secondary); margin: 2px 4px; }
+
+.action-list__header, .action-list__footer { flex-direction: row; align-items: center; }
+.action-list__empty { color: var(--spellbook-text-secondary); margin: 4px; }
+
+.action-row { border-left-width: 4px; border-left-color: rgba(0, 0, 0, 0); }
+.action-row__header { flex-direction: row; align-items: center; min-height: 20px; }
+.action-row__fold { width: 14px; }
+.action-row__icon { width: 16px; -unity-text-align: middle-center; border-radius: 3px; color: #000000; }
+.action-row__summary { flex-grow: 1; flex-shrink: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; -unity-font-style: bold; }
+.action-row--empty .action-row__summary { color: var(--spellbook-text-secondary); -unity-font-style: normal; }
+.action-row__validation--warning { color: var(--spellbook-warning); }
+.action-row__validation--error { color: var(--spellbook-error); }
+.action-row__body { padding-left: 16px; }
+
+.action-row--cat-flow { border-left-color: var(--spellbook-cat-flow); }
+.action-row--cat-flow .action-row__icon { background-color: var(--spellbook-cat-flow); }
+.action-row--cat-effect { border-left-color: var(--spellbook-cat-effect); }
+.action-row--cat-effect .action-row__icon { background-color: var(--spellbook-cat-effect); }
+.action-row--cat-target { border-left-color: var(--spellbook-cat-target); }
+.action-row--cat-target .action-row__icon { background-color: var(--spellbook-cat-target); }
+.action-row--cat-world { border-left-color: var(--spellbook-cat-world); }
+.action-row--cat-world .action-row__icon { background-color: var(--spellbook-cat-world); }
+.action-row--cat-present { border-left-color: var(--spellbook-cat-present); }
+.action-row--cat-present .action-row__icon { background-color: var(--spellbook-cat-present); }
+.action-row--cat-event { border-left-color: var(--spellbook-cat-event); }
+.action-row--cat-event .action-row__icon { background-color: var(--spellbook-cat-event); }
+.action-row--cat-debug { border-left-color: var(--spellbook-cat-debug); }
+.action-row--cat-debug .action-row__icon { background-color: var(--spellbook-cat-debug); }
+.action-row--cat-other { border-left-color: var(--spellbook-cat-other); }
+.action-row--cat-other .action-row__icon { background-color: var(--spellbook-cat-other); }

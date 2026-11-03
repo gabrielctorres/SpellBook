@@ -13,6 +13,10 @@
 /[Aa]ssets/InitTestScene*
 /[Aa]ssets/__SpellBookTestTemp*
 
+# Tema padrão que a Unity grava ao criar um painel de runtime nos testes do Inspector (TM4b); o TearDown apaga
+/[Aa]ssets/UI Toolkit/
+/[Aa]ssets/UI Toolkit.meta
+
 # Arquivos gerados por IDEs
 .vs/
 .vscode/

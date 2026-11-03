@@ -1,0 +1,29 @@
+{
+    "name": "SpellBook.Teams.Tests.EditMode",
+    "rootNamespace": "SpellBook.Teams.Tests",
+    "references": [
+        "SpellBook.Core",
+        "SpellBook.Core.Editor",
+        "SpellBook.Teams",
+        "SpellBook.Teams.Editor",
+        "SpellBook.Time",
+        "SpellBook.Testing",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -3,7 +3,6 @@ using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Abilities.Projectiles;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
-using SpellBook.GAS.Effects;
 using UnityEditor;
 
 namespace SpellBook.GAS.Editor
@@ -20,10 +19,6 @@ namespace SpellBook.GAS.Editor
     [CustomEditor(typeof(CooldownReductionPolicy))]
     [CanEditMultipleObjects]
     internal sealed class CooldownReductionPolicyEditor : SpellBookEditor { }
-
-    [CustomEditor(typeof(GameplayEffect))]
-    [CanEditMultipleObjects]
-    internal sealed class GameplayEffectEditor : SpellBookEditor { }
 
     [CustomEditor(typeof(AttributeCategory))]
     [CanEditMultipleObjects]

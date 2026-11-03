@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using SpellBook.Core.Conditions;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using UnityEngine;
 using SpellBook.GAS.Actions;
 using SpellBook.GAS.Conditions;
 using SpellBook.GAS.Effects;
+using SpellBook.GAS.Targeting;
 
 namespace SpellBook.GAS.Abilities.Actions
 {
@@ -51,6 +54,11 @@ namespace SpellBook.GAS.Abilities.Actions
         {
             ActionLists.CollectEffects(Actions, effects);
         }
+
+        internal override void CollectChildLists(List<ChildActionList> results)
+        {
+            results.Add(new ChildActionList(nameof(Actions), Actions));
+        }
     }
 
     /// <summary>
@@ -76,6 +84,11 @@ namespace SpellBook.GAS.Abilities.Actions
         public override void CollectEffects(List<GameplayEffect> effects)
         {
             ActionLists.CollectEffects(Actions, effects);
+        }
+
+        internal override void CollectChildLists(List<ChildActionList> results)
+        {
+            results.Add(new ChildActionList(nameof(Actions), Actions));
         }
     }
 
@@ -115,10 +128,99 @@ namespace SpellBook.GAS.Abilities.Actions
             ActionLists.CollectEffects(Then, effects);
             ActionLists.CollectEffects(Else, effects);
         }
+
+        /// <summary>Avisa a <see cref="TagQueryCondition"/> com sujeito <see cref="ConditionSubject.TargetUnit"/>, que aqui não tem candidato.</summary>
+        public override void Validate(ValidationResult result)
+        {
+            if (GameplayAbility.ContainsTargetUnitQuery(Condition))
+            {
+                result.AddWarning(GameplayAbility.TargetUnitQueryWarning, nameof(Condition));
+            }
+        }
+
+        internal override void CollectChildLists(List<ChildActionList> results)
+        {
+            results.Add(new ChildActionList(nameof(Then), Then));
+            results.Add(new ChildActionList(nameof(Else), Else));
+        }
     }
+
+    /// <summary>Recebe cada ação não nula da árvore validada, com o caminho dela e se, sem seletor, ela mira o dono.</summary>
+    internal delegate void ActionVisitor(GameplayAction action, string propertyPath, bool targetsOwner);
 
     internal static class ActionLists
     {
+        /// <summary>Profundidade de ações aninhadas acima da qual o validador avisa (DS, 4.4).</summary>
+        public const int MaxDepth = 4;
+
+        /// <summary>
+        /// Valida a lista <paramref name="field"/> de <paramref name="owner"/> e as filhas, pelo <see cref="ActionEventAttribute"/>
+        /// do campo: ação nula (erro), profundidade acima de <see cref="MaxDepth"/> (aviso), seletor que pede os alvos do evento
+        /// num evento sem alvos (erro) e o <see cref="GameplayAction.Validate"/> de cada ação, com o caminho dela na frente.
+        /// </summary>
+        public static void Validate(UnityEngine.Object owner, string field, List<GameplayAction> actions, ValidationResult result,
+            ActionVisitor visitor = null)
+        {
+            var info = owner.GetType().GetField(field, BindingFlags.Public | BindingFlags.Instance)?.GetCustomAttribute<ActionEventAttribute>();
+            bool hasEventTargets = info == null || info.HasEventTargets;
+            bool targetsOwner = info != null && info.DefaultTarget == DefaultTarget.Owner;
+            Walk(actions, field, hasEventTargets, targetsOwner, 1, result, visitor);
+        }
+
+        private static void Walk(List<GameplayAction> actions, string listPath, bool hasEventTargets, bool targetsOwner, int depth,
+            ValidationResult result, ActionVisitor visitor)
+        {
+            if (actions == null) return;
+
+            for (int i = 0; i < actions.Count; i++)
+            {
+                string path = $"{listPath}.Array.data[{i}]";
+                GameplayAction action = actions[i];
+                if (action == null)
+                {
+                    result.AddError("Ação vazia na lista: escolha o tipo ou remova a entrada.", path);
+                    continue;
+                }
+
+                if (depth == MaxDepth + 1)
+                {
+                    result.AddWarning($"Ação no nível {depth}: considere extrair para outra habilidade ou efeito.", path);
+                }
+
+                if (!hasEventTargets && action.Target != null && action.Target.NeedsEventTargets)
+                {
+                    result.AddError("Seletor pede os alvos do evento, e este evento não tem alvos: escolha outro seletor.", path + ".target");
+                }
+
+                ValidateAction(action, path, result);
+                bool actionTargetsOwner = action.Target == null ? targetsOwner : action.Target is CasterSelector;
+                visitor?.Invoke(action, path, actionTargetsOwner);
+
+                var children = new List<ChildActionList>();
+                action.CollectChildLists(children);
+                for (int c = 0; c < children.Count; c++)
+                {
+                    ChildActionList child = children[c];
+                    Walk(child.Actions, path + "." + child.Field, hasEventTargets || child.OwnEvent,
+                        actionTargetsOwner && !child.OwnEvent, depth + 1, result, visitor);
+                }
+            }
+        }
+
+        // A ação acusa o caminho relativo a ela; aqui ele ganha o caminho da ação no asset
+        private static void ValidateAction(GameplayAction action, string path, ValidationResult result)
+        {
+            var own = new ValidationResult(result.Context);
+            action.Validate(own);
+            for (int i = 0; i < own.Messages.Count; i++)
+            {
+                ValidationMessage message = own.Messages[i];
+                string full = string.IsNullOrEmpty(message.PropertyPath) ? path : path + "." + message.PropertyPath;
+                if (message.Severity == ValidationSeverity.Error) result.AddError(message.Message, full);
+                else result.AddWarning(message.Message, full);
+            }
+        }
+
         /// <summary>Repassa <see cref="GameplayAction.CollectEffects"/> a cada ação não nula de <paramref name="actions"/>.</summary>
         public static void CollectEffects(IList<GameplayAction> actions, List<GameplayEffect> effects)
         {

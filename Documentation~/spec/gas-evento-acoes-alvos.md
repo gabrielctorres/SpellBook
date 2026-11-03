@@ -651,11 +651,79 @@ Tamanho estimado: ~470 linhas; 6 arquivos (testes ~330, ASC ~85, `GameplayAbilit
 - Critério de pronto: CA26 e CA27 verdes.
 - Tamanho estimado: ~420 linhas; 6 arquivos. Depende de: EV12.
 
+#### Detalhe (2026-11-03)
+
+Detalhe pela emenda de 2026-11-03 da ADR 0002, lido no código da branch `feat/gas-lote-c` depois do EV12 (`6ca2344`). Caminhos relativos a `Packages/com.spellbook/`. Cabe no teto da 0042, sem exceção.
+
+- CA: CA26 (C18) e CA27 completo (parte de Channel; a de Toggle veio no EV12). Leitura da barra de cast do Design 7 (P7 do B-016).
+- Contexto no código: `Runtime/GAS/Abilities/AbilityBehavior.cs:62-70` (enum sem `Channel`); `GameplayAbility.cs:68-69` (`behavior`), `:104-125` (cinco listas), `:205-206` (`IsSustained`), `:249-291` (`Validate` e `CollectActionEffects`); `AbilitySpec.cs:14-16` (`IsActive`, `IsToggledOn`); `AbilitySystemComponent.cs:225-253` (`Tick`: executor e `EndFinishedAbilities`), `:383-390` (`EndPassive`: cancela as execuções do spec e termina normal), `:952-1007` (`ActivateSpec`; sustentada em `:994`), `:1061-1074` (`CancelAbility`), `:1110-1130` (`EndAbility`), `:1132-1142` (`CopyActivationContext`); `ActionRunner.cs:169-249` (cursor lógico pelo `TickedTime`).
+- Comportamento:
+  - **Tipo e dados.** `AbilityBehavior.Channel` no fim do enum (valor 3, sem quebra). `GameplayAbility` ganha, no cabeçalho "Ativação", `[SerializeField] ScalableFloat channelDuration = ScalableFloat.Constant(0f)` e `[SerializeField, Min(0f)] float channelTickInterval`, com tooltip, e as propriedades `ChannelDuration` (nulo volta a 0, como `CastRange`) e `ChannelTickInterval` (negativo vira 0). Lista nova `OnChannelTick` (`[ActionEvent("A cada passo", DefaultTarget.EventTargets, true)]`), depois de `OnCancel`; `Validate` e `CollectActionEffects` passam às seis listas. `IsSustained` inclui `Channel`: a ativação não termina quando `OnActivate` acaba (o mesmo ponto do EV12). Os avisos do validador (passo fora de `Channel`, `Channel` sem duração e sem `CancelledByTags`) ficam no EV16.
+  - **Início.** No `ActivateSpec`, logo depois de `spec.ActiveContext = context` e antes de `OnAbilityActivated`, um `Channel` grava no spec a duração aplicada (`ChannelDuration.Evaluate(spec.Level, ability.Values)`, pelo menos 0), o início (`TickedTime`) e o próximo passo (início + intervalo; intervalo 0: sem passos). A UI lê a duração já no `OnAbilityActivated`.
+  - **Relógio.** No `Tick`, depois de `_runner.Tick()` e antes de `EndFinishedAbilities`, o ASC avança cada spec que canaliza pelo cursor lógico: roda `OnChannelTick` para cada passo com horário ≤ `TickedTime` e, com duração, ≤ início + duração (um `Tick` grande roda todos os passos que cobriu; o passo no mesmo horário do fim roda antes do fim). Cada passo roda com uma cópia do contexto da ativação (`CopyActivationContext`, alvos do evento e ponto), com o spec como dono, então cancelar ou terminar cancela um passo em curso. Uma ação que cancele ou termine a habilidade interrompe a sequência (guarda por `ActivationId`). O intervalo é lido no início da canalização e guardado no spec; mudá-lo no meio só vale na próxima ativação (correção da revisão: intervalo 0 ao vivo travava o laço).
+  - **Fim.** Com duração > 0 e `TickedTime` ≥ início + duração, o ASC cancela as execuções do spec (`OnCancel` reverso das ações em curso de `OnActivate` e dos passos) e chama `EndAbility(spec, false)`: lista `OnEnd`, devolve as `ActivationOwnedTags`, `OnAbilityEnded(spec, false)`. É o `EndPassive` de hoje, renomeado para `EndSustained` (mesmo corpo). Duração 0 canaliza até `CancelAbility`, `CancelledByTags`, `CancelAbilitiesWithTag`, retirada ou `OnDisable`, todos pelo `CancelAbility` de hoje (`OnCancel`, `OnAbilityEnded(spec, true)`).
+  - **Leitura.** `AbilitySpec.IsChanneling` (`IsActive && Ability.Behavior == Channel`) e `AbilitySpec.ChannelDuration` (aplicada na ativação em curso; 0 é indeterminada, e volta a 0 no `EndAbility`, antes de rodar "Ao terminar"/"Ao ser cancelada", para que uma reativação nessas listas mantenha a duração nova). No ASC: `GetChannelElapsed(spec)` (segundos desde o início pelo `TickedTime`, limitado à duração quando há duração), `GetChannelRemaining(spec)` (duração − decorrido; indeterminada: 0) e `GetChannelNormalized(spec)` (decorrido / duração em [0, 1]; indeterminada: 0). Spec nulo ou que não canaliza: 0. Início e fim pelos `OnAbilityActivated` e `OnAbilityEnded`, sem evento novo.
+  - **Tags (R27).** Pelo `AddTags` do `ActivateSpec` e o `RemoveTags` do `EndAbility` de hoje. Só o teste.
+- Escopo (5 arquivos):
+  - `Runtime/GAS/Abilities/AbilityBehavior.cs:62-70`: `Channel`. (O rascunho não o listava; o Detalhe do EV12 já o previa no mesmo enum.)
+  - `Runtime/GAS/Abilities/GameplayAbility.cs:68-69`, `:104-125`, `:198-206`, `:249-291`: campos, propriedades, `OnChannelTick`, `IsSustained`, seis listas.
+  - `Runtime/GAS/Abilities/AbilitySpec.cs:14-16`: `IsChanneling`, `ChannelDuration`, estado interno do relógio (início, próximo passo).
+  - `Runtime/GAS/Core/AbilitySystemComponent.cs:225-253` (`Tick`), `:383-390` (`EndSustained`), `:952-1007` (início), `:1110-1130` (zera a duração), leitura nova: `AdvanceChannels`, `GetChannelElapsed`, `GetChannelRemaining`, `GetChannelNormalized`.
+  - `Tests/GAS/PlayMode/ChannelTests.cs` (novo; o `.meta` não conta).
+  - Sem manual, catálogo, referência da API nem CHANGELOG (emendas de 2026-11-03 da 0007 e da 0040; sem quebra: campos novos com padrão, enum acrescido no fim). Nenhum tipo novo de catálogo.
+- Testes red (PlayMode, `ChannelTests`, `autoTick` desligado, `ManualTimeSource`, `GasFactory`):
+  - `Channel3s_EndsCleanly_OnEndRuns` (CA26, C18): duração 3 e uma espera de 10 s em `OnActivate`; ativa depois de 2 `Tick(1)`; no 3º termina com `OnAbilityEnded(spec, false)`, a espera recebe `OnCancel` antes de `OnEnd`, e a lista `OnCancel` não roda.
+  - `NoDuration_UntilCancelled` (CA26): duração 0 continua ativa depois de `Tick(100)`; `CancelAbility` termina com `cancelado == true` e roda `OnCancel`.
+  - `CancelByTagAndCode_ReverseOnCancel` (CA26; casos tag e código): ações em curso de `OnActivate` e de um passo recebem `OnCancel` da mais interna para a mais externa, depois a lista `OnCancel`, e `OnAbilityEnded(spec, true)`.
+  - `ChannelTicks_PerInterval_CountsSameFrameTick`: duração 3, intervalo 1: `Tick(0.5)` nenhum passo; `Tick(0.5)` um; `Tick(2)` mais dois, o do horário 3 antes de `OnEnd`, e termina.
+  - `Channel_OwnedTags` (CA27): canalizando, o dono tem as `ActivationOwnedTags`; no fim, a contagem volta à de antes.
+  - `ChannelReadApi_ElapsedRemainingNormalized_IndeterminateZero`: duração por nível (`FromArray(2, 4)`, nível 2) lida no `OnAbilityActivated` como 4; depois de `Tick(1.5)`, decorrido 1,5, restante 2,5, normalizado 0,375; no fim, `IsChanneling` falso e leituras 0. Indeterminada: decorrido conta, restante e normalizado 0. Spec nulo: 0.
+- Critério de pronto: os 7 casos dos 6 testes verdes; `PassiveTests`, `ToggleTests`, `AbilityEndCancelListsTests`, `CommitModeTests` e `AbilityWaitTests` verdes sem edição; uma habilidade `Instant` se comporta como antes. CA26 e CA27 verdes.
+- Tamanho: ~430 linhas e 5 arquivos (testes ~300, ASC ~80, `GameplayAbility.cs` ~30, `AbilitySpec.cs` ~15, `AbilityBehavior.cs` ~3). Exceção: nenhuma.
+- Commit: `feat(gas): habilidade Channel e leitura da canalização`
+
 ### EV14 — Autocast e passiva que se reativa
 - Escopo: `GameplayAbility.cs` (`AutocastConfig`, `reactivatePassive`), `Runtime/GAS/Abilities/Triggers/WhenReadyTrigger.cs` (novo), `AbilityTrigger.cs` (`onlyWithAutocast` na avaliação), `AbilitySpec.cs` (`AutocastEnabled`, última tentativa), `AbilitySystemComponent.cs` (`SetAutocast`, `IsAutocastEnabled`, `OnAutocastChanged`, passada "quando pronta"), `Tests/GAS/PlayMode/AutocastTests.cs` (novo), `gas.md`, `CHANGELOG.md`.
 - Testes red: `AutocastOff_Nothing_On_ActivatesWithSelectorTarget_OffStops` (CA37, C23); `OnlyWithAutocast_IgnoredWhenOff_ManualWorksBoth` (CA38, C24); `FailureSilent_NoTargetSkips_OnePerTick_OrderPerPosition` (CA39, C25); `SetAutocast_FalseWithoutAllowedOrNoChange_EventOnce_StartsOn_ManualAndChargesCostSame` (CA40, C26); `NoAutocastNoTrigger_NoPerTickWork_NoAlloc` (CA42); `Passive_Reactivates_WhenConfigured`.
 - Critério de pronto: CA37 a CA40 e CA42 verdes.
 - Tamanho estimado: ~490 linhas; 7 arquivos. Depende de: EV13.
+
+#### Detalhe (2026-11-03)
+
+Detalhe pela emenda de 2026-11-03 da ADR 0002, lido no código da branch `feat/gas-lote-c` depois do EV13 (`5833ff7`). Caminhos relativos a `Packages/com.spellbook/`.
+
+- CA: CA37 (C23), CA38 (C24), CA39 (C25), CA40 (C26) e CA42; reativação da passiva do Design 7 (`reactivatePassive`). O CA41 (validador) fica no EV16.
+- Contexto no código: `Runtime/GAS/Abilities/Triggers/AbilityTrigger.cs:15-26` (o `onlyWithAutocast` já existe; `ListensTo` por causa); `GameplayAbility.cs:68-69` (`behavior`), `:139-141` (`triggers`), `:201` (`Triggers`); `AbilitySpec.cs:103-161`; `AbilitySystemComponent.cs:48-52` (índice `_triggers` e trava `_triggering`), `:225-253` (`Tick`, que hoje sai cedo sem `_runner`), `:371-407` (`GiveAbility`, `RemoveAbility`), `:837-849` (`TryActivate` com `silent`, do EV12), `:1381-1427` (`FireTriggers`, que hoje pula todo gatilho "só com autocast", e `IndexTriggers`/`UnindexTriggers`); `ActionRunner.cs:73-79` (`RentContext`) e `:409-413` (`ReturnContext`); `TargetSelector.Select(ActionContext, List<AbilitySystemComponent>)`.
+- Comportamento:
+  - **Dados.** `Runtime/GAS/Abilities/AutocastConfig.cs` (novo): `[Serializable] public sealed class AutocastConfig` com `allowed` e `startsOn` (`false` por padrão) e as propriedades `Allowed` e `StartsOn`, no molde do `ChargesConfig`. `GameplayAbility` ganha, no cabeçalho "Gatilhos", `[SerializeField] AutocastConfig autocast` (propriedade `Autocast`, nula volta ao padrão) e, no cabeçalho "Ativação", `[SerializeField] bool reactivatePassive` (propriedade `ReactivatePassive`). Campos novos com padrão: assets antigos abrem como hoje.
+  - **Gatilho.** `Runtime/GAS/Abilities/Triggers/WhenReadyTrigger.cs` (novo): `WhenReadyTrigger : AbilityTrigger`, `[TypeCategory(..., Summary = ...)]`, com `[SerializeReference, TypePicker] TargetSelector selector` opcional (propriedade `Selector`). Não ouve causa nenhuma (`ListensTo` falso); só a passada "quando pronta" o lê.
+  - **Estado.** `AbilitySpec.AutocastEnabled` (leitura pública, escrita interna) e `internal int WhenReadyTick` (último `Tick` em que a passada tentou o spec). Na concessão, `AutocastEnabled = Allowed && StartsOn` e o comportamento não é `Passive` nem `Toggle`; a concessão não dispara `OnAutocastChanged` (a UI lê `IsAutocastEnabled` no `OnAbilityGranted`).
+  - **API do ASC.** `bool SetAutocast(AbilitySpec spec, bool on)`: falso com spec nulo ou de fora, sem `Allowed`, em `Passive`/`Toggle` ou sem mudança; senão grava e dispara `event Action<AbilitySpec, bool> OnAutocastChanged` uma vez. `bool IsAutocastEnabled(AbilitySpec spec)` (nulo: falso). Sem alocação.
+  - **"Só com autocast" (R36).** `FireTriggers` passa a pular o gatilho marcado só com o autocast do spec desligado. Com ele ligado, a tentativa por evento é uma tentativa de autocast e vai em modo silencioso (R39, P16); gatilho sem a marca continua como hoje, com `OnAbilityFailed`.
+  - **Passada "quando pronta" (P16).** `IndexTriggers` põe cada `WhenReadyTrigger` numa lista própria `_whenReady` (fora de `_triggers`), na ordem da concessão, e uma entrada sem gatilho para a `Passive` com `ReactivatePassive`; `UnindexTriggers` tira as duas. O `Tick` conta o índice do `Tick` e, por último, depois das canalizações e de `EndFinishedAbilities` (que deixam de depender de `_runner` para a passada rodar), percorre `_whenReady` só se ela não estiver vazia. Para cada entrada: pula spec ativo, spec já tentado neste `Tick` (`WhenReadyTick`), spec na trava `_triggering` e gatilho "só com autocast" com o autocast desligado. Com seletor, aluga um contexto do pool (ASC como dono e instigador, `Ability`, `Spec`, `Level`), roda `Select` numa lista reutilizada e devolve o contexto; sem resultado, pula, sem custo e sem evento; com resultado, o alvo é `AbilityTarget.AtUnit(primeiro)`. Sem seletor, `AbilityTarget.None`. Marca `WhenReadyTick`, entra na trava `_triggering` e chama `TryActivate(..., silent: true)`: mesmas checagens, mesma ordem (ADR 0022), mesmo commit, cargas e custo do uso manual (R38).
+  - **Decisão deste detalhe.** O `WhenReadyTrigger` segue a regra uniforme do R36: com a marca "só com autocast", dispara só com o autocast ligado (o caso do C23); sem a marca, tenta a cada `Tick` mesmo sem autocast, como a lista da passada do Design 8 prevê ("sem `allowed` e sem `WhenReadyTrigger` não entra"). Registrada em `decisoes.md`.
+  - **Fora do EV14:** validador (CA41, EV16), Inspector (EV17 a EV20), manual (passe de documentação).
+- Escopo (7 arquivos):
+  - `Runtime/GAS/Abilities/AutocastConfig.cs` (novo; o `.meta` não conta).
+  - `Runtime/GAS/Abilities/Triggers/WhenReadyTrigger.cs` (novo; o `.meta` não conta).
+  - `Runtime/GAS/Abilities/GameplayAbility.cs:68-69`, `:139-141`, `:198-201`: `reactivatePassive`, `autocast`, propriedades.
+  - `Runtime/GAS/Abilities/AbilitySpec.cs:103-112`: `AutocastEnabled`, `WhenReadyTick`.
+  - `Runtime/GAS/Core/AbilitySystemComponent.cs:48-52` (`_whenReady`, buffer, índice do `Tick`), `:225-253` (`Tick` e a passada), `:371-391` (estado inicial do autocast), `:1381-1427` (`FireTriggers`, índices), novos `SetAutocast`, `IsAutocastEnabled`, `OnAutocastChanged`.
+  - `Tests/GAS/PlayMode/AutocastTests.cs` (novo; o `.meta` não conta).
+  - `Documentation~/decisoes.md` (a linha da decisão; não conta).
+  - Sem manual, catálogo, referência da API nem CHANGELOG (emendas de 2026-11-03 da 0007 e da 0040; sem quebra). O tipo novo do catálogo tem `Summary` (guarda `EveryCatalogTypeHasSummary`).
+- Testes red (PlayMode, `AutocastTests`, `autoTick` desligado, `ManualTimeSource`, `GasFactory`):
+  - `AutocastOff_Nothing_On_ActivatesWithSelectorTarget_OffStops` (CA37, C23): `WhenReadyTrigger` "só com autocast" com `AreaSelector` (3D, inimigo a 2 m); desligado, 3 `Tick` sem ativação; `SetAutocast(true)`, o `Tick` seguinte ativa com o inimigo nos alvos do evento; desligado de novo, não ativa mais.
+  - `OnlyWithAutocast_IgnoredWhenOff_ManualWorksBoth` (CA38, C24): o evento ignora o gatilho marcado com o autocast desligado e o dispara ligado; um gatilho sem a marca dispara nos dois; `TryActivateAbility` ativa nos dois.
+  - `FailureSilent_NoTargetSkips_OnePerTick` (CA39, C25): em recarga, nenhuma tentativa dispara `OnAbilityFailed`; seletor sem alvo pula sem custo, sem evento e sem exceção; dois `WhenReadyTrigger` no mesmo spec avaliam a regra de ativação uma vez por `Tick`.
+  - `Autocast_CheckOrder_SameAsManual` (CA39, um caso por posição: tags, cargas, recarga, custo, condição; 5 casos): a falha na posição para a tentativa silenciosa antes das seguintes (a regra de contagem não é avaliada antes da posição dela) e, retirada a falha, o `Tick` seguinte ativa.
+  - `SetAutocast_FalseWithoutAllowedOrNoChange_EventOnce_StartsOn` (CA40, C26): `SetAutocast` falso sem `Allowed`, em `Toggle` e sem mudança; o evento sai uma vez por mudança real; `StartsOn` liga na concessão sem evento.
+  - `Autocast_ManualCommitAndCharges_ChargeLikeManual` (CA40): com `CommitMode.Manual`, cargas e custo, a ativação pelo autocast cobra a carga e o custo no `CommitAction`, igual à ativação manual de outro ASC.
+  - `NoAutocastNoTrigger_NoPerTickWork_NoAlloc` (CA42): sem `Allowed` e sem gatilho, a regra de ativação não é avaliada em 100 `Tick`, e o `Tick` não aloca; com `WhenReadyTrigger` e seletor de área, a passada também não aloca depois do aquecimento (N1).
+  - `Passive_Reactivates_WhenConfigured`: `Passive` com `ReactivatePassive` e `RequiredTags` ausente não ativa na concessão; com a tag, ativa no `Tick` seguinte; cancelada, volta no `Tick` seguinte; sem `ReactivatePassive`, fica inativa.
+- Critério de pronto: os 12 casos dos 8 testes verdes; `GameplayEventTriggerTests`, `PassiveTests`, `ToggleTests`, `ChannelTests` e `CommitModeTests` verdes sem edição; `EveryCatalogTypeHasSummary` verde. CA37 a CA40 e CA42 verdes.
+- Tamanho: ~647 linhas e 6 arquivos contados (testes ~450, ASC ~115, `AutocastConfig.cs` ~35, `WhenReadyTrigger.cs` ~30, `GameplayAbility.cs` ~20, `AbilitySpec.cs` ~6). Exceção: +29%, linha do EV14 de 2026-11-03 no `decisoes.md`.
+- Commit: `feat(gas): autocast e passiva que se reativa`
 
 ### EV15 — `RaiseEventAction` única no Bridges
 Emenda de 2026-11-01 (perguntas do RL6): este ticket passa a entregar o lado do efeito do payload dinâmico do B-004 (R15, R16; CA21 e CA22), que saiu do RL6. Não há `RaiseEventEffectAction` para apagar.
@@ -665,11 +733,83 @@ Emenda de 2026-11-01 (perguntas do RL6): este ticket passa a entregar o lado do 
 - Critério de pronto: um só tipo de ação de evento; CA21 e CA22 do B-004 verdes; CA30 do B-004 mantido para o comportamento.
 - Tamanho estimado: ~480 linhas; 9 arquivos. Depende de: EV14, RL7.
 
+#### Detalhe (2026-11-03)
+
+Detalhe pela emenda de 2026-11-03 da ADR 0002, lido no código da branch `feat/gas-lote-c` depois do EV14 (`979be63`). Caminhos relativos a `Packages/com.spellbook/`.
+
+- CA: CA21 e CA22 do B-004 (R15, R16; cenário C8); CA23 e CA30 do B-004 mantidos. Tabela do Design 4 da Spec `gas-resultado-de-aplicacao-e-relay.md` e validação do Design 5 de lá (`modifierIndex` negativo).
+- Contexto no código: `Runtime/GAS.Bridges/RaiseEventAction.cs:25-120` (campos, `Execute`, `Validate`, `RaiseDynamic`, tudo pelo lado da habilidade); `GasPayloadSource.cs:9-23` (seis valores) e `:32-50` (`Supports`); `Editor/GAS.Bridges/RaiseEventDrawer.cs:20-22`, `:44`, `:66-75`, `:90-102`; `Runtime/GAS/Actions/ActionContext.cs:58-66` (`EffectInstance`, `EffectDefinition`, `EffectEvent`, `HasEffect`, `Effect`); `Runtime/GAS/Effects/ActiveEffectInstance.cs:185-198` e `AbilitySystemComponent.cs:1825-1841` (quem preenche o contexto do efeito, também no instantâneo); `ModifierValueSource.GetValue(in EffectContext)` (público; o `Evaluate` é `internal` e o Bridges não o vê); `GameplayAbility.cs:343-350` valida as ações com o `ValidationResult` da habilidade; o `GameplayEffect.Validate` não valida as listas de ações (isso é do EV16).
+- Comportamento:
+  - **Enum.** `ModifierMagnitude`, `Stacks` e `EffectName` entram no fim do `GasPayloadSource` (ordem da serialização; o `Fixed` continua 0).
+  - **Tabela.** `Supports(fonte, tipo, bool inEffectList)` (novo) aplica o Design 4: `ModifierMagnitude` e `Stacks` com Float e `EffectName` com String só em lista de efeito; `AbilityName` só fora dela; `EventData` com `EffectEventData` em lista de efeito e com `AbilityEventData` fora dela. `Supports(fonte, tipo)` continua com o resultado de hoje e passa a ser o caso de fora da lista de efeito.
+  - **Runtime.** A lista é de efeito quando `context.HasEffect`. Fonte que não serve não dispara, sem exceção. No efeito: `AttributeValue` lê o dono do efeito (`context.Owner`); `SourceObject`, quem aplicou (`Instigator`); `TargetObject`, o dono do efeito; `ModifierMagnitude` avalia `PeriodicModifiers[modifierIndex]` com `EffectEvent.Tick` e `Modifiers[modifierIndex]` nos outros eventos, por `ValueSource.GetValue(in context.Effect)` (nível e tabela do `EffectContext`, ADR 0030); `Stacks`, `EffectInstance.CurrentStacks` (instantâneo: 1); `EffectName`, `EffectDefinition.name`; `EventData`, um `EffectEventData` com `Owner`, `Source`, `Effect`, `Stacks` e `PreviousStacks` iguais às pilhas atuais. Índice além da lista (ou modificador sem fonte): não dispara e avisa uma vez por ação. Fora de efeito, nada muda.
+  - **Validação.** Fonte que não serve para o canal no lugar da ação: a lista conta como de efeito quando o `result.Context` é um `GameplayEffect`, que é o asset validado (habilidade, projétil ou contexto nulo contam como fora). `modifierIndex` negativo com `ModifierMagnitude`: erro. O índice além da lista fica para o runtime, como o Design 5 do B-004 diz.
+  - **Drawer.** O popup filtra pelo canal e pelo lugar (`serializedObject.targetObject is GameplayEffect`); o campo `modifier-index` aparece só com `ModifierMagnitude`.
+- Escopo (6 arquivos contados):
+  - `Runtime/GAS.Bridges/GasPayloadSource.cs:9-23`, `:32-50`: três valores e `Supports` com `inEffectList`.
+  - `Runtime/GAS.Bridges/RaiseEventAction.cs:25-120`: campo `modifierIndex`, o lado do efeito em `Execute`/`RaiseDynamic`, `Validate`.
+  - `Editor/GAS.Bridges/RaiseEventDrawer.cs:20-22`, `:44`, `:66-75`, `:90-102`: campo de índice e filtro pelo lugar.
+  - `Tests/GAS.Bridges/PlayMode/RaiseEventEffectPayloadTests.cs` (novo; o `.meta` não conta).
+  - `Tests/GAS.Bridges/EditMode/GasPayloadSourceTests.cs`: `Enum_Order` adaptado aos valores novos, tabela de efeito e validação.
+  - `Tests/GAS.Bridges/EditMode/RaiseEventDrawerTests.cs`: teste do drawer em lista de efeito.
+  - Sem manual, catálogo, referência da API nem CHANGELOG (emendas de 2026-11-03 da 0007 e da 0040; o enum cresce no fim e nada quebra).
+- Testes red:
+  - PlayMode, `RaiseEventEffectPayloadTests`: `RaiseEvent_InEffectTick_UsesInstance_InAbility_UsesCaster` (`AttributeValue` e `Stacks` no tique leem o dono e a instância com 2 pilhas; na habilidade, o conjurador); `OnTick_RaisesOncePerTick` (CA21, C8); `Float_TickDamage_AtContextLevel` (CA22; nível 3 diferente do nível 1); `String_EffectName` (CA22); `GameObject_Owner` (CA22; `TargetObject` dá o dono, `SourceObject` quem aplicou); `InstantEffect_RaisesWithEffectNameAndStacks1`; `EventData_InEffect_FillsEffectEventData`; `ModifierIndexOutOfRange_RaisesNothing_WarnsOnce`; `EffectSources_OutsideEffect_RaiseNothing`.
+  - EditMode, `GasPayloadSourceTests`: `ModifierMagnitude_OnlyInEffectContext_ValidatorWhenNotSupported`; `Supports_EffectList_Table` (casos); `NegativeModifierIndex_ValidatorError`; `Enum_Order` (adaptado).
+  - EditMode, `RaiseEventDrawerTests`: `Drawer_EffectList_ListsEffectSources_ShowsIndexOnlyForModifierMagnitude`.
+- Critério de pronto: os testes acima verdes; `RaiseEventPayloadTests`, `RaiseEventAbilityTests`, `RaiseEventActionTests` e o resto de `GasPayloadSourceTests` e `RaiseEventDrawerTests` verdes sem edição (CA23, CA30); um só tipo de ação de evento.
+- Tamanho: ~619 linhas e 6 arquivos contados (testes ~413, `RaiseEventAction.cs` ~128, `GasPayloadSource.cs` ~49, `RaiseEventDrawer.cs` ~29). Exceção: +24%, linha do EV15 de 2026-11-03 no `decisoes.md`.
+- Commit: `feat(gas-bridges): payload do efeito na RaiseEventAction`
+
 ### EV16 — Validação do modelo
 - Escopo: `GameplayAbility.cs`, `GameplayEffect.cs` (`Validate`), `FlowActions.cs`, `ChanceAction.cs`, `DelayedAction.cs`, `ForEachTargetAction.cs`, `RemoveEffectAction.cs`, `AbilityTrigger.cs` (`Validate`), `Tests/GAS/EditMode/ActionModelValidationTests.cs` (novo), `manual/ferramentas/validador.md`.
 - Testes red: um por regra do Design 9 (CA32, CA41), com `propertyPath`; `Chance_OutOfRange_Error` (CA14 completo). Da emenda de 2026-10-31 (ADR 0035): `TagQueryTargetUnit_OutsideCandidateFilter_Warns` (em regra de ativação e em `ConditionalAction`).
 - Critério de pronto: CA14, CA32 e CA41 verdes. A linha do CHANGELOG entra no EV21 (limite de arquivos).
 - Tamanho estimado: ~460 linhas; 10 arquivos. Depende de: EV15, AV8.
+
+### Detalhe (2026-11-03)
+- CA: CA14 (parte do validador), CA32 e CA41; regras do Design 9, mais as que o EV11a e o EV11b deixaram para cá (`OnDeath` sem `deathAttribute`, reação em efeito `Instant`) e a da emenda de 2026-10-31 (ADR 0035).
+- Escopo:
+  - `Runtime/GAS/Actions/GameplayAction.cs:46-52`: gancho `internal virtual void CollectChildLists(List<ChildActionList>)` e o struct `internal readonly ChildActionList` (campo, lista, "evento próprio"), para a validação descer nas filhas. Consequência direta: sem ele a árvore só seria percorrida por troca de tipo.
+  - `Runtime/GAS/Abilities/Actions/FlowActions.cs:17-135`: `CollectChildLists` em `RepeatAction`, `ParallelAction` e `ConditionalAction`; `ConditionalAction.Validate` avisa a `TagQueryCondition` `TargetUnit`; `ActionLists.Validate` percorre uma lista com o `ActionEventAttribute` do campo: ação nula (erro), profundidade acima de 4 (aviso, uma vez no 5.º nível), seletor com `NeedsEventTargets` em evento sem alvos (erro), a validação de cada ação com o caminho dela prefixado (`OnActivate.Array.data[0].actions.Array.data[1].delay`) e uma visita para as regras do dono.
+  - `Runtime/GAS/Actions/ChanceAction.cs:16-55` (constante fora de 0 a 1, erro), `DelayedAction.cs:19-68` (constante negativa, erro), `ForEachTargetAction.cs:15-51` (sem filhas, aviso), `RemoveEffectAction.cs:15-50` (sem efeito e sem tag, erro): `Validate` e, nas três primeiras, `CollectChildLists`.
+  - `Runtime/GAS/Abilities/Actions/SpawnProjectileAction.cs:26`: `CollectChildLists` do `OnHitActions` como evento próprio (o impacto tem alvos). Consequência direta: sem ele, as ações do impacto ficam fora da validação.
+  - `Runtime/GAS/Abilities/Triggers/AbilityTrigger.cs:12-53`: `public virtual void Validate(ValidationResult, string propertyPath)` (aditivo), e o `GameplayEventTrigger` dá erro com tag inválida.
+  - `Runtime/GAS/Abilities/GameplayAbility.cs:297-350` e `:391-468`: as seis listas por `ActionLists.Validate`; `OnChannelTick` fora de `Channel`; `Passive` com custo ou recarga; `Channel` sem duração e sem `CancelledByTags`; `Manual` sem `CommitAction`; `CommitAction` com `OnStart`; gatilhos (`Validate`, evento que a própria habilidade envia ao dono, `WhenReadyTrigger` com seletor e sem alcance); autocast em `Passive`/`Toggle` e sem gatilho que o use; `TagQueryCondition` `TargetUnit` nas regras de ativação. O `UsesCastRange` vira a busca genérica `ContainsCondition`, e a avaliação do alcance por nível é reaproveitada para a duração.
+  - `Runtime/GAS/Effects/GameplayEffect.cs:204-228`: as seis listas por `ActionLists.Validate`; reação (`OnTakeDamage`, `OnDeath`, `OnAbilityExecuted`) em efeito `Instant` (aviso); `OnDeath` com ações e sem `deathAttribute` (erro).
+  - `Tests/GAS/EditMode/ActionModelValidationTests.cs` (novo).
+  - Fora (emenda de 2026-11-03): `manual/ferramentas/validador.md` vai para o passe de documentação; sem `!`, sem CHANGELOG.
+- Testes red (EditMode, `ActionModelValidationTests`, cada um com uma mensagem só e o `propertyPath` achado pelo `SerializedObject`): `NullAction_Nested_Error`, `ChannelTick_OutsideChannel_Warns`, `EventTargetsSelector_InEventWithoutTargets_Error`, `ForEachTarget_Empty_Warns`, `Delayed_NegativeConstant_Error`, `Chance_OutOfRange_Error` (−0,1 e 1,5), `GameplayEventTrigger_InvalidTag_Error`, `Trigger_TagSentToOwnerBySelf_Warns`, `Passive_WithCostOrCooldown_Warns`, `Channel_WithoutDurationNorCancel_Warns`, `Manual_WithoutCommit_Error`, `Commit_WithOnStart_Warns`, `RemoveEffect_Empty_Error`, `Autocast_InPassiveOrToggle_Error`, `Autocast_WithoutTrigger_Warns`, `WhenReady_SelectorWithoutCastRange_Warns`, `OnDeath_WithoutDeathAttribute_Error`, `Reaction_InInstantEffect_Warns`, `Nesting_DeeperThanFour_Warns`, `TagQueryTargetUnit_OutsideCandidateFilter_Warns` (regra de ativação e `ConditionalAction`), `ConfiguredModel_HasNoMessages` (guarda contra falso positivo).
+- Critério de pronto: `ActionModelValidationTests` verde; guardas verdes: `ActivationValidationTests`, `LevelValuesValidationTests`, `DamageValidationTests`, `EffectMetadataTests`, `ProjectValidationTests`, `RaiseEventActionTests` e `GasPayloadSourceTests`.
+- Tamanho: estimado em ~610 linhas e 11 arquivos; medido na implementação: 710 linhas (421 de runtime, 289 de testes) e 12 arquivos, com o `Tests/GAS.Bridges/EditMode/RaiseEventActionTests.cs:77` (passava uma ação nula, agora erro). Fica acima de +30%: o ticket volta ao Controlador para ser dividido. Divisão proposta: **EV16a** (percurso das listas: ação nula, profundidade, seletor sem alvos do evento, caminho completo; regras das ações Chance, Delayed, ForEachTarget e RemoveEffect; filhas do projétil; listas e reações do efeito; ~400 linhas e 11 arquivos) e **EV16b** (regras da habilidade: comportamento, commit, gatilhos, autocast e `TagQueryCondition` `TargetUnit`; `GameplayAbility.cs`, `AbilityTrigger.cs`, `ConditionalAction.Validate` e os testes delas; ~330 linhas e 4 arquivos). Exceção: nenhuma.
+- Commit: `feat(gas): validação do modelo evento → ações → alvos`
+
+### Detalhe EV16a (2026-11-03)
+- CA: CA14 (parte do validador) e CA32 (percurso das listas, regras das ações e do efeito); o CA41 e as regras da habilidade ficam no EV16b (#316).
+- Escopo:
+  - `Runtime/GAS/Actions/GameplayAction.cs:54-71`: `internal virtual CollectChildLists` e o struct `internal readonly ChildActionList`.
+  - `Runtime/GAS/Abilities/Actions/FlowActions.cs`: `CollectChildLists` em `RepeatAction`, `ParallelAction` e `ConditionalAction`; `ActionLists.Validate` e `Walk` (ação nula, erro; nível 5, aviso; seletor com `NeedsEventTargets` em evento sem alvos, erro; caminho completo da ação).
+  - `ChanceAction.cs`, `DelayedAction.cs`, `ForEachTargetAction.cs` (`Validate` e `CollectChildLists`), `RemoveEffectAction.cs` (`Validate`).
+  - `SpawnProjectileAction.cs:80-85`: `OnHitActions` como evento próprio, com alvos.
+  - `GameplayAbility.cs:322-327`: as seis listas por `ActionLists.Validate` (sai o `ValidateActions`).
+  - `GameplayEffect.cs:231-262`: as seis listas, reação em `Instant` (aviso) e `OnDeath` sem `deathAttribute` (erro).
+  - `Tests/GAS/EditMode/ActionModelValidationTests.cs` (novo) e `Tests/GAS.Bridges/EditMode/RaiseEventActionTests.cs:77` (ação nula agora é erro).
+- Testes red (EditMode, `ActionModelValidationTests`): `NullAction_Nested_Error`, `EventTargetsSelector_InEventWithoutTargets_Error`, `ForEachTarget_Empty_Warns`, `Delayed_NegativeConstant_Error`, `Chance_OutOfRange_Error` (−0,1 e 1,5), `RemoveEffect_Empty_Error`, `OnDeath_WithoutDeathAttribute_Error`, `Reaction_InInstantEffect_Warns`, `Nesting_DeeperThanFour_Warns`, `ProjectileOnHit_ValidatedAsOwnEventWithTargets`, `ConfiguredModel_HasNoMessages` (guarda).
+- Critério de pronto: os 12 casos verdes; guardas verdes: `ActivationValidationTests`, `LevelValuesValidationTests`, `DamageValidationTests`, `EffectMetadataTests`, `ProjectValidationTests`, `RaiseEventActionTests`, `GasPayloadSourceTests`.
+- Tamanho: ~404 linhas (228 de runtime e do ajuste no teste do Bridges, 176 do teste novo) e 11 arquivos. Exceção: +10% em arquivos, linha do EV16a de 2026-11-03 no `decisoes.md`.
+- Commit: `feat(gas): validação das listas de ações e do efeito`
+
+### Detalhe EV16b (2026-11-03)
+- CA: CA41 e a parte do CA32 que é regra da habilidade (comportamento, commit, gatilhos, autocast); a regra da emenda de 2026-10-31 (ADR 0035, `TagQueryCondition` `TargetUnit`).
+- Escopo:
+  - `Runtime/GAS/Abilities/Triggers/AbilityTrigger.cs:24-27` e `:50-53`: `public virtual void Validate(ValidationResult, string propertyPath)` (aditivo) e o erro do `GameplayEventTrigger` sem tag.
+  - `Runtime/GAS/Abilities/Actions/FlowActions.cs:129-145`: `ConditionalAction.Validate` (aviso `TargetUnit`) e o `delegate ActionVisitor`; `:158-205`: `ActionLists.Validate` com o visitante opcional e o `Walk` propagando se a ação mira o dono.
+  - `Runtime/GAS/Abilities/GameplayAbility.cs:296-327`: o visitante (ações `Commit` e eventos enviados ao dono) e as chamadas `ValidateBehavior`, `ValidateCommit` e `ValidateTriggers`; `:396-441`: `UsesCastRange` vira `ContainsCondition` genérica, o aviso `TargetUnit` nas regras de ativação, `PositiveAtSomeLevel` e `TableFor`.
+  - `Tests/GAS/EditMode/ActionModelValidationTests.cs`: os testes abaixo e a versão completa do `ConfiguredModel_HasNoMessages`.
+- Testes red (EditMode, `ActionModelValidationTests`): `ChannelTick_OutsideChannel_Warns`, `GameplayEventTrigger_InvalidTag_Error`, `Trigger_TagSentToOwnerBySelf_Warns`, `Passive_WithCostOrCooldown_Warns`, `Channel_WithoutDurationNorCancel_Warns`, `Manual_WithoutCommit_Error`, `Commit_WithOnStart_Warns`, `Autocast_InPassiveOrToggle_Error`, `Autocast_WithoutTrigger_Warns`, `WhenReady_SelectorWithoutCastRange_Warns`, `TagQueryTargetUnit_OutsideCandidateFilter_Warns`, `ConfiguredModel_HasNoMessages` (guarda, versão completa).
+- Critério de pronto: `ActionModelValidationTests` inteiro verde; guardas verdes: `ActivationValidationTests`, `LevelValuesValidationTests`, `DamageValidationTests`, `EffectMetadataTests`, `ProjectValidationTests`, `RaiseEventActionTests`, `GasPayloadSourceTests`.
+- Tamanho: ~362 linhas (~215 de runtime, ~147 de testes) e 4 arquivos. Exceção: nenhuma.
+- Commit: `feat(gas): validação das regras da habilidade`
 
 ### EV17 — Inspector: abas, lista e linha recolhida
 - Escopo: `Editor/GAS/Actions/ActionEventsView.cs`, `ActionListView.cs`, `ActionRowView.cs`, `ActionInspector.uss` (novos), `Editor/GAS/GameplayAbilityEditor.cs`, `Editor/GAS/GameplayEffectEditor.cs` (novo; sai de `GasEditors.cs`), `GasEditors.cs`, `Tests/GAS/EditMode/ActionInspectorTests.cs` (novo), `gas.md`, `CHANGELOG.md`.
@@ -677,11 +817,46 @@ Emenda de 2026-11-01 (perguntas do RL6): este ticket passa a entregar o lado do 
 - Critério de pronto: testes verdes; parte do CA31 (S) no host (abas, contador, linha legível, 50 ações sem engasgo).
 - Tamanho estimado: ~500 linhas; 10 arquivos. Depende de: EV16, AV9.
 
+#### EV17a — Inspector: lista e linha recolhida (divisão de 2026-11-03 do EV17)
+O Detalhe do EV17 (#191) mediu 694 linhas (499 de editor, 195 de testes) e 9 arquivos na implementação, acima de +30% do teto da ADR 0042; o Controlador aprovou a divisão em EV17a e EV17b.
+
+##### Detalhe (2026-11-03)
+- CA: CA31 (S), parte da lista e da linha recolhida (DS 4.1 sem menu e teclado, 4.2 sem chip, 4.3 sem o aviso de troca de tipo). As abas, os editores, "Várias seleções" e "Dono sem nenhuma ação" ficam no EV17b; o chip no EV18, as filhas no EV19, o menu e o teclado no EV20.
+- Escopo:
+  - `Editor/GAS/Actions/ActionRowView.cs` (novo, `internal sealed`): seta de dobra, pastilha e barra de categoria pela raiz do `[TypeCategory]` (`:28-32`), resumo pelo `SummaryFormatter` com tooltip do texto inteiro, "(Escolha uma ação)" com o botão do seletor na ação nula (`:129-137`), ícone de validação só com mensagem cujo caminho fica sob o elemento (`IsUnder`, `:76-81`; `data[1]` não casa com `data[10]`), corpo expandido por `PropertyField` (`:117-127`; o `TypePickerDrawer` dá o botão de trocar tipo).
+  - `Editor/GAS/Actions/ActionListView.cs` (novo): `ListView` ligado à lista (reordenável, virtualizado, altura dinâmica), "Expandir tudo"/"Recolher tudo", texto da lista vazia, "+ Adicionar ação" pelo `TypePickerPopup` (nova ação expandida) e o contador "N ações"; `Refresh(messages)` repassa as mensagens às linhas. Não depende do `ActionEventsView`: quem o monta e o atualiza é a aba do EV17b.
+  - `Editor/GAS/Actions/ActionInspector.uss` (novo): tokens de categoria, aviso e erro nos temas claro e escuro (`.unity-theme-dark`/`.unity-theme-light` não existem no Inspector; o tema vem de `EditorGUIUtility.isProSkin`, que põe a classe `action-inspector--light` na raiz). Entra inteiro, com as classes das abas; quem carrega a folha é o `ActionEventsView` (EV17b).
+  - `Editor/GAS/AssemblyInfo.cs` (novo): `InternalsVisibleTo("SpellBook.GAS.Tests.EditMode")`. Consequência direta: os testes da linha montam o `ActionRowView` sem painel.
+  - `Tests/GAS/EditMode/ActionInspectorTests.cs` (novo): só os testes `Row_*` e o auxiliar `BindRows`.
+  - Fora: nenhum Inspector muda; a lista e a linha só aparecem no host com o EV17b. `gas.md` vai para o passe de documentação; sem `!`, sem CHANGELOG. O `Line` das ações do pacote ("Esperar 2 s") não entra: sem ele, a linha mostra o nome do tipo, como o DS manda.
+- Testes red (EditMode, `ActionInspectorTests`): `Row_SummaryFromLine_NoLineShowsTypeName_NullShowsChoose`; `Row_ValidationIcon_OnlyWithMessage`.
+- Critério de pronto: os 2 testes verdes; guardas verdes: `ActivationInspectorTests` e `SpellBookEditorCoverageTests`. Sem conferência no host neste ticket.
+- Tamanho: medido em 310 linhas (234 de editor, 76 de testes) e 5 arquivos (o `.uss` conta só no número de arquivos). Exceção: nenhuma.
+- Commit: `feat(editor): lista e linha recolhida das ações`
+
+#### EV17b — Inspector: abas de eventos e editores (divisão de 2026-11-03 do EV17)
+Depende de: EV17a.
+
+##### Detalhe (2026-11-03)
+- CA: CA31 (S), parte das abas (DS 3, 9 "Várias seleções" e "Dono sem nenhuma ação"), com a lista e a linha do EV17a dentro de cada aba.
+- Escopo:
+  - `Editor/GAS/Actions/ActionEventsView.cs` (novo, `internal sealed`): descobre os campos `[ActionEvent]` do alvo e monta o `TabView` com um `ActionListView` por aba; rótulo com contador (`Ao ativar · 3`), ponto de validação pelas mensagens cujo `PropertyPath` começa no campo, subtítulo do alvo padrão, rótulo de grupo "Reações" no cabeçalho da primeira aba de reação, aba oculta pelo predicado do dono com aviso quando tem ações, aba lembrada por asset no `SessionState`, texto de dono sem ações, "Edição múltipla não mostra ações" em multi-seleção. Carrega o `ActionInspector.uss` e põe `action-inspector--light` pelo `isProSkin`. Esconde as `PropertyField` padrão das listas.
+  - `Editor/GAS/GameplayAbilityEditor.cs:35-52`: a vista no fim do `BuildAfterDefault`, com a aba "A cada passo" só em `Channel`.
+  - `Editor/GAS/GameplayEffectEditor.cs` (novo; sai de `GasEditors.cs:24-26`): a vista, com as três reações agrupadas.
+  - `Editor/GAS/GasEditors.cs:6` e `:24-26`: sai o `GameplayEffectEditor` vazio e o `using` dele.
+  - `Tests/GAS/EditMode/ActionInspectorTests.cs`: os testes abaixo, o `TearDown` que apaga a chave da sessão e destrói os editores, e os auxiliares `CreateInspector` e `CreateView`.
+  - O código já escrito está guardado fora do repositório (`ev17b-guardado`, com os `.meta` da Unity).
+  - Fora: `gas.md` vai para o passe de documentação; sem `!`, sem CHANGELOG. O `ProjectileEditor` não muda (o `OnImpact` é `HideInInspector`; o impacto aparece nas filhas do `SpawnProjectile`, EV19).
+- Testes red (EditMode, `ActionInspectorTests`): `Tabs_OnePerActionEvent_CounterAndValidationDot`; `EffectTabs_ReactionsGrouped`; `ChannelTab_OnlyWithChannel_HiddenWithWarning`; `TabRemembered_PerAssetInSession`; `MultiSelection_HidesTabs`.
+- Critério de pronto: os 5 testes verdes e os `Row_*` do EV17a seguem verdes; guardas verdes: `ActivationInspectorTests` e `SpellBookEditorCoverageTests`. No host (Examinador): abas, contador, linha legível e 50 ações sem engasgo.
+- Tamanho: medido em 385 linhas (265 de editor, 120 de testes) e 5 arquivos. Exceção: nenhuma.
+- Commit: `feat(editor): abas de eventos das ações nos editores`
+
 ### EV18 — Inspector: chip de alvo e bloco "Alvo"
 - Escopo: `Editor/GAS/Actions/TargetChipView.cs` (novo), `ActionRowView.cs`, `ActionInspector.uss`, `Tests/GAS/EditMode/TargetChipTests.cs` (novo), `CHANGELOG.md`.
 - Testes red: `Chip_TextPerSelector_AreaSummary`; `Chip_IncompatibleWithEvent_RedNotBlocked`; `AreaSelector_OpensTargetBlockBeforeActionFields`; `ForEachChild_ChipTooltipSaysCurrentTarget`.
 - Critério de pronto: testes verdes; seletor inline conferido no host (CA31, parte).
-- Tamanho estimado: ~380 linhas; 5 arquivos. Depende de: EV17.
+- Tamanho estimado: ~380 linhas; 5 arquivos. Depende de: EV17b (era EV17, divisão de 2026-11-03).
 
 ### EV19 — Inspector: ações aninhadas e arrastar entre listas
 - Escopo: `ActionListView.cs`, `ActionRowView.cs`, `ActionInspector.uss`, `Tests/GAS/EditMode/NestedActionListTests.cs` (novo), `CHANGELOG.md`.
@@ -734,8 +909,9 @@ Emenda de 2026-11-01 (perguntas do RL6): este ticket passa a entregar o lado do 
 | EV14 | sim | EV13 | ~490 / 7 |
 | EV15 | sim | EV14, RL7 | ~480 / 9 (emenda de 2026-11-01) |
 | EV16 | sim | EV15, AV8 | ~460 / 10 |
-| EV17 | sim | EV16, AV9 | ~500 / 10 |
-| EV18 | sim | EV17 | ~380 / 5 |
+| EV17a | sim | EV16, AV9 | 310 / 5 (divisão de 2026-11-03 do EV17, que mediu 694 / 9; era ~500 / 10) |
+| EV17b | sim | EV17a | ~385 / 5 (divisão de 2026-11-03 do EV17) |
+| EV18 | sim | EV17b (era EV17) | ~380 / 5 |
 | EV19 | sim | EV18 | ~380 / 5 |
 | EV20 | sim | EV19 | ~420 / 5 |
 | EV22 | sim | EV20 | ~300 / 9 |

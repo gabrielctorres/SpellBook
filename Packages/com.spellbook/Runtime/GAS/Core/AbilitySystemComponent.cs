@@ -11,6 +11,7 @@ using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Abilities.Triggers;
 using SpellBook.GAS.Conditions;
 using SpellBook.GAS.Actions;
+using SpellBook.GAS.Targeting;
 namespace SpellBook.GAS.Core
 {
     /// <summary>
@@ -51,12 +52,23 @@ namespace SpellBook.GAS.Core
         private readonly List<AbilitySpec> _triggering = new List<AbilitySpec>();
         private bool _warnedTriggerDepth;
 
+        // Passada "quando pronta" (P16): os WhenReadyTrigger e as passivas que se reativam, na ordem da concessão (gatilho
+        // nulo é a passiva), o buffer do seletor e o índice do Tick, para no máximo uma tentativa por spec por Tick
+        private readonly List<TriggerEntry> _whenReady = new List<TriggerEntry>();
+        private readonly List<AbilitySystemComponent> _whenReadyTargets = new List<AbilitySystemComponent>();
+        private int _tickIndex;
+
         // Reações dos efeitos ativos; nulo até o primeiro efeito com reação
         private EffectReactions _reactions;
 
         public event Action<GameplayTag, bool> OnTagChanged;
         public event Action<AbilitySpec> OnAbilityActivated;
         public event Action<AbilitySpec, bool> OnAbilityEnded; // spec, cancelled
+        /// <summary>
+        /// Uma habilidade <see cref="AbilityBehavior.Toggle"/> ligou (<c>true</c>, logo depois de <see cref="OnAbilityActivated"/>)
+        /// ou desligou (<c>false</c>, por qualquer fim, logo antes de <see cref="OnAbilityEnded"/>).
+        /// </summary>
+        public event Action<AbilitySpec, bool> OnToggleChanged;
         /// <summary>
         /// Ativação recusada por <c>TryActivateAbility</c>: a habilidade e a <see cref="ActivationFailure"/> da checagem, igual à
         /// de <see cref="GetActivationResult(GameplayAbility, in AbilityTarget, out ActivationFailure)"/>. A consulta não dispara.
@@ -99,6 +111,8 @@ namespace SpellBook.GAS.Core
             _random ??= CreateDefaultRandom();
             if (attributeSet == null) attributeSet = GetComponent<AttributeSet>();
             if (attributeSet != null) BindAttributeLimits();
+            // Uma passiva de partida confere o custo e aplica efeitos na concessão
+            if (attributeSet != null) attributeSet.EnsureInitialized();
 
             if (startingAbilities != null)
             {
@@ -112,7 +126,6 @@ namespace SpellBook.GAS.Core
         private void ApplyStartingEffects()
         {
             if (startingEffects == null) return;
-            if (attributeSet != null) attributeSet.EnsureInitialized();
 
             for (int i = 0; i < startingEffects.Count; i++)
             {
@@ -221,6 +234,7 @@ namespace SpellBook.GAS.Core
             if (!(deltaTime > 0f)) return;
 
             _tickedTime += deltaTime;
+            _tickIndex++;
             for (int i = _activeEffects.Count - 1; i >= 0; i--)
             {
                 // Uma remoção no Update de uma instância pode tirar outras da lista
@@ -241,9 +255,84 @@ namespace SpellBook.GAS.Core
                 AdvanceChargeRecharge(spec);
             }
 
-            if (_runner == null) return;
-            _runner.Tick();
-            EndFinishedAbilities();
+            if (_runner != null)
+            {
+                _runner.Tick();
+                AdvanceChannels();
+                EndFinishedAbilities();
+            }
+
+            if (_whenReady.Count > 0) RunWhenReady();
+        }
+
+        // Por último no Tick: tenta, em modo silencioso, cada spec inativo com "quando pronta" elegível, uma vez por Tick
+        private void RunWhenReady()
+        {
+            for (int i = 0; i < _whenReady.Count; i++)
+            {
+                TriggerEntry entry = _whenReady[i];
+                AbilitySpec spec = entry.Spec;
+                if (spec.IsActive || spec.WhenReadyTick == _tickIndex || _triggering.Contains(spec)) continue;
+                if (entry.Trigger != null && entry.Trigger.OnlyWithAutocast && !spec.AutocastEnabled) continue;
+
+                AbilityTarget target = AbilityTarget.None;
+                TargetSelector selector = (entry.Trigger as WhenReadyTrigger)?.Selector;
+                // Seletor sem resultado: pula, sem custo e sem evento
+                if (selector != null && !TrySelectWhenReadyTarget(spec, selector, out target)) continue;
+
+                spec.WhenReadyTick = _tickIndex;
+                _triggering.Add(spec);
+                try
+                {
+                    TryActivate(spec, spec.Ability, in target, true);
+                }
+                finally
+                {
+                    _triggering.RemoveAt(_triggering.Count - 1);
+                }
+            }
+        }
+
+        // O seletor roda a partir de quem lança, num contexto do pool; a tentativa usa a primeira unidade
+        private bool TrySelectWhenReadyTarget(AbilitySpec spec, TargetSelector selector, out AbilityTarget target)
+        {
+            ActionContext context = Runner.RentContext();
+            context.Ability = spec.Ability;
+            context.Spec = spec;
+            context.Level = spec.Level;
+            _whenReadyTargets.Clear();
+            try { selector.Select(context, _whenReadyTargets); }
+            finally { Runner.ReturnContext(context); }
+
+            AbilitySystemComponent unit = _whenReadyTargets.Count > 0 ? _whenReadyTargets[0] : null;
+            _whenReadyTargets.Clear();
+            target = unit != null ? AbilityTarget.AtUnit(unit) : AbilityTarget.None;
+            return unit != null;
+        }
+
+        // Passos e fim das canalizações até o TickedTime, pelo cursor lógico: um Tick grande roda todos os passos que cobriu
+        private void AdvanceChannels()
+        {
+            for (int i = _abilities.Count - 1; i >= 0; i--)
+            {
+                // Um passo ou um OnAbilityEnded pode retirar habilidades
+                if (i >= _abilities.Count) continue;
+                AbilitySpec spec = _abilities[i];
+                if (!spec.IsChanneling) continue;
+
+                int activation = spec.ActivationId;
+                double end = spec.ChannelDuration > 0f ? spec.ChannelStart + spec.ChannelDuration : double.PositiveInfinity;
+                // O passo no mesmo horário do fim roda antes do fim
+                while (spec.ChannelNextStep <= _tickedTime && spec.ChannelNextStep <= end)
+                {
+                    spec.ChannelNextStep += spec.ChannelInterval;
+                    Runner.Run(spec.Ability.OnChannelTick, CopyActivationContext(spec.ActiveContext), spec);
+                    // Um passo pode ter cancelado ou terminado a canalização, ou começado outra
+                    if (!spec.IsActive || spec.ActivationId != activation) break;
+                }
+
+                if (spec.IsActive && spec.ActivationId == activation && _tickedTime >= end) EndSustained(spec);
+            }
         }
 
         // Termina as habilidades cujas execuções (o OnActivate e as atrasadas dele) acabaram neste Tick
@@ -345,9 +434,17 @@ namespace SpellBook.GAS.Core
 
             var spec = new AbilitySpec(ability, ClampLevel(ability, level));
             InitCharges(spec);
+            AutocastConfig autocast = ability.Autocast;
+            spec.AutocastEnabled = autocast.Allowed && autocast.StartsOn && SupportsAutocast(ability);
             _abilities.Add(spec);
             IndexTriggers(spec);
             OnAbilityGranted?.Invoke(spec);
+            RunGrantList(spec, ability.OnGranted);
+            // Uma ação de "Ao ser concedida" pode ter retirado a habilidade
+            if (ability.Behavior == AbilityBehavior.Passive && _abilities.Contains(spec))
+            {
+                TryActivate(spec, ability, AbilityTarget.None, true);
+            }
             return spec;
         }
 
@@ -359,15 +456,71 @@ namespace SpellBook.GAS.Core
             var spec = FindSpec(ability);
             if (spec == null) return;
 
-            CancelAbility(spec);
+            if (spec.IsActive && spec.Ability.Behavior == AbilityBehavior.Passive) EndSustained(spec);
+            else CancelAbility(spec);
             UnindexTriggers(spec);
-            if (_abilities.Remove(spec)) OnAbilityRemoved?.Invoke(spec);
+            if (!_abilities.Remove(spec)) return;
+            OnAbilityRemoved?.Invoke(spec);
+            RunGrantList(spec, spec.Ability.OnRemoved);
         }
+
+        // Retirada da passiva e fim da canalização: cancela as execuções da ativação e termina normalmente ("Ao terminar")
+        private void EndSustained(AbilitySpec spec)
+        {
+            int activation = spec.ActivationId;
+            try { CancelActions(spec); }
+            catch (Exception e) { Debug.LogException(e, this); }
+
+            if (spec.ActivationId == activation) EndAbility(spec, false);
+        }
+
+        // "Ao ser concedida" e "Ao ser retirada": alvo padrão o dono, sem dono lógico, como "Ao terminar"
+        private void RunGrantList(AbilitySpec spec, List<GameplayAction> actions)
+        {
+            if (actions == null || actions.Count == 0) return;
+
+            ActionContext context = Runner.RentContext();
+            context.Ability = spec.Ability;
+            context.Spec = spec;
+            context.Level = spec.Level;
+            context.DefaultTarget = DefaultTarget.Owner;
+            Runner.Run(actions, context, null);
+        }
+
+        /// <summary>Autocast ligado ou desligado por <see cref="SetAutocast"/>: (spec, ligado). Só em mudança real.</summary>
+        public event Action<AbilitySpec, bool> OnAutocastChanged;
+
+        /// <summary>
+        /// Liga ou desliga o autocast de <paramref name="spec"/>. Devolve falso, sem mudar nada, com spec nulo ou de outro
+        /// ASC, sem <see cref="AutocastConfig.Allowed"/>, em <see cref="AbilityBehavior.Passive"/> ou
+        /// <see cref="AbilityBehavior.Toggle"/>, ou sem mudança de estado.
+        /// </summary>
+        public bool SetAutocast(AbilitySpec spec, bool on)
+        {
+            if (spec == null || !_abilities.Contains(spec)) return false;
+            if (!spec.Ability.Autocast.Allowed || !SupportsAutocast(spec.Ability) || spec.AutocastEnabled == on) return false;
+
+            spec.AutocastEnabled = on;
+            OnAutocastChanged?.Invoke(spec, on);
+            return true;
+        }
+
+        // Passive já é automática, e o Toggle tem o próprio interruptor (R40)
+        private static bool SupportsAutocast(GameplayAbility ability)
+        {
+            return ability.Behavior != AbilityBehavior.Passive && ability.Behavior != AbilityBehavior.Toggle;
+        }
+
+        /// <summary>Se o autocast de <paramref name="spec"/> está ligado. Spec nulo: falso.</summary>
+        public bool IsAutocastEnabled(AbilitySpec spec) => spec != null && spec.AutocastEnabled;
 
         /// <summary>Habilidade nova concedida, já na lista. Conceder de novo não dispara; as de <c>startingAbilities</c> disparam no <c>Awake</c>.</summary>
         public event Action<AbilitySpec> OnAbilityGranted;
 
-        /// <summary>Habilidade removida, depois do cancelamento e da saída da lista.</summary>
+        /// <summary>
+        /// Habilidade removida, depois do fim da ativação e da saída da lista, antes de "Ao ser retirada". Uma passiva
+        /// ativa termina normalmente; as outras são canceladas.
+        /// </summary>
         public event Action<AbilitySpec> OnAbilityRemoved;
 
         /// <summary>Nível mudou de fato por <see cref="SetAbilityLevel"/>: (spec, antes, depois).</summary>
@@ -766,15 +919,18 @@ namespace SpellBook.GAS.Core
             return TryActivate(spec, spec.Ability, in target);
         }
 
-        private AbilityActivationResult TryActivate(AbilitySpec spec, GameplayAbility ability, in AbilityTarget target)
+        // silent: a falha não dispara OnAbilityFailed (ativação da passiva)
+        private AbilityActivationResult TryActivate(AbilitySpec spec, GameplayAbility ability, in AbilityTarget target, bool silent = false)
         {
             if (!CheckActivation(spec, ability, in target, out ActivationFailure failure))
             {
-                OnAbilityFailed?.Invoke(ability, failure);
+                if (!silent) OnAbilityFailed?.Invoke(ability, failure);
                 return failure.Result;
             }
 
-            ActivateSpec(spec, in target);
+            // Só um Toggle ligado passa as checagens ativo: ativar de novo o desliga, sem cobrar
+            if (spec.IsActive) CancelAbility(spec);
+            else ActivateSpec(spec, in target);
             return AbilityActivationResult.Success;
         }
 
@@ -783,6 +939,12 @@ namespace SpellBook.GAS.Core
         {
             if (ability == null) return Fail(AbilityActivationResult.InvalidAbility, default, out failure);
             if (spec == null) return Fail(AbilityActivationResult.NotGranted, default, out failure);
+            // Desligar um Toggle ligado não passa pelas outras checagens
+            if (spec.IsActive && ability.Behavior == AbilityBehavior.Toggle)
+            {
+                failure = new ActivationFailure(AbilityActivationResult.Success);
+                return true;
+            }
             if (spec.IsActive) return Fail(AbilityActivationResult.AlreadyActive, default, out failure);
 
             if (TryFindTag(ability.BlockedTags, true, out GameplayTag blocking))
@@ -920,10 +1082,15 @@ namespace SpellBook.GAS.Core
             int activation = ++spec.ActivationId;
             spec.IsActive = true;
             spec.ActiveContext = context;
+            if (ability.Behavior == AbilityBehavior.Channel) StartChannel(spec);
             AddTags(ability.ActivationOwnedTags);
 
             // Dispara eventos DEPOIS de aplicar o cooldown, para que a UI leia o tempo correto
             OnAbilityActivated?.Invoke(spec);
+            if (ability.Behavior == AbilityBehavior.Toggle && spec.IsActive && spec.ActivationId == activation)
+            {
+                OnToggleChanged?.Invoke(spec, true);
+            }
             // A reação "Ao executar habilidade" vem depois do evento público e antes do OnActivate; se cancelar, a guarda abaixo para
             _reactions?.AfterAbilityActivated(in target);
 
@@ -935,6 +1102,10 @@ namespace SpellBook.GAS.Core
             ActionExecutionHandle execution = Runner.Run(ability.OnActivate, context, spec, false);
             // Uma ação pode ter terminado ou cancelado a ativação, ou começado outra
             if (!spec.IsActive || spec.ActivationId != activation) return;
+
+            // Passive, Toggle e Channel ficam ativas até serem desligadas, retiradas, canceladas ou até o fim da canalização;
+            // as execuções seguem com o spec
+            if (ability.IsSustained) return;
 
             // A ativação só termina quando acabam todas as execuções do spec, inclusive as de uma DelayedAction
             if (Runner.HasRunning(spec))
@@ -994,6 +1165,46 @@ namespace SpellBook.GAS.Core
             }
             if (ability.CostEffect != null) ApplyEffect(EffectSpec.ForAbility(ability.CostEffect, this, ability, spec.Level));
             if (HasCharges(spec)) SpendCharge(spec);
+        }
+        #endregion
+
+        #region Channel
+        // Duração aplicada, início e primeiro passo, gravados antes do OnAbilityActivated para a UI ler a duração nele
+        private void StartChannel(AbilitySpec spec)
+        {
+            GameplayAbility ability = spec.Ability;
+            // O intervalo vale para toda a ativação: mudá-lo durante a canalização só vale na próxima
+            float interval = ability.ChannelTickInterval;
+            spec.ChannelInterval = interval;
+            spec.ChannelDuration = Mathf.Max(0f, ability.ChannelDuration.Evaluate(spec.Level, ability.Values));
+            spec.ChannelStart = _tickedTime;
+            spec.ChannelNextStep = interval > 0f ? _tickedTime + interval : double.PositiveInfinity;
+        }
+
+        /// <summary>
+        /// Segundos desde o início da canalização de <paramref name="spec"/>, pelo <see cref="TickedTime"/>, limitados à
+        /// duração quando há duração. Spec nulo ou que não canaliza: 0.
+        /// </summary>
+        public float GetChannelElapsed(AbilitySpec spec)
+        {
+            if (spec == null || !spec.IsChanneling) return 0f;
+
+            float elapsed = (float)(_tickedTime - spec.ChannelStart);
+            return spec.ChannelDuration > 0f ? Mathf.Min(elapsed, spec.ChannelDuration) : elapsed;
+        }
+
+        /// <summary>Segundos até o fim da canalização de <paramref name="spec"/>. Indeterminada, nula ou fora da canalização: 0.</summary>
+        public float GetChannelRemaining(AbilitySpec spec)
+        {
+            if (spec == null || !(spec.ChannelDuration > 0f)) return 0f;
+            return spec.ChannelDuration - GetChannelElapsed(spec);
+        }
+
+        /// <summary>Progresso da canalização de <paramref name="spec"/>, em [0, 1]. Indeterminada, nula ou fora da canalização: 0.</summary>
+        public float GetChannelNormalized(AbilitySpec spec)
+        {
+            if (spec == null || !(spec.ChannelDuration > 0f)) return 0f;
+            return GetChannelElapsed(spec) / spec.ChannelDuration;
         }
         #endregion
 
@@ -1057,6 +1268,8 @@ namespace SpellBook.GAS.Core
             spec.IsActive = false;
             spec.Executing = false;
             spec.Execution = default;
+            // Antes das listas: uma ação de "Ao terminar" pode começar outra canalização, com a duração dela
+            spec.ChannelDuration = 0f;
 
             ActionContext context = spec.ActiveContext;
             List<GameplayAction> actions = cancelled ? spec.Ability.OnCancel : spec.Ability.OnEnd;
@@ -1068,6 +1281,7 @@ namespace SpellBook.GAS.Core
             if (context != null) Runner.ReturnContext(context);
 
             RemoveTags(spec.Ability.ActivationOwnedTags);
+            if (spec.Ability.Behavior == AbilityBehavior.Toggle) OnToggleChanged?.Invoke(spec, false);
             OnAbilityEnded?.Invoke(spec, cancelled);
         }
 
@@ -1255,8 +1469,9 @@ namespace SpellBook.GAS.Core
             for (int i = 0; i < _triggers.Count; i++)
             {
                 TriggerEntry entry = _triggers[i];
-                // O autocast ainda não existe: os gatilhos "só com autocast" ficam desligados
-                if (entry.Trigger.OnlyWithAutocast || !entry.Trigger.ListensTo(cause, tag)) continue;
+                // "Só com autocast" fica desligado com o autocast desligado; ligado, a tentativa é de autocast e é silenciosa
+                bool autocast = entry.Trigger.OnlyWithAutocast;
+                if (autocast && !entry.Spec.AutocastEnabled || !entry.Trigger.ListensTo(cause, tag)) continue;
                 if (_triggering.Contains(entry.Spec)) continue;
 
                 if (_triggering.Count >= MaxTriggerDepth)
@@ -1272,7 +1487,7 @@ namespace SpellBook.GAS.Core
                 _triggering.Add(entry.Spec);
                 try
                 {
-                    TryActivate(entry.Spec, entry.Spec.Ability, in target);
+                    TryActivate(entry.Spec, entry.Spec.Ability, in target, autocast);
                 }
                 finally
                 {
@@ -1286,7 +1501,13 @@ namespace SpellBook.GAS.Core
             List<AbilityTrigger> triggers = spec.Ability.Triggers;
             for (int i = 0; i < triggers.Count; i++)
             {
-                if (triggers[i] != null) _triggers.Add(new TriggerEntry(spec, triggers[i]));
+                if (triggers[i] is WhenReadyTrigger) _whenReady.Add(new TriggerEntry(spec, triggers[i]));
+                else if (triggers[i] != null) _triggers.Add(new TriggerEntry(spec, triggers[i]));
+            }
+
+            if (spec.Ability.Behavior == AbilityBehavior.Passive && spec.Ability.ReactivatePassive)
+            {
+                _whenReady.Add(new TriggerEntry(spec, null));
             }
         }
 
@@ -1295,6 +1516,11 @@ namespace SpellBook.GAS.Core
             for (int i = _triggers.Count - 1; i >= 0; i--)
             {
                 if (_triggers[i].Spec == spec) _triggers.RemoveAt(i);
+            }
+
+            for (int i = _whenReady.Count - 1; i >= 0; i--)
+            {
+                if (_whenReady[i].Spec == spec) _whenReady.RemoveAt(i);
             }
         }
 

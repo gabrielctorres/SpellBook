@@ -1,5 +1,6 @@
 using System;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using SpellBook.Tags;
 using UnityEngine;
 
@@ -24,6 +25,9 @@ namespace SpellBook.GAS.Abilities.Triggers
 
         // O ASC pergunta a cada gatilho do índice se a causa é a dele, sem alocar
         internal virtual bool ListensTo(TriggerCause cause, GameplayTag tag) => false;
+
+        /// <summary>Acusa a configuração inválida do gatilho, no <paramref name="propertyPath"/> dele. O padrão não acusa nada.</summary>
+        public virtual void Validate(ValidationResult result, string propertyPath) { }
     }
 
     internal enum TriggerCause
@@ -49,6 +53,15 @@ namespace SpellBook.GAS.Abilities.Triggers
         internal override bool ListensTo(TriggerCause cause, GameplayTag eventTag)
         {
             return cause == TriggerCause.GameplayEvent && tag.IsValid && eventTag.Matches(tag);
+        }
+
+        /// <summary>Acusa a tag inválida, que nunca dispara (erro).</summary>
+        public override void Validate(ValidationResult result, string propertyPath)
+        {
+            if (!tag.IsValid)
+            {
+                result.AddError("Gatilho de evento sem tag: escolha o evento.", propertyPath + "." + nameof(tag));
+            }
         }
     }
 

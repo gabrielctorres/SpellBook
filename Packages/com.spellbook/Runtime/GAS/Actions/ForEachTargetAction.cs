@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using SpellBook.GAS.Abilities.Actions;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
@@ -49,6 +50,20 @@ namespace SpellBook.GAS.Actions
         public override void CollectEffects(List<GameplayEffect> results)
         {
             ActionLists.CollectEffects(actions, results);
+        }
+
+        /// <summary>Avisa a repetição sem ações filhas.</summary>
+        public override void Validate(ValidationResult result)
+        {
+            if (actions == null || actions.Count == 0)
+            {
+                result.AddWarning("ForEachTarget sem ações: a repetição não faz nada.", nameof(actions));
+            }
+        }
+
+        internal override void CollectChildLists(List<ChildActionList> results)
+        {
+            results.Add(new ChildActionList(nameof(actions), actions));
         }
     }
 }

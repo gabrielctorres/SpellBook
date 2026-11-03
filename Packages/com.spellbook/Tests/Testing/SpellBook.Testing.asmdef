@@ -7,6 +7,8 @@
         "SpellBook.Tags",
         "SpellBook.Time",
         "SpellBook.Events",
+        "SpellBook.Teams",
+        "SpellBook.Cues",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

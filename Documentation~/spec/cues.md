@@ -169,7 +169,7 @@ Todos usam a Unity e seguem o WIP 1. Tempo por `ManualTimeSource`, aleatoriedade
 **Conflitos com a fila:**
 - `AsmdefRulesTests.cs`: CU2, CU4, CU7 e CU8, e também TM1, TM4 e TM5.
 - `DocUrls.cs`: CU2, TM1 e TK4.
-- `SpellBook.Testing.asmdef`: CU3 e TM2.
+- `SpellBook.Testing.asmdef`: CU3a e TM2.
 - `SpellBook.GAS.Bridges.asmdef`: CU8 e TM5.
 - `SpellBookEditorCoverageTests.cs`: CU7 e TM4.
 - `SpawnActionsTests.cs` e `CommonEffectActions.cs`: CU9, EV2 e EV3.
@@ -181,11 +181,41 @@ Todos usam a Unity e seguem o WIP 1. Tempo por `ManualTimeSource`, aleatoriedade
 - Critério de pronto: testes verdes; nenhum consumidor ainda.
 - Tamanho estimado: ~220 linhas; 4 arquivos. Depende de: nada.
 
+### Detalhe (2026-11-03)
+- CA: nenhum CA do PRD diretamente; base do P7 e do Design 1 (ADR 0037, item 2; ADR 0012).
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/Core/Anchors/RuntimeAnchor.cs` (novo, namespace `SpellBook.Core`): `Value`, `HasValue`, `OnChanged`, `Provide`, `Unset`; registro das âncoras vivas numa classe interna não genérica `RuntimeAnchorRegistry` (a Unity não chama `RuntimeInitializeOnLoadMethod` em tipo genérico), com `ResetAllOnSessionStart` em `SubsystemRegistration`, como `Runtime/Time/TimeSourceAsset.cs:12,40-67`. O reset limpa o valor e os assinantes de `OnChanged`.
+  - `Runtime/Core/AssemblyInfo.cs` (novo): `InternalsVisibleTo("SpellBook.Core.Tests.EditMode")`, consequência direta (o teste chama o reset interno, como `Runtime/Time/AssemblyInfo.cs:3`).
+  - `Tests/Core/EditMode/RuntimeAnchorTests.cs` (novo, com `TestObjectAnchor : RuntimeAnchor<GameObject>`).
+  - Sem `conceitos.md` nem `CHANGELOG.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007), e o ticket não quebra nada.
+- Testes red (EditMode, `SpellBook.Core.Tests.EditMode`): `Provide_SetsAndNotifiesOnce_SameValueNoEvent`; `Unset_OnlyClearsSameValue`; `DestroyedValue_ReadsAsNull`; `SessionStart_ClearsAllAnchors`; `Value_IsNotSerialized`.
+- Critério de pronto: os 5 testes verdes pelo filtro `\.RuntimeAnchorTests\.`; nenhum consumidor ainda.
+- Tamanho: ~240 linhas e 3 arquivos, pela ADR 0042. Exceção: nenhuma.
+- Commit: `feat(core): RuntimeAnchor<T> com reset de sessão`
+
 ### CU2 — Módulo, definição, biblioteca e índice por tag
 - Escopo: `Runtime/Cues/SpellBook.Cues.asmdef` (novo; Core, Tags, Time), `CueDefinition.cs` (com os enums), `CueLibrary.cs` (com `CueIndex`), `CueItem.cs` (base, `CueParameters`, `CueHandle`, `CueSpawnRequest`, `CuePlacement`, `CueEnd`), `Tests/Cues/EditMode/SpellBook.Cues.Tests.EditMode.asmdef` (novo), `Tests/Cues/EditMode/CueIndexTests.cs` (novo), `AsmdefRulesTests.cs` (`Cues` em `RuntimeModules`; referências exatas: Core, Tags, Time), `DocUrls.cs` (`Cues = Base + "modulos/cues/"`), `Documentation~/manual/modulos/cues.md` (nova), `CHANGELOG.md`.
 - Testes red: `Index_MostSpecificMatch_FallsBackToParent_NoneFalse` (CA3, C3); `Index_Lookup_DoesNotAllocate`; `CueParameters_DefaultsAndWith`; `Handle_DefaultIsInvalid`; `CuesAsmdef_ReferencesCoreTagsTime` (CA17, parte).
 - Critério de pronto: testes verdes; `HelpUrlTests` e `ManualLinksTests` verdes.
 - Tamanho estimado: ~460 linhas; 10 arquivos (1 página). Depende de: TG1.
+
+### Detalhe (2026-11-03)
+- CA: CA3 (C3, índice mais específico pelo `Parent`) e CA17 (parte: asmdef do Cues com Core, Tags e Time).
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/Cues/SpellBook.Cues.asmdef` (novo; referências Core, Tags e Time por GUID, como `Runtime/Teams/SpellBook.Teams.asmdef`).
+  - `Runtime/Cues/AssemblyInfo.cs` (novo): `InternalsVisibleTo("SpellBook.Cues.Tests.EditMode")`, consequência direta (o `CueIndex` é interno, como `Runtime/Core/AssemblyInfo.cs`).
+  - `Runtime/Cues/CueDefinition.cs` (novo): `CueKind`, `CueLimitPolicy`, `SoundSelection`; `CueDefinition` com `Tag`, `Kind`, `Items` (`[SerializeReference, TypePicker]`), `MaxSimultaneous`, `LimitPolicy`, `DefaultMagnitude` (0 a 1, padrão 1), `[HelpURL(DocUrls.Cues + "#cuedefinition")]`, menu `SpellBook/Cues/Cue`.
+  - `Runtime/Cues/CueLibrary.cs` (novo): `CueLibrary` (`Cues`, `[HelpURL]`, menu `SpellBook/Cues/Cue Library`) e `internal sealed class CueIndex` (`Rebuild(IReadOnlyList<CueLibrary>)`, `TryFind(GameplayTag, out CueDefinition)` subindo por `GameplayTagDefinition.Parent` (`Runtime/Tags/GameplayTagDefinition.cs:13`), sem alocar; tag repetida: a primeira vence, e o erro é do CU6).
+  - `Runtime/Cues/CueItem.cs` (novo): `CueItem` (base abstrata `[Serializable]`), `CueParameters` (`At`, `On`, `With…`), `CueHandle` (`IsValid`, construtor interno), `CueSpawnRequest`, `CuePlacement`, `CueEnd`.
+  - `Tests/Cues/EditMode/SpellBook.Cues.Tests.EditMode.asmdef` e `Tests/Cues/EditMode/CueIndexTests.cs` (novos).
+  - `Tests/Core/EditMode/Structure/AsmdefRulesTests.cs:18-21` (`Cues` em `RuntimeModules`) e teste novo `CuesAsmdef_ReferencesCoreTagsTime`.
+  - `Runtime/Core/DocUrls.cs:20` (`Cues = Base + "modulos/cues/"`).
+  - Ficam para o ticket que traz o tipo de que dependem, sem mudar a API final do Design 2: `CueItem.Play` e o `CuePlayback` (CU3), `Sounds`/`SoundSelection` na definição (CU5), `IValidatable` e `Validate` (CU6). O `CueSpawnRequest` ganha `Duration`, que o fim `FixedDuration` pede.
+  - Sem `cues.md` nem `CHANGELOG.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007), e o ticket não quebra nada. Sem a página, o `EveryDocUrlHasPage` e o `EveryHelpUrlHasPageAndAnchor` (categoria `Documentacao`) ficam vermelhos até o passe, como o `DocUrls.Teams`.
+- Testes red (EditMode): `CueIndexTests` (`SpellBook.Cues.Tests.EditMode`): `Index_MostSpecificMatch_FallsBackToParent_NoneFalse`, `Index_Lookup_DoesNotAllocate`, `CueParameters_DefaultsAndWith`, `Handle_DefaultIsInvalid`; `AsmdefRulesTests` (`SpellBook.Core.Tests.EditMode`): `CuesAsmdef_ReferencesCoreTagsTime`, mais `AllExpectedAssembliesExist` e `EachRuntimeModuleHasEditModeTests` com o `Cues` na lista.
+- Critério de pronto: os testes acima verdes pelo filtro `\.CueIndexTests\.;\.AsmdefRulesTests\.;\.HelpUrlTests\.`; `HelpUrlTests` verde. O `ManualLinksTests` fica para o passe de documentação.
+- Tamanho: ~620 linhas e 9 arquivos, pela ADR 0042 (medido no diff). Exceção: +24% em linhas, linha do CU2 (#204) em `Documentation~/decisoes.md`.
+- Commit: `feat(cues): módulo, definição, biblioteca e índice por tag`
 
 ### CU3 — Roteador: tocar, ligar, desligar, limite e tempo
 - Escopo: `Runtime/Cues/CueRouter.cs`, `CueRouterAnchor.cs`, `CuePlayback.cs` (novos), `Tests/Cues/EditMode/CueRouterTests.cs` (novo; item de teste que cria um objeto vazio com fim fixo), `Tests/Testing/CuesFactory.cs` (novo: biblioteca, definição, roteador com `ManualTimeSource` e spawner que registra), `Tests/Testing/SpellBook.Testing.asmdef` (+Cues), `cues.md`, `CHANGELOG.md`.
@@ -202,11 +232,62 @@ Todos usam a Unity e seguem o WIP 1. Tempo por `ManualTimeSource`, aleatoriedade
 - Critério de pronto: os testes acima verdes.
 - Tamanho estimado: ~490 linhas; 8 arquivos. Depende de: CU1, CU2.
 
+#### CU3a — Roteador: tocar, ligar e desligar (divisão de 2026-11-03 do CU3)
+O CU3 (#205) mediu ~1000 linhas (runtime ~495, testes ~295, `CuesFactory` e `RecordingSpawnerAsset` ~210) e 8 arquivos na implementação, +100% sobre o teto da ADR 0042; o Controlador aprovou a divisão em CU3a, CU3b e CU3c. Para o CU3a caber em +30% com a infraestrutura de teste inteira, a âncora e o aviso de tag sem definição passam ao CU3b. O código já escrito está guardado fora do repositório (`cu3-guardado`, com os `.meta` da Unity e o `LEIAME.txt` com o corte de cada parte).
+
+##### Detalhe (2026-11-03)
+- CA: CA1 (parte: todos os itens tocam) e CA7 (C7).
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/Cues/CueItem.cs:12-14`: `CueItem` ganha `public abstract void Play(in CueParameters parameters, CuePlayback playback)` (adiado no CU2).
+  - `Runtime/Cues/CuePlayback.cs` (novo): uma por slot, reutilizada; `Slot`, `Generation`, `Handle`, `Begin`, `End`; `Spawn(prefab, spawner, in CueSpawnRequest)` com spawner vazio → padrão do roteador → `SpawnerAsset.Default`, na posição do pedido mais o deslocamento; `null` do spawner pula o item, sem aviso ainda (CU3c). Sem `Tick`, sem posicionamento e sem fim por tempo.
+  - `Runtime/Cues/CueRouter.cs` (novo): campos `libraries`, `defaultSpawner`, `capacity = 64` (cresce dobrando; o aviso é do CU3c); `Execute` (Looping avisa uma vez e devolve falso), `Add`, `Remove`, `RemoveAll(tag)` com as filhas, `RemoveAll()`, `IsActive` por geração, `ActiveCount`; `Awake` `internal` para o EditMode; índice e slots montados sob demanda. Tag sem definição devolve falso, sem aviso ainda (CU3b).
+  - `Tests/Testing/CuesFactory.cs` (novo, `#if UNITY_EDITOR` como `GasFactory`): tag, definição com itens e limite, biblioteca e roteador (`CreateRouter(spawner, cues)`; tempo e âncora no CU3b).
+  - `Tests/Testing/RecordingSpawnerAsset.cs` (novo): spawner com pool que conta criações e devoluções; arquivo próprio por ser `ScriptableObject`. O `ReturnsNull` é do CU3c.
+  - `Tests/Testing/SpellBook.Testing.asmdef:4-11` (+`SpellBook.Cues`).
+  - `Tests/Cues/EditMode/CueRouterTests.cs` (novo, com o item de teste que cria uma cópia do prefab pelo `CuePlayback`).
+  - Sem `cues.md` nem `CHANGELOG.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007), e o ticket não quebra nada.
+- Testes red (EditMode, `SpellBook.Cues.Tests.EditMode`, classe `CueRouterTests`): `Execute_PlaysAllItems_ReturnsTrue`; `Add_Remove_RepeatedAndStaleHandle_NoOp_RemoveAll`.
+- Critério de pronto: os 2 testes verdes pelo filtro `\.CueRouterTests\.;\.CueIndexTests\.;\.AsmdefRulesTests\.`, com `total` conferido no XML.
+- Tamanho: estimado em ~610 linhas (runtime ~290, testes ~120, `CuesFactory` e `RecordingSpawnerAsset` ~200) e 7 arquivos, pela ADR 0042, a partir do código guardado. Exceção: +22% em linhas; a linha do CU3a (#205) entra em `Documentation~/decisoes.md` com o commit do ticket (texto no `LEIAME.txt`). Medido na implementação: 576 linhas (+15%) e 7 arquivos.
+- Commit: `feat(cues): roteador com tocar, ligar e desligar`
+
+#### CU3b — Roteador: tempo, limite, tag sem definição e âncora (divisão de 2026-11-03 do CU3)
+Depende de: CU3a.
+
+##### Detalhe (2026-11-03)
+- CA: CA2 (C2), CA5 (parte: duração fixa pelo `ITimeSource`, pausa) e CA9 (C9); base do P7 (âncora, ADR 0037, item 2).
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/Cues/CueRouter.cs`: campos `anchor` e `timeSource`; `TimeSource`, `SetTimeSource`, `Tick(deltaTime)`; `OnEnable` (publica na âncora), `OnDisable` (`RemoveAll()` e `Unset`) e `Update` `internal` para o EditMode dirigir o ciclo (a Unity não os chama em EditMode); `Update` consome o tempo por diferença, como `Runtime/GAS/Core/AbilitySystemComponent.cs:209-216`; limite `MaxSimultaneous` com `DropNew`/`ReplaceOldest` (o mais antigo pela sequência); aviso uma vez por tag sem definição, só com `Debug.isDebugBuild`.
+  - `Runtime/Cues/CuePlayback.cs`: `Time` (fonte do roteador); `Tick` que tira instância destruída e devolve o objeto no fim `FixedDuration`; `OnRemove` só volta no `Remove`. `ParticlesStop` (CU4) e `ClipEnd` (CU5) só voltam no `Remove` até lá.
+  - `Runtime/Cues/CueRouterAnchor.cs` (novo): `CueRouterAnchor : RuntimeAnchor<CueRouter>`, com `[HelpURL]` e menu `SpellBook/Cues/Cue Router Anchor`.
+  - `Tests/Testing/CuesFactory.cs`: `CreateAnchor`; `CreateRouter(ManualTimeSource time, SpawnerAsset spawner, CueRouterAnchor anchor, params CueDefinition[] cues)`.
+  - `Tests/Cues/EditMode/CueRouterTests.cs`: `ManualTimeSource` no `SetUp` e os testes abaixo.
+- Testes red (EditMode, `CueRouterTests`): `UnknownTag_NoException_ReturnsFalse_WarnsOnce`; `FixedDuration_ReleasesByTimeSource_PausedDoesNot`; `MaxSimultaneous_DropNew_ReplaceOldest`; `RouterPublishesInAnchor_UnsetOnDisable`.
+- Critério de pronto: os 4 testes verdes e os 2 do CU3a seguem verdes, pelo filtro `\.CueRouterTests\.;\.CueIndexTests\.;\.HelpUrlTests\.;\.AsmdefRulesTests\.`, com `total` conferido no XML.
+- Tamanho: estimado em ~260 linhas e 5 arquivos, pela ADR 0042, a partir do código guardado. Exceção: nenhuma.
+- Commit: `feat(cues): tempo, limite e âncora no roteador de cues`
+
+#### CU3c — Roteador: seguir o alvo, spawner nulo e alocação (divisão de 2026-11-03 do CU3)
+Depende de: CU3b.
+
+##### Detalhe (2026-11-03)
+- CA: CA8 (C8, `FollowTarget`), CA10 (R13) e CA18 (C10).
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/Cues/CuePlayback.cs`: rastreio sem `SetParent` (`World`, `AttachToTarget` copia posição e rotação, `FollowTarget` só a posição); alvo nulo no spawn vira `World`; no `Tick`, alvo destruído ou inativo acaba o Looping e devolve o objeto do Burst; `null` do spawner pula o item com aviso uma vez por spawner.
+  - `Runtime/Cues/CueRouter.cs`: aviso uma vez ao crescer além da `capacity`.
+  - `Tests/Testing/RecordingSpawnerAsset.cs`: `ReturnsNull`.
+  - `Tests/Cues/EditMode/CueRouterTests.cs`: os testes abaixo.
+  - Depois do CU3c, os arquivos ficam iguais às cópias completas do `cu3-guardado`, salvo correções da revisão.
+- Testes red (EditMode, `CueRouterTests`): `SpawnerReturnsNull_SkipsItem_PlaysRest`; `Follow_CopiesPosition_TargetDestroyed_RemovesLooping`; `Execute_10000_WarmPool_DoesNotAllocate`.
+- Critério de pronto: os 9 testes de `CueRouterTests` verdes pelo filtro `\.CueRouterTests\.;\.CueIndexTests\.;\.HelpUrlTests\.;\.AsmdefRulesTests\.`, com `total` conferido no XML.
+- Tamanho: estimado em ~160 linhas e 4 arquivos, pela ADR 0042, a partir do código guardado. Exceção: nenhuma.
+- Commit: `feat(cues): seguir o alvo e roteador sem alocação`
+
 ### CU4 — VFX: partículas, duração e magnitude
 - Escopo: `Runtime/Cues/VfxCueItem.cs` (novo), `CueRouter.cs` (fim por partículas), `Tests/Cues/PlayMode/SpellBook.Cues.Tests.PlayMode.asmdef` (novo), `Tests/Cues/PlayMode/VfxCueTests.cs` (novo), `AsmdefRulesTests.cs` (`Cues` em `PlayModeModules`), `cues.md`, `CHANGELOG.md`.
 - Testes red: `Vfx_ParticlesStop_ReturnsToSpawner` (CA5, C5); `Vfx_FixedDuration_Returns_PausedDoesNot` (CA5); `Vfx_ScaleByMagnitude_DefaultWhenNone` (CA4, parte); `LoopingVfx_Remove_StopsThenReturns`; `AttachToTarget_CopiesRotation_NoParenting`.
 - Critério de pronto: CA5 verde; CA4 com a parte de escala.
-- Tamanho estimado: ~380 linhas; 7 arquivos. Depende de: CU3.
+- Tamanho estimado: ~380 linhas; 7 arquivos. Depende de: CU3c (era CU3, divisão de 2026-11-03).
 
 ### CU5 — Som em pool
 - Escopo: `Runtime/Cues/SoundCueItem.cs`, `CueAudioPlayer.cs` (novos), `Runtime/Cues/Prefabs/CueAudioSource.prefab` (novo, fixture), `CueRouter.cs` (`audioPrefab`, `SetRandomSource`, sorteio de um som ou de todos), `Tests/Cues/EditMode/SoundCueTests.cs` (novo; clipe por `AudioClip.Create`), `Tests/Cues/PlayMode/SoundPlaybackTests.cs` (novo), `cues.md`, `CHANGELOG.md`.
@@ -244,7 +325,7 @@ Todos usam a Unity e seguem o WIP 1. Tempo por `ManualTimeSource`, aleatoriedade
   - `SpawnerEmpty_InEffectCue_SkipsWithWarning` (CA15, C13);
   - `BridgesReferencesCues_GasDoesNot` (CA17).
 - Critério de pronto: CA13, CA15 e CA17 verdes. CA14 do PRD é substituído pelo teste de vigia (ADR 0037, item 5).
-- Tamanho estimado: ~470 linhas; 9 arquivos. Depende de: CU3, EV21, TK1 (`ExecutionLink`).
+- Tamanho estimado: ~470 linhas; 9 arquivos. Depende de: CU3c (era CU3, divisão de 2026-11-03), EV21, TK1 (`ExecutionLink`).
 
 ### CU9 — Fim do `PlayCueAction` e do `SpawnVFXAction`
 - Escopo: `Runtime/GAS/Abilities/Actions/PlayCueAction.cs` (remoção pura), `Runtime/GAS/Effects/Actions/CommonEffectActions.cs` (sai `SpawnVFXAction`), `Tests/GAS/PlayMode/SpawnActionsTests.cs` (saem os dois testes, N8), `Tests/GAS/EditMode/GasSourceScanTests.cs` (guarda: `PlayClipAtPoint` em nenhum `.cs` do pacote; nenhuma ação do GAS chama `Instantiate`/`Destroy`), `Documentation~/manual/regras/migracao-2-para-3.md` (ação antiga → nova), `Documentation~/manual/modulos/gas.md` (tira as ações), `CHANGELOG.md` (quebra).
@@ -258,12 +339,14 @@ Todos usam a Unity e seguem o WIP 1. Tempo por `ManualTimeSource`, aleatoriedade
 |---|---|---|---|
 | CU1 | sim | — | ~220 / 4 |
 | CU2 | sim | TG1 | ~460 / 10 |
-| CU3 | sim | CU1, CU2 | ~490 / 8 |
-| CU4 | sim | CU3 | ~380 / 7 |
+| CU3a | sim | CU1, CU2 | ~610 / 7 (divisão de 2026-11-03 do CU3, que mediu ~1000 / 8; era ~490 / 8; exceção de +22%) |
+| CU3b | sim | CU3a | ~260 / 5 (divisão de 2026-11-03 do CU3) |
+| CU3c | sim | CU3b | ~160 / 4 (divisão de 2026-11-03 do CU3) |
+| CU4 | sim | CU3c | ~380 / 7 |
 | CU5 | sim | CU4, EV4a | ~470 / 8 |
 | CU6 | sim | CU5 | ~380 / 8 |
 | CU7 | sim | CU6, AV1 | ~420 / 9 |
-| CU8 | sim | CU3, EV21, TK1 | ~470 / 9 |
+| CU8 | sim | CU3c, EV21, TK1 | ~470 / 9 |
 | CU9 | sim | CU8 | ~200 / 6 |
 
 Fila: CU1 → CU7 podem entrar antes do fim do B-012, mas o CU5 espera o EV4a e o CU7 espera o AV1. CU8 e CU9 entram depois do EV21 e do TK1. CA11 e CA17 rodam em todos.

@@ -74,7 +74,7 @@ namespace SpellBook.GAS.Bridges.Tests
         public void Ability_ActionWithChannel_HasNoValidationIssues()
         {
             RaiseEventAction action = CreateAction(_events.CreateChannel<VoidEventChannel>(), _ => { });
-            GameplayAbility ability = _gas.CreateAbility(action, null);
+            GameplayAbility ability = _gas.CreateAbility(action);
             var result = new ValidationResult(ability);
 
             ability.Validate(result);
