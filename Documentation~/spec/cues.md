@@ -280,7 +280,7 @@ Depende de: CU3b.
   - Depois do CU3c, os arquivos ficam iguais às cópias completas do `cu3-guardado`, salvo correções da revisão.
 - Testes red (EditMode, `CueRouterTests`): `SpawnerReturnsNull_SkipsItem_PlaysRest`; `Follow_CopiesPosition_TargetDestroyed_RemovesLooping`; `Execute_10000_WarmPool_DoesNotAllocate`.
 - Critério de pronto: os 9 testes de `CueRouterTests` verdes pelo filtro `\.CueRouterTests\.;\.CueIndexTests\.;\.HelpUrlTests\.;\.AsmdefRulesTests\.`, com `total` conferido no XML.
-- Tamanho: estimado em ~160 linhas e 4 arquivos, pela ADR 0042, a partir do código guardado. Exceção: nenhuma.
+- Tamanho: estimado em ~160 linhas e 4 arquivos, pela ADR 0042, a partir do código guardado. Exceção: nenhuma. Medido na implementação: 181 linhas e 4 arquivos.
 - Commit: `feat(cues): seguir o alvo e roteador sem alocação`
 
 ### CU4 — VFX: partículas, duração e magnitude

@@ -6,15 +6,19 @@ using UnityEngine;
 namespace SpellBook.Cues
 {
     /// <summary>
-    /// Uma execução de cue no <see cref="CueRouter"/>. Os itens criam objetos por <see cref="Spawn"/>, e o roteador os
-    /// devolve ao spawner no fim. Cada slot do roteador tem uma, reutilizada.
+    /// Uma execução de cue no <see cref="CueRouter"/>. Os itens criam objetos por <see cref="Spawn"/>; o roteador os
+    /// posiciona a cada tick e os devolve ao spawner no fim. Cada slot do roteador tem uma, reutilizada.
     /// </summary>
     public sealed class CuePlayback
     {
         private struct Tracked
         {
             public GameObject Instance;
+            public Transform Transform;
             public SpawnerAsset Spawner;
+            public CuePlacement Placement;
+            public Transform Target;
+            public Vector3 Offset;
             public CueEnd End;
             public float Remaining;
         }
@@ -47,22 +51,41 @@ namespace SpellBook.Cues
 
         /// <summary>
         /// Cria <paramref name="prefab"/> pelo <paramref name="spawner"/> (vazio: o padrão do roteador) e o rastreia até o
-        /// fim do <paramref name="request"/>. Devolve <c>null</c> se o spawner não criar.
+        /// fim do <paramref name="request"/>. Devolve <c>null</c>, com um aviso, se o spawner não criar.
         /// </summary>
         public GameObject Spawn(GameObject prefab, SpawnerAsset spawner, in CueSpawnRequest request)
         {
             if (prefab == null) return null;
 
             SpawnerAsset source = spawner != null ? spawner : _router.DefaultSpawner;
+            var tracked = new Tracked
+            {
+                Spawner = source,
+                // Sem alvo, não há o que seguir: o objeto fica onde nasceu
+                Placement = request.Target != null ? request.Placement : CuePlacement.World,
+                Target = request.Target,
+                Offset = request.Offset,
+                End = request.End,
+                Remaining = request.Duration,
+            };
+
             Vector3 position = request.Position + request.Offset;
             Quaternion rotation = request.Rotation;
+            Pose(in tracked, ref position, ref rotation);
             GameObject instance = source.Spawn(prefab, position, rotation);
-            if (instance == null) return null;
-
-            _objects.Add(new Tracked
+            if (instance == null)
             {
-                Instance = instance, Spawner = source, End = request.End, Remaining = request.Duration,
-            });
+                if (_router.ShouldWarn(source))
+                {
+                    Debug.LogWarning($"O spawner '{source.name}' devolveu null para '{prefab.name}'; o item foi pulado.", _router);
+                }
+
+                return null;
+            }
+
+            tracked.Instance = instance;
+            tracked.Transform = instance.transform;
+            _objects.Add(tracked);
             return instance;
         }
 
@@ -73,7 +96,7 @@ namespace SpellBook.Cues
             IsActive = true;
         }
 
-        /// <summary>Conta o tempo e devolve ao spawner o que acabou. Falso quando não sobra objeto.</summary>
+        /// <summary>Posiciona e conta o tempo. Falso se a execução acabou: sem objetos, ou alvo perdido num Looping.</summary>
         internal bool Tick(float deltaTime)
         {
             for (int i = _objects.Count - 1; i >= 0; i--)
@@ -83,6 +106,21 @@ namespace SpellBook.Cues
                 {
                     _objects.RemoveAt(i);
                     continue;
+                }
+
+                if (tracked.Placement != CuePlacement.World)
+                {
+                    if (tracked.Target == null || !tracked.Target.gameObject.activeInHierarchy)
+                    {
+                        if (Cue.Kind == CueKind.Looping) return false;
+                        ReleaseAt(i);
+                        continue;
+                    }
+
+                    Vector3 position = tracked.Transform.position;
+                    Quaternion rotation = tracked.Transform.rotation;
+                    Pose(in tracked, ref position, ref rotation);
+                    tracked.Transform.SetPositionAndRotation(position, rotation);
                 }
 
                 if (tracked.End == CueEnd.FixedDuration)
@@ -119,6 +157,22 @@ namespace SpellBook.Cues
             Tracked tracked = _objects[index];
             _objects.RemoveAt(index);
             if (tracked.Instance != null) tracked.Spawner.Release(tracked.Instance);
+        }
+
+        private static void Pose(in Tracked tracked, ref Vector3 position, ref Quaternion rotation)
+        {
+            if (tracked.Placement == CuePlacement.World) return;
+
+            Transform target = tracked.Target;
+            if (tracked.Placement == CuePlacement.AttachToTarget)
+            {
+                rotation = target.rotation;
+                position = target.position + rotation * tracked.Offset;
+            }
+            else
+            {
+                position = target.position + tracked.Offset;
+            }
         }
     }
 }

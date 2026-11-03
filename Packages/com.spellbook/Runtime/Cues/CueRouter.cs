@@ -27,7 +27,7 @@ namespace SpellBook.Cues
         [SerializeField, Tooltip("Spawner dos itens sem spawner próprio. Vazio usa o spawner padrão por Instantiate.")]
         private SpawnerAsset defaultSpawner;
 
-        [SerializeField, Min(1), Tooltip("Cues ativos ao mesmo tempo antes de crescer. Crescer aloca.")]
+        [SerializeField, Min(1), Tooltip("Cues ativos ao mesmo tempo antes de crescer. Crescer avisa e aloca.")]
         private int capacity = 64;
 
         private readonly CueIndex _index = new CueIndex();
@@ -38,6 +38,7 @@ namespace SpellBook.Cues
         private double _timeCursor;
         private long _sequence;
         private bool _initialized;
+        private bool _warnedGrowth;
 
         /// <summary>Quantos cues estão ativos.</summary>
         public int ActiveCount { get; private set; }
@@ -161,8 +162,8 @@ namespace SpellBook.Cues
         }
 
         /// <summary>
-        /// Avança os cues em <paramref name="deltaTime"/> segundos: conta as durações e devolve o que acabou. O próprio
-        /// roteador chama a cada quadro, pela fonte de tempo.
+        /// Avança os cues em <paramref name="deltaTime"/> segundos: segue os alvos, conta as durações e devolve o que
+        /// acabou. O próprio roteador chama a cada quadro, pela fonte de tempo.
         /// </summary>
         public void Tick(float deltaTime)
         {
@@ -236,7 +237,15 @@ namespace SpellBook.Cues
 
         private CuePlayback Acquire(CueDefinition cue)
         {
-            if (_free.Count == 0) AddSlots(_slots.Count);
+            if (_free.Count == 0)
+            {
+                if (ShouldWarnGrowth())
+                {
+                    Debug.LogWarning($"'{name}' passou de {_slots.Count} cues ativos e cresceu; aumente a capacidade.", this);
+                }
+
+                AddSlots(_slots.Count);
+            }
 
             int index = _free[_free.Count - 1];
             _free.RemoveAt(_free.Count - 1);
@@ -251,6 +260,13 @@ namespace SpellBook.Cues
             slot.End();
             _free.Add(slot.Slot);
             ActiveCount--;
+        }
+
+        private bool ShouldWarnGrowth()
+        {
+            if (_warnedGrowth || !Debug.isDebugBuild) return false;
+            _warnedGrowth = true;
+            return true;
         }
 
         private void EnsureInitialized()

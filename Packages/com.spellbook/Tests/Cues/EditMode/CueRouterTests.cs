@@ -7,10 +7,12 @@ using SpellBook.Testing;
 using SpellBook.Time;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.TestTools.Constraints;
+using Is = UnityEngine.TestTools.Constraints.Is;
 
 namespace SpellBook.Cues.Tests
 {
-    /// <summary>Roteador: tocar, ligar, desligar, limite, tempo e âncora (CA1, CA2, CA5, CA7, CA9).</summary>
+    /// <summary>Roteador: tocar, ligar, desligar, limite, tempo, alvo e âncora (CA1, CA2, CA5, CA7 a CA10, CA18).</summary>
     public class CueRouterTests
     {
         private CuesFactory _cues;
@@ -164,6 +166,55 @@ namespace SpellBook.Cues.Tests
         }
 
         [Test]
+        public void SpawnerReturnsNull_SkipsItem_PlaysRest()
+        {
+            GameplayTag tag = _cues.CreateTag("Cue.Hit");
+            RecordingSpawnerAsset empty = _cues.CreateSpawner();
+            empty.ReturnsNull = true;
+            CueRouter router = Router(_cues.CreateCue(tag, CueKind.Burst,
+                Item(CueEnd.FixedDuration, spawner: empty), Item(CueEnd.FixedDuration)));
+            LogAssert.Expect(LogType.Warning, new Regex("null"));
+
+            bool first = router.Execute(tag, CueParameters.At(Vector3.zero));
+            bool second = router.Execute(tag, CueParameters.At(Vector3.zero));
+
+            Assert.That(first, Is.True);
+            Assert.That(second, Is.True);
+            Assert.That(_spawner.SpawnCount, Is.EqualTo(2), "o outro item toca");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [Test]
+        public void Follow_CopiesPosition_TargetDestroyed_RemovesLooping()
+        {
+            GameplayTag tag = _cues.CreateTag("Cue.Aura");
+            CueRouter router = Router(_cues.CreateCue(tag, CueKind.Looping,
+                Item(CueEnd.OnRemove, CuePlacement.FollowTarget, new Vector3(0f, 1f, 0f))));
+            GameObject target = _cues.CreateObject("Target");
+            GameObject hidden = _cues.CreateObject("Hidden");
+            target.transform.position = new Vector3(1f, 0f, 0f);
+
+            CueHandle handle = router.Add(tag, CueParameters.On(target.transform));
+            Transform instance = _spawner.Live[0].transform;
+            target.transform.SetPositionAndRotation(new Vector3(5f, 0f, 0f), Quaternion.Euler(0f, 90f, 0f));
+            router.Tick(0.1f);
+
+            Assert.That(instance.position, Is.EqualTo(new Vector3(5f, 1f, 0f)));
+            Assert.That(instance.rotation, Is.EqualTo(Quaternion.identity), "FollowTarget não copia a rotação");
+            Assert.That(instance.parent, Is.Null);
+
+            CueHandle hiddenHandle = router.Add(tag, CueParameters.On(hidden.transform));
+            UnityEngine.Object.DestroyImmediate(target);
+            hidden.SetActive(false);
+            router.Tick(0.1f);
+
+            Assert.That(router.IsActive(handle), Is.False);
+            Assert.That(router.IsActive(hiddenHandle), Is.False);
+            Assert.That(_spawner.Live, Is.Empty);
+            Assert.That(_spawner.ReleaseCount, Is.EqualTo(2));
+        }
+
+        [Test]
         public void RouterPublishesInAnchor_UnsetOnDisable()
         {
             GameplayTag tag = _cues.CreateTag("Cue.Aura");
@@ -181,6 +232,29 @@ namespace SpellBook.Cues.Tests
             Assert.That(anchor.HasValue, Is.False);
             Assert.That(router.ActiveCount, Is.EqualTo(0), "OnDisable remove os cues");
             Assert.That(_spawner.Live, Is.Empty);
+        }
+
+        [Test]
+        public void Execute_10000_WarmPool_DoesNotAllocate()
+        {
+            GameplayTag tag = _cues.CreateTag("Cue.Hit");
+            CueRouter router = Router(_cues.CreateCue(tag, CueKind.Burst,
+                Item(CueEnd.FixedDuration, CuePlacement.FollowTarget), Item(CueEnd.FixedDuration)));
+            GameObject target = _cues.CreateObject("Target");
+            CueParameters parameters = CueParameters.On(target.transform);
+            router.Execute(tag, parameters);
+            router.Tick(1f);
+
+            Assert.That(() =>
+            {
+                for (int i = 0; i < 10000; i++)
+                {
+                    router.Execute(tag, parameters);
+                    router.Tick(1f);
+                }
+            }, Is.Not.AllocatingGCMemory());
+            Assert.That(_spawner.SpawnCount, Is.EqualTo(20002));
+            Assert.That(router.ActiveCount, Is.EqualTo(0));
         }
 
         private CueRouter Router(params CueDefinition[] cues)
