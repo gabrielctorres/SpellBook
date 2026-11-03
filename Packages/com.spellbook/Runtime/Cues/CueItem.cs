@@ -10,6 +10,11 @@ namespace SpellBook.Cues
     [Serializable]
     public abstract class CueItem
     {
+        /// <summary>
+        /// Toca o item com os <paramref name="parameters"/>. O que fica no mundo é criado por
+        /// <see cref="CuePlayback.Spawn"/>, para o roteador rastrear e devolver.
+        /// </summary>
+        public abstract void Play(in CueParameters parameters, CuePlayback playback);
     }
 
     /// <summary>Onde o objeto do cue fica em relação ao alvo. O roteador copia a pose; nunca muda o parent.</summary>
