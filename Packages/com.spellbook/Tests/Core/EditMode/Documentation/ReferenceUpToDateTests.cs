@@ -13,6 +13,7 @@ namespace SpellBook.Core.Tests.Documentation
     /// Guarda da referência commitada: o catálogo, a impressão digital, os YAML da API e o mapa da Unity estão em dia
     /// com o código (ADR 0040, item 4; Spec referencia-catalogo-e-api, RC4 e XR2).
     /// </summary>
+    [Category(TestCategories.Documentation)]
     public class ReferenceUpToDateTests
     {
         private const string Instruction = "rode SpellBook > Documentação > Gerar referência e commite o resultado";

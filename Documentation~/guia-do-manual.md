@@ -147,17 +147,20 @@ O catálogo (`manual/referencia/catalogo.md`), os YAML da API (`api/reference/`)
 
 Na API, os tipos da Unity levam à documentação da Unity pelo mapa, que a geração monta a partir dos YAML (0041). Os módulos do motor apontam para o ScriptReference mais recente, sem versão na URL. Os pacotes `com.unity.*` apontam para a versão instalada no projeto, então quem atualiza um desses pacotes precisa gerar a referência de novo. Os tipos do .NET levam ao learn.microsoft.com pelo `href` que o `docfx metadata` grava nos YAML. O `docfx.json` não declara mapa do .NET, e o build não usa a rede.
 
-Quem muda um `.cs` do pacote:
+As guardas que comparam o código com o manual ou com a referência commitada ficam na categoria `Documentacao` do NUnit: o `ReferenceUpToDateTests`, o `ManualCodeExamplesTests` e três testes do `ManualLinksTests`. A suíte dos tickets roda com `-testCategory "!Documentacao"`. Por isso, um ticket que muda um `.cs` não regenera a referência nem mexe no manual (emenda de 2026-11-03 da 0007). Isso fica para o passe de documentação.
+
+No passe de documentação:
 
 1. Rode **SpellBook > Documentação > Gerar referência** na Unity, com o SDK do .NET instalado. Em batchmode, a mesma geração roda com `-executeMethod SpellBook.Core.Editor.Documentation.ReferenceGenerator.GenerateFromCommandLine` e sai com 0 se deu certo ou 1 se falhou.
 2. Commite o catálogo, a pasta `api/reference/`, o `api/unity.xrefmap.yml` e o `api/reference.sha256` no mesmo diff. Sem isso, o `ReferenceUpToDateTests` falha.
+3. Rode a suíte com `-testCategory "Documentacao"` e depois sem filtro. As duas rodadas precisam passar.
 
 Para ver o site sem a Unity, rode dentro de `Documentation~/`:
 
 1. `mkdocs build --strict -f mkdocs.yml`, no venv do manual;
 2. `dotnet tool restore` e `dotnet docfx build api/docfx.json --warningsAsErrors`. A API sai em `api/_site/`, que o git ignora, com a página de cada tipo em `<uid>.html`, o mesmo caminho do link do catálogo.
 
-A Action `docs` roda nos pull requests que mexem no manual, na API, na configuração do DocFX ou no próprio workflow. Ela monta o manual e a API como na publicação, mas não publica. Depois, confere cada link `api/...html` do catálogo no site montado, porque o MkDocs não valida link absoluto. Se um link aponta para um tipo sem página, o build falha e mostra o caminho. Isso costuma acontecer quando o código muda e a geração não roda de novo.
+A Action `docs` roda nos pull requests que mexem no manual, na API, na configuração do DocFX ou no próprio workflow. Um PR que muda só código ou exemplos não a dispara; no passe de documentação, rode-a à mão pelo `workflow_dispatch` se o PR não mexer nesses caminhos. Ela monta o manual e a API como na publicação, mas não publica. Depois, confere cada link `api/...html` do catálogo no site montado, porque o MkDocs não valida link absoluto. Se um link aponta para um tipo sem página, o build falha e mostra o caminho. Isso costuma acontecer quando o código muda e a geração não roda de novo.
 
 A versão do DocFX fica travada em `.config/dotnet-tools.json`. Se você trocar essa versão, a impressão digital muda e a geração precisa rodar de novo.
 

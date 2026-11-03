@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
+using SpellBook.Core.Tests.Documentation;
 using SpellBook.Core.Tests.Structure;
 
 namespace SpellBook.Core.Tests
@@ -12,6 +13,7 @@ namespace SpellBook.Core.Tests
     /// Todo bloco C# do manual sai de um arquivo de exemplos que compila e roda nos testes, pelo
     /// <c>pymdownx.snippets</c> (Spec <c>referencia-catalogo-e-api.md</c>, D9; ADR 0041; CA10).
     /// </summary>
+    [Category(TestCategories.Documentation)]
     public class ManualCodeExamplesTests
     {
         /// <summary>
