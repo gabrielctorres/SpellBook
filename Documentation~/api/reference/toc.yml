@@ -7,6 +7,9 @@ items:
   - uid: SpellBook.Core.DocUrls
     name: DocUrls
     type: Class
+  - uid: SpellBook.Core.IRandomSource
+    name: IRandomSource
+    type: Interface
   - uid: SpellBook.Core.InstantiateSpawnerAsset
     name: InstantiateSpawnerAsset
     type: Class
@@ -15,6 +18,9 @@ items:
     type: Class
   - uid: SpellBook.Core.RuntimeSet`1
     name: RuntimeSet<T>
+    type: Class
+  - uid: SpellBook.Core.SeededRandomSource
+    name: SeededRandomSource
     type: Class
   - uid: SpellBook.Core.SpawnerAsset
     name: SpawnerAsset
@@ -326,6 +332,9 @@ items:
   - uid: SpellBook.GAS.Abilities.ChargesConfig
     name: ChargesConfig
     type: Class
+  - uid: SpellBook.GAS.Abilities.CommitMode
+    name: CommitMode
+    type: Enum
   - uid: SpellBook.GAS.Abilities.CooldownChange
     name: CooldownChange
     type: Enum
@@ -341,6 +350,12 @@ items:
   - uid: SpellBook.GAS.Abilities.GameplayAbility
     name: GameplayAbility
     type: Class
+  - uid: SpellBook.GAS.Abilities.GameplayEventData
+    name: GameplayEventData
+    type: Struct
+  - uid: SpellBook.GAS.Abilities.GameplayEventHandler
+    name: GameplayEventHandler
+    type: Delegate
   - uid: SpellBook.GAS.Abilities.TemplateElement
     name: TemplateElement
     type: Class
@@ -366,9 +381,6 @@ items:
   - uid: SpellBook.GAS.Abilities.Actions.ConditionalAction
     name: ConditionalAction
     type: Class
-  - uid: SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType
-    name: ConditionalAction.ConditionType
-    type: Enum
   - uid: SpellBook.GAS.Abilities.Actions.ParallelAction
     name: ParallelAction
     type: Class
@@ -403,6 +415,22 @@ items:
   - uid: SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors
     name: Projectile.MovementVectors
     type: Enum
+- uid: SpellBook.GAS.Abilities.Triggers
+  name: SpellBook.GAS.Abilities.Triggers
+  type: Namespace
+  items:
+  - uid: SpellBook.GAS.Abilities.Triggers.AbilityTrigger
+    name: AbilityTrigger
+    type: Class
+  - uid: SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger
+    name: GameplayEventTrigger
+    type: Class
+  - uid: SpellBook.GAS.Abilities.Triggers.TagAddedTrigger
+    name: TagAddedTrigger
+    type: Class
+  - uid: SpellBook.GAS.Abilities.Triggers.TagRemovedTrigger
+    name: TagRemovedTrigger
+    type: Class
 - uid: SpellBook.GAS.Actions
   name: SpellBook.GAS.Actions
   type: Namespace
@@ -422,14 +450,32 @@ items:
   - uid: SpellBook.GAS.Actions.ActionStatus
     name: ActionStatus
     type: Struct
+  - uid: SpellBook.GAS.Actions.ChanceAction
+    name: ChanceAction
+    type: Class
+  - uid: SpellBook.GAS.Actions.CommitAction
+    name: CommitAction
+    type: Class
   - uid: SpellBook.GAS.Actions.DefaultTarget
     name: DefaultTarget
     type: Enum
+  - uid: SpellBook.GAS.Actions.DelayedAction
+    name: DelayedAction
+    type: Class
   - uid: SpellBook.GAS.Actions.EffectEvent
     name: EffectEvent
     type: Enum
+  - uid: SpellBook.GAS.Actions.ForEachTargetAction
+    name: ForEachTargetAction
+    type: Class
   - uid: SpellBook.GAS.Actions.GameplayAction
     name: GameplayAction
+    type: Class
+  - uid: SpellBook.GAS.Actions.RemoveEffectAction
+    name: RemoveEffectAction
+    type: Class
+  - uid: SpellBook.GAS.Actions.SendGameplayEventAction
+    name: SendGameplayEventAction
     type: Class
 - uid: SpellBook.GAS.Attributes
   name: SpellBook.GAS.Attributes
@@ -627,6 +673,9 @@ items:
   - uid: SpellBook.GAS.Conditions.ConditionContext
     name: ConditionContext
     type: Struct
+  - uid: SpellBook.GAS.Conditions.ConditionSubject
+    name: ConditionSubject
+    type: Enum
   - uid: SpellBook.GAS.Conditions.HasTargetPointCondition
     name: HasTargetPointCondition
     type: Class
@@ -639,6 +688,9 @@ items:
   - uid: SpellBook.GAS.Conditions.OrCondition
     name: OrCondition
     type: Class
+  - uid: SpellBook.GAS.Conditions.RangeMeasure
+    name: RangeMeasure
+    type: Enum
   - uid: SpellBook.GAS.Conditions.TagQueryCondition
     name: TagQueryCondition
     type: Class
@@ -752,17 +804,29 @@ items:
   name: SpellBook.GAS.Targeting
   type: Namespace
   items:
-  - uid: SpellBook.GAS.Targeting.CircleTargeting
-    name: CircleTargeting
+  - uid: SpellBook.GAS.Targeting.AreaOrder
+    name: AreaOrder
+    type: Enum
+  - uid: SpellBook.GAS.Targeting.AreaOrigin
+    name: AreaOrigin
+    type: Enum
+  - uid: SpellBook.GAS.Targeting.AreaSelector
+    name: AreaSelector
     type: Class
-  - uid: SpellBook.GAS.Targeting.MouseTargetingStrategy
-    name: MouseTargetingStrategy
+  - uid: SpellBook.GAS.Targeting.CasterSelector
+    name: CasterSelector
+    type: Class
+  - uid: SpellBook.GAS.Targeting.EventTargetsSelector
+    name: EventTargetsSelector
     type: Class
   - uid: SpellBook.GAS.Targeting.PhysicsMode
     name: PhysicsMode
     type: Enum
-  - uid: SpellBook.GAS.Targeting.TargetingStrategy
-    name: TargetingStrategy
+  - uid: SpellBook.GAS.Targeting.PointSelector
+    name: PointSelector
+    type: Class
+  - uid: SpellBook.GAS.Targeting.TargetSelector
+    name: TargetSelector
     type: Class
 - uid: SpellBook.GAS.Values
   name: SpellBook.GAS.Values

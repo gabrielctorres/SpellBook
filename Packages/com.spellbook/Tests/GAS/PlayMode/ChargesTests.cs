@@ -161,7 +161,7 @@ namespace SpellBook.GAS.Tests
         {
             AbilitySystemComponent asc = CreateManualAsc();
             GameplayAbility charged = CreateChargedAbility(3, 2f);
-            GameplayAbility plain = _gas.CreateAbility(new WaitAction { Duration = 100f }); // sem Tick, segue ativa
+            GameplayAbility plain = _gas.CreateAbility(new WaitAction { Duration = ScalableFloat.Constant(100f) }); // sem Tick, segue ativa
             plain.CooldownEffect = _gas.CreateDurationEffect(5f);
             AbilitySpec chargedSpec = asc.GiveAbility(charged);
             AbilitySpec plainSpec = asc.GiveAbility(plain);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using NUnit.Framework;
 using SpellBook.Core.Editor.Documentation;
+using SpellBook.Core.Tests.Structure;
 
 namespace SpellBook.Core.Tests.Documentation
 {
@@ -12,7 +13,7 @@ namespace SpellBook.Core.Tests.Documentation
     /// </summary>
     public class ReferenceGeneratorTests
     {
-        private static readonly string Root = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "spellbook-reference-generator"));
+        private static readonly string Root = TestScratch.For("reference-generator");
         private static readonly string Docs = Path.Combine(Root, "Documentation~");
         private static readonly string Catalog = Path.Combine(Docs, "manual", "referencia", "catalogo.md");
         private static readonly string Config = Path.Combine(Docs, "api", "obj", "docfx.metadata.json");
@@ -23,7 +24,7 @@ namespace SpellBook.Core.Tests.Documentation
         [SetUp]
         public void SetUp()
         {
-            DeleteRoot();
+            TestScratch.Recreate(Root);
             Directory.CreateDirectory(Path.Combine(Docs, ".config"));
             File.WriteAllText(Path.Combine(Docs, ".config", "dotnet-tools.json"), "{ \"tools\": {} }\n");
         }
@@ -31,7 +32,7 @@ namespace SpellBook.Core.Tests.Documentation
         [TearDown]
         public void TearDown()
         {
-            DeleteRoot();
+            TestScratch.Delete(Root);
         }
 
         [Test]
@@ -130,14 +131,6 @@ namespace SpellBook.Core.Tests.Documentation
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             File.WriteAllText(path, content);
             return path;
-        }
-
-        private static void DeleteRoot()
-        {
-            if (Directory.Exists(Root))
-            {
-                Directory.Delete(Root, true);
-            }
         }
 
         /// <summary>Faz o papel do <c>docfx metadata</c>: escreve um YAML com uma referência da Unity e uma do .NET.</summary>

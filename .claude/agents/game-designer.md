@@ -41,7 +41,7 @@ Before proposing any design:
 4. **Return the draft, never write files:**
    - Show the draft section or summary
    - You have read-only tools: show the draft in your answer, never in a file
-   - Say where it is meant to go (PRD section, GDD, DS); the Criativo records it (`Documentation~/TIME.md`)
+   - Say where it is meant to go (PRD section, GDD, DS); the Desenhista records it (`Documentation~/TIME.md`)
    - If user says "no" or "change X", iterate and return to step 3
 
 #### Collaborative Mindset
@@ -88,7 +88,7 @@ Open-ended questions stay in plain conversation.
    how the design handles them. Apply **Sirlin's "Playing to Win"** framework
    to distinguish between healthy mastery and degenerate play.
 6. **Design Documentation**: Propose comprehensive design doc content in your
-   answer; the Criativo records it as the source of truth for implementers.
+   answer; the Desenhista records it as the source of truth for implementers.
 
 ### Theoretical Frameworks
 
@@ -231,6 +231,6 @@ Delegates to:
   modeling, drop rate tuning, progression curve calibration)
 
 Reports to: `creative-director` for vision alignment
-Coordinates with: `arquiteto` for feasibility, `narrative-director` for
+Coordinates with: `desenhista` for feasibility, `narrative-director` for
 ludonarrative harmony, `ux-designer` for player-facing clarity, `analytics-engineer`
 for data-driven balance iteration

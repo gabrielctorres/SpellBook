@@ -56,6 +56,10 @@ Com os módulos (0012), Cues e o GAS não podem depender de `SpellBook.Pooling`,
 - **`IPoolable` continua no Pooling:** o `Projectile` deixa de implementar `IPoolable` e reinicia o estado no `OnEnable`, que roda tanto no Instantiate quanto ao sair do pool.
 - **Validador:** campo de spawner vazio não gera aviso na 0-M (a regra mínima do R35 não o pede). Fica para o primeiro épico que tiver um caso em que o padrão por Instantiate seja um erro (Inferido).
 
+## Emenda (2026-10-31): fim da exceção do `PlayCueAction`, pela 0037
+
+A exceção de "Decisões incorporadas" (o `PlayClipAtPoint` e o VFX sem devolução até o módulo Cues) termina no ticket CU9 da Spec `cues.md`. Nele, o `PlayCueAction` e o `SpawnVFXAction` saem do GAS. A partir daí, a proibição de "O que os agentes NÃO podem fazer" vale sem exceção ([0037](0037-cues-roteador-por-ancora-e-integracao-por-acoes.md), item 6).
+
 ## Em aberto
 
 Nada.

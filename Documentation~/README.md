@@ -2,27 +2,28 @@
 
 `Documentation~/` fica na raiz do repositório, fora do pacote (`Packages/com.spellbook/`), e o til se mantém (ADR 0027). A Unity ignora a pasta: ela não gera `.meta`, e o usuário que instala o pacote não a baixa.
 
-Os agentes do time leem estes arquivos em vez de depender de memória ou de conversa. Nenhuma linha de código é escrita sem que antes exista registro de três coisas: o que se quer (PRD), como fazer (Spec) e as regras que valem (ADR e DS).
+Os agentes do time leem estes arquivos em vez de depender de memória ou de conversa. Nenhuma linha de código é escrita sem que antes exista registro de três coisas: o que se quer (parte fixa do design doc), como fazer (Detalhe do ticket) e as regras que valem (ADR e DS).
 
 | Documento | Onde | Dono | Quando |
 |---|---|---|---|
 | Backlog | [backlog.md](backlog.md) | Controlador | Porta de entrada de toda ideia, bug ou pendência |
-| Visão do pacote | `gdd/` | Criativo | Regras e visão dos sistemas, com selos implementado/parcial/proposta |
-| PRD | `prd/<slug>.md` | Criativo (`/prd-feature`) | O quê e por quê, na visão de quem usa o pacote; CAs numerados; seção 9 é o diário (`/ajustar`) |
-| Spec | `spec/<slug>.md` | Arquiteto | Como construir: pesquisa, ADRs respeitadas, desenho, testes red, riscos, tickets (≤ ~500 linhas, ≤ 10 arquivos) |
-| ADR | `adr/NNNN-titulo.md` (índice em `adr/README.md`) | Arquiteto | Decisões que valem para o pacote inteiro. Uma ADR aceita não é reescrita: ganha emenda datada ou é substituída |
-| DS | `ds/` | Criativo + Arquiteto | Regras do Inspector, da UI e de nomenclatura |
-| Manual público | `manual/` | Writer / Arquiteto | Site MkDocs (GitHub Pages), no estilo TopDown Engine |
-| Planos e estudos | `planos/` | Arquiteto | Estudos de origem, como o [gas-estudo-e-roadmap.md](planos/gas-estudo-e-roadmap.md) |
-| Time | [TIME.md](TIME.md) | Controlador | Papéis e fluxo |
+| Visão do pacote | `gdd/` | Desenhista | Regras e visão dos sistemas, com selos implementado/parcial/proposta |
+| Design doc | `spec/<épico>.md` (modelo em `spec/_modelo-design-doc.md`) | Desenhista (parte fixa, `/design-doc`) e Fábrica (Detalhe) | Problema, CA, cenário no Sandbox e tickets; um Detalhe por ticket na entrada da fila. Nos épicos antigos, a Spec faz esse papel |
+| PRD | `prd/<slug>.md` | histórico | PRD dos épicos antigos, no papel da parte fixa; a seção 9 recebe o `/ajustar` deles |
+| ADR | `adr/NNNN-titulo.md` (índice em `adr/README.md`) | Desenhista | Decisões que valem para mais de um épico. Uma ADR aceita não é reescrita: ganha emenda datada ou é substituída |
+| DS | `ds/` | Desenhista | Regras do Inspector, da UI e de nomenclatura |
+| Manual público | `manual/` | Fábrica, no passe de documentação | Site MkDocs (GitHub Pages), no estilo TopDown Engine |
+| Planos e estudos | `planos/` | Desenhista | Estudos de origem, como o [gas-estudo-e-roadmap.md](planos/gas-estudo-e-roadmap.md) |
+| Decisões | [decisoes.md](decisoes.md) | quem decide | Log das decisões tomadas sem o usuário e das exceções de tamanho |
+| Time | [TIME.md](TIME.md) | Controlador | Ponteiro para o `CLAUDE.md`, seção "Time de desenvolvimento" |
 
 ## Fluxo
 
 1. A ideia nasce no backlog.
-2. Vira um PRD.
-3. O Arquiteto escreve a Spec, apoiada nas ADRs e no DS.
-4. O usuário aprova PRD, Spec e ADRs novas num **único gate**.
-5. O Controlador cria uma issue por ticket no repositório do SpellBook. Cada issue tem links para a seção do PRD, o ticket da Spec, as ADRs e o DS.
+2. Num épico novo, o Desenhista escreve a parte fixa do design doc e as ADRs que valem para mais de um épico.
+3. O usuário aprova a parte fixa e as ADRs novas num **único gate**.
+4. O Controlador cria uma issue por ticket no repositório do SpellBook, com objetivo, CA e links para o design doc e as ADRs.
+5. Na entrada da fila, a Fábrica escreve o Detalhe, implementa e testa; o Examinador revisa; o passo de commit do script commita.
 
 ## Projeto de desenvolvimento
 

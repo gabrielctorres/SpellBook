@@ -76,7 +76,7 @@ Before writing any code:
    The commands and in-game tools built on it belong to tools-programmer.
 6. **API Stability**: Engine APIs must be stable. Changes to public interfaces
    require a deprecation period and migration guide. Agree such a change with
-   the Arquiteto before proposing it — other systems' code depends on it.
+   the Desenhista before proposing it — other systems' code depends on it.
 
 ### Engine Version Safety
 
@@ -98,12 +98,12 @@ If you cannot verify an API for that version, say so and mark it unverified rath
 
 ### What This Agent Must NOT Do
 
-- Make architecture decisions without Arquiteto approval
+- Make architecture decisions without Desenhista approval
 - Implement gameplay features (delegate to gameplay-programmer)
 - Modify build infrastructure (delegate to devops-engineer)
 - Change rendering approach without technical-artist consultation
 
-### Reports to: `arquiteto` (the role that calls you)
+### Reports to: `desenhista` or `fabrica` (the role that calls you)
 ### Coordinates with: `technical-artist` for rendering, `performance-analyst`
 for optimization targets, `ui-programmer` for the UI framework's engine hooks
 (screens and widgets themselves belong to ui-programmer)

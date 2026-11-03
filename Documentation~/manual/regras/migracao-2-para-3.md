@@ -196,11 +196,12 @@ As ações de spawn não usam mais o `PoolManager` da cena. Elas criam objetos p
 
 ## Valores por nível no GAS {#valores-por-nivel}
 
-A `Duration` do `GameplayEffect` e o valor constante do modificador deixam de ser `float` e
-passam a ser um [`ScalableFloat`](../modulos/gas.md#scalablefloat), que pode variar com o nível.
+A `Duration` do `GameplayEffect`, o valor constante do modificador e o `Duration` da `WaitAction`
+deixam de ser `float` e passam a ser um [`ScalableFloat`](../modulos/gas.md#scalablefloat), que
+pode variar com o nível.
 
 - **Os assets continuam válidos.** Um efeito 2.x abre com a mesma duração e o mesmo valor, como
-  constante. A conversão roda quando o asset é carregado, então nada se perde mesmo sem migrar.
+  constante, e uma `WaitAction` gravada numa habilidade abre com a mesma espera. A conversão roda quando o asset é carregado, então nada se perde mesmo sem migrar.
 - **Regrave os assets com o menu.** Enquanto não forem regravados, os assets guardam os campos
   antigos no YAML, e o pacote vai deixar de ler esses campos antes da 3.0 final.
 
@@ -208,14 +209,17 @@ Passo a passo:
 
 1. Atualize o pacote e espere a Unity compilar.
 2. Faça um commit ou backup do projeto, para conferir a mudança no diff.
-3. Rode **SpellBook > Migrar assets do GAS (3.0)**. O menu carrega todo `GameplayEffect` de
-   `Assets/` e dos pacotes embutidos ou locais, regrava e escreve no Console quantos efeitos
-   regravou. Os pacotes do registro são só leitura e ficam de fora.
+3. Rode **SpellBook > Migrar assets do GAS (3.0)**. O menu carrega todo `GameplayEffect` e todo
+   `GameplayAbility` de `Assets/` e dos pacotes embutidos ou locais, regrava e escreve no Console
+   quantos efeitos e quantas habilidades regravou. Os pacotes do registro são só leitura e ficam
+   de fora.
 4. Confira no diff: `Duration: 4` vira um bloco `duration` com `constant: 4`, e
-   `ConstantValue: -20` vira um bloco `Value` com `constant: -20`. Os números não mudam.
+   `ConstantValue: -20` vira um bloco `Value` com `constant: -20`. Na `WaitAction`,
+   `Duration: 1.5` vira um bloco `duration` com `constant: 1.5`. Os números não mudam.
 
 Rodar o menu de novo não muda nada. Num script de Editor ou na CI, chame
-`SpellBook.GAS.Editor.GasAssetMigration.MigrateAll()`, que devolve quantos efeitos regravou.
+`SpellBook.GAS.Editor.GasAssetMigration.MigrateAll()`, que devolve a soma dos efeitos e das
+habilidades regravados.
 
 No código:
 
@@ -223,6 +227,7 @@ No código:
 |---|---|
 | `efeito.Duration = 4f` | `efeito.Duration = ScalableFloat.Constant(4f)` |
 | `float d = efeito.Duration` | `float d = efeito.Duration.Evaluate(1)` |
+| `new WaitAction { Duration = 2f }` | `new WaitAction { Duration = ScalableFloat.Constant(2f) }` |
 | `ValueSource.ConstantValue = 5f` | `ValueSource.Value = ScalableFloat.Constant(5f)` |
 | `ModifierValueSource.SourceType.Constant` | `ModifierValueSource.SourceType.Value` (mesmo valor serializado) |
 | `AttributeEffectModifier` e `ModifierValueSource` são `struct` | são classes: alterar o elemento da lista altera o original |

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using SpellBook.GAS.Abilities;
-using SpellBook.GAS.Actions;
 using SpellBook.GAS.Effects;
 using SpellBook.GAS.Values;
 using UnityEditor;
@@ -66,7 +65,7 @@ namespace SpellBook.GAS.Editor
 
         /// <summary>
         /// Habilidades cuja tabela vale para um campo do <paramref name="owner"/>: a própria habilidade, ou as que usam o
-        /// efeito (recarga, custo e efeitos das ações, por <see cref="GameplayAction.CollectEffects"/>).
+        /// efeito (recarga, custo e efeitos das ações das três listas, por <see cref="GameplayAbility.CollectActionEffects"/>).
         /// </summary>
         public static List<GameplayAbility> TableOwners(Object owner, IEnumerable<GameplayAbility> abilities)
         {
@@ -87,13 +86,7 @@ namespace SpellBook.GAS.Editor
                 effects.Clear();
                 effects.Add(ability.CooldownEffect);
                 effects.Add(ability.CostEffect);
-                if (ability.OnActivate != null)
-                {
-                    foreach (GameplayAction action in ability.OnActivate)
-                    {
-                        action?.CollectEffects(effects);
-                    }
-                }
+                ability.CollectActionEffects(effects);
 
                 if (effects.Contains(effect)) owners.Add(ability);
             }

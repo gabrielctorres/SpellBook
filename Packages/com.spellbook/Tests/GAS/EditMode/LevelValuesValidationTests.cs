@@ -221,6 +221,25 @@ namespace SpellBook.GAS.Tests
             Assert.That(SingleError(result).PropertyPath, Is.EqualTo("duration"));
         }
 
+        [Test]
+        public void Validate_TableNameInOnEndEffect_IsChecked()
+        {
+            GameplayEffect onActivateEffect = CreateNamedEffect("GE_Dano", EffectDurationPolicy.Instant);
+            onActivateEffect.Modifiers.Add(ValueModifier(ScalableFloat.FromTable("Damage")));
+            GameplayEffect onEndEffect = CreateNamedEffect("GE_Dano", EffectDurationPolicy.Instant);
+            onEndEffect.Modifiers.Add(ValueModifier(ScalableFloat.FromTable("Damage")));
+            GameplayAbility inOnActivate = _gas.CreateAbility(new ApplyEffectAction { Effects = new List<GameplayEffect> { onActivateEffect } });
+            GameplayAbility inOnEnd = _gas.CreateAbility();
+            inOnEnd.OnEnd.Add(new ApplyEffectAction { Effects = new List<GameplayEffect> { onEndEffect } });
+
+            ValidationMessage expected = SingleError(Validate(inOnActivate));
+            ValidationMessage error = SingleError(Validate(inOnEnd));
+
+            Assert.That(error.Message, Is.EqualTo(expected.Message));
+            Assert.That(error.PropertyPath, Is.EqualTo(expected.PropertyPath));
+            Assert.That(error.Context, Is.SameAs(inOnEnd));
+        }
+
         private GameplayEffect CreateNamedEffect(string name, EffectDurationPolicy policy)
         {
             GameplayEffect effect = _gas.CreateEffect(policy, 0f);

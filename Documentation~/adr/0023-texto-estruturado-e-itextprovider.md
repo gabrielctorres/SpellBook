@@ -39,6 +39,10 @@ Data: 2026-10-29
 - Nome do asmdef do adaptador e convenção de nomes das chaves.
 - Plural e gênero entram no contrato do provedor ou ficam para o adaptador?
 
+## Emenda (2026-11-01): "Em aberto" respondidos pela 0038
+
+Os quatro itens de "Em aberto" foram respondidos pela [0038](0038-texto-no-core-tabela-por-cultura-e-adaptador-opcional.md), aceita no gate do Lote E (2026-11-01).
+
 ## Relacionadas
 
 - 0009 (quebra), 0012 (módulos), 0017 (view formata), 0019 e 0022 (motivo de falha), 0020 (valores na descrição).

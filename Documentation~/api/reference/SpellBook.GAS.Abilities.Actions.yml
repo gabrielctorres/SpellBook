@@ -8,7 +8,6 @@ items:
   - SpellBook.GAS.Abilities.Actions.AnimationParamType
   - SpellBook.GAS.Abilities.Actions.ApplyEffectAction
   - SpellBook.GAS.Abilities.Actions.ConditionalAction
-  - SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType
   - SpellBook.GAS.Abilities.Actions.ParallelAction
   - SpellBook.GAS.Abilities.Actions.PlayCueAction
   - SpellBook.GAS.Abilities.Actions.RepeatAction
@@ -62,29 +61,6 @@ references:
   name: ConditionalAction
   nameWithType: ConditionalAction
   fullName: SpellBook.GAS.Abilities.Actions.ConditionalAction
-- uid: SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType
-  commentId: T:SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType
-  parent: SpellBook.GAS.Abilities.Actions
-  href: SpellBook.GAS.Abilities.Actions.ConditionalAction.html
-  name: ConditionalAction.ConditionType
-  nameWithType: ConditionalAction.ConditionType
-  fullName: SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType
-  spec.csharp:
-  - uid: SpellBook.GAS.Abilities.Actions.ConditionalAction
-    name: ConditionalAction
-    href: SpellBook.GAS.Abilities.Actions.ConditionalAction.html
-  - name: .
-  - uid: SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType
-    name: ConditionType
-    href: SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType.html
-  spec.vb:
-  - uid: SpellBook.GAS.Abilities.Actions.ConditionalAction
-    name: ConditionalAction
-    href: SpellBook.GAS.Abilities.Actions.ConditionalAction.html
-  - name: .
-  - uid: SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType
-    name: ConditionType
-    href: SpellBook.GAS.Abilities.Actions.ConditionalAction.ConditionType.html
 - uid: SpellBook.GAS.Abilities.Actions.PlayCueAction
   commentId: T:SpellBook.GAS.Abilities.Actions.PlayCueAction
   href: SpellBook.GAS.Abilities.Actions.PlayCueAction.html

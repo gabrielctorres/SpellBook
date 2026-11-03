@@ -1,0 +1,107 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Conditions.ConditionSubject
+  commentId: T:SpellBook.GAS.Conditions.ConditionSubject
+  id: ConditionSubject
+  parent: SpellBook.GAS.Conditions
+  children:
+  - SpellBook.GAS.Conditions.ConditionSubject.Owner
+  - SpellBook.GAS.Conditions.ConditionSubject.TargetUnit
+  langs:
+  - csharp
+  - vb
+  name: ConditionSubject
+  nameWithType: ConditionSubject
+  fullName: SpellBook.GAS.Conditions.ConditionSubject
+  type: Enum
+  namespace: SpellBook.GAS.Conditions
+  summary: De quem a <xref href="SpellBook.GAS.Conditions.TagQueryCondition" data-throw-if-not-resolved="false"></xref> lê as tags (ADR 0035, item 2).
+  example: []
+  syntax:
+    content: public enum ConditionSubject
+    content.vb: Public Enum ConditionSubject
+- uid: SpellBook.GAS.Conditions.ConditionSubject.Owner
+  commentId: F:SpellBook.GAS.Conditions.ConditionSubject.Owner
+  id: Owner
+  parent: SpellBook.GAS.Conditions.ConditionSubject
+  langs:
+  - csharp
+  - vb
+  name: Owner
+  nameWithType: ConditionSubject.Owner
+  fullName: SpellBook.GAS.Conditions.ConditionSubject.Owner
+  type: Field
+  namespace: SpellBook.GAS.Conditions
+  summary: O <xref href="SpellBook.GAS.Conditions.ConditionContext.Owner" data-throw-if-not-resolved="false"></xref>, quem avalia a condição.
+  example: []
+  syntax:
+    content: Owner = 0
+    return:
+      type: SpellBook.GAS.Conditions.ConditionSubject
+- uid: SpellBook.GAS.Conditions.ConditionSubject.TargetUnit
+  commentId: F:SpellBook.GAS.Conditions.ConditionSubject.TargetUnit
+  id: TargetUnit
+  parent: SpellBook.GAS.Conditions.ConditionSubject
+  langs:
+  - csharp
+  - vb
+  name: TargetUnit
+  nameWithType: ConditionSubject.TargetUnit
+  fullName: SpellBook.GAS.Conditions.ConditionSubject.TargetUnit
+  type: Field
+  namespace: SpellBook.GAS.Conditions
+  summary: A unidade do <xref href="SpellBook.GAS.Conditions.ConditionContext.Target" data-throw-if-not-resolved="false"></xref>, como o candidato de um filtro de alvo.
+  example: []
+  syntax:
+    content: TargetUnit = 1
+    return:
+      type: SpellBook.GAS.Conditions.ConditionSubject
+references:
+- uid: SpellBook.GAS.Conditions.TagQueryCondition
+  commentId: T:SpellBook.GAS.Conditions.TagQueryCondition
+  href: SpellBook.GAS.Conditions.TagQueryCondition.html
+  name: TagQueryCondition
+  nameWithType: TagQueryCondition
+  fullName: SpellBook.GAS.Conditions.TagQueryCondition
+- uid: SpellBook.GAS.Conditions
+  commentId: N:SpellBook.GAS.Conditions
+  name: SpellBook.GAS.Conditions
+  nameWithType: SpellBook.GAS.Conditions
+  fullName: SpellBook.GAS.Conditions
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Conditions
+    name: Conditions
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Conditions
+    name: Conditions
+- uid: SpellBook.GAS.Conditions.ConditionContext.Owner
+  commentId: P:SpellBook.GAS.Conditions.ConditionContext.Owner
+  href: SpellBook.GAS.Conditions.ConditionContext.html#SpellBook_GAS_Conditions_ConditionContext_Owner
+  name: Owner
+  nameWithType: ConditionContext.Owner
+  fullName: SpellBook.GAS.Conditions.ConditionContext.Owner
+- uid: SpellBook.GAS.Conditions.ConditionSubject
+  commentId: T:SpellBook.GAS.Conditions.ConditionSubject
+  parent: SpellBook.GAS.Conditions
+  href: SpellBook.GAS.Conditions.ConditionSubject.html
+  name: ConditionSubject
+  nameWithType: ConditionSubject
+  fullName: SpellBook.GAS.Conditions.ConditionSubject
+- uid: SpellBook.GAS.Conditions.ConditionContext.Target
+  commentId: P:SpellBook.GAS.Conditions.ConditionContext.Target
+  href: SpellBook.GAS.Conditions.ConditionContext.html#SpellBook_GAS_Conditions_ConditionContext_Target
+  name: Target
+  nameWithType: ConditionContext.Target
+  fullName: SpellBook.GAS.Conditions.ConditionContext.Target

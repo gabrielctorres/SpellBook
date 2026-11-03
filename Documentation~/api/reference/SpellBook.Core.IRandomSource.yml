@@ -1,0 +1,136 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.Core.IRandomSource
+  commentId: T:SpellBook.Core.IRandomSource
+  id: IRandomSource
+  parent: SpellBook.Core
+  children:
+  - SpellBook.Core.IRandomSource.Range(System.Int32)
+  - SpellBook.Core.IRandomSource.Value
+  langs:
+  - csharp
+  - vb
+  name: IRandomSource
+  nameWithType: IRandomSource
+  fullName: SpellBook.Core.IRandomSource
+  type: Interface
+  namespace: SpellBook.Core
+  summary: Fonte de números aleatórios. Troque a do ASC por uma com semente fixa para repetir sorteios em testes e replays.
+  example: []
+  syntax:
+    content: public interface IRandomSource
+    content.vb: Public Interface IRandomSource
+  derivedClasses:
+  - SpellBook.Core.SeededRandomSource
+- uid: SpellBook.Core.IRandomSource.Value
+  commentId: M:SpellBook.Core.IRandomSource.Value
+  id: Value
+  parent: SpellBook.Core.IRandomSource
+  langs:
+  - csharp
+  - vb
+  name: Value()
+  nameWithType: IRandomSource.Value()
+  fullName: SpellBook.Core.IRandomSource.Value()
+  type: Method
+  namespace: SpellBook.Core
+  summary: Próximo valor em [0, 1).
+  example: []
+  syntax:
+    content: float Value()
+    return:
+      type: System.Single
+    content.vb: Function Value() As Single
+  overload: SpellBook.Core.IRandomSource.Value*
+- uid: SpellBook.Core.IRandomSource.Range(System.Int32)
+  commentId: M:SpellBook.Core.IRandomSource.Range(System.Int32)
+  id: Range(System.Int32)
+  parent: SpellBook.Core.IRandomSource
+  langs:
+  - csharp
+  - vb
+  name: Range(int)
+  nameWithType: IRandomSource.Range(int)
+  fullName: SpellBook.Core.IRandomSource.Range(int)
+  type: Method
+  namespace: SpellBook.Core
+  summary: Próximo inteiro em [0, <code class="paramref">maxExclusive</code>). Com 0 ou menos, lança <xref href="System.ArgumentOutOfRangeException" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: int Range(int maxExclusive)
+    parameters:
+    - id: maxExclusive
+      type: System.Int32
+    return:
+      type: System.Int32
+    content.vb: Function Range(maxExclusive As Integer) As Integer
+  overload: SpellBook.Core.IRandomSource.Range*
+  nameWithType.vb: IRandomSource.Range(Integer)
+  fullName.vb: SpellBook.Core.IRandomSource.Range(Integer)
+  name.vb: Range(Integer)
+references:
+- uid: SpellBook.Core
+  commentId: N:SpellBook.Core
+  name: SpellBook.Core
+  nameWithType: SpellBook.Core
+  fullName: SpellBook.Core
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+- uid: SpellBook.Core.IRandomSource.Value*
+  commentId: Overload:SpellBook.Core.IRandomSource.Value
+  href: SpellBook.Core.IRandomSource.html#SpellBook_Core_IRandomSource_Value
+  name: Value
+  nameWithType: IRandomSource.Value
+  fullName: SpellBook.Core.IRandomSource.Value
+- uid: System.Single
+  commentId: T:System.Single
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.single
+  name: float
+  nameWithType: float
+  fullName: float
+  nameWithType.vb: Single
+  fullName.vb: Single
+  name.vb: Single
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: System.ArgumentOutOfRangeException
+  commentId: T:System.ArgumentOutOfRangeException
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.argumentoutofrangeexception
+  name: ArgumentOutOfRangeException
+  nameWithType: ArgumentOutOfRangeException
+  fullName: System.ArgumentOutOfRangeException
+- uid: SpellBook.Core.IRandomSource.Range*
+  commentId: Overload:SpellBook.Core.IRandomSource.Range
+  href: SpellBook.Core.IRandomSource.html#SpellBook_Core_IRandomSource_Range_System_Int32_
+  name: Range
+  nameWithType: IRandomSource.Range
+  fullName: SpellBook.Core.IRandomSource.Range
+- uid: System.Int32
+  commentId: T:System.Int32
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.int32
+  name: int
+  nameWithType: int
+  fullName: int
+  nameWithType.vb: Integer
+  fullName.vb: Integer
+  name.vb: Integer

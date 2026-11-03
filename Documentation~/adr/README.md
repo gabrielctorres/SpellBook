@@ -13,15 +13,16 @@ Formato de cada ADR: Status, Data, Contexto, Decisão, Motivo, Consequências, O
 | Nº | Título | Status | Data |
 |---|---|---|---|
 | [0001](0001-documentation-como-pasta-de-docs-internas-e-adrs.md) | `Documentation~/` como pasta de documentos internos e ADRs como registro de decisão | Aceita | 2026-10-29 |
-| [0002](0002-fluxo-backlog-prd-spec-gate-unico-issues.md) | Fluxo backlog → PRD → Spec → gate único → issues no repositório do SpellBook | Aceita | 2026-10-29 |
-| [0003](0003-um-ticket-uma-issue-um-pr.md) | Um ticket = uma issue = um PR | Aceita | 2026-10-29 |
+| [0002](0002-fluxo-backlog-prd-spec-gate-unico-issues.md) | Fluxo backlog → PRD → Spec → gate único → issues no repositório do SpellBook (emenda de 2026-11-03, aceita: Spec "just-in-time", com detalhe do ticket na entrada da fila; emenda de 2026-11-03, aprovada pelo usuário em 2026-11-03: design doc por épico no lugar de PRD + Spec, Detalhe pela Fábrica, papéis Fábrica, Examinador e Desenhista, DevOps como passo do script, `CLAUDE.md` como fonte única e `decisoes.md`) | Aceita | 2026-10-29 |
+| [0003](0003-um-ticket-uma-issue-um-pr.md) | Um ticket = uma issue = um PR (histórico das emendas até 2026-11-03) | Substituída por [0042](0042-tamanho-do-ticket-contagem-e-excecoes.md) | 2026-10-29 |
 | [0004](0004-testes-primeiro-red-green.md) | Testes primeiro (red → green) | Aceita | 2026-10-29 |
-| [0005](0005-editor-unico-com-trava.md) | Editor único com trava (editor-lock) | Aceita | 2026-10-29 |
-| [0006](0006-worktrees-por-ticket.md) | Worktrees por ticket | Adiada (decisão I34) | 2026-10-29 |
-| [0007](0007-documentacao-como-codigo-e-gate-de-doc.md) | Documentação como código e gate de doc no `/revisao` | Aceita | 2026-10-29 |
+| [0005](0005-editor-unico-com-trava.md) | Editor único com trava (editor-lock) (emenda de 2026-11-03, aprovada pelo usuário em 2026-11-03: uma Unity e uma trava por checkout, até 2 Unity na máquina, dois tickets com Unity em paralelo em worktrees sem arquivo em comum) | Aceita | 2026-10-29 |
+| [0006](0006-worktrees-por-ticket.md) | Worktrees por ticket (o worktree do paralelo com Unity vale pela emenda de 2026-11-03 da 0005) | Adiada (decisão I34) | 2026-10-29 |
+| [0007](0007-documentacao-como-codigo-e-gate-de-doc.md) | Documentação como código e gate de doc no `/revisao` (emenda de 2026-11-01, aceita: molde de página, regras de escrita, `nav` explícito e constante por tipo; emenda de 2026-11-03, aceita: manual, referência e guardas só no passe de documentação, CHANGELOG por ticket só com quebras) | Aceita | 2026-10-29 |
 | [0008](0008-conventional-commits-e-versionamento-semantico.md) | Conventional Commits e versionamento semântico | Aceita | 2026-10-29 |
 | [0027](0027-estrutura-do-repositorio-projeto-unity-na-raiz.md) | Estrutura do repositório: projeto Unity na raiz e pacote embutido em `Packages/com.spellbook/` | Aceita | 2026-10-30 |
 | [0028](0028-autoria-de-samples-por-renomeacao-temporaria.md) | Autoria de `Samples~` por renomeação temporária para `Samples` | Aceita | 2026-10-31 |
+| [0042](0042-tamanho-do-ticket-contagem-e-excecoes.md) | Tamanho do ticket, contagem e exceções: ~500 linhas e 10 arquivos, até +30% com uma linha no `decisoes.md`, acima disso divide (substitui a 0003; aprovada pelo usuário em 2026-11-03) | Aceita | 2026-11-03 |
 
 ## Arquitetura
 
@@ -43,5 +44,18 @@ Formato de cada ADR: Status, Data, Contexto, Decisão, Motivo, Consequências, O
 | [0022](0022-ordem-das-checagens-de-ativacao.md) | Ordem das checagens de ativação | Aceita como direção | 2026-10-29 |
 | [0023](0023-texto-estruturado-e-itextprovider.md) | Texto estruturado + `ITextProvider` | Aceita como direção | 2026-10-29 |
 | [0024](0024-pipeline-generico-de-dano.md) | Pipeline genérico de dano | Aceita como direção | 2026-10-29 |
-| [0025](0025-documentacao-em-mkdocs-ou-zensical-no-github-pages.md) | Documentação em MkDocs Material ou Zensical, publicada no GitHub Pages | Aceita | 2026-10-29 |
+| [0025](0025-documentacao-em-mkdocs-ou-zensical-no-github-pages.md) | Documentação em MkDocs Material ou Zensical, publicada no GitHub Pages (emenda de 2026-11-01, aceita: Action de documentação pela 0040) | Aceita | 2026-10-29 |
 | [0026](0026-spellbook-sem-odin-editor-proprio-em-ui-toolkit.md) | SpellBook sem Odin: editor próprio em UI Toolkit (substitui a 0011) | Aceita | 2026-10-29 |
+| [0029](0029-ordem-unica-de-composicao-dos-modificadores.md) | Ordem única de composição dos modificadores | Aceita | 2026-10-31 |
+| [0030](0030-effectspec-e-effectcontext.md) | `EffectSpec` e `EffectContext` por valor; respostas aos "Em aberto" da 0020 e da 0021 (emenda: `%nome` como modo do `ScalableFloat`) | Aceita | 2026-10-31 |
+| [0031](0031-relay-do-gas-e-gas-bridges-editor.md) | Forma do relay do GAS e o asmdef `SpellBook.GAS.Bridges.Editor` | Aceita | 2026-10-31 |
+| [0032](0032-condition-contexto-motivo-e-cargas.md) | `Condition`: contexto por módulo, motivo no ponto de uso e cargas na ativação (respostas à 0019 e à 0022) | Aceita | 2026-10-31 |
+| [0033](0033-pipeline-de-dano-na-definicao-do-atributo.md) | Pipeline de dano: processadores na definição do atributo, meta-atributo e relatório (respostas à 0024) | Aceita | 2026-10-31 |
+| [0034](0034-modelo-de-execucao-das-acoes.md) | Modelo de execução das ações: executor no `Tick`, relógio lógico e dois contextos (respostas à 0018) | Aceita | 2026-10-31 |
+| [0035](0035-filtro-de-candidato-a-alvo-por-condition.md) | Filtro de candidato a alvo: uma `Condition<ConditionContext>` com sujeito, no seletor de área, no impacto do projétil e na aura | Aceita | 2026-10-31 |
+| [0036](0036-thinker-com-asc-proprio-e-execucao-que-segue-o-dono.md) | Thinker com ASC próprio e execução que segue o dono (`ExecutionLink`) | Aceita | 2026-10-31 |
+| [0037](0037-cues-roteador-por-ancora-e-integracao-por-acoes.md) | Cues: tempo no módulo, roteador por âncora, objetos rastreados pelo roteador e integração com o GAS só por ações | Aceita | 2026-10-31 |
+| [0038](0038-texto-no-core-tabela-por-cultura-e-adaptador-opcional.md) | Texto no Core: `ITextProvider`, `LocalizedText`, `TextBuffer`, tabela por cultura e adaptador opcional do Unity Localization (respostas à 0023) | Aceita | 2026-10-31 |
+| [0039](0039-ui-ligacao-pela-fonte-ancora-nao-generica-e-ugui-declarada.md) | UI: ligação criada pela fonte, fontes fechadas por modelo, âncora não genérica, listas por chave e uGUI declarada (respostas à 0017 e à 0012) | Aceita | 2026-10-31 |
+| [0040](0040-catalogo-e-api-gerados-pela-unity-na-action-de-documentacao.md) | Catálogo e API gerados pela Unity na máquina e commitados: o catálogo lê o seletor de tipo, o DocFX lê as fontes que a Unity compila, e a Action monta o site sem a Unity (emenda de 2026-11-01, aceita: mapa da Unity e gatilhos dos exemplos, pela 0041; emenda de 2026-11-02, aceita: link do .NET pelo `href` do DocFX; emenda de 2026-11-03, aceita: geração só no passe de documentação) | Aceita | 2026-11-01 |
+| [0041](0041-links-para-a-unity-e-exemplos-incluidos-do-codigo.md) | Links da API para a documentação mais recente da Unity por mapa gerado (tipos do .NET com o link que o DocFX grava, emenda de 2026-11-02, aceita), e exemplos do manual incluídos de testes | Aceita | 2026-11-01 |

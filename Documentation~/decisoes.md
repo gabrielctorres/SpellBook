@@ -1,0 +1,23 @@
+# Decisões
+
+Log das decisões tomadas sem o usuário e das exceções de tamanho (ADR 0002, emenda de 2026-11-03; ADR 0042). Uma linha por decisão, da mais antiga para a mais nova, sempre acrescentada no fim. Uma linha não se apaga nem se reescreve: a correção é uma linha nova. O `.gitattributes` junta as linhas de dois tickets em paralelo sem conflito.
+
+| Data | Ticket | Decisão | Base | ADR afetada |
+|---|---|---|---|---|
+| 2026-11-02 | lote 9 | O EX3 saiu do lote 9 e o EV9 entrou no lugar | o EX3 ainda não foi detalhado na Spec (ela diz "detalhado quando entrar no lote 9"), e o EV9 só depende do EV8 e do AV7 | nenhuma |
+| 2026-11-02 | branches | As remotas `feat/sample-sandbox` e `fix/gas-correcoes-nucleo` não foram apagadas | o classificador bloqueou o delete remoto, mesmo com o "sim" do usuário; fica para ele rodar | nenhuma |
+| 2026-11-02 | EV3c (#309) | A emenda do Arquiteto foi aprovada: o ASC fica dono do contexto da ativação, entram ActionRunner.cs e AbilitySpec.cs, ~410 linhas e 10 arquivos | a Fábrica devolveu o ticket por uma lacuna da Spec; a emenda fica dentro do teto, não quebra API e não muda ADR (a 0034 não trata de posse) | nenhuma |
+| 2026-11-03 | EV4a (#177) | O commit 8828ea6 foi feito pelo DevOps fora do ticket.sh, a partir do APROVADO do Examinador | a sessão caiu às 05:14, no limite de uso, depois do APROVADO e antes do commit; a fila foi estendida até o EV16 (ordem global) | nenhuma |
+| 2026-11-03 | EV7 (#181) | O ticket voltou para a Fábrica com os 2 achados do Examinador (referência não regenerada; CHANGELOG errado sobre Instigator vs Owner), e a correção do texto foi aceita sem mudar a TagQueryCondition | correção dentro do escopo do ticket; o caminho que falta (condição sobre quem aplicou o efeito) fica registrado no CHANGELOG para o Arquiteto avaliar depois | nenhuma |
+| 2026-11-03 | EV4b (#178) | Exceção automática de tamanho, 579 linhas e 10 arquivos | regra de ≤30% da ADR 0003 | 0003 |
+| 2026-11-03 | EV8 (#182) | O ticket voltou para a Fábrica para completar o teste do CA12 (tags ignoradas) | achado de teste fraco, a correção cabe no escopo do ticket | nenhuma |
+| 2026-11-03 | EV8 (#182) | A fila parou durante a segunda revisão do EV8 e não foi relançada | o Claude Code encerrou o processo da fila por pouca memória no sistema e orientou a não reiniciar sozinho; o terminal do Examinador ficou rodando, sem o script que faria o commit | nenhuma |
+| 2026-11-03 | correção | A fila não tinha parado: a primeira cópia, lançada em segundo plano, seguiu sozinha (EV8 0d2ff8d e EV9 0ac6309; EV10 em curso). Só a cópia duplicada foi encerrada por falta de memória | conferido pelos commits e pelos terminais | nenhuma |
+| 2026-11-03 | PD1 (#312) | A issue foi criada sem rascunho para o usuário, com a regra de Spec JIT e documentação no fim; o PD1 entra depois do EV10 e inclui as edições de skills e agentes que o Arquiteto não pode fazer, mais as mudanças anteriores não commitadas das skills | decisão do usuário de 2026-11-03; o Controlador não edita docs, então a Fábrica aplica | 0002 |
+| 2026-11-03 | fila | Um passo automático de detalhamento JIT pelo Arquiteto entra antes de cada ticket, com o detalhe aprovado pelo Controlador; um ticket acima do teto é dividido pelo Arquiteto, e a fila para para eu reorganizar | emenda de 2026-11-03 da ADR 0002 (a Fábrica devolveu o EV11 por falta do detalhe) | 0002 |
+| 2026-11-03 | EV10 (#184) | Exceção automática de tamanho, 583 linhas e 9 arquivos | regra de ≤30% da ADR 0003 | 0003 |
+| 2026-11-03 | EV11 (#185) | O Arquiteto dividiu o EV11 (~600 linhas): a #185 foi renomeada para EV11a, a #313 criada para o EV11b, e o EV12 passa a depender do EV11b | teto da ADR 0003 e Spec JIT | nenhuma |
+| 2026-11-03 | EV11a (#185) | Exceção automática de tamanho, 606 linhas e 7 arquivos (+21%) | regra de ≤30% | 0003 |
+| 2026-11-03 | processo | Design doc por épico, 0003 consolidada na 0042, papéis Fábrica, Examinador e Desenhista, commit como passo do script, WIP por worktree com até 2 Unity | decisão do usuário de 2026-11-03 | 0002, 0003, 0005, 0042 |
+| 2026-11-03 | PS1 | Exceção de arquivos: 28 arquivos (teto 10, +180%) e 0 linhas contadas; o ticket não se divide | decisão do usuário de 2026-11-03: ticket de processo passa do teto com registro aqui, em vez de dividir | 0042 |
+| 2026-11-03 | PS1 | As 14 linhas de 2026-11-02 e 2026-11-03 do log da memória (`decisoes-autonomas-log.md`, só as que começam com "- 20") foram migradas para cá no formato novo, antes das duas linhas do texto exato do item 27 da Spec | pedido do Controlador no despacho do PS1, para que o `decisoes.md` seja o único log de decisões | 0002 |

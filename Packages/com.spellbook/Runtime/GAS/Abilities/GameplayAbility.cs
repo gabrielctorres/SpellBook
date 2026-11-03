@@ -5,6 +5,7 @@ using SpellBook.Core.Inspector;
 using SpellBook.Core.Validation;
 using UnityEngine;
 using UnityEngine.Serialization;
+using SpellBook.GAS.Abilities.Triggers;
 using SpellBook.GAS.Actions;
 using SpellBook.GAS.Core;
 using SpellBook.Tags;
@@ -15,6 +16,15 @@ using SpellBook.GAS.Values;
 
 namespace SpellBook.GAS.Abilities
 {
+    /// <summary>Quando a habilidade cobra a recarga, o custo e a carga.</summary>
+    public enum CommitMode
+    {
+        /// <summary>Na ativação, antes da primeira ação.</summary>
+        OnStart,
+        /// <summary>Quando uma <see cref="CommitAction"/> roda. Cancelar antes dela não cobra nada.</summary>
+        Manual,
+    }
+
     /// <summary>
     /// Dados de uma habilidade. A execução é feita pelo AbilitySystemComponent (TryActivateAbility).
     /// </summary>
@@ -52,6 +62,9 @@ namespace SpellBook.GAS.Abilities
         [Tooltip("Cargas: cada ativação gasta uma, e elas voltam uma por vez. Desligadas por padrão.")]
         [SerializeField] private ChargesConfig charges = new ChargesConfig();
 
+        [Tooltip("Quando cobrar a recarga, o custo e a carga: na ativação, ou quando uma ação Commit rodar.")]
+        [SerializeField] private CommitMode commitMode = CommitMode.OnStart;
+
         [Tooltip("Alcance da habilidade por nível, lido pela CastRangeCondition. 0 ou menos: sem limite.")]
         [SerializeField] private ScalableFloat castRange = ScalableFloat.Constant(0f);
 
@@ -83,6 +96,22 @@ namespace SpellBook.GAS.Abilities
         [FormerlySerializedAs("Actions")]
         [ActionEvent("Ao ativar", DefaultTarget.EventTargets, true)]
         public List<GameplayAction> OnActivate = new List<GameplayAction>();
+
+        /// <summary>Roda quando a lista "Ao ativar" acaba, antes de a habilidade devolver as tags e terminar.</summary>
+        [SerializeReference]
+        [TypePicker]
+        [ActionEvent("Ao terminar", DefaultTarget.EventTargets, true)]
+        public List<GameplayAction> OnEnd = new List<GameplayAction>();
+
+        /// <summary>Roda quando a habilidade é cancelada, depois do cancelamento das ações em curso e antes do fim.</summary>
+        [SerializeReference]
+        [TypePicker]
+        [ActionEvent("Ao ser cancelada", DefaultTarget.EventTargets, true)]
+        public List<GameplayAction> OnCancel = new List<GameplayAction>();
+
+        [Header("Gatilhos")]
+        [Tooltip("Causas que tentam ativar a habilidade sozinha, pelas mesmas checagens da ativação manual.")]
+        [SerializeReference, TypePicker] private List<AbilityTrigger> triggers = new List<AbilityTrigger>();
 
         /// <summary>
         /// Verifica se a habilidade pode ser ativada pelo ASC, informando o motivo em caso de falha.
@@ -139,6 +168,18 @@ namespace SpellBook.GAS.Abilities
             set => castRange = value ?? ScalableFloat.Constant(0f);
         }
 
+        /// <summary>
+        /// Gatilhos da habilidade. O ASC os lê na concessão: mudar a lista depois só vale para a próxima concessão.
+        /// </summary>
+        public List<AbilityTrigger> Triggers => triggers ??= new List<AbilityTrigger>();
+
+        /// <summary>Quando a habilidade cobra a recarga, o custo e a carga. O padrão é <see cref="CommitMode.OnStart"/>.</summary>
+        public CommitMode CommitMode
+        {
+            get => commitMode;
+            set => commitMode = value;
+        }
+
         /// <summary>Cargas da habilidade (desligadas por padrão). O estado de cada personagem fica no <see cref="AbilitySpec"/>.</summary>
         public ChargesConfig Charges => charges ??= new ChargesConfig();
 
@@ -177,8 +218,8 @@ namespace SpellBook.GAS.Abilities
         /// <summary>
         /// Acusa <c>MaxLevel</c> menor que 1, a tabela de valores (nomes e valores), a política de redução sem atributo de
         /// redução, cada nome do modo Table que um efeito usado pela habilidade lê e não está na tabela (recarga, custo e
-        /// <see cref="GameplayAction.CollectEffects"/>), e <c>MaxLevel</c> acima do tamanho de um array da tabela (aviso).
-        /// Repassa a validação a cada ação da lista; ações vazias são ignoradas.
+        /// <see cref="CollectActionEffects"/>), e <c>MaxLevel</c> acima do tamanho de um array da tabela (aviso).
+        /// Repassa a validação a cada ação das três listas; ações vazias são ignoradas.
         /// </summary>
         public virtual void Validate(ValidationResult result)
         {
@@ -204,11 +245,37 @@ namespace SpellBook.GAS.Abilities
             ValidateActivationRules(result);
             charges?.Validate(result, nameof(charges), values);
 
-            if (OnActivate == null) return;
+            ValidateActions(OnActivate, result);
+            ValidateActions(OnEnd, result);
+            ValidateActions(OnCancel, result);
+        }
 
-            for (int i = 0; i < OnActivate.Count; i++)
+        /// <summary>
+        /// Junta em <paramref name="results"/> os efeitos que as ações de "Ao ativar", "Ao terminar" e "Ao ser cancelada"
+        /// aplicam, pelo <see cref="GameplayAction.CollectEffects"/> de cada uma.
+        /// </summary>
+        public void CollectActionEffects(List<GameplayEffect> results)
+        {
+            CollectEffects(OnActivate, results);
+            CollectEffects(OnEnd, results);
+            CollectEffects(OnCancel, results);
+        }
+
+        private static void ValidateActions(List<GameplayAction> actions, ValidationResult result)
+        {
+            if (actions == null) return;
+            for (int i = 0; i < actions.Count; i++)
             {
-                OnActivate[i]?.Validate(result);
+                actions[i]?.Validate(result);
+            }
+        }
+
+        private static void CollectEffects(List<GameplayAction> actions, List<GameplayEffect> results)
+        {
+            if (actions == null) return;
+            for (int i = 0; i < actions.Count; i++)
+            {
+                actions[i]?.CollectEffects(results);
             }
         }
 
@@ -231,13 +298,7 @@ namespace SpellBook.GAS.Abilities
             var effects = new List<GameplayEffect>();
             if (CooldownEffect != null) effects.Add(CooldownEffect);
             if (CostEffect != null) effects.Add(CostEffect);
-            if (OnActivate != null)
-            {
-                for (int i = 0; i < OnActivate.Count; i++)
-                {
-                    OnActivate[i]?.CollectEffects(effects);
-                }
-            }
+            CollectActionEffects(effects);
 
             for (int i = 0; i < effects.Count; i++)
             {

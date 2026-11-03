@@ -21,6 +21,7 @@ items:
   - SpellBook.GAS.Core.AbilitySystemComponent.CancelAbility(SpellBook.GAS.Abilities.GameplayAbility)
   - SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(System.Object)
   - SpellBook.GAS.Core.AbilitySystemComponent.CancelAllAbilities
+  - SpellBook.GAS.Core.AbilitySystemComponent.CommitAbility(SpellBook.GAS.Abilities.AbilitySpec)
   - SpellBook.GAS.Core.AbilitySystemComponent.ExtendEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance,System.Single)
   - SpellBook.GAS.Core.AbilitySystemComponent.FindEffects(SpellBook.GAS.Effects.GameplayEffect,System.Collections.Generic.List{SpellBook.GAS.Effects.ActiveEffectInstance})
   - SpellBook.GAS.Core.AbilitySystemComponent.FindEffectsMatching(SpellBook.Tags.GameplayTagQuery,System.Collections.Generic.List{SpellBook.GAS.Effects.ActiveEffectInstance})
@@ -68,7 +69,9 @@ items:
   - SpellBook.GAS.Core.AbilitySystemComponent.OnEffectBlocked
   - SpellBook.GAS.Core.AbilitySystemComponent.OnEffectRemoved
   - SpellBook.GAS.Core.AbilitySystemComponent.OnEffectStacksChanged
+  - SpellBook.GAS.Core.AbilitySystemComponent.OnGameplayEvent
   - SpellBook.GAS.Core.AbilitySystemComponent.OnTagChanged
+  - SpellBook.GAS.Core.AbilitySystemComponent.Random
   - SpellBook.GAS.Core.AbilitySystemComponent.ReduceCooldown(SpellBook.GAS.Abilities.GameplayAbility,System.Single)
   - SpellBook.GAS.Core.AbilitySystemComponent.ReduceEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance,System.Single)
   - SpellBook.GAS.Core.AbilitySystemComponent.RefillCharges(SpellBook.GAS.Abilities.AbilitySpec)
@@ -84,8 +87,10 @@ items:
   - SpellBook.GAS.Core.AbilitySystemComponent.RestartCooldown(SpellBook.GAS.Abilities.GameplayAbility)
   - SpellBook.GAS.Core.AbilitySystemComponent.RestartEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance)
   - SpellBook.GAS.Core.AbilitySystemComponent.RunActions(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction},SpellBook.GAS.Actions.ActionContext,System.Object)
+  - SpellBook.GAS.Core.AbilitySystemComponent.SendGameplayEvent(SpellBook.Tags.GameplayTag,SpellBook.GAS.Abilities.GameplayEventData@)
   - SpellBook.GAS.Core.AbilitySystemComponent.SetAbilityLevel(SpellBook.GAS.Abilities.GameplayAbility,System.Int32)
   - SpellBook.GAS.Core.AbilitySystemComponent.SetEffectStacks(SpellBook.GAS.Effects.ActiveEffectInstance,System.Int32)
+  - SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource(SpellBook.Core.IRandomSource)
   - SpellBook.GAS.Core.AbilitySystemComponent.SetTimeSource(SpellBook.Time.ITimeSource)
   - SpellBook.GAS.Core.AbilitySystemComponent.TagCounts
   - SpellBook.GAS.Core.AbilitySystemComponent.Tick(System.Single)
@@ -593,6 +598,51 @@ items:
   nameWithType.vb: AbilitySystemComponent.Tick(Single)
   fullName.vb: SpellBook.GAS.Core.AbilitySystemComponent.Tick(Single)
   name.vb: Tick(Single)
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.Random
+  commentId: P:SpellBook.GAS.Core.AbilitySystemComponent.Random
+  id: Random
+  parent: SpellBook.GAS.Core.AbilitySystemComponent
+  langs:
+  - csharp
+  - vb
+  name: Random
+  nameWithType: AbilitySystemComponent.Random
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.Random
+  type: Property
+  namespace: SpellBook.GAS.Core
+  summary: >-
+    Fonte de aleatoriedade das ações deste ASC (<xref href="SpellBook.GAS.Actions.ActionContext.Random" data-throw-if-not-resolved="false"></xref>). O padrão é uma
+
+    <xref href="SpellBook.Core.SeededRandomSource" data-throw-if-not-resolved="false"></xref> com semente do relógio; troque por <xref href="SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource(SpellBook.Core.IRandomSource)" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public IRandomSource Random { get; }
+    parameters: []
+    return:
+      type: SpellBook.Core.IRandomSource
+    content.vb: Public ReadOnly Property Random As IRandomSource
+  overload: SpellBook.GAS.Core.AbilitySystemComponent.Random*
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource(SpellBook.Core.IRandomSource)
+  commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource(SpellBook.Core.IRandomSource)
+  id: SetRandomSource(SpellBook.Core.IRandomSource)
+  parent: SpellBook.GAS.Core.AbilitySystemComponent
+  langs:
+  - csharp
+  - vb
+  name: SetRandomSource(IRandomSource)
+  nameWithType: AbilitySystemComponent.SetRandomSource(IRandomSource)
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource(SpellBook.Core.IRandomSource)
+  type: Method
+  namespace: SpellBook.GAS.Core
+  summary: Troca a fonte de aleatoriedade, por exemplo por uma com semente fixa num teste ou replay.
+  example: []
+  syntax:
+    content: public void SetRandomSource(IRandomSource source)
+    parameters:
+    - id: source
+      type: SpellBook.Core.IRandomSource
+    content.vb: Public Sub SetRandomSource(source As IRandomSource)
+  overload: SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource*
 - uid: SpellBook.GAS.Core.AbilitySystemComponent.RunActions(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction},SpellBook.GAS.Actions.ActionContext,System.Object)
   commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.RunActions(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction},SpellBook.GAS.Actions.ActionContext,System.Object)
   id: RunActions(System.Collections.Generic.IReadOnlyList{SpellBook.GAS.Actions.GameplayAction},SpellBook.GAS.Actions.ActionContext,System.Object)
@@ -1496,6 +1546,38 @@ items:
       type: System.Boolean
     content.vb: Public Function CanAffordCost(costEffect As GameplayEffect) As Boolean
   overload: SpellBook.GAS.Core.AbilitySystemComponent.CanAffordCost*
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.CommitAbility(SpellBook.GAS.Abilities.AbilitySpec)
+  commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.CommitAbility(SpellBook.GAS.Abilities.AbilitySpec)
+  id: CommitAbility(SpellBook.GAS.Abilities.AbilitySpec)
+  parent: SpellBook.GAS.Core.AbilitySystemComponent
+  langs:
+  - csharp
+  - vb
+  name: CommitAbility(AbilitySpec)
+  nameWithType: AbilitySystemComponent.CommitAbility(AbilitySpec)
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.CommitAbility(SpellBook.GAS.Abilities.AbilitySpec)
+  type: Method
+  namespace: SpellBook.GAS.Core
+  summary: >-
+    Cobra a recarga, o custo e a carga da ativação em curso de <code class="paramref">spec</code>, uma vez por ativação. Confere
+
+    de novo a carga e o custo, sem tags e sem regras; se falhar, cancela a habilidade e dispara
+
+    <xref href="SpellBook.GAS.Core.AbilitySystemComponent.OnAbilityFailed" data-throw-if-not-resolved="false"></xref> com <xref href="SpellBook.GAS.Abilities.AbilityActivationResult.NoCharges" data-throw-if-not-resolved="false"></xref> ou
+
+    <xref href="SpellBook.GAS.Abilities.AbilityActivationResult.CannotAffordCost" data-throw-if-not-resolved="false"></xref>. Devolve se a ativação está cobrada; spec nulo, de outro
+
+    ASC ou inativo dá <code>false</code>. A <xref href="SpellBook.GAS.Actions.CommitAction" data-throw-if-not-resolved="false"></xref> chama este método.
+  example: []
+  syntax:
+    content: public bool CommitAbility(AbilitySpec spec)
+    parameters:
+    - id: spec
+      type: SpellBook.GAS.Abilities.AbilitySpec
+    return:
+      type: System.Boolean
+    content.vb: Public Function CommitAbility(spec As AbilitySpec) As Boolean
+  overload: SpellBook.GAS.Core.AbilitySystemComponent.CommitAbility*
 - uid: SpellBook.GAS.Core.AbilitySystemComponent.CancelAbility(SpellBook.GAS.Abilities.AbilitySpec)
   commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.CancelAbility(SpellBook.GAS.Abilities.AbilitySpec)
   id: CancelAbility(SpellBook.GAS.Abilities.AbilitySpec)
@@ -1508,7 +1590,7 @@ items:
   fullName: SpellBook.GAS.Core.AbilitySystemComponent.CancelAbility(SpellBook.GAS.Abilities.AbilitySpec)
   type: Method
   namespace: SpellBook.GAS.Core
-  summary: Interrompe a habilidade, chamando OnCancel nas ações em execução.
+  summary: 'Interrompe a habilidade: chama OnCancel nas ações em execução, roda a lista "Ao ser cancelada" e termina.'
   example: []
   syntax:
     content: public void CancelAbility(AbilitySpec spec)
@@ -1851,6 +1933,58 @@ items:
   nameWithType.vb: AbilitySystemComponent.HasAny(IReadOnlyList(Of GameplayTag))
   fullName.vb: SpellBook.GAS.Core.AbilitySystemComponent.HasAny(System.Collections.Generic.IReadOnlyList(Of SpellBook.Tags.GameplayTag))
   name.vb: HasAny(IReadOnlyList(Of GameplayTag))
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.OnGameplayEvent
+  commentId: E:SpellBook.GAS.Core.AbilitySystemComponent.OnGameplayEvent
+  id: OnGameplayEvent
+  parent: SpellBook.GAS.Core.AbilitySystemComponent
+  langs:
+  - csharp
+  - vb
+  name: OnGameplayEvent
+  nameWithType: AbilitySystemComponent.OnGameplayEvent
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.OnGameplayEvent
+  type: Event
+  namespace: SpellBook.GAS.Core
+  summary: Evento de gameplay recebido por <xref href="SpellBook.GAS.Core.AbilitySystemComponent.SendGameplayEvent(SpellBook.Tags.GameplayTag%2cSpellBook.GAS.Abilities.GameplayEventData%40)" data-throw-if-not-resolved="false"></xref>, antes dos gatilhos. Tag inválida não dispara.
+  example: []
+  syntax:
+    content: public event GameplayEventHandler OnGameplayEvent
+    return:
+      type: SpellBook.GAS.Abilities.GameplayEventHandler
+    content.vb: Public Event OnGameplayEvent As GameplayEventHandler
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.SendGameplayEvent(SpellBook.Tags.GameplayTag,SpellBook.GAS.Abilities.GameplayEventData@)
+  commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.SendGameplayEvent(SpellBook.Tags.GameplayTag,SpellBook.GAS.Abilities.GameplayEventData@)
+  id: SendGameplayEvent(SpellBook.Tags.GameplayTag,SpellBook.GAS.Abilities.GameplayEventData@)
+  parent: SpellBook.GAS.Core.AbilitySystemComponent
+  langs:
+  - csharp
+  - vb
+  name: SendGameplayEvent(GameplayTag, in GameplayEventData)
+  nameWithType: AbilitySystemComponent.SendGameplayEvent(GameplayTag, in GameplayEventData)
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.SendGameplayEvent(SpellBook.Tags.GameplayTag, in SpellBook.GAS.Abilities.GameplayEventData)
+  type: Method
+  namespace: SpellBook.GAS.Core
+  summary: >-
+    Envia o evento <code class="paramref">tag</code> a este ASC: dispara <xref href="SpellBook.GAS.Core.AbilitySystemComponent.OnGameplayEvent" data-throw-if-not-resolved="false"></xref> e, na ordem da concessão,
+
+    tenta ativar cada habilidade com um <xref href="SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger" data-throw-if-not-resolved="false"></xref> da tag (ou de uma tag pai). A ativação usa
+
+    <xref href="SpellBook.GAS.Abilities.GameplayEventData.Target" data-throw-if-not-resolved="false"></xref> como unidade-alvo e o ponto do evento, ou a posição da unidade. Tag
+
+    inválida é ignorada; sem ouvinte e sem gatilho, nada acontece e nada é alocado.
+  example: []
+  syntax:
+    content: public void SendGameplayEvent(GameplayTag tag, in GameplayEventData data)
+    parameters:
+    - id: tag
+      type: SpellBook.Tags.GameplayTag
+    - id: data
+      type: SpellBook.GAS.Abilities.GameplayEventData
+    content.vb: Public Sub SendGameplayEvent(tag As GameplayTag, data As GameplayEventData)
+  overload: SpellBook.GAS.Core.AbilitySystemComponent.SendGameplayEvent*
+  nameWithType.vb: AbilitySystemComponent.SendGameplayEvent(GameplayTag, GameplayEventData)
+  fullName.vb: SpellBook.GAS.Core.AbilitySystemComponent.SendGameplayEvent(SpellBook.Tags.GameplayTag, SpellBook.GAS.Abilities.GameplayEventData)
+  name.vb: SendGameplayEvent(GameplayTag, GameplayEventData)
 - uid: SpellBook.GAS.Core.AbilitySystemComponent.ApplyEffect(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Core.AbilitySystemComponent)
   commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.ApplyEffect(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Core.AbilitySystemComponent)
   id: ApplyEffect(SpellBook.GAS.Effects.GameplayEffect,SpellBook.GAS.Core.AbilitySystemComponent)
@@ -10647,6 +10781,78 @@ references:
   nameWithType.vb: Single
   fullName.vb: Single
   name.vb: Single
+- uid: SpellBook.GAS.Actions.ActionContext.Random
+  commentId: P:SpellBook.GAS.Actions.ActionContext.Random
+  href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_Random
+  name: Random
+  nameWithType: ActionContext.Random
+  fullName: SpellBook.GAS.Actions.ActionContext.Random
+- uid: SpellBook.Core.SeededRandomSource
+  commentId: T:SpellBook.Core.SeededRandomSource
+  href: SpellBook.Core.SeededRandomSource.html
+  name: SeededRandomSource
+  nameWithType: SeededRandomSource
+  fullName: SpellBook.Core.SeededRandomSource
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource(SpellBook.Core.IRandomSource)
+  commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource(SpellBook.Core.IRandomSource)
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_SetRandomSource_SpellBook_Core_IRandomSource_
+  name: SetRandomSource(IRandomSource)
+  nameWithType: AbilitySystemComponent.SetRandomSource(IRandomSource)
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource(SpellBook.Core.IRandomSource)
+  spec.csharp:
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource(SpellBook.Core.IRandomSource)
+    name: SetRandomSource
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_SetRandomSource_SpellBook_Core_IRandomSource_
+  - name: (
+  - uid: SpellBook.Core.IRandomSource
+    name: IRandomSource
+    href: SpellBook.Core.IRandomSource.html
+  - name: )
+  spec.vb:
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource(SpellBook.Core.IRandomSource)
+    name: SetRandomSource
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_SetRandomSource_SpellBook_Core_IRandomSource_
+  - name: (
+  - uid: SpellBook.Core.IRandomSource
+    name: IRandomSource
+    href: SpellBook.Core.IRandomSource.html
+  - name: )
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.Random*
+  commentId: Overload:SpellBook.GAS.Core.AbilitySystemComponent.Random
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_Random
+  name: Random
+  nameWithType: AbilitySystemComponent.Random
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.Random
+- uid: SpellBook.Core.IRandomSource
+  commentId: T:SpellBook.Core.IRandomSource
+  parent: SpellBook.Core
+  href: SpellBook.Core.IRandomSource.html
+  name: IRandomSource
+  nameWithType: IRandomSource
+  fullName: SpellBook.Core.IRandomSource
+- uid: SpellBook.Core
+  commentId: N:SpellBook.Core
+  name: SpellBook.Core
+  nameWithType: SpellBook.Core
+  fullName: SpellBook.Core
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource*
+  commentId: Overload:SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_SetRandomSource_SpellBook_Core_IRandomSource_
+  name: SetRandomSource
+  nameWithType: AbilitySystemComponent.SetRandomSource
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.SetRandomSource
 - uid: SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(System.Object)
   commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(System.Object)
   isExternal: true
@@ -11488,6 +11694,36 @@ references:
   name: CanAffordCost
   nameWithType: AbilitySystemComponent.CanAffordCost
   fullName: SpellBook.GAS.Core.AbilitySystemComponent.CanAffordCost
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.OnAbilityFailed
+  commentId: E:SpellBook.GAS.Core.AbilitySystemComponent.OnAbilityFailed
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_OnAbilityFailed
+  name: OnAbilityFailed
+  nameWithType: AbilitySystemComponent.OnAbilityFailed
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.OnAbilityFailed
+- uid: SpellBook.GAS.Abilities.AbilityActivationResult.NoCharges
+  commentId: F:SpellBook.GAS.Abilities.AbilityActivationResult.NoCharges
+  href: SpellBook.GAS.Abilities.AbilityActivationResult.html#SpellBook_GAS_Abilities_AbilityActivationResult_NoCharges
+  name: NoCharges
+  nameWithType: AbilityActivationResult.NoCharges
+  fullName: SpellBook.GAS.Abilities.AbilityActivationResult.NoCharges
+- uid: SpellBook.GAS.Abilities.AbilityActivationResult.CannotAffordCost
+  commentId: F:SpellBook.GAS.Abilities.AbilityActivationResult.CannotAffordCost
+  href: SpellBook.GAS.Abilities.AbilityActivationResult.html#SpellBook_GAS_Abilities_AbilityActivationResult_CannotAffordCost
+  name: CannotAffordCost
+  nameWithType: AbilityActivationResult.CannotAffordCost
+  fullName: SpellBook.GAS.Abilities.AbilityActivationResult.CannotAffordCost
+- uid: SpellBook.GAS.Actions.CommitAction
+  commentId: T:SpellBook.GAS.Actions.CommitAction
+  href: SpellBook.GAS.Actions.CommitAction.html
+  name: CommitAction
+  nameWithType: CommitAction
+  fullName: SpellBook.GAS.Actions.CommitAction
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.CommitAbility*
+  commentId: Overload:SpellBook.GAS.Core.AbilitySystemComponent.CommitAbility
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_CommitAbility_SpellBook_GAS_Abilities_AbilitySpec_
+  name: CommitAbility
+  nameWithType: AbilitySystemComponent.CommitAbility
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.CommitAbility
 - uid: SpellBook.GAS.Core.AbilitySystemComponent.CancelAbility*
   commentId: Overload:SpellBook.GAS.Core.AbilitySystemComponent.CancelAbility
   href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_CancelAbility_SpellBook_GAS_Abilities_AbilitySpec_
@@ -11806,6 +12042,83 @@ references:
   name: HasAny
   nameWithType: AbilitySystemComponent.HasAny
   fullName: SpellBook.GAS.Core.AbilitySystemComponent.HasAny
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.SendGameplayEvent(SpellBook.Tags.GameplayTag,SpellBook.GAS.Abilities.GameplayEventData@)
+  commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.SendGameplayEvent(SpellBook.Tags.GameplayTag,SpellBook.GAS.Abilities.GameplayEventData@)
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_SendGameplayEvent_SpellBook_Tags_GameplayTag_SpellBook_GAS_Abilities_GameplayEventData__
+  name: SendGameplayEvent(GameplayTag, in GameplayEventData)
+  nameWithType: AbilitySystemComponent.SendGameplayEvent(GameplayTag, in GameplayEventData)
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.SendGameplayEvent(SpellBook.Tags.GameplayTag, in SpellBook.GAS.Abilities.GameplayEventData)
+  nameWithType.vb: AbilitySystemComponent.SendGameplayEvent(GameplayTag, GameplayEventData)
+  fullName.vb: SpellBook.GAS.Core.AbilitySystemComponent.SendGameplayEvent(SpellBook.Tags.GameplayTag, SpellBook.GAS.Abilities.GameplayEventData)
+  name.vb: SendGameplayEvent(GameplayTag, GameplayEventData)
+  spec.csharp:
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent.SendGameplayEvent(SpellBook.Tags.GameplayTag,SpellBook.GAS.Abilities.GameplayEventData@)
+    name: SendGameplayEvent
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_SendGameplayEvent_SpellBook_Tags_GameplayTag_SpellBook_GAS_Abilities_GameplayEventData__
+  - name: (
+  - uid: SpellBook.Tags.GameplayTag
+    name: GameplayTag
+    href: SpellBook.Tags.GameplayTag.html
+  - name: ','
+  - name: " "
+  - name: in
+  - name: " "
+  - uid: SpellBook.GAS.Abilities.GameplayEventData
+    name: GameplayEventData
+    href: SpellBook.GAS.Abilities.GameplayEventData.html
+  - name: )
+  spec.vb:
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent.SendGameplayEvent(SpellBook.Tags.GameplayTag,SpellBook.GAS.Abilities.GameplayEventData@)
+    name: SendGameplayEvent
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_SendGameplayEvent_SpellBook_Tags_GameplayTag_SpellBook_GAS_Abilities_GameplayEventData__
+  - name: (
+  - uid: SpellBook.Tags.GameplayTag
+    name: GameplayTag
+    href: SpellBook.Tags.GameplayTag.html
+  - name: ','
+  - name: " "
+  - uid: SpellBook.GAS.Abilities.GameplayEventData
+    name: GameplayEventData
+    href: SpellBook.GAS.Abilities.GameplayEventData.html
+  - name: )
+- uid: SpellBook.GAS.Abilities.GameplayEventHandler
+  commentId: T:SpellBook.GAS.Abilities.GameplayEventHandler
+  parent: SpellBook.GAS.Abilities
+  href: SpellBook.GAS.Abilities.GameplayEventHandler.html
+  name: GameplayEventHandler
+  nameWithType: GameplayEventHandler
+  fullName: SpellBook.GAS.Abilities.GameplayEventHandler
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.OnGameplayEvent
+  commentId: E:SpellBook.GAS.Core.AbilitySystemComponent.OnGameplayEvent
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_OnGameplayEvent
+  name: OnGameplayEvent
+  nameWithType: AbilitySystemComponent.OnGameplayEvent
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.OnGameplayEvent
+- uid: SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger
+  commentId: T:SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger
+  href: SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger.html
+  name: GameplayEventTrigger
+  nameWithType: GameplayEventTrigger
+  fullName: SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger
+- uid: SpellBook.GAS.Abilities.GameplayEventData.Target
+  commentId: P:SpellBook.GAS.Abilities.GameplayEventData.Target
+  href: SpellBook.GAS.Abilities.GameplayEventData.html#SpellBook_GAS_Abilities_GameplayEventData_Target
+  name: Target
+  nameWithType: GameplayEventData.Target
+  fullName: SpellBook.GAS.Abilities.GameplayEventData.Target
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.SendGameplayEvent*
+  commentId: Overload:SpellBook.GAS.Core.AbilitySystemComponent.SendGameplayEvent
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_SendGameplayEvent_SpellBook_Tags_GameplayTag_SpellBook_GAS_Abilities_GameplayEventData__
+  name: SendGameplayEvent
+  nameWithType: AbilitySystemComponent.SendGameplayEvent
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.SendGameplayEvent
+- uid: SpellBook.GAS.Abilities.GameplayEventData
+  commentId: T:SpellBook.GAS.Abilities.GameplayEventData
+  parent: SpellBook.GAS.Abilities
+  href: SpellBook.GAS.Abilities.GameplayEventData.html
+  name: GameplayEventData
+  nameWithType: GameplayEventData
+  fullName: SpellBook.GAS.Abilities.GameplayEventData
 - uid: SpellBook.GAS.Core.AbilitySystemComponent.ApplyEffect*
   commentId: Overload:SpellBook.GAS.Core.AbilitySystemComponent.ApplyEffect
   href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_ApplyEffect_SpellBook_GAS_Effects_GameplayEffect_SpellBook_GAS_Core_AbilitySystemComponent_

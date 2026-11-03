@@ -130,6 +130,42 @@ namespace SpellBook.GAS.Effects
         [ActionEvent("Ao ser removido", DefaultTarget.Owner, true)]
         public List<GameplayAction> OnRemoved = new List<GameplayAction>();
 
+        [SerializeReference]
+        [TypePicker]
+        [ActionEvent("Ao receber dano", DefaultTarget.Owner, true)]
+        [Tooltip("Roda quando o dono recebe dano de um efeito. Os alvos do evento são quem causou o dano.")]
+        public List<GameplayAction> OnTakeDamage = new List<GameplayAction>();
+
+        [SerializeReference]
+        [TypePicker]
+        [ActionEvent("Ao morrer", DefaultTarget.Owner, true)]
+        [Tooltip("Roda quando o atributo de morte do dono chega ao mínimo. Os alvos do evento são quem matou.")]
+        public List<GameplayAction> OnDeath = new List<GameplayAction>();
+
+        [SerializeReference]
+        [TypePicker]
+        [ActionEvent("Ao executar habilidade", DefaultTarget.Owner, true)]
+        [Tooltip("Roda quando o dono ativa uma habilidade. Os alvos do evento são a unidade-alvo da ativação.")]
+        public List<GameplayAction> OnAbilityExecuted = new List<GameplayAction>();
+
+        [Tooltip("Atributos cujo dano dispara \"Ao receber dano\". Vazio aceita qualquer atributo.")]
+        [SerializeField] private List<AttributeDefinition> damageAttributes = new List<AttributeDefinition>();
+
+        [Tooltip("Atributo que dispara \"Ao morrer\" ao chegar ao mínimo, como a vida.")]
+        [SerializeField] private AttributeDefinition deathAttribute;
+
+        /// <summary>Atributos cujo dano dispara <see cref="OnTakeDamage"/>. Vazio aceita qualquer atributo. Nunca nulo.</summary>
+        public IReadOnlyList<AttributeDefinition> DamageAttributes => damageAttributes ??= new List<AttributeDefinition>();
+
+        /// <summary>Atributo cujo esgotamento dispara <see cref="OnDeath"/>. Nulo não reage à morte.</summary>
+        public AttributeDefinition DeathAttribute => deathAttribute;
+
+        // Só as instâncias de efeito com reação entram no despacho do ASC
+        internal bool HasReactions =>
+            (OnTakeDamage != null && OnTakeDamage.Count > 0)
+            || (OnDeath != null && OnDeath.Count > 0)
+            || (OnAbilityExecuted != null && OnAbilityExecuted.Count > 0);
+
         [Header("Gameplay Tags")]
         [Tooltip("Tipos de dano do efeito. Os processadores dos atributos (resistência, imunidade) casam pela hierarquia: Dano casa com Dano.Fogo.")]
         [SerializeField] private GameplayTagContainer damageTags = new GameplayTagContainer();

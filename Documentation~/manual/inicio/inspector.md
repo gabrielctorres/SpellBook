@@ -174,7 +174,7 @@ Para pôr botões ou outros elementos, sobrescreva `BuildBeforeDefault` (antes d
 Todo `MonoBehaviour` e `ScriptableObject` público do SpellBook já tem um Inspector que herda de
 `SpellBookEditor`. Nos seus tipos, faça o mesmo: crie o editor de uma linha mostrado acima. Se o
 seu tipo herda de um tipo do SpellBook, ele pode já usar o Inspector do pacote por herança, como
-as subclasses de `Formula`, `TargetingStrategy`, `TimeSourceAsset` e `EventChannel`.
+as subclasses de `Formula`, `TimeSourceAsset` e `EventChannel`.
 
 Para cobrir um tipo base e todas as subclasses dele, passe `true` no segundo argumento:
 

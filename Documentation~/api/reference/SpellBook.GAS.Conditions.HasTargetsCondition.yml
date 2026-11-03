@@ -15,7 +15,10 @@ items:
   fullName: SpellBook.GAS.Conditions.HasTargetsCondition
   type: Class
   namespace: SpellBook.GAS.Conditions
-  summary: Verdadeira se o contexto tem ao menos um alvo não destruído em <xref href="SpellBook.GAS.Conditions.ConditionContext.Targets" data-throw-if-not-resolved="false"></xref>.
+  summary: >-
+    Verdadeira se o contexto tem ao menos um alvo não destruído em <xref href="SpellBook.GAS.Conditions.ConditionContext.Targets" data-throw-if-not-resolved="false"></xref>. Numa lista de
+
+    ações, os alvos são os da execução: os da ação que avalia a condição.
   example: []
   syntax:
     content: >-

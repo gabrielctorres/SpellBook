@@ -8,6 +8,7 @@ items:
   - SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
   - SpellBook.GAS.Actions.GameplayAction.Execute(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
   - SpellBook.GAS.Actions.GameplayAction.OnCancel(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
+  - SpellBook.GAS.Actions.GameplayAction.Target
   - SpellBook.GAS.Actions.GameplayAction.UsesTargets
   - SpellBook.GAS.Actions.GameplayAction.Validate(SpellBook.Core.Validation.ValidationResult)
   langs:
@@ -46,6 +47,12 @@ items:
   - SpellBook.GAS.Abilities.Actions.SpawnProjectileAction
   - SpellBook.GAS.Abilities.Actions.TargetingAction
   - SpellBook.GAS.Abilities.Actions.WaitAction
+  - SpellBook.GAS.Actions.ChanceAction
+  - SpellBook.GAS.Actions.CommitAction
+  - SpellBook.GAS.Actions.DelayedAction
+  - SpellBook.GAS.Actions.ForEachTargetAction
+  - SpellBook.GAS.Actions.RemoveEffectAction
+  - SpellBook.GAS.Actions.SendGameplayEventAction
   - SpellBook.GAS.Bridges.RaiseEventAction
   - SpellBook.GAS.Effects.DebugLogAction
   - SpellBook.GAS.Effects.SpawnVFXAction
@@ -63,6 +70,30 @@ items:
   - type: System.SerializableAttribute
     ctor: System.SerializableAttribute.#ctor
     arguments: []
+- uid: SpellBook.GAS.Actions.GameplayAction.Target
+  commentId: P:SpellBook.GAS.Actions.GameplayAction.Target
+  id: Target
+  parent: SpellBook.GAS.Actions.GameplayAction
+  langs:
+  - csharp
+  - vb
+  name: Target
+  nameWithType: GameplayAction.Target
+  fullName: SpellBook.GAS.Actions.GameplayAction.Target
+  type: Property
+  namespace: SpellBook.GAS.Actions
+  summary: >-
+    Seletor dos alvos da ação, resolvido quando ela começa e entregue em <xref href="SpellBook.GAS.Actions.ActionContext.Targets" data-throw-if-not-resolved="false"></xref>.
+
+    Nulo usa o alvo padrão do evento: os alvos do evento que disparou a lista.
+  example: []
+  syntax:
+    content: public TargetSelector Target { get; set; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Targeting.TargetSelector
+    content.vb: Public Property Target As TargetSelector
+  overload: SpellBook.GAS.Actions.GameplayAction.Target*
 - uid: SpellBook.GAS.Actions.GameplayAction.UsesTargets
   commentId: P:SpellBook.GAS.Actions.GameplayAction.UsesTargets
   id: UsesTargets
@@ -523,6 +554,48 @@ references:
   - name: .
   - uid: SpellBook.Core.Validation
     name: Validation
+- uid: SpellBook.GAS.Actions.ActionContext.Targets
+  commentId: P:SpellBook.GAS.Actions.ActionContext.Targets
+  href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_Targets
+  name: Targets
+  nameWithType: ActionContext.Targets
+  fullName: SpellBook.GAS.Actions.ActionContext.Targets
+- uid: SpellBook.GAS.Actions.GameplayAction.Target*
+  commentId: Overload:SpellBook.GAS.Actions.GameplayAction.Target
+  href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_Target
+  name: Target
+  nameWithType: GameplayAction.Target
+  fullName: SpellBook.GAS.Actions.GameplayAction.Target
+- uid: SpellBook.GAS.Targeting.TargetSelector
+  commentId: T:SpellBook.GAS.Targeting.TargetSelector
+  parent: SpellBook.GAS.Targeting
+  href: SpellBook.GAS.Targeting.TargetSelector.html
+  name: TargetSelector
+  nameWithType: TargetSelector
+  fullName: SpellBook.GAS.Targeting.TargetSelector
+- uid: SpellBook.GAS.Targeting
+  commentId: N:SpellBook.GAS.Targeting
+  name: SpellBook.GAS.Targeting
+  nameWithType: SpellBook.GAS.Targeting
+  fullName: SpellBook.GAS.Targeting
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Targeting
+    name: Targeting
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Targeting
+    name: Targeting
 - uid: SpellBook.GAS.Actions.GameplayAction.UsesTargets*
   commentId: Overload:SpellBook.GAS.Actions.GameplayAction.UsesTargets
   href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_UsesTargets

@@ -1,0 +1,987 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Targeting.AreaSelector
+  commentId: T:SpellBook.GAS.Targeting.AreaSelector
+  id: AreaSelector
+  parent: SpellBook.GAS.Targeting
+  children:
+  - SpellBook.GAS.Targeting.AreaSelector.Filter
+  - SpellBook.GAS.Targeting.AreaSelector.IncludeOwner
+  - SpellBook.GAS.Targeting.AreaSelector.Layers
+  - SpellBook.GAS.Targeting.AreaSelector.MaxTargets
+  - SpellBook.GAS.Targeting.AreaSelector.NeedsEventTargets
+  - SpellBook.GAS.Targeting.AreaSelector.Order
+  - SpellBook.GAS.Targeting.AreaSelector.Origin
+  - SpellBook.GAS.Targeting.AreaSelector.Physics
+  - SpellBook.GAS.Targeting.AreaSelector.Radius
+  - SpellBook.GAS.Targeting.AreaSelector.Select(SpellBook.GAS.Actions.ActionContext,System.Collections.Generic.List{SpellBook.GAS.Core.AbilitySystemComponent})
+  langs:
+  - csharp
+  - vb
+  name: AreaSelector
+  nameWithType: AreaSelector
+  fullName: SpellBook.GAS.Targeting.AreaSelector
+  type: Class
+  namespace: SpellBook.GAS.Targeting
+  summary: >-
+    Escolhe as unidades num raio em volta de um centro, com física 2D ou 3D. O ASC é procurado no collider ou nos
+
+    pais, e cada unidade conta uma vez. O ASC que roda a lista (<xref href="SpellBook.GAS.Actions.ActionContext.Owner" data-throw-if-not-resolved="false"></xref>) fica de fora,
+
+    a menos que <xref href="SpellBook.GAS.Targeting.AreaSelector.IncludeOwner" data-throw-if-not-resolved="false"></xref> esteja ligado. O <xref href="SpellBook.GAS.Targeting.AreaSelector.Filter" data-throw-if-not-resolved="false"></xref> decide, candidato a candidato, quem pode
+
+    ser alvo (ADR 0035). A busca vê até 64 colliders.
+  example: []
+  syntax:
+    content: >-
+      [Serializable]
+
+      [TypeCategory("Alvo", Summary = "Escolhe as unidades num raio, as mais perto ou sorteadas.", Line = "Área")]
+
+      public sealed class AreaSelector : TargetSelector
+    content.vb: >-
+      <Serializable>
+
+      <TypeCategory("Alvo", Summary:="Escolhe as unidades num raio, as mais perto ou sorteadas.", Line:="Área")>
+
+      Public NotInheritable Class AreaSelector Inherits TargetSelector
+  inheritance:
+  - System.Object
+  - SpellBook.GAS.Targeting.TargetSelector
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+  attributes:
+  - type: System.SerializableAttribute
+    ctor: System.SerializableAttribute.#ctor
+    arguments: []
+  - type: SpellBook.Core.Inspector.TypeCategoryAttribute
+    ctor: SpellBook.Core.Inspector.TypeCategoryAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: Alvo
+    namedArguments:
+    - name: Summary
+      type: System.String
+      value: Escolhe as unidades num raio, as mais perto ou sorteadas.
+    - name: Line
+      type: System.String
+      value: Área
+- uid: SpellBook.GAS.Targeting.AreaSelector.Origin
+  commentId: P:SpellBook.GAS.Targeting.AreaSelector.Origin
+  id: Origin
+  parent: SpellBook.GAS.Targeting.AreaSelector
+  langs:
+  - csharp
+  - vb
+  name: Origin
+  nameWithType: AreaSelector.Origin
+  fullName: SpellBook.GAS.Targeting.AreaSelector.Origin
+  type: Property
+  namespace: SpellBook.GAS.Targeting
+  syntax:
+    content: public AreaOrigin Origin { get; set; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Targeting.AreaOrigin
+    content.vb: Public Property Origin As AreaOrigin
+  overload: SpellBook.GAS.Targeting.AreaSelector.Origin*
+- uid: SpellBook.GAS.Targeting.AreaSelector.Physics
+  commentId: P:SpellBook.GAS.Targeting.AreaSelector.Physics
+  id: Physics
+  parent: SpellBook.GAS.Targeting.AreaSelector
+  langs:
+  - csharp
+  - vb
+  name: Physics
+  nameWithType: AreaSelector.Physics
+  fullName: SpellBook.GAS.Targeting.AreaSelector.Physics
+  type: Property
+  namespace: SpellBook.GAS.Targeting
+  syntax:
+    content: public PhysicsMode Physics { get; set; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Targeting.PhysicsMode
+    content.vb: Public Property Physics As PhysicsMode
+  overload: SpellBook.GAS.Targeting.AreaSelector.Physics*
+- uid: SpellBook.GAS.Targeting.AreaSelector.Radius
+  commentId: P:SpellBook.GAS.Targeting.AreaSelector.Radius
+  id: Radius
+  parent: SpellBook.GAS.Targeting.AreaSelector
+  langs:
+  - csharp
+  - vb
+  name: Radius
+  nameWithType: AreaSelector.Radius
+  fullName: SpellBook.GAS.Targeting.AreaSelector.Radius
+  type: Property
+  namespace: SpellBook.GAS.Targeting
+  summary: Raio por nível, avaliado no nível da execução e na tabela da habilidade.
+  example: []
+  syntax:
+    content: public ScalableFloat Radius { get; set; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Values.ScalableFloat
+    content.vb: Public Property Radius As ScalableFloat
+  overload: SpellBook.GAS.Targeting.AreaSelector.Radius*
+- uid: SpellBook.GAS.Targeting.AreaSelector.IncludeOwner
+  commentId: P:SpellBook.GAS.Targeting.AreaSelector.IncludeOwner
+  id: IncludeOwner
+  parent: SpellBook.GAS.Targeting.AreaSelector
+  langs:
+  - csharp
+  - vb
+  name: IncludeOwner
+  nameWithType: AreaSelector.IncludeOwner
+  fullName: SpellBook.GAS.Targeting.AreaSelector.IncludeOwner
+  type: Property
+  namespace: SpellBook.GAS.Targeting
+  syntax:
+    content: public bool IncludeOwner { get; set; }
+    parameters: []
+    return:
+      type: System.Boolean
+    content.vb: Public Property IncludeOwner As Boolean
+  overload: SpellBook.GAS.Targeting.AreaSelector.IncludeOwner*
+- uid: SpellBook.GAS.Targeting.AreaSelector.MaxTargets
+  commentId: P:SpellBook.GAS.Targeting.AreaSelector.MaxTargets
+  id: MaxTargets
+  parent: SpellBook.GAS.Targeting.AreaSelector
+  langs:
+  - csharp
+  - vb
+  name: MaxTargets
+  nameWithType: AreaSelector.MaxTargets
+  fullName: SpellBook.GAS.Targeting.AreaSelector.MaxTargets
+  type: Property
+  namespace: SpellBook.GAS.Targeting
+  summary: Máximo de alvos; 0 é ilimitado.
+  example: []
+  syntax:
+    content: public int MaxTargets { get; set; }
+    parameters: []
+    return:
+      type: System.Int32
+    content.vb: Public Property MaxTargets As Integer
+  overload: SpellBook.GAS.Targeting.AreaSelector.MaxTargets*
+- uid: SpellBook.GAS.Targeting.AreaSelector.Order
+  commentId: P:SpellBook.GAS.Targeting.AreaSelector.Order
+  id: Order
+  parent: SpellBook.GAS.Targeting.AreaSelector
+  langs:
+  - csharp
+  - vb
+  name: Order
+  nameWithType: AreaSelector.Order
+  fullName: SpellBook.GAS.Targeting.AreaSelector.Order
+  type: Property
+  namespace: SpellBook.GAS.Targeting
+  syntax:
+    content: public AreaOrder Order { get; set; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Targeting.AreaOrder
+    content.vb: Public Property Order As AreaOrder
+  overload: SpellBook.GAS.Targeting.AreaSelector.Order*
+- uid: SpellBook.GAS.Targeting.AreaSelector.Layers
+  commentId: P:SpellBook.GAS.Targeting.AreaSelector.Layers
+  id: Layers
+  parent: SpellBook.GAS.Targeting.AreaSelector
+  langs:
+  - csharp
+  - vb
+  name: Layers
+  nameWithType: AreaSelector.Layers
+  fullName: SpellBook.GAS.Targeting.AreaSelector.Layers
+  type: Property
+  namespace: SpellBook.GAS.Targeting
+  syntax:
+    content: public LayerMask Layers { get; set; }
+    parameters: []
+    return:
+      type: UnityEngine.LayerMask
+    content.vb: Public Property Layers As LayerMask
+  overload: SpellBook.GAS.Targeting.AreaSelector.Layers*
+- uid: SpellBook.GAS.Targeting.AreaSelector.Filter
+  commentId: P:SpellBook.GAS.Targeting.AreaSelector.Filter
+  id: Filter
+  parent: SpellBook.GAS.Targeting.AreaSelector
+  langs:
+  - csharp
+  - vb
+  name: Filter
+  nameWithType: AreaSelector.Filter
+  fullName: SpellBook.GAS.Targeting.AreaSelector.Filter
+  type: Property
+  namespace: SpellBook.GAS.Targeting
+  summary: >-
+    Filtro de candidato (ADR 0035), avaliado uma vez por candidato com <code>Owner</code> = quem procura e
+
+    <code>Target</code> = <xref href="SpellBook.GAS.Abilities.AbilityTarget.AtUnit(SpellBook.GAS.Core.AbilitySystemComponent)" data-throw-if-not-resolved="false"></xref> do candidato, na habilidade, no spec e no nível da execução.
+
+    <code>Targets</code> são os alvos do evento. Nulo aceita todos.
+  example: []
+  syntax:
+    content: public Condition<ConditionContext> Filter { get; set; }
+    parameters: []
+    return:
+      type: SpellBook.Core.Conditions.Condition{SpellBook.GAS.Conditions.ConditionContext}
+    content.vb: Public Property Filter As Condition(Of ConditionContext)
+  overload: SpellBook.GAS.Targeting.AreaSelector.Filter*
+- uid: SpellBook.GAS.Targeting.AreaSelector.NeedsEventTargets
+  commentId: P:SpellBook.GAS.Targeting.AreaSelector.NeedsEventTargets
+  id: NeedsEventTargets
+  parent: SpellBook.GAS.Targeting.AreaSelector
+  langs:
+  - csharp
+  - vb
+  name: NeedsEventTargets
+  nameWithType: AreaSelector.NeedsEventTargets
+  fullName: SpellBook.GAS.Targeting.AreaSelector.NeedsEventTargets
+  type: Property
+  namespace: SpellBook.GAS.Targeting
+  summary: Se o seletor lê os alvos do evento. Serve ao Inspector e ao validador.
+  example: []
+  syntax:
+    content: public override bool NeedsEventTargets { get; }
+    parameters: []
+    return:
+      type: System.Boolean
+    content.vb: Public Overrides ReadOnly Property NeedsEventTargets As Boolean
+  overridden: SpellBook.GAS.Targeting.TargetSelector.NeedsEventTargets
+  overload: SpellBook.GAS.Targeting.AreaSelector.NeedsEventTargets*
+- uid: SpellBook.GAS.Targeting.AreaSelector.Select(SpellBook.GAS.Actions.ActionContext,System.Collections.Generic.List{SpellBook.GAS.Core.AbilitySystemComponent})
+  commentId: M:SpellBook.GAS.Targeting.AreaSelector.Select(SpellBook.GAS.Actions.ActionContext,System.Collections.Generic.List{SpellBook.GAS.Core.AbilitySystemComponent})
+  id: Select(SpellBook.GAS.Actions.ActionContext,System.Collections.Generic.List{SpellBook.GAS.Core.AbilitySystemComponent})
+  parent: SpellBook.GAS.Targeting.AreaSelector
+  langs:
+  - csharp
+  - vb
+  name: Select(ActionContext, List<AbilitySystemComponent>)
+  nameWithType: AreaSelector.Select(ActionContext, List<AbilitySystemComponent>)
+  fullName: SpellBook.GAS.Targeting.AreaSelector.Select(SpellBook.GAS.Actions.ActionContext, System.Collections.Generic.List<SpellBook.GAS.Core.AbilitySystemComponent>)
+  type: Method
+  namespace: SpellBook.GAS.Targeting
+  summary: >-
+    Acrescenta os alvos a <code class="paramref">results</code>, que chega vazia. Use só listas e buffers reutilizados:
+
+    o executor chama este método a cada ação que começa.
+  example: []
+  syntax:
+    content: public override void Select(ActionContext context, List<AbilitySystemComponent> results)
+    parameters:
+    - id: context
+      type: SpellBook.GAS.Actions.ActionContext
+    - id: results
+      type: System.Collections.Generic.List{SpellBook.GAS.Core.AbilitySystemComponent}
+    content.vb: Public Overrides Sub [Select](context As ActionContext, results As List(Of AbilitySystemComponent))
+  overridden: SpellBook.GAS.Targeting.TargetSelector.Select(SpellBook.GAS.Actions.ActionContext,System.Collections.Generic.List{SpellBook.GAS.Core.AbilitySystemComponent})
+  overload: SpellBook.GAS.Targeting.AreaSelector.Select*
+  nameWithType.vb: AreaSelector.Select(ActionContext, List(Of AbilitySystemComponent))
+  fullName.vb: SpellBook.GAS.Targeting.AreaSelector.Select(SpellBook.GAS.Actions.ActionContext, System.Collections.Generic.List(Of SpellBook.GAS.Core.AbilitySystemComponent))
+  name.vb: Select(ActionContext, List(Of AbilitySystemComponent))
+references:
+- uid: SpellBook.GAS.Actions.ActionContext.Owner
+  commentId: P:SpellBook.GAS.Actions.ActionContext.Owner
+  href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_Owner
+  name: Owner
+  nameWithType: ActionContext.Owner
+  fullName: SpellBook.GAS.Actions.ActionContext.Owner
+- uid: SpellBook.GAS.Targeting.AreaSelector.IncludeOwner
+  commentId: P:SpellBook.GAS.Targeting.AreaSelector.IncludeOwner
+  href: SpellBook.GAS.Targeting.AreaSelector.html#SpellBook_GAS_Targeting_AreaSelector_IncludeOwner
+  name: IncludeOwner
+  nameWithType: AreaSelector.IncludeOwner
+  fullName: SpellBook.GAS.Targeting.AreaSelector.IncludeOwner
+- uid: SpellBook.GAS.Targeting.AreaSelector.Filter
+  commentId: P:SpellBook.GAS.Targeting.AreaSelector.Filter
+  href: SpellBook.GAS.Targeting.AreaSelector.html#SpellBook_GAS_Targeting_AreaSelector_Filter
+  name: Filter
+  nameWithType: AreaSelector.Filter
+  fullName: SpellBook.GAS.Targeting.AreaSelector.Filter
+- uid: SpellBook.GAS.Targeting
+  commentId: N:SpellBook.GAS.Targeting
+  name: SpellBook.GAS.Targeting
+  nameWithType: SpellBook.GAS.Targeting
+  fullName: SpellBook.GAS.Targeting
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Targeting
+    name: Targeting
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Targeting
+    name: Targeting
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: SpellBook.GAS.Targeting.TargetSelector
+  commentId: T:SpellBook.GAS.Targeting.TargetSelector
+  parent: SpellBook.GAS.Targeting
+  href: SpellBook.GAS.Targeting.TargetSelector.html
+  name: TargetSelector
+  nameWithType: TargetSelector
+  fullName: SpellBook.GAS.Targeting.TargetSelector
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: SpellBook.GAS.Targeting.AreaSelector.Origin*
+  commentId: Overload:SpellBook.GAS.Targeting.AreaSelector.Origin
+  href: SpellBook.GAS.Targeting.AreaSelector.html#SpellBook_GAS_Targeting_AreaSelector_Origin
+  name: Origin
+  nameWithType: AreaSelector.Origin
+  fullName: SpellBook.GAS.Targeting.AreaSelector.Origin
+- uid: SpellBook.GAS.Targeting.AreaOrigin
+  commentId: T:SpellBook.GAS.Targeting.AreaOrigin
+  parent: SpellBook.GAS.Targeting
+  href: SpellBook.GAS.Targeting.AreaOrigin.html
+  name: AreaOrigin
+  nameWithType: AreaOrigin
+  fullName: SpellBook.GAS.Targeting.AreaOrigin
+- uid: SpellBook.GAS.Targeting.AreaSelector.Physics*
+  commentId: Overload:SpellBook.GAS.Targeting.AreaSelector.Physics
+  href: SpellBook.GAS.Targeting.AreaSelector.html#SpellBook_GAS_Targeting_AreaSelector_Physics
+  name: Physics
+  nameWithType: AreaSelector.Physics
+  fullName: SpellBook.GAS.Targeting.AreaSelector.Physics
+- uid: SpellBook.GAS.Targeting.PhysicsMode
+  commentId: T:SpellBook.GAS.Targeting.PhysicsMode
+  parent: SpellBook.GAS.Targeting
+  href: SpellBook.GAS.Targeting.PhysicsMode.html
+  name: PhysicsMode
+  nameWithType: PhysicsMode
+  fullName: SpellBook.GAS.Targeting.PhysicsMode
+- uid: SpellBook.GAS.Targeting.AreaSelector.Radius*
+  commentId: Overload:SpellBook.GAS.Targeting.AreaSelector.Radius
+  href: SpellBook.GAS.Targeting.AreaSelector.html#SpellBook_GAS_Targeting_AreaSelector_Radius
+  name: Radius
+  nameWithType: AreaSelector.Radius
+  fullName: SpellBook.GAS.Targeting.AreaSelector.Radius
+- uid: SpellBook.GAS.Values.ScalableFloat
+  commentId: T:SpellBook.GAS.Values.ScalableFloat
+  parent: SpellBook.GAS.Values
+  href: SpellBook.GAS.Values.ScalableFloat.html
+  name: ScalableFloat
+  nameWithType: ScalableFloat
+  fullName: SpellBook.GAS.Values.ScalableFloat
+- uid: SpellBook.GAS.Values
+  commentId: N:SpellBook.GAS.Values
+  name: SpellBook.GAS.Values
+  nameWithType: SpellBook.GAS.Values
+  fullName: SpellBook.GAS.Values
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Values
+    name: Values
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Values
+    name: Values
+- uid: SpellBook.GAS.Targeting.AreaSelector.IncludeOwner*
+  commentId: Overload:SpellBook.GAS.Targeting.AreaSelector.IncludeOwner
+  href: SpellBook.GAS.Targeting.AreaSelector.html#SpellBook_GAS_Targeting_AreaSelector_IncludeOwner
+  name: IncludeOwner
+  nameWithType: AreaSelector.IncludeOwner
+  fullName: SpellBook.GAS.Targeting.AreaSelector.IncludeOwner
+- uid: System.Boolean
+  commentId: T:System.Boolean
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.boolean
+  name: bool
+  nameWithType: bool
+  fullName: bool
+  nameWithType.vb: Boolean
+  fullName.vb: Boolean
+  name.vb: Boolean
+- uid: SpellBook.GAS.Targeting.AreaSelector.MaxTargets*
+  commentId: Overload:SpellBook.GAS.Targeting.AreaSelector.MaxTargets
+  href: SpellBook.GAS.Targeting.AreaSelector.html#SpellBook_GAS_Targeting_AreaSelector_MaxTargets
+  name: MaxTargets
+  nameWithType: AreaSelector.MaxTargets
+  fullName: SpellBook.GAS.Targeting.AreaSelector.MaxTargets
+- uid: System.Int32
+  commentId: T:System.Int32
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.int32
+  name: int
+  nameWithType: int
+  fullName: int
+  nameWithType.vb: Integer
+  fullName.vb: Integer
+  name.vb: Integer
+- uid: SpellBook.GAS.Targeting.AreaSelector.Order*
+  commentId: Overload:SpellBook.GAS.Targeting.AreaSelector.Order
+  href: SpellBook.GAS.Targeting.AreaSelector.html#SpellBook_GAS_Targeting_AreaSelector_Order
+  name: Order
+  nameWithType: AreaSelector.Order
+  fullName: SpellBook.GAS.Targeting.AreaSelector.Order
+- uid: SpellBook.GAS.Targeting.AreaOrder
+  commentId: T:SpellBook.GAS.Targeting.AreaOrder
+  parent: SpellBook.GAS.Targeting
+  href: SpellBook.GAS.Targeting.AreaOrder.html
+  name: AreaOrder
+  nameWithType: AreaOrder
+  fullName: SpellBook.GAS.Targeting.AreaOrder
+- uid: SpellBook.GAS.Targeting.AreaSelector.Layers*
+  commentId: Overload:SpellBook.GAS.Targeting.AreaSelector.Layers
+  href: SpellBook.GAS.Targeting.AreaSelector.html#SpellBook_GAS_Targeting_AreaSelector_Layers
+  name: Layers
+  nameWithType: AreaSelector.Layers
+  fullName: SpellBook.GAS.Targeting.AreaSelector.Layers
+- uid: UnityEngine.LayerMask
+  commentId: T:UnityEngine.LayerMask
+  parent: UnityEngine
+  isExternal: true
+  name: LayerMask
+  nameWithType: LayerMask
+  fullName: UnityEngine.LayerMask
+- uid: UnityEngine
+  commentId: N:UnityEngine
+  isExternal: true
+  name: UnityEngine
+  nameWithType: UnityEngine
+  fullName: UnityEngine
+- uid: SpellBook.GAS.Abilities.AbilityTarget.AtUnit(SpellBook.GAS.Core.AbilitySystemComponent)
+  commentId: M:SpellBook.GAS.Abilities.AbilityTarget.AtUnit(SpellBook.GAS.Core.AbilitySystemComponent)
+  href: SpellBook.GAS.Abilities.AbilityTarget.html#SpellBook_GAS_Abilities_AbilityTarget_AtUnit_SpellBook_GAS_Core_AbilitySystemComponent_
+  name: AtUnit(AbilitySystemComponent)
+  nameWithType: AbilityTarget.AtUnit(AbilitySystemComponent)
+  fullName: SpellBook.GAS.Abilities.AbilityTarget.AtUnit(SpellBook.GAS.Core.AbilitySystemComponent)
+  spec.csharp:
+  - uid: SpellBook.GAS.Abilities.AbilityTarget.AtUnit(SpellBook.GAS.Core.AbilitySystemComponent)
+    name: AtUnit
+    href: SpellBook.GAS.Abilities.AbilityTarget.html#SpellBook_GAS_Abilities_AbilityTarget_AtUnit_SpellBook_GAS_Core_AbilitySystemComponent_
+  - name: (
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent
+    name: AbilitySystemComponent
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  - name: )
+  spec.vb:
+  - uid: SpellBook.GAS.Abilities.AbilityTarget.AtUnit(SpellBook.GAS.Core.AbilitySystemComponent)
+    name: AtUnit
+    href: SpellBook.GAS.Abilities.AbilityTarget.html#SpellBook_GAS_Abilities_AbilityTarget_AtUnit_SpellBook_GAS_Core_AbilitySystemComponent_
+  - name: (
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent
+    name: AbilitySystemComponent
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  - name: )
+- uid: SpellBook.GAS.Targeting.AreaSelector.Filter*
+  commentId: Overload:SpellBook.GAS.Targeting.AreaSelector.Filter
+  href: SpellBook.GAS.Targeting.AreaSelector.html#SpellBook_GAS_Targeting_AreaSelector_Filter
+  name: Filter
+  nameWithType: AreaSelector.Filter
+  fullName: SpellBook.GAS.Targeting.AreaSelector.Filter
+- uid: SpellBook.Core.Conditions.Condition{SpellBook.GAS.Conditions.ConditionContext}
+  commentId: T:SpellBook.Core.Conditions.Condition{SpellBook.GAS.Conditions.ConditionContext}
+  parent: SpellBook.Core.Conditions
+  definition: SpellBook.Core.Conditions.Condition`1
+  href: SpellBook.Core.Conditions.Condition-1.html
+  name: Condition<ConditionContext>
+  nameWithType: Condition<ConditionContext>
+  fullName: SpellBook.Core.Conditions.Condition<SpellBook.GAS.Conditions.ConditionContext>
+  nameWithType.vb: Condition(Of ConditionContext)
+  fullName.vb: SpellBook.Core.Conditions.Condition(Of SpellBook.GAS.Conditions.ConditionContext)
+  name.vb: Condition(Of ConditionContext)
+  spec.csharp:
+  - uid: SpellBook.Core.Conditions.Condition`1
+    name: Condition
+    href: SpellBook.Core.Conditions.Condition-1.html
+  - name: <
+  - uid: SpellBook.GAS.Conditions.ConditionContext
+    name: ConditionContext
+    href: SpellBook.GAS.Conditions.ConditionContext.html
+  - name: '>'
+  spec.vb:
+  - uid: SpellBook.Core.Conditions.Condition`1
+    name: Condition
+    href: SpellBook.Core.Conditions.Condition-1.html
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: SpellBook.GAS.Conditions.ConditionContext
+    name: ConditionContext
+    href: SpellBook.GAS.Conditions.ConditionContext.html
+  - name: )
+- uid: SpellBook.Core.Conditions.Condition`1
+  commentId: T:SpellBook.Core.Conditions.Condition`1
+  href: SpellBook.Core.Conditions.Condition-1.html
+  name: Condition<TContext>
+  nameWithType: Condition<TContext>
+  fullName: SpellBook.Core.Conditions.Condition<TContext>
+  nameWithType.vb: Condition(Of TContext)
+  fullName.vb: SpellBook.Core.Conditions.Condition(Of TContext)
+  name.vb: Condition(Of TContext)
+  spec.csharp:
+  - uid: SpellBook.Core.Conditions.Condition`1
+    name: Condition
+    href: SpellBook.Core.Conditions.Condition-1.html
+  - name: <
+  - name: TContext
+  - name: '>'
+  spec.vb:
+  - uid: SpellBook.Core.Conditions.Condition`1
+    name: Condition
+    href: SpellBook.Core.Conditions.Condition-1.html
+  - name: (
+  - name: Of
+  - name: " "
+  - name: TContext
+  - name: )
+- uid: SpellBook.Core.Conditions
+  commentId: N:SpellBook.Core.Conditions
+  name: SpellBook.Core.Conditions
+  nameWithType: SpellBook.Core.Conditions
+  fullName: SpellBook.Core.Conditions
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Conditions
+    name: Conditions
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  - name: .
+  - uid: SpellBook.Core.Conditions
+    name: Conditions
+- uid: SpellBook.GAS.Targeting.TargetSelector.NeedsEventTargets
+  commentId: P:SpellBook.GAS.Targeting.TargetSelector.NeedsEventTargets
+  parent: SpellBook.GAS.Targeting.TargetSelector
+  href: SpellBook.GAS.Targeting.TargetSelector.html#SpellBook_GAS_Targeting_TargetSelector_NeedsEventTargets
+  name: NeedsEventTargets
+  nameWithType: TargetSelector.NeedsEventTargets
+  fullName: SpellBook.GAS.Targeting.TargetSelector.NeedsEventTargets
+- uid: SpellBook.GAS.Targeting.AreaSelector.NeedsEventTargets*
+  commentId: Overload:SpellBook.GAS.Targeting.AreaSelector.NeedsEventTargets
+  href: SpellBook.GAS.Targeting.AreaSelector.html#SpellBook_GAS_Targeting_AreaSelector_NeedsEventTargets
+  name: NeedsEventTargets
+  nameWithType: AreaSelector.NeedsEventTargets
+  fullName: SpellBook.GAS.Targeting.AreaSelector.NeedsEventTargets
+- uid: SpellBook.GAS.Targeting.TargetSelector.Select(SpellBook.GAS.Actions.ActionContext,System.Collections.Generic.List{SpellBook.GAS.Core.AbilitySystemComponent})
+  commentId: M:SpellBook.GAS.Targeting.TargetSelector.Select(SpellBook.GAS.Actions.ActionContext,System.Collections.Generic.List{SpellBook.GAS.Core.AbilitySystemComponent})
+  parent: SpellBook.GAS.Targeting.TargetSelector
+  isExternal: true
+  href: SpellBook.GAS.Targeting.TargetSelector.html#SpellBook_GAS_Targeting_TargetSelector_Select_SpellBook_GAS_Actions_ActionContext_System_Collections_Generic_List_SpellBook_GAS_Core_AbilitySystemComponent__
+  name: Select(ActionContext, List<AbilitySystemComponent>)
+  nameWithType: TargetSelector.Select(ActionContext, List<AbilitySystemComponent>)
+  fullName: SpellBook.GAS.Targeting.TargetSelector.Select(SpellBook.GAS.Actions.ActionContext, System.Collections.Generic.List<SpellBook.GAS.Core.AbilitySystemComponent>)
+  nameWithType.vb: TargetSelector.Select(ActionContext, List(Of AbilitySystemComponent))
+  fullName.vb: SpellBook.GAS.Targeting.TargetSelector.Select(SpellBook.GAS.Actions.ActionContext, System.Collections.Generic.List(Of SpellBook.GAS.Core.AbilitySystemComponent))
+  name.vb: Select(ActionContext, List(Of AbilitySystemComponent))
+  spec.csharp:
+  - uid: SpellBook.GAS.Targeting.TargetSelector.Select(SpellBook.GAS.Actions.ActionContext,System.Collections.Generic.List{SpellBook.GAS.Core.AbilitySystemComponent})
+    name: Select
+    href: SpellBook.GAS.Targeting.TargetSelector.html#SpellBook_GAS_Targeting_TargetSelector_Select_SpellBook_GAS_Actions_ActionContext_System_Collections_Generic_List_SpellBook_GAS_Core_AbilitySystemComponent__
+  - name: (
+  - uid: SpellBook.GAS.Actions.ActionContext
+    name: ActionContext
+    href: SpellBook.GAS.Actions.ActionContext.html
+  - name: ','
+  - name: " "
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: <
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent
+    name: AbilitySystemComponent
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  - name: '>'
+  - name: )
+  spec.vb:
+  - uid: SpellBook.GAS.Targeting.TargetSelector.Select(SpellBook.GAS.Actions.ActionContext,System.Collections.Generic.List{SpellBook.GAS.Core.AbilitySystemComponent})
+    name: Select
+    href: SpellBook.GAS.Targeting.TargetSelector.html#SpellBook_GAS_Targeting_TargetSelector_Select_SpellBook_GAS_Actions_ActionContext_System_Collections_Generic_List_SpellBook_GAS_Core_AbilitySystemComponent__
+  - name: (
+  - uid: SpellBook.GAS.Actions.ActionContext
+    name: ActionContext
+    href: SpellBook.GAS.Actions.ActionContext.html
+  - name: ','
+  - name: " "
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent
+    name: AbilitySystemComponent
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  - name: )
+  - name: )
+- uid: SpellBook.GAS.Targeting.AreaSelector.Select*
+  commentId: Overload:SpellBook.GAS.Targeting.AreaSelector.Select
+  href: SpellBook.GAS.Targeting.AreaSelector.html#SpellBook_GAS_Targeting_AreaSelector_Select_SpellBook_GAS_Actions_ActionContext_System_Collections_Generic_List_SpellBook_GAS_Core_AbilitySystemComponent__
+  name: Select
+  nameWithType: AreaSelector.Select
+  fullName: SpellBook.GAS.Targeting.AreaSelector.Select
+- uid: SpellBook.GAS.Actions.ActionContext
+  commentId: T:SpellBook.GAS.Actions.ActionContext
+  parent: SpellBook.GAS.Actions
+  href: SpellBook.GAS.Actions.ActionContext.html
+  name: ActionContext
+  nameWithType: ActionContext
+  fullName: SpellBook.GAS.Actions.ActionContext
+- uid: System.Collections.Generic.List{SpellBook.GAS.Core.AbilitySystemComponent}
+  commentId: T:System.Collections.Generic.List{SpellBook.GAS.Core.AbilitySystemComponent}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.List`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  name: List<AbilitySystemComponent>
+  nameWithType: List<AbilitySystemComponent>
+  fullName: System.Collections.Generic.List<SpellBook.GAS.Core.AbilitySystemComponent>
+  nameWithType.vb: List(Of AbilitySystemComponent)
+  fullName.vb: System.Collections.Generic.List(Of SpellBook.GAS.Core.AbilitySystemComponent)
+  name.vb: List(Of AbilitySystemComponent)
+  spec.csharp:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: <
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent
+    name: AbilitySystemComponent
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: SpellBook.GAS.Core.AbilitySystemComponent
+    name: AbilitySystemComponent
+    href: SpellBook.GAS.Core.AbilitySystemComponent.html
+  - name: )
+- uid: SpellBook.GAS.Actions
+  commentId: N:SpellBook.GAS.Actions
+  name: SpellBook.GAS.Actions
+  nameWithType: SpellBook.GAS.Actions
+  fullName: SpellBook.GAS.Actions
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Actions
+    name: Actions
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Actions
+    name: Actions
+- uid: System.Collections.Generic.List`1
+  commentId: T:System.Collections.Generic.List`1
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  name: List<T>
+  nameWithType: List<T>
+  fullName: System.Collections.Generic.List<T>
+  nameWithType.vb: List(Of T)
+  fullName.vb: System.Collections.Generic.List(Of T)
+  name.vb: List(Of T)
+  spec.csharp:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: <
+  - name: T
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: (
+  - name: Of
+  - name: " "
+  - name: T
+  - name: )
+- uid: System.Collections.Generic
+  commentId: N:System.Collections.Generic
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System.Collections.Generic
+  nameWithType: System.Collections.Generic
+  fullName: System.Collections.Generic
+  spec.csharp:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic
+  spec.vb:
+  - uid: System
+    name: System
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system
+  - name: .
+  - uid: System.Collections
+    name: Collections
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections
+  - name: .
+  - uid: System.Collections.Generic
+    name: Generic
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic

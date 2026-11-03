@@ -8,6 +8,7 @@ using SpellBook.Time;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Effects;
 using SpellBook.GAS.Abilities;
+using SpellBook.GAS.Abilities.Triggers;
 using SpellBook.GAS.Conditions;
 using SpellBook.GAS.Actions;
 namespace SpellBook.GAS.Core
@@ -36,12 +37,22 @@ namespace SpellBook.GAS.Core
         private double _timeCursor;
         private double _tickedTime;
         private ActionRunner _runner;
+        private IRandomSource _random;
 
         // Contagem de referência: várias fontes podem conceder a mesma tag
         private readonly Dictionary<GameplayTag, int> _activeTags = new Dictionary<GameplayTag, int>();
         private readonly List<ActiveEffectInstance> _activeEffects = new List<ActiveEffectInstance>();
         private readonly List<AbilitySpec> _abilities = new List<AbilitySpec>();
         private readonly HashSet<GameplayAbility> _warnedAboveMaxLevel = new HashSet<GameplayAbility>();
+
+        // Gatilhos das habilidades concedidas, na ordem da concessão, e as travas do disparo (P11)
+        private const int MaxTriggerDepth = 8;
+        private readonly List<TriggerEntry> _triggers = new List<TriggerEntry>();
+        private readonly List<AbilitySpec> _triggering = new List<AbilitySpec>();
+        private bool _warnedTriggerDepth;
+
+        // Reações dos efeitos ativos; nulo até o primeiro efeito com reação
+        private EffectReactions _reactions;
 
         public event Action<GameplayTag, bool> OnTagChanged;
         public event Action<AbilitySpec> OnAbilityActivated;
@@ -85,6 +96,7 @@ namespace SpellBook.GAS.Core
 
         private void Awake()
         {
+            _random ??= CreateDefaultRandom();
             if (attributeSet == null) attributeSet = GetComponent<AttributeSet>();
             if (attributeSet != null) BindAttributeLimits();
 
@@ -168,12 +180,14 @@ namespace SpellBook.GAS.Core
         private void OnEnable()
         {
             OnTagChanged += HandleTagChangedForCancellation;
+            OnTagChanged += HandleTagChangedForTriggers;
             _timeCursor = TimeSource.ElapsedTime;
         }
 
         private void OnDisable()
         {
             OnTagChanged -= HandleTagChangedForCancellation;
+            OnTagChanged -= HandleTagChangedForTriggers;
             CancelAllAbilities();
             // Ligações ao vivo em outro ASC (o instigador) prenderiam este ASC e o recalculariam depois de destruído
             for (int i = 0; i < _activeEffects.Count; i++) _activeEffects[i].DisposeLiveBindings();
@@ -232,7 +246,7 @@ namespace SpellBook.GAS.Core
             EndFinishedAbilities();
         }
 
-        // Termina as habilidades cuja lista OnActivate acabou neste Tick
+        // Termina as habilidades cujas execuções (o OnActivate e as atrasadas dele) acabaram neste Tick
         private void EndFinishedAbilities()
         {
             for (int i = _abilities.Count - 1; i >= 0; i--)
@@ -240,11 +254,25 @@ namespace SpellBook.GAS.Core
                 // Um OnAbilityEnded pode retirar habilidades
                 if (i >= _abilities.Count) continue;
                 AbilitySpec spec = _abilities[i];
-                if (spec.IsActive && spec.Executing && !spec.Execution.IsRunning) EndAbility(spec, false);
+                if (spec.IsActive && spec.Executing && !_runner.HasRunning(spec)) EndAbility(spec, false);
             }
         }
 
         internal ActionRunner Runner => _runner ??= new ActionRunner(this);
+
+        /// <summary>
+        /// Fonte de aleatoriedade das ações deste ASC (<see cref="ActionContext.Random"/>). O padrão é uma
+        /// <see cref="SeededRandomSource"/> com semente do relógio; troque por <see cref="SetRandomSource"/>.
+        /// </summary>
+        public IRandomSource Random => _random ??= CreateDefaultRandom();
+
+        /// <summary>Troca a fonte de aleatoriedade, por exemplo por uma com semente fixa num teste ou replay.</summary>
+        public void SetRandomSource(IRandomSource source)
+        {
+            _random = source ?? throw new ArgumentNullException(nameof(source));
+        }
+
+        private static IRandomSource CreateDefaultRandom() => new SeededRandomSource(Environment.TickCount);
 
         /// <summary>
         /// Roda <paramref name="actions"/> em sequência no executor deste ASC (ADR 0034). As ações sem espera rodam já,
@@ -318,6 +346,7 @@ namespace SpellBook.GAS.Core
             var spec = new AbilitySpec(ability, ClampLevel(ability, level));
             InitCharges(spec);
             _abilities.Add(spec);
+            IndexTriggers(spec);
             OnAbilityGranted?.Invoke(spec);
             return spec;
         }
@@ -331,6 +360,7 @@ namespace SpellBook.GAS.Core
             if (spec == null) return;
 
             CancelAbility(spec);
+            UnindexTriggers(spec);
             if (_abilities.Remove(spec)) OnAbilityRemoved?.Invoke(spec);
         }
 
@@ -744,7 +774,7 @@ namespace SpellBook.GAS.Core
                 return failure.Result;
             }
 
-            ActivateSpec(spec, target.Point);
+            ActivateSpec(spec, in target);
             return AbilityActivationResult.Success;
         }
 
@@ -869,11 +899,88 @@ namespace SpellBook.GAS.Core
             return false;
         }
 
-        private void ActivateSpec(AbilitySpec spec, Vector3 targetPos)
+        private void ActivateSpec(AbilitySpec spec, in AbilityTarget target)
         {
             var ability = spec.Ability;
 
-            // Commit: cooldown e custo
+            spec.IsCommitted = false;
+            // Com CommitMode.Manual, a cobrança espera a CommitAction (CommitAbility)
+            if (ability.CommitMode == CommitMode.OnStart) Commit(spec);
+
+            CancelAbilitiesWithTags(ability.CancelAbilitiesWithTag, spec);
+
+            ActionContext context = Runner.RentContext();
+            context.Ability = ability;
+            context.Spec = spec;
+            context.Level = spec.Level;
+            context.SetPoint(target.Point);
+            // A unidade-alvo é o alvo padrão do OnActivate (alvos do evento)
+            if (target.Unit != null) context.EventTargets.Add(target.Unit);
+
+            int activation = ++spec.ActivationId;
+            spec.IsActive = true;
+            spec.ActiveContext = context;
+            AddTags(ability.ActivationOwnedTags);
+
+            // Dispara eventos DEPOIS de aplicar o cooldown, para que a UI leia o tempo correto
+            OnAbilityActivated?.Invoke(spec);
+            // A reação "Ao executar habilidade" vem depois do evento público e antes do OnActivate; se cancelar, a guarda abaixo para
+            _reactions?.AfterAbilityActivated(in target);
+
+            // A tag concedida acima pode ter cancelado a própria habilidade; o EndAbility já devolveu o contexto
+            if (!spec.IsActive || spec.ActivationId != activation) return;
+
+            // O dono das execuções é o spec: uma ativação por vez, e cancelar a habilidade cancela as ações dela.
+            // O contexto é do ASC até o EndAbility, que o copia para "Ao terminar" ou "Ao ser cancelada"
+            ActionExecutionHandle execution = Runner.Run(ability.OnActivate, context, spec, false);
+            // Uma ação pode ter terminado ou cancelado a ativação, ou começado outra
+            if (!spec.IsActive || spec.ActivationId != activation) return;
+
+            // A ativação só termina quando acabam todas as execuções do spec, inclusive as de uma DelayedAction
+            if (Runner.HasRunning(spec))
+            {
+                spec.Execution = execution;
+                spec.Executing = true;
+            }
+            else
+            {
+                EndAbility(spec, false);
+            }
+        }
+
+        /// <summary>
+        /// Cobra a recarga, o custo e a carga da ativação em curso de <paramref name="spec"/>, uma vez por ativação. Confere
+        /// de novo a carga e o custo, sem tags e sem regras; se falhar, cancela a habilidade e dispara
+        /// <see cref="OnAbilityFailed"/> com <see cref="AbilityActivationResult.NoCharges"/> ou
+        /// <see cref="AbilityActivationResult.CannotAffordCost"/>. Devolve se a ativação está cobrada; spec nulo, de outro
+        /// ASC ou inativo dá <c>false</c>. A <see cref="CommitAction"/> chama este método.
+        /// </summary>
+        public bool CommitAbility(AbilitySpec spec)
+        {
+            if (spec == null || !spec.IsActive || !_abilities.Contains(spec)) return false;
+            if (spec.IsCommitted) return true;
+
+            GameplayAbility ability = spec.Ability;
+            AbilityActivationResult result = AbilityActivationResult.Success;
+            if (HasCharges(spec) && Mathf.Min(spec.Charges, spec.MaxCharges) < 1) result = AbilityActivationResult.NoCharges;
+            else if (!CanAffordCost(ability.CostEffect, ability, spec.Level)) result = AbilityActivationResult.CannotAffordCost;
+
+            if (result != AbilityActivationResult.Success)
+            {
+                CancelAbility(spec);
+                OnAbilityFailed?.Invoke(ability, new ActivationFailure(result));
+                return false;
+            }
+
+            Commit(spec);
+            return true;
+        }
+
+        // Commit: recarga, custo e carga, sem checar
+        private void Commit(AbilitySpec spec)
+        {
+            GameplayAbility ability = spec.Ability;
+            spec.IsCommitted = true;
             if (ability.CooldownEffect != null)
             {
                 EffectSpec cooldown = EffectSpec.ForAbility(ability.CooldownEffect, this, ability, spec.Level);
@@ -887,46 +994,12 @@ namespace SpellBook.GAS.Core
             }
             if (ability.CostEffect != null) ApplyEffect(EffectSpec.ForAbility(ability.CostEffect, this, ability, spec.Level));
             if (HasCharges(spec)) SpendCharge(spec);
-
-            CancelAbilitiesWithTags(ability.CancelAbilitiesWithTag, spec);
-
-            ActionContext context = Runner.RentContext();
-            context.Ability = ability;
-            context.Spec = spec;
-            context.Level = spec.Level;
-            context.SetPoint(targetPos);
-
-            int activation = ++spec.ActivationId;
-            spec.IsActive = true;
-            spec.ActiveContext = context;
-            AddTags(ability.ActivationOwnedTags);
-
-            // Dispara eventos DEPOIS de aplicar o cooldown, para que a UI leia o tempo correto
-            OnAbilityActivated?.Invoke(spec);
-
-            // A tag concedida acima pode ter cancelado a própria habilidade; o contexto, sem execução, não volta ao pool
-            if (!spec.IsActive || spec.ActivationId != activation) return;
-
-            // O dono das execuções é o spec: uma ativação por vez, e cancelar a habilidade cancela as ações dela
-            ActionExecutionHandle execution = Runner.Run(ability.OnActivate, context, spec);
-            // Uma ação pode ter terminado ou cancelado a ativação, ou começado outra
-            if (!spec.IsActive || spec.ActivationId != activation) return;
-
-            if (execution.IsRunning)
-            {
-                spec.Execution = execution;
-                spec.Executing = true;
-            }
-            else
-            {
-                EndAbility(spec, false);
-            }
         }
         #endregion
 
         #region Ability Cancellation
         /// <summary>
-        /// Interrompe a habilidade, chamando OnCancel nas ações em execução.
+        /// Interrompe a habilidade: chama OnCancel nas ações em execução, roda a lista "Ao ser cancelada" e termina.
         /// </summary>
         public void CancelAbility(AbilitySpec spec)
         {
@@ -984,10 +1057,30 @@ namespace SpellBook.GAS.Core
             spec.IsActive = false;
             spec.Executing = false;
             spec.Execution = default;
-            spec.ActiveContext = null;
+
+            ActionContext context = spec.ActiveContext;
+            List<GameplayAction> actions = cancelled ? spec.Ability.OnCancel : spec.Ability.OnEnd;
+            // Execução sem dono: uma espera na lista continua depois do fim, e uma nova ativação não a cancela
+            if (context != null && actions != null && actions.Count > 0) Runner.Run(actions, CopyActivationContext(context), null);
+
+            // Uma ação da lista pode ter começado outra ativação, com outro contexto
+            if (spec.ActiveContext == context) spec.ActiveContext = null;
+            if (context != null) Runner.ReturnContext(context);
 
             RemoveTags(spec.Ability.ActivationOwnedTags);
             OnAbilityEnded?.Invoke(spec, cancelled);
+        }
+
+        private ActionContext CopyActivationContext(ActionContext activation)
+        {
+            ActionContext context = Runner.RentContext();
+            context.Ability = activation.Ability;
+            context.Spec = activation.Spec;
+            context.Level = activation.Level;
+            context.Instigator = activation.Instigator;
+            if (activation.HasPoint) context.SetPoint(activation.Point);
+            context.EventTargets.AddRange(activation.EventTargets);
+            return context;
         }
 
         private void HandleTagChangedForCancellation(GameplayTag tag, bool added)
@@ -1040,12 +1133,24 @@ namespace SpellBook.GAS.Core
         public void AddTags(IEnumerable<GameplayTag> tags)
         {
             if (tags == null) return;
+            // Por índice na List: o foreach pela interface encaixota o enumerador a cada ativação
+            if (tags is List<GameplayTag> list)
+            {
+                for (int i = 0; i < list.Count; i++) AddTag(list[i]);
+                return;
+            }
             foreach (var tag in tags) AddTag(tag);
         }
 
         public void RemoveTags(IEnumerable<GameplayTag> tags)
         {
             if (tags == null) return;
+            // Por índice na List: o foreach pela interface encaixota o enumerador a cada ativação
+            if (tags is List<GameplayTag> list)
+            {
+                for (int i = 0; i < list.Count; i++) RemoveTag(list[i]);
+                return;
+            }
             foreach (var tag in tags) RemoveTag(tag);
         }
 
@@ -1109,6 +1214,100 @@ namespace SpellBook.GAS.Core
             if (tags == null) return false;
             for (int i = 0; i < tags.Count; i++) if (HasTag(tags[i])) return true;
             return false;
+        }
+        #endregion
+
+        #region Gameplay Events
+        /// <summary>
+        /// Evento de gameplay recebido por <see cref="SendGameplayEvent"/>, antes dos gatilhos. Tag inválida não dispara.
+        /// </summary>
+        public event GameplayEventHandler OnGameplayEvent;
+
+        /// <summary>
+        /// Envia o evento <paramref name="tag"/> a este ASC: dispara <see cref="OnGameplayEvent"/> e, na ordem da concessão,
+        /// tenta ativar cada habilidade com um <see cref="GameplayEventTrigger"/> da tag (ou de uma tag pai). A ativação usa
+        /// <see cref="GameplayEventData.Target"/> como unidade-alvo e o ponto do evento, ou a posição da unidade. Tag
+        /// inválida é ignorada; sem ouvinte e sem gatilho, nada acontece e nada é alocado.
+        /// </summary>
+        public void SendGameplayEvent(GameplayTag tag, in GameplayEventData data)
+        {
+            if (!tag.IsValid) return;
+
+            OnGameplayEvent?.Invoke(tag, in data);
+            if (_triggers.Count == 0) return;
+
+            AbilityTarget target = data.Target != null
+                ? (data.HasPoint ? AbilityTarget.AtUnit(data.Target, data.Point) : AbilityTarget.AtUnit(data.Target))
+                : (data.HasPoint ? AbilityTarget.AtPoint(data.Point) : AbilityTarget.None);
+            FireTriggers(TriggerCause.GameplayEvent, tag, in target);
+        }
+
+        private void HandleTagChangedForTriggers(GameplayTag tag, bool added)
+        {
+            if (_triggers.Count == 0) return;
+            FireTriggers(added ? TriggerCause.TagAdded : TriggerCause.TagRemoved, tag, AbilityTarget.None);
+        }
+
+        // Disparo síncrono pelo caminho da ativação manual, com duas travas: o spec em tentativa ignora um novo disparo
+        // para ele mesmo, e os disparos aninhados neste ASC param na profundidade MaxTriggerDepth
+        private void FireTriggers(TriggerCause cause, GameplayTag tag, in AbilityTarget target)
+        {
+            for (int i = 0; i < _triggers.Count; i++)
+            {
+                TriggerEntry entry = _triggers[i];
+                // O autocast ainda não existe: os gatilhos "só com autocast" ficam desligados
+                if (entry.Trigger.OnlyWithAutocast || !entry.Trigger.ListensTo(cause, tag)) continue;
+                if (_triggering.Contains(entry.Spec)) continue;
+
+                if (_triggering.Count >= MaxTriggerDepth)
+                {
+                    if (!_warnedTriggerDepth)
+                    {
+                        _warnedTriggerDepth = true;
+                        Debug.LogWarning($"[GAS] Gatilhos de '{name}' passaram de {MaxTriggerDepth} disparos aninhados; os seguintes foram ignorados.", this);
+                    }
+                    return;
+                }
+
+                _triggering.Add(entry.Spec);
+                try
+                {
+                    TryActivate(entry.Spec, entry.Spec.Ability, in target);
+                }
+                finally
+                {
+                    _triggering.RemoveAt(_triggering.Count - 1);
+                }
+            }
+        }
+
+        private void IndexTriggers(AbilitySpec spec)
+        {
+            List<AbilityTrigger> triggers = spec.Ability.Triggers;
+            for (int i = 0; i < triggers.Count; i++)
+            {
+                if (triggers[i] != null) _triggers.Add(new TriggerEntry(spec, triggers[i]));
+            }
+        }
+
+        private void UnindexTriggers(AbilitySpec spec)
+        {
+            for (int i = _triggers.Count - 1; i >= 0; i--)
+            {
+                if (_triggers[i].Spec == spec) _triggers.RemoveAt(i);
+            }
+        }
+
+        private readonly struct TriggerEntry
+        {
+            public TriggerEntry(AbilitySpec spec, AbilityTrigger trigger)
+            {
+                Spec = spec;
+                Trigger = trigger;
+            }
+
+            public AbilitySpec Spec { get; }
+            public AbilityTrigger Trigger { get; }
         }
         #endregion
 
@@ -1421,6 +1620,7 @@ namespace SpellBook.GAS.Core
         {
             var instance = new ActiveEffectInstance(effect, duration, in context);
             _activeEffects.Add(instance);
+            if (effect.HasReactions) (_reactions ??= new EffectReactions(this)).Add(instance);
 
             AddTags(effect.GrantedTags);
 
@@ -1601,6 +1801,7 @@ namespace SpellBook.GAS.Core
                 _activeChangeState = null;
                 var report = new AttributeChangeReport(in change, state.BaseValue - before, in context);
                 OnAttributeChangeApplied?.Invoke(in report);
+                _reactions?.AfterChangeApplied(in report);
                 return report.Applied;
             }
             finally
@@ -1647,9 +1848,10 @@ namespace SpellBook.GAS.Core
         private void HandleAttributeDepleted(AttributeState state)
         {
             GrantStateTag(state);
-            if (OnAttributeDepleted == null) return;
+            if (OnAttributeDepleted == null && _reactions == null) return;
             AttributeChangeReport cause = GetLimitCause(state);
-            OnAttributeDepleted(state, in cause);
+            OnAttributeDepleted?.Invoke(state, in cause);
+            _reactions?.AfterDepleted(state, in cause);
         }
 
         private void HandleAttributeReachedMax(AttributeState state)
@@ -1892,6 +2094,7 @@ namespace SpellBook.GAS.Core
 
             instance.IsRemoved = true;
             instance.DisposeLiveBindings();
+            _reactions?.Remove(instance);
             // As ações em curso da instância param antes das ações de remoção
             CancelActions(instance);
             instance.Cleanup();

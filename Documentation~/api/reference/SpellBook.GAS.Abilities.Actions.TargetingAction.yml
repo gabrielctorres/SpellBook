@@ -7,8 +7,6 @@ items:
   children:
   - SpellBook.GAS.Abilities.Actions.TargetingAction.Execute(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
   - SpellBook.GAS.Abilities.Actions.TargetingAction.Mode
-  - SpellBook.GAS.Abilities.Actions.TargetingAction.Origin
-  - SpellBook.GAS.Abilities.Actions.TargetingAction.Strategy
   langs:
   - csharp
   - vb
@@ -17,19 +15,22 @@ items:
   fullName: SpellBook.GAS.Abilities.Actions.TargetingAction
   type: Class
   namespace: SpellBook.GAS.Abilities.Actions
-  summary: Busca alvos com a <xref href="SpellBook.GAS.Abilities.Actions.TargetingAction.Strategy" data-throw-if-not-resolved="false"></xref> e troca ou soma aos alvos do evento.
+  summary: >-
+    Põe nos alvos do evento (<xref href="SpellBook.GAS.Actions.ActionContext.EventTargets" data-throw-if-not-resolved="false"></xref>) os alvos que o seletor da ação
+
+    (<xref href="SpellBook.GAS.Actions.GameplayAction.Target" data-throw-if-not-resolved="false"></xref>) escolheu, trocando os atuais ou somando a eles.
   example: []
   syntax:
     content: >-
       [Serializable]
 
-      [TypeCategory("Alvo", Summary = "Busca alvos com uma estratégia e troca ou soma aos alvos atuais.")]
+      [TypeCategory("Alvo", Summary = "Troca ou soma aos alvos do evento os alvos que o seletor escolheu.")]
 
       public class TargetingAction : GameplayAction, IValidatable
     content.vb: >-
       <Serializable>
 
-      <TypeCategory("Alvo", Summary:="Busca alvos com uma estratégia e troca ou soma aos alvos atuais.")>
+      <TypeCategory("Alvo", Summary:="Troca ou soma aos alvos do evento os alvos que o seletor escolheu.")>
 
       Public Class TargetingAction Inherits GameplayAction Implements IValidatable
   inheritance:
@@ -38,6 +39,7 @@ items:
   implements:
   - SpellBook.Core.Validation.IValidatable
   inheritedMembers:
+  - SpellBook.GAS.Actions.GameplayAction.Target
   - SpellBook.GAS.Actions.GameplayAction.UsesTargets
   - SpellBook.GAS.Actions.GameplayAction.OnCancel(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
   - SpellBook.GAS.Actions.GameplayAction.Validate(SpellBook.Core.Validation.ValidationResult)
@@ -61,53 +63,7 @@ items:
     namedArguments:
     - name: Summary
       type: System.String
-      value: Busca alvos com uma estratégia e troca ou soma aos alvos atuais.
-- uid: SpellBook.GAS.Abilities.Actions.TargetingAction.Strategy
-  commentId: F:SpellBook.GAS.Abilities.Actions.TargetingAction.Strategy
-  id: Strategy
-  parent: SpellBook.GAS.Abilities.Actions.TargetingAction
-  langs:
-  - csharp
-  - vb
-  name: Strategy
-  nameWithType: TargetingAction.Strategy
-  fullName: SpellBook.GAS.Abilities.Actions.TargetingAction.Strategy
-  type: Field
-  namespace: SpellBook.GAS.Abilities.Actions
-  syntax:
-    content: public TargetingStrategy Strategy
-    return:
-      type: SpellBook.GAS.Targeting.TargetingStrategy
-    content.vb: Public Strategy As TargetingStrategy
-- uid: SpellBook.GAS.Abilities.Actions.TargetingAction.Origin
-  commentId: F:SpellBook.GAS.Abilities.Actions.TargetingAction.Origin
-  id: Origin
-  parent: SpellBook.GAS.Abilities.Actions.TargetingAction
-  langs:
-  - csharp
-  - vb
-  name: Origin
-  nameWithType: TargetingAction.Origin
-  fullName: SpellBook.GAS.Abilities.Actions.TargetingAction.Origin
-  type: Field
-  namespace: SpellBook.GAS.Abilities.Actions
-  syntax:
-    content: >-
-      [Tooltip("De onde a busca deve partir? Caster ou Location (ponto de impacto)?")]
-
-      public AbilityTargetSource Origin
-    return:
-      type: SpellBook.GAS.Abilities.AbilityTargetSource
-    content.vb: >-
-      <Tooltip("De onde a busca deve partir? Caster ou Location (ponto de impacto)?")>
-
-      Public Origin As AbilityTargetSource
-  attributes:
-  - type: UnityEngine.TooltipAttribute
-    ctor: UnityEngine.TooltipAttribute.#ctor(System.String)
-    arguments:
-    - type: System.String
-      value: De onde a busca deve partir? Caster ou Location (ponto de impacto)?
+      value: Troca ou soma aos alvos do evento os alvos que o seletor escolheu.
 - uid: SpellBook.GAS.Abilities.Actions.TargetingAction.Mode
   commentId: F:SpellBook.GAS.Abilities.Actions.TargetingAction.Mode
   id: Mode
@@ -170,12 +126,19 @@ items:
   fullName.vb: SpellBook.GAS.Abilities.Actions.TargetingAction.Execute(SpellBook.GAS.Actions.ActionContext, SpellBook.GAS.Actions.ActionFrame)
   name.vb: Execute(ActionContext, ActionFrame)
 references:
-- uid: SpellBook.GAS.Abilities.Actions.TargetingAction.Strategy
-  commentId: F:SpellBook.GAS.Abilities.Actions.TargetingAction.Strategy
-  href: SpellBook.GAS.Abilities.Actions.TargetingAction.html#SpellBook_GAS_Abilities_Actions_TargetingAction_Strategy
-  name: Strategy
-  nameWithType: TargetingAction.Strategy
-  fullName: SpellBook.GAS.Abilities.Actions.TargetingAction.Strategy
+- uid: SpellBook.GAS.Actions.ActionContext.EventTargets
+  commentId: P:SpellBook.GAS.Actions.ActionContext.EventTargets
+  href: SpellBook.GAS.Actions.ActionContext.html#SpellBook_GAS_Actions_ActionContext_EventTargets
+  name: EventTargets
+  nameWithType: ActionContext.EventTargets
+  fullName: SpellBook.GAS.Actions.ActionContext.EventTargets
+- uid: SpellBook.GAS.Actions.GameplayAction.Target
+  commentId: P:SpellBook.GAS.Actions.GameplayAction.Target
+  parent: SpellBook.GAS.Actions.GameplayAction
+  href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_Target
+  name: Target
+  nameWithType: GameplayAction.Target
+  fullName: SpellBook.GAS.Actions.GameplayAction.Target
 - uid: SpellBook.GAS.Abilities.Actions
   commentId: N:SpellBook.GAS.Abilities.Actions
   name: SpellBook.GAS.Abilities.Actions
@@ -617,66 +580,6 @@ references:
   - name: .
   - uid: SpellBook.Core.Validation
     name: Validation
-- uid: SpellBook.GAS.Targeting.TargetingStrategy
-  commentId: T:SpellBook.GAS.Targeting.TargetingStrategy
-  parent: SpellBook.GAS.Targeting
-  href: SpellBook.GAS.Targeting.TargetingStrategy.html
-  name: TargetingStrategy
-  nameWithType: TargetingStrategy
-  fullName: SpellBook.GAS.Targeting.TargetingStrategy
-- uid: SpellBook.GAS.Targeting
-  commentId: N:SpellBook.GAS.Targeting
-  name: SpellBook.GAS.Targeting
-  nameWithType: SpellBook.GAS.Targeting
-  fullName: SpellBook.GAS.Targeting
-  spec.csharp:
-  - uid: SpellBook
-    name: SpellBook
-  - name: .
-  - uid: SpellBook.GAS
-    name: GAS
-  - name: .
-  - uid: SpellBook.GAS.Targeting
-    name: Targeting
-  spec.vb:
-  - uid: SpellBook
-    name: SpellBook
-  - name: .
-  - uid: SpellBook.GAS
-    name: GAS
-  - name: .
-  - uid: SpellBook.GAS.Targeting
-    name: Targeting
-- uid: SpellBook.GAS.Abilities.AbilityTargetSource
-  commentId: T:SpellBook.GAS.Abilities.AbilityTargetSource
-  parent: SpellBook.GAS.Abilities
-  href: SpellBook.GAS.Abilities.AbilityTargetSource.html
-  name: AbilityTargetSource
-  nameWithType: AbilityTargetSource
-  fullName: SpellBook.GAS.Abilities.AbilityTargetSource
-- uid: SpellBook.GAS.Abilities
-  commentId: N:SpellBook.GAS.Abilities
-  name: SpellBook.GAS.Abilities
-  nameWithType: SpellBook.GAS.Abilities
-  fullName: SpellBook.GAS.Abilities
-  spec.csharp:
-  - uid: SpellBook
-    name: SpellBook
-  - name: .
-  - uid: SpellBook.GAS
-    name: GAS
-  - name: .
-  - uid: SpellBook.GAS.Abilities
-    name: Abilities
-  spec.vb:
-  - uid: SpellBook
-    name: SpellBook
-  - name: .
-  - uid: SpellBook.GAS
-    name: GAS
-  - name: .
-  - uid: SpellBook.GAS.Abilities
-    name: Abilities
 - uid: SpellBook.GAS.Abilities.Actions.TargetingAction.TargetMode
   commentId: T:SpellBook.GAS.Abilities.Actions.TargetingAction.TargetMode
   parent: SpellBook.GAS.Abilities.Actions

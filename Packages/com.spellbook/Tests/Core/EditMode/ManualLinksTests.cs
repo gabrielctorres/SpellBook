@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
+using SpellBook.Core.Tests.Documentation;
 using SpellBook.Core.Tests.Structure;
 using UnityEngine;
 
@@ -27,6 +28,7 @@ namespace SpellBook.Core.Tests
         }
 
         [Test]
+        [Category(TestCategories.Documentation)]
         public void EveryHelpUrlHasPageAndAnchor()
         {
             List<string> urls = PackageAssemblies()
@@ -44,6 +46,7 @@ namespace SpellBook.Core.Tests
         }
 
         [Test]
+        [Category(TestCategories.Documentation)]
         public void EveryDocUrlHasPage()
         {
             List<string> broken = typeof(DocUrls)
@@ -57,6 +60,7 @@ namespace SpellBook.Core.Tests
         }
 
         [Test]
+        [Category(TestCategories.Documentation)]
         public void NoStubPages()
         {
             string root = ManualRoot();

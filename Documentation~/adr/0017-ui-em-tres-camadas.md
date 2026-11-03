@@ -47,6 +47,10 @@ O pacote não tem código de UI. Quem usa o GAS precisa mostrar barras de atribu
 - Fontes tipadas (`UISource<TModel>`) dependem do suporte a genéricos em `[SerializeReference]` (0013); sem ele, o campo do binder usa o tipo base fechado e cada fonte concreta é não genérica.
 - Dependência de `com.unity.ugui` para TextMeshPro (0012).
 
+## Emenda (2026-11-01): "Em aberto" respondidos pela 0039
+
+Os três itens de "Em aberto" foram respondidos pela [0039](0039-ui-ligacao-pela-fonte-ancora-nao-generica-e-ugui-declarada.md), aceita no gate do Lote E (2026-11-01).
+
 ## Relacionadas
 
 - 0012 (módulos), 0013 (fontes por `[SerializeReference]`), 0014 (driver de tempo), 0015 (spawn de widgets), 0016 (regra por instância), 0023 (texto).

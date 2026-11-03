@@ -43,6 +43,10 @@ Hoje a única condição configurável é o enum `ConditionalAction.ConditionTyp
 - O motivo de falha é uma tag (`SpellBook.Tags`, o que faria o Core depender de Tags) ou uma chave de texto?
 - O seletor do Inspector filtra condições pelo contexto aceito? Como?
 
+## Emenda (2026-10-31): "Em aberto" respondidos pela 0032
+
+Os três itens de "Em aberto" foram respondidos pela [0032](0032-condition-contexto-motivo-e-cargas.md), aceita no gate do Lote C (2026-10-31).
+
 ## Relacionadas
 
 - 0012 (Core sem domínio), 0013 (costura), 0016 (reações), 0017 (filtros de UI), 0018 (ações), 0022 (ativação), 0023 (texto).

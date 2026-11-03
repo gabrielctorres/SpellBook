@@ -73,9 +73,9 @@ O validador acusa erro em:
   [Níveis e tabela de valores](../modulos/gas.md#abilityvalues));
 - uma habilidade que usa um efeito cujo valor em modo `Table` tem um nome que não está na tabela
   dela. A mensagem cita o efeito e o nome, e selecionar a linha seleciona a habilidade. A habilidade
-  confere a recarga, o custo e os efeitos de cada `ApplyEffectAction`, inclusive dentro de
-  `RepeatAction`, `ParallelAction`, `ConditionalAction` e das **On Hit Actions** do
-  `SpawnProjectileAction`. Uma ação sua que aplica efeitos entra na conferência ao sobrescrever
+  confere a recarga, o custo e os efeitos de cada `ApplyEffectAction` das listas "Ao ativar",
+  "Ao terminar" e "Ao ser cancelada", inclusive dentro de `RepeatAction`, `ParallelAction`,
+  `ConditionalAction` e das **On Hit Actions** do `SpawnProjectileAction`. Uma ação sua que aplica efeitos entra na conferência ao sobrescrever
   `GameplayAction.CollectEffects`;
 - um `GameplayEffect` com valor por nível inválido (array vazio, curva sem definir ou modo `Table`
   sem nome) na duração ou num modificador, com nome de **SetByCaller** vazio ou fora de letras,

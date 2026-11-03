@@ -8,6 +8,7 @@ items:
   - SpellBook.GAS.Conditions.TagQueryCondition.DefaultFailureKey
   - SpellBook.GAS.Conditions.TagQueryCondition.Evaluate(SpellBook.GAS.Conditions.ConditionContext@)
   - SpellBook.GAS.Conditions.TagQueryCondition.Query
+  - SpellBook.GAS.Conditions.TagQueryCondition.Subject
   - SpellBook.GAS.Conditions.TagQueryCondition.Validate(SpellBook.Core.Validation.ValidationResult,System.String)
   langs:
   - csharp
@@ -18,21 +19,23 @@ items:
   type: Class
   namespace: SpellBook.GAS.Conditions
   summary: >-
-    Verdadeira se as tags ativas do <xref href="SpellBook.GAS.Conditions.ConditionContext.Owner" data-throw-if-not-resolved="false"></xref> satisfazem a consulta
+    Verdadeira se as tags ativas do <xref href="SpellBook.GAS.Conditions.TagQueryCondition.Subject" data-throw-if-not-resolved="false"></xref> satisfazem a consulta
 
-    (<code>AbilitySystemComponent.HasMatching</code>). Sem dono: falsa.
+    (<code>AbilitySystemComponent.HasMatching</code>). Sem dono, ou sem unidade com <xref href="SpellBook.GAS.Conditions.ConditionSubject.TargetUnit" data-throw-if-not-resolved="false"></xref>,
+
+    é falsa.
   example: []
   syntax:
     content: >-
       [Serializable]
 
-      [TypeCategory("Tags", Summary = "As tags do dono satisfazem a consulta.", Line = "Tags do dono casam com a consulta")]
+      [TypeCategory("Tags", Summary = "As tags do dono ou da unidade-alvo satisfazem a consulta.", Line = "Tags casam com a consulta")]
 
       public sealed class TagQueryCondition : Condition<ConditionContext>
     content.vb: >-
       <Serializable>
 
-      <TypeCategory("Tags", Summary:="As tags do dono satisfazem a consulta.", Line:="Tags do dono casam com a consulta")>
+      <TypeCategory("Tags", Summary:="As tags do dono ou da unidade-alvo satisfazem a consulta.", Line:="Tags casam com a consulta")>
 
       Public NotInheritable Class TagQueryCondition Inherits Condition(Of ConditionContext)
   inheritance:
@@ -57,10 +60,31 @@ items:
     namedArguments:
     - name: Summary
       type: System.String
-      value: As tags do dono satisfazem a consulta.
+      value: As tags do dono ou da unidade-alvo satisfazem a consulta.
     - name: Line
       type: System.String
-      value: Tags do dono casam com a consulta
+      value: Tags casam com a consulta
+- uid: SpellBook.GAS.Conditions.TagQueryCondition.Subject
+  commentId: P:SpellBook.GAS.Conditions.TagQueryCondition.Subject
+  id: Subject
+  parent: SpellBook.GAS.Conditions.TagQueryCondition
+  langs:
+  - csharp
+  - vb
+  name: Subject
+  nameWithType: TagQueryCondition.Subject
+  fullName: SpellBook.GAS.Conditions.TagQueryCondition.Subject
+  type: Property
+  namespace: SpellBook.GAS.Conditions
+  summary: De quem ler as tags. O padrão é <xref href="SpellBook.GAS.Conditions.ConditionSubject.Owner" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public ConditionSubject Subject { get; set; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Conditions.ConditionSubject
+    content.vb: Public Property Subject As ConditionSubject
+  overload: SpellBook.GAS.Conditions.TagQueryCondition.Subject*
 - uid: SpellBook.GAS.Conditions.TagQueryCondition.Query
   commentId: P:SpellBook.GAS.Conditions.TagQueryCondition.Query
   id: Query
@@ -73,7 +97,7 @@ items:
   fullName: SpellBook.GAS.Conditions.TagQueryCondition.Query
   type: Property
   namespace: SpellBook.GAS.Conditions
-  summary: Consulta (todas, alguma e nenhuma) sobre as tags do dono.
+  summary: Consulta (todas, alguma e nenhuma) sobre as tags do <xref href="SpellBook.GAS.Conditions.TagQueryCondition.Subject" data-throw-if-not-resolved="false"></xref>.
   example: []
   syntax:
     content: public GameplayTagQuery Query { get; }
@@ -162,12 +186,18 @@ items:
   fullName.vb: SpellBook.GAS.Conditions.TagQueryCondition.Validate(SpellBook.Core.Validation.ValidationResult, String)
   name.vb: Validate(ValidationResult, String)
 references:
-- uid: SpellBook.GAS.Conditions.ConditionContext.Owner
-  commentId: P:SpellBook.GAS.Conditions.ConditionContext.Owner
-  href: SpellBook.GAS.Conditions.ConditionContext.html#SpellBook_GAS_Conditions_ConditionContext_Owner
-  name: Owner
-  nameWithType: ConditionContext.Owner
-  fullName: SpellBook.GAS.Conditions.ConditionContext.Owner
+- uid: SpellBook.GAS.Conditions.TagQueryCondition.Subject
+  commentId: P:SpellBook.GAS.Conditions.TagQueryCondition.Subject
+  href: SpellBook.GAS.Conditions.TagQueryCondition.html#SpellBook_GAS_Conditions_TagQueryCondition_Subject
+  name: Subject
+  nameWithType: TagQueryCondition.Subject
+  fullName: SpellBook.GAS.Conditions.TagQueryCondition.Subject
+- uid: SpellBook.GAS.Conditions.ConditionSubject.TargetUnit
+  commentId: F:SpellBook.GAS.Conditions.ConditionSubject.TargetUnit
+  href: SpellBook.GAS.Conditions.ConditionSubject.html#SpellBook_GAS_Conditions_ConditionSubject_TargetUnit
+  name: TargetUnit
+  nameWithType: ConditionSubject.TargetUnit
+  fullName: SpellBook.GAS.Conditions.ConditionSubject.TargetUnit
 - uid: SpellBook.GAS.Conditions
   commentId: N:SpellBook.GAS.Conditions
   name: SpellBook.GAS.Conditions
@@ -483,6 +513,25 @@ references:
   - name: .
   - uid: SpellBook.Core.Conditions
     name: Conditions
+- uid: SpellBook.GAS.Conditions.ConditionSubject.Owner
+  commentId: F:SpellBook.GAS.Conditions.ConditionSubject.Owner
+  href: SpellBook.GAS.Conditions.ConditionSubject.html#SpellBook_GAS_Conditions_ConditionSubject_Owner
+  name: Owner
+  nameWithType: ConditionSubject.Owner
+  fullName: SpellBook.GAS.Conditions.ConditionSubject.Owner
+- uid: SpellBook.GAS.Conditions.TagQueryCondition.Subject*
+  commentId: Overload:SpellBook.GAS.Conditions.TagQueryCondition.Subject
+  href: SpellBook.GAS.Conditions.TagQueryCondition.html#SpellBook_GAS_Conditions_TagQueryCondition_Subject
+  name: Subject
+  nameWithType: TagQueryCondition.Subject
+  fullName: SpellBook.GAS.Conditions.TagQueryCondition.Subject
+- uid: SpellBook.GAS.Conditions.ConditionSubject
+  commentId: T:SpellBook.GAS.Conditions.ConditionSubject
+  parent: SpellBook.GAS.Conditions
+  href: SpellBook.GAS.Conditions.ConditionSubject.html
+  name: ConditionSubject
+  nameWithType: ConditionSubject
+  fullName: SpellBook.GAS.Conditions.ConditionSubject
 - uid: SpellBook.GAS.Conditions.TagQueryCondition.Query*
   commentId: Overload:SpellBook.GAS.Conditions.TagQueryCondition.Query
   href: SpellBook.GAS.Conditions.TagQueryCondition.html#SpellBook_GAS_Conditions_TagQueryCondition_Query

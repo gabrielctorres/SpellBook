@@ -15,9 +15,6 @@ on:
       - "Documentation~/api/**"
       - "Documentation~/.config/**"
       - ".github/workflows/docs.yml"
-      # Exemplos do manual incluídos de arquivos de teste (D9 da Spec referencia-catalogo-e-api.md; ADR 0041).
-      - "Packages/com.spellbook/Tests/**/Examples/**"
-      - "Packages/com.spellbook/Samples~/Sandbox/Scripts/**"
   pull_request:
     paths:
       - "Documentation~/manual/**"
@@ -26,9 +23,6 @@ on:
       - "Documentation~/api/**"
       - "Documentation~/.config/**"
       - ".github/workflows/docs.yml"
-      # Exemplos do manual incluídos de arquivos de teste (D9 da Spec referencia-catalogo-e-api.md; ADR 0041).
-      - "Packages/com.spellbook/Tests/**/Examples/**"
-      - "Packages/com.spellbook/Samples~/Sandbox/Scripts/**"
   workflow_dispatch:
 
 # Permissões mínimas do workflow; o job de publicação pede as do Pages.

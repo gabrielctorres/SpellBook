@@ -8,6 +8,7 @@ using SpellBook.GAS.Abilities.Projectiles;
 using SpellBook.GAS.Actions;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
+using SpellBook.GAS.Values;
 using SpellBook.Testing;
 using SpellBook.Time;
 using UnityEditor;
@@ -53,7 +54,7 @@ namespace SpellBook.GAS.Tests
         [UnityTest]
         public IEnumerator WaitAction_FinishesByAscTicks_NotRealTime()
         {
-            GameplayAbility ability = _gas.CreateAbility(new WaitAction { Duration = 0.2f });
+            GameplayAbility ability = _gas.CreateAbility(new WaitAction { Duration = ScalableFloat.Constant(0.2f) });
             AbilitySystemComponent asc = CreateManualAsc(ability);
 
             asc.TryActivateAbility(ability, Vector3.zero);
@@ -75,12 +76,38 @@ namespace SpellBook.GAS.Tests
         {
             foreach (float duration in new[] { 0f, -1f })
             {
-                GameplayAbility ability = _gas.CreateAbility(new WaitAction { Duration = duration });
+                GameplayAbility ability = _gas.CreateAbility(new WaitAction { Duration = ScalableFloat.Constant(duration) });
                 AbilitySystemComponent asc = CreateManualAsc(ability);
 
                 asc.TryActivateAbility(ability, Vector3.zero);
 
                 Assert.That(asc.IsAbilityActive(ability), Is.False, $"Duration {duration}: a espera custou um quadro");
+            }
+        }
+
+        [Test]
+        public void WaitAction_TableDuration_UsesExecutionLevel()
+        {
+            // Nível 3: 2,9 s + 0,1 s. Nível 1: 0,5 s + 0,5 s (passos exatos em float).
+            foreach ((int level, float first, float second) in new[] { (3, 2.9f, 0.1f), (1, 0.5f, 0.5f) })
+            {
+                var counter = new CountingAction();
+                GameplayAbility ability = _gas.CreateAbility(
+                    new WaitAction { Duration = ScalableFloat.FromTable("espera") }, counter);
+                ability.Values.Add("espera", ScalableFloat.FromArray(1f, 2f, 3f));
+                var so = new SerializedObject(ability);
+                so.FindProperty("maxLevel").intValue = 3;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                AbilitySystemComponent asc = CreateManualAsc();
+                asc.GiveAbility(ability, level);
+
+                asc.TryActivateAbility(ability, Vector3.zero);
+                asc.Tick(first);
+                int beforeEnd = counter.Count;
+                asc.Tick(second);
+
+                Assert.That(beforeEnd, Is.EqualTo(0), $"nível {level}: a ação seguinte rodou com {first} s");
+                Assert.That(counter.Count, Is.EqualTo(1), $"nível {level}: a ação seguinte não rodou com {first + second} s");
             }
         }
 
@@ -189,7 +216,7 @@ namespace SpellBook.GAS.Tests
             var counter = new CountingAction();
             AbilitySystemComponent caster = CreateManualAsc();
             CollidingProjectile projectile = CreateCollidingProjectile();
-            projectile.Setup(CreateCountingSpawner(), caster, new List<GameplayAction> { new WaitAction { Duration = 1f }, counter });
+            projectile.Setup(CreateCountingSpawner(), caster, new List<GameplayAction> { new WaitAction { Duration = ScalableFloat.Constant(1f) }, counter });
 
             projectile.Collide(_gas.CreateAsc().gameObject);
             int runsBeforeTick = counter.Count;
@@ -312,7 +339,7 @@ namespace SpellBook.GAS.Tests
             switch (step)
             {
                 case WaitStep.Wait:
-                    return new GameplayAction[] { counter, new WaitAction { Duration = 1f }, counter };
+                    return new GameplayAction[] { counter, new WaitAction { Duration = ScalableFloat.Constant(1f) }, counter };
                 case WaitStep.RepeatInterval:
                     var repeat = new RepeatAction { Count = 2, Interval = 1f };
                     repeat.Actions.Add(counter);

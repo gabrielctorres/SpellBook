@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using SpellBook.Core.Editor.Documentation;
+using SpellBook.Core.Tests.Structure;
 using UnityEditor.Compilation;
 
 namespace SpellBook.Core.Tests.Documentation
@@ -11,7 +12,7 @@ namespace SpellBook.Core.Tests.Documentation
     /// <summary>Configuração de metadados do DocFX a partir da compilação da Unity (Spec referencia-catalogo-e-api, D4; RC3).</summary>
     public class DocfxConfigTests
     {
-        private static readonly string Root = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "spellbook-docfx-config"));
+        private static readonly string Root = TestScratch.For("docfx-config");
         private static readonly string ConfigDir = Path.Combine(Root, "Documentation~", "api", "obj");
         private static readonly string[] NoSystemDirectories = new string[0];
 

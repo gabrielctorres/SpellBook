@@ -47,6 +47,7 @@ items:
   implements:
   - SpellBook.Core.Validation.IValidatable
   inheritedMembers:
+  - SpellBook.GAS.Actions.GameplayAction.Target
   - SpellBook.GAS.Actions.GameplayAction.UsesTargets
   - SpellBook.GAS.Actions.GameplayAction.CollectEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
   - System.Object.Equals(System.Object)
@@ -190,6 +191,13 @@ references:
   name: IValidatable
   nameWithType: IValidatable
   fullName: SpellBook.Core.Validation.IValidatable
+- uid: SpellBook.GAS.Actions.GameplayAction.Target
+  commentId: P:SpellBook.GAS.Actions.GameplayAction.Target
+  parent: SpellBook.GAS.Actions.GameplayAction
+  href: SpellBook.GAS.Actions.GameplayAction.html#SpellBook_GAS_Actions_GameplayAction_Target
+  name: Target
+  nameWithType: GameplayAction.Target
+  fullName: SpellBook.GAS.Actions.GameplayAction.Target
 - uid: SpellBook.GAS.Actions.GameplayAction.UsesTargets
   commentId: P:SpellBook.GAS.Actions.GameplayAction.UsesTargets
   parent: SpellBook.GAS.Actions.GameplayAction

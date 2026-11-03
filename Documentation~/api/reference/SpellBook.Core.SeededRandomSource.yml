@@ -1,0 +1,444 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.Core.SeededRandomSource
+  commentId: T:SpellBook.Core.SeededRandomSource
+  id: SeededRandomSource
+  parent: SpellBook.Core
+  children:
+  - SpellBook.Core.SeededRandomSource.#ctor(System.Int32)
+  - SpellBook.Core.SeededRandomSource.Range(System.Int32)
+  - SpellBook.Core.SeededRandomSource.Value
+  langs:
+  - csharp
+  - vb
+  name: SeededRandomSource
+  nameWithType: SeededRandomSource
+  fullName: SpellBook.Core.SeededRandomSource
+  type: Class
+  namespace: SpellBook.Core
+  summary: <xref href="SpellBook.Core.IRandomSource" data-throw-if-not-resolved="false"></xref> com xorshift de 32 bits. A mesma semente dá sempre a mesma sequência. Não aloca.
+  example: []
+  syntax:
+    content: 'public sealed class SeededRandomSource : IRandomSource'
+    content.vb: Public NotInheritable Class SeededRandomSource Implements IRandomSource
+  inheritance:
+  - System.Object
+  implements:
+  - SpellBook.Core.IRandomSource
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+- uid: SpellBook.Core.SeededRandomSource.#ctor(System.Int32)
+  commentId: M:SpellBook.Core.SeededRandomSource.#ctor(System.Int32)
+  id: '#ctor(System.Int32)'
+  parent: SpellBook.Core.SeededRandomSource
+  langs:
+  - csharp
+  - vb
+  name: SeededRandomSource(int)
+  nameWithType: SeededRandomSource.SeededRandomSource(int)
+  fullName: SpellBook.Core.SeededRandomSource.SeededRandomSource(int)
+  type: Constructor
+  namespace: SpellBook.Core
+  syntax:
+    content: public SeededRandomSource(int seed)
+    parameters:
+    - id: seed
+      type: System.Int32
+    content.vb: Public Sub New(seed As Integer)
+  overload: SpellBook.Core.SeededRandomSource.#ctor*
+  nameWithType.vb: SeededRandomSource.New(Integer)
+  fullName.vb: SpellBook.Core.SeededRandomSource.New(Integer)
+  name.vb: New(Integer)
+- uid: SpellBook.Core.SeededRandomSource.Value
+  commentId: M:SpellBook.Core.SeededRandomSource.Value
+  id: Value
+  parent: SpellBook.Core.SeededRandomSource
+  langs:
+  - csharp
+  - vb
+  name: Value()
+  nameWithType: SeededRandomSource.Value()
+  fullName: SpellBook.Core.SeededRandomSource.Value()
+  type: Method
+  namespace: SpellBook.Core
+  summary: Próximo valor em [0, 1).
+  example: []
+  syntax:
+    content: public float Value()
+    return:
+      type: System.Single
+    content.vb: Public Function Value() As Single
+  overload: SpellBook.Core.SeededRandomSource.Value*
+  implements:
+  - SpellBook.Core.IRandomSource.Value
+- uid: SpellBook.Core.SeededRandomSource.Range(System.Int32)
+  commentId: M:SpellBook.Core.SeededRandomSource.Range(System.Int32)
+  id: Range(System.Int32)
+  parent: SpellBook.Core.SeededRandomSource
+  langs:
+  - csharp
+  - vb
+  name: Range(int)
+  nameWithType: SeededRandomSource.Range(int)
+  fullName: SpellBook.Core.SeededRandomSource.Range(int)
+  type: Method
+  namespace: SpellBook.Core
+  summary: Próximo inteiro em [0, <code class="paramref">maxExclusive</code>). Com 0 ou menos, lança <xref href="System.ArgumentOutOfRangeException" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public int Range(int maxExclusive)
+    parameters:
+    - id: maxExclusive
+      type: System.Int32
+    return:
+      type: System.Int32
+    content.vb: Public Function Range(maxExclusive As Integer) As Integer
+  overload: SpellBook.Core.SeededRandomSource.Range*
+  implements:
+  - SpellBook.Core.IRandomSource.Range(System.Int32)
+  nameWithType.vb: SeededRandomSource.Range(Integer)
+  fullName.vb: SpellBook.Core.SeededRandomSource.Range(Integer)
+  name.vb: Range(Integer)
+references:
+- uid: SpellBook.Core.IRandomSource
+  commentId: T:SpellBook.Core.IRandomSource
+  parent: SpellBook.Core
+  href: SpellBook.Core.IRandomSource.html
+  name: IRandomSource
+  nameWithType: IRandomSource
+  fullName: SpellBook.Core.IRandomSource
+- uid: SpellBook.Core
+  commentId: N:SpellBook.Core
+  name: SpellBook.Core
+  nameWithType: SpellBook.Core
+  fullName: SpellBook.Core
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Core
+    name: Core
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: SpellBook.Core.SeededRandomSource.#ctor*
+  commentId: Overload:SpellBook.Core.SeededRandomSource.#ctor
+  href: SpellBook.Core.SeededRandomSource.html#SpellBook_Core_SeededRandomSource__ctor_System_Int32_
+  name: SeededRandomSource
+  nameWithType: SeededRandomSource.SeededRandomSource
+  fullName: SpellBook.Core.SeededRandomSource.SeededRandomSource
+  nameWithType.vb: SeededRandomSource.New
+  fullName.vb: SpellBook.Core.SeededRandomSource.New
+  name.vb: New
+- uid: System.Int32
+  commentId: T:System.Int32
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.int32
+  name: int
+  nameWithType: int
+  fullName: int
+  nameWithType.vb: Integer
+  fullName.vb: Integer
+  name.vb: Integer
+- uid: SpellBook.Core.SeededRandomSource.Value*
+  commentId: Overload:SpellBook.Core.SeededRandomSource.Value
+  href: SpellBook.Core.SeededRandomSource.html#SpellBook_Core_SeededRandomSource_Value
+  name: Value
+  nameWithType: SeededRandomSource.Value
+  fullName: SpellBook.Core.SeededRandomSource.Value
+- uid: SpellBook.Core.IRandomSource.Value
+  commentId: M:SpellBook.Core.IRandomSource.Value
+  parent: SpellBook.Core.IRandomSource
+  href: SpellBook.Core.IRandomSource.html#SpellBook_Core_IRandomSource_Value
+  name: Value()
+  nameWithType: IRandomSource.Value()
+  fullName: SpellBook.Core.IRandomSource.Value()
+  spec.csharp:
+  - uid: SpellBook.Core.IRandomSource.Value
+    name: Value
+    href: SpellBook.Core.IRandomSource.html#SpellBook_Core_IRandomSource_Value
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: SpellBook.Core.IRandomSource.Value
+    name: Value
+    href: SpellBook.Core.IRandomSource.html#SpellBook_Core_IRandomSource_Value
+  - name: (
+  - name: )
+- uid: System.Single
+  commentId: T:System.Single
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.single
+  name: float
+  nameWithType: float
+  fullName: float
+  nameWithType.vb: Single
+  fullName.vb: Single
+  name.vb: Single
+- uid: System.ArgumentOutOfRangeException
+  commentId: T:System.ArgumentOutOfRangeException
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.argumentoutofrangeexception
+  name: ArgumentOutOfRangeException
+  nameWithType: ArgumentOutOfRangeException
+  fullName: System.ArgumentOutOfRangeException
+- uid: SpellBook.Core.SeededRandomSource.Range*
+  commentId: Overload:SpellBook.Core.SeededRandomSource.Range
+  href: SpellBook.Core.SeededRandomSource.html#SpellBook_Core_SeededRandomSource_Range_System_Int32_
+  name: Range
+  nameWithType: SeededRandomSource.Range
+  fullName: SpellBook.Core.SeededRandomSource.Range
+- uid: SpellBook.Core.IRandomSource.Range(System.Int32)
+  commentId: M:SpellBook.Core.IRandomSource.Range(System.Int32)
+  parent: SpellBook.Core.IRandomSource
+  isExternal: true
+  href: SpellBook.Core.IRandomSource.html#SpellBook_Core_IRandomSource_Range_System_Int32_
+  name: Range(int)
+  nameWithType: IRandomSource.Range(int)
+  fullName: SpellBook.Core.IRandomSource.Range(int)
+  nameWithType.vb: IRandomSource.Range(Integer)
+  fullName.vb: SpellBook.Core.IRandomSource.Range(Integer)
+  name.vb: Range(Integer)
+  spec.csharp:
+  - uid: SpellBook.Core.IRandomSource.Range(System.Int32)
+    name: Range
+    href: SpellBook.Core.IRandomSource.html#SpellBook_Core_IRandomSource_Range_System_Int32_
+  - name: (
+  - uid: System.Int32
+    name: int
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: )
+  spec.vb:
+  - uid: SpellBook.Core.IRandomSource.Range(System.Int32)
+    name: Range
+    href: SpellBook.Core.IRandomSource.html#SpellBook_Core_IRandomSource_Range_System_Int32_
+  - name: (
+  - uid: System.Int32
+    name: Integer
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.int32
+  - name: )

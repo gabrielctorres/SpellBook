@@ -276,25 +276,26 @@ O `ConditionContext` é o mesmo para toda condição do GAS e é somente leitura
 | `Owner` | ASC que avalia a condição. |
 | `Ability` e `Level` | Habilidade em avaliação e o nível dela. A habilidade pode ser nula. |
 | `Spec` | `AbilitySpec` da habilidade concedida, ou nulo. |
-| `Target` | `AbilityTarget`: o ponto do alvo (`HasPoint` e `Point`), ou `AbilityTarget.None`. |
+| `Target` | `AbilityTarget`: o ponto do alvo (`HasPoint` e `Point`) e a unidade-alvo (`Unit`, nula num alvo só de ponto), ou `AbilityTarget.None`. |
 | `Targets` | Unidades-alvo. Nunca é nulo: sem alvos, é uma lista vazia. |
+| `Action` | O `ActionContext` da execução, quando a condição roda numa lista de ações (na `ConditionalAction`). Fora dela, como nas regras de ativação, é nulo. |
 
 Condições prontas:
 
 | Condição | Verdadeira quando | Chave padrão do motivo |
 |---|---|---|
-| `TagQueryCondition` | As tags ativas do `Owner` satisfazem a **Query** (todas, alguma e nenhuma, como a [`GameplayTagQuery`](tags.md#gameplaytagquery)). Sem `Owner`, é falsa. | `gas.activation.tag_query` |
+| `TagQueryCondition` | As tags ativas do **Subject** satisfazem a **Query** (todas, alguma e nenhuma, como a [`GameplayTagQuery`](tags.md#gameplaytagquery)). Com `Owner`, o padrão, lê as tags de quem avalia; com `Target Unit`, as da unidade do `Target`. Sem `Owner`, ou sem unidade com `Target Unit`, é falsa. | `gas.activation.tag_query` |
 | `HasTargetsCondition` | Há ao menos um alvo em `Targets`. Alvos destruídos não contam. | `gas.activation.has_targets` |
 | `AttributeThresholdCondition` | O valor atual do **Attribute** no `Owner` compara com o **Value** pela **Comparison** (`Greater`, `GreaterOrEqual`, `Less`, `LessOrEqual` ou `Equal`, com tolerância de 0,0001). Com **Use Ratio**, compara o valor dividido pelo máximo efetivo do atributo; máximo 0 ou menor dá falso. Atributo ausente no `Owner`, ou sem `Owner`, dá falso, sem aviso. | `gas.activation.attribute_threshold` |
 | `HasTargetPointCondition` | A ativação tem um ponto-alvo (`Target.HasPoint`). | `gas.activation.no_target` |
-| `CastRangeCondition` | O ponto-alvo está a até `CastRange` da habilidade, medido da posição do `Owner`. Com `CastRange` 0 ou menor, ou sem habilidade, é verdadeira, com ou sem ponto. Com alcance maior que 0 e sem ponto, é falsa. | `gas.activation.cast_range` |
+| `CastRangeCondition` | O alvo está a até `CastRange` da habilidade, medido da posição do `Owner` até o ponto ou, com unidade-alvo, até a unidade pelo **Measure**. Com `CastRange` 0 ou menor, ou sem habilidade, é verdadeira, com ou sem ponto. Com alcance maior que 0 e sem ponto, é falsa. | `gas.activation.cast_range` |
 | `AndCondition` | Todas as filhas são verdadeiras. Lista vazia é verdadeira. | — |
 | `OrCondition` | Alguma filha é verdadeira. Lista vazia é falsa. | — |
 | `NotCondition` | A filha é falsa. Sem filha, é falsa. | — |
 
 O **Value** da `AttributeThresholdCondition` é uma fonte de valor, como a de um modificador: um valor por nível (inclusive `%nome` da tabela da habilidade), um atributo ou uma fórmula. Ele é avaliado com o `Owner` como instigador e alvo, na habilidade e no nível do contexto. Com a Mana em 30, "Mana `GreaterOrEqual` 20" passa e, com a Mana em 10, falha.
 
-O alcance mora na habilidade: o campo **Cast Range** da `GameplayAbility` (`CastRange`, um `ScalableFloat` avaliado no nível e na tabela da habilidade) nasce 0, "sem limite". A `CastRangeCondition` mede a distância em 3D até o ponto: com alcance 5, um ponto a 3 m passa e um a 8 m falha. Para que a falta de ponto tenha motivo próprio (`no_target`) em vez de `cast_range`, ponha a `HasTargetPointCondition` antes da `CastRangeCondition`.
+O alcance mora na habilidade: o campo **Cast Range** da `GameplayAbility` (`CastRange`, um `ScalableFloat` avaliado no nível e na tabela da habilidade) nasce 0, "sem limite". A `CastRangeCondition` mede a distância em 3D até o ponto: com alcance 5, um ponto a 3 m passa e um a 8 m falha. Com unidade-alvo, o **Measure** escolhe até onde medir. `Center`, o padrão, mede até a posição da unidade. `Edge` mede até o ponto do colisor da unidade mais perto de quem lança, e uma unidade grande com o centro a 6 m e a borda a 4 m fica no alcance 5. Sem colisor, `Edge` mede até o centro. Para que a falta de ponto tenha motivo próprio (`no_target`) em vez de `cast_range`, ponha a `HasTargetPointCondition` antes da `CastRangeCondition`.
 
 Filhas nulas nas composições são ignoradas. No Inspector, um campo `[SerializeReference] Condition<ConditionContext>` só oferece essas condições e as suas, e cada uma aparece numa linha, como "Alguma (2)" ou "Não Tem alvos".
 
@@ -344,23 +345,29 @@ A lista **Starting Effects** do ASC aplica cada efeito no `Awake`, na ordem da l
 ### Exemplo: habilidade de área (explosão)
 1. **Action 0 (AnimationAction):** Trigger: "Attack".
 2. **Action 1 (WaitAction):** Duration: 0.5s.
-3. **Action 2 (TargetingAction):** Strategy: (arraste um TS_Circle).
+3. **Action 2 (TargetingAction):** Target: `AreaSelector`, com `Origin` Point e `Radius` 3.
 4. **Action 3 (PlayCueAction):** VFX_Prefab: (Explosão), SFX_Clip: (Explosão).
 5. **Action 4 (ApplyEffectAction):** Effects: (arraste um GE_Damage).
 
 ---
 
 ## 3. Lista de ações disponíveis {#acoes}
-- **WaitAction:** pausa a execução por X segundos do tempo do ASC (veja [Ações que esperam](#acoes-que-esperam)).
-- **TargetingAction:** busca alvos usando uma estratégia (Raio, Mouse...). `Mode` Replace substitui os alvos atuais, Append adiciona.
+- **WaitAction:** pausa a execução por X segundos do tempo do ASC, com a duração por nível (veja [Ações que esperam](#acoes-que-esperam)).
+- **TargetingAction:** põe nos alvos do evento os alvos do seletor dela (veja [Targeting](#targeting)). `Mode` Replace substitui os alvos atuais, Append adiciona.
 - **ApplyEffectAction:** aplica GameplayEffects aos alvos ou ao conjurador.
 - **PlayCueAction:** dispara efeitos visuais e sonoros (veja [Ações de spawn](#acoes-de-spawn)).
 - **AnimationAction:** altera parâmetros (Trigger, Bool, Int) no Animator do personagem.
 - **SpawnProjectileAction:** dispara projéteis (detalhes em [Projéteis](#projectile)).
 - **RepeatAction:** repete uma lista de ações N vezes, com intervalo opcional.
 - **ParallelAction:** executa várias ações ao mesmo tempo e espera todas terminarem.
-- **ConditionalAction:** executa `Then` ou `Else` conforme tags do conjurador ou existência de alvos.
+- **ConditionalAction:** roda `Then` se a `Condition` for verdadeira e `Else` se for falsa ou estiver vazia. A `Condition` é uma [condição do GAS](#condicoes), com `AndCondition`, `OrCondition` e `NotCondition` para combinar outras. Ela é avaliada quando a ação roda: `Owner` é o ASC da execução, `Ability` e `Level` são os da execução, `Target` é o ponto do evento e `Targets` são os alvos da ação. Numa habilidade de nível 2, uma `AttributeThresholdCondition` com valor `%minMana` lê o `minMana` do nível 2.
 - **RaiseEventAction:** dispara um canal de eventos (detalhes em [RaiseEventAction](#raiseeventaction)).
+- **ChanceAction:** roda as ações filhas com uma chance por nível, de 0 a 1 (`Probability`). O sorteio usa a fonte de aleatoriedade do ASC ([Alvo de cada ação](#alvo-da-acao)). Com `Probability` 0,3, um sorteio de 0,2 roda as filhas e um de 0,5 não roda.
+- **ForEachTargetAction:** roda as ações filhas uma vez para cada alvo dela, e cada filha sem seletor recebe só o alvo da vez ([Alvo de cada ação](#alvo-da-acao)).
+- **RemoveEffectAction:** remove de cada alvo as instâncias do `Effect` e as que concedem a `Tag` ou uma filha dela. A soma das pilhas removidas fica em `context.LastRemovedStacks` para as ações seguintes da lista. Sem efeito e sem tag, a ação não remove nada.
+- **CommitAction:** cobra a recarga, o custo e a carga de uma habilidade com `CommitMode.Manual` (veja [Commit](#commit)). Numa ativação já cobrada, não faz nada.
+- **SendGameplayEventAction:** envia o evento de gameplay `Tag` ao ASC de cada alvo, com `Magnitude` por nível (veja [Gatilhos](#gatilhos)). Quem roda a lista vai como instigador e o próprio alvo como unidade do evento. Numa lista de efeito, o evento leva o contexto do efeito.
+- **DelayedAction:** agenda as ações filhas para `Delay` segundos depois, no tempo do ASC, sem segurar a lista: a ação seguinte roda na mesma chamada. As filhas pertencem ao dono da lista. Numa habilidade, ela continua ativa até as filhas rodarem, e cancelar a habilidade as cancela; num efeito, remover o efeito as cancela. Com `ContinueIfOwnerEnds` ligado, as filhas rodam mesmo assim, e a habilidade termina sem esperar por elas. A filha sem seletor recebe os alvos que a `DelayedAction` recebeu.
 
 #### Ações que esperam {#acoes-que-esperam}
 O `Duration` da `WaitAction`, o `Interval` da `RepeatAction` e o `DelayBetweenShots` da `SpawnProjectileAction` contam o tempo do ASC que conjurou, o [`TickedTime`](#tempo-do-asc), e não o relógio da Unity.
@@ -371,6 +378,8 @@ O `Duration` da `WaitAction`, o `Interval` da `RepeatAction` e o `DelayBetweenSh
 - Se o ASC for destruído, as ações que ele rodava param.
 - As três esperas contam do fim do passo anterior. Um `Tick` no mesmo quadro em que o passo terminou já entra na espera, e o excesso de um `Tick` grande passa para a espera seguinte ([Base nova das ações](#gameplayaction)).
 - Ações sem espera não custam quadro: rodam todas na mesma chamada. Uma `RepeatAction` com `Count` 3 e `Interval` 0 roda as três repetições de uma vez, e uma `WaitAction` com `Duration` zero ou negativo termina na hora. Na 2.x, as duas custavam um quadro.
+
+O `Duration` da `WaitAction` é um [`ScalableFloat`](#scalablefloat), avaliado no nível da execução. Com `%espera` valendo 1, 2 e 3 na tabela [`Values`](#abilityvalues) da habilidade, a espera dura 3 s no nível 3 e 1 s no nível 1. Numa lista de efeito, que não tem habilidade, o modo `Table` vale o `Fallback`. No código, atribua `new WaitAction { Duration = ScalableFloat.Constant(2f) }`.
 
 Numa ação própria, espere devolvendo `ActionStatus.Wait(segundos)`, e não com `WaitForSeconds`.
 
@@ -426,26 +435,37 @@ Herde de `GameplayAction` e sobrescreva `Execute(ActionContext context, ref Acti
 - A mesma instância da ação é compartilhada por todos que usam a habilidade. Guarde o estado da execução no `ActionFrame` ou no `context.CustomData`, nunca em campos.
 - Sobrescreva `OnCancel(context, ref frame)` para restaurar estado se a habilidade for cancelada no meio da ação (ex: reabilitar movimento após um dash).
 - Para rodar sub-ações, devolva `ActionStatus.Run(lista)`, ou `ActionStatus.RunParallel(lista)` para rodá-las ao mesmo tempo. O cancelamento da habilidade chega às filhas.
-- Quem lançou está em `context.Instigator`, e o ponto em `context.Point`. Os alvos que a `TargetingAction` encontra ficam em `context.EventTargets`; tire da lista os alvos destruídos antes de usá-la.
+- Quem lançou está em `context.Instigator`, e o ponto em `context.Point`. Os alvos da ação estão em `context.Targets`, já sem os destruídos quando ela começa ([Alvo de cada ação](#alvo-da-acao)). Os alvos que a `TargetingAction` encontra ficam em `context.EventTargets`.
 - Para esperar, devolva `ActionStatus.Wait(segundos)`, que conta o tempo do ASC ([Ações que esperam](#acoes-que-esperam)).
 - Para acusar uma configuração inválida, sobrescreva `Validate(ValidationResult result)` e chame `result.AddError(...)`. O `GameplayAbility` repassa a validação a cada ação da lista.
 
 ### 3.2 Targeting {#targeting}
-`TargetingStrategy` respeita `physicsMode` (2D/3D), procura o `AbilitySystemComponent` no collider ou nos pais (sem duplicatas) e filtra por:
+A `TargetingAction` põe nos alvos do evento (`context.EventTargets`) os alvos que o seletor do campo **Target** escolheu. Com `Mode` Replace, ela troca os alvos atuais; com Append, soma os novos aos atuais, sem repetir. As ações seguintes da lista recebem esses alvos quando não têm seletor próprio.
 
-- `includeSelf` (padrão: falso);
-- `requiredTargetTags` / `ignoredTargetTags` (ex: ignorar a tag do próprio time).
+#### AreaSelector {#areaselector}
+O `AreaSelector` escolhe as unidades num raio. Ele procura o `AbilitySystemComponent` no collider ou nos pais, e uma unidade com vários colliders conta uma vez.
 
-#### CircleTargeting {#circletargeting}
-Os alvos num raio em volta da origem. Aceita `maxTargets` (prioriza os mais próximos). Crie em **Create → GAS → Targeting → Circle**.
+| Campo | O que faz |
+|---|---|
+| `Origin` | O centro da busca: `Caster` (quem lançou), `Point` (o ponto do evento) ou `FirstEventTarget` (o primeiro alvo do evento). |
+| `Physics` | `Physics3D` ou `Physics2D`. |
+| `Radius` | O raio, por nível. Zero ou menos não acha ninguém. |
+| `Include Owner` | Deixa o ASC que roda a lista entre os alvos. Vem desligado. |
+| `Max Targets` | O máximo de alvos; 0 é ilimitado. |
+| `Order` | `Nearest` fica com os mais perto do centro. `Random` sorteia sem repetir, com a fonte de aleatoriedade do ASC. |
+| `Layers` | As camadas em que a busca procura. Vem com todas. |
+| `Filter` | Uma condição avaliada para cada candidato, com o candidato como unidade do `Target`. Só fica quem passa. Vazio aceita todos. |
 
-#### MouseTargetingStrategy {#mousetargetingstrategy}
-O alvo válido mais próximo do ponto mirado, num raio pequeno. Crie em **Create → GAS → Targeting → Mouse**.
+Para o alvo mais perto do ponto mirado, use `Origin` Point, `Max Targets` 1 e `Order` Nearest. Para ficar só com quem tem `State.Alive`, ponha no `Filter` uma `TagQueryCondition` com `Subject` Target Unit e a tag em `All`. O filtro roda antes de `Max Targets`, então o máximo conta só quem passou. Com a mesma semente em `asc.SetRandomSource`, o sorteio escolhe os mesmos alvos na mesma ordem. A busca vê até 64 colliders, usa buffers de cada ASC e não aloca.
 
 ### 3.3 Base nova das ações {#gameplayaction}
 `GameplayAction` (namespace `SpellBook.GAS.Actions`) é a base única das ações da 3.0, e o `AbilitySystemComponent` tem o executor que a roda. A lista `OnActivate` da habilidade, as listas do efeito e o `OnImpact` do projétil usam essa base, e a mesma instância de ação pode estar em listas de donos diferentes.
 
 A ativação roda o `OnActivate` com o spec como dono e termina quando a execução acaba, na mesma chamada se nenhuma ação esperar. `CancelAbility` cancela as execuções desse dono antes de terminar a habilidade.
+
+A habilidade tem mais duas listas. `OnEnd` ("Ao terminar") roda quando o `OnActivate` acaba. `OnCancel` ("Ao ser cancelada") roda no `CancelAbility`, depois do `OnCancel` das ações em curso. Só uma das duas roda em cada ativação, e sempre antes de a habilidade devolver as `ActivationOwnedTags` e disparar o `OnAbilityEnded`. Cada lista recebe um contexto novo com a habilidade, o spec, o nível, o instigador, o ponto e os alvos do evento da ativação, inclusive os que uma `TargetingAction` achou durante o `OnActivate`. A execução não tem dono: as ações sem espera rodam antes do fim da habilidade, e uma espera continua depois dele, sem deixar a habilidade ativa. Uma nova ativação não cancela essa espera. Com as duas listas vazias, nada muda e nada aloca.
+
+`AbilitySpec.ActiveContext` é o contexto da ativação e fica preenchido até o fim da habilidade, também dentro de `OnEnd` e `OnCancel`. No `OnAbilityEnded` ele já é nulo. O contexto é do ASC; não guarde a referência depois do fim.
 
 Uma ação implementa `Execute(ActionContext context, ref ActionFrame frame)` e devolve um `ActionStatus`:
 
@@ -462,13 +482,33 @@ No cancelamento, cada ação em curso recebe `OnCancel`. As filhas paralelas rec
 
 Uma espera conta a partir do fim do passo anterior, no tempo do ASC. Um `Tick` no mesmo quadro em que a execução começou conta, e o excesso de um `Tick` grande passa para a espera seguinte: com duas esperas de 1 s, `Tick(1.5)` e depois `Tick(0.5)` terminam as duas.
 
-O `ActionContext` leva os dados da execução: `Owner` (o ASC que roda), `Instigator`, `EventTargets`, `Targets`, `Point` com `HasPoint`, `Ability`, `Spec`, `Level`, `EffectInstance`, `Effect` com `HasEffect`, `EventInstigator`, `IsCancelled` e `CustomData`. Passe `null` como contexto para o ASC usar um, com ele mesmo como `Owner` e `Instigator`.
+O `ActionContext` leva os dados da execução: `Owner` (o ASC que roda), `Instigator`, `EventTargets`, `Targets`, `Point` com `HasPoint`, `Ability`, `Spec`, `Level`, `EffectInstance`, `Effect` com `HasEffect`, `EventInstigator`, `Random`, `IsCancelled` e `CustomData`. Passe `null` como contexto para o ASC usar um, com ele mesmo como `Owner` e `Instigator`.
 
 O ASC guarda execuções e contextos em pool, e rodar a mesma lista de novo não aloca. Se você passar um contexto seu, o executor fica com ele e o devolve ao pool quando a execução termina ou é cancelada. Não use essa referência depois disso. Um `ActionExecutionHandle` antigo continua dizendo que a execução não roda, mesmo depois que o pool a reaproveita.
 
 As chaves do `CustomData` usam o comparador padrão. Para usar outro, como `StringComparer.OrdinalIgnoreCase`, chame `context.SetCustomDataComparer(comparador)` antes de gravar a primeira chave. Com chaves gravadas, a chamada lança `InvalidOperationException`. Um contexto que volta do pool vem com o comparador padrão.
 
 `context.CreateDerived(ponto)` devolve um contexto novo com esse ponto, o mesmo `Owner`, `Instigator`, `Ability` e `Level`, e uma cópia rasa do `CustomData`, com o mesmo comparador. Uma chave acrescentada no derivado não aparece no original, mas um valor que é objeto fica compartilhado. O derivado não tem vínculo de cancelamento com a execução de origem.
+
+### 3.4 Alvo de cada ação {#alvo-da-acao}
+Toda ação tem o campo **Target**, um `TargetSelector` que escolhe os alvos dela. O executor chama o seletor quando a ação começa e põe o resultado em `context.Targets`, que vale até a ação terminar, mesmo que ela espere ou rode filhas. Assim, duas ações da mesma lista agem em ASCs diferentes: um dano com **Alvos do evento** acerta o inimigo, e uma cura com **Quem lançou** volta para o conjurador.
+
+| Seletor | Alvos |
+|---|---|
+| `CasterSelector` | Quem lançou (`context.Instigator`): o dono da habilidade, ou quem aplicou o efeito. |
+| `EventTargetsSelector` | Os alvos do evento (`context.EventTargets`), sem os destruídos. |
+| `PointSelector` | Nenhuma unidade. A ação usa o ponto do evento (`context.Point`). |
+| `AreaSelector` | As unidades num raio em volta de quem lançou, do ponto ou do primeiro alvo do evento ([AreaSelector](#areaselector)). |
+
+Sem seletor, a ação recebe os alvos do evento, sem os destruídos. Na ativação, são os que uma ação anterior pôs em `EventTargets`, como a `TargetingAction`. No impacto do projétil, é quem foi atingido, e numa lista de efeito, o dono do efeito. Escolher os alvos não aloca.
+
+Dentro de uma `ForEachTargetAction`, a filha sem seletor recebe só o alvo da repetição em curso. A `ForEachTargetAction` copia os alvos dela quando começa, e é essa cópia que ela percorre: se uma filha trocar os alvos do evento, o número de repetições continua o mesmo. Um alvo destruído antes da vez dele é pulado.
+
+As ações prontas (`ApplyEffectAction`, `PlayCueAction`, `SpawnProjectileAction` e `RaiseEventAction`) ainda leem `context.EventTargets` e ignoram o seletor. A `RemoveEffectAction`, a `ForEachTargetAction` e uma ação própria que lê `context.Targets` já respeitam o campo.
+
+Para escrever um seletor, herde de `TargetSelector` e sobrescreva `Select(context, resultados)`, que recebe a lista vazia e só acrescenta. Use listas e buffers reutilizados, porque o executor chama o método a cada ação que começa. Sobrescreva `NeedsEventTargets` para devolver `true` se o seletor lê os alvos do evento.
+
+Cada ASC tem uma fonte de aleatoriedade, `asc.Random`, que as ações leem em `context.Random`. É um `IRandomSource` do Core: `Value()` devolve um número em [0, 1) e `Range(n)`, um inteiro de 0 a n − 1. A fonte padrão é uma `SeededRandomSource` com semente do relógio. Para repetir os sorteios num teste ou num replay, troque por uma semente fixa com `asc.SetRandomSource(new SeededRandomSource(42))`, e a mesma semente dá sempre a mesma sequência.
 
 ---
 
@@ -489,13 +529,13 @@ O ASC só ativa habilidades concedidas. Use a lista `startingAbilities` no Inspe
 5. custo (`CannotAffordCost`), só checado, sem aplicar;
 6. regras de ativação (`BlockedByCondition`), na ordem da lista; a primeira que falha decide.
 
-Nada é gasto antes do fim das checagens: a carga, a recarga e o custo saem só depois que todas passam.
+Nada é gasto antes do fim das checagens: a carga, a recarga e o custo saem só depois que todas passam, e só no [commit](#commit).
 
 Uma habilidade sem ações, ou só com ações sem espera, termina dentro do `TryActivateAbility`. Uma consulta logo depois já vê a recarga (`OnCooldown`), e não `AlreadyActive`. Na 2.x, ela ficava ativa por um quadro.
 
 **Regras de ativação.** A lista **Activation Conditions** da habilidade (`ActivationConditions`) tem uma `ActivationRule` por entrada: uma [condição](#condicoes) e o motivo da falha, com **Failure Tag** (uma `GameplayTag`, opcional) e **Failure Key** (chave de texto). Com a chave vazia, vale a chave padrão da condição. Entradas vazias ou sem condição são puladas. As condições recebem o alvo da ativação no `ConditionContext.Target`.
 
-**Alvo e motivo.** `asc.TryActivateAbility(ability, alvo)` recebe um `AbilityTarget` (`AbilityTarget.AtPoint(ponto)` ou `AbilityTarget.None`); a forma com `Vector3` usa `AtPoint`. Para consultar sem ativar, `asc.GetActivationResult(ability, alvo, out ActivationFailure falha)` passa pelas mesmas checagens, na mesma ordem, sem mudar o ASC, sem disparar evento e sem alocar; `GetActivationResult(ability)` consulta sem alvo. O `ActivationFailure` traz:
+**Alvo e motivo.** `asc.TryActivateAbility(ability, alvo)` recebe um `AbilityTarget` (`AbilityTarget.AtPoint(ponto)`, `AbilityTarget.AtUnit(asc)` ou `AbilityTarget.None`); a forma com `Vector3` usa `AtPoint`. Com `AtUnit`, a unidade entra nos alvos do evento do `OnActivate` e a posição dela vira o ponto. Uma unidade nula dá `None`. Para consultar sem ativar, `asc.GetActivationResult(ability, alvo, out ActivationFailure falha)` passa pelas mesmas checagens, na mesma ordem, sem mudar o ASC, sem disparar evento e sem alocar; `GetActivationResult(ability)` consulta sem alvo. O `ActivationFailure` traz:
 
 | Campo | O que é |
 |---|---|
@@ -512,11 +552,21 @@ Com a regra "Mana `GreaterOrEqual` 20" e a tag `Fail.LowMana`, a Mana em 10 devo
 
 Em caso de sucesso, o ASC:
 
-- aplica o `CooldownEffect` (duração reduzida por `CooldownReductionAttribute`) e o `CostEffect`;
+- com **Commit Mode** `OnStart`, aplica o `CooldownEffect` (duração reduzida por `CooldownReductionAttribute`) e o `CostEffect` e gasta a carga;
 - cancela as habilidades cujo `AbilityTag` está em `CancelAbilitiesWithTag`;
 - concede as `ActivationOwnedTags` enquanto a habilidade roda.
 
 Para consultar sem ativar, use `ability.CanActivate(asc, out var reason)` ou, com alvo e motivo, `ability.CanActivate(asc, alvo, out var falha)`.
+
+#### Commit {#commit}
+O commit é a cobrança da recarga, do custo e da carga. O campo **Commit Mode** da habilidade (`GameplayAbility.CommitMode`) diz quando ele acontece:
+
+- `OnStart`, o padrão: na ativação, antes da primeira ação, como na 2.x.
+- `Manual`: quando uma `CommitAction` roda. Até lá, nada é cobrado, e cancelar a habilidade antes dela não cobra nada.
+
+Use `Manual` numa habilidade que só cobra se chegar a um ponto, como um feitiço que pode ser interrompido durante a preparação. Com a lista "espera 1 s, `CommitAction`, aplica o dano", cancelar no primeiro segundo devolve a habilidade sem custo e sem recarga.
+
+A ativação passa pelas checagens de sempre, inclusive a de carga e a de custo. No commit, o ASC confere de novo só a carga e o custo, porque eles podem ter mudado durante a espera. Se faltar um deles, a habilidade é cancelada, as ações seguintes não rodam e o `OnAbilityFailed` dispara com `NoCharges` ou `CannotAffordCost`. Cada ativação cobra uma vez: uma segunda `CommitAction` na mesma ativação não cobra de novo, e com `OnStart` a `CommitAction` não faz nada. `AbilitySpec.IsCommitted` diz se a ativação em curso já foi cobrada. Para cobrar por código, chame `asc.CommitAbility(spec)`, que devolve `true` quando a ativação está cobrada.
 
 **Consultando a recarga.** `asc.GetCooldownTimeRemaining(cooldownEffect)` devolve o tempo restante e `asc.GetCooldownNormalized(cooldownEffect)`, o valor de 1 a 0 para barras de recarga. Contam a instância do próprio `CooldownEffect` e qualquer efeito ativo que conceda uma tag igual ou **filha** de alguma tag dele, pela mesma regra de `HasTag`: um efeito com `Cooldown.Fire` conta para uma recarga com a tag `Cooldown`, mas um efeito com `Cooldown` não conta para uma recarga com `Cooldown.Fire`. Com vários efeitos casando, vale o de maior tempo restante. O normalizado divide esse tempo pela duração aplicada da mesma instância, e não pela `Duration` do asset: com `CooldownReductionAttribute` em 0,25 sobre 8 s, a recarga aplicada é de 6 s e o normalizado vale 1 logo após ativar, 0,5 com 3 s restantes e 0 com a habilidade pronta. Sem recarga, ou com duração aplicada zero ou negativa, o normalizado é 0.
 
@@ -545,7 +595,7 @@ Com cargas, a habilidade pode ser usada várias vezes seguidas, e as cargas volt
 
 As cargas nascem cheias ao conceder a habilidade, com o máximo avaliado no nível do spec. O ASC volta a avaliar o máximo a cada `SetAbilityLevel` e a cada `Tick`, então um `%nome` da tabela acompanha o nível e um atributo acompanha o valor dele. Com `%Charges` valendo 2, 3 e 4 nos níveis 1 a 3, a habilidade no nível 3 guarda até 4 cargas. Quando o máximo sobe, as cargas não enchem: se faltar alguma, a recarga começa. Quando o máximo desce abaixo das cargas, elas são limitadas a ele, com `OnChargesChanged`, e a recarga para.
 
-Cada ativação com sucesso gasta uma carga junto do custo. Se a recarga estava parada, ela começa. Quando a recarga termina, volta uma carga e, se ainda faltar alguma, a recarga da seguinte começa na hora, com o tempo que sobrou do `Tick` passado adiante. No máximo, a recarga para. Um `Tick` grande pode devolver mais de uma carga.
+Cada ativação gasta uma carga junto do custo, no [commit](#commit). Se a recarga estava parada, ela começa. Quando a recarga termina, volta uma carga e, se ainda faltar alguma, a recarga da seguinte começa na hora, com o tempo que sobrou do `Tick` passado adiante. No máximo, a recarga para. Um `Tick` grande pode devolver mais de uma carga.
 
 O tempo de recarga passa pela mesma redução da recarga da habilidade: o `CooldownReductionAttribute` e a [CooldownReductionPolicy](#cooldownreductionpolicy), com piso e teto. Com **Max Reduction** 0,5 e **Min Duration** 1 s, uma recarga de 8 s com redução de 0,9 dura 4 s. O tempo anda só pelo [`Tick` do ASC](#tempo-do-asc), nunca pelo relógio da Unity.
 
@@ -592,11 +642,28 @@ A duração é `max(Min Duration, duração × (1 - redução))`. Exemplo: com *
 
 Sem política, a habilidade usa `CooldownReductionPolicy.ApplyDefault`: piso de 0,1 s, redução limitada a [0, 1] e modo `Percent`, a mesma regra de antes da política. O validador acusa erro em **Min Duration** negativo e em **Max Reduction** fora de 0 a 1.
 
+#### Gatilhos {#gatilhos}
+Um gatilho ativa a habilidade sozinho quando algo acontece no ASC. Adicione-os na lista **Triggers** da habilidade:
+
+- `GameplayEventTrigger`: o ASC recebe o evento de gameplay `Tag` ou de uma tag filha dela.
+- `TagAddedTrigger`: o ASC passa a ter `Tag` ou uma filha dela.
+- `TagRemovedTrigger`: o ASC deixa de ter `Tag` ou uma filha dela.
+
+As tags contam como em `AddTag` e `RemoveTag`: um segundo `AddTag` da mesma tag só sobe a contagem e não dispara, e o `TagRemovedTrigger` espera a contagem chegar a zero.
+
+O evento de gameplay é do sistema de habilidades e não passa pelo barramento de eventos global. Envie-o por código com `asc.SendGameplayEvent(tag, dados)`, ou numa lista de ações com a `SendGameplayEventAction`. Os dados (`GameplayEventData`) levam o `Instigator`, a unidade do evento (`Target`), um ponto opcional, a `Magnitude`, `Tags` e, se o evento veio de um efeito, o `EffectContext`. O ASC dispara `OnGameplayEvent(tag, dados)` e depois tenta os gatilhos, na ordem em que as habilidades foram concedidas. Tag inválida é ignorada, e um evento sem ouvinte e sem gatilho não faz nada nem aloca.
+
+O gatilho tenta a ativação na hora, pelo mesmo caminho e pelas mesmas checagens de `TryActivateAbility`, na mesma ordem. Uma falha dispara `OnAbilityFailed`, sem exceção. No evento de gameplay, a unidade do evento é a unidade-alvo da ativação, e o ponto é o do evento ou, sem ele, a posição da unidade. Os gatilhos de tag ativam sem alvo.
+
+Para o disparo não entrar em laço, o ASC ignora um gatilho da habilidade que já está na própria tentativa: uma habilidade que envia ao dono a tag do próprio gatilho roda uma vez. Disparos aninhados param em 8 por ASC, e o primeiro excesso escreve um aviso no Console.
+
+O ASC lê a lista na concessão. Mudar `Triggers` depois só vale quando a habilidade for concedida de novo, e retirar a habilidade tira os gatilhos dela. A opção **Only With Autocast** fica para o autocast; por enquanto, um gatilho com ela ligada não dispara.
+
 ### 4.3 Custo
 `CostEffect` é um GameplayEffect Instant, normalmente com modifier `Add` negativo (ex: `Mana Add -20`). A ativação falha se algum atributo ficaria abaixo do `MinValue`.
 
 ### 4.4 Cancelamento
-- `asc.CancelAbility(ability)` interrompe a habilidade e chama `OnCancel` nas ações em execução.
+- `asc.CancelAbility(ability)` interrompe a habilidade e chama `OnCancel` nas ações em execução. Depois roda a lista `OnCancel` ("Ao ser cancelada") da habilidade e só então termina, com `OnAbilityEnded(spec, true)`. A lista `OnEnd` não roda (veja [Base nova das ações](#gameplayaction)).
 - `CancelledByTags`: a habilidade é cancelada quando o dono recebe uma destas tags (ex: `State.Stunned`).
 - Desativar o GameObject do ASC cancela todas as habilidades ativas.
 

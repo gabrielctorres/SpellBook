@@ -166,6 +166,21 @@ namespace SpellBook.GAS.Effects
         /// </summary>
         private void RunActions(List<GameplayAction> actions, EffectEvent effectEvent)
         {
+            EffectEventCause cause = EffectEventCause.Lifecycle(Target);
+            RunActions(actions, effectEvent, in cause);
+        }
+
+        /// <summary>
+        /// Roda a reação <paramref name="actions"/> pelo mesmo caminho das outras listas: os alvos do evento e o ponto vêm de
+        /// <paramref name="cause"/>, e a ação sem seletor recebe o dono do efeito.
+        /// </summary>
+        internal void RunReaction(List<GameplayAction> actions, EffectEvent effectEvent, in EffectEventCause cause)
+        {
+            RunActions(actions, effectEvent, in cause);
+        }
+
+        private void RunActions(List<GameplayAction> actions, EffectEvent effectEvent, in EffectEventCause cause)
+        {
             if (actions == null || actions.Count == 0 || Target == null) return;
 
             ActionContext context = Target.Runner.RentContext();
@@ -175,7 +190,11 @@ namespace SpellBook.GAS.Effects
             context.EffectDefinition = Effect;
             context.EffectEvent = effectEvent;
             context.SetEffect(Context);
-            context.EventTargets.Add(Target);
+            context.EventInstigator = cause.EventInstigator;
+            context.Change = cause.Change;
+            context.DefaultTarget = DefaultTarget.Owner;
+            if (cause.HasPoint) context.SetPoint(cause.Point);
+            if (cause.EventTarget != null) context.EventTargets.Add(cause.EventTarget);
             Target.RunActions(actions, context, this);
         }
 
