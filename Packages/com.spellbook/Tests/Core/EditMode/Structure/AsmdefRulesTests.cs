@@ -17,7 +17,7 @@ namespace SpellBook.Core.Tests.Structure
         /// <summary>Módulos de runtime da lista final do CA1 e do CA32.</summary>
         private static readonly string[] RuntimeModules =
         {
-            "Core", "Time", "Events", "Pooling", "Tags", "GAS", "GAS.Bridges", "Teams",
+            "Core", "Time", "Events", "Pooling", "Tags", "GAS", "GAS.Bridges", "Teams", "Cues",
         };
 
         private static readonly string[] EditorModules = { "Core", "Events", "Time", "Tags", "Pooling", "GAS", "GAS.Bridges", "Teams" };
@@ -277,6 +277,20 @@ namespace SpellBook.Core.Tests.Structure
                 teams.ReferenceNames.Where(r => r.StartsWith("SpellBook.", StringComparison.Ordinal)),
                 Is.EquivalentTo(new[] { "SpellBook.Core" }));
             Assert.That(LoadedAssembly("SpellBook.Teams"), Is.Not.Null, "o assembly SpellBook.Teams não foi compilado");
+        }
+
+        [Test]
+        public void CuesAsmdef_ReferencesCoreTagsTime()
+        {
+            AsmdefFile cues = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.Cues");
+
+            Assert.That(cues, Is.Not.Null, "não existe asmdef SpellBook.Cues");
+            Assert.That(cues.Path, Is.EqualTo("Runtime/Cues/SpellBook.Cues.asmdef"));
+            Assert.That(cues.Kind, Is.EqualTo(AsmdefKind.Runtime));
+            Assert.That(
+                cues.ReferenceNames.Where(r => r.StartsWith("SpellBook.", StringComparison.Ordinal)),
+                Is.EquivalentTo(new[] { "SpellBook.Core", "SpellBook.Tags", "SpellBook.Time" }));
+            Assert.That(LoadedAssembly("SpellBook.Cues"), Is.Not.Null, "o assembly SpellBook.Cues não foi compilado");
         }
 
         [Test]

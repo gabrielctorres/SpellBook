@@ -199,6 +199,24 @@ Todos usam a Unity e seguem o WIP 1. Tempo por `ManualTimeSource`, aleatoriedade
 - Critério de pronto: testes verdes; `HelpUrlTests` e `ManualLinksTests` verdes.
 - Tamanho estimado: ~460 linhas; 10 arquivos (1 página). Depende de: TG1.
 
+### Detalhe (2026-11-03)
+- CA: CA3 (C3, índice mais específico pelo `Parent`) e CA17 (parte: asmdef do Cues com Core, Tags e Time).
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/Cues/SpellBook.Cues.asmdef` (novo; referências Core, Tags e Time por GUID, como `Runtime/Teams/SpellBook.Teams.asmdef`).
+  - `Runtime/Cues/AssemblyInfo.cs` (novo): `InternalsVisibleTo("SpellBook.Cues.Tests.EditMode")`, consequência direta (o `CueIndex` é interno, como `Runtime/Core/AssemblyInfo.cs`).
+  - `Runtime/Cues/CueDefinition.cs` (novo): `CueKind`, `CueLimitPolicy`, `SoundSelection`; `CueDefinition` com `Tag`, `Kind`, `Items` (`[SerializeReference, TypePicker]`), `MaxSimultaneous`, `LimitPolicy`, `DefaultMagnitude` (0 a 1, padrão 1), `[HelpURL(DocUrls.Cues + "#cuedefinition")]`, menu `SpellBook/Cues/Cue`.
+  - `Runtime/Cues/CueLibrary.cs` (novo): `CueLibrary` (`Cues`, `[HelpURL]`, menu `SpellBook/Cues/Cue Library`) e `internal sealed class CueIndex` (`Rebuild(IReadOnlyList<CueLibrary>)`, `TryFind(GameplayTag, out CueDefinition)` subindo por `GameplayTagDefinition.Parent` (`Runtime/Tags/GameplayTagDefinition.cs:13`), sem alocar; tag repetida: a primeira vence, e o erro é do CU6).
+  - `Runtime/Cues/CueItem.cs` (novo): `CueItem` (base abstrata `[Serializable]`), `CueParameters` (`At`, `On`, `With…`), `CueHandle` (`IsValid`, construtor interno), `CueSpawnRequest`, `CuePlacement`, `CueEnd`.
+  - `Tests/Cues/EditMode/SpellBook.Cues.Tests.EditMode.asmdef` e `Tests/Cues/EditMode/CueIndexTests.cs` (novos).
+  - `Tests/Core/EditMode/Structure/AsmdefRulesTests.cs:18-21` (`Cues` em `RuntimeModules`) e teste novo `CuesAsmdef_ReferencesCoreTagsTime`.
+  - `Runtime/Core/DocUrls.cs:20` (`Cues = Base + "modulos/cues/"`).
+  - Ficam para o ticket que traz o tipo de que dependem, sem mudar a API final do Design 2: `CueItem.Play` e o `CuePlayback` (CU3), `Sounds`/`SoundSelection` na definição (CU5), `IValidatable` e `Validate` (CU6). O `CueSpawnRequest` ganha `Duration`, que o fim `FixedDuration` pede.
+  - Sem `cues.md` nem `CHANGELOG.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007), e o ticket não quebra nada. Sem a página, o `EveryDocUrlHasPage` e o `EveryHelpUrlHasPageAndAnchor` (categoria `Documentacao`) ficam vermelhos até o passe, como o `DocUrls.Teams`.
+- Testes red (EditMode): `CueIndexTests` (`SpellBook.Cues.Tests.EditMode`): `Index_MostSpecificMatch_FallsBackToParent_NoneFalse`, `Index_Lookup_DoesNotAllocate`, `CueParameters_DefaultsAndWith`, `Handle_DefaultIsInvalid`; `AsmdefRulesTests` (`SpellBook.Core.Tests.EditMode`): `CuesAsmdef_ReferencesCoreTagsTime`, mais `AllExpectedAssembliesExist` e `EachRuntimeModuleHasEditModeTests` com o `Cues` na lista.
+- Critério de pronto: os testes acima verdes pelo filtro `\.CueIndexTests\.;\.AsmdefRulesTests\.;\.HelpUrlTests\.`; `HelpUrlTests` verde. O `ManualLinksTests` fica para o passe de documentação.
+- Tamanho: ~620 linhas e 9 arquivos, pela ADR 0042 (medido no diff). Exceção: +24% em linhas, linha do CU2 (#204) em `Documentation~/decisoes.md`.
+- Commit: `feat(cues): módulo, definição, biblioteca e índice por tag`
+
 ### CU3 — Roteador: tocar, ligar, desligar, limite e tempo
 - Escopo: `Runtime/Cues/CueRouter.cs`, `CueRouterAnchor.cs`, `CuePlayback.cs` (novos), `Tests/Cues/EditMode/CueRouterTests.cs` (novo; item de teste que cria um objeto vazio com fim fixo), `Tests/Testing/CuesFactory.cs` (novo: biblioteca, definição, roteador com `ManualTimeSource` e spawner que registra), `Tests/Testing/SpellBook.Testing.asmdef` (+Cues), `cues.md`, `CHANGELOG.md`.
 - Testes red:
