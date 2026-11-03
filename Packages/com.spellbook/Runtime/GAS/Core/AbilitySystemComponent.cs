@@ -58,6 +58,11 @@ namespace SpellBook.GAS.Core
         public event Action<AbilitySpec> OnAbilityActivated;
         public event Action<AbilitySpec, bool> OnAbilityEnded; // spec, cancelled
         /// <summary>
+        /// Uma habilidade <see cref="AbilityBehavior.Toggle"/> ligou (<c>true</c>, logo depois de <see cref="OnAbilityActivated"/>)
+        /// ou desligou (<c>false</c>, por qualquer fim, logo antes de <see cref="OnAbilityEnded"/>).
+        /// </summary>
+        public event Action<AbilitySpec, bool> OnToggleChanged;
+        /// <summary>
         /// Ativação recusada por <c>TryActivateAbility</c>: a habilidade e a <see cref="ActivationFailure"/> da checagem, igual à
         /// de <see cref="GetActivationResult(GameplayAbility, in AbilityTarget, out ActivationFailure)"/>. A consulta não dispara.
         /// </summary>
@@ -99,6 +104,8 @@ namespace SpellBook.GAS.Core
             _random ??= CreateDefaultRandom();
             if (attributeSet == null) attributeSet = GetComponent<AttributeSet>();
             if (attributeSet != null) BindAttributeLimits();
+            // Uma passiva de partida confere o custo e aplica efeitos na concessão
+            if (attributeSet != null) attributeSet.EnsureInitialized();
 
             if (startingAbilities != null)
             {
@@ -112,7 +119,6 @@ namespace SpellBook.GAS.Core
         private void ApplyStartingEffects()
         {
             if (startingEffects == null) return;
-            if (attributeSet != null) attributeSet.EnsureInitialized();
 
             for (int i = 0; i < startingEffects.Count; i++)
             {
@@ -348,6 +354,12 @@ namespace SpellBook.GAS.Core
             _abilities.Add(spec);
             IndexTriggers(spec);
             OnAbilityGranted?.Invoke(spec);
+            RunGrantList(spec, ability.OnGranted);
+            // Uma ação de "Ao ser concedida" pode ter retirado a habilidade
+            if (ability.Behavior == AbilityBehavior.Passive && _abilities.Contains(spec))
+            {
+                TryActivate(spec, ability, AbilityTarget.None, true);
+            }
             return spec;
         }
 
@@ -359,15 +371,44 @@ namespace SpellBook.GAS.Core
             var spec = FindSpec(ability);
             if (spec == null) return;
 
-            CancelAbility(spec);
+            if (spec.IsActive && spec.Ability.Behavior == AbilityBehavior.Passive) EndPassive(spec);
+            else CancelAbility(spec);
             UnindexTriggers(spec);
-            if (_abilities.Remove(spec)) OnAbilityRemoved?.Invoke(spec);
+            if (!_abilities.Remove(spec)) return;
+            OnAbilityRemoved?.Invoke(spec);
+            RunGrantList(spec, spec.Ability.OnRemoved);
+        }
+
+        // Retirada da passiva: cancela as execuções da ativação e termina normalmente ("Ao terminar")
+        private void EndPassive(AbilitySpec spec)
+        {
+            int activation = spec.ActivationId;
+            try { CancelActions(spec); }
+            catch (Exception e) { Debug.LogException(e, this); }
+
+            if (spec.ActivationId == activation) EndAbility(spec, false);
+        }
+
+        // "Ao ser concedida" e "Ao ser retirada": alvo padrão o dono, sem dono lógico, como "Ao terminar"
+        private void RunGrantList(AbilitySpec spec, List<GameplayAction> actions)
+        {
+            if (actions == null || actions.Count == 0) return;
+
+            ActionContext context = Runner.RentContext();
+            context.Ability = spec.Ability;
+            context.Spec = spec;
+            context.Level = spec.Level;
+            context.DefaultTarget = DefaultTarget.Owner;
+            Runner.Run(actions, context, null);
         }
 
         /// <summary>Habilidade nova concedida, já na lista. Conceder de novo não dispara; as de <c>startingAbilities</c> disparam no <c>Awake</c>.</summary>
         public event Action<AbilitySpec> OnAbilityGranted;
 
-        /// <summary>Habilidade removida, depois do cancelamento e da saída da lista.</summary>
+        /// <summary>
+        /// Habilidade removida, depois do fim da ativação e da saída da lista, antes de "Ao ser retirada". Uma passiva
+        /// ativa termina normalmente; as outras são canceladas.
+        /// </summary>
         public event Action<AbilitySpec> OnAbilityRemoved;
 
         /// <summary>Nível mudou de fato por <see cref="SetAbilityLevel"/>: (spec, antes, depois).</summary>
@@ -766,15 +807,18 @@ namespace SpellBook.GAS.Core
             return TryActivate(spec, spec.Ability, in target);
         }
 
-        private AbilityActivationResult TryActivate(AbilitySpec spec, GameplayAbility ability, in AbilityTarget target)
+        // silent: a falha não dispara OnAbilityFailed (ativação da passiva)
+        private AbilityActivationResult TryActivate(AbilitySpec spec, GameplayAbility ability, in AbilityTarget target, bool silent = false)
         {
             if (!CheckActivation(spec, ability, in target, out ActivationFailure failure))
             {
-                OnAbilityFailed?.Invoke(ability, failure);
+                if (!silent) OnAbilityFailed?.Invoke(ability, failure);
                 return failure.Result;
             }
 
-            ActivateSpec(spec, in target);
+            // Só um Toggle ligado passa as checagens ativo: ativar de novo o desliga, sem cobrar
+            if (spec.IsActive) CancelAbility(spec);
+            else ActivateSpec(spec, in target);
             return AbilityActivationResult.Success;
         }
 
@@ -783,6 +827,12 @@ namespace SpellBook.GAS.Core
         {
             if (ability == null) return Fail(AbilityActivationResult.InvalidAbility, default, out failure);
             if (spec == null) return Fail(AbilityActivationResult.NotGranted, default, out failure);
+            // Desligar um Toggle ligado não passa pelas outras checagens
+            if (spec.IsActive && ability.Behavior == AbilityBehavior.Toggle)
+            {
+                failure = new ActivationFailure(AbilityActivationResult.Success);
+                return true;
+            }
             if (spec.IsActive) return Fail(AbilityActivationResult.AlreadyActive, default, out failure);
 
             if (TryFindTag(ability.BlockedTags, true, out GameplayTag blocking))
@@ -924,6 +974,10 @@ namespace SpellBook.GAS.Core
 
             // Dispara eventos DEPOIS de aplicar o cooldown, para que a UI leia o tempo correto
             OnAbilityActivated?.Invoke(spec);
+            if (ability.Behavior == AbilityBehavior.Toggle && spec.IsActive && spec.ActivationId == activation)
+            {
+                OnToggleChanged?.Invoke(spec, true);
+            }
             // A reação "Ao executar habilidade" vem depois do evento público e antes do OnActivate; se cancelar, a guarda abaixo para
             _reactions?.AfterAbilityActivated(in target);
 
@@ -935,6 +989,9 @@ namespace SpellBook.GAS.Core
             ActionExecutionHandle execution = Runner.Run(ability.OnActivate, context, spec, false);
             // Uma ação pode ter terminado ou cancelado a ativação, ou começado outra
             if (!spec.IsActive || spec.ActivationId != activation) return;
+
+            // Passive e Toggle ficam ativas até serem desligadas, retiradas ou canceladas; as execuções seguem com o spec
+            if (ability.IsSustained) return;
 
             // A ativação só termina quando acabam todas as execuções do spec, inclusive as de uma DelayedAction
             if (Runner.HasRunning(spec))
@@ -1068,6 +1125,7 @@ namespace SpellBook.GAS.Core
             if (context != null) Runner.ReturnContext(context);
 
             RemoveTags(spec.Ability.ActivationOwnedTags);
+            if (spec.Ability.Behavior == AbilityBehavior.Toggle) OnToggleChanged?.Invoke(spec, false);
             OnAbilityEnded?.Invoke(spec, cancelled);
         }
 

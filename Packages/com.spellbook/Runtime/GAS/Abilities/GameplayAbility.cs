@@ -65,6 +65,9 @@ namespace SpellBook.GAS.Abilities
         [Tooltip("Quando cobrar a recarga, o custo e a carga: na ativação, ou quando uma ação Commit rodar.")]
         [SerializeField] private CommitMode commitMode = CommitMode.OnStart;
 
+        [Tooltip("Instant termina ao fim de \"Ao ativar\". Passive ativa na concessão e fica ativa. Toggle liga e desliga a cada ativação.")]
+        [SerializeField] private AbilityBehavior behavior = AbilityBehavior.Instant;
+
         [Tooltip("Alcance da habilidade por nível, lido pela CastRangeCondition. 0 ou menos: sem limite.")]
         [SerializeField] private ScalableFloat castRange = ScalableFloat.Constant(0f);
 
@@ -108,6 +111,18 @@ namespace SpellBook.GAS.Abilities
         [TypePicker]
         [ActionEvent("Ao ser cancelada", DefaultTarget.EventTargets, true)]
         public List<GameplayAction> OnCancel = new List<GameplayAction>();
+
+        /// <summary>Roda quando a habilidade é concedida, depois de <c>OnAbilityGranted</c>. Conceder de novo não roda.</summary>
+        [SerializeReference]
+        [TypePicker]
+        [ActionEvent("Ao ser concedida", DefaultTarget.Owner, false)]
+        public List<GameplayAction> OnGranted = new List<GameplayAction>();
+
+        /// <summary>Roda quando a habilidade é retirada, depois de <c>OnAbilityRemoved</c>.</summary>
+        [SerializeReference]
+        [TypePicker]
+        [ActionEvent("Ao ser retirada", DefaultTarget.Owner, false)]
+        public List<GameplayAction> OnRemoved = new List<GameplayAction>();
 
         [Header("Gatilhos")]
         [Tooltip("Causas que tentam ativar a habilidade sozinha, pelas mesmas checagens da ativação manual.")]
@@ -180,6 +195,16 @@ namespace SpellBook.GAS.Abilities
             set => commitMode = value;
         }
 
+        /// <summary>Como a ativação dura. O padrão é <see cref="AbilityBehavior.Instant"/>.</summary>
+        public AbilityBehavior Behavior
+        {
+            get => behavior;
+            set => behavior = value;
+        }
+
+        // A ativação não termina ao fim de OnActivate: fica até ser desligada, retirada ou cancelada
+        internal bool IsSustained => behavior == AbilityBehavior.Passive || behavior == AbilityBehavior.Toggle;
+
         /// <summary>Cargas da habilidade (desligadas por padrão). O estado de cada personagem fica no <see cref="AbilitySpec"/>.</summary>
         public ChargesConfig Charges => charges ??= new ChargesConfig();
 
@@ -219,7 +244,7 @@ namespace SpellBook.GAS.Abilities
         /// Acusa <c>MaxLevel</c> menor que 1, a tabela de valores (nomes e valores), a política de redução sem atributo de
         /// redução, cada nome do modo Table que um efeito usado pela habilidade lê e não está na tabela (recarga, custo e
         /// <see cref="CollectActionEffects"/>), e <c>MaxLevel</c> acima do tamanho de um array da tabela (aviso).
-        /// Repassa a validação a cada ação das três listas; ações vazias são ignoradas.
+        /// Repassa a validação a cada ação das cinco listas; ações vazias são ignoradas.
         /// </summary>
         public virtual void Validate(ValidationResult result)
         {
@@ -248,17 +273,21 @@ namespace SpellBook.GAS.Abilities
             ValidateActions(OnActivate, result);
             ValidateActions(OnEnd, result);
             ValidateActions(OnCancel, result);
+            ValidateActions(OnGranted, result);
+            ValidateActions(OnRemoved, result);
         }
 
         /// <summary>
-        /// Junta em <paramref name="results"/> os efeitos que as ações de "Ao ativar", "Ao terminar" e "Ao ser cancelada"
-        /// aplicam, pelo <see cref="GameplayAction.CollectEffects"/> de cada uma.
+        /// Junta em <paramref name="results"/> os efeitos que as ações de "Ao ativar", "Ao terminar", "Ao ser cancelada",
+        /// "Ao ser concedida" e "Ao ser retirada" aplicam, pelo <see cref="GameplayAction.CollectEffects"/> de cada uma.
         /// </summary>
         public void CollectActionEffects(List<GameplayEffect> results)
         {
             CollectEffects(OnActivate, results);
             CollectEffects(OnEnd, results);
             CollectEffects(OnCancel, results);
+            CollectEffects(OnGranted, results);
+            CollectEffects(OnRemoved, results);
         }
 
         private static void ValidateActions(List<GameplayAction> actions, ValidationResult result)

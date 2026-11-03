@@ -12,6 +12,8 @@ namespace SpellBook.GAS.Abilities
         /// <summary>Nível atual, em [1, MaxLevel]. Muda por <c>AbilitySystemComponent.SetAbilityLevel</c>.</summary>
         public int Level { get; internal set; }
         public bool IsActive { get; internal set; }
+        /// <summary>A habilidade é <see cref="AbilityBehavior.Toggle"/> e está ligada.</summary>
+        public bool IsToggledOn => IsActive && Ability.Behavior == AbilityBehavior.Toggle;
         /// <summary>A ativação em curso já cobrou a recarga, o custo e a carga. Volta a <c>false</c> a cada ativação.</summary>
         public bool IsCommitted { get; internal set; }
         /// <summary>Contexto da ativação em curso, preenchido até o fim da habilidade; nulo com ela inativa. É do ASC: não guarde depois do fim.</summary>
