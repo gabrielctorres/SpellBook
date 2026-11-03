@@ -21,6 +21,7 @@ items:
   - SpellBook.GAS.Core.AbilitySystemComponent.CancelAbility(SpellBook.GAS.Abilities.GameplayAbility)
   - SpellBook.GAS.Core.AbilitySystemComponent.CancelActions(System.Object)
   - SpellBook.GAS.Core.AbilitySystemComponent.CancelAllAbilities
+  - SpellBook.GAS.Core.AbilitySystemComponent.CommitAbility(SpellBook.GAS.Abilities.AbilitySpec)
   - SpellBook.GAS.Core.AbilitySystemComponent.ExtendEffectDuration(SpellBook.GAS.Effects.ActiveEffectInstance,System.Single)
   - SpellBook.GAS.Core.AbilitySystemComponent.FindEffects(SpellBook.GAS.Effects.GameplayEffect,System.Collections.Generic.List{SpellBook.GAS.Effects.ActiveEffectInstance})
   - SpellBook.GAS.Core.AbilitySystemComponent.FindEffectsMatching(SpellBook.Tags.GameplayTagQuery,System.Collections.Generic.List{SpellBook.GAS.Effects.ActiveEffectInstance})
@@ -1543,6 +1544,38 @@ items:
       type: System.Boolean
     content.vb: Public Function CanAffordCost(costEffect As GameplayEffect) As Boolean
   overload: SpellBook.GAS.Core.AbilitySystemComponent.CanAffordCost*
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.CommitAbility(SpellBook.GAS.Abilities.AbilitySpec)
+  commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.CommitAbility(SpellBook.GAS.Abilities.AbilitySpec)
+  id: CommitAbility(SpellBook.GAS.Abilities.AbilitySpec)
+  parent: SpellBook.GAS.Core.AbilitySystemComponent
+  langs:
+  - csharp
+  - vb
+  name: CommitAbility(AbilitySpec)
+  nameWithType: AbilitySystemComponent.CommitAbility(AbilitySpec)
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.CommitAbility(SpellBook.GAS.Abilities.AbilitySpec)
+  type: Method
+  namespace: SpellBook.GAS.Core
+  summary: >-
+    Cobra a recarga, o custo e a carga da ativação em curso de <code class="paramref">spec</code>, uma vez por ativação. Confere
+
+    de novo a carga e o custo, sem tags e sem regras; se falhar, cancela a habilidade e dispara
+
+    <xref href="SpellBook.GAS.Core.AbilitySystemComponent.OnAbilityFailed" data-throw-if-not-resolved="false"></xref> com <xref href="SpellBook.GAS.Abilities.AbilityActivationResult.NoCharges" data-throw-if-not-resolved="false"></xref> ou
+
+    <xref href="SpellBook.GAS.Abilities.AbilityActivationResult.CannotAffordCost" data-throw-if-not-resolved="false"></xref>. Devolve se a ativação está cobrada; spec nulo, de outro
+
+    ASC ou inativo dá <code>false</code>. A <xref href="SpellBook.GAS.Actions.CommitAction" data-throw-if-not-resolved="false"></xref> chama este método.
+  example: []
+  syntax:
+    content: public bool CommitAbility(AbilitySpec spec)
+    parameters:
+    - id: spec
+      type: SpellBook.GAS.Abilities.AbilitySpec
+    return:
+      type: System.Boolean
+    content.vb: Public Function CommitAbility(spec As AbilitySpec) As Boolean
+  overload: SpellBook.GAS.Core.AbilitySystemComponent.CommitAbility*
 - uid: SpellBook.GAS.Core.AbilitySystemComponent.CancelAbility(SpellBook.GAS.Abilities.AbilitySpec)
   commentId: M:SpellBook.GAS.Core.AbilitySystemComponent.CancelAbility(SpellBook.GAS.Abilities.AbilitySpec)
   id: CancelAbility(SpellBook.GAS.Abilities.AbilitySpec)
@@ -11607,6 +11640,36 @@ references:
   name: CanAffordCost
   nameWithType: AbilitySystemComponent.CanAffordCost
   fullName: SpellBook.GAS.Core.AbilitySystemComponent.CanAffordCost
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.OnAbilityFailed
+  commentId: E:SpellBook.GAS.Core.AbilitySystemComponent.OnAbilityFailed
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_OnAbilityFailed
+  name: OnAbilityFailed
+  nameWithType: AbilitySystemComponent.OnAbilityFailed
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.OnAbilityFailed
+- uid: SpellBook.GAS.Abilities.AbilityActivationResult.NoCharges
+  commentId: F:SpellBook.GAS.Abilities.AbilityActivationResult.NoCharges
+  href: SpellBook.GAS.Abilities.AbilityActivationResult.html#SpellBook_GAS_Abilities_AbilityActivationResult_NoCharges
+  name: NoCharges
+  nameWithType: AbilityActivationResult.NoCharges
+  fullName: SpellBook.GAS.Abilities.AbilityActivationResult.NoCharges
+- uid: SpellBook.GAS.Abilities.AbilityActivationResult.CannotAffordCost
+  commentId: F:SpellBook.GAS.Abilities.AbilityActivationResult.CannotAffordCost
+  href: SpellBook.GAS.Abilities.AbilityActivationResult.html#SpellBook_GAS_Abilities_AbilityActivationResult_CannotAffordCost
+  name: CannotAffordCost
+  nameWithType: AbilityActivationResult.CannotAffordCost
+  fullName: SpellBook.GAS.Abilities.AbilityActivationResult.CannotAffordCost
+- uid: SpellBook.GAS.Actions.CommitAction
+  commentId: T:SpellBook.GAS.Actions.CommitAction
+  href: SpellBook.GAS.Actions.CommitAction.html
+  name: CommitAction
+  nameWithType: CommitAction
+  fullName: SpellBook.GAS.Actions.CommitAction
+- uid: SpellBook.GAS.Core.AbilitySystemComponent.CommitAbility*
+  commentId: Overload:SpellBook.GAS.Core.AbilitySystemComponent.CommitAbility
+  href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_CommitAbility_SpellBook_GAS_Abilities_AbilitySpec_
+  name: CommitAbility
+  nameWithType: AbilitySystemComponent.CommitAbility
+  fullName: SpellBook.GAS.Core.AbilitySystemComponent.CommitAbility
 - uid: SpellBook.GAS.Core.AbilitySystemComponent.CancelAbility*
   commentId: Overload:SpellBook.GAS.Core.AbilitySystemComponent.CancelAbility
   href: SpellBook.GAS.Core.AbilitySystemComponent.html#SpellBook_GAS_Core_AbilitySystemComponent_CancelAbility_SpellBook_GAS_Abilities_AbilitySpec_

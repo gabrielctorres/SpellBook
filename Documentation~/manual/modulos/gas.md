@@ -365,6 +365,7 @@ A lista **Starting Effects** do ASC aplica cada efeito no `Awake`, na ordem da l
 - **ChanceAction:** roda as ações filhas com uma chance por nível, de 0 a 1 (`Probability`). O sorteio usa a fonte de aleatoriedade do ASC ([Alvo de cada ação](#alvo-da-acao)). Com `Probability` 0,3, um sorteio de 0,2 roda as filhas e um de 0,5 não roda.
 - **ForEachTargetAction:** roda as ações filhas uma vez para cada alvo dela, e cada filha sem seletor recebe só o alvo da vez ([Alvo de cada ação](#alvo-da-acao)).
 - **RemoveEffectAction:** remove de cada alvo as instâncias do `Effect` e as que concedem a `Tag` ou uma filha dela. A soma das pilhas removidas fica em `context.LastRemovedStacks` para as ações seguintes da lista. Sem efeito e sem tag, a ação não remove nada.
+- **CommitAction:** cobra a recarga, o custo e a carga de uma habilidade com `CommitMode.Manual` (veja [Commit](#commit)). Numa ativação já cobrada, não faz nada.
 - **DelayedAction:** agenda as ações filhas para `Delay` segundos depois, no tempo do ASC, sem segurar a lista: a ação seguinte roda na mesma chamada. As filhas pertencem ao dono da lista. Numa habilidade, ela continua ativa até as filhas rodarem, e cancelar a habilidade as cancela; num efeito, remover o efeito as cancela. Com `ContinueIfOwnerEnds` ligado, as filhas rodam mesmo assim, e a habilidade termina sem esperar por elas. A filha sem seletor recebe os alvos que a `DelayedAction` recebeu.
 
 #### Ações que esperam {#acoes-que-esperam}
@@ -527,7 +528,7 @@ O ASC só ativa habilidades concedidas. Use a lista `startingAbilities` no Inspe
 5. custo (`CannotAffordCost`), só checado, sem aplicar;
 6. regras de ativação (`BlockedByCondition`), na ordem da lista; a primeira que falha decide.
 
-Nada é gasto antes do fim das checagens: a carga, a recarga e o custo saem só depois que todas passam.
+Nada é gasto antes do fim das checagens: a carga, a recarga e o custo saem só depois que todas passam, e só no [commit](#commit).
 
 Uma habilidade sem ações, ou só com ações sem espera, termina dentro do `TryActivateAbility`. Uma consulta logo depois já vê a recarga (`OnCooldown`), e não `AlreadyActive`. Na 2.x, ela ficava ativa por um quadro.
 
@@ -550,11 +551,21 @@ Com a regra "Mana `GreaterOrEqual` 20" e a tag `Fail.LowMana`, a Mana em 10 devo
 
 Em caso de sucesso, o ASC:
 
-- aplica o `CooldownEffect` (duração reduzida por `CooldownReductionAttribute`) e o `CostEffect`;
+- com **Commit Mode** `OnStart`, aplica o `CooldownEffect` (duração reduzida por `CooldownReductionAttribute`) e o `CostEffect` e gasta a carga;
 - cancela as habilidades cujo `AbilityTag` está em `CancelAbilitiesWithTag`;
 - concede as `ActivationOwnedTags` enquanto a habilidade roda.
 
 Para consultar sem ativar, use `ability.CanActivate(asc, out var reason)` ou, com alvo e motivo, `ability.CanActivate(asc, alvo, out var falha)`.
+
+#### Commit {#commit}
+O commit é a cobrança da recarga, do custo e da carga. O campo **Commit Mode** da habilidade (`GameplayAbility.CommitMode`) diz quando ele acontece:
+
+- `OnStart`, o padrão: na ativação, antes da primeira ação, como na 2.x.
+- `Manual`: quando uma `CommitAction` roda. Até lá, nada é cobrado, e cancelar a habilidade antes dela não cobra nada.
+
+Use `Manual` numa habilidade que só cobra se chegar a um ponto, como um feitiço que pode ser interrompido durante a preparação. Com a lista "espera 1 s, `CommitAction`, aplica o dano", cancelar no primeiro segundo devolve a habilidade sem custo e sem recarga.
+
+A ativação passa pelas checagens de sempre, inclusive a de carga e a de custo. No commit, o ASC confere de novo só a carga e o custo, porque eles podem ter mudado durante a espera. Se faltar um deles, a habilidade é cancelada, as ações seguintes não rodam e o `OnAbilityFailed` dispara com `NoCharges` ou `CannotAffordCost`. Cada ativação cobra uma vez: uma segunda `CommitAction` na mesma ativação não cobra de novo, e com `OnStart` a `CommitAction` não faz nada. `AbilitySpec.IsCommitted` diz se a ativação em curso já foi cobrada. Para cobrar por código, chame `asc.CommitAbility(spec)`, que devolve `true` quando a ativação está cobrada.
 
 **Consultando a recarga.** `asc.GetCooldownTimeRemaining(cooldownEffect)` devolve o tempo restante e `asc.GetCooldownNormalized(cooldownEffect)`, o valor de 1 a 0 para barras de recarga. Contam a instância do próprio `CooldownEffect` e qualquer efeito ativo que conceda uma tag igual ou **filha** de alguma tag dele, pela mesma regra de `HasTag`: um efeito com `Cooldown.Fire` conta para uma recarga com a tag `Cooldown`, mas um efeito com `Cooldown` não conta para uma recarga com `Cooldown.Fire`. Com vários efeitos casando, vale o de maior tempo restante. O normalizado divide esse tempo pela duração aplicada da mesma instância, e não pela `Duration` do asset: com `CooldownReductionAttribute` em 0,25 sobre 8 s, a recarga aplicada é de 6 s e o normalizado vale 1 logo após ativar, 0,5 com 3 s restantes e 0 com a habilidade pronta. Sem recarga, ou com duração aplicada zero ou negativa, o normalizado é 0.
 
@@ -583,7 +594,7 @@ Com cargas, a habilidade pode ser usada várias vezes seguidas, e as cargas volt
 
 As cargas nascem cheias ao conceder a habilidade, com o máximo avaliado no nível do spec. O ASC volta a avaliar o máximo a cada `SetAbilityLevel` e a cada `Tick`, então um `%nome` da tabela acompanha o nível e um atributo acompanha o valor dele. Com `%Charges` valendo 2, 3 e 4 nos níveis 1 a 3, a habilidade no nível 3 guarda até 4 cargas. Quando o máximo sobe, as cargas não enchem: se faltar alguma, a recarga começa. Quando o máximo desce abaixo das cargas, elas são limitadas a ele, com `OnChargesChanged`, e a recarga para.
 
-Cada ativação com sucesso gasta uma carga junto do custo. Se a recarga estava parada, ela começa. Quando a recarga termina, volta uma carga e, se ainda faltar alguma, a recarga da seguinte começa na hora, com o tempo que sobrou do `Tick` passado adiante. No máximo, a recarga para. Um `Tick` grande pode devolver mais de uma carga.
+Cada ativação gasta uma carga junto do custo, no [commit](#commit). Se a recarga estava parada, ela começa. Quando a recarga termina, volta uma carga e, se ainda faltar alguma, a recarga da seguinte começa na hora, com o tempo que sobrou do `Tick` passado adiante. No máximo, a recarga para. Um `Tick` grande pode devolver mais de uma carga.
 
 O tempo de recarga passa pela mesma redução da recarga da habilidade: o `CooldownReductionAttribute` e a [CooldownReductionPolicy](#cooldownreductionpolicy), com piso e teto. Com **Max Reduction** 0,5 e **Min Duration** 1 s, uma recarga de 8 s com redução de 0,9 dura 4 s. O tempo anda só pelo [`Tick` do ASC](#tempo-do-asc), nunca pelo relógio da Unity.
 

@@ -48,6 +48,7 @@ items:
   - SpellBook.GAS.Abilities.Actions.TargetingAction
   - SpellBook.GAS.Abilities.Actions.WaitAction
   - SpellBook.GAS.Actions.ChanceAction
+  - SpellBook.GAS.Actions.CommitAction
   - SpellBook.GAS.Actions.DelayedAction
   - SpellBook.GAS.Actions.ForEachTargetAction
   - SpellBook.GAS.Actions.RemoveEffectAction

@@ -54,6 +54,7 @@ items:
   - SpellBook.GAS.Abilities.CooldownReductionPolicy
   - SpellBook.GAS.Abilities.GameplayAbility
   - SpellBook.GAS.Actions.ChanceAction
+  - SpellBook.GAS.Actions.CommitAction
   - SpellBook.GAS.Actions.DelayedAction
   - SpellBook.GAS.Actions.ForEachTargetAction
   - SpellBook.GAS.Actions.GameplayAction

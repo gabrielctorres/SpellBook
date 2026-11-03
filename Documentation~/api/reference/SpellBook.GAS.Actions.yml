@@ -10,6 +10,7 @@ items:
   - SpellBook.GAS.Actions.ActionFrame
   - SpellBook.GAS.Actions.ActionStatus
   - SpellBook.GAS.Actions.ChanceAction
+  - SpellBook.GAS.Actions.CommitAction
   - SpellBook.GAS.Actions.DefaultTarget
   - SpellBook.GAS.Actions.DelayedAction
   - SpellBook.GAS.Actions.EffectEvent
@@ -79,6 +80,12 @@ references:
   name: ChanceAction
   nameWithType: ChanceAction
   fullName: SpellBook.GAS.Actions.ChanceAction
+- uid: SpellBook.GAS.Actions.CommitAction
+  commentId: T:SpellBook.GAS.Actions.CommitAction
+  href: SpellBook.GAS.Actions.CommitAction.html
+  name: CommitAction
+  nameWithType: CommitAction
+  fullName: SpellBook.GAS.Actions.CommitAction
 - uid: SpellBook.GAS.Actions.DelayedAction
   commentId: T:SpellBook.GAS.Actions.DelayedAction
   href: SpellBook.GAS.Actions.DelayedAction.html

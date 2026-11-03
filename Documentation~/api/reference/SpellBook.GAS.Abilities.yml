@@ -14,6 +14,7 @@ items:
   - SpellBook.GAS.Abilities.AttributeElement
   - SpellBook.GAS.Abilities.ChargeRechargeMode
   - SpellBook.GAS.Abilities.ChargesConfig
+  - SpellBook.GAS.Abilities.CommitMode
   - SpellBook.GAS.Abilities.CooldownChange
   - SpellBook.GAS.Abilities.CooldownReductionMode
   - SpellBook.GAS.Abilities.CooldownReductionPolicy
@@ -161,6 +162,13 @@ references:
   name: CooldownReductionPolicy
   nameWithType: CooldownReductionPolicy
   fullName: SpellBook.GAS.Abilities.CooldownReductionPolicy
+- uid: SpellBook.GAS.Abilities.CommitMode
+  commentId: T:SpellBook.GAS.Abilities.CommitMode
+  parent: SpellBook.GAS.Abilities
+  href: SpellBook.GAS.Abilities.CommitMode.html
+  name: CommitMode
+  nameWithType: CommitMode
+  fullName: SpellBook.GAS.Abilities.CommitMode
 - uid: SpellBook.GAS.Abilities.GameplayAbility
   commentId: T:SpellBook.GAS.Abilities.GameplayAbility
   parent: SpellBook.GAS.Abilities

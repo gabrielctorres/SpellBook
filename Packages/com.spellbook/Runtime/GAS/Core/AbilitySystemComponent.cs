@@ -889,20 +889,9 @@ namespace SpellBook.GAS.Core
         {
             var ability = spec.Ability;
 
-            // Commit: cooldown e custo
-            if (ability.CooldownEffect != null)
-            {
-                EffectSpec cooldown = EffectSpec.ForAbility(ability.CooldownEffect, this, ability, spec.Level);
-                ApplyEffect(cooldown.WithDurationOverride(ability.GetCooldownDuration(this, spec.Level)));
-                // Recarga instantânea não deixa instância nem tag: não há o que acompanhar
-                if (IsOnCooldown(ability.CooldownEffect))
-                {
-                    spec.CooldownTracked = true;
-                    OnCooldownChanged?.Invoke(spec, CooldownChange.Started);
-                }
-            }
-            if (ability.CostEffect != null) ApplyEffect(EffectSpec.ForAbility(ability.CostEffect, this, ability, spec.Level));
-            if (HasCharges(spec)) SpendCharge(spec);
+            spec.IsCommitted = false;
+            // Com CommitMode.Manual, a cobrança espera a CommitAction (CommitAbility)
+            if (ability.CommitMode == CommitMode.OnStart) Commit(spec);
 
             CancelAbilitiesWithTags(ability.CancelAbilitiesWithTag, spec);
 
@@ -941,6 +930,54 @@ namespace SpellBook.GAS.Core
             {
                 EndAbility(spec, false);
             }
+        }
+
+        /// <summary>
+        /// Cobra a recarga, o custo e a carga da ativação em curso de <paramref name="spec"/>, uma vez por ativação. Confere
+        /// de novo a carga e o custo, sem tags e sem regras; se falhar, cancela a habilidade e dispara
+        /// <see cref="OnAbilityFailed"/> com <see cref="AbilityActivationResult.NoCharges"/> ou
+        /// <see cref="AbilityActivationResult.CannotAffordCost"/>. Devolve se a ativação está cobrada; spec nulo, de outro
+        /// ASC ou inativo dá <c>false</c>. A <see cref="CommitAction"/> chama este método.
+        /// </summary>
+        public bool CommitAbility(AbilitySpec spec)
+        {
+            if (spec == null || !spec.IsActive || !_abilities.Contains(spec)) return false;
+            if (spec.IsCommitted) return true;
+
+            GameplayAbility ability = spec.Ability;
+            AbilityActivationResult result = AbilityActivationResult.Success;
+            if (HasCharges(spec) && Mathf.Min(spec.Charges, spec.MaxCharges) < 1) result = AbilityActivationResult.NoCharges;
+            else if (!CanAffordCost(ability.CostEffect, ability, spec.Level)) result = AbilityActivationResult.CannotAffordCost;
+
+            if (result != AbilityActivationResult.Success)
+            {
+                CancelAbility(spec);
+                OnAbilityFailed?.Invoke(ability, new ActivationFailure(result));
+                return false;
+            }
+
+            Commit(spec);
+            return true;
+        }
+
+        // Commit: recarga, custo e carga, sem checar
+        private void Commit(AbilitySpec spec)
+        {
+            GameplayAbility ability = spec.Ability;
+            spec.IsCommitted = true;
+            if (ability.CooldownEffect != null)
+            {
+                EffectSpec cooldown = EffectSpec.ForAbility(ability.CooldownEffect, this, ability, spec.Level);
+                ApplyEffect(cooldown.WithDurationOverride(ability.GetCooldownDuration(this, spec.Level)));
+                // Recarga instantânea não deixa instância nem tag: não há o que acompanhar
+                if (IsOnCooldown(ability.CooldownEffect))
+                {
+                    spec.CooldownTracked = true;
+                    OnCooldownChanged?.Invoke(spec, CooldownChange.Started);
+                }
+            }
+            if (ability.CostEffect != null) ApplyEffect(EffectSpec.ForAbility(ability.CostEffect, this, ability, spec.Level));
+            if (HasCharges(spec)) SpendCharge(spec);
         }
         #endregion
 

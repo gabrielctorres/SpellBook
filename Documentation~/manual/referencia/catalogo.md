@@ -69,6 +69,7 @@ Aparece em: `Chance Action > Actions`, `Conditional Action > Else`, `Conditional
 | [Animation Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.AnimationAction.html) | Apresentação | Muda um parâmetro do Animator de quem lançou. |
 | [Apply Effect Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.ApplyEffectAction.html) | Efeito | Aplica efeitos nos alvos e, se marcado, em quem lançou. |
 | [Chance Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Actions.ChanceAction.html) | Fluxo | Roda as ações com uma chance, sorteada no ASC. |
+| [Commit Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Actions.CommitAction.html) | Efeito | Cobra a recarga, o custo e a carga da habilidade. |
 | [Conditional Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.ConditionalAction.html) | Fluxo | Roda as ações de Then ou de Else conforme a condição. |
 | [Debug Log Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Effects.DebugLogAction.html) | Depuração | Escreve uma mensagem colorida no Console quando o efeito roda. |
 | [Delayed Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Actions.DelayedAction.html) | Fluxo | Roda as ações depois de um tempo, sem esperar por elas. |

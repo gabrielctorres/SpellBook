@@ -18,6 +18,7 @@ items:
   - SpellBook.GAS.Abilities.GameplayAbility.CastRange
   - SpellBook.GAS.Abilities.GameplayAbility.Charges
   - SpellBook.GAS.Abilities.GameplayAbility.CollectActionEffects(System.Collections.Generic.List{SpellBook.GAS.Effects.GameplayEffect})
+  - SpellBook.GAS.Abilities.GameplayAbility.CommitMode
   - SpellBook.GAS.Abilities.GameplayAbility.CooldownEffect
   - SpellBook.GAS.Abilities.GameplayAbility.CooldownReductionAttribute
   - SpellBook.GAS.Abilities.GameplayAbility.CooldownReductionPolicy
@@ -852,6 +853,27 @@ items:
       type: SpellBook.GAS.Values.ScalableFloat
     content.vb: Public Property CastRange As ScalableFloat
   overload: SpellBook.GAS.Abilities.GameplayAbility.CastRange*
+- uid: SpellBook.GAS.Abilities.GameplayAbility.CommitMode
+  commentId: P:SpellBook.GAS.Abilities.GameplayAbility.CommitMode
+  id: CommitMode
+  parent: SpellBook.GAS.Abilities.GameplayAbility
+  langs:
+  - csharp
+  - vb
+  name: CommitMode
+  nameWithType: GameplayAbility.CommitMode
+  fullName: SpellBook.GAS.Abilities.GameplayAbility.CommitMode
+  type: Property
+  namespace: SpellBook.GAS.Abilities
+  summary: Quando a habilidade cobra a recarga, o custo e a carga. O padrão é <xref href="SpellBook.GAS.Abilities.CommitMode.OnStart" data-throw-if-not-resolved="false"></xref>.
+  example: []
+  syntax:
+    content: public CommitMode CommitMode { get; set; }
+    parameters: []
+    return:
+      type: SpellBook.GAS.Abilities.CommitMode
+    content.vb: Public Property CommitMode As CommitMode
+  overload: SpellBook.GAS.Abilities.GameplayAbility.CommitMode*
 - uid: SpellBook.GAS.Abilities.GameplayAbility.Charges
   commentId: P:SpellBook.GAS.Abilities.GameplayAbility.Charges
   id: Charges
@@ -6364,6 +6386,25 @@ references:
   name: ScalableFloat
   nameWithType: ScalableFloat
   fullName: SpellBook.GAS.Values.ScalableFloat
+- uid: SpellBook.GAS.Abilities.CommitMode.OnStart
+  commentId: F:SpellBook.GAS.Abilities.CommitMode.OnStart
+  href: SpellBook.GAS.Abilities.CommitMode.html#SpellBook_GAS_Abilities_CommitMode_OnStart
+  name: OnStart
+  nameWithType: CommitMode.OnStart
+  fullName: SpellBook.GAS.Abilities.CommitMode.OnStart
+- uid: SpellBook.GAS.Abilities.GameplayAbility.CommitMode*
+  commentId: Overload:SpellBook.GAS.Abilities.GameplayAbility.CommitMode
+  href: SpellBook.GAS.Abilities.GameplayAbility.html#SpellBook_GAS_Abilities_GameplayAbility_CommitMode
+  name: CommitMode
+  nameWithType: GameplayAbility.CommitMode
+  fullName: SpellBook.GAS.Abilities.GameplayAbility.CommitMode
+- uid: SpellBook.GAS.Abilities.CommitMode
+  commentId: T:SpellBook.GAS.Abilities.CommitMode
+  parent: SpellBook.GAS.Abilities
+  href: SpellBook.GAS.Abilities.CommitMode.html
+  name: CommitMode
+  nameWithType: CommitMode
+  fullName: SpellBook.GAS.Abilities.CommitMode
 - uid: SpellBook.GAS.Abilities.AbilitySpec
   commentId: T:SpellBook.GAS.Abilities.AbilitySpec
   parent: SpellBook.GAS.Abilities

@@ -332,6 +332,9 @@ items:
   - uid: SpellBook.GAS.Abilities.ChargesConfig
     name: ChargesConfig
     type: Class
+  - uid: SpellBook.GAS.Abilities.CommitMode
+    name: CommitMode
+    type: Enum
   - uid: SpellBook.GAS.Abilities.CooldownChange
     name: CooldownChange
     type: Enum
@@ -427,6 +430,9 @@ items:
     type: Struct
   - uid: SpellBook.GAS.Actions.ChanceAction
     name: ChanceAction
+    type: Class
+  - uid: SpellBook.GAS.Actions.CommitAction
+    name: CommitAction
     type: Class
   - uid: SpellBook.GAS.Actions.DefaultTarget
     name: DefaultTarget

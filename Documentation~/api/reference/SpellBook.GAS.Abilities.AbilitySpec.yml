@@ -11,6 +11,7 @@ items:
   - SpellBook.GAS.Abilities.AbilitySpec.ChargeRechargeRemaining
   - SpellBook.GAS.Abilities.AbilitySpec.Charges
   - SpellBook.GAS.Abilities.AbilitySpec.IsActive
+  - SpellBook.GAS.Abilities.AbilitySpec.IsCommitted
   - SpellBook.GAS.Abilities.AbilitySpec.Level
   - SpellBook.GAS.Abilities.AbilitySpec.MaxCharges
   langs:
@@ -98,6 +99,27 @@ items:
       type: System.Boolean
     content.vb: Public Property IsActive As Boolean
   overload: SpellBook.GAS.Abilities.AbilitySpec.IsActive*
+- uid: SpellBook.GAS.Abilities.AbilitySpec.IsCommitted
+  commentId: P:SpellBook.GAS.Abilities.AbilitySpec.IsCommitted
+  id: IsCommitted
+  parent: SpellBook.GAS.Abilities.AbilitySpec
+  langs:
+  - csharp
+  - vb
+  name: IsCommitted
+  nameWithType: AbilitySpec.IsCommitted
+  fullName: SpellBook.GAS.Abilities.AbilitySpec.IsCommitted
+  type: Property
+  namespace: SpellBook.GAS.Abilities
+  summary: A ativação em curso já cobrou a recarga, o custo e a carga. Volta a <code>false</code> a cada ativação.
+  example: []
+  syntax:
+    content: public bool IsCommitted { get; }
+    parameters: []
+    return:
+      type: System.Boolean
+    content.vb: Public Property IsCommitted As Boolean
+  overload: SpellBook.GAS.Abilities.AbilitySpec.IsCommitted*
 - uid: SpellBook.GAS.Abilities.AbilitySpec.ActiveContext
   commentId: P:SpellBook.GAS.Abilities.AbilitySpec.ActiveContext
   id: ActiveContext
@@ -514,6 +536,12 @@ references:
   nameWithType.vb: Boolean
   fullName.vb: Boolean
   name.vb: Boolean
+- uid: SpellBook.GAS.Abilities.AbilitySpec.IsCommitted*
+  commentId: Overload:SpellBook.GAS.Abilities.AbilitySpec.IsCommitted
+  href: SpellBook.GAS.Abilities.AbilitySpec.html#SpellBook_GAS_Abilities_AbilitySpec_IsCommitted
+  name: IsCommitted
+  nameWithType: AbilitySpec.IsCommitted
+  fullName: SpellBook.GAS.Abilities.AbilitySpec.IsCommitted
 - uid: SpellBook.GAS.Abilities.AbilitySpec.ActiveContext*
   commentId: Overload:SpellBook.GAS.Abilities.AbilitySpec.ActiveContext
   href: SpellBook.GAS.Abilities.AbilitySpec.html#SpellBook_GAS_Abilities_AbilitySpec_ActiveContext

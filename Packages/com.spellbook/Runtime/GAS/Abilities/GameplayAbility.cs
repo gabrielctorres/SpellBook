@@ -15,6 +15,15 @@ using SpellBook.GAS.Values;
 
 namespace SpellBook.GAS.Abilities
 {
+    /// <summary>Quando a habilidade cobra a recarga, o custo e a carga.</summary>
+    public enum CommitMode
+    {
+        /// <summary>Na ativação, antes da primeira ação.</summary>
+        OnStart,
+        /// <summary>Quando uma <see cref="CommitAction"/> roda. Cancelar antes dela não cobra nada.</summary>
+        Manual,
+    }
+
     /// <summary>
     /// Dados de uma habilidade. A execução é feita pelo AbilitySystemComponent (TryActivateAbility).
     /// </summary>
@@ -51,6 +60,9 @@ namespace SpellBook.GAS.Abilities
 
         [Tooltip("Cargas: cada ativação gasta uma, e elas voltam uma por vez. Desligadas por padrão.")]
         [SerializeField] private ChargesConfig charges = new ChargesConfig();
+
+        [Tooltip("Quando cobrar a recarga, o custo e a carga: na ativação, ou quando uma ação Commit rodar.")]
+        [SerializeField] private CommitMode commitMode = CommitMode.OnStart;
 
         [Tooltip("Alcance da habilidade por nível, lido pela CastRangeCondition. 0 ou menos: sem limite.")]
         [SerializeField] private ScalableFloat castRange = ScalableFloat.Constant(0f);
@@ -149,6 +161,13 @@ namespace SpellBook.GAS.Abilities
         {
             get => castRange ??= ScalableFloat.Constant(0f);
             set => castRange = value ?? ScalableFloat.Constant(0f);
+        }
+
+        /// <summary>Quando a habilidade cobra a recarga, o custo e a carga. O padrão é <see cref="CommitMode.OnStart"/>.</summary>
+        public CommitMode CommitMode
+        {
+            get => commitMode;
+            set => commitMode = value;
         }
 
         /// <summary>Cargas da habilidade (desligadas por padrão). O estado de cada personagem fica no <see cref="AbilitySpec"/>.</summary>
