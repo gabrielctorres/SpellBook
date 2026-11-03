@@ -250,7 +250,8 @@ namespace SpellBook.GAS.Actions
 
         /// <summary>
         /// Põe em <paramref name="targets"/> os alvos do seletor da ação. Sem seletor, o alvo corrente do
-        /// <see cref="ForEachTargetAction"/> mais próximo que a contém ou, fora dele, os alvos do evento.
+        /// <see cref="ForEachTargetAction"/> mais próximo que a contém ou, fora dele, o alvo padrão da lista: o dono, nas
+        /// listas de efeito, ou os alvos do evento.
         /// </summary>
         private static void ResolveTargets(GameplayAction action, Execution execution, List<AbilitySystemComponent> targets)
         {
@@ -266,7 +267,9 @@ namespace SpellBook.GAS.Actions
 
             Execution root = execution;
             while (root.Mother != null) root = root.Mother;
-            AddLiving(root.HasInherited ? root.Inherited : context.EventTargets, targets);
+            if (root.HasInherited) AddLiving(root.Inherited, targets);
+            else if (context.DefaultTarget == DefaultTarget.Owner && context.Owner != null) targets.Add(context.Owner);
+            else AddLiving(context.EventTargets, targets);
         }
 
         private static void AddLiving(List<AbilitySystemComponent> source, List<AbilitySystemComponent> targets)
@@ -371,6 +374,8 @@ namespace SpellBook.GAS.Actions
             copy.EffectEvent = source.EffectEvent;
             if (source.HasEffect) copy.SetEffect(source.Effect);
             copy.EventInstigator = source.EventInstigator;
+            copy.Change = source.Change;
+            copy.DefaultTarget = source.DefaultTarget;
             // Cópia rasa, como no CreateDerived; o dicionário da fonte vem do pool com o contexto dela
             Dictionary<string, object> data = source.CustomData;
             if (data.Count == 0) return;

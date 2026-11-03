@@ -51,6 +51,9 @@ namespace SpellBook.GAS.Core
         private readonly List<AbilitySpec> _triggering = new List<AbilitySpec>();
         private bool _warnedTriggerDepth;
 
+        // Reações dos efeitos ativos; nulo até o primeiro efeito com reação
+        private EffectReactions _reactions;
+
         public event Action<GameplayTag, bool> OnTagChanged;
         public event Action<AbilitySpec> OnAbilityActivated;
         public event Action<AbilitySpec, bool> OnAbilityEnded; // spec, cancelled
@@ -1615,6 +1618,7 @@ namespace SpellBook.GAS.Core
         {
             var instance = new ActiveEffectInstance(effect, duration, in context);
             _activeEffects.Add(instance);
+            if (effect.HasReactions) (_reactions ??= new EffectReactions(this)).Add(instance);
 
             AddTags(effect.GrantedTags);
 
@@ -1795,6 +1799,7 @@ namespace SpellBook.GAS.Core
                 _activeChangeState = null;
                 var report = new AttributeChangeReport(in change, state.BaseValue - before, in context);
                 OnAttributeChangeApplied?.Invoke(in report);
+                _reactions?.AfterChangeApplied(in report);
                 return report.Applied;
             }
             finally
@@ -1841,9 +1846,10 @@ namespace SpellBook.GAS.Core
         private void HandleAttributeDepleted(AttributeState state)
         {
             GrantStateTag(state);
-            if (OnAttributeDepleted == null) return;
+            if (OnAttributeDepleted == null && _reactions == null) return;
             AttributeChangeReport cause = GetLimitCause(state);
-            OnAttributeDepleted(state, in cause);
+            OnAttributeDepleted?.Invoke(state, in cause);
+            _reactions?.AfterDepleted(state, in cause);
         }
 
         private void HandleAttributeReachedMax(AttributeState state)
@@ -2086,6 +2092,7 @@ namespace SpellBook.GAS.Core
 
             instance.IsRemoved = true;
             instance.DisposeLiveBindings();
+            _reactions?.Remove(instance);
             // As ações em curso da instância param antes das ações de remoção
             CancelActions(instance);
             instance.Cleanup();

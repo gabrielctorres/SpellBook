@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.GAS.Abilities;
+using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Conditions;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
@@ -65,6 +66,13 @@ namespace SpellBook.GAS.Actions
         public EffectContext Effect => _effect;
         /// <summary>Quem causou o evento de reação ou de gameplay. Nulo nos outros eventos.</summary>
         public AbilitySystemComponent EventInstigator { get; internal set; }
+        /// <summary>
+        /// Alteração que disparou a reação do efeito (Ao receber dano, Ao morrer). Nas outras execuções vale o relatório
+        /// <c>default</c>, com <see cref="AttributeChangeReport.IsValid"/> falso.
+        /// </summary>
+        public AttributeChangeReport Change { get; internal set; }
+        // Alvo da ação sem seletor na execução raiz: os alvos do evento, ou o dono da lista (listas de efeito)
+        internal DefaultTarget DefaultTarget { get; set; }
         /// <summary>Fonte de aleatoriedade do ASC em que a execução roda. Nula sem <see cref="Owner"/>.</summary>
         public IRandomSource Random => Owner != null ? Owner.Random : null;
         /// <summary>Verdadeiro depois que o dono da execução é cancelado.</summary>
@@ -159,6 +167,8 @@ namespace SpellBook.GAS.Actions
             EffectDefinition = null;
             EffectEvent = EffectEvent.None;
             EventInstigator = null;
+            Change = default;
+            DefaultTarget = DefaultTarget.EventTargets;
             IsCancelled = false;
             LastRemovedStacks = 0;
         }
