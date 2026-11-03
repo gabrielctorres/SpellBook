@@ -97,6 +97,36 @@ Hoje o fluxo está descrito em `Documentation~/README.md`, `TIME.md` e `backlog.
 
 **Aplicação:** ticket PS1 da `spec/processo-enxuto.md`. Até o PS1 entrar na branch, os agentes e as skills antigos continuam valendo.
 
+## Emenda (2026-11-03): Codex e Antigravity como papéis externos
+
+**Status da emenda: Aceita** (decisão do usuário, aprovada pelo usuário em 2026-11-03). Revê o item 6 da emenda "design doc por épico e papéis enxutos". Vale a partir do próximo lote.
+
+**Contexto.** Todo o trabalho do time roda hoje no Claude Code, inclusive o que não precisa da Unity nem de julgamento de design: docs internas, scripts, CI, refatorações mecânicas, o texto do PR, pesquisa e contagem de tamanho antes do Detalhe. Esse trabalho gasta a mesma cota dos papéis que implementam e revisam. O Codex e o Antigravity rodam fora do Claude Code, lançados pelo Orca, e leem o `AGENTS.md` da raiz, mas não `.claude/agents/` nem `.claude/skills/`. Os testes do pacote são todos testes da Unity, então nenhum dos dois compila nem testa o C#.
+
+**Regra.**
+1. **Codex** (externo, Orca `--agent codex`):
+   - faz: tickets da via rápida que não precisam da Unity (docs internas, scripts, CI, skills e agentes, `.md`); refatorações mecânicas, inclusive em `.cs`; e o texto do PR da branch do lote;
+   - trabalha sempre num worktree próprio criado a partir da branch do lote. Não pega a trava de Editor (0005: ticket sem Unity não pega trava) e não divide arquivo com outro ticket em andamento;
+   - não roda a Unity e não commita. O texto do PR vai para o Controlador, que abre o PR;
+   - o ticket do Codex passa por `/revisao` do Examinador, que continua o único gate, e só depois pelo `/commit`. Uma refatoração em `.cs` só é verificada pela suíte do Examinador, então ele a trata como ticket com Unity;
+   - não escreve o Detalhe de ticket de design doc, não cria ADR e segue as restrições da via rápida.
+2. **Antigravity** (externo, Orca `--agent antigravity`):
+   - só leitura: pesquisa, mapa do código e medição de tamanho de um ticket antes do Detalhe, em linhas e arquivos pela regra da 0042;
+   - entrega o resultado ao Controlador, que o repassa à Fábrica. A Fábrica continua dona do Detalhe e confere a medição lendo o código;
+   - não edita arquivo e não usa git.
+3. **Claude Code.** O Controlador continua no Claude Code e abre com `claude --agent controlador`, em Sonnet. A Fábrica, o Examinador e o Desenhista continuam no Claude Code, em Opus (o `model` do agente não depende do modelo da sessão).
+4. **Contas.** O Codex tem duas contas no Orca. A conta de cada painel é escolhida na interface do Orca; quando uma bate o limite, usa-se a outra.
+
+**Motivo.**
+- Tira do Claude Code o trabalho que não pede Unity nem julgamento de design, sem mudar o gate: todo código e todo texto que entra na branch passa pelo Examinador.
+- A medição antes do Detalhe reduz recontagens, mas a Fábrica confere, porque o Detalhe é dela e a 0042 é medida lá.
+- O Controlador só orquestra, então Sonnet basta e economiza cota.
+
+**Consequências.**
+- O texto de processo que o Codex e o Antigravity precisam seguir fica no `AGENTS.md`, porque eles não leem `.claude/`.
+- Um ticket do Codex com `.cs` só descobre erro de compilação na revisão. Por isso o Codex fica em refatoração mecânica, e mudança de comportamento continua com a Fábrica.
+- Nasce o agente `.claude/agents/controlador.md`, com `model: sonnet` e todas as ferramentas.
+
 ## Em aberto
 
 Nada.

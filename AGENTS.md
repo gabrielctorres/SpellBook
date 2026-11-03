@@ -108,14 +108,16 @@
 
 ## Time de desenvolvimento
 
-Esta seção é a fonte única das regras de processo. As ADRs guardam a decisão e o porquê: 0002 (fluxo e design doc), 0042 (tamanho do ticket) e 0005 (trava e WIP). Se esta seção divergir de uma ADR, vale a ADR, e esta seção é corrigida. Os papéis são agentes em `.claude/agents/` (subagente pela Agent tool, ou terminal com `claude --agent <papel>`).
+Esta seção é a fonte única das regras de processo. As ADRs guardam a decisão e o porquê: 0002 (fluxo, design doc e papéis, com a emenda de 2026-11-03 sobre Codex e Antigravity), 0042 (tamanho do ticket) e 0005 (trava e WIP). Se esta seção divergir de uma ADR, vale a ADR, e esta seção é corrigida. Os papéis do Claude Code são agentes em `.claude/agents/` (subagente pela Agent tool, ou terminal com `claude --agent <papel>`). O Codex e o Antigravity são lançados pelo Orca e seguem só este arquivo.
 
 ### Papéis
-- **Controlador** (sessão principal): cuida do backlog (`Documentation~/backlog.md`), monta a fila e o WIP, cria issues com `/issue` em `gabrielctorres/SpellBook`, abre e fecha terminais e leva os gates ao usuário. Não lê código, não implementa e não commita. Pergunta técnica vai para a Fábrica do ticket ou, se for de design, para o Desenhista.
+- **Controlador** (sessão principal, `claude --agent controlador`, Sonnet): cuida do backlog (`Documentation~/backlog.md`), monta a fila e o WIP, cria issues com `/issue` em `gabrielctorres/SpellBook`, abre e fecha terminais, despacha o Codex e o Antigravity pelo Orca e leva os gates ao usuário. Não lê código, não implementa e não commita. Pergunta técnica vai para a Fábrica do ticket ou, se for de design, para o Desenhista.
 - **Fábrica** (`fabrica`, fixo): escreve o "Detalhe (AAAA-MM-DD)" do ticket lendo o código na hora, implementa com testes red primeiro e testa (`/implementar`).
 - **Examinador** (`examinador`, fixo): revisor separado e único gate do ticket. Confere o diff contra os CA e o Detalhe, roda a suíte completa e dá APROVADO ou REPROVADO (`/revisao`).
 - **Desenhista** (`desenhista`, sob demanda): só quando nasce um épico. Escreve a parte fixa do design doc (`/design-doc`) e as ADRs que valem para mais de um épico, e registra a validação de uso (`/ajustar`).
 - **Prisma** (`prisma`, sob demanda): shaders e arte técnica.
+- **Codex** (externo, Orca): se você é o Codex, você faz três coisas. Implementa ticket da via rápida que não precisa da Unity (docs internas, scripts, CI, skills e agentes, `.md`). Faz refatoração mecânica, também em `.cs`, sem mudar comportamento. Escreve o texto do PR da branch do lote. Trabalha só no worktree que o Controlador criou a partir da branch do lote, sem a trava de Editor. Não roda a Unity, não commita e não usa git que altere estado. Como não há como compilar nem testar o C# fora da Unity, diga no resultado o que não foi verificado. Entrega o resultado no worktree e um resumo ao Controlador. O texto do PR vai ao Controlador, que abre o PR. O ticket passa por `/revisao` do Examinador antes do `/commit`.
+- **Antigravity** (externo, Orca): se você é o Antigravity, você só lê. Pesquisa, mapeia o código e mede o tamanho de um ticket antes do Detalhe, em linhas e arquivos pela regra de "Tamanho do ticket" abaixo. Entrega ao Controlador a lista de arquivos com linhas estimadas e o que não soube medir. Não edita arquivo e não usa git. O Detalhe continua da Fábrica, que confere a medição lendo o código.
 - Git não é papel. Depois do APROVADO, o passo de commit do script da fila (`/commit`) commita o ticket na branch do lote. O PR é da branch do lote contra a `main`, e o merge é do usuário.
 
 ### Fluxo
