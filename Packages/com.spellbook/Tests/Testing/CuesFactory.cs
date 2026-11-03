@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Cues;
 using SpellBook.Tags;
+using SpellBook.Time;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -54,14 +55,23 @@ namespace SpellBook.Testing
             return cue;
         }
 
+        public CueRouterAnchor CreateAnchor()
+        {
+            return Track(ScriptableObject.CreateInstance<CueRouterAnchor>(), "CueRouterAnchor_Test");
+        }
+
         /// <summary>Spawner com pool que registra criações e devoluções.</summary>
         public RecordingSpawnerAsset CreateSpawner()
         {
             return Track(ScriptableObject.CreateInstance<RecordingSpawnerAsset>(), "RecordingSpawner_Test");
         }
 
-        /// <summary>Roteador com uma biblioteca das <paramref name="cues"/> e o <paramref name="spawner"/> como padrão.</summary>
-        public CueRouter CreateRouter(SpawnerAsset spawner, params CueDefinition[] cues)
+        /// <summary>
+        /// Roteador com uma biblioteca das <paramref name="cues"/>, o <paramref name="time"/> como fonte de tempo, o
+        /// <paramref name="spawner"/> como padrão e a <paramref name="anchor"/>, se houver.
+        /// </summary>
+        public CueRouter CreateRouter(
+            ManualTimeSource time, SpawnerAsset spawner, CueRouterAnchor anchor, params CueDefinition[] cues)
         {
             var library = Track(ScriptableObject.CreateInstance<CueLibrary>(), "CueLibrary_Test");
             Modify(library, so =>
@@ -80,7 +90,9 @@ namespace SpellBook.Testing
                 SerializedProperty libraries = so.FindProperty("libraries");
                 libraries.arraySize = 1;
                 libraries.GetArrayElementAtIndex(0).objectReferenceValue = library;
+                so.FindProperty("timeSource").objectReferenceValue = time;
                 so.FindProperty("defaultSpawner").objectReferenceValue = spawner;
+                so.FindProperty("anchor").objectReferenceValue = anchor;
             });
             return router;
         }

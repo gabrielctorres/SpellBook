@@ -1,16 +1,21 @@
 using System;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using SpellBook.Core;
 using SpellBook.Tags;
 using SpellBook.Testing;
+using SpellBook.Time;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace SpellBook.Cues.Tests
 {
-    /// <summary>Roteador: tocar, ligar e desligar (CA1, CA7).</summary>
+    /// <summary>Roteador: tocar, ligar, desligar, limite, tempo e âncora (CA1, CA2, CA5, CA7, CA9).</summary>
     public class CueRouterTests
     {
         private CuesFactory _cues;
+        private TimeFactory _times;
+        private ManualTimeSource _time;
         private RecordingSpawnerAsset _spawner;
         private GameObject _prefab;
 
@@ -18,6 +23,8 @@ namespace SpellBook.Cues.Tests
         public void SetUp()
         {
             _cues = new CuesFactory();
+            _times = new TimeFactory();
+            _time = _times.CreateManual();
             _spawner = _cues.CreateSpawner();
             _prefab = _cues.CreateObject("CuePrefab_Test");
         }
@@ -26,6 +33,7 @@ namespace SpellBook.Cues.Tests
         public void TearDown()
         {
             _cues.Dispose();
+            _times.Dispose();
         }
 
         [Test]
@@ -40,6 +48,25 @@ namespace SpellBook.Cues.Tests
             Assert.That(_spawner.SpawnCount, Is.EqualTo(2));
             Assert.That(_spawner.Live[0].transform.position, Is.EqualTo(new Vector3(1f, 2f, 3f)));
             Assert.That(router.ActiveCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void UnknownTag_NoException_ReturnsFalse_WarnsOnce()
+        {
+            GameplayTag known = _cues.CreateTag("Cue.Hit");
+            GameplayTag unknown = _cues.CreateTag("Cue.Other");
+            CueRouter router = Router(_cues.CreateCue(known, CueKind.Burst, Item(CueEnd.FixedDuration)));
+            LogAssert.Expect(LogType.Warning, new Regex("Cue.Other"));
+
+            bool first = router.Execute(unknown, CueParameters.At(Vector3.zero));
+            bool second = router.Execute(unknown, CueParameters.At(Vector3.zero));
+            CueHandle handle = router.Add(unknown, CueParameters.At(Vector3.zero));
+
+            Assert.That(first, Is.False);
+            Assert.That(second, Is.False);
+            Assert.That(handle.IsValid, Is.False);
+            Assert.That(_spawner.SpawnCount, Is.EqualTo(0));
+            LogAssert.NoUnexpectedReceived();
         }
 
         [Test]
@@ -80,9 +107,85 @@ namespace SpellBook.Cues.Tests
             Assert.That(_spawner.ReleaseCount, Is.EqualTo(_spawner.SpawnCount));
         }
 
+        [Test]
+        public void FixedDuration_ReleasesByTimeSource_PausedDoesNot()
+        {
+            GameplayTag tag = _cues.CreateTag("Cue.Hit");
+            CueRouter router = Router(_cues.CreateCue(tag, CueKind.Burst, Item(CueEnd.FixedDuration, duration: 1f)));
+            router.Update();
+            CueHandle handle = router.Add(tag, CueParameters.At(Vector3.zero));
+
+            _time.Advance(0.6f);
+            router.Update();
+            for (int i = 0; i < 5; i++)
+            {
+                router.Update(); // fonte parada: pausa
+            }
+
+            Assert.That(_spawner.ReleaseCount, Is.EqualTo(0));
+            Assert.That(router.IsActive(handle), Is.True);
+
+            _time.Advance(0.5f);
+            router.Update();
+
+            Assert.That(_spawner.ReleaseCount, Is.EqualTo(1));
+            Assert.That(router.IsActive(handle), Is.False, "o handle do Burst deixa de valer quando ele acaba");
+            Assert.That(router.ActiveCount, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void MaxSimultaneous_DropNew_ReplaceOldest()
+        {
+            GameplayTag dropTag = _cues.CreateTag("Cue.Drop");
+            GameplayTag replaceTag = _cues.CreateTag("Cue.Replace");
+            CueRouter router = Router(
+                _cues.CreateCue(dropTag, CueKind.Looping, 3, CueLimitPolicy.DropNew, Item(CueEnd.OnRemove)),
+                _cues.CreateCue(replaceTag, CueKind.Looping, 3, CueLimitPolicy.ReplaceOldest, Item(CueEnd.OnRemove)));
+            var drop = new CueHandle[4];
+            var replace = new CueHandle[4];
+
+            for (int i = 0; i < 4; i++)
+            {
+                drop[i] = router.Add(dropTag, CueParameters.At(Vector3.zero));
+            }
+
+            Assert.That(drop[3].IsValid, Is.False);
+            Assert.That(_spawner.SpawnCount, Is.EqualTo(3), "o quarto não cria objeto");
+
+            for (int i = 0; i < 4; i++)
+            {
+                replace[i] = router.Add(replaceTag, CueParameters.At(Vector3.zero));
+            }
+
+            Assert.That(router.IsActive(replace[0]), Is.False, "o mais antigo sai");
+            Assert.That(router.IsActive(replace[3]), Is.True);
+            Assert.That(router.ActiveCount, Is.EqualTo(6));
+            Assert.That(_spawner.Live.Count, Is.EqualTo(6));
+        }
+
+        [Test]
+        public void RouterPublishesInAnchor_UnsetOnDisable()
+        {
+            GameplayTag tag = _cues.CreateTag("Cue.Aura");
+            CueRouterAnchor anchor = _cues.CreateAnchor();
+            CueRouter router = _cues.CreateRouter(_time, _spawner, anchor,
+                _cues.CreateCue(tag, CueKind.Looping, Item(CueEnd.OnRemove)));
+
+            router.Awake();
+            router.OnEnable();
+            CueRouter published = anchor.Value;
+            router.Add(tag, CueParameters.At(Vector3.zero));
+            router.OnDisable();
+
+            Assert.That(published, Is.SameAs(router));
+            Assert.That(anchor.HasValue, Is.False);
+            Assert.That(router.ActiveCount, Is.EqualTo(0), "OnDisable remove os cues");
+            Assert.That(_spawner.Live, Is.Empty);
+        }
+
         private CueRouter Router(params CueDefinition[] cues)
         {
-            return _cues.CreateRouter(_spawner, cues);
+            return _cues.CreateRouter(_time, _spawner, null, cues);
         }
 
         private TestCueItem Item(

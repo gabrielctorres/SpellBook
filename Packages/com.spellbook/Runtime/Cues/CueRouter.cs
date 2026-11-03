@@ -1,17 +1,28 @@
 using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Tags;
+using SpellBook.Time;
 using UnityEngine;
 
 namespace SpellBook.Cues
 {
-    /// <summary>Toca cues por tag e devolve ao spawner tudo o que eles criam. Componente de cena.</summary>
+    /// <summary>
+    /// Toca cues por tag e devolve ao spawner tudo o que eles criam. Componente de cena que se publica na
+    /// <see cref="CueRouterAnchor"/>. O tempo de cada cue conta pela fonte de tempo do roteador, então pausa e câmera
+    /// lenta valem.
+    /// </summary>
     [HelpURL(DocUrls.Cues + "#cuerouter")]
     [DisallowMultipleComponent]
     public sealed class CueRouter : MonoBehaviour
     {
         [SerializeField, Tooltip("Bibliotecas em que o roteador procura o cue de cada tag. Na tag repetida, vale a primeira.")]
         private List<CueLibrary> libraries = new List<CueLibrary>();
+
+        [SerializeField, Tooltip("Âncora em que o roteador se publica enquanto está ativo.")]
+        private CueRouterAnchor anchor;
+
+        [SerializeField, Tooltip("Fonte de tempo dos cues. Vazio usa o tempo escalado padrão.")]
+        private TimeSourceAsset timeSource;
 
         [SerializeField, Tooltip("Spawner dos itens sem spawner próprio. Vazio usa o spawner padrão por Instantiate.")]
         private SpawnerAsset defaultSpawner;
@@ -23,11 +34,26 @@ namespace SpellBook.Cues
         private readonly List<CuePlayback> _slots = new List<CuePlayback>();
         private readonly List<int> _free = new List<int>();
         private readonly HashSet<Object> _warned = new HashSet<Object>();
+        private ITimeSource _timeSourceOverride;
+        private double _timeCursor;
         private long _sequence;
         private bool _initialized;
 
         /// <summary>Quantos cues estão ativos.</summary>
         public int ActiveCount { get; private set; }
+
+        /// <summary>
+        /// Fonte de tempo em uso: a dada por <see cref="SetTimeSource"/>, senão a do Inspector, senão
+        /// <see cref="TimeSourceAsset.Scaled"/>.
+        /// </summary>
+        public ITimeSource TimeSource
+        {
+            get
+            {
+                if (_timeSourceOverride != null) return _timeSourceOverride;
+                return timeSource != null ? timeSource : TimeSourceAsset.Scaled;
+            }
+        }
 
         internal SpawnerAsset DefaultSpawner => SpawnerAsset.OrDefault(defaultSpawner);
 
@@ -37,9 +63,40 @@ namespace SpellBook.Cues
             EnsureInitialized();
         }
 
+        internal void OnEnable()
+        {
+            if (anchor != null) anchor.Provide(this);
+        }
+
+        internal void OnDisable()
+        {
+            RemoveAll();
+            if (anchor != null) anchor.Unset(this);
+        }
+
+        internal void Update()
+        {
+            // Consumo por diferença (ADR 0014)
+            EnsureInitialized();
+            double now = TimeSource.ElapsedTime;
+            float deltaTime = (float)(now - _timeCursor);
+            _timeCursor = now;
+            Tick(deltaTime);
+        }
+
         /// <summary>
-        /// Toca o cue <see cref="CueKind.Burst"/> da <paramref name="tag"/>. Falso se nada tocou: tag sem definição ou cue
-        /// <see cref="CueKind.Looping"/> (use <see cref="Add"/>).
+        /// Troca a fonte de tempo por código (por exemplo, um <see cref="ManualTimeSource"/> num teste). <c>null</c> volta
+        /// à fonte do Inspector. O tempo passado na fonte antiga não é contado.
+        /// </summary>
+        public void SetTimeSource(ITimeSource source)
+        {
+            _timeSourceOverride = source;
+            _timeCursor = TimeSource.ElapsedTime;
+        }
+
+        /// <summary>
+        /// Toca o cue <see cref="CueKind.Burst"/> da <paramref name="tag"/>. Falso se nada tocou: tag sem definição, cue
+        /// <see cref="CueKind.Looping"/> (use <see cref="Add"/>) ou limite com <see cref="CueLimitPolicy.DropNew"/>.
         /// </summary>
         public bool Execute(GameplayTag tag, in CueParameters parameters)
         {
@@ -103,6 +160,20 @@ namespace SpellBook.Cues
             return slot.IsActive && slot.Generation == handle.Generation;
         }
 
+        /// <summary>
+        /// Avança os cues em <paramref name="deltaTime"/> segundos: conta as durações e devolve o que acabou. O próprio
+        /// roteador chama a cada quadro, pela fonte de tempo.
+        /// </summary>
+        public void Tick(float deltaTime)
+        {
+            float delta = deltaTime > 0f ? deltaTime : 0f;
+            for (int i = 0; i < _slots.Count; i++)
+            {
+                CuePlayback slot = _slots[i];
+                if (slot.IsActive && !slot.Tick(delta)) Release(slot);
+            }
+        }
+
         /// <summary>Verdadeiro na primeira vez para <paramref name="key"/>, só em desenvolvimento.</summary>
         internal bool ShouldWarn(Object key)
         {
@@ -112,11 +183,29 @@ namespace SpellBook.Cues
         private bool TryFind(GameplayTag tag, out CueDefinition cue)
         {
             EnsureInitialized();
-            return _index.TryFind(tag, out cue);
+            if (_index.TryFind(tag, out cue)) return true;
+
+            if (ShouldWarn(tag.GetDefinition()))
+            {
+                Debug.LogWarning($"Nenhum cue para a tag '{tag.Name}' nas bibliotecas de '{name}'.", this);
+            }
+
+            return false;
         }
 
         private bool Play(CueDefinition cue, in CueParameters parameters, out CueHandle handle)
         {
+            handle = default;
+            if (cue.MaxSimultaneous > 0)
+            {
+                CuePlayback oldest = CountActive(cue, out int count);
+                if (count >= cue.MaxSimultaneous)
+                {
+                    if (cue.LimitPolicy == CueLimitPolicy.DropNew) return false;
+                    Release(oldest);
+                }
+            }
+
             CuePlayback slot = Acquire(cue);
             IReadOnlyList<CueItem> items = cue.Items;
             for (int i = 0; i < items.Count; i++)
@@ -127,6 +216,22 @@ namespace SpellBook.Cues
             handle = slot.Handle;
             if (!slot.HasObjects) Release(slot);
             return true;
+        }
+
+        private CuePlayback CountActive(CueDefinition cue, out int count)
+        {
+            count = 0;
+            CuePlayback oldest = null;
+            for (int i = 0; i < _slots.Count; i++)
+            {
+                CuePlayback slot = _slots[i];
+                if (!slot.IsActive || slot.Cue != cue) continue;
+
+                count++;
+                if (oldest == null || slot.Sequence < oldest.Sequence) oldest = slot;
+            }
+
+            return oldest;
         }
 
         private CuePlayback Acquire(CueDefinition cue)
@@ -155,6 +260,7 @@ namespace SpellBook.Cues
             _initialized = true;
             _index.Rebuild(libraries);
             AddSlots(Mathf.Max(1, capacity));
+            _timeCursor = TimeSource.ElapsedTime;
         }
 
         private void AddSlots(int count)

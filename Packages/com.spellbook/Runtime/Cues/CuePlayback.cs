@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using SpellBook.Core;
+using SpellBook.Time;
 using UnityEngine;
 
 namespace SpellBook.Cues
@@ -14,6 +15,8 @@ namespace SpellBook.Cues
         {
             public GameObject Instance;
             public SpawnerAsset Spawner;
+            public CueEnd End;
+            public float Remaining;
         }
 
         private readonly CueRouter _router;
@@ -24,6 +27,9 @@ namespace SpellBook.Cues
             _router = router;
             Slot = slot;
         }
+
+        /// <summary>Fonte de tempo do roteador.</summary>
+        public ITimeSource Time => _router.TimeSource;
 
         internal int Slot { get; }
 
@@ -53,7 +59,10 @@ namespace SpellBook.Cues
             GameObject instance = source.Spawn(prefab, position, rotation);
             if (instance == null) return null;
 
-            _objects.Add(new Tracked { Instance = instance, Spawner = source });
+            _objects.Add(new Tracked
+            {
+                Instance = instance, Spawner = source, End = request.End, Remaining = request.Duration,
+            });
             return instance;
         }
 
@@ -62,6 +71,34 @@ namespace SpellBook.Cues
             Cue = cue;
             Sequence = sequence;
             IsActive = true;
+        }
+
+        /// <summary>Conta o tempo e devolve ao spawner o que acabou. Falso quando não sobra objeto.</summary>
+        internal bool Tick(float deltaTime)
+        {
+            for (int i = _objects.Count - 1; i >= 0; i--)
+            {
+                Tracked tracked = _objects[i];
+                if (tracked.Instance == null)
+                {
+                    _objects.RemoveAt(i);
+                    continue;
+                }
+
+                if (tracked.End == CueEnd.FixedDuration)
+                {
+                    tracked.Remaining -= deltaTime;
+                    if (tracked.Remaining <= 0f)
+                    {
+                        ReleaseAt(i);
+                        continue;
+                    }
+
+                    _objects[i] = tracked;
+                }
+            }
+
+            return _objects.Count > 0;
         }
 
         /// <summary>Devolve todos os objetos e libera o slot; os handles dele deixam de valer.</summary>

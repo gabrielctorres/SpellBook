@@ -264,7 +264,7 @@ Depende de: CU3a.
   - `Tests/Cues/EditMode/CueRouterTests.cs`: `ManualTimeSource` no `SetUp` e os testes abaixo.
 - Testes red (EditMode, `CueRouterTests`): `UnknownTag_NoException_ReturnsFalse_WarnsOnce`; `FixedDuration_ReleasesByTimeSource_PausedDoesNot`; `MaxSimultaneous_DropNew_ReplaceOldest`; `RouterPublishesInAnchor_UnsetOnDisable`.
 - Critério de pronto: os 4 testes verdes e os 2 do CU3a seguem verdes, pelo filtro `\.CueRouterTests\.;\.CueIndexTests\.;\.HelpUrlTests\.;\.AsmdefRulesTests\.`, com `total` conferido no XML.
-- Tamanho: estimado em ~260 linhas e 5 arquivos, pela ADR 0042, a partir do código guardado. Exceção: nenhuma.
+- Tamanho: estimado em ~260 linhas e 5 arquivos, pela ADR 0042, a partir do código guardado. Exceção: nenhuma. Medido na implementação: 301 linhas e 5 arquivos.
 - Commit: `feat(cues): tempo, limite e âncora no roteador de cues`
 
 #### CU3c — Roteador: seguir o alvo, spawner nulo e alocação (divisão de 2026-11-03 do CU3)
