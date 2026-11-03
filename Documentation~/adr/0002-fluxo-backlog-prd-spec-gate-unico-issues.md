@@ -169,7 +169,7 @@ Hoje o fluxo está descrito em `Documentation~/README.md`, `TIME.md` e `backlog.
 
 ## Em aberto
 
-- A 0007 precisa de uma emenda que diga quem revisa o passe de documentação, porque, por esta emenda de 2026-11-03 ("gate do Examinador só para código"), as páginas do manual saíram do `/revisao`. Fica para um ticket seguinte.
+Nada.
 
 ## Relacionadas
 
