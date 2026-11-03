@@ -946,6 +946,18 @@ Depende de: EV17a.
 - Critério de pronto: o Sample abre sem "Missing" e a bola de fogo funciona como antes (o Examinador confere no host); CA35 (E).
 - Tamanho estimado: ~0 linhas de código; 5 arquivos (2 fixtures). Depende de: EV22 (era EV20 antes da emenda de 2026-10-31), SB-T6.
 
+### Detalhe EV21 (2026-11-03)
+- CA: R1 (os assets do pacote que usam ações são refeitos no formato novo); CA36 (a suíte segue verde). O CA35 (CHANGELOG do R34, páginas do R33 e a de migração) sai deste ticket pela emenda de 2026-11-03 ("documentação no fim"): o `gas.md` e o `migracao-2-para-3.md` vão para o passe de documentação, e o CHANGELOG fica só nos EV com `!`. O EV21 não tem `!` (a quebra entrou no EV2 e no EV3).
+- Escopo (caminhos sob `Packages/com.spellbook/Samples~/Sandbox/Data/`), regravados no formato 3.0 com a pasta renomeada pela ADR 0028 e o menu `SpellBook/Migrar assets do GAS (3.0)` do EV3d (`Editor/GAS/GasAssetMigration.cs:20-38`), que só marca sujo e salva:
+  - `Abilities/GA_BolaDeFogo.asset:30-32`: `Actions` vira `OnActivate`, e as listas novas (`OnEnd`, `OnCancel`, `OnChannelTick`, `OnGranted`, …) e o `target` das ações entram vazios. A `SpawnProjectileAction` com `OnHitActions` (`ApplyEffectAction` e `RaiseEventAction`) não muda de conteúdo: o alvo continua vindo do impacto (`Projectile.cs:323-335`, `EventTargets`).
+  - `Effects/GE_Queimadura.asset:47-50,58-63`: `OnApplication`/`OnTickActions`/`OnRemoval` viram `OnApplied`/`OnTick`/`OnRemoved`, e `DebugLogEffectAction` vira `DebugLogAction` (`CommonEffectActions.cs:14`, `[MovedFrom]`), com a mesma mensagem e cor.
+  - `Effects/GE_BolaDeFogo_Custo.asset:47-49`, `GE_BolaDeFogo_Dano.asset:47-49` e `GE_BolaDeFogo_Recarga.asset:30-32`: só as listas vazias com os nomes 2.x passam aos nomes novos. Consequência direta (ADR 0042, item 6): o menu regrava todo `GameplayEffect` do pacote embutido, e deixar os três com o nome antigo manteria o Sample em dois formatos.
+  - Fora: o código, a cena, os prefabs e os scripts do Sample (os scripts usam só `TryActivateAbility(GameplayAbility, Vector3)`, `OnAbilityActivated`, `OnAbilityFailed`, `ActivationFailure.ReasonKey`/`ReasonTag` e `GetCooldownTimeRemaining`, que existem). Se a Unity regravar algo fora desta lista, a Fábrica volta o arquivo pela cópia feita antes de abrir a Unity e relata. `Assets/` não tem `GameplayAbility` nem `GameplayEffect` (busca pelos GUIDs dos scripts).
+- Testes red: sem código novo. O red é o critério verificável antes da mudança: `grep -E "^  (Actions|OnApplication|OnTickActions|OnRemoval):|DebugLogEffectAction"` nos cinco assets acha ocorrências. Guardas: `SampleStructureTests` (EditMode, `SpellBook.Core.Tests.EditMode`; SB-T1: `.meta`, GUID único, sem `Samples/` nem `Samples.meta`) seguem verdes com a pasta como `Samples~`.
+- Critério de pronto: a busca acima não acha nada; os GUIDs e os `rid` dos cinco assets não mudam; com a pasta renomeada, o Sample compila e a carga dos cinco assets não registra erro nem "Missing"; `SampleStructureTests` verde com `Samples~`, sem `Samples/` nem `Samples.meta`. No host (Examinador): a bola de fogo funciona como antes (dano, queimadura com log por tique, evento de acerto, custo e recarga).
+- Tamanho: 0 linhas pela ADR 0042 (`.asset` conta só nos arquivos) e 5 arquivos. Exceção: nenhuma.
+- Commit: `chore(sample): regravar os assets do Sandbox no formato 3.0`
+
 ### Ordem e resumo
 
 | Ticket | Unity | Depende de | Tamanho |

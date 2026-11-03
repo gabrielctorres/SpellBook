@@ -18,23 +18,105 @@ MonoBehaviour:
     definition: {fileID: 0}
   Description:
     Elements: []
+  maxLevel: 1
+  values:
+    entries: []
   CooldownEffect: {fileID: 11400000, guid: bb8bfb3f377ca29458a51cbb2bd049ab, type: 2}
   CooldownReductionAttribute: {fileID: 0}
+  cooldownReductionPolicy: {fileID: 0}
   CostEffect: {fileID: 11400000, guid: 585a1ac1850adaf43994b6466ccd2ce5, type: 2}
+  charges:
+    enabled: 0
+    maxCharges:
+      Type: 0
+      Value:
+        mode: 0
+        constant: 1
+        values: []
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        tableName: 
+        fallback: 0
+      legacyConstant: NaN
+      Attribute: {fileID: 0}
+      Formula: {fileID: 0}
+      CallerName: 
+      CallerHasDefault: 0
+      CallerDefault: 0
+      TargetAttributeDefinition: {fileID: 0}
+    rechargeTime:
+      mode: 0
+      constant: 1
+      values: []
+      curve:
+        serializedVersion: 2
+        m_Curve: []
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      tableName: 
+      fallback: 0
+    mode: 0
+  commitMode: 0
+  behavior: 0
+  reactivatePassive: 0
+  channelDuration:
+    mode: 0
+    constant: 0
+    values: []
+    curve:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    tableName: 
+    fallback: 0
+  channelTickInterval: 0
+  castRange:
+    mode: 0
+    constant: 0
+    values: []
+    curve:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    tableName: 
+    fallback: 0
+  activationConditions: []
   BlockedTags: []
   RequiredTags: []
   ActivationOwnedTags: []
   CancelAbilitiesWithTag: []
   BlockAbilitiesWithTag: []
   CancelledByTags: []
-  Actions:
+  OnActivate:
   - rid: 3572287606204923904
+  OnEnd: []
+  OnCancel: []
+  OnChannelTick: []
+  OnGranted: []
+  OnRemoved: []
+  autocast:
+    allowed: 0
+    startsOn: 0
+  triggers: []
   references:
     version: 2
     RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
     - rid: 3572287606204923904
       type: {class: SpawnProjectileAction, ns: SpellBook.GAS.Abilities.Actions, asm: SpellBook.GAS}
       data:
+        target:
+          rid: -2
         ProjectilePrefab: {fileID: 1361941884754687197, guid: 0828333217fdef24092acd45ae76889e, type: 3}
         Spawner: {fileID: 11400000, guid: dfb5d9ca0f699ca42930bd2360d839c0, type: 2}
         OnHitActions:
@@ -50,6 +132,8 @@ MonoBehaviour:
     - rid: 3572287606204923905
       type: {class: ApplyEffectAction, ns: SpellBook.GAS.Abilities.Actions, asm: SpellBook.GAS}
       data:
+        target:
+          rid: -2
         Effects:
         - {fileID: 11400000, guid: ec6971ff71d4ead4eb319c4a99908b15, type: 2}
         - {fileID: 11400000, guid: b60a31fea48cb244ca3d131b46987b4e, type: 2}
@@ -57,8 +141,13 @@ MonoBehaviour:
     - rid: 3572287606204923906
       type: {class: RaiseEventAction, ns: SpellBook.GAS.Bridges, asm: SpellBook.GAS.Bridges}
       data:
+        target:
+          rid: -2
         emission:
           rid: 3572287606204923907
+        payloadSource: 0
+        attribute: {fileID: 0}
+        modifierIndex: 0
     - rid: 3572287606204923907
       type: {class: 'EventEmission`1[[SpellBook.Core.Void, SpellBook.Core]]', ns: SpellBook.Events, asm: SpellBook.Events}
       data:
