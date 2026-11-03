@@ -215,6 +215,28 @@ namespace SpellBook.Cues.Tests
         }
 
         [Test]
+        public void Spawn_DefaultLocalRotation_ActsAsIdentity()
+        {
+            GameplayTag tag = _cues.CreateTag("Cue.Aura");
+            TestCueItem world = Item(CueEnd.OnRemove);
+            TestCueItem attached = Item(CueEnd.OnRemove, CuePlacement.AttachToTarget);
+            world.LocalRotation = default;
+            attached.LocalRotation = default;
+            CueRouter router = Router(_cues.CreateCue(tag, CueKind.Looping, world, attached));
+            GameObject target = _cues.CreateObject("Target");
+            Quaternion turned = Quaternion.Euler(0f, 90f, 0f);
+            target.transform.rotation = turned;
+
+            router.Add(tag, CueParameters.On(target.transform));
+            router.Tick(0.1f);
+
+            Assert.That(Quaternion.Angle(_spawner.Live[0].transform.rotation, turned), Is.LessThan(0.01f),
+                "World nasce com a rotação do cue");
+            Assert.That(Quaternion.Angle(_spawner.Live[1].transform.rotation, turned), Is.LessThan(0.01f),
+                "AttachToTarget fica com a rotação do alvo");
+        }
+
+        [Test]
         public void RouterPublishesInAnchor_UnsetOnDisable()
         {
             GameplayTag tag = _cues.CreateTag("Cue.Aura");
@@ -282,11 +304,13 @@ namespace SpellBook.Cues.Tests
             public Vector3 Offset;
             public CueEnd End;
             public float Duration;
+            public Quaternion LocalRotation = Quaternion.identity;
 
             public override void Play(in CueParameters parameters, CuePlayback playback)
             {
                 playback.Spawn(Prefab, Spawner, new CueSpawnRequest(
-                    parameters.Position, parameters.Rotation, Placement, parameters.Target, Offset, End, Duration));
+                    parameters.Position, parameters.Rotation, LocalRotation, Placement, parameters.Target, Offset, End,
+                    Duration));
             }
         }
     }

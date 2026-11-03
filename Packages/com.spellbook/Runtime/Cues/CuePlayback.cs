@@ -19,8 +19,10 @@ namespace SpellBook.Cues
             public CuePlacement Placement;
             public Transform Target;
             public Vector3 Offset;
+            public Quaternion LocalRotation;
             public CueEnd End;
             public float Remaining;
+            public ParticleSystem Particles;
         }
 
         private readonly CueRouter _router;
@@ -41,6 +43,9 @@ namespace SpellBook.Cues
 
         internal bool IsActive { get; private set; }
 
+        /// <summary>Removido, mas com partículas que ainda não acabaram: o slot só volta ao livre quando esvaziar.</summary>
+        internal bool IsDraining { get; private set; }
+
         internal CueDefinition Cue { get; private set; }
 
         internal long Sequence { get; private set; }
@@ -48,6 +53,14 @@ namespace SpellBook.Cues
         internal CueHandle Handle => new CueHandle(Slot, Generation);
 
         internal bool HasObjects => _objects.Count > 0;
+
+        /// <summary>
+        /// Magnitude normalizada (0 a 1) dos <paramref name="parameters"/>; sem magnitude, a padrão da definição do cue.
+        /// </summary>
+        public float NormalizedMagnitude(in CueParameters parameters)
+        {
+            return parameters.HasMagnitude ? parameters.NormalizedMagnitude : Cue.DefaultMagnitude;
+        }
 
         /// <summary>
         /// Cria <paramref name="prefab"/> pelo <paramref name="spawner"/> (vazio: o padrão do roteador) e o rastreia até o
@@ -58,6 +71,11 @@ namespace SpellBook.Cues
             if (prefab == null) return null;
 
             SpawnerAsset source = spawner != null ? spawner : _router.DefaultSpawner;
+            // O quaternion default (todo zero) não é uma rotação: vale como sem rotação extra. O == da Unity compara pelo
+            // produto escalar e não reconhece o zero, por isso o Equals.
+            Quaternion localRotation = request.LocalRotation.Equals(default(Quaternion))
+                ? Quaternion.identity
+                : request.LocalRotation;
             var tracked = new Tracked
             {
                 Spawner = source,
@@ -65,12 +83,13 @@ namespace SpellBook.Cues
                 Placement = request.Target != null ? request.Placement : CuePlacement.World,
                 Target = request.Target,
                 Offset = request.Offset,
+                LocalRotation = localRotation,
                 End = request.End,
                 Remaining = request.Duration,
             };
 
             Vector3 position = request.Position + request.Offset;
-            Quaternion rotation = request.Rotation;
+            Quaternion rotation = request.Rotation * localRotation;
             Pose(in tracked, ref position, ref rotation);
             GameObject instance = source.Spawn(prefab, position, rotation);
             if (instance == null)
@@ -85,6 +104,7 @@ namespace SpellBook.Cues
 
             tracked.Instance = instance;
             tracked.Transform = instance.transform;
+            if (tracked.End == CueEnd.ParticlesStop) instance.TryGetComponent(out tracked.Particles);
             _objects.Add(tracked);
             return instance;
         }
@@ -112,7 +132,7 @@ namespace SpellBook.Cues
                 {
                     if (tracked.Target == null || !tracked.Target.gameObject.activeInHierarchy)
                     {
-                        if (Cue.Kind == CueKind.Looping) return false;
+                        if (IsActive && Cue.Kind == CueKind.Looping) return false;
                         ReleaseAt(i);
                         continue;
                     }
@@ -123,7 +143,12 @@ namespace SpellBook.Cues
                     tracked.Transform.SetPositionAndRotation(position, rotation);
                 }
 
-                if (tracked.End == CueEnd.FixedDuration)
+                if (tracked.End == CueEnd.ParticlesStop)
+                {
+                    // Sem partícula na raiz, não há o que esperar
+                    if (tracked.Particles == null || !tracked.Particles.IsAlive(true)) ReleaseAt(i);
+                }
+                else if (tracked.End == CueEnd.FixedDuration)
                 {
                     tracked.Remaining -= deltaTime;
                     if (tracked.Remaining <= 0f)
@@ -139,15 +164,46 @@ namespace SpellBook.Cues
             return _objects.Count > 0;
         }
 
-        /// <summary>Devolve todos os objetos e libera o slot; os handles dele deixam de valer.</summary>
+        /// <summary>
+        /// Remove o cue: os handles deixam de valer, as partículas vivas param de emitir e ficam até acabar, e o resto
+        /// volta na hora. Verdadeiro se o slot ficou esvaziando.
+        /// </summary>
+        internal bool Stop()
+        {
+            Deactivate();
+            for (int i = _objects.Count - 1; i >= 0; i--)
+            {
+                ParticleSystem particles = _objects[i].Particles;
+                if (particles != null && particles.IsAlive(true))
+                {
+                    particles.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+                }
+                else
+                {
+                    ReleaseAt(i);
+                }
+            }
+
+            IsDraining = _objects.Count > 0;
+            if (!IsDraining) Cue = null;
+            return IsDraining;
+        }
+
+        /// <summary>Devolve todos os objetos na hora e libera o slot; os handles dele deixam de valer.</summary>
         internal void End()
         {
+            if (IsActive) Deactivate();
             for (int i = _objects.Count - 1; i >= 0; i--)
             {
                 ReleaseAt(i);
             }
 
             Cue = null;
+            IsDraining = false;
+        }
+
+        private void Deactivate()
+        {
             IsActive = false;
             Generation++;
         }
@@ -166,8 +222,10 @@ namespace SpellBook.Cues
             Transform target = tracked.Target;
             if (tracked.Placement == CuePlacement.AttachToTarget)
             {
-                rotation = target.rotation;
-                position = target.position + rotation * tracked.Offset;
+                // A rotação extra não gira o deslocamento: ele acompanha só o alvo
+                Quaternion targetRotation = target.rotation;
+                rotation = targetRotation * tracked.LocalRotation;
+                position = target.position + targetRotation * tracked.Offset;
             }
             else
             {

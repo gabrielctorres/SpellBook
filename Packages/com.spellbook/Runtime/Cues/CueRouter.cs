@@ -71,7 +71,12 @@ namespace SpellBook.Cues
 
         internal void OnDisable()
         {
-            RemoveAll();
+            // Desligado, o roteador não tem Tick: devolve na hora também o que esperava as partículas
+            for (int i = 0; i < _slots.Count; i++)
+            {
+                if (_slots[i].IsActive || _slots[i].IsDraining) Release(_slots[i]);
+            }
+
             if (anchor != null) anchor.Unset(this);
         }
 
@@ -126,11 +131,14 @@ namespace SpellBook.Cues
             return handle;
         }
 
-        /// <summary>Desliga o cue e devolve os objetos dele. Falso se o handle não vale mais.</summary>
+        /// <summary>
+        /// Desliga o cue e devolve os objetos dele; as partículas param de emitir e voltam quando acabam. Falso se o
+        /// handle não vale mais.
+        /// </summary>
         public bool Remove(CueHandle handle)
         {
             if (!IsActive(handle)) return false;
-            Release(_slots[handle.Slot]);
+            Stop(_slots[handle.Slot]);
             return true;
         }
 
@@ -140,7 +148,7 @@ namespace SpellBook.Cues
             for (int i = 0; i < _slots.Count; i++)
             {
                 CuePlayback slot = _slots[i];
-                if (slot.IsActive && slot.Cue.Tag.Matches(tag)) Release(slot);
+                if (slot.IsActive && slot.Cue.Tag.Matches(tag)) Stop(slot);
             }
         }
 
@@ -149,7 +157,7 @@ namespace SpellBook.Cues
         {
             for (int i = 0; i < _slots.Count; i++)
             {
-                if (_slots[i].IsActive) Release(_slots[i]);
+                if (_slots[i].IsActive) Stop(_slots[i]);
             }
         }
 
@@ -171,7 +179,7 @@ namespace SpellBook.Cues
             for (int i = 0; i < _slots.Count; i++)
             {
                 CuePlayback slot = _slots[i];
-                if (slot.IsActive && !slot.Tick(delta)) Release(slot);
+                if ((slot.IsActive || slot.IsDraining) && !slot.Tick(delta)) Release(slot);
             }
         }
 
@@ -203,7 +211,7 @@ namespace SpellBook.Cues
                 if (count >= cue.MaxSimultaneous)
                 {
                     if (cue.LimitPolicy == CueLimitPolicy.DropNew) return false;
-                    Release(oldest);
+                    Stop(oldest);
                 }
             }
 
@@ -255,11 +263,19 @@ namespace SpellBook.Cues
             return slot;
         }
 
+        /// <summary>Remove o cue; o slot só volta ao livre se não ficou esperando partículas.</summary>
+        private void Stop(CuePlayback slot)
+        {
+            ActiveCount--;
+            if (!slot.Stop()) _free.Add(slot.Slot);
+        }
+
+        /// <summary>Devolve tudo na hora e libera o slot, ativo ou esvaziando.</summary>
         private void Release(CuePlayback slot)
         {
+            if (slot.IsActive) ActiveCount--;
             slot.End();
             _free.Add(slot.Slot);
-            ActiveCount--;
         }
 
         private bool ShouldWarnGrowth()

@@ -22,7 +22,7 @@ namespace SpellBook.Core.Tests.Structure
 
         private static readonly string[] EditorModules = { "Core", "Events", "Time", "Tags", "Pooling", "GAS", "GAS.Bridges", "Teams" };
 
-        private static readonly string[] PlayModeModules = { "Core", "Time", "Events", "GAS", "GAS.Bridges" };
+        private static readonly string[] PlayModeModules = { "Core", "Time", "Events", "GAS", "GAS.Bridges", "Cues" };
 
         [Test]
         public void AsmdefRules_Scan_FindsCoreAndThisTestAsmdef()

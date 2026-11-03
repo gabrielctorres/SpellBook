@@ -84,7 +84,10 @@ namespace SpellBook.Testing
                 }
             });
 
-            var router = Track(new GameObject(), "CueRouter_Test").AddComponent<CueRouter>();
+            // Inativo até ter os campos: no PlayMode, o AddComponent chamaria o Awake sem as bibliotecas
+            GameObject host = Track(new GameObject(), "CueRouter_Test");
+            host.SetActive(false);
+            var router = host.AddComponent<CueRouter>();
             Modify(router, so =>
             {
                 SerializedProperty libraries = so.FindProperty("libraries");
@@ -94,6 +97,7 @@ namespace SpellBook.Testing
                 so.FindProperty("defaultSpawner").objectReferenceValue = spawner;
                 so.FindProperty("anchor").objectReferenceValue = anchor;
             });
+            host.SetActive(true);
             return router;
         }
 
