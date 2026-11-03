@@ -74,7 +74,11 @@ namespace SpellBook.GAS.Editor.Actions
             Add(_tabView);
             Refresh();
             this.TrackSerializedObjectValue(serializedObject, _ => Refresh());
+            RunningTracker = new RunningActionsTracker(this);
         }
+
+        /// <summary>Indicador de "rodando" das linhas em Play (Design 10a); nulo em multi-seleção.</summary>
+        internal RunningActionsTracker RunningTracker { get; }
 
         /// <summary>Campo da aba ativa, ou <c>null</c> sem abas.</summary>
         internal string ActiveEvent => _tabs.FirstOrDefault(t => t.Tab == _tabView?.activeTab)?.Field;

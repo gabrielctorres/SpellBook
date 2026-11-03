@@ -922,6 +922,24 @@ Depende de: EV17a.
 - Critério de pronto: testes verdes; o Examinador confere no host, em Play, com a Bola de Fogo: a linha da ação em espera acende e apaga, o layout não pula e os campos seguem editáveis (DS 9, "Modo Play").
 - Tamanho estimado: ~300 linhas; 9 arquivos. Depende de: EV20.
 
+#### Detalhe (2026-11-03)
+- CA: CA31 (S), complemento do DS 9 "Modo Play" (P-DS5, Design 10a); CA34 (T) para a leitura no runtime (sem alocação depois do aquecimento); CA33 e CA36 seguem verdes.
+- Escopo (caminhos sob `Packages/com.spellbook/`):
+  - `Runtime/GAS/Actions/ActionRunner.cs:102-109`: `CollectRunning(List<GameplayAction> into)` ao lado do `HasRunning`; para cada execução viva, acrescenta a ação de cada quadro da pilha (`Stack[0..Depth)`, `List[Index]` não nula e dentro do `End`): a folha e as de fluxo que a contêm. As filhas em paralelo são execuções próprias e entram pela mesma volta.
+  - `Runtime/GAS/Core/AbilitySystemComponent.cs:386-390`: `public void CollectRunningActions(List<GameplayAction> into)` (aditivo) depois do `HasRunningActions`: lista nula lança `ArgumentNullException`; limpa e repassa ao executor, se existir.
+  - `Editor/GAS/Actions/RunningActionsTracker.cs` (novo, `internal sealed`): costuras `Func<IReadOnlyList<AbilitySystemComponent>>` (padrão `Object.FindObjectsByType<AbilitySystemComponent>(FindObjectsSortMode.None)`) e `Func<bool>` do Play (padrão `EditorApplication.isPlaying`), as duas pelo construtor. Em Play, `schedule.Execute(Update).Every(200)` na raiz; `Update` junta as ações num `HashSet<GameplayAction>` reutilizado com comparador por referência e repassa o conjunto às `ActionRowView` sob a raiz. Fora do Play, e no `playModeStateChanged` que não é `EnteredPlayMode`, pausa o agendamento, limpa o conjunto e apaga as linhas. Assina o `playModeStateChanged` no `AttachToPanelEvent` e solta no `DetachFromPanelEvent`.
+  - `Editor/GAS/Actions/ActionRowView.cs`: ponto `action-row__running` logo depois do resumo no cabeçalho (`:70-79`), que só troca a `visibility` (o espaço é sempre reservado, sem pular layout nem altura); `SetRunning(ICollection<GameplayAction>)` liga `action-row--running` se a ação ligada está no conjunto (por referência) ou, recolhida, se alguma descendente está; as descendentes são juntadas no `Bind` (`:130-155`) pelas referências gerenciadas sob o elemento; `Bind` e o `Toggle` (`:157-162`) reaplicam o último conjunto, para a linha reciclada pelo `ListView` não ficar acesa por engano. Os campos não mudam.
+  - `Editor/GAS/Actions/ActionEventsView.cs:48-77`: cria o `RunningActionsTracker` com a própria vista como raiz (fora da multi-seleção).
+  - `Editor/GAS/Actions/ActionInspector.uss`: token `--spellbook-running` nos dois temas e as classes do ponto, com seletor de filho direto (a linha acesa não acende o ponto das filhas).
+  - `Tests/GAS/PlayMode/RunningActionsQueryTests.cs` (novo) e `Tests/GAS/EditMode/RunningIndicatorTests.cs` (novo).
+  - Fora: `gas.md` (nota do Modo Play) vai para o passe de documentação; sem `!`, sem CHANGELOG (API só aditiva).
+- Testes red:
+  - PlayMode (`RunningActionsQueryTests`): `CollectRunningActions_WaitInsideRepeat_ListsLeafAndParent`; `CollectRunningActions_AfterExecutionEnds_Empty`; `CollectRunningActions_CancelledOwner_Empty`; `CollectRunningActions_AfterWarmup_DoesNotAllocate`.
+  - EditMode (`RunningIndicatorTests`): `Row_RunningClass_WhenActionInRunningSet_ByReference` (outra instância do mesmo tipo não acende); `CollapsedFlowRow_LitWhenChildRuns` (expandida, só pela própria ação); `Tracker_OutsidePlay_NoSchedule_SetEmpty`; `Tracker_ExitPlay_ClearsAllRows` (ASC real pela costura, `Wait` dentro de `Repeat`).
+- Critério de pronto: os 8 testes verdes; guardas verdes: `ActionInspectorTests`, `NestedActionListTests`, `ActionRunnerTests` e `SpellBookEditorCoverageTests`. No host (Examinador): em Play, com a Bola de Fogo, a linha da ação em espera acende e apaga, o layout não pula e os campos seguem editáveis.
+- Tamanho: medido em 418 linhas (183 de runtime e editor, 235 de testes) e 8 arquivos (o `.uss` conta só no número de arquivos). Exceção: nenhuma.
+- Commit: `feat(editor): indicador de acao rodando em Play`
+
 ### EV21 — Sample refeito, migração e fechamento da documentação
 - Escopo: `Samples~/Sandbox/Data/Abilities/GA_BolaDeFogo.asset`, `Samples~/Sandbox/Data/Effects/GE_Queimadura.asset` (refeitos no Inspector, com a pasta renomeada pela ADR 0028), `Documentation~/manual/regras/migracao-2-para-3.md` (tabela ação antiga → nova, campos renomeados, regra da espera), `gas.md` (modelo evento → ações → alvos, seletores, gatilhos, comportamentos, commit, autocast; troca a nota do RP-06 pela regra nova), `CHANGELOG.md` (R34 completo, validação do EV16).
 - Testes red: as guardas do SB-T1 (`.meta`, GUID único) seguem verdes; nenhum código novo.

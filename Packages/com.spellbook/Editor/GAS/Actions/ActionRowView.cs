@@ -44,8 +44,12 @@ namespace SpellBook.GAS.Editor.Actions
         private readonly Button _choose;
         private readonly VisualElement _body;
         private readonly VisualElement _children;
+        private readonly VisualElement _running;
         private readonly int _depth;
+        private readonly List<GameplayAction> _descendants = new List<GameplayAction>();
         private SerializedProperty _element;
+        private GameplayAction _action;
+        private ICollection<GameplayAction> _runningSet;
         private IReadOnlyList<ValidationMessage> _messages;
         private string _summaryText;
         private string _category;
@@ -70,6 +74,10 @@ namespace SpellBook.GAS.Editor.Actions
             header.Add(_fold);
             header.Add(_icon);
             header.Add(_summary);
+            // Sempre no layout, só fica visível acesa: a linha não pula quando a ação começa ou termina (DS 9, Modo Play)
+            _running = new VisualElement { tooltip = "Rodando" };
+            _running.AddToClassList(ClassName + "__running");
+            header.Add(_running);
             LevelLabel.text = $"⋯ nível {depth}";
             LevelLabel.AddToClassList(ClassName + "__level");
             Show(LevelLabel, depth >= FlatDepth);
@@ -151,7 +159,39 @@ namespace SpellBook.GAS.Editor.Actions
             ValidationIcon.EnableInClassList(WarningClass, own.Count > 0 && !error);
             Show(ValidationIcon, own.Count > 0);
             Chip.Bind(element, messages);
+            _action = value as GameplayAction;
+            CollectDescendants(element);
             RefreshBody();
+        }
+
+        /// <summary>Classe da linha cuja ação, ou, recolhida, alguma filha dela, está em execução em Play.</summary>
+        internal const string RunningClass = "action-row--running";
+
+        /// <summary>Acende a linha se a ação está em <paramref name="running"/>, por referência; nulo apaga.</summary>
+        internal void SetRunning(ICollection<GameplayAction> running)
+        {
+            _runningSet = running;
+            ApplyRunning();
+        }
+
+        private void ApplyRunning()
+        {
+            bool lit = _runningSet != null && _runningSet.Count > 0 && _action != null
+                && (_runningSet.Contains(_action) || (!_element.isExpanded && _descendants.Exists(_runningSet.Contains)));
+            EnableInClassList(RunningClass, lit);
+        }
+
+        // Ações sob o elemento, em qualquer nível: a linha recolhida acende quando uma delas roda
+        private void CollectDescendants(SerializedProperty element)
+        {
+            _descendants.Clear();
+            SerializedProperty child = element.Copy();
+            SerializedProperty end = element.GetEndProperty();
+            for (bool more = child.Next(true); more && !SerializedProperty.EqualContents(child, end); more = child.Next(true))
+            {
+                if (child.propertyType == SerializedPropertyType.ManagedReference
+                    && child.managedReferenceValue is GameplayAction action) _descendants.Add(action);
+            }
         }
 
         private void Toggle()
@@ -172,6 +212,7 @@ namespace SpellBook.GAS.Editor.Actions
             _summary.text = summary;
             tooltip = summary;
             _fold.text = expanded ? "▼" : "▶";
+            ApplyRunning();
             _body.Clear();
             _children.Clear();
             Show(_body, expanded);

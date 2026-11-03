@@ -11,6 +11,7 @@
     --spellbook-warning: #e6b400;
     --spellbook-error: #ff5c5c;
     --spellbook-text-secondary: #9a9a9a;
+    --spellbook-running: #4cd964;
 }
 
 .action-inspector--light {
@@ -25,6 +26,7 @@
     --spellbook-warning: #8a6400;
     --spellbook-error: #c00000;
     --spellbook-text-secondary: #5a5a5a;
+    --spellbook-running: #1e8a32;
 }
 
 .action-events__tab--empty { color: var(--spellbook-text-secondary); }
@@ -49,6 +51,10 @@
 .action-row__menu { margin: 0 0 0 2px; padding: 0 4px; min-width: 18px; }
 .action-row__level { color: var(--spellbook-text-secondary); margin: 0 4px; }
 .action-row__child-label { color: var(--spellbook-text-secondary); margin: 2px 0 0 4px; }
+
+/* Ação em curso em Play (Design 10a): o ponto sempre ocupa o lugar; só o filho direto acende, não o das filhas */
+.action-row__running { width: 6px; height: 6px; margin: 0 4px; border-radius: 3px; flex-shrink: 0; background-color: var(--spellbook-running); visibility: hidden; }
+.action-row--running > .action-row__header > .action-row__running { visibility: visible; }
 
 /* Filhas de uma ação de fluxo (DS 4.4): barra na cor de "Fluxo"; o recuo para no nível 3 */
 .action-list--nested { border-left-width: 2px; border-left-color: var(--spellbook-cat-flow); padding-left: 2px; }

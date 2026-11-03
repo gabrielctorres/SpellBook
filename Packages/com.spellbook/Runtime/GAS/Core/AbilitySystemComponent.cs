@@ -389,6 +389,17 @@ namespace SpellBook.GAS.Core
             return _runner != null && _runner.HasRunning(owner);
         }
 
+        /// <summary>
+        /// Limpa <paramref name="into"/> e acrescenta as ações em curso das execuções deste ASC: em cada execução, a ação
+        /// que roda agora e as de fluxo que a contêm. Não aloca depois que a lista cresceu. Lido pelo Inspector em Play.
+        /// </summary>
+        public void CollectRunningActions(List<GameplayAction> into)
+        {
+            if (into == null) throw new ArgumentNullException(nameof(into));
+            into.Clear();
+            _runner?.CollectRunning(into);
+        }
+
         public float GetAttributeValue(AttributeDefinition def)
         {
             return attributeSet != null ? attributeSet.GetValue(def) : 0f;
