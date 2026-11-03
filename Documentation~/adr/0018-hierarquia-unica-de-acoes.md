@@ -51,6 +51,14 @@ Um efeito não roda ações de habilidade, toda ação usa a mesma lista `contex
 - O seletor de alvo por ação convive com a `TargetingStrategy` (hoje `ScriptableObject`) ou a substitui?
 - Ações disparadas por efeito (síncronas hoje) podem durar? Se o efeito for removido, a ação em curso é cancelada?
 
+## Emenda (2026-10-31): recomendação sobre o tipo do contexto
+
+Nota, sem fechar o item "Tipo do contexto" acima. A 0030 (aceita no gate de 2026-10-31) cria o `EffectContext` como dado imutável do efeito, separado do `AbilityContext`, que continua sendo o contexto mutável da execução. É a recomendação para a Spec do B-012, que fecha o item por ADR.
+
+## Emenda (2026-10-31): "Em aberto" respondidos pela 0034
+
+Os cinco itens de "Em aberto" foram respondidos pela [0034](0034-modelo-de-execucao-das-acoes.md), aceita no gate do Lote C (2026-10-31).
+
 ## Relacionadas
 
 - 0009 (quebras), 0012 (módulos), 0013 (costura e estado), 0014 (tempo), 0019 (condições), 0020 (valores por nível), 0024 (dano).

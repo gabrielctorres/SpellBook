@@ -5,6 +5,8 @@ Data: 2026-10-29
 
 > **Adiada em 2026-10-29** (decisão I34 do usuário). Enquanto adiada, vale: **uma branch por ticket no mesmo checkout** (`feat|fix|refactor/<feature>-<ticket>`, criada pelo DevOps a partir da `main`), com o stage seletivo do `/commit` para separar documentos de código. Condição para retomar: conflitos recorrentes entre documentos e código no mesmo checkout, ou necessidade de manter dois tickets abertos ao mesmo tempo. O texto abaixo fica como registro da proposta original e não vale como regra.
 
+> **Nota (2026-11-03).** O worktree por ticket para dois tickets com Unity em paralelo virou regra na emenda de 2026-11-03 da 0005 (aprovada pelo usuário em 2026-11-03). Esta ADR continua Adiada no resto.
+
 ## Contexto
 
 Na mesma pasta de trabalho convivem documentos (backlog, PRD, Spec, ADR, editados pelo Controlador, Criativo e Arquiteto) e código do ticket (Fábrica). O `CLAUDE.md` pede preservar alterações do working tree que não são da tarefa, e o `/commit` faz stage seletivo por causa disso. Misturar os dois na mesma árvore aumenta o risco de um commit levar arquivo errado.

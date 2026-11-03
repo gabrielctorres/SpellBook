@@ -39,6 +39,10 @@ Em efeitos com duração, o valor de cada modificador é calculado uma vez, na a
 - Como detectar e reportar ciclos no modo ao vivo (A depende de B que depende de A)?
 - Políticas de pilha além desta (agregação por origem, expiração por pilha) entram nesta 3.0 ou ficam para outra ADR?
 
+## Emenda (2026-10-31): itens em aberto respondidos
+
+Os quatro itens de "Em aberto" foram decididos na 0030 (aceita no gate de 2026-10-31): opção de pilhas no efeito; tiques sempre avaliados no tique; ciclos acusados pelo validador no que um asset mostra e cortados em runtime por trava de reentrada; outras políticas de pilha fora deste item.
+
 ## Relacionadas
 
 - 0009 (quebra de comportamento), 0020 (valores por nível), 0024 (dano).

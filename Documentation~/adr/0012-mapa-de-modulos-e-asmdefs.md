@@ -120,6 +120,14 @@ A partir do ticket 0M-54, as pastas do item 4 da Decisão (`Runtime/<Módulo>/`,
 - Asmdefs em `Assets/` (cenários de verificação, como o C1 do 0M-40) não são do pacote. Ficam fora da tabela e do teste do item 5.
 - Um asmdef em `Assets/` pode referenciar só os módulos de runtime que o cenário exercita.
 
+## Emenda (2026-10-31): `Cues` referencia `Time`, pela 0037
+
+O item "`SpellBook.Cues` precisa mesmo de `Time`?" de "Em aberto" está respondido: sim. A [0037](0037-cues-roteador-por-ancora-e-integracao-por-acoes.md), item 1, aceita no gate do Lote D, deixa a duração dos cues no módulo, pelo `ITimeSource`. A tabela não muda. Os asmdefs `SpellBook.Teams.Editor` e `SpellBook.Cues.Editor` seguem o item 2 da Decisão e a regra da emenda de 2026-10-29 (Core, o runtime do módulo e as dependências dele, mais `Core.Editor`).
+
+## Emenda (2026-11-01): módulo opcional de integração e uGUI declarada, pelas 0038 e 0039
+
+As duas ADRs foram aceitas no gate do Lote E. A [0038](0038-texto-no-core-tabela-por-cultura-e-adaptador-opcional.md), itens 6 e 7, acrescenta à tabela a categoria **módulo opcional de integração** (`SpellBook.Localization` e `SpellBook.Localization.Editor`), com a única exceção à regra "runtime sem `defineConstraints`": exatamente uma constraint, igual ao símbolo do próprio `versionDefines`. A [0039](0039-ui-ligacao-pela-fonte-ancora-nao-generica-e-ugui-declarada.md), itens 8 e 9, responde o item da uGUI de "Em aberto": o `package.json` declara `"com.unity.ugui": "2.0.0"`, e os asmdefs `SpellBook.UI.Editor`, `SpellBook.UI.UGUI.Editor` e `SpellBook.GAS.UI.Editor` entram com as referências listadas lá.
+
 ## Em aberto
 
 - Aprovar `com.unity.ugui` como dependência declarada no `package.json` (dependência nova; só no épico de UI).

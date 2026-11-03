@@ -42,6 +42,10 @@ O `AbilitySpec` tem `Level`, e o `AbilityContext` o carrega, mas nada o consome:
 - Efeito aplicado sem habilidade (por exemplo, `startingEffects`): de onde vêm o nível e a tabela?
 - O valor passado pelo chamador (SetByCaller) é identificado por tag ou por nome?
 
+## Emenda (2026-10-31): itens em aberto respondidos
+
+Os cinco itens de "Em aberto" foram decididos na 0030 (aceita no gate de 2026-10-31, com a emenda dela da mesma data): array começa no nível 1; acima do tamanho repete o último; curva no nível inteiro; efeito sem habilidade usa o `DefaultLevel` do efeito e o `Fallback` do `%nome`; SetByCaller por nome. Pela emenda da 0030, o `%nome` é um modo do próprio `ScalableFloat`, e os campos numéricos do item 3 são `ScalableFloat`.
+
 ## Relacionadas
 
 - 0018 (contexto), 0021 (magnitude), 0023 (descrição), 0024 (dano).

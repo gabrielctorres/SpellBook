@@ -52,6 +52,18 @@ Esta emenda vale quando a 0026 for aceita.
 - **"Odin no CI"** (Decisões incorporadas) deixa de valer. O workflow de testes não baixa o Odin e não usa nenhum secret do Odin. O ticket 0M-11 deixa de estar bloqueado.
 - A PRD P21 perde o objeto. O item dela em "Em aberto" fica resolvido pela decisão I45.
 
+## Emenda (2026-11-01): catálogo e API pela 0040
+
+**Status da emenda: Aceita** (gate da Spec `referencia-catalogo-e-api.md`, B-019g, aprovada em 2026-11-01, junto com a 0040).
+
+Revista em 2026-11-01 pela G1 do gate: a Unity não entra na Action.
+
+- **Item 6 (DocFX na Fase 9):** a referência da API sai em DocFX, como a 0040 descreve, em `api/` no mesmo site. O catálogo e os YAML do DocFX são gerados na máquina, pela Unity, e commitados.
+- **GitHub Action (Decisões incorporadas):** a Action continua sem Unity e sem secrets. O job `build` passa a rodar também o `docfx build --warningsAsErrors`, a partir dos YAML commitados, e a conferência dos links do catálogo para a API. Os gatilhos ganham `Documentation~/api/**` e `Documentation~/.config/**`. A Action roda também nos pull requests, sem publicar; o deploy continua só no push para a `main`, com as mesmas permissões.
+- **Ferramentas:** o DocFX e o SDK do .NET entram como ferramentas só da documentação, com versão travada, como o Python do item 3. Não são plugins do MkDocs.
+
+O resto desta ADR não muda.
+
 ## Em aberto
 
 - ~~PRD P21: a licença do Odin permite baixá-lo de um local privado no CI de um repositório público? Se não, qual o plano B (por exemplo, runner self-hosted com o Odin instalado)?~~ Resolvida pela decisão I45 (emenda acima, 0026).

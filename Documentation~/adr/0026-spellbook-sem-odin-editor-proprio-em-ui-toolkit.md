@@ -327,6 +327,17 @@ Decisão do usuário (D6 da `spec/modularizacao.md`), achado no red do 0M-41. Es
 - Um tipo do usuário sem `SpellBookEditor` só vê o erro no validador do projeto (item 4, validador; CA64).
 - O tipo ausente é implementado no 0M-53, não no 0M-41.
 
+## Emenda (2026-11-01): o seletor usa o drawer do tipo concreto
+
+Status da emenda: Aceita (gate parcial de 2026-11-01; implementação no RL7a, issue #280). Achado no red do RL7 (`spec/gas-resultado-de-aplicacao-e-relay.md`). Esta emenda completa o item 4 (o seletor desenha "um `PropertyField` por filho") e não muda o limite da linha "Limite conhecido".
+
+- **Problema.** Na Unity, um drawer de atributo vence um drawer de tipo. Num campo `[SerializeReference, TypePicker]`, o `TypePickerDrawer` é sempre o escolhido, e o `[CustomPropertyDrawer(typeof(T))]` do tipo concreto nunca roda. Isso quebra a regra de organização deste item ("o Inspector específico de um módulo fica no Editor do módulo, como Inspector ou drawer do tipo, sem atributo novo") em todo campo com seletor: listas de ações da habilidade e do efeito, seletores de alvo, condições, fontes de valor.
+- **Decisão.** Ao montar o corpo, o `TypePickerDrawer` procura um drawer para o tipo concreto da instância. Se achar, instancia esse drawer e põe o `CreatePropertyGUI(property)` dele abaixo do cabeçalho do seletor, no lugar dos `PropertyField` por filho. Se não achar, o corpo continua igual. A troca de tipo pelo seletor refaz a busca.
+- **Busca, só com API pública.** `TypeCache.GetTypesWithAttribute<CustomPropertyDrawer>()` e, em cada drawer, `CustomAttributeData` (System.Reflection) para ler os dois argumentos do construtor: o tipo-alvo e `useForChildren`. Não se usa reflexão sobre membros internos da Unity. Precedência: primeiro o tipo exato, depois a base mais próxima com `useForChildren = true`. Os drawers cujo tipo-alvo deriva de `PropertyAttribute` ficam de fora, e por isso o próprio `TypePickerDrawer` não entra na busca e não há recursão. Se dois drawers servem para o mesmo tipo, vence o de nome completo menor na ordem ordinal, e o resultado é determinístico. O mapa fica em cache estático no `TypePickerCatalog` e se refaz a cada recarga de domínio.
+- **Contrato do drawer do tipo.** Ele recebe a propriedade `ManagedReference` do campo. Sob o seletor, `fieldInfo` e `attribute` ficam nulos, e o drawer não depende deles. Se o `CreatePropertyGUI` devolver `null` (drawer só IMGUI), o corpo volta aos filhos. Não há caminho IMGUI paralelo (item 3).
+- **O que não muda.** Nenhum atributo novo. O critério de atributo novo continua valendo. O `[TypePicker]` segue obrigatório em todo `[SerializeReference]` (CA63). Um campo continua sem poder combinar `[TypePicker]` com outro atributo de drawer, como `[ShowIf]`, porque a emenda trata de drawer de tipo, não de atributo. O Core.Editor não passa a referenciar nenhum módulo.
+- **Consequência.** O drawer de um tipo funciona igual num campo comum e sob o seletor, e os módulos não precisam conhecer o seletor. Implementação no RL7a, antes do RL7.
+
 ## Em aberto
 
 - Nada além da aceitação desta ADR. As três questões da versão anterior foram respondidas pelas decisões I48 (popup e Inspector base em UI Toolkit, sem IMGUI), I49 (perdas aceitas) e I50 (canal dentro da `EventEmission`).

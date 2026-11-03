@@ -44,6 +44,10 @@ O GAS só altera atributos: não há ganchos antes de uma alteração, nem absor
 - O escudo é um atributo base (consumido) ou um modificador de um efeito com duração (que expira)?
 - Existe um equivalente a cálculo de execução (dano calculado com atributos de origem e alvo ao mesmo tempo, crítico)?
 
+## Emenda (2026-10-31): "Em aberto" respondidos pela 0033
+
+Os itens técnicos de "Em aberto" foram respondidos pela [0033](0033-pipeline-de-dano-na-definicao-do-atributo.md), aceita no gate do Lote C (2026-10-31). Os demais (escudo, tag de estado e cálculo de execução) foram respondidos pelo usuário no PRD do B-010.
+
 ## Relacionadas
 
 - 0009 (quebra), 0013 (processadores), 0018 (contexto), 0020 (valores por nível), 0021 (magnitude).

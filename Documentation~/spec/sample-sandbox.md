@@ -1,6 +1,7 @@
 # Spec: Sample Sandbox, cena de teste manual dos módulos
-PRD: [prd/sample-sandbox.md](../prd/sample-sandbox.md) · Backlog: B-032 · ADRs: 0003, 0004, 0007, 0013, 0014, 0015, 0016, 0027, 0028 (Aceita)
+PRD: [prd/sample-sandbox.md](../prd/sample-sandbox.md) · Backlog: B-032 · ADRs: 0003, 0004, 0007, 0013, 0014, 0015, 0016, 0027, 0028 (Aceita); na emenda do HUD, também 0037 (âncoras), 0038 e 0039 (Aceitas)
 Status: **Aprovada** no gate único de 2026-10-31 (PRD, T1–T6 e ADR 0028); decisões na seção final · Data: 2026-10-31
+Emenda de 2026-11-01 (HUD S4, seção 10 do PRD aprovada no gate de 2026-11-01): D7, T7 e T8 **propostos para gate parcial**; o HUD em si está nos SL12 e SL13 de [ui-slot-e-barra-de-habilidades.md](ui-slot-e-barra-de-habilidades.md)
 
 Caminhos de pacote (`Runtime/`, `Tests/`, `Samples~/`, `package.json`, `CHANGELOG.md`) são relativos a
 `Packages/com.spellbook/` (ADR 0027). `Documentation~/` é relativo à raiz do repositório.
@@ -70,6 +71,15 @@ Legenda (a mesma da Spec da modularização):
 - `Runtime/Core/DocUrls.cs:7-22` e `Tests/Core/EditMode/DocUrlsTests.cs:24-41`: uma constante por página. `ManualLinksTests.cs:47-57` exige uma página para cada constante.
 - `Documentation~/mkdocs.yml`: sem `nav`. Uma página nova entra sozinha no site.
 
+### Para a emenda do HUD (2026-11-01)
+Tipos que ainda não existem no código e chegam por Specs aprovadas; o T7 e o T8 dependem deles.
+- `Samples~/Sandbox/Scripts/SandboxCaster.cs:92-112`: hoje escreve a falha direto no Console (`Debug.Log`). O AV5 (B-009) troca a assinatura para `ActivationFailure`.
+- `Samples~/Sandbox/Scripts/SandboxDirector.cs:47-50`, `:91-99`: `Start` e `Restart`, os dois pontos em que a cena se monta.
+- `Samples~/Sandbox/Data/Effects/GE_Queimadura.asset`: o tique escreve "Queimadura: tique" por `DebugLogEffectAction`. Uma ação dentro de um asset de efeito não enxerga a cena, então não há como desligá-la pela presença do HUD. O EV21 (B-012) refaz este asset.
+- `RuntimeAnchor` (base não genérica, `UntypedValue`, `ValueType`, `Changed`) e `AnchorRegistrar` (publica no `OnEnable`, sai no `OnDisable`): UI1 do B-015, sobre o `RuntimeAnchor<T>` do CU1 (B-013). A âncora volta a vazia ao entrar em Play (Spec do B-013, Design 1).
+- `RaiseEventAction` única, que roda também no tique de efeito: EV15 do B-012.
+- `Runtime/Events/Channels/StringEventChannel.cs`: existe. `Runtime/Events/EventListener.cs:24-40`: inscreve no `OnEnable` e desinscreve no `OnDisable`; desligado, não recebe disparos.
+
 ---
 
 ## Design
@@ -105,6 +115,7 @@ Legenda (a mesma da Spec da modularização):
 - **Placa:** um `TextMesh` (componente embutido da Unity, fonte embutida) num objeto da cena, ao lado do jogador, com os controles e uma linha do que cada um demonstra. É texto estático, no mundo. Não é HUD, não usa Canvas e não depende de módulo de UI (R6, R23).
 - **README:** `Samples~/Sandbox/README.md` repete o texto e traz o passo a passo dos cenários. Ele aparece junto da cena depois do Import.
 - O `OnGUI` foi descartado: aloca a cada quadro e é a UI imediata da Unity, o que fica perto demais de um HUD.
+- **Emenda de 2026-11-01 (R6 revisto, Q13):** a placa fica, com o mesmo texto, também com o HUD na cena. O HUD não a substitui.
 
 ### D2. Layout do Sample
 
@@ -162,13 +173,13 @@ Todos são `public sealed`, com `[HelpURL(DocUrls.Samples + "#<nome-em-minúscul
 | `GE_BolaDeFogo_Custo` | Instant. Mana Add −20 |
 | `GE_BolaDeFogo_Recarga` | HasDuration 1,5 s. Sem modificadores |
 | `GE_BolaDeFogo_Dano` | Instant. Vida Add −20 |
-| `GE_Queimadura` | HasDuration 4 s, Period 0,5 s. `PeriodicModifiers`: Vida Add −5. `OnTickActions`: `DebugLogEffectAction` "Queimadura: tique". `GrantedTags`: `TAG_Status_Queimando`. `CanStack` true, `MaxStacks` 1, `RefreshDurationOnStack` true (**renova**, Achado A1) |
+| `GE_Queimadura` | HasDuration 4 s, Period 0,5 s. `PeriodicModifiers`: Vida Add −5. `OnTickActions`: `DebugLogEffectAction` "Queimadura: tique" (no T8 vira `RaiseEventAction` em `CH_QueimaduraTique`, ver D7). `GrantedTags`: `TAG_Status_Queimando`. `CanStack` true, `MaxStacks` 1, `RefreshDurationOnStack` true (**renova**, Achado A1) |
 | `GA_BolaDeFogo` | `CostEffect` Custo e `CooldownEffect` Recarga. `Actions`: `SpawnProjectileAction` com `BolaDeFogo.prefab`, `Spawner` `SP_Projeteis`, `SpawnOffset (0, 1.2, 1)` e `OnHitActions` = [`ApplyEffectAction` (Dano, Queimadura), `RaiseEventAction` (`CH_BolaDeFogoAcertou`)] |
 | `SP_Projeteis` | `initialSize` 5, `canExpand` true (Achado A3). No máximo 2 projéteis voam juntos (`Lifetime` 3 s / recarga 1,5 s), então 5 nunca se esgota |
 | `BolaDeFogo.prefab` | Esfera 0,3. `SphereCollider` trigger. `Rigidbody` cinemático com `Interpolate`, para ficar suave em câmera lenta. `Projectile` com Speed 12, Lifetime 3 e `timeSource` `TS_Gameplay` |
 | Conjurador.prefab | Cápsula com `AttributeSet`, ASC (`startingAbilities` [GA], `timeSource` `TS_Gameplay`), `SandboxCaster` e `AttributeReadout` (Vida, Mana) |
 | BonecoDeTreino.prefab | Cápsula com `CapsuleCollider` (não trigger), `AttributeSet`, ASC (`timeSource` `TS_Gameplay`), `DamageTakenRelay`, `EventListener` (`FloatEventResponse` em `CH_DanoRecebido`, escape `TrainingDummyFeedback.OnDamaged` dinâmico), `TrainingDummyFeedback` (`TS_Gameplay`) e `AttributeReadout` (Vida) |
-| Cena `Sandbox.unity` | Câmera `MainCamera` inclinada, de cima. Chão sem collider. Pontos de spawn com o boneco a ~8 m. `SandboxDirector`. Objeto "Ouvinte de Log" com `EventListener`: `CH_DanoRecebido` → `LogPayloadReaction` e `CH_BolaDeFogoAcertou` → `LogReaction` "Bola de Fogo acertou". Placa `TextMesh` com os controles. Nenhum Canvas |
+| Cena `Sandbox.unity` | Câmera `MainCamera` inclinada, de cima. Chão sem collider. Pontos de spawn com o boneco a ~8 m. `SandboxDirector`. Objeto "Ouvinte de Log" com `EventListener`: `CH_DanoRecebido` → `LogPayloadReaction` e `CH_BolaDeFogoAcertou` → `LogReaction` "Bola de Fogo acertou". Placa `TextMesh` com os controles. Nenhum Canvas fora do prefab do HUD (emenda de 2026-11-01: o objeto "Console sem HUD" e o HUD estão no D7) |
 
 **Fluxo de um acerto:**
 1. `1` → `TryActivateAbility`: aplica a recarga e o custo e spawna a `BolaDeFogo` do pool.
@@ -188,12 +199,106 @@ Todos são `public sealed`, com `[HelpURL(DocUrls.Samples + "#<nome-em-minúscul
   - `DocUrls` ganha `Samples = Base + "exemplos/sandbox/"`;
   - entram a pasta `Samples~/Sandbox/`, os testes de estrutura do Sample, a página do manual `Documentation~/manual/exemplos/sandbox.md` e a entrada no CHANGELOG.
 - **Não muda:** nenhum tipo de `Runtime/` além de `DocUrls`, nenhum Editor e nenhum `ProjectSettings`.
+- **Emenda de 2026-11-01 (APROVADA no gate parcial de 2026-11-01, H1; substitui o "Não muda" acima só neste ponto):** o `Runtime/Core` ganha o `TransformAnchor` (T7), e o `Editor/Core` ganha a linha dele. É a única mudança de pacote que a emenda pede. O resto do HUD usa só tipos dos B-015 e B-016. `ProjectSettings` continua intocado.
 - **Autoria:** segue a ADR 0028 (Aceita). O `Samples~` é renomeado para `Samples` só durante a edição na Unity e volta antes dos testes e do commit.
 
 ### D6. Riscos
 1. **Import de duas versões do Sample** (requisito não funcional do PRD). O comportamento do Package Manager com GUIDs repetidos entre versões não foi verificado nesta Spec. O T5 confere à mão: importar, mudar a versão no `package.json` local, importar de novo e abrir as duas cenas. Se quebrar, o T5 para e volta ao Arquiteto.
 2. **`TextMesh` no URP.** Ele desenha no URP pelo passe sem `LightMode`, mas o T5 confere nos dois pipelines. Se não desenhar, o T5 para. Não há troca para `OnGUI` sem gate.
 3. **Código do Sample fora da suíte.** O `Samples~` não compila no projeto de desenvolvimento. A compilação é conferida na Unity com a pasta renomeada (ADR 0028). Os testes de estrutura cobrem o que dá para ler em arquivo.
+
+### D7. Emenda de 2026-11-01: HUD do Sandbox (S4)
+
+Vale a seção 10 do PRD, aprovada no gate de 2026-11-01 (Q11 a Q14). O HUD é montado nos SL12 e SL13 da
+Spec do B-016. Aqui fica o que muda no resto do Sandbox.
+
+**Revisões do PRD aplicadas nesta Spec**
+- **R4 e CA3:** S1 a S3 continuam sem módulo de UI. A asmdef do Sample segue com Core, Time, Events, Tags e GAS (D2), sem UI (R25). Os componentes do HUD vêm das assemblies do pacote (`UI`, `UI.UGUI`, `GAS.UI`) e do `com.unity.ugui` 2.0.0 que o UI8 declara no `package.json`. O Sample não declara dependência própria.
+- **R6:** a placa `TextMesh` fica (D1, Q10).
+- **R23 e CA19:** o único Canvas da cena é o do `HUD.prefab`. Sem o prefab, a cena não tem Canvas, barra nem número flutuante.
+- **R11 e R21:** com o HUD, o tique e a falha saem do Console; sem ele, voltam. A detecção está abaixo.
+- **R32:** a cena não tem `EventSystem` e o Canvas do HUD não tem `GraphicRaycaster`. A entrada segue só pelo `SandboxCaster` e pelo `SandboxDirector` (Input Manager legado).
+
+**Como a cena sabe que o HUD está presente (decisão do Arquiteto pedida no R21 revisto)**
+
+A presença de um objeto de cena já tem um caminho no pacote: o objeto se publica numa âncora no
+`OnEnable` e sai no `OnDisable` (ADR 0037, item 2; UI1 do B-015). O HUD usa o mesmo caminho, e o
+Console de reserva é um ouvinte comum de canais, ligado ou desligado conforme a âncora.
+
+1. **Âncora do HUD.** A raiz do `HUD.prefab` tem um `AnchorRegistrar` com a âncora `ANC_HUD` e `value`
+   vazio, que publica o `Transform` do próprio objeto. A `ANC_HUD` é um `TransformAnchor`, tipo novo e
+   genérico do Core (T7): "este objeto está na cena". Nenhum tipo de UI entra no Sample.
+2. **Mensagens que o HUD substitui passam por canal.**
+   - Tique: o `OnTickActions` da `GE_Queimadura` troca a `DebugLogEffectAction` por uma `RaiseEventAction`
+     em `CH_QueimaduraTique` (`VoidEventChannel`).
+   - Falha: o `SandboxCaster` deixa de chamar `Debug.Log` na falha. Ele monta o mesmo texto de hoje (com
+     o formato do AV5) e dispara `CH_FalhaDeConjuracao` (`StringEventChannel`). A mensagem "Bola de Fogo
+     conjurada" não muda.
+3. **Console de reserva.** O objeto de cena "Console sem HUD" tem um `EventListener` com
+   `CH_QueimaduraTique` → `LogReaction` "Queimadura: tique" e `CH_FalhaDeConjuracao` →
+   `LogPayloadReaction` "{0}". É o único lugar dessas duas mensagens.
+4. **Quem decide.** O `SandboxDirector` ganha `RuntimeAnchor hudAnchor` (o tipo base do Core) e
+   `EventListener consoleWithoutHud`. No `Start` e no `R`, ele faz
+   `consoleWithoutHud.enabled = hudAnchor == null || hudAnchor.UntypedValue == null`. Os `OnEnable` da
+   cena rodam antes de qualquer `Start`, então o `AnchorRegistrar` do HUD já publicou quando o diretor lê.
+   Não há sondagem por quadro nem assinatura do `Changed`: assim o diretor não religa um ouvinte durante
+   o descarregamento da cena, quando o HUD sai da âncora no `OnDisable`.
+
+Por que este caminho:
+- Apagar o prefab da cena não deixa referência "Missing": o diretor aponta para um asset (`ANC_HUD`), não
+  para o objeto do HUD (CA2, CA22, CA28).
+- Um ponto de decisão só, à vista na Hierarchy: o que o HUD substitui mora no "Console sem HUD".
+- Funciona sem o HUD existir ainda: o T8 entra antes dos SL12 e SL13 e já é conferível com um
+  `AnchorRegistrar` temporário na cena.
+- Descartados:
+  - procurar um `Canvas` na cena: é heurística e casa com qualquer Canvas do projeto de destino;
+  - referência direta do diretor ao objeto do HUD: vira "Missing" ao apagar o prefab;
+  - "pergunta e resposta" por canais (o diretor dispara, o HUD responde): protocolo próprio do Sample, em
+    paralelo à âncora que o pacote já tem;
+  - o próprio HUD desligar o Console: o prefab precisaria apontar para um objeto da cena e deixaria de
+    ser removível sozinho;
+  - um tipo de âncora de UI (`UIUpdateDriver` ou `Canvas`): serviria só a este caso, enquanto o
+    `TransformAnchor` serve a qualquer objeto de cena (ponto de spawn, alvo de câmera).
+
+**O que fica no Console com o HUD (CA30)**
+
+| Mensagem | Origem | Com HUD | Sem HUD |
+|---|---|---|---|
+| Acerto: "Bola de Fogo acertou" e "Dano recebido: N" | Ouvinte de Log (S2) | fica | fica |
+| Tique: "Queimadura: tique" | Console sem HUD | sai | volta |
+| Falha: recarga, sem mana, outro motivo | Console sem HUD | sai | volta |
+| Pausa, câmera lenta (com a escala), reinício | `SandboxDirector` | fica | fica |
+| "Bola de Fogo conjurada" | `SandboxCaster` | fica | fica |
+
+O "Dano recebido: 5" de cada tique continua, porque o canal de dano recebido leva todo dano e é o que o
+S2 demonstra (CA12, CA14). O que sai é a linha própria do tique. Leitura do Arquiteto sobre o CA30, a
+confirmar no gate parcial.
+
+**Dados novos**
+
+| Asset | Configuração | Ticket |
+|---|---|---|
+| `Data/UI/ANC_HUD.asset` | `TransformAnchor` | T8 |
+| `Data/Events/CH_QueimaduraTique.asset` | `VoidEventChannel` | T8 |
+| `Data/Events/CH_FalhaDeConjuracao.asset` | `StringEventChannel` | T8 |
+| `GE_Queimadura` | `OnTickActions`: `RaiseEventAction` (`CH_QueimaduraTique`) no lugar da `DebugLogEffectAction` | T8 |
+| `Conjurador.prefab` | `SandboxCaster.failureChannel` = `CH_FalhaDeConjuracao` | T8 |
+| Cena: "Console sem HUD" | `EventListener` do item 3 | T8 |
+| Cena: `SandboxDirector` | `hudAnchor` = `ANC_HUD`, `consoleWithoutHud` = o ouvinte acima | T8 |
+| `HUD.prefab` (raiz) | `AnchorRegistrar` (`ANC_HUD`, `value` vazio), Canvas sem `GraphicRaycaster` | SL13 |
+
+**Mudança na tabela D3**
+
+| Tipo | Campos novos | Comportamento novo |
+|---|---|---|
+| `SandboxCaster` | `StringEventChannel failureChannel` | Falha: dispara o canal com o texto, em vez de `Debug.Log`. Sem canal, não escreve nada. |
+| `SandboxDirector` | `RuntimeAnchor hudAnchor`, `EventListener consoleWithoutHud` | `Start` e `R`: liga o Console sem HUD só quando a âncora está vazia. Sem `consoleWithoutHud`, não faz nada. |
+
+**Riscos da emenda**
+4. **TMP Essentials.** Num projeto sem os recursos do TextMeshPro, a Unity pede o import ao abrir a cena
+   com o HUD. A página do Sample e o `README` trazem o passo (Q14). O SL13 confere num projeto vazio.
+5. **Ordem dos `OnEnable` com o HUD desligado no Inspector.** Um HUD desligado não publica na âncora, então
+   conta como ausente: o Console volta. É o comportamento esperado; o manual diz isso.
 
 ---
 
@@ -202,6 +307,11 @@ Todos são `public sealed`, com `[HelpURL(DocUrls.Samples + "#<nome-em-minúscul
 Nenhuma. Entram uma constante pública (`DocUrls.Samples`) e um Sample opcional, o que é MINOR. A versão da entrega fica para o gate (Q8 do PRD).
 
 CHANGELOG, na seção da versão em preparo, "Adicionado": "Sample **Sandbox** (Package Manager → SpellBook → Samples): cena 3D que liga GAS, Events, Pooling e Time, com Bola de Fogo, queimadura, canal de dano recebido, pausa e câmera lenta. Entrada pelo Input Manager legado."
+
+**Emenda de 2026-11-01:** nenhuma quebra. Entra um tipo público no Core, `TransformAnchor` (MINOR, T7).
+No Sample, o tique e a falha passam a sair por canal, o que não é API. CHANGELOG, "Adicionado":
+"`TransformAnchor` (Core): âncora que publica o `Transform` de um objeto de cena pelo `AnchorRegistrar`."
+A linha do HUD do Sandbox entra no SL13.
 
 ---
 
@@ -318,6 +428,43 @@ Nenhum teste precisa esperar o T2b.
 - Critério de pronto: a legenda de controles da página, do README e do D4 dizem o mesmo. O CHANGELOG tem a entrada da seção "Quebras de compatibilidade".
 - Tamanho estimado: 0 linhas de código; 4 arquivos.
 
+### Emenda de 2026-11-01: tickets do HUD
+
+Ordem: T7 → T8 → SL12 → SL13 (os dois últimos na Spec do B-016). Todos usam a Unity e seguem o WIP 1.
+O T8 toca `Conjurador.prefab` e `Sandbox.unity`, que o SL12 e o SL13 tocam de novo: em série.
+
+### T7 — `TransformAnchor` no Core
+- Usa Unity: **sim**. Depende de: UI1 (B-015; base não genérica e `AnchorRegistrar`).
+- Escopo:
+  - `Runtime/Core/Anchors/TransformAnchor.cs` (novo): `public sealed class TransformAnchor : RuntimeAnchor<Transform>`, `[CreateAssetMenu(menuName = "SpellBook/Core/Transform Anchor", fileName = "ANC_")]`, `[HelpURL(DocUrls.Concepts + "#ancoras")]`;
+  - `Editor/Core/Inspector/CoreEditors.cs` (a linha do tipo, como as do UI1);
+  - `Tests/Core/PlayMode/TransformAnchorTests.cs` (novo);
+  - `Documentation~/manual/inicio/conceitos.md` (seção de âncoras: o `TransformAnchor` e o uso como "objeto presente");
+  - `CHANGELOG.md`.
+- Testes red:
+  - `TransformAnchor_ValueTypeIsTransform`;
+  - `Registrar_EmptyValue_ProvidesOwnTransform`: o `AnchorRegistrar` sem `value` publica o `Transform` do próprio objeto no `OnEnable`;
+  - `Registrar_Disable_LeavesAnchorEmpty_UntypedValueNull`;
+  - `Registrar_DestroyedObject_AnchorReadsEmpty`.
+- Critério de pronto: os quatro verdes; a suíte inteira verde; a cobertura do Editor do Core segue verde com o tipo novo.
+- Tamanho estimado: ~100 linhas; 5 arquivos.
+
+### T8 — Console sem HUD: tique e falha por canal, ligados pela âncora do HUD
+- Usa Unity: **sim** (pasta renomeada pela ADR 0028). Depende de: T7, AV5 (assinatura nova do `OnAbilityFailed` no `SandboxCaster`), EV21 (Sample refeito, `RaiseEventAction` no tique de efeito pelo EV15) e T6.
+- Escopo:
+  - `Samples~/Sandbox/Scripts/SandboxCaster.cs` (`failureChannel`, D7);
+  - `Samples~/Sandbox/Scripts/SandboxDirector.cs` (`hudAnchor`, `consoleWithoutHud`, D7);
+  - `Samples~/Sandbox/Data/UI/ANC_HUD.asset`, `Data/Events/CH_QueimaduraTique.asset`, `Data/Events/CH_FalhaDeConjuracao.asset` (novos), `Data/Effects/GE_Queimadura.asset`;
+  - `Samples~/Sandbox/Prefabs/Conjurador.prefab`, `Samples~/Sandbox/Scenes/Sandbox.unity` (objeto "Console sem HUD" e campos do diretor);
+  - `Documentation~/manual/exemplos/sandbox.md` (tabela dos scripts e origem das mensagens do Console).
+- Testes red: nenhum automático de comportamento (a cena é conferida à mão, decisão do usuário). As guardas do T1 e do T2a passam a cobrir os assets e os scripts mudados (`[HelpURL]`, `Update` sem `Find`/`GetComponent`, sem `UnityEngine.UI`/`TMPro`, `.meta` e GUID único). Red forçado de conferência: pôr `using TMPro;` no `SandboxDirector`, ver o `SampleSources_UseNoInputSystemUiOrEditor` falhar e tirar.
+- Critério de pronto:
+  - com a pasta renomeada: zero erros e avisos de compilação do `SpellBook.Samples.Sandbox`, a asmdef sem referência nova, e a `SpellBook > Validar projeto` sem erro nos assets do Sample;
+  - em Play, sem HUD (a âncora vazia): CA8, CA9 e o "Queimadura: tique" a cada 0,5 s como antes do ticket, e nenhum "Missing" (CA2);
+  - em Play, com um `AnchorRegistrar` temporário publicando qualquer objeto na `ANC_HUD`: tique e falha somem do Console, e acerto, pausa, câmera lenta e reinício continuam (CA30, parte). O objeto temporário sai antes do commit;
+  - a suíte verde com `Samples~`.
+- Tamanho estimado: ~60 linhas de código; 9 arquivos (6 fixtures, 1 página).
+
 ---
 
 ## Decisões do gate (2026-10-31)
@@ -341,3 +488,14 @@ Nenhum teste precisa esperar o T2b.
 - **U4. Valores Inferidos do D4** (mana 400, vida do boneco 2000, recarga 1,5 s, câmera lenta 0,25). Ficam para o playtest?
 - **Achados A1 a A3:** viram itens do backlog? O A1 é sobre empilhamento sem `CanStack`, o A2 é o `BaseValue` sem limite e o A3 é o NRE com `canExpand = false`. Nenhum é corrigido nesta entrega.
 - **Q8 do PRD** (versão da entrega) continua no gate.
+
+## Perguntas do gate parcial da emenda (2026-11-01)
+
+- **H1. `TransformAnchor` no Core (T7).** É API pública nova no pacote, pedida pelo Sample, mas genérica: serve a qualquer objeto de cena. Muda o D5 aprovado ("nenhum tipo de `Runtime/` além de `DocUrls`"). Entra?
+- **H2. Detecção do HUD pela âncora (D7).** Diretor lê a `ANC_HUD` no `Start` e no `R` e liga ou desliga o "Console sem HUD". O tique sai da `DebugLogEffectAction` e a falha sai do `Debug.Log` do `SandboxCaster`, e os dois passam por canal (dois scripts existentes mudam; nenhum script novo, R25). Aprovado?
+- **H3. Leitura do CA30.** O "Dano recebido: 5" do Ouvinte de Log (S2) continua a cada tique, também com o HUD. Sai só a linha própria do tique. Confirma?
+
+**Respostas do usuário (2026-11-01):** H1, H2 e H3 aprovadas como propostas.
+- **H1:** o `TransformAnchor` entra no Core (T7). A D5 recebe a emenda marcada como aprovada.
+- **H2:** a detecção do HUD é pela `ANC_HUD` (D7). O tique e a falha passam por canal, e o "Console sem HUD" só fica ligado quando a âncora está vazia.
+- **H3:** o "Dano recebido: 5" do Ouvinte de Log (S2) continua a cada tique, também com o HUD. Sai só a linha própria do tique.

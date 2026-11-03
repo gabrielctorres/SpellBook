@@ -45,6 +45,10 @@ As próximas fases trazem cargas com recarga sequencial (decisão I.10) e condi�
 - Um modo de depuração que coleta todas as falhas (para o GAS Debugger), além da primeira?
 - As regras de cargas (máximo fixo ou por atributo, recarga sequencial, decisão I.10) ganham ADR própria ou ficam na Spec da Fase 5?
 
+## Emenda (2026-10-31): "Em aberto" respondidos pela 0032
+
+Os três itens de "Em aberto" foram respondidos pela [0032](0032-condition-contexto-motivo-e-cargas.md), itens 5 a 7, aceita no gate do Lote C (2026-10-31).
+
 ## Relacionadas
 
 - 0018 (alvo da ativação e commit), 0019 (condições e motivo), 0023 (texto do motivo).

@@ -1,5 +1,5 @@
 # PRD: Sample Sandbox, cena de teste manual dos módulos
-Backlog: B-032 (adianta o item `Samples~` do B-019) · Issue: a criar depois do gate · Status: Rascunho (v2, respostas do usuário aplicadas) · Data: 2026-10-31
+Backlog: B-032 (adianta o item `Samples~` do B-019) · Issue: a criar depois do gate · Status: Rascunho (v2, respostas do usuário aplicadas; emenda do HUD S4 de 2026-11-01 aprovada no gate de 2026-11-01, seção 10) · Data: 2026-10-31
 
 ## 1. Problema
 
@@ -164,3 +164,53 @@ Levantamento do que existe no pacote em 2026-10-31 (`Packages/com.spellbook`):
 
 | Data | Observação | Ajuste pedido | Status |
 |---|---|---|---|
+
+## 10. Emenda de 2026-11-01: HUD do Sandbox (S4)
+
+Status: **aprovada** no gate de 2026-11-01 (respostas Q11 a Q14 abaixo).
+
+Motivo: o módulo de UI (B-015, B-016, B-017) e a barra de habilidades chegam no Lote E, e o plano de 2026-10-31 já previa o HUD do Sample nesse lote. A Spec `ui-slot-e-barra-de-habilidades.md` (SL12, SL13) planeja só dados, âncoras, prefab e cena, sem script novo. Esta emenda revê o que a seção 6 deixou condicionado. **Vale a partir do gate aprovado (2026-11-01).**
+
+**Revisões (substituem o texto antigo)**
+
+- **R4 (revisto).** O Sample não depende de pacote ou plugin de terceiros. Os cenários S1 a S3 não dependem do módulo de UI. O HUD (S4) depende dos módulos de UI do pacote (`UI`, `UI.UGUI` e a camada de UI do GAS) e do uGUI/TextMeshPro da Unity.
+- **R6 (revisto).** A legenda dos controles continua na placa `TextMesh` do mundo (decisão do Arquiteto, Spec D3). O HUD não a substitui.
+- **R23 (revisto).** Fora do HUD, o feedback continua sem Canvas. O Canvas existe **só** no prefab do HUD (R24), e o HUD é o único lugar com barra e número flutuante.
+- **Seção 6, item S4:** deixa de ser fora de escopo. Os demais itens (morte, B-010, UI-3, UI-4, teste automático da cena) seguem fora.
+- **R21 (revisto, Q12).** As mensagens do Console que o HUD já mostra são cortadas **enquanto o prefab do HUD está na cena**: tique da queimadura (o HUD mostra pelo número de dano e pela barra) e falha de conjuração, sem mana e em recarga (o HUD mostra pelo estado do slot). Ficam no Console, sempre, as que o HUD não mostra: acerto (valor registrado pelo ouvinte de log do S2), pausa, câmera lenta (com a escala) e reinício. Sem o prefab do HUD (R24), as mensagens de tique e de falha voltam, para S1 continuar conferível pelo Console. Como a cena sabe se o HUD está presente é **decisão do Arquiteto**.
+- **R11 (revisto, Q12).** Sem mana suficiente ou em recarga, a habilidade não dispara. O motivo aparece no estado do slot do HUD (R27); sem o HUD, é registrado no Console.
+- **CA3 (revisto).** Sem pacote de terceiros e **sem o prefab do HUD**, S1 a S3 funcionam sem módulo de UI. **CA19 (revisto):** sem o prefab do HUD, não há Canvas, barra nem número flutuante na cena.
+
+**Requisitos novos**
+
+R24. O HUD é um prefab único (`HUD.prefab`) em `Samples~/Sandbox/`, presente na cena. Tirar o prefab da cena não quebra S1 a S3, as mensagens do Console (R21) nem a cor do alvo (R22).
+R25. O HUD é montado só com componentes do pacote e dados (assets). Não há script `.cs` novo no Sample por causa do HUD, e o asmdef do Sample não ganha referência a UI. Autoria pela ADR 0028.
+R26. Barras de vida e mana do jogador e barra de vida do boneco. Acompanham dano, custo e regeneração; o boneco não morre (R9).
+R27. A barra de habilidades mostra o slot da Bola de Fogo com a tecla "1", o ícone ou nome, a recarga e o estado "sem mana", todos vindos do ASC do jogador, não de código da cena.
+R28. Números de dano sobem sobre o boneco e voltam ao pool (`PooledSpawnerAsset`, R17). Dano aparece como dano e cura como cura.
+R29. O HUD obedece o grupo pausável (R18): `P` para a recarga e os números; `T` os deixa lentos.
+R30. `R` (reinício) religa o HUD ao jogador e ao boneco novos, sem HUD duplicado nem referência perdida.
+R31. Os textos do HUD saem de tabelas em `pt-BR`, não de texto fixo no prefab.
+R32. O HUD só exibe e não consome entrada: a entrada segue só pelo Input Manager legado (R7), e o Sample não exige `EventSystem`.
+R33. O HUD cumpre as regras de desempenho do pacote: sem alocação por quadro causada pelo Sample.
+
+**Critérios de aceite novos** (à mão, no host 6000.3.13f1, com o Sample importado pela aba Samples)
+
+- [ ] CA22. A cena com HUD abre sem "Missing" nem erro de compilação, e não acusa referência perdida ao apertar Play.
+- [ ] CA23. As barras de vida e mana do jogador e a de vida do boneco acompanham custo, dano e queimadura, e batem com os valores do Inspector.
+- [ ] CA24. O slot "1" mostra a tecla, a recarga correndo e "sem mana" quando falta mana; volta a disponível ao fim da recarga.
+- [ ] CA25. Cada acerto e cada tique da queimadura geram um número de dano que sobe e some; 20 conjurações seguidas não criam mais números que o tamanho do pool.
+- [ ] CA26. `P` congela recarga e números, e `T` os deixa mais lentos.
+- [ ] CA27. `R` religa as barras e o slot ao jogador e ao boneco novos, sem HUD duplicado e sem erro no Console.
+- [ ] CA28. Apagar o prefab do HUD da cena mantém CA6 a CA21 válidos (exceto a parte "sem Canvas" do CA19, que passa a valer sem o prefab). Com o HUD na cena, a mensagem de Console exigida por CA8 e CA9 é substituída pelo estado do slot (CA24); o Console segue como no CA30.
+- [ ] CA30 (Q12). Com o HUD na cena, o Console não registra tique da queimadura nem falha de conjuração, mas registra acerto, pausa, câmera lenta (com a escala) e reinício. Sem o prefab do HUD, tique e falha voltam ao Console.
+- [ ] CA29. Nenhum `.cs` do Sample referencia `UnityEngine.UI` ou `TMPro` (as guardas do SB-T1 seguem verdes) e a `SpellBook > Validar projeto` não acusa erro nos assets do HUD.
+
+**Perguntas do gate (emenda), respondidas pelo usuário em 2026-11-01**
+
+- Q11. Onde mora o HUD? **Resposta:** no mesmo Sample Sandbox, como prefab removível (R24). Proposta aceita.
+- Q12. As mensagens do Console (R21) ficam com o HUD? **Resposta:** ALTERNATIVA. Cortar as que o HUD já mostra (tique da queimadura, falha de conjuração); ficam só as que o HUD não mostra. Aplicada em R21 e R11 (revistos), CA28 e CA30 (novo).
+- Q13. A placa `TextMesh` de controles (R6) fica? **Resposta:** fica. Proposta aceita.
+- Q14. TextMeshPro: **Resposta:** usar TextMeshPro, com o passo do TMP Essentials documentado na página do Sample. Proposta aceita.
+
+**Em aberto para o Arquiteto (Spec):** como a cena detecta o HUD para religar as mensagens de tique e de falha quando o prefab é removido (R21 revisto).

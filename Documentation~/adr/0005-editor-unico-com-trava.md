@@ -53,10 +53,30 @@ A partir do ticket 0M-54, o projeto host é a raiz do repositório (0004, emenda
 
 O resto não muda.
 
+## Emenda (2026-11-03): uma Unity por checkout e WIP por worktree
+
+**Status da emenda: Aceita** (decisão do usuário, aprovada pelo usuário em 2026-11-03). O experimento de WIP 2 da 0003 (emendas de 2026-11-01 e de 2026-11-02) deixa de ser experimento e vira esta regra. Vem com a 0042, que substitui a 0003.
+
+1. **Uma Unity por checkout.** Cada checkout, seja o do repositório ou um worktree, é um projeto host com pasta e `Library/` próprias e com a própria trava `.claude/editor.lock` na raiz, no formato de 2026-10-29. O item 4 da Decisão passa a valer por checkout. Dentro de um checkout a trava continua única, então implementação e revisão do mesmo ticket não rodam a Unity ao mesmo tempo.
+2. **Limite da máquina:** no máximo **2** processos da Unity ao mesmo tempo, contando o batchmode de qualquer papel e o Editor aberto pelo usuário. O motivo é a memória (16 GB), que já derrubou um processo em 2026-11-03.
+3. **Dois tickets com Unity em paralelo** podem rodar, cada um no seu worktree, quando valem as três condições:
+   - nenhum depende do outro, nem por um ticket no meio;
+   - os Detalhes dos dois não têm arquivo em comum. Contam os `.asmdef`, os `.meta` de pasta nova, os testes e o `CHANGELOG.md` quando os dois quebram algo. Não contam o design doc do épico nem o `Documentation~/decisoes.md`, porque cada ticket escreve só a própria seção ou linha;
+   - o XR3 (Spec `referencia-catalogo-e-api.md`) já está na branch do lote. Sem ele, os testes que usam a pasta temporária do sistema se apagam entre as duas Unity (emenda de 2026-11-02 da 0003, "o WIP 2 depende do XR3").
+
+   O Controlador forma o par pela lista de arquivos dos dois Detalhes, sem ler código. A Spec não precisa marcar o par.
+4. **Worktree.** O Controlador cria o worktree a partir da branch do lote (`orca worktree create`, pasta `C:/Users/gabri/orca/workspaces/SpellBook/wt-<ticket>`, branch local `gabrielctorres/wt-<ticket>`) e copia para ele os docs de processo ainda sem commit. A Fábrica e o Examinador trabalham dentro dele. Depois do APROVADO, o passo de commit commita no worktree e leva o commit para a branch do lote por `git cherry-pick`. Em seguida o Controlador remove o worktree (`orca worktree rm`).
+5. **Suíte do par.** Depois do cherry-pick do segundo ticket do par, a suíte completa roda uma vez no checkout do lote, sob a trava dele e dentro do limite do item 2. Se falhar, o par volta ao Controlador.
+6. **Queda por memória.** Se uma execução cair por memória (processo morto pelo sistema, erro de alocação ou log cortado sem resultado), o ticket que caiu roda de novo sozinho, e nenhum par novo começa até ele terminar. A regra não acaba por isso.
+7. **Ticket sem Unity** não pega trava e não conta no limite do item 2. Ele roda em paralelo numa cópia de trabalho própria, sem arquivo em comum com outro ticket em andamento.
+8. A 0006 continua Adiada no resto (checkout principal fixo na `main`, worktree para todo ticket). Esta emenda é a forma de worktree que vale.
+
+O resto desta ADR não muda.
+
 ## Em aberto
 
 Nada.
 
 ## Relacionadas
 
-- 0003 (WIP 1), 0004 (testes), 0006 (worktrees), 0027 (estrutura do repositório).
+- 0003 (WIP 1, substituída pela 0042), 0004 (testes), 0006 (worktrees), 0027 (estrutura do repositório), 0042 (tamanho do ticket).

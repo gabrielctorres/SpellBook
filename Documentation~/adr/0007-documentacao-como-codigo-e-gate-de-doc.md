@@ -55,6 +55,88 @@ Esta emenda vale quando a 0026 for aceita.
 - **Item 5 (Catálogo):** o metadado de categoria e resumo é o `[TypeCategory("Caminho", Summary = "...")]` do Core (0026, item 4), que vale para ações, reações e condições. O nome `[ActionCategory]` não é criado.
 - **URL base no Setup:** o `SpellBook.Setup.Editor` não existe mais (0026). Por isso deixa de valer o trecho que diz que ele lê o `documentationUrl` do `package.json`. A constante `DocUrls.Base` continua sendo a única fonte da URL dentro do código.
 
+## Emenda (2026-11-01): molde de página e regras de escrita no gate
+
+**Status da emenda: Aceita** (gate do B-035, 2026-11-01; Q1 a Q6 da Spec aprovadas como propostas). PRD: `prd/manual-reorganizacao.md`, com a P2 decidida: o molde e as regras de escrita entram no gate. Spec: `spec/manual-reorganizacao.md` (D1 a D6).
+
+Vale para todo ticket que começar depois da aceitação. Um ticket que já está em implementação ou em revisão termina pela regra anterior.
+
+1. **Guia do manual.** O molde de página, as regras de escrita e o mapa de páginas ficam em `Documentation~/guia-do-manual.md`. É um documento interno e entra na lista do item 7 da Decisão: não é publicado.
+2. **Gate (item 2 da Decisão).** Além dos casos do item 2, o Examinador registra achado quando o ticket:
+   - cria página fora do molde do guia: falta uma seção obrigatória ou a ordem das seções muda;
+   - põe sigla num título;
+   - usa uma sigla antes do nome por extenso na mesma página. "GAS" é a exceção: pode aparecer depois de "sistema de habilidades" por extenso e no nome das ferramentas que o usam. Nome de tipo em código não é sigla;
+   - põe imagem, captura de tela ou gif em `manual/`;
+   - põe diagrama que não é Mermaid, ou diagrama sem legenda de uma frase;
+   - cria página sem a entrada dela no `nav` do `mkdocs.yml`;
+   - escreve à mão uma lista de ações, condições ou reações depois que o catálogo gerado (B-019g) existir;
+   - não declara, no relatório da Fábrica, que o texto novo do manual foi escrito e revisado pelas regras da humanizer. Os papéis não têm a ferramenta Skill: a regra é ler `C:/Users/gabri/.claude/skills/humanizer/SKILL.md` e aplicá-lo (Q4 do gate). O Examinador confere a declaração e as regras objetivas do guia, sem reaplicar a humanizer.
+3. **Páginas antigas.** Até a reescrita do módulo (etapa 2 da Spec), o ticket que muda uma página antiga:
+   - segue as regras de escrita no trecho que escreve;
+   - põe o componente ou asset novo num bloco "Campos do Inspector";
+   - não reestrutura o resto da página.
+4. **Navegação (forma do I26).**
+   - A navegação é o `nav` explícito do `mkdocs.yml`, nos sete grupos do guia.
+   - O build `--strict` falha:
+     - com página fora do `nav`;
+     - com entrada do `nav` que aponta para página que não existe;
+     - com link para âncora que não existe.
+   - Grupo sem página não aparece.
+   - O resto do I26 continua: página publicada nunca é só título ou "em breve".
+5. **Páginas geradas no build.**
+   - A página gerada (o catálogo do B-019g) entra no `nav` no mesmo ticket que cria o gerador. Esse ticket também:
+     - põe a geração antes do build, na Action de documentação;
+     - documenta o comando do build local.
+   - Nenhum `[HelpURL]` aponta para página gerada.
+   - A referência da API fica fora da pasta do manual e entra no `nav` como link absoluto.
+6. **Âncoras (item 3 da Decisão e CA54).**
+   - Todo título tem âncora `{#id}`.
+   - A seção de um componente ou asset usa o nome do tipo em minúsculas como âncora, e uma reescrita não muda essa âncora.
+   - Mover uma seção para outra página exige, no mesmo ticket:
+     - atualizar `DocUrls`;
+     - atualizar os links das outras páginas.
+   - Não há redirecionamento nem página de remendo no endereço antigo.
+7. **Constante por tipo** (Q3 do gate da Spec, aprovada).
+   - O `[HelpURL]` usa uma constante de `DocUrls` que já tem página e âncora (`[HelpURL(DocUrls.AttributeDefinition)]`) e não concatena âncora no atributo. Assim, mover uma seção muda só o `DocUrls.cs`, e não cada tipo.
+   - Código novo já nasce assim.
+   - Os `[HelpURL]` que existem migram por módulo, antes da divisão da página daquele módulo.
+   - "Escrever a URL da doc fora da constante única", na lista do que os agentes não podem fazer, passa a valer também para a âncora.
+
+**Motivo.** As referências estudadas (TopDown Engine e Edgar) mostram que um molde fixo e uma navegação na ordem de aprendizado fazem o leitor achar o campo e o próximo passo. Faltam 122 tickets, e cada um escreve página pelo gate desta ADR. Pôr o molde no gate agora evita que essas páginas nasçam no formato antigo e sejam refeitas depois.
+
+**Consequências.**
+- Todo ticket que cria página toca também o `mkdocs.yml`. Pela Q2, essa entrada conta junto com a página (emenda de 2026-11-01 da 0003, aceita).
+- O Examinador ganha conferências por busca, listadas no guia. A conferência da humanizer depende da declaração da Fábrica.
+- Os diagramas em Mermaid são desenhados no navegador, com o script que o tema do site carrega. O build confere o Markdown, e o desenho é conferido abrindo o site gerado.
+
+## Emenda (2026-11-03): manual e referência só no passe de documentação
+
+**Status da emenda: Aceita** (decisão do usuário, aprovada pelo usuário em 2026-11-03). Vale para todo ticket que entrar na fila depois do EV10. O EV10, que já está na Fábrica, segue a regra provisória do fim desta emenda.
+
+**Contexto.** Escrever a página e regenerar a referência em todo ticket deixa cada ticket mais lento e mais longo, e foi parte das recontagens dos lotes 7 a 9. O usuário quer acelerar o desenvolvimento e escrever a documentação de uma vez, no fim do projeto, quando ele pedir.
+
+**Regra.**
+1. **Item 1 da Decisão.** O manual deixa de mudar no mesmo ticket. Ele muda no **passe de documentação**, que roda quando o usuário pedir. Nenhum ticket de código escreve em `Documentation~/manual/`.
+2. **Item 2 da Decisão (gate no `/revisao`).** O Examinador não registra achado por página nova ou atualizada que falte, nem por entrada do catálogo gerado desatualizada. As regras da emenda de 2026-11-01 (molde, siglas, `nav`, humanizer) valem só no passe de documentação.
+3. **O que continua em todo ticket**, porque fica no código e é barato:
+   - `[HelpURL]` em todo componente e `ScriptableObject` público (item 3), com uma constante de `DocUrls` por tipo (emenda de 2026-11-01, item 7). A constante já nasce com a página e a âncora que o passe vai escrever;
+   - `[TypeCategory]` com `Summary` em todo tipo do catálogo (guarda `EveryCatalogTypeHasSummary`);
+   - os validadores e o teste deles (item 4);
+   - os comentários XML da API pública.
+4. **CHANGELOG (item 6).** Em cada ticket, o `CHANGELOG.md` só recebe a entrada de quebra (commit com `!`), com o passo de migração, na seção Quebras e Migração (0008, item 3). As entradas de Adicionado e Corrigido saem dos Conventional Commits no passe de documentação ou no release. Motivo: a quebra precisa do passo de migração, e só quem fez a quebra sabe escrevê-lo. O resto o histórico já guarda.
+5. **Guardas de documentação.** As guardas que comparam o código com o manual ou com a referência commitada ficam na categoria de teste `Documentacao` e não rodam na suíte dos tickets (ticket PD1 da Spec `processo-doc-no-fim.md`). Elas não são apagadas nem afrouxadas. Rodam no passe de documentação, e o passe só termina com elas verdes.
+6. **Passe de documentação.** Quando o usuário pedir, o Arquiteto detalha o passe em tickets (emenda de 2026-11-03 da 0002). O passe:
+   - escreve e atualiza as páginas pelo guia do manual, a partir dos tickets feitos depois desta emenda (escopo e CA na Spec e commits);
+   - roda **SpellBook > Documentação > Gerar referência** e commita a saída (0040);
+   - registra Adicionado e Corrigido no CHANGELOG;
+   - roda a suíte com `-testCategory "Documentacao"` e o `mkdocs build --strict`, os dois verdes.
+
+**Regra provisória até o PD1 entrar.** O ticket não escreve no manual. Ele roda a geração da referência só se uma guarda de `ReferenceUpToDateTests` reprovar na suíte, e commita a saída como antes. Isso acontece em todo ticket que muda `.cs`. Se reprovar uma guarda de `ManualLinksTests` ou de `ManualCodeExamplesTests`, a Fábrica para e devolve ao Controlador. Ela não escreve página só para a guarda passar.
+
+**Consequências.**
+- O site publicado fica atrás do código até o passe. O manual e a referência commitados também.
+- "Documentação escrita depois não é escrita" (Motivo): o risco é aceito pelo usuário. Ele é reduzido porque o escopo e os CA de cada ticket ficam na Spec, e as quebras ficam no CHANGELOG.
+
 ## Em aberto
 
 Nada.
