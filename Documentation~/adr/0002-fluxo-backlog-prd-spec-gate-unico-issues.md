@@ -127,9 +127,49 @@ Hoje o fluxo está descrito em `Documentation~/README.md`, `TIME.md` e `backlog.
 - Um ticket do Codex com `.cs` só descobre erro de compilação na revisão. Por isso o Codex fica em refatoração mecânica, e mudança de comportamento continua com a Fábrica.
 - Nasce o agente `.claude/agents/controlador.md`, com `model: sonnet` e todas as ferramentas.
 
+## Emenda (2026-11-03): registro só no modo autônomo e `AGENTS.md` como fonte única
+
+**Status da emenda: Aceita** (decisão do usuário, aprovada pelo usuário em 2026-11-03). Revê os itens 4, 7 e 8 da emenda "design doc por épico e papéis enxutos". Vem com a emenda de 2026-11-03 da 0042.
+
+**Contexto.** O item 8 mandava registrar no `decisoes.md` toda decisão tomada sem o usuário e toda exceção de tamanho. Fora do modo autônomo, as dúvidas já voltam ao Controlador, que as leva ao usuário, e o arquivo enchia de linhas de exceção que o Detalhe já explica. O item 7 punha a fonte única no `CLAUDE.md`, mas desde o commit c152c60 as regras do projeto ficam no `AGENTS.md`, que o Codex e o Antigravity também leem, e o `CLAUDE.md` só o importa.
+
+**Regra.**
+1. **Item 4.** O Detalhe volta ao gate nos mesmos casos, menos o tamanho, que segue a 0042 com a emenda de 2026-11-03: até +30% com o motivo no Detalhe (no modo autônomo, também numa linha do `decisoes.md`), e acima disso o ticket se divide.
+2. **Item 7.** As regras de processo vigentes ficam no `AGENTS.md`, seção "Time de desenvolvimento" (commit c152c60). O `CLAUDE.md` só importa o `AGENTS.md`. Se o `AGENTS.md` divergir de uma ADR, vale a ADR, e o `AGENTS.md` é corrigido.
+3. **Item 8.** Fora do modo autônomo, dúvida ou decisão volta ao Controlador, que a leva ao usuário, e nada vai para o `decisoes.md`. No modo autônomo (usuário ausente), toda decisão tomada sem o usuário entra numa linha temporária de `Documentation~/decisoes.md`, no formato `data | ticket | decisão | base | ADR afetada`, e o usuário a revisa ao voltar. A exceção de tamanho fica registrada no Detalhe, e no modo autônomo também no `decisoes.md`.
+
+**Consequências.**
+- O `decisoes.md` passa a ser o registro das decisões do modo autônomo. As linhas já gravadas ficam como histórico.
+- O `AGENTS.md`, seção "Time de desenvolvimento", as skills `/implementar` e `/revisao` e os agentes `fabrica` e `examinador` seguem esta regra.
+
+## Emenda (2026-11-03): gate do Examinador só para código
+
+**Status da emenda: Aceita** (decisão do usuário, aprovada pelo usuário em 2026-11-03, issue #323). Revê o item 6 da emenda "design doc por épico e papéis enxutos" e o item 1 da emenda "Codex e Antigravity como papéis externos".
+
+**Contexto.** Hoje o Examinador é o único gate de todo ticket, inclusive do que só muda texto: docs internas, ADRs, DS, `AGENTS.md`, skills e agentes. Num ticket assim não há suíte que pegue erro nem comportamento para conferir contra os CA. O usuário já lê esse texto no PR da branch do lote antes do merge.
+
+**Regra.**
+1. **Código.** Nesta emenda, código são os arquivos que contam linhas na 0042 (`.cs`, `.asmdef`, `.json`, `.yml` de CI e `package.json`) e também os scripts (`.ps1`, `.sh` e os scripts da fila). Os scripts entram só na lista de código do gate. A contagem de linhas da 0042 não muda.
+2. **Ticket com código.** Passa por `/revisao` do Examinador, que continua o único gate dele, e só depois pelo `/commit`. O Examinador revisa e reprova só pelo código. Texto do mesmo ticket (`.md`) não gera achado, com uma exceção: no ticket que quebra algo, o Examinador confere a entrada de migração do `CHANGELOG.md` (0007, item 4 da emenda de 2026-11-03), porque ela acompanha o código.
+3. **Ticket só de texto** (nenhum arquivo de código): não passa por `/revisao`.
+   - O Controlador roda `git diff --check` no diff do ticket.
+   - O Controlador confere o resultado contra o objetivo e os CA da issue e segue para o `/commit`.
+   - O usuário olha o texto no PR da branch do lote.
+4. **Item 6 da emenda "design doc por épico e papéis enxutos".** O Examinador é o revisor separado e o único gate do ticket com código.
+5. **Item 1 da emenda "Codex e Antigravity como papéis externos".** O ticket do Codex só de texto (docs internas, skills, agentes, `.md`) segue o item 3. O que tem código, como a refatoração mecânica em `.cs` ou uma mudança de CI, segue o item 2.
+
+**Motivo.**
+- A cota do Examinador fica com o que só ele verifica: o diff de código contra os CA e o Detalhe, com a suíte rodada.
+- O texto continua com dois olhares, o do Controlador e o do usuário no PR.
+
+**Consequências.**
+- O Motivo da emenda "Codex e Antigravity como papéis externos" ("todo código e todo texto que entra na branch passa pelo Examinador") passa a valer só para código.
+- Um erro num ticket só de texto que o Controlador não pegar só aparece no PR, depois do commit.
+- O `AGENTS.md` (seção "Time de desenvolvimento": o papel do Examinador, o do Codex e o item 5 do Fluxo), a skill `/revisao` e o agente `examinador` seguem esta regra (CA1 da issue #323).
+
 ## Em aberto
 
-Nada.
+- A 0007 precisa de uma emenda que diga quem revisa o passe de documentação, porque, por esta emenda de 2026-11-03 ("gate do Examinador só para código"), as páginas do manual saíram do `/revisao`. Fica para um ticket seguinte.
 
 ## Relacionadas
 

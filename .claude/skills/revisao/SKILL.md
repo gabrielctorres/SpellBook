@@ -1,22 +1,24 @@
 ---
 name: revisao
-description: Examinador revisa um ticket implementado contra os CA e o Detalhe (padrões, ADR, DS), roda a suíte sob o editor-lock e dá o veredito APROVADO (nota ≥ 80% e zero achados) ou REPROVADO. Use depois de /implementar.
+description: Examinador revisa tickets com código contra os CA e o Detalhe, roda a suíte e dá APROVADO ou REPROVADO. Ticket só de texto não passa por /revisao. Use depois de /implementar quando houver código.
 argument-hint: <design doc> <ticket>
 ---
 
-Revise o ticket: $ARGUMENTS
+Revise o ticket com código: $ARGUMENTS
 
-1. **Diff.** `git diff`, `git diff --stat` e `git diff -M --name-status` contra a base do ticket, que é o último commit da branch do lote (num worktree, rode dentro dele). Confirme que só mudaram os arquivos do Detalhe, mais os que são consequência direta do ticket, e que o diff cabe na ADR 0042:
+**Escopo do gate (ADR 0002, emenda de 2026-11-03).** Código inclui `.cs`, `.asmdef`, `.json`, `.yml` de CI, `package.json` e scripts (`.ps1`, `.sh` e scripts da fila). Só tickets com código passam por `/revisao`. Revise e reprove somente pelo código; texto `.md` do mesmo ticket não gera achado. Exceção: em ticket que quebra algo, confira a entrada de migração do `CHANGELOG.md`. Ticket só de texto não passa por esta skill: o Controlador roda `git diff --check`, confere o diff contra objetivo e CA da issue e segue para `/commit`; o usuário revisa o texto no PR.
+
+1. **Diff.** `git diff`, `git diff --stat` e `git diff -M --name-status` contra a base do ticket, que é o último commit da branch do lote (num worktree, rode dentro dele). Confirme, para o código, que só mudaram os arquivos do Detalhe, mais os que são consequência direta do ticket, e que o diff cabe na ADR 0042:
    - até ~500 linhas: adicionadas mais removidas em `.cs`, `.asmdef`, `.json`, `.yml` de CI e `package.json`;
    - até 10 arquivos: caminhos distintos no diff. Os outros tipos de arquivo contam só aqui;
    - não contam: `.meta`, saída gerada com guarda (0040), remoção pura, a entrada do `nav` da página criada ou apagada, o Detalhe do ticket e a linha dele no `decisoes.md`. A remoção pura é revisada pela lista de caminhos;
    - movimento puro (`R100`) conta 1 linha e nenhum arquivo;
-   - acima do teto e até +30%, exija a linha do ticket em `Documentation~/decisoes.md`; sem ela, é achado. Acima de +30%, reprove para dividir;
+   - acima do teto e até +30%, confira se o motivo está no Detalhe; no modo autônomo, também no `decisoes.md`. Acima de +30%, reprove para dividir;
    - paralelo (ADR 0005, emenda de 2026-11-03): o outro ticket em andamento não toca nenhum arquivo deste.
 2. **Checar quatro eixos.** Cada eixo vale 25%:
-   - **Padrões:** regras do `CLAUDE.md` (C#, Unity, testes, segurança), `.meta` presentes, sem suppressions, sem dependência nova.
-   - **CA e Detalhe:** o ticket atende os CA que o Detalhe cita (no design doc `Documentation~/spec/<épico>.md`; num épico antigo, na Spec e no PRD) e o critério de pronto, sem nada a mais.
-   - **ADR:** respeita as decisões aceitas em `Documentation~/adr/`. Não registre achado por falta de página do manual, nem por catálogo ou referência desatualizados (emenda de 2026-11-03 da 0007). Registre achado se faltar `[HelpURL]` com constante de `DocUrls`, ou `[TypeCategory]` com `Summary`, ou se faltar a entrada de quebra com migração no `CHANGELOG.md` de um ticket com `!`. No passe de documentação, confira a emenda de 2026-11-01 da 0007 pelas buscas da parte 7 do guia e pela declaração da humanizer. O Examinador não reaplica a humanizer.
+   - **Padrões:** regras do `AGENTS.md` (C#, Unity, testes, segurança), `.meta` presentes, sem suppressions, sem dependência nova.
+   - **CA e Detalhe:** o código atende os CA que o Detalhe cita (no design doc `Documentation~/spec/<épico>.md`; num épico antigo, na Spec e no PRD) e o critério de pronto, sem nada a mais.
+   - **ADR:** respeita as decisões aceitas em `Documentation~/adr/`. Não registre achado por falta de página do manual, nem por catálogo ou referência desatualizados (emenda de 2026-11-03 da 0007). Registre achado se faltar `[HelpURL]` com constante de `DocUrls`, ou `[TypeCategory]` com `Summary`, ou se faltar a entrada de quebra com migração no `CHANGELOG.md` de um ticket com `!` (essa é a única verificação de texto, além do código, nesse caso). No passe de documentação, confira a emenda de 2026-11-01 da 0007 pelas buscas da parte 7 do guia e pela declaração da humanizer. O Examinador não reaplica a humanizer.
    - **DS:** segue nomes, padrões de API e de Inspector de `Documentation~/ds/`. Enquanto `Documentation~/ds/` não existir, confira nomes, padrões de API e de Inspector contra as ADRs aceitas (0011, 0026) e o código vizinho do mesmo módulo, e escreva no veredito "DS: sem DS, conferido por ADR e vizinhança". O critério de nota não muda.
 3. **Testes** (ADR 0005). Ticket sem Unity (docs, processo): rode o critério verificável do ticket e não crie a trava. Ticket com Unity:
    1. Se `.claude/editor.lock` existir na raiz do checkout, não rode: avise o Controlador e reprove com "testes não executados (lock ativo)".
@@ -41,4 +43,4 @@ Veredito: APROVADO | REPROVADO
 1. `arquivo:linha` — <problema>. Regra: <fonte>. Cenário de falha: <entrada → resultado errado>.
 ```
 
-APROVADO exige nota ≥ 80%, zero achados e testes verdes (em ticket sem Unity, o critério verificável passando). Não corrija nada (a única escrita permitida é a trava); os achados voltam para a Fábrica. Depois do APROVADO, o passo de commit do script da fila commita o ticket (`/commit`).
+APROVADO exige nota ≥ 80%, zero achados pelo código e testes verdes (em ticket sem Unity, o critério verificável passando). Não corrija nada (a única escrita permitida é a trava); os achados voltam para a Fábrica. Depois do APROVADO, o passo de commit do script da fila commita o ticket (`/commit`).

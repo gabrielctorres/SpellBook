@@ -1,6 +1,6 @@
 # Publica o manual (Documentation~/manual) e a referência da API (Documentation~/api) no GitHub Pages
 # (ADR 0025 e 0040, tickets 0M-09 e RC5). Só manual/ e api/ viram site: prd/, spec/, adr/, planos/,
-# backlog e TIME não são publicados. Nenhum passo usa a Unity nem secret: a API sai dos YAML commitados.
+# backlog e AGENTS.md não são publicados. Nenhum passo usa a Unity nem secret: a API sai dos YAML commitados.
 # Em pull request, o build roda inteiro e nada é publicado.
 # Passo manual do dono do repositório: Settings > Pages > Source: GitHub Actions.
 name: docs

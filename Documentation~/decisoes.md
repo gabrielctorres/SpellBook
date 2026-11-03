@@ -1,6 +1,6 @@
 # Decisões
 
-Log das decisões tomadas sem o usuário e das exceções de tamanho (ADR 0002, emenda de 2026-11-03; ADR 0042). Uma linha por decisão, da mais antiga para a mais nova, sempre acrescentada no fim. Uma linha não se apaga nem se reescreve: a correção é uma linha nova. O `.gitattributes` junta as linhas de dois tickets em paralelo sem conflito.
+Log das decisões tomadas sem o usuário no modo autônomo (ADR 0002, emendas de 2026-11-03). Fora do modo autônomo, nada entra aqui, e a exceção de tamanho fica no Detalhe do ticket (ADR 0042, emenda de 2026-11-03). As linhas de exceção de tamanho anteriores ficam como histórico. Uma linha por decisão, da mais antiga para a mais nova, sempre acrescentada no fim. Uma linha não se apaga nem se reescreve: a correção é uma linha nova. O `.gitattributes` junta as linhas de dois tickets em paralelo sem conflito.
 
 | Data | Ticket | Decisão | Base | ADR afetada |
 |---|---|---|---|---|
