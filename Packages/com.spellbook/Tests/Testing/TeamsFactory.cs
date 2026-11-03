@@ -77,6 +77,20 @@ namespace SpellBook.Testing
             _created.Add(gameObject);
             var member = gameObject.AddComponent<TeamMember>();
 
+            return Configure(member, team, matrix);
+        }
+
+        /// <summary>
+        /// Põe um <see cref="TeamMember"/> num objeto que já existe, como o de um ASC ou um pai dele. Quem criou o objeto
+        /// cuida de destruí-lo.
+        /// </summary>
+        public TeamMember AddMember(GameObject gameObject, TeamDefinition team, TeamRelationMatrix matrix)
+        {
+            return Configure(gameObject.AddComponent<TeamMember>(), team, matrix);
+        }
+
+        private static TeamMember Configure(TeamMember member, TeamDefinition team, TeamRelationMatrix matrix)
+        {
             var serialized = new SerializedObject(member);
             serialized.FindProperty("team").objectReferenceValue = team;
             serialized.FindProperty("matrix").objectReferenceValue = matrix;

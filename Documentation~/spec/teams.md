@@ -231,6 +231,26 @@ Todos usam a Unity e seguem o WIP 1. TM1 a TM4 não dependem de item aberto. Tes
 - Critério de pronto: CA11 a CA16 verdes; CA18 (E) conferido: página com o exemplo, `[HelpURL]` nos tipos, CHANGELOG com o R20.
 - Tamanho estimado: ~480 linhas; 9 arquivos (a emenda de 2026-11-01 soma dois testes e nenhum arquivo). Depende de: TM2, AV2, AV3 (a `HasTargetPointCondition` do teste de regras), EV8 (com a emenda da ADR 0035).
 
+### Detalhe (2026-11-03)
+- CA: CA11, CA12, CA13, CA14, CA15, CA16 (parte: busca do membro e condição); CA9 (parte: máscara vazia, deixada pelo TM3); emenda de 2026-11-01.
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/GAS.Bridges/SpellBook.GAS.Bridges.asmdef:4-10` (+GUID do `SpellBook.Teams`);
+  - `Runtime/GAS.Bridges/Teams/AscTeams.cs` (novo, namespace `SpellBook.GAS.Bridges`: `GetMember(asc)` sobe de `asc.transform` pelos pais com `TryGetComponent<ITeamMember>`; nulo sem membro ou sem ASC);
+  - `Runtime/GAS.Bridges/Teams/TeamRelationCondition.cs` (novo: `[Serializable] sealed`, `[TypeCategory("Time", Summary = ..., Line = "Relação com o alvo: {mask}")]`; o `Line` usa o nome do campo serializado, como os outros tipos; campo `mask = Hostile` com propriedade `Mask`; `Evaluate` como no Design 2; sem `Target.Unit`, falso; `DefaultFailureKey` = `teams.condition.relation`; `Validate`: máscara vazia é aviso em `<caminho>.mask`);
+  - `Tests/Testing/TeamsFactory.cs:73` (+`AddMember(GameObject, team, matrix)`, para pôr o membro no objeto do ASC ou num pai; consequência direta: o `CreateMember` só cria objeto novo);
+  - `Tests/GAS.Bridges/PlayMode/SpellBook.GAS.Bridges.Tests.PlayMode.asmdef:4-12` (+`SpellBook.Teams`);
+  - `Tests/GAS.Bridges/PlayMode/TeamRelationConditionTests.cs` (novo, `#if UNITY_EDITOR` como os outros PlayMode com factory);
+  - `Tests/GAS.Bridges/PlayMode/TeamAreaFilterTests.cs` (novo; `AreaSelector` com física 3D, no padrão do `AreaSelectorTests`);
+  - `Tests/Core/EditMode/Structure/AsmdefRulesTests.cs:245` (referências exatas do Bridges com `SpellBook.Teams`) e teste novo `BridgesReferencesTeams_GasDoesNot` depois de `:261`.
+  - Fora, pela emenda de 2026-11-03 da 0007: `times.md` ("Times no GAS") e `CHANGELOG.md` (sem quebra). O CA18 (página e CHANGELOG com o R20) fica para o passe de documentação.
+- Testes red:
+  - PlayMode, `TeamRelationConditionTests`: `Member_OnSameObjectAndParent_Found_NoneIsNoTeam`, `Condition_PassesAndFailsByMask_ReasonKey`, `Condition_NoTargetUnit_False_NoException_RelationKey`, `Rules_HasTargetPointBeforeTeam_NoTargetFailsWithNoTargetKey`, `NoTeamOnBothSides_UsesNoTeamRelation`, `Validate_EmptyMask_Warns`, `Lookup_10000_Condition_10000_DoNotAllocate`;
+  - PlayMode, `TeamAreaFilterTests`: `AreaFilter_OnlyHostiles_AlliesPlusSelf`;
+  - EditMode, `AsmdefRulesTests`: `BridgesReferencesTeams_GasDoesNot` e `AsmdefRules_BridgesDoesNotReferencePooling` (lista com o Teams).
+- Critério de pronto: os testes acima verdes com filtro (total do XML igual ao número de testes); `AsmdefRulesTests` inteiro verde (mapa de dependências com o Bridges → Teams).
+- Tamanho: ~455 linhas e 8 arquivos, pela ADR 0042. Exceção: nenhuma.
+- Commit: `feat(gas): TeamRelationCondition e filtro de área por time`
+
 ### Ordem e resumo
 
 | Ticket | Unity | Depende de | Tamanho |
