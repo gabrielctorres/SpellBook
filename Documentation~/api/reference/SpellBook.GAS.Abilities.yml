@@ -20,6 +20,8 @@ items:
   - SpellBook.GAS.Abilities.CooldownReductionPolicy
   - SpellBook.GAS.Abilities.DescriptionElement
   - SpellBook.GAS.Abilities.GameplayAbility
+  - SpellBook.GAS.Abilities.GameplayEventData
+  - SpellBook.GAS.Abilities.GameplayEventHandler
   - SpellBook.GAS.Abilities.TemplateElement
   - SpellBook.GAS.Abilities.TemplateElement.TagMapping
   - SpellBook.GAS.Abilities.TextElement
@@ -176,6 +178,20 @@ references:
   name: GameplayAbility
   nameWithType: GameplayAbility
   fullName: SpellBook.GAS.Abilities.GameplayAbility
+- uid: SpellBook.GAS.Abilities.GameplayEventHandler
+  commentId: T:SpellBook.GAS.Abilities.GameplayEventHandler
+  parent: SpellBook.GAS.Abilities
+  href: SpellBook.GAS.Abilities.GameplayEventHandler.html
+  name: GameplayEventHandler
+  nameWithType: GameplayEventHandler
+  fullName: SpellBook.GAS.Abilities.GameplayEventHandler
+- uid: SpellBook.GAS.Abilities.GameplayEventData
+  commentId: T:SpellBook.GAS.Abilities.GameplayEventData
+  parent: SpellBook.GAS.Abilities
+  href: SpellBook.GAS.Abilities.GameplayEventData.html
+  name: GameplayEventData
+  nameWithType: GameplayEventData
+  fullName: SpellBook.GAS.Abilities.GameplayEventData
 - uid: SpellBook.GAS.Abilities
   commentId: N:SpellBook.GAS.Abilities
   name: SpellBook.GAS.Abilities

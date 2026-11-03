@@ -59,6 +59,7 @@ items:
   - SpellBook.GAS.Actions.ForEachTargetAction
   - SpellBook.GAS.Actions.GameplayAction
   - SpellBook.GAS.Actions.RemoveEffectAction
+  - SpellBook.GAS.Actions.SendGameplayEventAction
   - SpellBook.GAS.Attributes.AttributeDefinition
   - SpellBook.GAS.Bridges.AbilityEventResponse
   - SpellBook.GAS.Bridges.AbilitySystemEventRelay

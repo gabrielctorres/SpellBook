@@ -366,6 +366,7 @@ A lista **Starting Effects** do ASC aplica cada efeito no `Awake`, na ordem da l
 - **ForEachTargetAction:** roda as ações filhas uma vez para cada alvo dela, e cada filha sem seletor recebe só o alvo da vez ([Alvo de cada ação](#alvo-da-acao)).
 - **RemoveEffectAction:** remove de cada alvo as instâncias do `Effect` e as que concedem a `Tag` ou uma filha dela. A soma das pilhas removidas fica em `context.LastRemovedStacks` para as ações seguintes da lista. Sem efeito e sem tag, a ação não remove nada.
 - **CommitAction:** cobra a recarga, o custo e a carga de uma habilidade com `CommitMode.Manual` (veja [Commit](#commit)). Numa ativação já cobrada, não faz nada.
+- **SendGameplayEventAction:** envia o evento de gameplay `Tag` ao ASC de cada alvo, com `Magnitude` por nível (veja [Gatilhos](#gatilhos)). Quem roda a lista vai como instigador e o próprio alvo como unidade do evento. Numa lista de efeito, o evento leva o contexto do efeito.
 - **DelayedAction:** agenda as ações filhas para `Delay` segundos depois, no tempo do ASC, sem segurar a lista: a ação seguinte roda na mesma chamada. As filhas pertencem ao dono da lista. Numa habilidade, ela continua ativa até as filhas rodarem, e cancelar a habilidade as cancela; num efeito, remover o efeito as cancela. Com `ContinueIfOwnerEnds` ligado, as filhas rodam mesmo assim, e a habilidade termina sem esperar por elas. A filha sem seletor recebe os alvos que a `DelayedAction` recebeu.
 
 #### Ações que esperam {#acoes-que-esperam}
@@ -640,6 +641,23 @@ A `CooldownReductionPolicy` diz como o valor do `CooldownReductionAttribute` vir
 A duração é `max(Min Duration, duração × (1 - redução))`. Exemplo: com **Min Duration** 1 s e **Max Reduction** 0,5, uma recarga de 8 s com redução de 0,9 dura 4 s, porque o teto vale. Com **Max Reduction** 1 e redução de 0,99, o piso de 1 s vale.
 
 Sem política, a habilidade usa `CooldownReductionPolicy.ApplyDefault`: piso de 0,1 s, redução limitada a [0, 1] e modo `Percent`, a mesma regra de antes da política. O validador acusa erro em **Min Duration** negativo e em **Max Reduction** fora de 0 a 1.
+
+#### Gatilhos {#gatilhos}
+Um gatilho ativa a habilidade sozinho quando algo acontece no ASC. Adicione-os na lista **Triggers** da habilidade:
+
+- `GameplayEventTrigger`: o ASC recebe o evento de gameplay `Tag` ou de uma tag filha dela.
+- `TagAddedTrigger`: o ASC passa a ter `Tag` ou uma filha dela.
+- `TagRemovedTrigger`: o ASC deixa de ter `Tag` ou uma filha dela.
+
+As tags contam como em `AddTag` e `RemoveTag`: um segundo `AddTag` da mesma tag só sobe a contagem e não dispara, e o `TagRemovedTrigger` espera a contagem chegar a zero.
+
+O evento de gameplay é do sistema de habilidades e não passa pelo barramento de eventos global. Envie-o por código com `asc.SendGameplayEvent(tag, dados)`, ou numa lista de ações com a `SendGameplayEventAction`. Os dados (`GameplayEventData`) levam o `Instigator`, a unidade do evento (`Target`), um ponto opcional, a `Magnitude`, `Tags` e, se o evento veio de um efeito, o `EffectContext`. O ASC dispara `OnGameplayEvent(tag, dados)` e depois tenta os gatilhos, na ordem em que as habilidades foram concedidas. Tag inválida é ignorada, e um evento sem ouvinte e sem gatilho não faz nada nem aloca.
+
+O gatilho tenta a ativação na hora, pelo mesmo caminho e pelas mesmas checagens de `TryActivateAbility`, na mesma ordem. Uma falha dispara `OnAbilityFailed`, sem exceção. No evento de gameplay, a unidade do evento é a unidade-alvo da ativação, e o ponto é o do evento ou, sem ele, a posição da unidade. Os gatilhos de tag ativam sem alvo.
+
+Para o disparo não entrar em laço, o ASC ignora um gatilho da habilidade que já está na própria tentativa: uma habilidade que envia ao dono a tag do próprio gatilho roda uma vez. Disparos aninhados param em 8 por ASC, e o primeiro excesso escreve um aviso no Console.
+
+O ASC lê a lista na concessão. Mudar `Triggers` depois só vale quando a habilidade for concedida de novo, e retirar a habilidade tira os gatilhos dela. A opção **Only With Autocast** fica para o autocast; por enquanto, um gatilho com ela ligada não dispara.
 
 ### 4.3 Custo
 `CostEffect` é um GameplayEffect Instant, normalmente com modifier `Add` negativo (ex: `Mana Add -20`). A ativação falha se algum atributo ficaria abaixo do `MinValue`.

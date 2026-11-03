@@ -38,5 +38,11 @@ namespace SpellBook.GAS.Abilities
         {
             return unit != null ? new AbilityTarget(unit.transform.position, unit) : None;
         }
+
+        /// <summary>
+        /// Alvo na unidade <paramref name="unit"/> com o ponto <paramref name="point"/> no lugar da posição dela. Unidade
+        /// nula dá o alvo só de ponto.
+        /// </summary>
+        public static AbilityTarget AtUnit(AbilitySystemComponent unit, Vector3 point) => new AbilityTarget(point, unit);
     }
 }

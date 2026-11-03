@@ -5,6 +5,7 @@ using SpellBook.Core.Inspector;
 using SpellBook.Core.Validation;
 using UnityEngine;
 using UnityEngine.Serialization;
+using SpellBook.GAS.Abilities.Triggers;
 using SpellBook.GAS.Actions;
 using SpellBook.GAS.Core;
 using SpellBook.Tags;
@@ -108,6 +109,10 @@ namespace SpellBook.GAS.Abilities
         [ActionEvent("Ao ser cancelada", DefaultTarget.EventTargets, true)]
         public List<GameplayAction> OnCancel = new List<GameplayAction>();
 
+        [Header("Gatilhos")]
+        [Tooltip("Causas que tentam ativar a habilidade sozinha, pelas mesmas checagens da ativação manual.")]
+        [SerializeReference, TypePicker] private List<AbilityTrigger> triggers = new List<AbilityTrigger>();
+
         /// <summary>
         /// Verifica se a habilidade pode ser ativada pelo ASC, informando o motivo em caso de falha.
         /// </summary>
@@ -162,6 +167,11 @@ namespace SpellBook.GAS.Abilities
             get => castRange ??= ScalableFloat.Constant(0f);
             set => castRange = value ?? ScalableFloat.Constant(0f);
         }
+
+        /// <summary>
+        /// Gatilhos da habilidade. O ASC os lê na concessão: mudar a lista depois só vale para a próxima concessão.
+        /// </summary>
+        public List<AbilityTrigger> Triggers => triggers ??= new List<AbilityTrigger>();
 
         /// <summary>Quando a habilidade cobra a recarga, o custo e a carga. O padrão é <see cref="CommitMode.OnStart"/>.</summary>
         public CommitMode CommitMode

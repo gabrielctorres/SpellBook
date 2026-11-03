@@ -8,6 +8,7 @@ using SpellBook.Time;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Effects;
 using SpellBook.GAS.Abilities;
+using SpellBook.GAS.Abilities.Triggers;
 using SpellBook.GAS.Conditions;
 using SpellBook.GAS.Actions;
 namespace SpellBook.GAS.Core
@@ -43,6 +44,12 @@ namespace SpellBook.GAS.Core
         private readonly List<ActiveEffectInstance> _activeEffects = new List<ActiveEffectInstance>();
         private readonly List<AbilitySpec> _abilities = new List<AbilitySpec>();
         private readonly HashSet<GameplayAbility> _warnedAboveMaxLevel = new HashSet<GameplayAbility>();
+
+        // Gatilhos das habilidades concedidas, na ordem da concessão, e as travas do disparo (P11)
+        private const int MaxTriggerDepth = 8;
+        private readonly List<TriggerEntry> _triggers = new List<TriggerEntry>();
+        private readonly List<AbilitySpec> _triggering = new List<AbilitySpec>();
+        private bool _warnedTriggerDepth;
 
         public event Action<GameplayTag, bool> OnTagChanged;
         public event Action<AbilitySpec> OnAbilityActivated;
@@ -170,12 +177,14 @@ namespace SpellBook.GAS.Core
         private void OnEnable()
         {
             OnTagChanged += HandleTagChangedForCancellation;
+            OnTagChanged += HandleTagChangedForTriggers;
             _timeCursor = TimeSource.ElapsedTime;
         }
 
         private void OnDisable()
         {
             OnTagChanged -= HandleTagChangedForCancellation;
+            OnTagChanged -= HandleTagChangedForTriggers;
             CancelAllAbilities();
             // Ligações ao vivo em outro ASC (o instigador) prenderiam este ASC e o recalculariam depois de destruído
             for (int i = 0; i < _activeEffects.Count; i++) _activeEffects[i].DisposeLiveBindings();
@@ -334,6 +343,7 @@ namespace SpellBook.GAS.Core
             var spec = new AbilitySpec(ability, ClampLevel(ability, level));
             InitCharges(spec);
             _abilities.Add(spec);
+            IndexTriggers(spec);
             OnAbilityGranted?.Invoke(spec);
             return spec;
         }
@@ -347,6 +357,7 @@ namespace SpellBook.GAS.Core
             if (spec == null) return;
 
             CancelAbility(spec);
+            UnindexTriggers(spec);
             if (_abilities.Remove(spec)) OnAbilityRemoved?.Invoke(spec);
         }
 
@@ -1198,6 +1209,100 @@ namespace SpellBook.GAS.Core
             if (tags == null) return false;
             for (int i = 0; i < tags.Count; i++) if (HasTag(tags[i])) return true;
             return false;
+        }
+        #endregion
+
+        #region Gameplay Events
+        /// <summary>
+        /// Evento de gameplay recebido por <see cref="SendGameplayEvent"/>, antes dos gatilhos. Tag inválida não dispara.
+        /// </summary>
+        public event GameplayEventHandler OnGameplayEvent;
+
+        /// <summary>
+        /// Envia o evento <paramref name="tag"/> a este ASC: dispara <see cref="OnGameplayEvent"/> e, na ordem da concessão,
+        /// tenta ativar cada habilidade com um <see cref="GameplayEventTrigger"/> da tag (ou de uma tag pai). A ativação usa
+        /// <see cref="GameplayEventData.Target"/> como unidade-alvo e o ponto do evento, ou a posição da unidade. Tag
+        /// inválida é ignorada; sem ouvinte e sem gatilho, nada acontece e nada é alocado.
+        /// </summary>
+        public void SendGameplayEvent(GameplayTag tag, in GameplayEventData data)
+        {
+            if (!tag.IsValid) return;
+
+            OnGameplayEvent?.Invoke(tag, in data);
+            if (_triggers.Count == 0) return;
+
+            AbilityTarget target = data.Target != null
+                ? (data.HasPoint ? AbilityTarget.AtUnit(data.Target, data.Point) : AbilityTarget.AtUnit(data.Target))
+                : (data.HasPoint ? AbilityTarget.AtPoint(data.Point) : AbilityTarget.None);
+            FireTriggers(TriggerCause.GameplayEvent, tag, in target);
+        }
+
+        private void HandleTagChangedForTriggers(GameplayTag tag, bool added)
+        {
+            if (_triggers.Count == 0) return;
+            FireTriggers(added ? TriggerCause.TagAdded : TriggerCause.TagRemoved, tag, AbilityTarget.None);
+        }
+
+        // Disparo síncrono pelo caminho da ativação manual, com duas travas: o spec em tentativa ignora um novo disparo
+        // para ele mesmo, e os disparos aninhados neste ASC param na profundidade MaxTriggerDepth
+        private void FireTriggers(TriggerCause cause, GameplayTag tag, in AbilityTarget target)
+        {
+            for (int i = 0; i < _triggers.Count; i++)
+            {
+                TriggerEntry entry = _triggers[i];
+                // O autocast ainda não existe: os gatilhos "só com autocast" ficam desligados
+                if (entry.Trigger.OnlyWithAutocast || !entry.Trigger.ListensTo(cause, tag)) continue;
+                if (_triggering.Contains(entry.Spec)) continue;
+
+                if (_triggering.Count >= MaxTriggerDepth)
+                {
+                    if (!_warnedTriggerDepth)
+                    {
+                        _warnedTriggerDepth = true;
+                        Debug.LogWarning($"[GAS] Gatilhos de '{name}' passaram de {MaxTriggerDepth} disparos aninhados; os seguintes foram ignorados.", this);
+                    }
+                    return;
+                }
+
+                _triggering.Add(entry.Spec);
+                try
+                {
+                    TryActivate(entry.Spec, entry.Spec.Ability, in target);
+                }
+                finally
+                {
+                    _triggering.RemoveAt(_triggering.Count - 1);
+                }
+            }
+        }
+
+        private void IndexTriggers(AbilitySpec spec)
+        {
+            List<AbilityTrigger> triggers = spec.Ability.Triggers;
+            for (int i = 0; i < triggers.Count; i++)
+            {
+                if (triggers[i] != null) _triggers.Add(new TriggerEntry(spec, triggers[i]));
+            }
+        }
+
+        private void UnindexTriggers(AbilitySpec spec)
+        {
+            for (int i = _triggers.Count - 1; i >= 0; i--)
+            {
+                if (_triggers[i].Spec == spec) _triggers.RemoveAt(i);
+            }
+        }
+
+        private readonly struct TriggerEntry
+        {
+            public TriggerEntry(AbilitySpec spec, AbilityTrigger trigger)
+            {
+                Spec = spec;
+                Trigger = trigger;
+            }
+
+            public AbilitySpec Spec { get; }
+            public AbilityTrigger Trigger { get; }
         }
         #endregion
 

@@ -17,6 +17,7 @@ items:
   - SpellBook.GAS.Actions.ForEachTargetAction
   - SpellBook.GAS.Actions.GameplayAction
   - SpellBook.GAS.Actions.RemoveEffectAction
+  - SpellBook.GAS.Actions.SendGameplayEventAction
   langs:
   - csharp
   - vb
@@ -111,6 +112,12 @@ references:
   name: RemoveEffectAction
   nameWithType: RemoveEffectAction
   fullName: SpellBook.GAS.Actions.RemoveEffectAction
+- uid: SpellBook.GAS.Actions.SendGameplayEventAction
+  commentId: T:SpellBook.GAS.Actions.SendGameplayEventAction
+  href: SpellBook.GAS.Actions.SendGameplayEventAction.html
+  name: SendGameplayEventAction
+  nameWithType: SendGameplayEventAction
+  fullName: SpellBook.GAS.Actions.SendGameplayEventAction
 - uid: SpellBook.GAS.Actions
   commentId: N:SpellBook.GAS.Actions
   name: SpellBook.GAS.Actions

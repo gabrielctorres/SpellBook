@@ -52,6 +52,7 @@ items:
   - SpellBook.GAS.Actions.DelayedAction
   - SpellBook.GAS.Actions.ForEachTargetAction
   - SpellBook.GAS.Actions.RemoveEffectAction
+  - SpellBook.GAS.Actions.SendGameplayEventAction
   - SpellBook.GAS.Bridges.RaiseEventAction
   - SpellBook.GAS.Effects.DebugLogAction
   - SpellBook.GAS.Effects.SpawnVFXAction

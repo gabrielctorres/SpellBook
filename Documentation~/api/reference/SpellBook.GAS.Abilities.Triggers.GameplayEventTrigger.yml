@@ -1,0 +1,369 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger
+  commentId: T:SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger
+  id: GameplayEventTrigger
+  parent: SpellBook.GAS.Abilities.Triggers
+  children:
+  - SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger.Tag
+  langs:
+  - csharp
+  - vb
+  name: GameplayEventTrigger
+  nameWithType: GameplayEventTrigger
+  fullName: SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger
+  type: Class
+  namespace: SpellBook.GAS.Abilities.Triggers
+  summary: Dispara quando o ASC recebe o evento de gameplay <xref href="SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger.Tag" data-throw-if-not-resolved="false"></xref> ou de uma tag filha dela.
+  example: []
+  syntax:
+    content: >-
+      [Serializable]
+
+      [TypeCategory("Evento", Summary = "Ativa a habilidade quando o ASC recebe um evento de gameplay.")]
+
+      public sealed class GameplayEventTrigger : AbilityTrigger
+    content.vb: >-
+      <Serializable>
+
+      <TypeCategory("Evento", Summary:="Ativa a habilidade quando o ASC recebe um evento de gameplay.")>
+
+      Public NotInheritable Class GameplayEventTrigger Inherits AbilityTrigger
+  inheritance:
+  - System.Object
+  - SpellBook.GAS.Abilities.Triggers.AbilityTrigger
+  inheritedMembers:
+  - SpellBook.GAS.Abilities.Triggers.AbilityTrigger.OnlyWithAutocast
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+  attributes:
+  - type: System.SerializableAttribute
+    ctor: System.SerializableAttribute.#ctor
+    arguments: []
+  - type: SpellBook.Core.Inspector.TypeCategoryAttribute
+    ctor: SpellBook.Core.Inspector.TypeCategoryAttribute.#ctor(System.String)
+    arguments:
+    - type: System.String
+      value: Evento
+    namedArguments:
+    - name: Summary
+      type: System.String
+      value: Ativa a habilidade quando o ASC recebe um evento de gameplay.
+- uid: SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger.Tag
+  commentId: P:SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger.Tag
+  id: Tag
+  parent: SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger
+  langs:
+  - csharp
+  - vb
+  name: Tag
+  nameWithType: GameplayEventTrigger.Tag
+  fullName: SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger.Tag
+  type: Property
+  namespace: SpellBook.GAS.Abilities.Triggers
+  summary: Tag do evento. Inválida não dispara.
+  example: []
+  syntax:
+    content: public GameplayTag Tag { get; set; }
+    parameters: []
+    return:
+      type: SpellBook.Tags.GameplayTag
+    content.vb: Public Property Tag As GameplayTag
+  overload: SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger.Tag*
+references:
+- uid: SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger.Tag
+  commentId: P:SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger.Tag
+  href: SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger.html#SpellBook_GAS_Abilities_Triggers_GameplayEventTrigger_Tag
+  name: Tag
+  nameWithType: GameplayEventTrigger.Tag
+  fullName: SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger.Tag
+- uid: SpellBook.GAS.Abilities.Triggers
+  commentId: N:SpellBook.GAS.Abilities.Triggers
+  name: SpellBook.GAS.Abilities.Triggers
+  nameWithType: SpellBook.GAS.Abilities.Triggers
+  fullName: SpellBook.GAS.Abilities.Triggers
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+  - name: .
+  - uid: SpellBook.GAS.Abilities.Triggers
+    name: Triggers
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+  - name: .
+  - uid: SpellBook.GAS.Abilities.Triggers
+    name: Triggers
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object
+  name: object
+  nameWithType: object
+  fullName: object
+  nameWithType.vb: Object
+  fullName.vb: Object
+  name.vb: Object
+- uid: SpellBook.GAS.Abilities.Triggers.AbilityTrigger
+  commentId: T:SpellBook.GAS.Abilities.Triggers.AbilityTrigger
+  parent: SpellBook.GAS.Abilities.Triggers
+  href: SpellBook.GAS.Abilities.Triggers.AbilityTrigger.html
+  name: AbilityTrigger
+  nameWithType: AbilityTrigger
+  fullName: SpellBook.GAS.Abilities.Triggers.AbilityTrigger
+- uid: SpellBook.GAS.Abilities.Triggers.AbilityTrigger.OnlyWithAutocast
+  commentId: P:SpellBook.GAS.Abilities.Triggers.AbilityTrigger.OnlyWithAutocast
+  parent: SpellBook.GAS.Abilities.Triggers.AbilityTrigger
+  href: SpellBook.GAS.Abilities.Triggers.AbilityTrigger.html#SpellBook_GAS_Abilities_Triggers_AbilityTrigger_OnlyWithAutocast
+  name: OnlyWithAutocast
+  nameWithType: AbilityTrigger.OnlyWithAutocast
+  fullName: SpellBook.GAS.Abilities.Triggers.AbilityTrigger.OnlyWithAutocast
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  name: Equals(object)
+  nameWithType: object.Equals(object)
+  fullName: object.Equals(object)
+  nameWithType.vb: Object.Equals(Object)
+  fullName.vb: Object.Equals(Object)
+  name.vb: Equals(Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  name: Equals(object, object)
+  nameWithType: object.Equals(object, object)
+  fullName: object.Equals(object, object)
+  nameWithType.vb: Object.Equals(Object, Object)
+  fullName.vb: Object.Equals(Object, Object)
+  name.vb: Equals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  name: GetHashCode()
+  nameWithType: object.GetHashCode()
+  fullName: object.GetHashCode()
+  nameWithType.vb: Object.GetHashCode()
+  fullName.vb: Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gethashcode
+  - name: (
+  - name: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  name: GetType()
+  nameWithType: object.GetType()
+  fullName: object.GetType()
+  nameWithType.vb: Object.GetType()
+  fullName.vb: Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.gettype
+  - name: (
+  - name: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  name: ReferenceEquals(object, object)
+  nameWithType: object.ReferenceEquals(object, object)
+  fullName: object.ReferenceEquals(object, object)
+  nameWithType.vb: Object.ReferenceEquals(Object, Object)
+  fullName.vb: Object.ReferenceEquals(Object, Object)
+  name.vb: ReferenceEquals(Object, Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.referenceequals
+  - name: (
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: ','
+  - name: " "
+  - uid: System.Object
+    name: Object
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object
+  - name: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  name: ToString()
+  nameWithType: object.ToString()
+  fullName: object.ToString()
+  nameWithType.vb: Object.ToString()
+  fullName.vb: Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.object.tostring
+  - name: (
+  - name: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  href: https://learn.microsoft.com/dotnet/api/system
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger.Tag*
+  commentId: Overload:SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger.Tag
+  href: SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger.html#SpellBook_GAS_Abilities_Triggers_GameplayEventTrigger_Tag
+  name: Tag
+  nameWithType: GameplayEventTrigger.Tag
+  fullName: SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger.Tag
+- uid: SpellBook.Tags.GameplayTag
+  commentId: T:SpellBook.Tags.GameplayTag
+  parent: SpellBook.Tags
+  href: SpellBook.Tags.GameplayTag.html
+  name: GameplayTag
+  nameWithType: GameplayTag
+  fullName: SpellBook.Tags.GameplayTag
+- uid: SpellBook.Tags
+  commentId: N:SpellBook.Tags
+  name: SpellBook.Tags
+  nameWithType: SpellBook.Tags
+  fullName: SpellBook.Tags
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Tags
+    name: Tags
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.Tags
+    name: Tags

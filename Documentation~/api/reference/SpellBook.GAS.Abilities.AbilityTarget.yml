@@ -7,6 +7,7 @@ items:
   children:
   - SpellBook.GAS.Abilities.AbilityTarget.AtPoint(UnityEngine.Vector3)
   - SpellBook.GAS.Abilities.AbilityTarget.AtUnit(SpellBook.GAS.Core.AbilitySystemComponent)
+  - SpellBook.GAS.Abilities.AbilityTarget.AtUnit(SpellBook.GAS.Core.AbilitySystemComponent,UnityEngine.Vector3)
   - SpellBook.GAS.Abilities.AbilityTarget.HasPoint
   - SpellBook.GAS.Abilities.AbilityTarget.None
   - SpellBook.GAS.Abilities.AbilityTarget.Point
@@ -163,6 +164,34 @@ items:
     return:
       type: SpellBook.GAS.Abilities.AbilityTarget
     content.vb: Public Shared Function AtUnit(unit As AbilitySystemComponent) As AbilityTarget
+  overload: SpellBook.GAS.Abilities.AbilityTarget.AtUnit*
+- uid: SpellBook.GAS.Abilities.AbilityTarget.AtUnit(SpellBook.GAS.Core.AbilitySystemComponent,UnityEngine.Vector3)
+  commentId: M:SpellBook.GAS.Abilities.AbilityTarget.AtUnit(SpellBook.GAS.Core.AbilitySystemComponent,UnityEngine.Vector3)
+  id: AtUnit(SpellBook.GAS.Core.AbilitySystemComponent,UnityEngine.Vector3)
+  parent: SpellBook.GAS.Abilities.AbilityTarget
+  langs:
+  - csharp
+  - vb
+  name: AtUnit(AbilitySystemComponent, Vector3)
+  nameWithType: AbilityTarget.AtUnit(AbilitySystemComponent, Vector3)
+  fullName: SpellBook.GAS.Abilities.AbilityTarget.AtUnit(SpellBook.GAS.Core.AbilitySystemComponent, UnityEngine.Vector3)
+  type: Method
+  namespace: SpellBook.GAS.Abilities
+  summary: >-
+    Alvo na unidade <code class="paramref">unit</code> com o ponto <code class="paramref">point</code> no lugar da posição dela. Unidade
+
+    nula dá o alvo só de ponto.
+  example: []
+  syntax:
+    content: public static AbilityTarget AtUnit(AbilitySystemComponent unit, Vector3 point)
+    parameters:
+    - id: unit
+      type: SpellBook.GAS.Core.AbilitySystemComponent
+    - id: point
+      type: UnityEngine.Vector3
+    return:
+      type: SpellBook.GAS.Abilities.AbilityTarget
+    content.vb: Public Shared Function AtUnit(unit As AbilitySystemComponent, point As Vector3) As AbilityTarget
   overload: SpellBook.GAS.Abilities.AbilityTarget.AtUnit*
 references:
 - uid: SpellBook.GAS.Abilities.AbilityTarget.None

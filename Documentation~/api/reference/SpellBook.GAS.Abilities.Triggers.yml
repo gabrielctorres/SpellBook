@@ -1,0 +1,72 @@
+### YamlMime:ManagedReference
+items:
+- uid: SpellBook.GAS.Abilities.Triggers
+  commentId: N:SpellBook.GAS.Abilities.Triggers
+  id: SpellBook.GAS.Abilities.Triggers
+  children:
+  - SpellBook.GAS.Abilities.Triggers.AbilityTrigger
+  - SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger
+  - SpellBook.GAS.Abilities.Triggers.TagAddedTrigger
+  - SpellBook.GAS.Abilities.Triggers.TagRemovedTrigger
+  langs:
+  - csharp
+  - vb
+  name: SpellBook.GAS.Abilities.Triggers
+  nameWithType: SpellBook.GAS.Abilities.Triggers
+  fullName: SpellBook.GAS.Abilities.Triggers
+  type: Namespace
+references:
+- uid: SpellBook.GAS.Abilities.Triggers.AbilityTrigger
+  commentId: T:SpellBook.GAS.Abilities.Triggers.AbilityTrigger
+  parent: SpellBook.GAS.Abilities.Triggers
+  href: SpellBook.GAS.Abilities.Triggers.AbilityTrigger.html
+  name: AbilityTrigger
+  nameWithType: AbilityTrigger
+  fullName: SpellBook.GAS.Abilities.Triggers.AbilityTrigger
+- uid: SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger
+  commentId: T:SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger
+  href: SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger.html
+  name: GameplayEventTrigger
+  nameWithType: GameplayEventTrigger
+  fullName: SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger
+- uid: SpellBook.GAS.Abilities.Triggers.TagAddedTrigger
+  commentId: T:SpellBook.GAS.Abilities.Triggers.TagAddedTrigger
+  href: SpellBook.GAS.Abilities.Triggers.TagAddedTrigger.html
+  name: TagAddedTrigger
+  nameWithType: TagAddedTrigger
+  fullName: SpellBook.GAS.Abilities.Triggers.TagAddedTrigger
+- uid: SpellBook.GAS.Abilities.Triggers.TagRemovedTrigger
+  commentId: T:SpellBook.GAS.Abilities.Triggers.TagRemovedTrigger
+  href: SpellBook.GAS.Abilities.Triggers.TagRemovedTrigger.html
+  name: TagRemovedTrigger
+  nameWithType: TagRemovedTrigger
+  fullName: SpellBook.GAS.Abilities.Triggers.TagRemovedTrigger
+- uid: SpellBook.GAS.Abilities.Triggers
+  commentId: N:SpellBook.GAS.Abilities.Triggers
+  name: SpellBook.GAS.Abilities.Triggers
+  nameWithType: SpellBook.GAS.Abilities.Triggers
+  fullName: SpellBook.GAS.Abilities.Triggers
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+  - name: .
+  - uid: SpellBook.GAS.Abilities.Triggers
+    name: Triggers
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+  - name: .
+  - uid: SpellBook.GAS.Abilities.Triggers
+    name: Triggers

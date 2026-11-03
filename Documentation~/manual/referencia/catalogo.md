@@ -60,6 +60,16 @@ Aparece em: `Ability Description > Elements`.
 | [Template Element](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.TemplateElement.html) | Descrição | Modelo com marcadores trocados por atributos ou texto. |
 | [Text Element](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.TextElement.html) | Descrição | Texto fixo. |
 
+## `AbilityTrigger` {#spellbook-gas-abilities-triggers-abilitytrigger}
+
+Aparece em: `Gameplay Ability > Triggers`.
+
+| Tipo | Categoria | Resumo |
+|---|---|---|
+| [Gameplay Event Trigger](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger.html) | Evento | Ativa a habilidade quando o ASC recebe um evento de gameplay. |
+| [Tag Added Trigger](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Triggers.TagAddedTrigger.html) | Tags | Ativa a habilidade quando o ASC ganha uma tag. |
+| [Tag Removed Trigger](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Triggers.TagRemovedTrigger.html) | Tags | Ativa a habilidade quando o ASC perde uma tag. |
+
 ## `GameplayAction` {#spellbook-gas-actions-gameplayaction}
 
 Aparece em: `Chance Action > Actions`, `Conditional Action > Else`, `Conditional Action > Then`, `Delayed Action > Actions`, `For Each Target Action > Actions`, `Gameplay Ability > On Activate`, `Gameplay Ability > On Cancel`, `Gameplay Ability > On End`, `Gameplay Effect > On Applied`, `Gameplay Effect > On Removed`, `Gameplay Effect > On Tick`, `Parallel Action > Actions`, `Repeat Action > Actions`, `Spawn Projectile Action > On Hit Actions`.
@@ -79,6 +89,7 @@ Aparece em: `Chance Action > Actions`, `Conditional Action > Else`, `Conditional
 | [Raise Event Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Bridges.RaiseEventAction.html) | Eventos | Dispara um canal de eventos com um payload fixo ou da habilidade. |
 | [Remove Effect Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Actions.RemoveEffectAction.html) | Efeito | Remove dos alvos um efeito, ou os efeitos que concedem uma tag. |
 | [Repeat Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.RepeatAction.html) | Fluxo | Repete as ações várias vezes, com intervalo opcional. |
+| [Send Gameplay Event Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Actions.SendGameplayEventAction.html) | Evento | Envia um evento de gameplay ao ASC de cada alvo. |
 | [Spawn Projectile Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.SpawnProjectileAction.html) | Mundo | Lança projéteis que rodam ações ao acertar. |
 | [Spawn VFX Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Effects.SpawnVFXAction.html) | Apresentação | Cria um efeito visual no alvo e, se marcado, o remove quando o efeito sai. |
 | [Targeting Action](https://gabrielctorres.github.io/SpellBook/api/SpellBook.GAS.Abilities.Actions.TargetingAction.html) | Alvo | Troca ou soma aos alvos do evento os alvos que o seletor escolheu. |

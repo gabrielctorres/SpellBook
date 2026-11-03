@@ -34,6 +34,7 @@ items:
   - SpellBook.GAS.Abilities.GameplayAbility.OnEnd
   - SpellBook.GAS.Abilities.GameplayAbility.OnValidate
   - SpellBook.GAS.Abilities.GameplayAbility.RequiredTags
+  - SpellBook.GAS.Abilities.GameplayAbility.Triggers
   - SpellBook.GAS.Abilities.GameplayAbility.TryGetValue(System.String,System.Int32,System.Single@)
   - SpellBook.GAS.Abilities.GameplayAbility.Validate(SpellBook.Core.Validation.ValidationResult)
   - SpellBook.GAS.Abilities.GameplayAbility.Values
@@ -853,6 +854,27 @@ items:
       type: SpellBook.GAS.Values.ScalableFloat
     content.vb: Public Property CastRange As ScalableFloat
   overload: SpellBook.GAS.Abilities.GameplayAbility.CastRange*
+- uid: SpellBook.GAS.Abilities.GameplayAbility.Triggers
+  commentId: P:SpellBook.GAS.Abilities.GameplayAbility.Triggers
+  id: Triggers
+  parent: SpellBook.GAS.Abilities.GameplayAbility
+  langs:
+  - csharp
+  - vb
+  name: Triggers
+  nameWithType: GameplayAbility.Triggers
+  fullName: SpellBook.GAS.Abilities.GameplayAbility.Triggers
+  type: Property
+  namespace: SpellBook.GAS.Abilities
+  summary: 'Gatilhos da habilidade. O ASC os lê na concessão: mudar a lista depois só vale para a próxima concessão.'
+  example: []
+  syntax:
+    content: public List<AbilityTrigger> Triggers { get; }
+    parameters: []
+    return:
+      type: System.Collections.Generic.List{SpellBook.GAS.Abilities.Triggers.AbilityTrigger}
+    content.vb: Public ReadOnly Property Triggers As List(Of AbilityTrigger)
+  overload: SpellBook.GAS.Abilities.GameplayAbility.Triggers*
 - uid: SpellBook.GAS.Abilities.GameplayAbility.CommitMode
   commentId: P:SpellBook.GAS.Abilities.GameplayAbility.CommitMode
   id: CommitMode
@@ -6386,6 +6408,45 @@ references:
   name: ScalableFloat
   nameWithType: ScalableFloat
   fullName: SpellBook.GAS.Values.ScalableFloat
+- uid: SpellBook.GAS.Abilities.GameplayAbility.Triggers*
+  commentId: Overload:SpellBook.GAS.Abilities.GameplayAbility.Triggers
+  href: SpellBook.GAS.Abilities.GameplayAbility.html#SpellBook_GAS_Abilities_GameplayAbility_Triggers
+  name: Triggers
+  nameWithType: GameplayAbility.Triggers
+  fullName: SpellBook.GAS.Abilities.GameplayAbility.Triggers
+- uid: System.Collections.Generic.List{SpellBook.GAS.Abilities.Triggers.AbilityTrigger}
+  commentId: T:System.Collections.Generic.List{SpellBook.GAS.Abilities.Triggers.AbilityTrigger}
+  parent: System.Collections.Generic
+  definition: System.Collections.Generic.List`1
+  href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  name: List<AbilityTrigger>
+  nameWithType: List<AbilityTrigger>
+  fullName: System.Collections.Generic.List<SpellBook.GAS.Abilities.Triggers.AbilityTrigger>
+  nameWithType.vb: List(Of AbilityTrigger)
+  fullName.vb: System.Collections.Generic.List(Of SpellBook.GAS.Abilities.Triggers.AbilityTrigger)
+  name.vb: List(Of AbilityTrigger)
+  spec.csharp:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: <
+  - uid: SpellBook.GAS.Abilities.Triggers.AbilityTrigger
+    name: AbilityTrigger
+    href: SpellBook.GAS.Abilities.Triggers.AbilityTrigger.html
+  - name: '>'
+  spec.vb:
+  - uid: System.Collections.Generic.List`1
+    name: List
+    isExternal: true
+    href: https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1
+  - name: (
+  - name: Of
+  - name: " "
+  - uid: SpellBook.GAS.Abilities.Triggers.AbilityTrigger
+    name: AbilityTrigger
+    href: SpellBook.GAS.Abilities.Triggers.AbilityTrigger.html
+  - name: )
 - uid: SpellBook.GAS.Abilities.CommitMode.OnStart
   commentId: F:SpellBook.GAS.Abilities.CommitMode.OnStart
   href: SpellBook.GAS.Abilities.CommitMode.html#SpellBook_GAS_Abilities_CommitMode_OnStart

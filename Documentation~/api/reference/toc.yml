@@ -350,6 +350,12 @@ items:
   - uid: SpellBook.GAS.Abilities.GameplayAbility
     name: GameplayAbility
     type: Class
+  - uid: SpellBook.GAS.Abilities.GameplayEventData
+    name: GameplayEventData
+    type: Struct
+  - uid: SpellBook.GAS.Abilities.GameplayEventHandler
+    name: GameplayEventHandler
+    type: Delegate
   - uid: SpellBook.GAS.Abilities.TemplateElement
     name: TemplateElement
     type: Class
@@ -409,6 +415,22 @@ items:
   - uid: SpellBook.GAS.Abilities.Projectiles.Projectile.MovementVectors
     name: Projectile.MovementVectors
     type: Enum
+- uid: SpellBook.GAS.Abilities.Triggers
+  name: SpellBook.GAS.Abilities.Triggers
+  type: Namespace
+  items:
+  - uid: SpellBook.GAS.Abilities.Triggers.AbilityTrigger
+    name: AbilityTrigger
+    type: Class
+  - uid: SpellBook.GAS.Abilities.Triggers.GameplayEventTrigger
+    name: GameplayEventTrigger
+    type: Class
+  - uid: SpellBook.GAS.Abilities.Triggers.TagAddedTrigger
+    name: TagAddedTrigger
+    type: Class
+  - uid: SpellBook.GAS.Abilities.Triggers.TagRemovedTrigger
+    name: TagRemovedTrigger
+    type: Class
 - uid: SpellBook.GAS.Actions
   name: SpellBook.GAS.Actions
   type: Namespace
@@ -451,6 +473,9 @@ items:
     type: Class
   - uid: SpellBook.GAS.Actions.RemoveEffectAction
     name: RemoveEffectAction
+    type: Class
+  - uid: SpellBook.GAS.Actions.SendGameplayEventAction
+    name: SendGameplayEventAction
     type: Class
 - uid: SpellBook.GAS.Attributes
   name: SpellBook.GAS.Attributes
