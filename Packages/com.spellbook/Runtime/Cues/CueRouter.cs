@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using SpellBook.Core;
+using SpellBook.Core.Validation;
 using SpellBook.Tags;
 using SpellBook.Time;
 using UnityEngine;
@@ -13,7 +14,7 @@ namespace SpellBook.Cues
     /// </summary>
     [HelpURL(DocUrls.Cues + "#cuerouter")]
     [DisallowMultipleComponent]
-    public sealed class CueRouter : MonoBehaviour
+    public sealed class CueRouter : MonoBehaviour, IValidatable
     {
         [SerializeField, Tooltip("Bibliotecas em que o roteador procura o cue de cada tag. Na tag repetida, vale a primeira.")]
         private List<CueLibrary> libraries = new List<CueLibrary>();
@@ -69,6 +70,37 @@ namespace SpellBook.Cues
         internal SpawnerAsset DefaultSpawner => SpawnerAsset.OrDefault(defaultSpawner);
 
         internal GameObject AudioPrefab => audioPrefab;
+
+        public void Validate(ValidationResult result)
+        {
+            bool hasLibrary = false;
+            bool hasSounds = false;
+            for (int i = 0; i < libraries.Count; i++)
+            {
+                if (libraries[i] == null) continue;
+                hasLibrary = true;
+                IReadOnlyList<CueDefinition> cues = libraries[i].Cues;
+                for (int j = 0; j < cues.Count; j++)
+                {
+                    if (cues[j] != null && cues[j].Sounds.Count > 0) hasSounds = true;
+                }
+            }
+
+            if (!hasLibrary)
+            {
+                result.AddWarning("Sem biblioteca. O roteador não acha cue nenhum.", nameof(libraries));
+            }
+
+            if (hasSounds && audioPrefab == null)
+            {
+                result.AddWarning("Sem prefab de áudio. Os sons das bibliotecas não tocam.", nameof(audioPrefab));
+            }
+
+            if (anchor == null)
+            {
+                result.AddWarning("Sem âncora. As ações de cue não acham este roteador.", nameof(anchor));
+            }
+        }
 
         // Mensagens da Unity internas para os testes EditMode, em que a Unity não as chama
         internal void Awake()

@@ -3,6 +3,7 @@
     "rootNamespace": "SpellBook.Cues.Tests",
     "references": [
         "SpellBook.Core",
+        "SpellBook.Core.Editor",
         "SpellBook.Tags",
         "SpellBook.Time",
         "SpellBook.Cues",

@@ -1,6 +1,7 @@
 using System;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using UnityEngine;
 using UnityEngine.Audio;
 
@@ -59,6 +60,35 @@ namespace SpellBook.Cues
             if (instance.TryGetComponent(out CueAudioPlayer player))
             {
                 player.Play(Clip, volume, pitch, SpatialBlend, Mixer, loop);
+            }
+        }
+
+        public override void Validate(ValidationResult result, string path, CueKind kind)
+        {
+            if (Clip == null)
+            {
+                result.AddError("Som sem clipe. Escolha o clipe tocado.", path + "." + nameof(Clip));
+            }
+
+            if (Volume.x > Volume.y)
+            {
+                result.AddError("Faixa de volume invertida: o mínimo é maior que o máximo.", path + "." + nameof(Volume));
+            }
+
+            if (Volume.x < 0f || Volume.y < 0f || Volume.x > 1f || Volume.y > 1f)
+            {
+                result.AddError("Volume fora de 0 a 1.", path + "." + nameof(Volume));
+            }
+
+            if (Pitch.x > Pitch.y)
+            {
+                result.AddError("Faixa de altura invertida: o mínimo é maior que o máximo.", path + "." + nameof(Pitch));
+            }
+
+            if (Loop && kind == CueKind.Burst)
+            {
+                result.AddError("Loop num cue Burst não repete. Desligue o loop ou mude o cue para Looping.",
+                    path + "." + nameof(Loop));
             }
         }
     }

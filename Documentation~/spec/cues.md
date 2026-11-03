@@ -341,6 +341,24 @@ Depende de: CU3b.
 - Critério de pronto: a parte do R15 no CA20 verde.
 - Tamanho estimado: ~380 linhas; 8 arquivos. Depende de: CU5.
 
+### Detalhe (2026-11-03)
+- CA: CA20 (parte do R15: as regras do Design 5, com o objeto clicável e o `propertyPath`). O R24 fica fora, como o Design 5 diz.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/Cues/CueItem.cs:12-18`: `CueItem` ganha `public virtual void Validate(ValidationResult result, string path, CueKind kind)`, que não acusa nada (adiado no CU2).
+  - `Runtime/Cues/VfxCueItem.cs:182-227`: `Validate`: sem `Prefab` (erro, `<path>.Prefab`), `Duration` negativa (erro, `<path>.Duration`), `End` `OnRemove` num `Burst` (erro, `<path>.End`).
+  - `Runtime/Cues/SoundCueItem.cs:243-292`: `Validate`: sem `Clip` (erro, `<path>.Clip`); `Volume` invertido ou fora de 0 a 1 (erro, `<path>.Volume`); `Pitch` invertido (erro, `<path>.Pitch`); `Loop` num `Burst` (erro, `<path>.Loop`).
+  - `Runtime/Cues/CueDefinition.cs:45-94`: `IValidatable`; sem tag (erro, `tag`); sem itens e sem sons (aviso, `items`); item ou som nulo (erro, `items.Array.data[i]` ou `sounds.Array.data[i]`); cada item e cada som pelo `Validate` do item; `maxSimultaneous` negativo (erro, `maxSimultaneous`).
+  - `Runtime/Cues/CueLibrary.cs:106-113`: `IValidatable`; definição nula (erro, `cues.Array.data[i]`); tag repetida, contada só nas definições com tag (erro na repetição, `cues.Array.data[i]`; vale a primeira, como o `CueIndex`).
+  - `Runtime/Cues/CueRouter.cs:16-71`: `IValidatable`; sem biblioteca não nula (aviso, `libraries`); sem `audioPrefab` com algum som numa definição das bibliotecas (aviso, `audioPrefab`); sem âncora (aviso, `anchor`).
+  - `Tests/Testing/CuesFactory.cs:73-103`: `CreateLibrary(params CueDefinition[])`, que o `CreateRouter` passa a usar, e `SetLibraries(router, params CueLibrary[])`.
+  - `Tests/Cues/EditMode/SpellBook.Cues.Tests.EditMode.asmdef:4-12` (+`SpellBook.Core.Editor`, para o `ProjectValidator` e o `SpellBookEditor.CollectMessages`, como `Tests/Teams/EditMode`). Consequência direta (ADR 0042, item 6).
+  - `Tests/Cues/EditMode/CuesValidationTests.cs` (novo).
+  - Sem `validador.md` nem `CHANGELOG.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007), e o ticket não quebra nada.
+- Testes red (EditMode, `SpellBook.Cues.Tests.EditMode`, classe `CuesValidationTests`): `Definition_NoTag_IsError`; `Definition_NoItemsNoSounds_IsWarning`; `Definition_NullItemOrSound_IsError`; `Definition_NegativeMaxSimultaneous_IsError`; `Vfx_NoPrefab_NegativeDuration_AreErrors`; `Vfx_OnRemoveInBurst_IsError`; `Sound_NoClip_IsError`; `Sound_InvertedRanges_VolumeOutsideZeroOne_AreErrors`; `Sound_LoopInBurst_IsError`; `Library_NullDefinition_RepeatedTag_AreErrors`; `Router_NoLibrary_NoAnchor_AreWarnings`; `Router_SoundsWithoutAudioPrefab_IsWarning`; `ValidSetup_HasNoMessages`; `ProjectValidator_ReportsCueAssets`.
+- Critério de pronto: os 14 de `CuesValidationTests` verdes, e os de `CueRouterTests`, `SoundCueTests` e `CueIndexTests` seguem verdes (a factory muda), pelo filtro `\.CuesValidationTests\.;\.CueRouterTests\.;\.SoundCueTests\.;\.CueIndexTests\.` no EditMode, com `total` conferido no XML.
+- Tamanho: ~430 linhas e 9 arquivos, pela ADR 0042. Exceção: nenhuma. Medido na implementação: 479 linhas e 9 arquivos.
+- Commit: `feat(cues): validação da definição, da biblioteca e do roteador`
+
 ### CU7 — Inspector e "Testar"
 - Escopo: `Editor/Cues/SpellBook.Cues.Editor.asmdef` (novo), `Editor/Cues/CuesEditors.cs` (biblioteca, roteador, âncora), `CueDefinitionEditor.cs` (novo), os `[TypeCategory(..., Line)]` em `VfxCueItem.cs` e `SoundCueItem.cs`, `AsmdefRulesTests.cs` (`Cues` em `EditorModules`), `SpellBookEditorCoverageTests.cs` (+`SpellBook.Cues`), `cues.md`, `CHANGELOG.md`.
 - Testes red: `CuesEditorAsmdef_References`; coverage com o Cues; `ItemLine_SummaryFromTypeCategory` (pelo `SummaryFormatter`).

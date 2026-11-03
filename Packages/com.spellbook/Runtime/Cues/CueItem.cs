@@ -1,4 +1,5 @@
 using System;
+using SpellBook.Core.Validation;
 using UnityEngine;
 
 namespace SpellBook.Cues
@@ -15,6 +16,13 @@ namespace SpellBook.Cues
         /// <see cref="CuePlayback.Spawn"/>, para o roteador rastrear e devolver.
         /// </summary>
         public abstract void Play(in CueParameters parameters, CuePlayback playback);
+
+        /// <summary>
+        /// Acusa a configuração inválida do item numa definição do <paramref name="kind"/> dado. O
+        /// <paramref name="path"/> é o caminho serializado do item, para a mensagem apontar o campo. O padrão não acusa
+        /// nada.
+        /// </summary>
+        public virtual void Validate(ValidationResult result, string path, CueKind kind) { }
     }
 
     /// <summary>Onde o objeto do cue fica em relação ao alvo. O roteador copia a pose; nunca muda o parent.</summary>

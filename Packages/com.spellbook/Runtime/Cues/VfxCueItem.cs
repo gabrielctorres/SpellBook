@@ -1,6 +1,7 @@
 using System;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using UnityEngine;
 
 namespace SpellBook.Cues
@@ -55,6 +56,25 @@ namespace SpellBook.Cues
             instance.transform.localScale = Prefab.transform.localScale * factor;
 
             if (instance.TryGetComponent(out ParticleSystem particles)) particles.Play(true);
+        }
+
+        public override void Validate(ValidationResult result, string path, CueKind kind)
+        {
+            if (Prefab == null)
+            {
+                result.AddError("VFX sem prefab. Escolha o prefab criado pelo cue.", path + "." + nameof(Prefab));
+            }
+
+            if (Duration < 0f)
+            {
+                result.AddError("Duração negativa. Use 0 ou mais segundos.", path + "." + nameof(Duration));
+            }
+
+            if (End == CueEnd.OnRemove && kind == CueKind.Burst)
+            {
+                result.AddError("O fim OnRemove num cue Burst nunca chega. Use outro fim ou mude o cue para Looping.",
+                    path + "." + nameof(End));
+            }
         }
     }
 }

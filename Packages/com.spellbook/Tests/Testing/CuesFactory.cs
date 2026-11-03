@@ -73,16 +73,7 @@ namespace SpellBook.Testing
         public CueRouter CreateRouter(
             ManualTimeSource time, SpawnerAsset spawner, CueRouterAnchor anchor, params CueDefinition[] cues)
         {
-            var library = Track(ScriptableObject.CreateInstance<CueLibrary>(), "CueLibrary_Test");
-            Modify(library, so =>
-            {
-                SerializedProperty list = so.FindProperty("cues");
-                list.arraySize = cues.Length;
-                for (int i = 0; i < cues.Length; i++)
-                {
-                    list.GetArrayElementAtIndex(i).objectReferenceValue = cues[i];
-                }
-            });
+            CueLibrary library = CreateLibrary(cues);
 
             // Inativo até ter os campos: no PlayMode, o AddComponent chamaria o Awake sem as bibliotecas
             GameObject host = Track(new GameObject(), "CueRouter_Test");
@@ -99,6 +90,36 @@ namespace SpellBook.Testing
             });
             host.SetActive(true);
             return router;
+        }
+
+        /// <summary>Biblioteca com as <paramref name="cues"/>, na ordem dada (nulas entram como linhas vazias).</summary>
+        public CueLibrary CreateLibrary(params CueDefinition[] cues)
+        {
+            var library = Track(ScriptableObject.CreateInstance<CueLibrary>(), "CueLibrary_Test");
+            Modify(library, so =>
+            {
+                SerializedProperty list = so.FindProperty("cues");
+                list.arraySize = cues.Length;
+                for (int i = 0; i < cues.Length; i++)
+                {
+                    list.GetArrayElementAtIndex(i).objectReferenceValue = cues[i];
+                }
+            });
+            return library;
+        }
+
+        /// <summary>Troca as bibliotecas do <paramref name="router"/> (nulas entram como linhas vazias).</summary>
+        public void SetLibraries(CueRouter router, params CueLibrary[] libraries)
+        {
+            Modify(router, so =>
+            {
+                SerializedProperty list = so.FindProperty("libraries");
+                list.arraySize = libraries.Length;
+                for (int i = 0; i < libraries.Length; i++)
+                {
+                    list.GetArrayElementAtIndex(i).objectReferenceValue = libraries[i];
+                }
+            });
         }
 
         /// <summary>Põe os <paramref name="sounds"/> na <paramref name="cue"/>, com a seleção dada.</summary>
