@@ -7,23 +7,18 @@ Os agentes do time leem estes arquivos em vez de depender de memória ou de conv
 | Documento | Onde | Dono | Quando |
 |---|---|---|---|
 | Backlog | [backlog.md](backlog.md) | Controlador | Porta de entrada de toda ideia, bug ou pendência |
-| Visão do pacote | `gdd/` | Desenhista | Regras e visão dos sistemas, com selos implementado/parcial/proposta |
 | Design doc | `spec/<épico>.md` (modelo em `spec/_modelo-design-doc.md`) | Desenhista (parte fixa, `/design-doc`) e Fábrica (Detalhe) | Problema, CA, cenário no Sandbox e tickets; um Detalhe por ticket na entrada da fila. Nos épicos antigos, a Spec faz esse papel |
 | PRD | `prd/<slug>.md` | histórico | PRD dos épicos antigos, no papel da parte fixa; a seção 9 recebe o `/ajustar` deles |
 | ADR | `adr/NNNN-titulo.md` (índice em `adr/README.md`) | Desenhista | Decisões que valem para mais de um épico. Uma ADR aceita não é reescrita: ganha emenda datada ou é substituída |
 | DS | `ds/` | Desenhista | Regras do Inspector, da UI e de nomenclatura |
 | Manual público | `manual/` | Fábrica, no passe de documentação | Site MkDocs (GitHub Pages), no estilo TopDown Engine |
 | Planos e estudos | `planos/` | Desenhista | Estudos de origem, como o [gas-estudo-e-roadmap.md](planos/gas-estudo-e-roadmap.md) |
-| Decisões | [decisoes.md](decisoes.md) | quem decide | Log das decisões tomadas sem o usuário e das exceções de tamanho |
-| Time | [TIME.md](TIME.md) | Controlador | Ponteiro para o `CLAUDE.md`, seção "Time de desenvolvimento" |
+| Decisões | [decisoes.md](decisoes.md) | usuário | Registro temporário de decisões do modo autônomo (usuário ausente), revisado pelo usuário ao voltar |
+| Time | [AGENTS.md](../AGENTS.md) | Controlador | Regras do time, seção "Time de desenvolvimento" |
 
 ## Fluxo
 
-1. A ideia nasce no backlog.
-2. Num épico novo, o Desenhista escreve a parte fixa do design doc e as ADRs que valem para mais de um épico.
-3. O usuário aprova a parte fixa e as ADRs novas num **único gate**.
-4. O Controlador cria uma issue por ticket no repositório do SpellBook, com objetivo, CA e links para o design doc e as ADRs.
-5. Na entrada da fila, a Fábrica escreve o Detalhe, implementa e testa; o Examinador revisa; o passo de commit do script commita.
+O fluxo do time está no [AGENTS.md](../AGENTS.md), seção "Time de desenvolvimento".
 
 ## Projeto de desenvolvimento
 
@@ -41,9 +36,9 @@ Layout do repositório:
 
 Para abrir:
 
-1. Confira se `.claude/editor.lock` existe. Se existir, não abra: outro papel está usando a Unity (ADR 0005).
-2. Crie a trava com uma linha `papel; ticket; horário ISO-8601; caminho do host`.
-3. Abra a raiz do repositório pelo Unity Hub (Add project from disk) ou rode a Unity em batchmode com `-projectPath "$PWD"`.
-4. Ao terminar, feche a Unity e apague a trava que você criou, também se algo falhar.
+1. Confira a trava `.claude/editor.lock` na raiz do checkout. Cada checkout tem sua própria trava (ADR 0005). Se existir, não abra a Unity.
+2. Crie a trava nesse checkout com uma linha `papel; ticket; horário ISO-8601; caminho do host`.
+3. Abra a raiz do checkout pelo Unity Hub (Add project from disk) ou rode a Unity em batchmode com `-projectPath "$PWD"`.
+4. Ao terminar, feche a Unity e remova a trava que você criou, também se algo falhar.
 
-Em caso de conflito com o `CLAUDE.md`, vale a ADR.
+Em caso de conflito com o `AGENTS.md`, vale a ADR.

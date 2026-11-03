@@ -1,8 +1,8 @@
 # DS: Inspector de ações (abas por evento, resumo e seletor de alvo)
-Status: Rascunho · Data: 2026-10-31 · Dono: Criativo
+Status: Rascunho · Data: 2026-10-31 · Dono: Desenhista
 Origem: [PRD B-012](../prd/gas-evento-acoes-alvos.md) (R31, P5), [ADR 0018](../adr/0018-hierarquia-unica-de-acoes.md) (item 8), [ADR 0026](../adr/0026-spellbook-sem-odin-editor-proprio-em-ui-toolkit.md) (Inspector em UI Toolkit), [ADR 0013](../adr/0013-serializereference-como-costura-entre-modulos.md) (`[SerializeReference]`).
 
-Este documento define **como o designer vê e edita ações**. Ele não define a API nem a arquitetura: isso é da Spec. Onde uma regra do DS depende de uma decisão técnica, a seção 10 lista a pergunta para o Arquiteto.
+Este documento define **como o designer vê e edita ações**. Ele não define a API nem a arquitetura: isso é da Spec. Onde uma regra do DS depende de uma decisão técnica, a seção 10 lista a pergunta para o Desenhista.
 
 ---
 
@@ -33,7 +33,7 @@ Fora do escopo: o desenho do resto do Inspector do `GameplayAbility` e do `Gamep
 
 ### 3.2 Abas por dono
 
-Os nomes abaixo são o texto do Inspector. A **lista fechada** de eventos na 3.0 é do Arquiteto (PRD B-012, P10); se mudar, muda aqui.
+Os nomes abaixo são o texto do Inspector. A **lista fechada** de eventos na 3.0 é do Desenhista (PRD B-012, P10); se mudar, muda aqui.
 
 | Dono | Abas (na ordem) |
 |---|---|
@@ -194,14 +194,14 @@ O `GameplayAbility` e o `GameplayEffect` ganham a ordem de seções abaixo. O DS
 | Modo Play | Os campos seguem editáveis como no Inspector padrão; a linha da ação **em execução** pode ganhar um pequeno indicador de "rodando" (decisão da Spec, P-DS5; não é requisito) |
 | Ação própria do projeto | Aparece em "Outro" (ou na categoria que o projeto declarar) com ícone genérico e resumo pelo metadado do tipo |
 
-## 10. Perguntas em aberto (com o Arquiteto)
+## 10. Perguntas em aberto (com o Desenhista)
 
 - **P-DS1. Resumo da linha.** A linha precisa que cada tipo de ação informe verbo, objeto principal e condição. A proposta é um **método virtual no tipo da ação** (puro, sem alocação em runtime, `#if UNITY_EDITOR` ou assembly Editor) que devolve o resumo; a alternativa é o catálogo `[TypeCategory(Summary=...)]` só estático (sem valores). O Criativo prefere o método, para o resumo trazer valores ("Esperar 2 s").
 - **P-DS2. Abas.** A proposta é `TabView` do UI Toolkit (Unity 6000.0). Confirmar que existe e serve na 6000.0 (ADR 0010); senão, uma barra de botões própria.
 - **P-DS3. Atributo novo.** Abas e linhas resumidas são do `CustomEditor` do GAS (em `SpellBook.GAS.Editor`), sem atributo novo no Core. Se um campo precisar combinar `[TypePicker]` com outro atributo, vale o "limite conhecido" da ADR 0026 (emenda).
 - **P-DS4. Desempenho do Inspector.** Confirmar que 50 ações recolhidas com resumo abrem sem engasgo, e se o resumo é cacheado até o `SerializedObject` mudar.
 - **P-DS5. Indicador de "rodando" em Play.** Opcional: vale um ticket pequeno ou fica fora? (Não é requisito do PRD.)
-- **P-DS6. Reordenar entre listas** (4.4) e **copiar/colar** (4.5) são requisitos de usabilidade deste DS. A Spec confirma o custo; se o Arquiteto os considerar grandes, viram ticket à parte, e o DS continua a referência.
+- **P-DS6. Reordenar entre listas** (4.4) e **copiar/colar** (4.5) são requisitos de usabilidade deste DS. A Spec confirma o custo; se o Desenhista os considerar grandes, viram ticket à parte, e o DS continua a referência.
 
 ## 11. Verificação (para o `/revisao`)
 

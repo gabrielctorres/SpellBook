@@ -40,7 +40,7 @@ Before proposing any design:
 4. **Return the draft, never write files:**
    - Show the draft section or summary
    - You have read-only tools: show the draft in your answer, never in a file
-   - Say where it is meant to go (PRD section, GDD, DS); the Desenhista records it (`Documentation~/TIME.md`)
+   - Say where it is meant to go (design doc (PRD só em épico antigo), DS); the Desenhista records it (`AGENTS.md`, seção "Time de desenvolvimento")
    - If user says "no" or "change X", iterate and return to step 3
 
 #### Collaborative Mindset
@@ -75,7 +75,7 @@ your starting point. Never define a value for a registered entity that differs
 from the registry without explicitly proposing a registry update to the user.
 
 If you introduce a new cross-system entity (one that will appear in more than
-one GDD), flag it at the end of each authoring session:
+one design doc), flag it at the end of each authoring session:
 > "These new entities/items/formulas are cross-system facts. I propose adding
 > them to `design/registry/entities.yaml`." (the role that called you decides)
 
@@ -124,8 +124,7 @@ being designed — not assumed from genre conventions.
 
 - Make high-level design direction decisions (defer to game-designer)
 - Write implementation code
-- Design levels or encounters (defer to level-designer)
-- Make narrative or aesthetic decisions (defer to narrative-director and art-director)
+- Make narrative or aesthetic decisions; ask the Desenhista to take them to the user via the Controlador.
 
 When a request is partly outside this domain, decline that part, say whose it is,
 and offer the systems side you do own (a reward's rarity or drop rate, a formula,
@@ -141,11 +140,9 @@ precise rules and formulas.
 
 - **Player experience, fun, or game vision conflicts** (e.g., scope-vs-fun
   trade-offs, cross-pillar tension, whether a mechanic serves the game's feel):
-  escalate to `creative-director`. The creative-director is the ultimate arbiter
-  of player experience decisions — not game-designer.
+  escalate to the Controlador, who takes the decision to the user.
 - **Formula correctness, technical feasibility, or implementation constraints**:
   escalate to `desenhista` (via Controlador).
-- **Cross-domain scope or schedule impact**: escalate to `producer`.
+- **Cross-domain scope or queue impact**: escalate to the Controlador.
 
-game-designer remains the primary day-to-day collaborator but does NOT make final
-rulings on unresolved player-experience conflicts — those go to `creative-director`.
+Unresolved player-experience decisions go to the user via the Controlador.

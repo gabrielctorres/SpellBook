@@ -133,7 +133,7 @@ Esta seção é a fonte única das regras de processo. As ADRs guardam a decisã
 - Um ticket = uma issue = um commit. Teto de ~500 linhas e 10 arquivos, medido no Detalhe.
 - Linhas são as adicionadas mais as removidas em `.cs`, `.asmdef`, `.json`, `.yml` de CI e `package.json`. Os outros arquivos contam só nos 10 arquivos.
 - Não contam: `.meta`; saída de gerador com guarda (0040); remoção pura; a entrada do `nav` junto da página; o Detalhe e a linha do ticket no `decisoes.md`. Movimento puro (`R100`) conta 1 linha e nenhum arquivo.
-- Até +30% (~650 linhas ou 13 arquivos), quem detalha registra o motivo numa linha de `Documentation~/decisoes.md`. A exceção vale só para aquele ticket e termina no commit, sem emenda e sem pergunta. Acima de +30%, o ticket se divide.
+- Até +30% (~650 linhas ou 13 arquivos), quem detalha registra o motivo no Detalhe do ticket (no modo autônomo, também no `decisoes.md`). A exceção vale só para aquele ticket e termina no commit, sem emenda e sem pergunta. Acima de +30%, o ticket se divide.
 - Arquivo fora do Detalhe só entra se for consequência direta do ticket, e conta.
 
 ### WIP, trava e testes (ADR 0005)
@@ -144,4 +144,6 @@ Esta seção é a fonte única das regras de processo. As ADRs guardam a decisã
 - Manual, catálogo e referência da API só no passe de documentação (0007 e 0040). O `CHANGELOG.md` entra só no ticket que quebra algo, com a migração.
 
 ### Registro
-- Toda decisão tomada sem o usuário e toda exceção de tamanho entram numa linha de `Documentation~/decisoes.md`: `data | ticket | decisão | base | ADR afetada`.
+- Fora do modo autônomo, dúvida ou decisão volta ao Controlador, que a leva ao usuário. Nada vai para o `Documentation~/decisoes.md`.
+- No modo autônomo (usuário ausente), toda decisão tomada sem o usuário entra numa linha temporária de `Documentation~/decisoes.md`: `data | ticket | decisão | base | ADR afetada`. O usuário a revisa ao voltar.
+- A exceção de tamanho de até +30% fica registrada no Detalhe do ticket (ADR 0042, emenda de 2026-11-03), e no modo autônomo também no `decisoes.md`.

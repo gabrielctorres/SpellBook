@@ -127,6 +127,21 @@ Hoje o fluxo está descrito em `Documentation~/README.md`, `TIME.md` e `backlog.
 - Um ticket do Codex com `.cs` só descobre erro de compilação na revisão. Por isso o Codex fica em refatoração mecânica, e mudança de comportamento continua com a Fábrica.
 - Nasce o agente `.claude/agents/controlador.md`, com `model: sonnet` e todas as ferramentas.
 
+## Emenda (2026-11-03): registro só no modo autônomo e `AGENTS.md` como fonte única
+
+**Status da emenda: Aceita** (decisão do usuário, aprovada pelo usuário em 2026-11-03). Revê os itens 4, 7 e 8 da emenda "design doc por épico e papéis enxutos". Vem com a emenda de 2026-11-03 da 0042.
+
+**Contexto.** O item 8 mandava registrar no `decisoes.md` toda decisão tomada sem o usuário e toda exceção de tamanho. Fora do modo autônomo, as dúvidas já voltam ao Controlador, que as leva ao usuário, e o arquivo enchia de linhas de exceção que o Detalhe já explica. O item 7 punha a fonte única no `CLAUDE.md`, mas desde o commit c152c60 as regras do projeto ficam no `AGENTS.md`, que o Codex e o Antigravity também leem, e o `CLAUDE.md` só o importa.
+
+**Regra.**
+1. **Item 4.** O Detalhe volta ao gate nos mesmos casos, menos o tamanho, que segue a 0042 com a emenda de 2026-11-03: até +30% com o motivo no Detalhe (no modo autônomo, também numa linha do `decisoes.md`), e acima disso o ticket se divide.
+2. **Item 7.** As regras de processo vigentes ficam no `AGENTS.md`, seção "Time de desenvolvimento" (commit c152c60). O `CLAUDE.md` só importa o `AGENTS.md`. Se o `AGENTS.md` divergir de uma ADR, vale a ADR, e o `AGENTS.md` é corrigido.
+3. **Item 8.** Fora do modo autônomo, dúvida ou decisão volta ao Controlador, que a leva ao usuário, e nada vai para o `decisoes.md`. No modo autônomo (usuário ausente), toda decisão tomada sem o usuário entra numa linha temporária de `Documentation~/decisoes.md`, no formato `data | ticket | decisão | base | ADR afetada`, e o usuário a revisa ao voltar. A exceção de tamanho fica registrada no Detalhe, e no modo autônomo também no `decisoes.md`.
+
+**Consequências.**
+- O `decisoes.md` passa a ser o registro das decisões do modo autônomo. As linhas já gravadas ficam como histórico.
+- O `AGENTS.md`, seção "Time de desenvolvimento", as skills `/implementar` e `/revisao` e os agentes `fabrica` e `examinador` seguem esta regra.
+
 ## Em aberto
 
 Nada.

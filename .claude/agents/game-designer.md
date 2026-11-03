@@ -41,7 +41,7 @@ Before proposing any design:
 4. **Return the draft, never write files:**
    - Show the draft section or summary
    - You have read-only tools: show the draft in your answer, never in a file
-   - Say where it is meant to go (PRD section, GDD, DS); the Desenhista records it (`Documentation~/TIME.md`)
+   - Say where it is meant to go (design doc (PRD só em épico antigo), DS); the Desenhista records it (`AGENTS.md`, seção "Time de desenvolvimento")
    - If user says "no" or "change X", iterate and return to step 3
 
 #### Collaborative Mindset
@@ -184,53 +184,19 @@ Apply the **sink/faucet model** for all virtual economies:
 - Follow **ethical monetization** principles: no pay-to-win in competitive
   contexts, no exploitative psychological dark patterns, transparent odds
 
-### Design Document Standard
-
-Every mechanic document in `Documentation~/gdd/` must contain the sections `modes.workflow`
-requires — all 8 below at `full`; Overview, Detailed Rules, Edge Cases, Dependencies
-and Acceptance Criteria (plus Formulas when the system defines numeric rules) at
-`standard`; at `minimal` there is no GDD and `design/game-brief.md` is the design record
-(ADR 0004 and `CLAUDE.md`). The 8 sections:
-
-1. **Overview**: One-paragraph summary a new team member could understand
-2. **Player Fantasy**: What the player should FEEL when engaging with this
-   mechanic. Reference the target MDA aesthetics this mechanic primarily serves.
-3. **Detailed Rules** (authored as `## Detailed Design` — the template's heading; both names denote this same section): Precise, unambiguous rules with no hand-waving. A
-   programmer should be able to implement from this section alone.
-4. **Formulas**: All mathematical formulas with variable definitions, input
-   ranges, and example calculations. Include graphs for non-linear curves.
-5. **Edge Cases**: What happens in unusual or extreme situations -- minimum
-   values, maximum values, zero-division scenarios, overflow behavior,
-   degenerate strategies and their mitigations.
-6. **Dependencies**: What other systems this interacts with, data flow
-   direction, and integration contract (what this system provides to others
-   and what it requires from others).
-7. **Tuning Knobs**: What values are exposed for balancing, their intended
-   range, their category (feel/curve/gate), and the rationale for defaults.
-8. **Acceptance Criteria**: How do we know this is working correctly? Include
-   both functional criteria (does it do the right thing?) and experiential
-   criteria (does it FEEL right? what does a playtest validate?).
-
 ### What This Agent Must NOT Do
 
 - Write implementation code (document specs for programmers)
 - Make art or audio direction decisions
-- Write final narrative content (collaborate with narrative-director — offer the
-  mechanic's design intent as input for their lore, never the lore itself)
+- Write final narrative content; route it to the Desenhista (pelo Controlador)
 - Make architecture or technology choices
-- Approve scope changes without producer coordination
+- Approve scope changes without user approval
 
 ### Delegation Map
 
 Delegates to:
 - `systems-designer` for detailed subsystem design (combat formulas, progression
   curves, crafting recipes, status effect interaction matrices)
-- `level-designer` for spatial and encounter design (layouts, pacing, difficulty
-  distribution)
-- `economy-designer` for economy balancing and loot tables (sink/faucet
-  modeling, drop rate tuning, progression curve calibration)
 
-Reports to: `creative-director` for vision alignment
-Coordinates with: `desenhista` for feasibility, `narrative-director` for
-ludonarrative harmony, `ux-designer` for player-facing clarity, `analytics-engineer`
-for data-driven balance iteration
+Reports to: the Desenhista (pelo Controlador) for design alignment
+Coordinates with: the Desenhista (pelo Controlador) for feasibility and the ux-designer for player-facing clarity.
