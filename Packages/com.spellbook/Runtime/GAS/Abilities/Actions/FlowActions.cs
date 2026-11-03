@@ -8,6 +8,7 @@ using UnityEngine;
 using SpellBook.GAS.Actions;
 using SpellBook.GAS.Conditions;
 using SpellBook.GAS.Effects;
+using SpellBook.GAS.Targeting;
 
 namespace SpellBook.GAS.Abilities.Actions
 {
@@ -128,12 +129,24 @@ namespace SpellBook.GAS.Abilities.Actions
             ActionLists.CollectEffects(Else, effects);
         }
 
+        /// <summary>Avisa a <see cref="TagQueryCondition"/> com sujeito <see cref="ConditionSubject.TargetUnit"/>, que aqui não tem candidato.</summary>
+        public override void Validate(ValidationResult result)
+        {
+            if (GameplayAbility.ContainsTargetUnitQuery(Condition))
+            {
+                result.AddWarning(GameplayAbility.TargetUnitQueryWarning, nameof(Condition));
+            }
+        }
+
         internal override void CollectChildLists(List<ChildActionList> results)
         {
             results.Add(new ChildActionList(nameof(Then), Then));
             results.Add(new ChildActionList(nameof(Else), Else));
         }
     }
+
+    /// <summary>Recebe cada ação não nula da árvore validada, com o caminho dela e se, sem seletor, ela mira o dono.</summary>
+    internal delegate void ActionVisitor(GameplayAction action, string propertyPath, bool targetsOwner);
 
     internal static class ActionLists
     {
@@ -145,14 +158,17 @@ namespace SpellBook.GAS.Abilities.Actions
         /// do campo: ação nula (erro), profundidade acima de <see cref="MaxDepth"/> (aviso), seletor que pede os alvos do evento
         /// num evento sem alvos (erro) e o <see cref="GameplayAction.Validate"/> de cada ação, com o caminho dela na frente.
         /// </summary>
-        public static void Validate(UnityEngine.Object owner, string field, List<GameplayAction> actions, ValidationResult result)
+        public static void Validate(UnityEngine.Object owner, string field, List<GameplayAction> actions, ValidationResult result,
+            ActionVisitor visitor = null)
         {
             var info = owner.GetType().GetField(field, BindingFlags.Public | BindingFlags.Instance)?.GetCustomAttribute<ActionEventAttribute>();
             bool hasEventTargets = info == null || info.HasEventTargets;
-            Walk(actions, field, hasEventTargets, 1, result);
+            bool targetsOwner = info != null && info.DefaultTarget == DefaultTarget.Owner;
+            Walk(actions, field, hasEventTargets, targetsOwner, 1, result, visitor);
         }
 
-        private static void Walk(List<GameplayAction> actions, string listPath, bool hasEventTargets, int depth, ValidationResult result)
+        private static void Walk(List<GameplayAction> actions, string listPath, bool hasEventTargets, bool targetsOwner, int depth,
+            ValidationResult result, ActionVisitor visitor)
         {
             if (actions == null) return;
 
@@ -177,13 +193,16 @@ namespace SpellBook.GAS.Abilities.Actions
                 }
 
                 ValidateAction(action, path, result);
+                bool actionTargetsOwner = action.Target == null ? targetsOwner : action.Target is CasterSelector;
+                visitor?.Invoke(action, path, actionTargetsOwner);
 
                 var children = new List<ChildActionList>();
                 action.CollectChildLists(children);
                 for (int c = 0; c < children.Count; c++)
                 {
                     ChildActionList child = children[c];
-                    Walk(child.Actions, path + "." + child.Field, hasEventTargets || child.OwnEvent, depth + 1, result);
+                    Walk(child.Actions, path + "." + child.Field, hasEventTargets || child.OwnEvent,
+                        actionTargetsOwner && !child.OwnEvent, depth + 1, result, visitor);
                 }
             }
         }

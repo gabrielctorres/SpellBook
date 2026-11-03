@@ -799,6 +799,18 @@ Detalhe pela emenda de 2026-11-03 da ADR 0002, lido no código da branch `feat/g
 - Tamanho: ~404 linhas (228 de runtime e do ajuste no teste do Bridges, 176 do teste novo) e 11 arquivos. Exceção: +10% em arquivos, linha do EV16a de 2026-11-03 no `decisoes.md`.
 - Commit: `feat(gas): validação das listas de ações e do efeito`
 
+### Detalhe EV16b (2026-11-03)
+- CA: CA41 e a parte do CA32 que é regra da habilidade (comportamento, commit, gatilhos, autocast); a regra da emenda de 2026-10-31 (ADR 0035, `TagQueryCondition` `TargetUnit`).
+- Escopo:
+  - `Runtime/GAS/Abilities/Triggers/AbilityTrigger.cs:24-27` e `:50-53`: `public virtual void Validate(ValidationResult, string propertyPath)` (aditivo) e o erro do `GameplayEventTrigger` sem tag.
+  - `Runtime/GAS/Abilities/Actions/FlowActions.cs:129-145`: `ConditionalAction.Validate` (aviso `TargetUnit`) e o `delegate ActionVisitor`; `:158-205`: `ActionLists.Validate` com o visitante opcional e o `Walk` propagando se a ação mira o dono.
+  - `Runtime/GAS/Abilities/GameplayAbility.cs:296-327`: o visitante (ações `Commit` e eventos enviados ao dono) e as chamadas `ValidateBehavior`, `ValidateCommit` e `ValidateTriggers`; `:396-441`: `UsesCastRange` vira `ContainsCondition` genérica, o aviso `TargetUnit` nas regras de ativação, `PositiveAtSomeLevel` e `TableFor`.
+  - `Tests/GAS/EditMode/ActionModelValidationTests.cs`: os testes abaixo e a versão completa do `ConfiguredModel_HasNoMessages`.
+- Testes red (EditMode, `ActionModelValidationTests`): `ChannelTick_OutsideChannel_Warns`, `GameplayEventTrigger_InvalidTag_Error`, `Trigger_TagSentToOwnerBySelf_Warns`, `Passive_WithCostOrCooldown_Warns`, `Channel_WithoutDurationNorCancel_Warns`, `Manual_WithoutCommit_Error`, `Commit_WithOnStart_Warns`, `Autocast_InPassiveOrToggle_Error`, `Autocast_WithoutTrigger_Warns`, `WhenReady_SelectorWithoutCastRange_Warns`, `TagQueryTargetUnit_OutsideCandidateFilter_Warns`, `ConfiguredModel_HasNoMessages` (guarda, versão completa).
+- Critério de pronto: `ActionModelValidationTests` inteiro verde; guardas verdes: `ActivationValidationTests`, `LevelValuesValidationTests`, `DamageValidationTests`, `EffectMetadataTests`, `ProjectValidationTests`, `RaiseEventActionTests`, `GasPayloadSourceTests`.
+- Tamanho: ~362 linhas (~215 de runtime, ~147 de testes) e 4 arquivos. Exceção: nenhuma.
+- Commit: `feat(gas): validação das regras da habilidade`
+
 ### EV17 — Inspector: abas, lista e linha recolhida
 - Escopo: `Editor/GAS/Actions/ActionEventsView.cs`, `ActionListView.cs`, `ActionRowView.cs`, `ActionInspector.uss` (novos), `Editor/GAS/GameplayAbilityEditor.cs`, `Editor/GAS/GameplayEffectEditor.cs` (novo; sai de `GasEditors.cs`), `GasEditors.cs`, `Tests/GAS/EditMode/ActionInspectorTests.cs` (novo), `gas.md`, `CHANGELOG.md`.
 - Testes red: `Tabs_OnePerActionEvent_CounterAndValidationDot`; `ChannelTab_OnlyWithChannel_HiddenWithWarning`; `Row_SummaryFromLine_NoLineShowsTypeName_NullShowsChoose`; `Row_ValidationIcon_OnlyWithMessage`; `TabRemembered_PerAssetInSession`; `MultiSelection_HidesTabs`.

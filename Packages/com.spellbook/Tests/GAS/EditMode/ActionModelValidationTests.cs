@@ -4,7 +4,9 @@ using NUnit.Framework;
 using SpellBook.Core.Validation;
 using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Abilities.Actions;
+using SpellBook.GAS.Abilities.Triggers;
 using SpellBook.GAS.Actions;
+using SpellBook.GAS.Conditions;
 using SpellBook.GAS.Effects;
 using SpellBook.GAS.Targeting;
 using SpellBook.GAS.Values;
@@ -15,7 +17,7 @@ using UnityEngine;
 
 namespace SpellBook.GAS.Tests
 {
-    /// <summary>Validação do modelo evento → ações → alvos (EV16a: percurso das listas, regras das ações e do efeito; CA14 e CA32).</summary>
+    /// <summary>Validação do modelo evento → ações → alvos (EV16: CA14, CA32 e CA41).</summary>
     public class ActionModelValidationTests
     {
         private const string Action0 = "OnActivate.Array.data[0]";
@@ -40,6 +42,16 @@ namespace SpellBook.GAS.Tests
             GameplayAbility ability = _gas.CreateAbility(new ForEachTargetAction { Actions = new List<GameplayAction> { null } });
 
             AssertSingle(ability, ValidationSeverity.Error, Action0 + ".actions.Array.data[0]");
+        }
+
+        [Test]
+        public void ChannelTick_OutsideChannel_Warns()
+        {
+            GameplayAbility ability = _gas.CreateAbility();
+            ability.OnChannelTick.Add(new WaitAction());
+
+            ValidationMessage message = AssertSingle(ability, ValidationSeverity.Warning, nameof(GameplayAbility.OnChannelTick));
+            StringAssert.Contains("1 ações", message.Message);
         }
 
         [Test]
@@ -78,11 +90,101 @@ namespace SpellBook.GAS.Tests
         }
 
         [Test]
+        public void GameplayEventTrigger_InvalidTag_Error()
+        {
+            GameplayAbility ability = _gas.CreateAbility();
+            ability.Triggers.Add(new GameplayEventTrigger());
+
+            AssertSingle(ability, ValidationSeverity.Error, "triggers.Array.data[0].tag");
+        }
+
+        [Test]
+        public void Trigger_TagSentToOwnerBySelf_Warns()
+        {
+            GameplayTag hit = _gas.CreateTag("Event.Hit");
+            GameplayAbility ability = _gas.CreateAbility(new SendGameplayEventAction { Tag = hit, Target = new CasterSelector() });
+            ability.Triggers.Add(new GameplayEventTrigger { Tag = hit });
+
+            AssertSingle(ability, ValidationSeverity.Warning, "triggers.Array.data[0].tag");
+        }
+
+        [TestCase(true, nameof(GameplayAbility.CostEffect))]
+        [TestCase(false, nameof(GameplayAbility.CooldownEffect))]
+        public void Passive_WithCostOrCooldown_Warns(bool cost, string path)
+        {
+            GameplayAbility ability = _gas.CreateAbility();
+            ability.Behavior = AbilityBehavior.Passive;
+            GameplayEffect effect = _gas.CreateEffect(EffectDurationPolicy.Instant, 0f);
+            if (cost) ability.CostEffect = effect;
+            else ability.CooldownEffect = effect;
+
+            AssertSingle(ability, ValidationSeverity.Warning, path);
+        }
+
+        [Test]
+        public void Channel_WithoutDurationNorCancel_Warns()
+        {
+            GameplayAbility ability = _gas.CreateAbility();
+            ability.Behavior = AbilityBehavior.Channel;
+
+            AssertSingle(ability, ValidationSeverity.Warning, "channelDuration");
+        }
+
+        [Test]
+        public void Manual_WithoutCommit_Error()
+        {
+            GameplayAbility ability = _gas.CreateAbility();
+            ability.CommitMode = CommitMode.Manual;
+
+            AssertSingle(ability, ValidationSeverity.Error, "commitMode");
+        }
+
+        [Test]
+        public void Commit_WithOnStart_Warns()
+        {
+            var parallel = new ParallelAction { Actions = new List<GameplayAction> { new CommitAction() } };
+            GameplayAbility ability = _gas.CreateAbility(parallel);
+
+            AssertSingle(ability, ValidationSeverity.Warning, Action0 + ".Actions.Array.data[0]");
+        }
+
+        [Test]
         public void RemoveEffect_Empty_Error()
         {
             GameplayAbility ability = _gas.CreateAbility(new RemoveEffectAction());
 
             AssertSingle(ability, ValidationSeverity.Error, Action0 + ".effect");
+        }
+
+        [TestCase(AbilityBehavior.Passive)]
+        [TestCase(AbilityBehavior.Toggle)]
+        public void Autocast_InPassiveOrToggle_Error(AbilityBehavior behavior)
+        {
+            GameplayAbility ability = _gas.CreateAbility();
+            ability.Behavior = behavior;
+            ability.Autocast.Allowed = true;
+            ability.Triggers.Add(new WhenReadyTrigger());
+
+            AssertSingle(ability, ValidationSeverity.Error, "autocast.allowed");
+        }
+
+        [Test]
+        public void Autocast_WithoutTrigger_Warns()
+        {
+            GameplayAbility ability = _gas.CreateAbility();
+            ability.Autocast.Allowed = true;
+            ability.Triggers.Add(new GameplayEventTrigger { Tag = _gas.CreateTag("Event.Hit") });
+
+            AssertSingle(ability, ValidationSeverity.Warning, "autocast.allowed");
+        }
+
+        [Test]
+        public void WhenReady_SelectorWithoutCastRange_Warns()
+        {
+            GameplayAbility ability = _gas.CreateAbility();
+            ability.Triggers.Add(new WhenReadyTrigger { Selector = new CasterSelector() });
+
+            AssertSingle(ability, ValidationSeverity.Warning, "triggers.Array.data[0].selector");
         }
 
         [Test]
@@ -119,6 +221,26 @@ namespace SpellBook.GAS.Tests
             AssertSingle(ability, ValidationSeverity.Warning, Action0 + path);
         }
 
+        [TestCase(true, "activationConditions.Array.data[0].condition")]
+        [TestCase(false, Action0 + ".Condition")]
+        public void TagQueryTargetUnit_OutsideCandidateFilter_Warns(bool inActivationRule, string path)
+        {
+            var query = new TagQueryCondition { Subject = ConditionSubject.TargetUnit };
+            query.Query.All.Add(_gas.CreateTag("State.Burning"));
+            GameplayAbility ability;
+            if (inActivationRule)
+            {
+                ability = _gas.CreateAbility();
+                ability.ActivationConditions.Add(new ActivationRule(new NotCondition { Condition = query }));
+            }
+            else
+            {
+                ability = _gas.CreateAbility(new ConditionalAction { Condition = query });
+            }
+
+            AssertSingle(ability, ValidationSeverity.Warning, path);
+        }
+
         [Test]
         public void ProjectileOnHit_ValidatedAsOwnEventWithTargets()
         {
@@ -136,14 +258,23 @@ namespace SpellBook.GAS.Tests
         public void ConfiguredModel_HasNoMessages()
         {
             GameplayTag hit = _gas.CreateTag("Event.Hit");
-            var delayed = new DelayedAction { Delay = ScalableFloat.Constant(0.5f), Actions = new List<GameplayAction> { new WaitAction() } };
+            GameplayTag ping = _gas.CreateTag("Event.Ping");
+            var delayed = new DelayedAction { Delay = ScalableFloat.Constant(0.5f), Actions = new List<GameplayAction> { new CommitAction() } };
             var forEach = new ForEachTargetAction { Actions = new List<GameplayAction> { delayed } };
             var chance = new ChanceAction { Probability = ScalableFloat.Constant(1f), Actions = new List<GameplayAction> { new RemoveEffectAction { Tag = hit } } };
-            GameplayAbility ability = _gas.CreateAbility(forEach, chance);
+            GameplayAbility ability = _gas.CreateAbility(forEach, chance, new SendGameplayEventAction { Tag = ping, Target = new CasterSelector() });
             ability.OnGranted.Add(new SpawnProjectileAction
             {
                 OnHitActions = new List<GameplayAction> { new WaitAction { Target = new EventTargetsSelector() } }
             });
+            ability.CommitMode = CommitMode.Manual;
+            ability.Behavior = AbilityBehavior.Channel;
+            ability.ChannelDuration = ScalableFloat.Constant(2f);
+            ability.OnChannelTick.Add(new WaitAction());
+            ability.CastRange = ScalableFloat.Constant(5f);
+            ability.Autocast.Allowed = true;
+            ability.Triggers.Add(new GameplayEventTrigger { Tag = hit });
+            ability.Triggers.Add(new WhenReadyTrigger { Selector = new CasterSelector() });
             GameplayEffect effect = _gas.CreateDurationEffect(5f);
             effect.OnTakeDamage.Add(new RemoveEffectAction { Tag = hit });
 

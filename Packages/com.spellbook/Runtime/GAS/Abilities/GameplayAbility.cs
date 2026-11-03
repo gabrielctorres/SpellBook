@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Core.Conditions;
@@ -293,7 +294,7 @@ namespace SpellBook.GAS.Abilities
         /// Acusa <c>MaxLevel</c> menor que 1, a tabela de valores (nomes e valores), a política de redução sem atributo de
         /// redução, cada nome do modo Table que um efeito usado pela habilidade lê e não está na tabela (recarga, custo e
         /// <see cref="CollectActionEffects"/>), e <c>MaxLevel</c> acima do tamanho de um array da tabela (aviso).
-        /// Valida as seis listas de ações e as filhas: ação vazia, aninhamento, seletor sem os alvos do evento e cada ação.
+        /// Valida as seis listas de ações e as filhas, o comportamento, o commit, os gatilhos e o autocast (Design 9 do B-012).
         /// </summary>
         public virtual void Validate(ValidationResult result)
         {
@@ -319,12 +320,124 @@ namespace SpellBook.GAS.Abilities
             ValidateActivationRules(result);
             charges?.Validate(result, nameof(charges), values);
 
-            ActionLists.Validate(this, nameof(OnActivate), OnActivate, result);
-            ActionLists.Validate(this, nameof(OnEnd), OnEnd, result);
-            ActionLists.Validate(this, nameof(OnCancel), OnCancel, result);
-            ActionLists.Validate(this, nameof(OnChannelTick), OnChannelTick, result);
-            ActionLists.Validate(this, nameof(OnGranted), OnGranted, result);
-            ActionLists.Validate(this, nameof(OnRemoved), OnRemoved, result);
+            var commits = new List<string>();
+            var ownerEvents = new List<GameplayTag>();
+            ActionVisitor visitor = (action, path, targetsOwner) =>
+            {
+                if (action is CommitAction) commits.Add(path);
+                else if (targetsOwner && action is SendGameplayEventAction send && send.Tag.IsValid) ownerEvents.Add(send.Tag);
+            };
+            ActionLists.Validate(this, nameof(OnActivate), OnActivate, result, visitor);
+            ActionLists.Validate(this, nameof(OnEnd), OnEnd, result, visitor);
+            ActionLists.Validate(this, nameof(OnCancel), OnCancel, result, visitor);
+            ActionLists.Validate(this, nameof(OnChannelTick), OnChannelTick, result, visitor);
+            ActionLists.Validate(this, nameof(OnGranted), OnGranted, result, visitor);
+            ActionLists.Validate(this, nameof(OnRemoved), OnRemoved, result, visitor);
+
+            ValidateBehavior(result);
+            ValidateCommit(result, commits);
+            ValidateTriggers(result, ownerEvents);
+        }
+
+        /// <summary>Aviso para a <see cref="TagQueryCondition"/> com sujeito <see cref="ConditionSubject.TargetUnit"/> fora de um filtro de candidato.</summary>
+        internal const string TargetUnitQueryWarning =
+            "TagQueryCondition com Target Unit fora de um filtro de alvo: aqui não há candidato, use Owner ou o filtro do seletor.";
+
+        /// <summary>Se a <paramref name="condition"/>, ou uma condição dentro de And, Or e Not, é uma <see cref="TagQueryCondition"/> com <see cref="ConditionSubject.TargetUnit"/>.</summary>
+        internal static bool ContainsTargetUnitQuery(Condition<ConditionContext> condition)
+        {
+            return ContainsCondition(condition, c => c is TagQueryCondition query && query.Subject == ConditionSubject.TargetUnit);
+        }
+
+        private void ValidateBehavior(ValidationResult result)
+        {
+            if (behavior != AbilityBehavior.Channel && OnChannelTick != null && OnChannelTick.Count > 0)
+            {
+                result.AddWarning($"{OnChannelTick.Count} ações em \"A cada passo\" não vão rodar: a habilidade não é Channel.", nameof(OnChannelTick));
+            }
+
+            if (behavior == AbilityBehavior.Passive)
+            {
+                if (CostEffect != null) result.AddWarning("Passive com custo: o custo é cobrado em cada ativação automática.", nameof(CostEffect));
+                if (CooldownEffect != null) result.AddWarning("Passive com recarga: a recarga é cobrada em cada ativação automática.", nameof(CooldownEffect));
+            }
+
+            if (behavior == AbilityBehavior.Channel && !PositiveAtSomeLevel(ChannelDuration)
+                && (CancelledByTags == null || CancelledByTags.Count == 0))
+            {
+                result.AddWarning("Channel sem duração e sem Cancelled By Tags: só termina cancelada por código.", nameof(channelDuration));
+            }
+
+            if (autocast == null || !autocast.Allowed) return;
+
+            if (behavior == AbilityBehavior.Passive || behavior == AbilityBehavior.Toggle)
+            {
+                result.AddError($"Autocast permitido em {behavior}: só vale em Instant e Channel.", nameof(autocast) + ".allowed");
+            }
+            else if (!HasAutocastTrigger())
+            {
+                result.AddWarning("Autocast permitido sem WhenReadyTrigger nem gatilho \"só com autocast\": o interruptor não faz nada.",
+                    nameof(autocast) + ".allowed");
+            }
+        }
+
+        private bool HasAutocastTrigger()
+        {
+            if (triggers == null) return false;
+
+            for (int i = 0; i < triggers.Count; i++)
+            {
+                if (triggers[i] is WhenReadyTrigger || (triggers[i] != null && triggers[i].OnlyWithAutocast)) return true;
+            }
+
+            return false;
+        }
+
+        private void ValidateCommit(ValidationResult result, List<string> commits)
+        {
+            if (commitMode == CommitMode.Manual && commits.Count == 0)
+            {
+                result.AddError("Commit Mode Manual sem ação Commit: a habilidade nunca cobra recarga, custo nem carga.", nameof(commitMode));
+            }
+
+            if (commitMode != CommitMode.OnStart) return;
+
+            for (int i = 0; i < commits.Count; i++)
+            {
+                result.AddWarning("Ação Commit com Commit Mode On Start: a ativação já foi cobrada, e a ação não faz nada.", commits[i]);
+            }
+        }
+
+        private void ValidateTriggers(ValidationResult result, List<GameplayTag> ownerEvents)
+        {
+            if (triggers == null) return;
+
+            for (int i = 0; i < triggers.Count; i++)
+            {
+                string path = $"{nameof(triggers)}.Array.data[{i}]";
+                AbilityTrigger trigger = triggers[i];
+                trigger?.Validate(result, path);
+
+                if (trigger is GameplayEventTrigger byEvent && byEvent.Tag.IsValid && SendsToOwner(ownerEvents, byEvent.Tag))
+                {
+                    result.AddWarning("A própria habilidade envia este evento ao dono: a trava evita o laço, e ela nunca se redispara.",
+                        path + ".tag");
+                }
+                else if (trigger is WhenReadyTrigger whenReady && whenReady.Selector != null && !PositiveAtSomeLevel(CastRange))
+                {
+                    result.AddWarning("WhenReadyTrigger com seletor e Cast Range 0: o alvo pode estar a qualquer distância.", path + ".selector");
+                }
+            }
+        }
+
+        private static bool SendsToOwner(List<GameplayTag> ownerEvents, GameplayTag triggerTag)
+        {
+            for (int i = 0; i < ownerEvents.Count; i++)
+            {
+                if (ownerEvents[i].Matches(triggerTag)) return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -396,49 +509,69 @@ namespace SpellBook.GAS.Abilities
                 }
 
                 rule.Validate(result, path);
-                usesCastRange |= UsesCastRange(rule.Condition);
+                usesCastRange |= ContainsCondition(rule.Condition, c => c is CastRangeCondition);
+                if (ContainsTargetUnitQuery(rule.Condition))
+                {
+                    result.AddWarning(TargetUnitQueryWarning, path + ".condition");
+                }
             }
 
             if (usesCastRange) ValidateCastRange(result);
         }
 
-        // Procura a CastRangeCondition também dentro das composições do GAS
-        private static bool UsesCastRange(Condition<ConditionContext> condition)
+        // Procura a condição também dentro das composições do GAS
+        private static bool ContainsCondition(Condition<ConditionContext> condition, Predicate<Condition<ConditionContext>> match)
         {
             switch (condition)
             {
-                case CastRangeCondition _:
-                    return true;
-                case NotCondition not:
-                    return UsesCastRange(not.Condition);
-                case AndCondition and:
-                    return AnyUsesCastRange(and.Conditions);
-                case OrCondition or:
-                    return AnyUsesCastRange(or.Conditions);
-                default:
+                case null:
                     return false;
+                case NotCondition not:
+                    return match(not) || ContainsCondition(not.Condition, match);
+                case AndCondition and:
+                    return match(and) || AnyContains(and.Conditions, match);
+                case OrCondition or:
+                    return match(or) || AnyContains(or.Conditions, match);
+                default:
+                    return match(condition);
             }
         }
 
-        private static bool AnyUsesCastRange(List<Condition<ConditionContext>> conditions)
+        private static bool AnyContains(List<Condition<ConditionContext>> conditions, Predicate<Condition<ConditionContext>> match)
         {
             if (conditions == null) return false;
 
             for (int i = 0; i < conditions.Count; i++)
             {
-                if (UsesCastRange(conditions[i])) return true;
+                if (ContainsCondition(conditions[i], match)) return true;
             }
 
             return false;
+        }
+
+        // Positivo em algum nível de 1 a MaxLevel; um nome fora da tabela vale o fallback, sem o aviso no Console
+        private bool PositiveAtSomeLevel(ScalableFloat value)
+        {
+            AbilityValues table = TableFor(value);
+            for (int level = 1; level <= Mathf.Max(1, maxLevel); level++)
+            {
+                if (value.Evaluate(level, table) > 0f) return true;
+            }
+
+            return false;
+        }
+
+        private AbilityValues TableFor(ScalableFloat value)
+        {
+            bool hasName = value.Mode == ScalableFloat.ScalableMode.Table && values != null && values.IndexOf(value.TableName) >= 0;
+            return hasName ? values : null;
         }
 
         // Alcance negativo em algum nível é erro; alcance 0 em todos é "sem limite", e a CastRangeCondition sempre passa
         private void ValidateCastRange(ValidationResult result)
         {
             ScalableFloat range = CastRange;
-            // Nome fora da tabela vale o fallback; avaliar sem a tabela evita o aviso no Console
-            bool hasName = range.Mode == ScalableFloat.ScalableMode.Table && values != null && values.IndexOf(range.TableName) >= 0;
-            AbilityValues table = hasName ? values : null;
+            AbilityValues table = TableFor(range);
 
             bool limited = false;
             for (int level = 1; level <= Mathf.Max(1, maxLevel); level++)
