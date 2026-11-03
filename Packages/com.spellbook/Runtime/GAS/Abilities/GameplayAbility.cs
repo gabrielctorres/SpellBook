@@ -5,6 +5,7 @@ using SpellBook.Core.Inspector;
 using SpellBook.Core.Validation;
 using UnityEngine;
 using UnityEngine.Serialization;
+using SpellBook.GAS.Abilities.Actions;
 using SpellBook.GAS.Abilities.Triggers;
 using SpellBook.GAS.Actions;
 using SpellBook.GAS.Core;
@@ -292,7 +293,7 @@ namespace SpellBook.GAS.Abilities
         /// Acusa <c>MaxLevel</c> menor que 1, a tabela de valores (nomes e valores), a política de redução sem atributo de
         /// redução, cada nome do modo Table que um efeito usado pela habilidade lê e não está na tabela (recarga, custo e
         /// <see cref="CollectActionEffects"/>), e <c>MaxLevel</c> acima do tamanho de um array da tabela (aviso).
-        /// Repassa a validação a cada ação das seis listas; ações vazias são ignoradas.
+        /// Valida as seis listas de ações e as filhas: ação vazia, aninhamento, seletor sem os alvos do evento e cada ação.
         /// </summary>
         public virtual void Validate(ValidationResult result)
         {
@@ -318,12 +319,12 @@ namespace SpellBook.GAS.Abilities
             ValidateActivationRules(result);
             charges?.Validate(result, nameof(charges), values);
 
-            ValidateActions(OnActivate, result);
-            ValidateActions(OnEnd, result);
-            ValidateActions(OnCancel, result);
-            ValidateActions(OnChannelTick, result);
-            ValidateActions(OnGranted, result);
-            ValidateActions(OnRemoved, result);
+            ActionLists.Validate(this, nameof(OnActivate), OnActivate, result);
+            ActionLists.Validate(this, nameof(OnEnd), OnEnd, result);
+            ActionLists.Validate(this, nameof(OnCancel), OnCancel, result);
+            ActionLists.Validate(this, nameof(OnChannelTick), OnChannelTick, result);
+            ActionLists.Validate(this, nameof(OnGranted), OnGranted, result);
+            ActionLists.Validate(this, nameof(OnRemoved), OnRemoved, result);
         }
 
         /// <summary>
@@ -338,15 +339,6 @@ namespace SpellBook.GAS.Abilities
             CollectEffects(OnChannelTick, results);
             CollectEffects(OnGranted, results);
             CollectEffects(OnRemoved, results);
-        }
-
-        private static void ValidateActions(List<GameplayAction> actions, ValidationResult result)
-        {
-            if (actions == null) return;
-            for (int i = 0; i < actions.Count; i++)
-            {
-                actions[i]?.Validate(result);
-            }
         }
 
         private static void CollectEffects(List<GameplayAction> actions, List<GameplayEffect> results)

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using SpellBook.GAS.Abilities.Actions;
 using SpellBook.GAS.Effects;
 using SpellBook.GAS.Values;
@@ -50,6 +51,23 @@ namespace SpellBook.GAS.Actions
         public override void CollectEffects(List<GameplayEffect> results)
         {
             ActionLists.CollectEffects(actions, results);
+        }
+
+        /// <summary>Acusa a chance constante fora de 0 a 1 (erro).</summary>
+        public override void Validate(ValidationResult result)
+        {
+            if (probability == null || probability.Mode != ScalableFloat.ScalableMode.Constant) return;
+
+            float chance = probability.Evaluate(1);
+            if (chance < 0f || chance > 1f)
+            {
+                result.AddError($"Chance é {chance}: use um valor de 0 a 1.", nameof(probability));
+            }
+        }
+
+        internal override void CollectChildLists(List<ChildActionList> results)
+        {
+            results.Add(new ChildActionList(nameof(actions), actions));
         }
     }
 }

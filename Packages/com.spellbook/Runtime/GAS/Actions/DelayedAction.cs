@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using SpellBook.GAS.Abilities.Actions;
 using SpellBook.GAS.Effects;
 using SpellBook.GAS.Values;
@@ -59,6 +60,23 @@ namespace SpellBook.GAS.Actions
         public override void CollectEffects(List<GameplayEffect> results)
         {
             ActionLists.CollectEffects(actions, results);
+        }
+
+        /// <summary>Acusa o atraso constante negativo (erro).</summary>
+        public override void Validate(ValidationResult result)
+        {
+            if (delay == null || delay.Mode != ScalableFloat.ScalableMode.Constant) return;
+
+            float seconds = delay.Evaluate(1);
+            if (seconds < 0f)
+            {
+                result.AddError($"Atraso é {seconds}: o tempo não pode ser negativo.", nameof(delay));
+            }
+        }
+
+        internal override void CollectChildLists(List<ChildActionList> results)
+        {
+            results.Add(new ChildActionList(nameof(actions), actions));
         }
     }
 }

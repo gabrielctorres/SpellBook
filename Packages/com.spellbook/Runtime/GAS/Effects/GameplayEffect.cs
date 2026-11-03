@@ -6,6 +6,7 @@ using SpellBook.Core.Validation;
 using UnityEngine;
 using UnityEngine.Serialization;
 using SpellBook.Tags;
+using SpellBook.GAS.Abilities.Actions;
 using SpellBook.GAS.Actions;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Values;
@@ -199,6 +200,7 @@ namespace SpellBook.GAS.Effects
         /// Acusa Is Buff com Is Debuff, cada <see cref="ScalableFloat"/> inválido (duração e valores), SetByCaller sem nome
         /// válido (erro) ou sem padrão (aviso), modo Live onde não tem efeito (aviso), ciclo ao vivo entre atributos (erro),
         /// tag de dano vazia ou repetida e meta-atributo em <c>Modifiers</c> de efeito com duração ou infinito (erro).
+        /// Valida as seis listas de ações e as filhas, reação em efeito Instant (aviso) e "Ao morrer" sem atributo de morte (erro).
         /// Os nomes do modo Table são conferidos pela habilidade que usa o efeito.
         /// </summary>
         public void Validate(ValidationResult result)
@@ -224,6 +226,38 @@ namespace SpellBook.GAS.Effects
                 result.AddError(
                     "Os modificadores Live formam um ciclo entre atributos (um depende do outro). Em runtime o ciclo é cortado e mantém o último valor.",
                     nameof(Modifiers));
+            }
+
+            ValidateActionLists(result);
+        }
+
+        private void ValidateActionLists(ValidationResult result)
+        {
+            ActionLists.Validate(this, nameof(OnApplied), OnApplied, result);
+            ActionLists.Validate(this, nameof(OnTick), OnTick, result);
+            ActionLists.Validate(this, nameof(OnRemoved), OnRemoved, result);
+            ActionLists.Validate(this, nameof(OnTakeDamage), OnTakeDamage, result);
+            ActionLists.Validate(this, nameof(OnDeath), OnDeath, result);
+            ActionLists.Validate(this, nameof(OnAbilityExecuted), OnAbilityExecuted, result);
+
+            if (DurationPolicy == EffectDurationPolicy.Instant)
+            {
+                WarnInstantReaction(result, OnTakeDamage, nameof(OnTakeDamage));
+                WarnInstantReaction(result, OnDeath, nameof(OnDeath));
+                WarnInstantReaction(result, OnAbilityExecuted, nameof(OnAbilityExecuted));
+            }
+            else if (OnDeath != null && OnDeath.Count > 0 && deathAttribute == null)
+            {
+                result.AddError("\"Ao morrer\" com ações e sem Death Attribute: a reação nunca roda.", nameof(deathAttribute));
+            }
+        }
+
+        // O efeito Instant não fica ativo, então não tem instância que reaja
+        private static void WarnInstantReaction(ValidationResult result, List<GameplayAction> actions, string path)
+        {
+            if (actions != null && actions.Count > 0)
+            {
+                result.AddWarning("Reação em efeito Instant nunca roda: o efeito não fica ativo.", path);
             }
         }
 

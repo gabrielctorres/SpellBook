@@ -50,5 +50,23 @@ namespace SpellBook.GAS.Actions
 
         /// <summary>Acrescenta a <paramref name="results"/> os efeitos que a ação aplica. O padrão não acrescenta nada.</summary>
         public virtual void CollectEffects(List<GameplayEffect> results) { }
+
+        // Listas filhas, para a validação descer na árvore de ações. O padrão não tem filhas.
+        internal virtual void CollectChildLists(List<ChildActionList> results) { }
+    }
+
+    /// <summary>Lista filha de uma ação: o nome do campo serializado e se ela roda num evento próprio, com alvos.</summary>
+    internal readonly struct ChildActionList
+    {
+        public readonly string Field;
+        public readonly List<GameplayAction> Actions;
+        public readonly bool OwnEvent;
+
+        public ChildActionList(string field, List<GameplayAction> actions, bool ownEvent = false)
+        {
+            Field = field;
+            Actions = actions;
+            OwnEvent = ownEvent;
+        }
     }
 }
