@@ -53,6 +53,12 @@ namespace SpellBook.Cues
         [SerializeReference, TypePicker, Tooltip("Itens que tocam juntos a cada vez.")]
         private List<CueItem> items = new List<CueItem>();
 
+        [SerializeReference, TypePicker, Tooltip("Sons do cue. A seleção diz se toca um sorteado ou todos.")]
+        private List<SoundCueItem> sounds = new List<SoundCueItem>();
+
+        [SerializeField, Tooltip("RandomOne sorteia um som da lista a cada vez; All toca todos.")]
+        private SoundSelection soundSelection;
+
         [SerializeField, Min(0), Tooltip("Máximo de cópias ativas ao mesmo tempo. 0 é sem limite.")]
         private int maxSimultaneous;
 
@@ -70,6 +76,12 @@ namespace SpellBook.Cues
 
         /// <summary>Itens que tocam juntos a cada vez.</summary>
         public IReadOnlyList<CueItem> Items => items;
+
+        /// <summary>Sons do cue.</summary>
+        public IReadOnlyList<SoundCueItem> Sounds => sounds;
+
+        /// <summary>Se toca um som sorteado ou todos.</summary>
+        public SoundSelection SoundSelection => soundSelection;
 
         /// <summary>Máximo de cópias ativas ao mesmo tempo; 0 é sem limite.</summary>
         public int MaxSimultaneous => maxSimultaneous;

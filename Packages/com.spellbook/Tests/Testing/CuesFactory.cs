@@ -101,6 +101,63 @@ namespace SpellBook.Testing
             return router;
         }
 
+        /// <summary>Põe os <paramref name="sounds"/> na <paramref name="cue"/>, com a seleção dada.</summary>
+        public void SetSounds(CueDefinition cue, SoundSelection selection, params SoundCueItem[] sounds)
+        {
+            Modify(cue, so =>
+            {
+                so.FindProperty("soundSelection").enumValueIndex = (int)selection;
+                SerializedProperty list = so.FindProperty("sounds");
+                list.arraySize = sounds.Length;
+                for (int i = 0; i < sounds.Length; i++)
+                {
+                    list.GetArrayElementAtIndex(i).managedReferenceValue = sounds[i];
+                }
+            });
+        }
+
+        /// <summary>Troca o prefab de áudio do <paramref name="router"/>.</summary>
+        public void SetAudioPrefab(CueRouter router, GameObject prefab)
+        {
+            Modify(router, so => so.FindProperty("audioPrefab").objectReferenceValue = prefab);
+        }
+
+        /// <summary>Prefab de áudio de teste: <see cref="AudioSource"/> sem tocar ao nascer e <see cref="CueAudioPlayer"/>.</summary>
+        public GameObject CreateAudioPrefab()
+        {
+            GameObject prefab = Track(new GameObject(), "CueAudioPrefab_Test");
+            prefab.AddComponent<AudioSource>().playOnAwake = false;
+            prefab.AddComponent<CueAudioPlayer>();
+            return prefab;
+        }
+
+        /// <summary>Prefab de áudio que o pacote entrega.</summary>
+        public static GameObject LoadPackageAudioPrefab()
+        {
+            return AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Packages/com.spellbook/Runtime/Cues/Prefabs/CueAudioSource.prefab");
+        }
+
+        /// <summary>Clipe mono de <paramref name="seconds"/> segundos a 44,1 kHz, silencioso salvo com <paramref name="tone"/>.</summary>
+        public AudioClip CreateClip(string name, float seconds, bool tone = false)
+        {
+            const int frequency = 44100;
+            int samples = Mathf.RoundToInt(seconds * frequency);
+            AudioClip clip = Track(AudioClip.Create(name, samples, 1, frequency, false), name);
+            if (tone)
+            {
+                var data = new float[samples];
+                for (int i = 0; i < samples; i++)
+                {
+                    data[i] = 0.1f * Mathf.Sin(2f * Mathf.PI * 440f * i / frequency);
+                }
+
+                clip.SetData(data, 0);
+            }
+
+            return clip;
+        }
+
         /// <summary>Objeto de cena vazio, destruído no <see cref="Dispose"/>.</summary>
         public GameObject CreateObject(string name)
         {

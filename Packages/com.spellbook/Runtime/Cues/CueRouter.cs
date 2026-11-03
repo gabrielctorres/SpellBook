@@ -27,6 +27,9 @@ namespace SpellBook.Cues
         [SerializeField, Tooltip("Spawner dos itens sem spawner próprio. Vazio usa o spawner padrão por Instantiate.")]
         private SpawnerAsset defaultSpawner;
 
+        [SerializeField, Tooltip("Prefab com AudioSource e CueAudioPlayer em que os sons tocam.")]
+        private GameObject audioPrefab;
+
         [SerializeField, Min(1), Tooltip("Cues ativos ao mesmo tempo antes de crescer. Crescer avisa e aloca.")]
         private int capacity = 64;
 
@@ -35,6 +38,7 @@ namespace SpellBook.Cues
         private readonly List<int> _free = new List<int>();
         private readonly HashSet<Object> _warned = new HashSet<Object>();
         private ITimeSource _timeSourceOverride;
+        private IRandomSource _random;
         private double _timeCursor;
         private long _sequence;
         private bool _initialized;
@@ -56,7 +60,15 @@ namespace SpellBook.Cues
             }
         }
 
+        /// <summary>
+        /// Fonte de aleatoriedade do sorteio de sons, de volume e de altura. Sem <see cref="SetRandomSource"/>, uma com
+        /// semente pelo relógio.
+        /// </summary>
+        public IRandomSource Random => _random ??= new SeededRandomSource(System.Environment.TickCount);
+
         internal SpawnerAsset DefaultSpawner => SpawnerAsset.OrDefault(defaultSpawner);
+
+        internal GameObject AudioPrefab => audioPrefab;
 
         // Mensagens da Unity internas para os testes EditMode, em que a Unity não as chama
         internal void Awake()
@@ -98,6 +110,15 @@ namespace SpellBook.Cues
         {
             _timeSourceOverride = source;
             _timeCursor = TimeSource.ElapsedTime;
+        }
+
+        /// <summary>
+        /// Troca a fonte de aleatoriedade (por exemplo, uma <see cref="SeededRandomSource"/> com semente fixa num teste).
+        /// <c>null</c> volta a uma com semente pelo relógio.
+        /// </summary>
+        public void SetRandomSource(IRandomSource source)
+        {
+            _random = source;
         }
 
         /// <summary>
@@ -222,9 +243,31 @@ namespace SpellBook.Cues
                 items[i]?.Play(parameters, slot);
             }
 
+            PlaySounds(cue, parameters, slot);
+
             handle = slot.Handle;
             if (!slot.HasObjects) Release(slot);
             return true;
+        }
+
+        private void PlaySounds(CueDefinition cue, in CueParameters parameters, CuePlayback slot)
+        {
+            IReadOnlyList<SoundCueItem> sounds = cue.Sounds;
+            if (sounds.Count == 0) return;
+
+            if (cue.SoundSelection == SoundSelection.All)
+            {
+                for (int i = 0; i < sounds.Count; i++)
+                {
+                    sounds[i]?.Play(parameters, slot);
+                }
+
+                return;
+            }
+
+            // Com um som só, não há o que sortear
+            int index = sounds.Count == 1 ? 0 : Random.Range(sounds.Count);
+            sounds[index]?.Play(parameters, slot);
         }
 
         private CuePlayback CountActive(CueDefinition cue, out int count)

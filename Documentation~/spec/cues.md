@@ -318,6 +318,23 @@ Depende de: CU3b.
 - Critério de pronto: CA1, CA4, CA6 e CA12 verdes.
 - Tamanho estimado: ~470 linhas; 8 arquivos (1 fixture). Depende de: CU4, EV4a (`IRandomSource`).
 
+### Detalhe (2026-11-03)
+- CA: CA1 (completo: VFX e um som sorteado, ou todos), CA4 (parte do volume pela magnitude), CA6 (C6) e CA12.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/Cues/SoundCueItem.cs` (novo): campos públicos como o `VfxCueItem` (`Clip`, `Volume` e `Pitch` como faixas `Vector2`, padrão 1 a 1; `SpatialBlend`; `Mixer`; `Loop`; `VolumeByMagnitude`). `Play` sorteia volume e altura nessa ordem pelo `CuePlayback.Random` (um `Value()` cada, sempre os dois), multiplica o volume pela magnitude normalizada com `VolumeByMagnitude`, cria o `audioPrefab` do roteador pelo spawner padrão no ponto do cue (`World`) com o fim `ClipEnd` e a duração `clip.length / |pitch|`, ou `OnRemove` com `Loop` num cue `Looping` (num `Burst`, o `Loop` não vale; o erro de validação é do CU6), e configura o `CueAudioPlayer` da raiz. Sem clipe, sem `audioPrefab` ou com altura 0, não toca.
+  - `Runtime/Cues/CueAudioPlayer.cs` (novo): `[RequireComponent(typeof(AudioSource))]`, `AudioSource` em cache no `Awake` (e na primeira chamada, para o EditMode), `Source` e `Play(clip, volume, pitch, spatialBlend, mixer, loop)`.
+  - `Runtime/Cues/Prefabs/CueAudioSource.prefab` (novo, fixture): `AudioSource` sem `playOnAwake` e `CueAudioPlayer`, criado pela Unity por um script descartável de Editor (apagado depois).
+  - `Runtime/Cues/CueDefinition.cs:53-55,71-72`: `[SerializeReference] List<SoundCueItem> sounds` e `SoundSelection soundSelection` (adiados no CU2), com `Sounds` e `SoundSelection`.
+  - `Runtime/Cues/CueRouter.cs:16-32,40-41,96-104,154-166`: campo `audioPrefab`; `Random` (padrão `SeededRandomSource` pelo `Environment.TickCount`, como o ASC) e `SetRandomSource(IRandomSource)`; no `Play`, depois dos itens, `RandomOne` toca um som por `Random.Range(n)` (com um som só, sem sorteio) e `All` toca todos; `AudioPrefab` interno.
+  - `Runtime/Cues/CuePlayback.cs:120-121,228-244`: `Random` público (o do roteador); `AudioPrefab` interno, que avisa uma vez por roteador quando falta; o `Tick` conta o `ClipEnd` como o `FixedDuration`, pela fonte de tempo.
+  - `Tests/Testing/CuesFactory.cs`: `SetSounds(cue, selection, sounds)`, `SetAudioPrefab(router, prefab)`, `CreateAudioPrefab()` e `CreateClip(name, seconds)` (`AudioClip.Create`, silencioso), `LoadPackageAudioPrefab()` (`AssetDatabase`).
+  - `Tests/Cues/EditMode/SoundCueTests.cs` e `Tests/Cues/PlayMode/SoundPlaybackTests.cs` (novos).
+  - Sem `cues.md` nem `CHANGELOG.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007), e o ticket não quebra nada. O botão "Usar prefab de áudio do pacote" é do CU7.
+- Testes red: EditMode (`SpellBook.Cues.Tests.EditMode`, classe `SoundCueTests`): `RandomOne_PicksBySeed_All_PlaysAll`; `VolumePitch_FromRangeBySeed_MagnitudeScalesVolume`; `Sound_ReturnsAtClipEndOverPitch_ByTimeSource`; `TwoSounds_TwoObjects_LiveCountStable`; `LoopingSound_UntilRemove`. PlayMode (`SpellBook.Cues.Tests.PlayMode`, classe `SoundPlaybackTests`): `RealAudio_PlaysAndReturns` (com o prefab do pacote). Guardas: os 10 de `CueRouterTests` (EditMode) e os 6 de `VfxCueTests` (PlayMode).
+- Critério de pronto: os 5 de `SoundCueTests`, os 10 de `CueRouterTests`, os 4 de `CueIndexTests` e os 6 de `HelpUrlTests` (o `CueAudioPlayer` tem `[HelpURL]`) verdes pelo filtro `\.SoundCueTests\.;\.CueRouterTests\.;\.HelpUrlTests\.;\.CueIndexTests\.` no EditMode, e os 7 de `SoundPlaybackTests` e `VfxCueTests` pelo filtro `\.SoundPlaybackTests\.;\.VfxCueTests\.` no PlayMode, com `total` conferido nos XML.
+- Tamanho: ~570 linhas e 9 arquivos, pela ADR 0042 (o prefab conta só no número de arquivos). Exceção: +14% em linhas, linha do CU5 (#207) em `Documentation~/decisoes.md`. Medido na implementação: 508 linhas (+2%) e 9 arquivos.
+- Commit: `feat(cues): som em pool com sorteio, volume e fim do clipe`
+
 ### CU6 — Validação
 - Escopo: `CueDefinition.cs`, `CueLibrary.cs`, `CueRouter.cs`, `VfxCueItem.cs`, `SoundCueItem.cs` (`Validate`), `Tests/Cues/EditMode/CuesValidationTests.cs` (novo), `Documentation~/manual/ferramentas/validador.md`, `CHANGELOG.md`.
 - Testes red: um por regra do Design 5 (CA20, parte do R15), com `propertyPath`; `ProjectValidator_ReportsCueAssets`.

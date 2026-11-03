@@ -37,6 +37,9 @@ namespace SpellBook.Cues
         /// <summary>Fonte de tempo do roteador.</summary>
         public ITimeSource Time => _router.TimeSource;
 
+        /// <summary>Fonte de aleatoriedade do roteador.</summary>
+        public IRandomSource Random => _router.Random;
+
         internal int Slot { get; }
 
         internal int Generation { get; private set; } = 1;
@@ -53,6 +56,21 @@ namespace SpellBook.Cues
         internal CueHandle Handle => new CueHandle(Slot, Generation);
 
         internal bool HasObjects => _objects.Count > 0;
+
+        /// <summary>Prefab de áudio do roteador. Sem ele, avisa uma vez por roteador.</summary>
+        internal GameObject AudioPrefab
+        {
+            get
+            {
+                GameObject prefab = _router.AudioPrefab;
+                if (prefab == null && _router.ShouldWarn(_router))
+                {
+                    Debug.LogWarning($"'{_router.name}' não tem prefab de áudio; os sons não tocam.", _router);
+                }
+
+                return prefab;
+            }
+        }
 
         /// <summary>
         /// Magnitude normalizada (0 a 1) dos <paramref name="parameters"/>; sem magnitude, a padrão da definição do cue.
@@ -148,7 +166,7 @@ namespace SpellBook.Cues
                     // Sem partícula na raiz, não há o que esperar
                     if (tracked.Particles == null || !tracked.Particles.IsAlive(true)) ReleaseAt(i);
                 }
-                else if (tracked.End == CueEnd.FixedDuration)
+                else if (tracked.End == CueEnd.FixedDuration || tracked.End == CueEnd.ClipEnd)
                 {
                     tracked.Remaining -= deltaTime;
                     if (tracked.Remaining <= 0f)
