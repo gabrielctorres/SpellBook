@@ -22,18 +22,19 @@ items:
 
       [TypeCategory("Fluxo", Summary = "Espera alguns segundos no tempo do sistema de habilidades do ator.")]
 
-      public class WaitAction : GameplayAction, IValidatable
+      public class WaitAction : GameplayAction, IValidatable, ISerializationCallbackReceiver
     content.vb: >-
       <Serializable>
 
       <TypeCategory("Fluxo", Summary:="Espera alguns segundos no tempo do sistema de habilidades do ator.")>
 
-      Public Class WaitAction Inherits GameplayAction Implements IValidatable
+      Public Class WaitAction Inherits GameplayAction Implements IValidatable, ISerializationCallbackReceiver
   inheritance:
   - System.Object
   - SpellBook.GAS.Actions.GameplayAction
   implements:
   - SpellBook.Core.Validation.IValidatable
+  - UnityEngine.ISerializationCallbackReceiver
   inheritedMembers:
   - SpellBook.GAS.Actions.GameplayAction.OnCancel(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
   - SpellBook.GAS.Actions.GameplayAction.Validate(SpellBook.Core.Validation.ValidationResult)
@@ -59,7 +60,7 @@ items:
       type: System.String
       value: Espera alguns segundos no tempo do sistema de habilidades do ator.
 - uid: SpellBook.GAS.Abilities.Actions.WaitAction.Duration
-  commentId: F:SpellBook.GAS.Abilities.Actions.WaitAction.Duration
+  commentId: P:SpellBook.GAS.Abilities.Actions.WaitAction.Duration
   id: Duration
   parent: SpellBook.GAS.Abilities.Actions.WaitAction
   langs:
@@ -68,15 +69,20 @@ items:
   name: Duration
   nameWithType: WaitAction.Duration
   fullName: SpellBook.GAS.Abilities.Actions.WaitAction.Duration
-  type: Field
+  type: Property
   namespace: SpellBook.GAS.Abilities.Actions
-  summary: Segundos do tempo do ASC, contados do fim do passo anterior. Zero ou menos não espera.
+  summary: >-
+    Segundos do tempo do ASC por nível, contados do fim do passo anterior. Zero ou menos não espera. Numa lista de
+
+    efeito, sem habilidade, o modo <code>Table</code> vale o <code>Fallback</code>.
   example: []
   syntax:
-    content: public float Duration
+    content: public ScalableFloat Duration { get; set; }
+    parameters: []
     return:
-      type: System.Single
-    content.vb: Public Duration As Single
+      type: SpellBook.GAS.Values.ScalableFloat
+    content.vb: Public Property Duration As ScalableFloat
+  overload: SpellBook.GAS.Abilities.Actions.WaitAction.Duration*
 - uid: SpellBook.GAS.Abilities.Actions.WaitAction.UsesTargets
   commentId: P:SpellBook.GAS.Abilities.Actions.WaitAction.UsesTargets
   id: UsesTargets
@@ -186,6 +192,13 @@ references:
   name: IValidatable
   nameWithType: IValidatable
   fullName: SpellBook.Core.Validation.IValidatable
+- uid: UnityEngine.ISerializationCallbackReceiver
+  commentId: T:UnityEngine.ISerializationCallbackReceiver
+  parent: UnityEngine
+  isExternal: true
+  name: ISerializationCallbackReceiver
+  nameWithType: ISerializationCallbackReceiver
+  fullName: UnityEngine.ISerializationCallbackReceiver
 - uid: SpellBook.GAS.Actions.GameplayAction.OnCancel(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
   commentId: M:SpellBook.GAS.Actions.GameplayAction.OnCancel(SpellBook.GAS.Actions.ActionContext,SpellBook.GAS.Actions.ActionFrame@)
   parent: SpellBook.GAS.Actions.GameplayAction
@@ -566,17 +579,48 @@ references:
   - name: .
   - uid: SpellBook.Core.Validation
     name: Validation
-- uid: System.Single
-  commentId: T:System.Single
-  parent: System
+- uid: UnityEngine
+  commentId: N:UnityEngine
   isExternal: true
-  href: https://learn.microsoft.com/dotnet/api/system.single
-  name: float
-  nameWithType: float
-  fullName: float
-  nameWithType.vb: Single
-  fullName.vb: Single
-  name.vb: Single
+  name: UnityEngine
+  nameWithType: UnityEngine
+  fullName: UnityEngine
+- uid: SpellBook.GAS.Abilities.Actions.WaitAction.Duration*
+  commentId: Overload:SpellBook.GAS.Abilities.Actions.WaitAction.Duration
+  href: SpellBook.GAS.Abilities.Actions.WaitAction.html#SpellBook_GAS_Abilities_Actions_WaitAction_Duration
+  name: Duration
+  nameWithType: WaitAction.Duration
+  fullName: SpellBook.GAS.Abilities.Actions.WaitAction.Duration
+- uid: SpellBook.GAS.Values.ScalableFloat
+  commentId: T:SpellBook.GAS.Values.ScalableFloat
+  parent: SpellBook.GAS.Values
+  href: SpellBook.GAS.Values.ScalableFloat.html
+  name: ScalableFloat
+  nameWithType: ScalableFloat
+  fullName: SpellBook.GAS.Values.ScalableFloat
+- uid: SpellBook.GAS.Values
+  commentId: N:SpellBook.GAS.Values
+  name: SpellBook.GAS.Values
+  nameWithType: SpellBook.GAS.Values
+  fullName: SpellBook.GAS.Values
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Values
+    name: Values
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Values
+    name: Values
 - uid: SpellBook.GAS.Actions.GameplayAction.UsesTargets
   commentId: P:SpellBook.GAS.Actions.GameplayAction.UsesTargets
   parent: SpellBook.GAS.Actions.GameplayAction

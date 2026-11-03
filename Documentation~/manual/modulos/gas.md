@@ -351,7 +351,7 @@ A lista **Starting Effects** do ASC aplica cada efeito no `Awake`, na ordem da l
 ---
 
 ## 3. Lista de ações disponíveis {#acoes}
-- **WaitAction:** pausa a execução por X segundos do tempo do ASC (veja [Ações que esperam](#acoes-que-esperam)).
+- **WaitAction:** pausa a execução por X segundos do tempo do ASC, com a duração por nível (veja [Ações que esperam](#acoes-que-esperam)).
 - **TargetingAction:** busca alvos usando uma estratégia (Raio, Mouse...). `Mode` Replace substitui os alvos atuais, Append adiciona.
 - **ApplyEffectAction:** aplica GameplayEffects aos alvos ou ao conjurador.
 - **PlayCueAction:** dispara efeitos visuais e sonoros (veja [Ações de spawn](#acoes-de-spawn)).
@@ -371,6 +371,8 @@ O `Duration` da `WaitAction`, o `Interval` da `RepeatAction` e o `DelayBetweenSh
 - Se o ASC for destruído, as ações que ele rodava param.
 - As três esperas contam do fim do passo anterior. Um `Tick` no mesmo quadro em que o passo terminou já entra na espera, e o excesso de um `Tick` grande passa para a espera seguinte ([Base nova das ações](#gameplayaction)).
 - Ações sem espera não custam quadro: rodam todas na mesma chamada. Uma `RepeatAction` com `Count` 3 e `Interval` 0 roda as três repetições de uma vez, e uma `WaitAction` com `Duration` zero ou negativo termina na hora. Na 2.x, as duas custavam um quadro.
+
+O `Duration` da `WaitAction` é um [`ScalableFloat`](#scalablefloat), avaliado no nível da execução. Com `%espera` valendo 1, 2 e 3 na tabela [`Values`](#abilityvalues) da habilidade, a espera dura 3 s no nível 3 e 1 s no nível 1. Numa lista de efeito, que não tem habilidade, o modo `Table` vale o `Fallback`. No código, atribua `new WaitAction { Duration = ScalableFloat.Constant(2f) }`.
 
 Numa ação própria, espere devolvendo `ActionStatus.Wait(segundos)`, e não com `WaitForSeconds`.
 

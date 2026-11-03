@@ -15,11 +15,13 @@ items:
   type: Class
   namespace: SpellBook.GAS.Editor
   summary: >-
-    Regrava os <xref href="SpellBook.GAS.Effects.GameplayEffect" data-throw-if-not-resolved="false"></xref> do projeto no formato 3.0 (ADR 0009, VN3). A conversão dos campos
+    Regrava os <xref href="SpellBook.GAS.Effects.GameplayEffect" data-throw-if-not-resolved="false"></xref> e os <xref href="SpellBook.GAS.Abilities.GameplayAbility" data-throw-if-not-resolved="false"></xref> do projeto no formato 3.0 (ADR 0009,
 
-    2.x (<code>Duration</code> e <code>ConstantValue</code> em <code>float</code>) roda no carregamento; este menu só marca os
+    VN3, EV3d). A conversão dos campos 2.x (<code>Duration</code> e <code>ConstantValue</code> do efeito e <code>Duration</code> da
 
-    efeitos como sujos e salva, para o YAML perder os valores legados. Rodar de novo não muda nada.
+    <code>WaitAction</code>, em <code>float</code>) roda no carregamento; este menu só marca os assets como sujos e salva, para o
+
+    YAML perder os valores legados. Rodar de novo não muda nada.
   example: []
   syntax:
     content: public static class GasAssetMigration
@@ -47,9 +49,11 @@ items:
   type: Method
   namespace: SpellBook.GAS.Editor
   summary: >-
-    Carrega e regrava todo <xref href="SpellBook.GAS.Effects.GameplayEffect" data-throw-if-not-resolved="false"></xref> em <code>Assets/</code> e nos pacotes embutidos ou locais
+    Carrega e regrava todo <xref href="SpellBook.GAS.Effects.GameplayEffect" data-throw-if-not-resolved="false"></xref> e todo <xref href="SpellBook.GAS.Abilities.GameplayAbility" data-throw-if-not-resolved="false"></xref> em <code>Assets/</code> e
 
-    (os pacotes do registro são só leitura e ficam de fora). Devolve quantos efeitos foram regravados.
+    nos pacotes embutidos ou locais (os pacotes do registro são só leitura e ficam de fora). Devolve a soma dos
+
+    efeitos e das habilidades regravados.
   example: []
   syntax:
     content: public static int MigrateAll()
@@ -65,6 +69,13 @@ references:
   name: GameplayEffect
   nameWithType: GameplayEffect
   fullName: SpellBook.GAS.Effects.GameplayEffect
+- uid: SpellBook.GAS.Abilities.GameplayAbility
+  commentId: T:SpellBook.GAS.Abilities.GameplayAbility
+  parent: SpellBook.GAS.Abilities
+  href: SpellBook.GAS.Abilities.GameplayAbility.html
+  name: GameplayAbility
+  nameWithType: GameplayAbility
+  fullName: SpellBook.GAS.Abilities.GameplayAbility
 - uid: SpellBook.GAS.Editor
   commentId: N:SpellBook.GAS.Editor
   name: SpellBook.GAS.Editor
@@ -341,6 +352,29 @@ references:
   - name: .
   - uid: SpellBook.GAS.Effects
     name: Effects
+- uid: SpellBook.GAS.Abilities
+  commentId: N:SpellBook.GAS.Abilities
+  name: SpellBook.GAS.Abilities
+  nameWithType: SpellBook.GAS.Abilities
+  fullName: SpellBook.GAS.Abilities
+  spec.csharp:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
+  spec.vb:
+  - uid: SpellBook
+    name: SpellBook
+  - name: .
+  - uid: SpellBook.GAS
+    name: GAS
+  - name: .
+  - uid: SpellBook.GAS.Abilities
+    name: Abilities
 - uid: System
   commentId: N:System
   isExternal: true
