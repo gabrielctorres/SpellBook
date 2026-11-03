@@ -145,6 +145,23 @@ Todos usam a Unity e seguem o WIP 1. TM1 a TM4 não dependem de item aberto. Tes
 - Critério de pronto: testes verdes; `HelpUrlTests` e `ManualLinksTests` verdes.
 - Tamanho estimado: ~430 linhas; 10 arquivos (1 página).
 
+### Detalhe (2026-11-03)
+- CA: CA1, CA3 (parte: time nulo ou fora da matriz), CA4, CA5, CA7, CA10, CA16 (parte: `GetRelation`).
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/Teams/SpellBook.Teams.asmdef` (novo; só Core);
+  - `Runtime/Teams/TeamRelation.cs` (novo: `TeamRelation`, `TeamRelationMask`, `TeamRelationMaskExtensions.Matches`);
+  - `Runtime/Teams/TeamDefinition.cs` (novo: `displayName`, `color`, `[HelpURL]`, `[CreateAssetMenu]`);
+  - `Runtime/Teams/TeamRelationMatrix.cs` (novo: listas `teams` e `entries`, os três padrões, `GetRelation` com índice preguiçoso `Dictionary<TeamDefinition, int>` + `TeamRelation[n*n]`, refeito no `OnValidate`; `TeamRelationEntry` serializável interno no mesmo arquivo; par repetido: a última entrada vence);
+  - `Runtime/Core/DocUrls.cs:20` (+`Teams = Base + "modulos/times/"`);
+  - `Tests/Teams/EditMode/SpellBook.Teams.Tests.EditMode.asmdef` (novo; Core, Teams, Time, Testing e o runner, como o dos Tags);
+  - `Tests/Teams/EditMode/TeamRelationMatrixTests.cs` (novo; times e matriz por `ScriptableObject.CreateInstance` e células por `SerializedObject`, destruídos no `TearDown`);
+  - `Tests/Core/EditMode/Structure/AsmdefRulesTests.cs:18-21` (`Teams` em `RuntimeModules`) e teste novo `TeamsAsmdef_ReferencesOnlyCore` depois de `:245`.
+  - Fora, pela emenda de 2026-11-03 da 0007: a página `manual/modulos/times.md` e o `CHANGELOG.md` (sem quebra) ficam para o passe de documentação. `IValidatable` e `Validate` entram no TM3.
+- Testes red (EditMode): `TeamRelationMatrixTests.Matrix_Hostile_Allied_Neutral_PerCell`, `Matrix_SameTeamWithoutCell_IsAllied_DefaultChangeable`, `Matrix_MissingPair_UsesDefault`, `Matrix_IsDirectional`, `Matrix_NullOrUnknownTeam_UsesNoTeamRelation`, `Mask_EachCombination_SelfOnlyWhenSame_EmptyMatchesNothing`, `GetRelation_DoesNotAllocate_AfterFirstCall`; `AsmdefRulesTests.TeamsAsmdef_ReferencesOnlyCore` (e `AllExpectedAssembliesExist`, `EachRuntimeModuleHasEditModeTests` com o Teams).
+- Critério de pronto: os testes acima verdes com filtro, e `HelpUrlTests` verde. `ManualLinksTests` (categoria `Documentacao`) fica para o passe de documentação, junto com a página.
+- Tamanho: ~410 linhas e 8 arquivos, pela ADR 0042. Exceção: nenhuma.
+- Commit: `feat(teams): módulo Teams com times, matriz e consulta`
+
 ### TM2 — Membros, consultas e troca em runtime
 - Escopo: `Runtime/Teams/ITeamMember.cs`, `TeamMember.cs`, `TeamQueries.cs` (novos), `Tests/Teams/EditMode/TeamMemberTests.cs` (novo), `Tests/Testing/TeamsFactory.cs` (novo: times, matriz com células, objeto com `TeamMember`), `Tests/Testing/SpellBook.Testing.asmdef` (+Teams), `times.md` (membro, consultas, componente próprio), `CHANGELOG.md`.
 - Testes red:
