@@ -108,6 +108,23 @@ namespace SpellBook.GAS.Actions
             return false;
         }
 
+        /// <summary>Acrescenta a <paramref name="into"/> a ação de cada quadro da pilha das execuções em curso.</summary>
+        public void CollectRunning(List<GameplayAction> into)
+        {
+            for (int i = 0; i < _executions.Count; i++)
+            {
+                Execution execution = _executions[i];
+                if (!execution.Running) continue;
+                for (int d = 0; d < execution.Depth; d++)
+                {
+                    ref Entry entry = ref execution.Stack[d];
+                    if (entry.List == null || entry.Index >= entry.End) continue;
+                    GameplayAction action = entry.List[entry.Index];
+                    if (action != null) into.Add(action);
+                }
+            }
+        }
+
         /// <summary>Avança todas as execuções até o <c>TickedTime</c> atual.</summary>
         public void Tick()
         {

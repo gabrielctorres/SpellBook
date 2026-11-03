@@ -18,7 +18,7 @@ namespace SpellBook.Core.Tests.Inspector
         private static readonly string[] CoveredAssemblies =
         {
             "SpellBook.Core", "SpellBook.Time", "SpellBook.Tags", "SpellBook.Pooling",
-            "SpellBook.GAS", "SpellBook.Events", "SpellBook.GAS.Bridges", "SpellBook.Teams",
+            "SpellBook.GAS", "SpellBook.Events", "SpellBook.GAS.Bridges", "SpellBook.Teams", "SpellBook.Cues",
         };
 
         private readonly List<Object> _created = new List<Object>();
@@ -51,7 +51,7 @@ namespace SpellBook.Core.Tests.Inspector
             }
 
             Assert.That(types.Select(t => t.Name), Does.Contain("PooledSpawnerAsset").And.Contain("ManualTimeSource")
-                .And.Contain("AbilitySystemComponent").And.Contain("EventListener"),
+                .And.Contain("AbilitySystemComponent").And.Contain("EventListener").And.Contain("CueRouter"),
                 "a varredura não achou os tipos esperados");
             Assert.That(violations, Is.Empty);
         }

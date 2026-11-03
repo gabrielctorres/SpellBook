@@ -264,7 +264,7 @@ Depende de: CU3a.
   - `Tests/Cues/EditMode/CueRouterTests.cs`: `ManualTimeSource` no `SetUp` e os testes abaixo.
 - Testes red (EditMode, `CueRouterTests`): `UnknownTag_NoException_ReturnsFalse_WarnsOnce`; `FixedDuration_ReleasesByTimeSource_PausedDoesNot`; `MaxSimultaneous_DropNew_ReplaceOldest`; `RouterPublishesInAnchor_UnsetOnDisable`.
 - Critério de pronto: os 4 testes verdes e os 2 do CU3a seguem verdes, pelo filtro `\.CueRouterTests\.;\.CueIndexTests\.;\.HelpUrlTests\.;\.AsmdefRulesTests\.`, com `total` conferido no XML.
-- Tamanho: estimado em ~260 linhas e 5 arquivos, pela ADR 0042, a partir do código guardado. Exceção: nenhuma.
+- Tamanho: estimado em ~260 linhas e 5 arquivos, pela ADR 0042, a partir do código guardado. Exceção: nenhuma. Medido na implementação: 301 linhas e 5 arquivos.
 - Commit: `feat(cues): tempo, limite e âncora no roteador de cues`
 
 #### CU3c — Roteador: seguir o alvo, spawner nulo e alocação (divisão de 2026-11-03 do CU3)
@@ -280,7 +280,7 @@ Depende de: CU3b.
   - Depois do CU3c, os arquivos ficam iguais às cópias completas do `cu3-guardado`, salvo correções da revisão.
 - Testes red (EditMode, `CueRouterTests`): `SpawnerReturnsNull_SkipsItem_PlaysRest`; `Follow_CopiesPosition_TargetDestroyed_RemovesLooping`; `Execute_10000_WarmPool_DoesNotAllocate`.
 - Critério de pronto: os 9 testes de `CueRouterTests` verdes pelo filtro `\.CueRouterTests\.;\.CueIndexTests\.;\.HelpUrlTests\.;\.AsmdefRulesTests\.`, com `total` conferido no XML.
-- Tamanho: estimado em ~160 linhas e 4 arquivos, pela ADR 0042, a partir do código guardado. Exceção: nenhuma.
+- Tamanho: estimado em ~160 linhas e 4 arquivos, pela ADR 0042, a partir do código guardado. Exceção: nenhuma. Medido na implementação: 181 linhas e 4 arquivos.
 - Commit: `feat(cues): seguir o alvo e roteador sem alocação`
 
 ### CU4 — VFX: partículas, duração e magnitude
@@ -288,6 +288,23 @@ Depende de: CU3b.
 - Testes red: `Vfx_ParticlesStop_ReturnsToSpawner` (CA5, C5); `Vfx_FixedDuration_Returns_PausedDoesNot` (CA5); `Vfx_ScaleByMagnitude_DefaultWhenNone` (CA4, parte); `LoopingVfx_Remove_StopsThenReturns`; `AttachToTarget_CopiesRotation_NoParenting`.
 - Critério de pronto: CA5 verde; CA4 com a parte de escala.
 - Tamanho estimado: ~380 linhas; 7 arquivos. Depende de: CU3c (era CU3, divisão de 2026-11-03).
+
+### Detalhe (2026-11-03)
+- CA: CA5 (C5) e CA4 (parte: escala pela magnitude; volume no CU5).
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/Cues/VfxCueItem.cs` (novo): campos públicos como as ações `[SerializeReference]` (`Prefab`, `Spawner`, `Placement`, `Offset`, `Rotation` em graus, `ScaleByMagnitude`, `ScaleRange` de 0 a 1, `End`, `Duration`); `Play` cria pelo `CuePlayback.Spawn` com a rotação dos parâmetros e `Rotation` como rotação local do pedido (decisão do usuário de 2026-11-03: com `AttachToTarget`, `Rotation` vale sobre a do alvo a cada quadro), põe a escala do prefab vezes `Lerp(ScaleRange, magnitude)` (1 sem `ScaleByMagnitude`, para o objeto reutilizado do pool não herdar escala) e dá `Play` no `ParticleSystem` da raiz, se houver.
+  - `Runtime/Cues/CuePlayback.cs:14-24,56-90,99-160`: `NormalizedMagnitude(in CueParameters)` público (a do parâmetro, senão `CueDefinition.DefaultMagnitude`; o CU5 usa no volume); `Tracked` guarda o `ParticleSystem` da raiz quando o fim é `ParticlesStop`; `Tick` devolve o objeto `ParticlesStop` quando `IsAlive(true)` fica falso (sem partícula, na hora); `Stop()` interno para o `Remove`: os `ParticlesStop` vivos param de emitir e ficam até acabar, o resto volta na hora, e o slot fica "esvaziando" (handle já inválido, fora do `ActiveCount` e do limite, sem reuso até esvaziar); alvo perdido ao esvaziar devolve só aquele objeto. `Tracked.LocalRotation` (linhas 22, 74-92, 218-230): nasce com `Rotation * LocalRotation`, e o `AttachToTarget` usa a rotação do alvo vezes a local; o deslocamento gira só com o alvo. O `Spawn` trata o `default(Quaternion)` (todo zero) como `identity`, por `Equals` (decisão do usuário de 2026-11-03).
+  - `Runtime/Cues/CueItem.cs:183-210`: `CueSpawnRequest` ganha `LocalRotation` e o construtor ganha `localRotation` depois de `rotation`. Muda um tipo público, mas o módulo ainda não foi lançado: sem `CHANGELOG.md`.
+  - `Tests/Cues/EditMode/CueRouterTests.cs:217-238,307-313`: o `TestCueItem` do CU3 ganha `LocalRotation` (padrão `Quaternion.identity`) e passa o campo no construtor novo; teste novo do `default`. Consequência direta (ADR 0042, item 6).
+  - `Runtime/Cues/CueRouter.cs:72-76,130-154,168-176,197-263`: `Remove`, `RemoveAll(tag)`, `RemoveAll()` e o `ReplaceOldest` param pelo `Stop()`; `Tick` também avança os slots esvaziando; `OnDisable` devolve tudo na hora, inclusive os que esvaziam (o roteador desligado não tem `Tick`).
+  - `Tests/Testing/CuesFactory.cs:380-390`: o roteador nasce num objeto inativo e só é ativado depois dos campos, porque no PlayMode o `AddComponent` chama o `Awake` antes das bibliotecas. Consequência direta (ADR 0042, item 6).
+  - `Tests/Cues/PlayMode/SpellBook.Cues.Tests.PlayMode.asmdef` (novo; Core, Tags, Time, Cues, Testing) e `Tests/Cues/PlayMode/VfxCueTests.cs` (novo; partículas por `Emit` e `Clear`, sem esperar o tempo real).
+  - `Tests/Core/EditMode/Structure/AsmdefRulesTests.cs:25` (`Cues` em `PlayModeModules`).
+  - Sem `cues.md` nem `CHANGELOG.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007), e o ticket não quebra nada.
+- Testes red (PlayMode, `SpellBook.Cues.Tests.PlayMode`, classe `VfxCueTests`): `Vfx_ParticlesStop_ReturnsToSpawner`; `Vfx_FixedDuration_Returns_PausedDoesNot`; `Vfx_ScaleByMagnitude_DefaultWhenNone`; `LoopingVfx_Remove_StopsThenReturns`; `AttachToTarget_CopiesRotation_NoParenting`; `AttachToTarget_AppliesExtraRotationOverTargetEachTick`. EditMode, `CueRouterTests`: `Spawn_DefaultLocalRotation_ActsAsIdentity`. Guardas: `AsmdefRulesTests.AllExpectedAssembliesExist` (EditMode) e os 9 de `CueRouterTests` (EditMode).
+- Critério de pronto: os 6 de `VfxCueTests` verdes pelo filtro `\.VfxCueTests\.` no PlayMode, e os 10 de `CueRouterTests` e os de `AsmdefRulesTests` verdes pelo filtro `\.CueRouterTests\.;\.AsmdefRulesTests\.` no EditMode, com `total` conferido nos XML.
+- Tamanho: ~440 linhas e 7 arquivos, pela ADR 0042. Exceção: nenhuma. Medido na implementação: 361 linhas e 7 arquivos; com a rotação local no `AttachToTarget` (ajuste de 2026-11-03), 412 linhas e 9 arquivos; com o `default(Quaternion)` como `identity`, 441 linhas e 9 arquivos.
+- Commit: `feat(cues): VFX com partículas, duração e magnitude`
 
 ### CU5 — Som em pool
 - Escopo: `Runtime/Cues/SoundCueItem.cs`, `CueAudioPlayer.cs` (novos), `Runtime/Cues/Prefabs/CueAudioSource.prefab` (novo, fixture), `CueRouter.cs` (`audioPrefab`, `SetRandomSource`, sorteio de um som ou de todos), `Tests/Cues/EditMode/SoundCueTests.cs` (novo; clipe por `AudioClip.Create`), `Tests/Cues/PlayMode/SoundPlaybackTests.cs` (novo), `cues.md`, `CHANGELOG.md`.
@@ -301,17 +318,69 @@ Depende de: CU3b.
 - Critério de pronto: CA1, CA4, CA6 e CA12 verdes.
 - Tamanho estimado: ~470 linhas; 8 arquivos (1 fixture). Depende de: CU4, EV4a (`IRandomSource`).
 
+### Detalhe (2026-11-03)
+- CA: CA1 (completo: VFX e um som sorteado, ou todos), CA4 (parte do volume pela magnitude), CA6 (C6) e CA12.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/Cues/SoundCueItem.cs` (novo): campos públicos como o `VfxCueItem` (`Clip`, `Volume` e `Pitch` como faixas `Vector2`, padrão 1 a 1; `SpatialBlend`; `Mixer`; `Loop`; `VolumeByMagnitude`). `Play` sorteia volume e altura nessa ordem pelo `CuePlayback.Random` (um `Value()` cada, sempre os dois), multiplica o volume pela magnitude normalizada com `VolumeByMagnitude`, cria o `audioPrefab` do roteador pelo spawner padrão no ponto do cue (`World`) com o fim `ClipEnd` e a duração `clip.length / |pitch|`, ou `OnRemove` com `Loop` num cue `Looping` (num `Burst`, o `Loop` não vale; o erro de validação é do CU6), e configura o `CueAudioPlayer` da raiz. Sem clipe, sem `audioPrefab` ou com altura 0, não toca.
+  - `Runtime/Cues/CueAudioPlayer.cs` (novo): `[RequireComponent(typeof(AudioSource))]`, `AudioSource` em cache no `Awake` (e na primeira chamada, para o EditMode), `Source` e `Play(clip, volume, pitch, spatialBlend, mixer, loop)`.
+  - `Runtime/Cues/Prefabs/CueAudioSource.prefab` (novo, fixture): `AudioSource` sem `playOnAwake` e `CueAudioPlayer`, criado pela Unity por um script descartável de Editor (apagado depois).
+  - `Runtime/Cues/CueDefinition.cs:53-55,71-72`: `[SerializeReference] List<SoundCueItem> sounds` e `SoundSelection soundSelection` (adiados no CU2), com `Sounds` e `SoundSelection`.
+  - `Runtime/Cues/CueRouter.cs:16-32,40-41,96-104,154-166`: campo `audioPrefab`; `Random` (padrão `SeededRandomSource` pelo `Environment.TickCount`, como o ASC) e `SetRandomSource(IRandomSource)`; no `Play`, depois dos itens, `RandomOne` toca um som por `Random.Range(n)` (com um som só, sem sorteio) e `All` toca todos; `AudioPrefab` interno.
+  - `Runtime/Cues/CuePlayback.cs:120-121,228-244`: `Random` público (o do roteador); `AudioPrefab` interno, que avisa uma vez por roteador quando falta; o `Tick` conta o `ClipEnd` como o `FixedDuration`, pela fonte de tempo.
+  - `Tests/Testing/CuesFactory.cs`: `SetSounds(cue, selection, sounds)`, `SetAudioPrefab(router, prefab)`, `CreateAudioPrefab()` e `CreateClip(name, seconds)` (`AudioClip.Create`, silencioso), `LoadPackageAudioPrefab()` (`AssetDatabase`).
+  - `Tests/Cues/EditMode/SoundCueTests.cs` e `Tests/Cues/PlayMode/SoundPlaybackTests.cs` (novos).
+  - Sem `cues.md` nem `CHANGELOG.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007), e o ticket não quebra nada. O botão "Usar prefab de áudio do pacote" é do CU7.
+- Testes red: EditMode (`SpellBook.Cues.Tests.EditMode`, classe `SoundCueTests`): `RandomOne_PicksBySeed_All_PlaysAll`; `VolumePitch_FromRangeBySeed_MagnitudeScalesVolume`; `Sound_ReturnsAtClipEndOverPitch_ByTimeSource`; `TwoSounds_TwoObjects_LiveCountStable`; `LoopingSound_UntilRemove`. PlayMode (`SpellBook.Cues.Tests.PlayMode`, classe `SoundPlaybackTests`): `RealAudio_PlaysAndReturns` (com o prefab do pacote). Guardas: os 10 de `CueRouterTests` (EditMode) e os 6 de `VfxCueTests` (PlayMode).
+- Critério de pronto: os 5 de `SoundCueTests`, os 10 de `CueRouterTests`, os 4 de `CueIndexTests` e os 6 de `HelpUrlTests` (o `CueAudioPlayer` tem `[HelpURL]`) verdes pelo filtro `\.SoundCueTests\.;\.CueRouterTests\.;\.HelpUrlTests\.;\.CueIndexTests\.` no EditMode, e os 7 de `SoundPlaybackTests` e `VfxCueTests` pelo filtro `\.SoundPlaybackTests\.;\.VfxCueTests\.` no PlayMode, com `total` conferido nos XML.
+- Tamanho: ~570 linhas e 9 arquivos, pela ADR 0042 (o prefab conta só no número de arquivos). Exceção: +14% em linhas, linha do CU5 (#207) em `Documentation~/decisoes.md`. Medido na implementação: 508 linhas (+2%) e 9 arquivos.
+- Commit: `feat(cues): som em pool com sorteio, volume e fim do clipe`
+
 ### CU6 — Validação
 - Escopo: `CueDefinition.cs`, `CueLibrary.cs`, `CueRouter.cs`, `VfxCueItem.cs`, `SoundCueItem.cs` (`Validate`), `Tests/Cues/EditMode/CuesValidationTests.cs` (novo), `Documentation~/manual/ferramentas/validador.md`, `CHANGELOG.md`.
 - Testes red: um por regra do Design 5 (CA20, parte do R15), com `propertyPath`; `ProjectValidator_ReportsCueAssets`.
 - Critério de pronto: a parte do R15 no CA20 verde.
 - Tamanho estimado: ~380 linhas; 8 arquivos. Depende de: CU5.
 
+### Detalhe (2026-11-03)
+- CA: CA20 (parte do R15: as regras do Design 5, com o objeto clicável e o `propertyPath`). O R24 fica fora, como o Design 5 diz.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/Cues/CueItem.cs:12-18`: `CueItem` ganha `public virtual void Validate(ValidationResult result, string path, CueKind kind)`, que não acusa nada (adiado no CU2).
+  - `Runtime/Cues/VfxCueItem.cs:182-227`: `Validate`: sem `Prefab` (erro, `<path>.Prefab`), `Duration` negativa (erro, `<path>.Duration`), `End` `OnRemove` num `Burst` (erro, `<path>.End`).
+  - `Runtime/Cues/SoundCueItem.cs:243-292`: `Validate`: sem `Clip` (erro, `<path>.Clip`); `Volume` invertido ou fora de 0 a 1 (erro, `<path>.Volume`); `Pitch` invertido (erro, `<path>.Pitch`); `Loop` num `Burst` (erro, `<path>.Loop`).
+  - `Runtime/Cues/CueDefinition.cs:45-94`: `IValidatable`; sem tag (erro, `tag`); sem itens e sem sons (aviso, `items`); item ou som nulo (erro, `items.Array.data[i]` ou `sounds.Array.data[i]`); cada item e cada som pelo `Validate` do item; `maxSimultaneous` negativo (erro, `maxSimultaneous`).
+  - `Runtime/Cues/CueLibrary.cs:106-113`: `IValidatable`; definição nula (erro, `cues.Array.data[i]`); tag repetida, contada só nas definições com tag (erro na repetição, `cues.Array.data[i]`; vale a primeira, como o `CueIndex`).
+  - `Runtime/Cues/CueRouter.cs:16-71`: `IValidatable`; sem biblioteca não nula (aviso, `libraries`); sem `audioPrefab` com algum som numa definição das bibliotecas (aviso, `audioPrefab`); sem âncora (aviso, `anchor`).
+  - `Tests/Testing/CuesFactory.cs:73-103`: `CreateLibrary(params CueDefinition[])`, que o `CreateRouter` passa a usar, e `SetLibraries(router, params CueLibrary[])`.
+  - `Tests/Cues/EditMode/SpellBook.Cues.Tests.EditMode.asmdef:4-12` (+`SpellBook.Core.Editor`, para o `ProjectValidator` e o `SpellBookEditor.CollectMessages`, como `Tests/Teams/EditMode`). Consequência direta (ADR 0042, item 6).
+  - `Tests/Cues/EditMode/CuesValidationTests.cs` (novo).
+  - Sem `validador.md` nem `CHANGELOG.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007), e o ticket não quebra nada.
+- Testes red (EditMode, `SpellBook.Cues.Tests.EditMode`, classe `CuesValidationTests`): `Definition_NoTag_IsError`; `Definition_NoItemsNoSounds_IsWarning`; `Definition_NullItemOrSound_IsError`; `Definition_NegativeMaxSimultaneous_IsError`; `Vfx_NoPrefab_NegativeDuration_AreErrors`; `Vfx_OnRemoveInBurst_IsError`; `Sound_NoClip_IsError`; `Sound_InvertedRanges_VolumeOutsideZeroOne_AreErrors`; `Sound_LoopInBurst_IsError`; `Library_NullDefinition_RepeatedTag_AreErrors`; `Router_NoLibrary_NoAnchor_AreWarnings`; `Router_SoundsWithoutAudioPrefab_IsWarning`; `ValidSetup_HasNoMessages`; `ProjectValidator_ReportsCueAssets`.
+- Critério de pronto: os 14 de `CuesValidationTests` verdes, e os de `CueRouterTests`, `SoundCueTests` e `CueIndexTests` seguem verdes (a factory muda), pelo filtro `\.CuesValidationTests\.;\.CueRouterTests\.;\.SoundCueTests\.;\.CueIndexTests\.` no EditMode, com `total` conferido no XML.
+- Tamanho: ~430 linhas e 9 arquivos, pela ADR 0042. Exceção: nenhuma. Medido na implementação: 479 linhas e 9 arquivos.
+- Commit: `feat(cues): validação da definição, da biblioteca e do roteador`
+
 ### CU7 — Inspector e "Testar"
 - Escopo: `Editor/Cues/SpellBook.Cues.Editor.asmdef` (novo), `Editor/Cues/CuesEditors.cs` (biblioteca, roteador, âncora), `CueDefinitionEditor.cs` (novo), os `[TypeCategory(..., Line)]` em `VfxCueItem.cs` e `SoundCueItem.cs`, `AsmdefRulesTests.cs` (`Cues` em `EditorModules`), `SpellBookEditorCoverageTests.cs` (+`SpellBook.Cues`), `cues.md`, `CHANGELOG.md`.
 - Testes red: `CuesEditorAsmdef_References`; coverage com o Cues; `ItemLine_SummaryFromTypeCategory` (pelo `SummaryFormatter`).
 - Critério de pronto: CA19 (S) conferido pelo Examinador no host: listas com resumo e "Testar" em Play, com som real que volta ao pool.
 - Tamanho estimado: ~420 linhas; 9 arquivos. Depende de: CU6, AV1.
+
+### Detalhe (2026-11-03)
+- CA: CA19 (C14, S: listas com resumo de uma linha e "Testar" em Play) e CA17 (parte: asmdef do Editor do Cues).
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Editor/Cues/SpellBook.Cues.Editor.asmdef` (novo; Core, Tags, Time, Cues e Core.Editor por GUID, como `Editor/Time/SpellBook.Time.Editor.asmdef`).
+  - `Editor/Cues/AssemblyInfo.cs` (novo): `InternalsVisibleTo("SpellBook.Cues.Tests.EditMode")`, como `Editor/Core/AssemblyInfo.cs`. Consequência direta: os testes chamam o "Testar" e o botão do prefab sem painel.
+  - `Editor/Cues/CueDefinitionEditor.cs` (novo, herda de `SpellBookEditor`): antes do Inspector padrão, uma linha por item e por som pelo `SummaryFormatter.Format`, refeita no `TrackSerializedObjectValue`, como `Editor/GAS/AttributeDefinitionEditor.cs:114-122`. Depois do padrão, o botão "Testar", ativo só em Play, como `Editor/Events/EventChannelEditor.cs:34-55`. O "Testar" toca pelo primeiro `CueRouter` ativo de `FindObjectsByType`, pela tag da definição, com a API pública: `Execute` num `Burst` e `Add` num `Looping`; com um `Looping` ligado, o botão vira "Parar" e chama `Remove`. O ponto é a seleção (`CueParameters.On`) ou, sem seleção na cena, a posição e a rotação da `Camera.main`. A definição só toca se estiver numa biblioteca do roteador; senão vale o aviso de tag sem definição do roteador. Sem roteador ativo, avisa no Console.
+  - `Editor/Cues/CuesEditors.cs` (novo): `CueLibraryEditor` com um campo de busca por tag que lista as definições cujo nome da tag contém o texto (clique seleciona a definição); `CueRouterEditor` com o botão "Usar prefab de áudio do pacote", que põe `Runtime/Cues/Prefabs/CueAudioSource.prefab` no `audioPrefab` pelo `SerializedObject` (com desfazer); `CueRouterAnchorEditor` e `CueAudioPlayerEditor` de uma linha (cobertura).
+  - `Runtime/Cues/VfxCueItem.cs:14` e `Runtime/Cues/SoundCueItem.cs:15`: `Line` no `[TypeCategory]` (`"VFX {Prefab} · {Placement} · {End}"` e `"Som {Clip}{Loop? · loop}"`).
+  - `Tests/Core/EditMode/Structure/AsmdefRulesTests.cs:23` (`Cues` em `EditorModules`) e teste novo `CuesEditorAsmdef_References`.
+  - `Tests/Core/EditMode/Inspector/SpellBookEditorCoverageTests.cs:18-22` (+`SpellBook.Cues`; o assert de tipos esperados ganha `CueRouter`).
+  - `Tests/Cues/EditMode/SpellBook.Cues.Tests.EditMode.asmdef:4-12` (+`SpellBook.Cues.Editor`) e `Tests/Cues/EditMode/CueEditorsTests.cs` (novo).
+  - Sem `cues.md` nem `CHANGELOG.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007), e o ticket não quebra nada.
+- Testes red: EditMode, `SpellBook.Core.Tests.EditMode`: `AsmdefRulesTests.CuesEditorAsmdef_References` e `AllExpectedAssembliesExist` (com o `Cues` em `EditorModules`); `SpellBookEditorCoverageTests.EveryPublicConcreteMbAndSo_InRuntimeAssemblies_UsesSpellBookEditor` (com o Cues). EditMode, `SpellBook.Cues.Tests.EditMode`, classe `CueEditorsTests`: `ItemLine_SummaryFromTypeCategory`; `DefinitionEditor_ListsItemAndSoundLines_TestDisabledOutsidePlay`; `Test_BurstExecutes_LoopingTogglesAddRemove`; `Test_Point_SelectionThenCamera`; `UsePackageAudioPrefab_FillsRouterField`.
+- Critério de pronto: os testes acima verdes pelo filtro `\.CueEditorsTests\.;\.AsmdefRulesTests\.;\.SpellBookEditorCoverageTests\.` no EditMode, com `total` conferido no XML. CA19 conferido no Editor pelo Examinador no host (passos no relatório da Fábrica).
+- Tamanho: ~450 linhas e 10 arquivos, pela ADR 0042. Exceção: nenhuma. Medido na implementação: 405 linhas e 10 arquivos.
+- Commit: `feat(cues): Inspector de cues e botão Testar`
 
 ### CU8 — Cues no GAS: `ExecuteCueAction` e `AddCueAction`
 - Escopo: `Runtime/GAS.Bridges/SpellBook.GAS.Bridges.asmdef` (+Cues), `Runtime/GAS.Bridges/Cues/ExecuteCueAction.cs`, `AddCueAction.cs` (com `CueWatchAction` interna), `CueMagnitude.cs` (novos), `Tests/GAS.Bridges/PlayMode/SpellBook.GAS.Bridges.Tests.PlayMode.asmdef` (+Cues), `Tests/GAS.Bridges/PlayMode/CueActionsTests.cs` (novo), `AsmdefRulesTests.cs` (referências do Bridges), `cues.md` (seção "Cues no GAS", com a tabela dos momentos), `CHANGELOG.md`.

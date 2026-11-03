@@ -5,13 +5,16 @@ using UnityEngine;
 namespace SpellBook.Testing
 {
     /// <summary>
-    /// Spawner de teste com pool: conta criações e devoluções e guarda as instâncias vivas. Depois do aquecimento, não
-    /// aloca.
+    /// Spawner de teste com pool: conta criações e devoluções e guarda as instâncias vivas. Com <see cref="ReturnsNull"/>,
+    /// <c>Spawn</c> devolve <c>null</c>, como um pool vazio que não cresce. Depois do aquecimento, não aloca.
     /// </summary>
     public sealed class RecordingSpawnerAsset : SpawnerAsset
     {
         private readonly List<GameObject> _pool = new List<GameObject>();
         private readonly List<GameObject> _live = new List<GameObject>();
+
+        /// <summary>Faz <c>Spawn</c> devolver <c>null</c>.</summary>
+        public bool ReturnsNull { get; set; }
 
         /// <summary>Quantas instâncias foram entregues.</summary>
         public int SpawnCount { get; private set; }
@@ -24,6 +27,8 @@ namespace SpellBook.Testing
 
         public override GameObject Spawn(GameObject prefab, Vector3 position, Quaternion rotation, Transform parent = null)
         {
+            if (ReturnsNull) return null;
+
             GameObject instance;
             if (_pool.Count > 0)
             {

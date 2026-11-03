@@ -20,9 +20,9 @@ namespace SpellBook.Core.Tests.Structure
             "Core", "Time", "Events", "Pooling", "Tags", "GAS", "GAS.Bridges", "Teams", "Cues",
         };
 
-        private static readonly string[] EditorModules = { "Core", "Events", "Time", "Tags", "Pooling", "GAS", "GAS.Bridges", "Teams" };
+        private static readonly string[] EditorModules = { "Core", "Events", "Time", "Tags", "Pooling", "GAS", "GAS.Bridges", "Teams", "Cues" };
 
-        private static readonly string[] PlayModeModules = { "Core", "Time", "Events", "GAS", "GAS.Bridges" };
+        private static readonly string[] PlayModeModules = { "Core", "Time", "Events", "GAS", "GAS.Bridges", "Cues" };
 
         [Test]
         public void AsmdefRules_Scan_FindsCoreAndThisTestAsmdef()
@@ -359,6 +359,20 @@ namespace SpellBook.Core.Tests.Structure
                 editor.ReferenceNames.Where(r => r.StartsWith("SpellBook.", StringComparison.Ordinal)),
                 Is.EquivalentTo(new[] { "SpellBook.Core", "SpellBook.Teams", "SpellBook.Core.Editor" }));
             Assert.That(LoadedAssembly("SpellBook.Teams.Editor"), Is.Not.Null, "o assembly SpellBook.Teams.Editor não foi compilado");
+        }
+
+        [Test]
+        public void CuesEditorAsmdef_References()
+        {
+            AsmdefFile editor = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.Cues.Editor");
+
+            Assert.That(editor, Is.Not.Null, "não existe asmdef SpellBook.Cues.Editor");
+            Assert.That(editor.Path, Is.EqualTo("Editor/Cues/SpellBook.Cues.Editor.asmdef"));
+            Assert.That(editor.Kind, Is.EqualTo(AsmdefKind.Editor));
+            Assert.That(
+                editor.ReferenceNames.Where(r => r.StartsWith("SpellBook.", StringComparison.Ordinal)),
+                Is.EquivalentTo(new[] { "SpellBook.Core", "SpellBook.Tags", "SpellBook.Time", "SpellBook.Cues", "SpellBook.Core.Editor" }));
+            Assert.That(LoadedAssembly("SpellBook.Cues.Editor"), Is.Not.Null, "o assembly SpellBook.Cues.Editor não foi compilado");
         }
 
         [Test]

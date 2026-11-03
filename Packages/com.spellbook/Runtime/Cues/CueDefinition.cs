@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using SpellBook.Tags;
 using UnityEngine;
 
@@ -42,7 +43,7 @@ namespace SpellBook.Cues
     /// </summary>
     [HelpURL(DocUrls.Cues + "#cuedefinition")]
     [CreateAssetMenu(menuName = "SpellBook/Cues/Cue", fileName = "Cue")]
-    public class CueDefinition : ScriptableObject
+    public class CueDefinition : ScriptableObject, IValidatable
     {
         [SerializeField, Tooltip("Tag que toca este cue. Uma tag filha sem definição própria usa esta.")]
         private GameplayTag tag;
@@ -52,6 +53,12 @@ namespace SpellBook.Cues
 
         [SerializeReference, TypePicker, Tooltip("Itens que tocam juntos a cada vez.")]
         private List<CueItem> items = new List<CueItem>();
+
+        [SerializeReference, TypePicker, Tooltip("Sons do cue. A seleção diz se toca um sorteado ou todos.")]
+        private List<SoundCueItem> sounds = new List<SoundCueItem>();
+
+        [SerializeField, Tooltip("RandomOne sorteia um som da lista a cada vez; All toca todos.")]
+        private SoundSelection soundSelection;
 
         [SerializeField, Min(0), Tooltip("Máximo de cópias ativas ao mesmo tempo. 0 é sem limite.")]
         private int maxSimultaneous;
@@ -71,6 +78,12 @@ namespace SpellBook.Cues
         /// <summary>Itens que tocam juntos a cada vez.</summary>
         public IReadOnlyList<CueItem> Items => items;
 
+        /// <summary>Sons do cue.</summary>
+        public IReadOnlyList<SoundCueItem> Sounds => sounds;
+
+        /// <summary>Se toca um som sorteado ou todos.</summary>
+        public SoundSelection SoundSelection => soundSelection;
+
         /// <summary>Máximo de cópias ativas ao mesmo tempo; 0 é sem limite.</summary>
         public int MaxSimultaneous => maxSimultaneous;
 
@@ -79,5 +92,49 @@ namespace SpellBook.Cues
 
         /// <summary>Magnitude normalizada, de 0 a 1, usada quando quem toca não informa uma.</summary>
         public float DefaultMagnitude => defaultMagnitude;
+
+        public void Validate(ValidationResult result)
+        {
+            if (!tag.IsValid)
+            {
+                result.AddError("Sem tag. Escolha a tag que toca este cue.", nameof(tag));
+            }
+
+            if (items.Count == 0 && sounds.Count == 0)
+            {
+                result.AddWarning("Sem itens e sem sons. O cue não toca nada.", nameof(items));
+            }
+
+            for (int i = 0; i < items.Count; i++)
+            {
+                string path = $"{nameof(items)}.Array.data[{i}]";
+                if (items[i] == null)
+                {
+                    result.AddError($"Item vazio em items (posição {i}). Escolha um tipo ou remova a linha.", path);
+                }
+                else
+                {
+                    items[i].Validate(result, path, kind);
+                }
+            }
+
+            for (int i = 0; i < sounds.Count; i++)
+            {
+                string path = $"{nameof(sounds)}.Array.data[{i}]";
+                if (sounds[i] == null)
+                {
+                    result.AddError($"Som vazio em sounds (posição {i}). Escolha um som ou remova a linha.", path);
+                }
+                else
+                {
+                    sounds[i].Validate(result, path, kind);
+                }
+            }
+
+            if (maxSimultaneous < 0)
+            {
+                result.AddError("Máximo de cópias negativo. Use 0 para sem limite.", nameof(maxSimultaneous));
+            }
+        }
     }
 }

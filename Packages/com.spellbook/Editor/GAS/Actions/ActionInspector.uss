@@ -11,6 +11,7 @@
     --spellbook-warning: #e6b400;
     --spellbook-error: #ff5c5c;
     --spellbook-text-secondary: #9a9a9a;
+    --spellbook-running: #4cd964;
 }
 
 .action-inspector--light {
@@ -25,6 +26,7 @@
     --spellbook-warning: #8a6400;
     --spellbook-error: #c00000;
     --spellbook-text-secondary: #5a5a5a;
+    --spellbook-running: #1e8a32;
 }
 
 .action-events__tab--empty { color: var(--spellbook-text-secondary); }
@@ -46,6 +48,17 @@
 .action-row__validation--warning { color: var(--spellbook-warning); }
 .action-row__validation--error { color: var(--spellbook-error); }
 .action-row__body { padding-left: 16px; }
+.action-row__menu { margin: 0 0 0 2px; padding: 0 4px; min-width: 18px; }
+.action-row__level { color: var(--spellbook-text-secondary); margin: 0 4px; }
+.action-row__child-label { color: var(--spellbook-text-secondary); margin: 2px 0 0 4px; }
+
+/* Ação em curso em Play (Design 10a): o ponto sempre ocupa o lugar; só o filho direto acende, não o das filhas */
+.action-row__running { width: 6px; height: 6px; margin: 0 4px; border-radius: 3px; flex-shrink: 0; background-color: var(--spellbook-running); visibility: hidden; }
+.action-row--running > .action-row__header > .action-row__running { visibility: visible; }
+
+/* Filhas de uma ação de fluxo (DS 4.4): barra na cor de "Fluxo"; o recuo para no nível 3 */
+.action-list--nested { border-left-width: 2px; border-left-color: var(--spellbook-cat-flow); padding-left: 2px; }
+.action-list--indented { margin-left: 16px; }
 
 .action-row--cat-flow { border-left-color: var(--spellbook-cat-flow); }
 .action-row--cat-flow .action-row__icon { background-color: var(--spellbook-cat-flow); }
@@ -63,3 +76,11 @@
 .action-row--cat-debug .action-row__icon { background-color: var(--spellbook-cat-debug); }
 .action-row--cat-other { border-left-color: var(--spellbook-cat-other); }
 .action-row--cat-other .action-row__icon { background-color: var(--spellbook-cat-other); }
+
+.target-chip { margin: 0 4px; padding: 0 6px; border-radius: 8px; border-width: 1px; border-color: var(--spellbook-cat-target); flex-shrink: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.target-chip:hover { background-color: rgba(128, 128, 128, 0.2); }
+.target-chip:focus { border-width: 2px; }
+.target-chip--default { color: var(--spellbook-text-secondary); border-color: var(--spellbook-text-secondary); }
+.target-chip--error { color: var(--spellbook-error); border-color: var(--spellbook-error); }
+.action-row__target-block { border-left-width: 4px; border-left-color: var(--spellbook-cat-target); padding-left: 4px; margin-bottom: 4px; }
+.action-row__target-block > Label { -unity-font-style: bold; }

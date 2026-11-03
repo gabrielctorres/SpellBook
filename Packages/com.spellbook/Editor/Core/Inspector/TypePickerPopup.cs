@@ -35,13 +35,19 @@ namespace SpellBook.Core.Editor.Inspector
         /// </summary>
         public static void Show(Rect activatorWorldBound, Type baseType, Action<Type> onPicked)
         {
+            Show(activatorWorldBound, baseType, onPicked, TypePickerTree.NoneLabel);
+        }
+
+        /// <summary>Como <see cref="Show(Rect, Type, Action{Type})"/>, com <paramref name="noneLabel"/> no item que deixa o campo nulo.</summary>
+        public static void Show(Rect activatorWorldBound, Type baseType, Action<Type> onPicked, string noneLabel)
+        {
             if (baseType == null)
             {
                 throw new ArgumentNullException(nameof(baseType));
             }
 
             var popup = CreateInstance<TypePickerPopup>();
-            popup._tree = TypePickerTree.Build(TypePickerCatalog.GetCandidates(baseType));
+            popup._tree = TypePickerTree.Build(TypePickerCatalog.GetCandidates(baseType), noneLabel);
             popup._onPicked = onPicked;
             popup._level = popup._tree.Root;
             Rect screenRect = GUIUtility.GUIToScreenRect(activatorWorldBound);

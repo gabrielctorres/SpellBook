@@ -1,0 +1,26 @@
+{
+    "name": "SpellBook.Cues.Tests.PlayMode",
+    "rootNamespace": "SpellBook.Cues.Tests",
+    "references": [
+        "SpellBook.Core",
+        "SpellBook.Tags",
+        "SpellBook.Time",
+        "SpellBook.Cues",
+        "SpellBook.Testing",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

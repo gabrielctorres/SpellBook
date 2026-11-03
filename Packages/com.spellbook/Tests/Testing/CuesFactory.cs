@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Cues;
 using SpellBook.Tags;
+using SpellBook.Time;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -54,14 +55,45 @@ namespace SpellBook.Testing
             return cue;
         }
 
+        public CueRouterAnchor CreateAnchor()
+        {
+            return Track(ScriptableObject.CreateInstance<CueRouterAnchor>(), "CueRouterAnchor_Test");
+        }
+
         /// <summary>Spawner com pool que registra criações e devoluções.</summary>
         public RecordingSpawnerAsset CreateSpawner()
         {
             return Track(ScriptableObject.CreateInstance<RecordingSpawnerAsset>(), "RecordingSpawner_Test");
         }
 
-        /// <summary>Roteador com uma biblioteca das <paramref name="cues"/> e o <paramref name="spawner"/> como padrão.</summary>
-        public CueRouter CreateRouter(SpawnerAsset spawner, params CueDefinition[] cues)
+        /// <summary>
+        /// Roteador com uma biblioteca das <paramref name="cues"/>, o <paramref name="time"/> como fonte de tempo, o
+        /// <paramref name="spawner"/> como padrão e a <paramref name="anchor"/>, se houver.
+        /// </summary>
+        public CueRouter CreateRouter(
+            ManualTimeSource time, SpawnerAsset spawner, CueRouterAnchor anchor, params CueDefinition[] cues)
+        {
+            CueLibrary library = CreateLibrary(cues);
+
+            // Inativo até ter os campos: no PlayMode, o AddComponent chamaria o Awake sem as bibliotecas
+            GameObject host = Track(new GameObject(), "CueRouter_Test");
+            host.SetActive(false);
+            var router = host.AddComponent<CueRouter>();
+            Modify(router, so =>
+            {
+                SerializedProperty libraries = so.FindProperty("libraries");
+                libraries.arraySize = 1;
+                libraries.GetArrayElementAtIndex(0).objectReferenceValue = library;
+                so.FindProperty("timeSource").objectReferenceValue = time;
+                so.FindProperty("defaultSpawner").objectReferenceValue = spawner;
+                so.FindProperty("anchor").objectReferenceValue = anchor;
+            });
+            host.SetActive(true);
+            return router;
+        }
+
+        /// <summary>Biblioteca com as <paramref name="cues"/>, na ordem dada (nulas entram como linhas vazias).</summary>
+        public CueLibrary CreateLibrary(params CueDefinition[] cues)
         {
             var library = Track(ScriptableObject.CreateInstance<CueLibrary>(), "CueLibrary_Test");
             Modify(library, so =>
@@ -73,16 +105,78 @@ namespace SpellBook.Testing
                     list.GetArrayElementAtIndex(i).objectReferenceValue = cues[i];
                 }
             });
+            return library;
+        }
 
-            var router = Track(new GameObject(), "CueRouter_Test").AddComponent<CueRouter>();
+        /// <summary>Troca as bibliotecas do <paramref name="router"/> (nulas entram como linhas vazias).</summary>
+        public void SetLibraries(CueRouter router, params CueLibrary[] libraries)
+        {
             Modify(router, so =>
             {
-                SerializedProperty libraries = so.FindProperty("libraries");
-                libraries.arraySize = 1;
-                libraries.GetArrayElementAtIndex(0).objectReferenceValue = library;
-                so.FindProperty("defaultSpawner").objectReferenceValue = spawner;
+                SerializedProperty list = so.FindProperty("libraries");
+                list.arraySize = libraries.Length;
+                for (int i = 0; i < libraries.Length; i++)
+                {
+                    list.GetArrayElementAtIndex(i).objectReferenceValue = libraries[i];
+                }
             });
-            return router;
+        }
+
+        /// <summary>Põe os <paramref name="sounds"/> na <paramref name="cue"/>, com a seleção dada.</summary>
+        public void SetSounds(CueDefinition cue, SoundSelection selection, params SoundCueItem[] sounds)
+        {
+            Modify(cue, so =>
+            {
+                so.FindProperty("soundSelection").enumValueIndex = (int)selection;
+                SerializedProperty list = so.FindProperty("sounds");
+                list.arraySize = sounds.Length;
+                for (int i = 0; i < sounds.Length; i++)
+                {
+                    list.GetArrayElementAtIndex(i).managedReferenceValue = sounds[i];
+                }
+            });
+        }
+
+        /// <summary>Troca o prefab de áudio do <paramref name="router"/>.</summary>
+        public void SetAudioPrefab(CueRouter router, GameObject prefab)
+        {
+            Modify(router, so => so.FindProperty("audioPrefab").objectReferenceValue = prefab);
+        }
+
+        /// <summary>Prefab de áudio de teste: <see cref="AudioSource"/> sem tocar ao nascer e <see cref="CueAudioPlayer"/>.</summary>
+        public GameObject CreateAudioPrefab()
+        {
+            GameObject prefab = Track(new GameObject(), "CueAudioPrefab_Test");
+            prefab.AddComponent<AudioSource>().playOnAwake = false;
+            prefab.AddComponent<CueAudioPlayer>();
+            return prefab;
+        }
+
+        /// <summary>Prefab de áudio que o pacote entrega.</summary>
+        public static GameObject LoadPackageAudioPrefab()
+        {
+            return AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Packages/com.spellbook/Runtime/Cues/Prefabs/CueAudioSource.prefab");
+        }
+
+        /// <summary>Clipe mono de <paramref name="seconds"/> segundos a 44,1 kHz, silencioso salvo com <paramref name="tone"/>.</summary>
+        public AudioClip CreateClip(string name, float seconds, bool tone = false)
+        {
+            const int frequency = 44100;
+            int samples = Mathf.RoundToInt(seconds * frequency);
+            AudioClip clip = Track(AudioClip.Create(name, samples, 1, frequency, false), name);
+            if (tone)
+            {
+                var data = new float[samples];
+                for (int i = 0; i < samples; i++)
+                {
+                    data[i] = 0.1f * Mathf.Sin(2f * Mathf.PI * 440f * i / frequency);
+                }
+
+                clip.SetData(data, 0);
+            }
+
+            return clip;
         }
 
         /// <summary>Objeto de cena vazio, destruído no <see cref="Dispose"/>.</summary>

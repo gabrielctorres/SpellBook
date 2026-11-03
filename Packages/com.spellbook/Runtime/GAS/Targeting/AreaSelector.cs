@@ -55,14 +55,14 @@ namespace SpellBook.GAS.Targeting
         [SerializeField] private PhysicsMode physics = PhysicsMode.Physics3D;
         [Tooltip("Raio da busca, por nível. Zero ou menos não acha ninguém.")]
         [SerializeField] private ScalableFloat radius = ScalableFloat.Constant(5f);
+        [Tooltip("Filtro de candidato: o candidato fica se a condição for verdadeira. Vazio aceita todos.")]
+        [SerializeReference, TypePicker] private Condition<ConditionContext> filter;
         [Tooltip("Permite que o ASC que roda a lista seja alvo.")]
         [SerializeField] private bool includeOwner;
         [Tooltip("0 = ilimitado.")]
         [SerializeField, Min(0)] private int maxTargets;
         [SerializeField] private AreaOrder order = AreaOrder.Nearest;
         [SerializeField] private LayerMask layers = ~0;
-        [Tooltip("Filtro de candidato: o candidato fica se a condição for verdadeira. Vazio aceita todos.")]
-        [SerializeReference, TypePicker] private Condition<ConditionContext> filter;
 
         public AreaOrigin Origin { get => origin; set => origin = value; }
 

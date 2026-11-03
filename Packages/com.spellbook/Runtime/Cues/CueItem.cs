@@ -1,4 +1,5 @@
 using System;
+using SpellBook.Core.Validation;
 using UnityEngine;
 
 namespace SpellBook.Cues
@@ -15,6 +16,13 @@ namespace SpellBook.Cues
         /// <see cref="CuePlayback.Spawn"/>, para o roteador rastrear e devolver.
         /// </summary>
         public abstract void Play(in CueParameters parameters, CuePlayback playback);
+
+        /// <summary>
+        /// Acusa a configuração inválida do item numa definição do <paramref name="kind"/> dado. O
+        /// <paramref name="path"/> é o caminho serializado do item, para a mensagem apontar o campo. O padrão não acusa
+        /// nada.
+        /// </summary>
+        public virtual void Validate(ValidationResult result, string path, CueKind kind) { }
     }
 
     /// <summary>Onde o objeto do cue fica em relação ao alvo. O roteador copia a pose; nunca muda o parent.</summary>
@@ -184,11 +192,12 @@ namespace SpellBook.Cues
     public readonly struct CueSpawnRequest
     {
         public CueSpawnRequest(
-            Vector3 position, Quaternion rotation, CuePlacement placement, Transform target, Vector3 offset, CueEnd end,
-            float duration)
+            Vector3 position, Quaternion rotation, Quaternion localRotation, CuePlacement placement, Transform target,
+            Vector3 offset, CueEnd end, float duration)
         {
             Position = position;
             Rotation = rotation;
+            LocalRotation = localRotation;
             Placement = placement;
             Target = target;
             Offset = offset;
@@ -199,8 +208,15 @@ namespace SpellBook.Cues
         /// <summary>Posição inicial no mundo.</summary>
         public Vector3 Position { get; }
 
-        /// <summary>Rotação inicial no mundo.</summary>
+        /// <summary>Rotação no mundo ao nascer, antes de <see cref="LocalRotation"/>.</summary>
         public Quaternion Rotation { get; }
+
+        /// <summary>
+        /// Rotação extra, aplicada sobre <see cref="Rotation"/> ao nascer e, com <see cref="CuePlacement.AttachToTarget"/>,
+        /// sobre a do alvo a cada tick. O <c>default</c> (todo zero) vale como <see cref="Quaternion.identity"/>, sem
+        /// rotação extra.
+        /// </summary>
+        public Quaternion LocalRotation { get; }
 
         /// <summary>Como o objeto acompanha o alvo.</summary>
         public CuePlacement Placement { get; }
