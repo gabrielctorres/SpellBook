@@ -34,6 +34,7 @@ namespace SpellBook.Core.Tests.Structure
         private static readonly string[] EditorModules =
         {
             "Core", "Events", "Time", "Tags", "Pooling", "GAS", "GAS.Bridges", "Teams", "Cues", "Localization", "UI",
+            "UI.UGUI",
         };
 
         private static readonly string[] PlayModeModules = { "Core", "Time", "Events", "GAS", "GAS.Bridges", "Cues", "UI", "GAS.UI" };
@@ -517,6 +518,23 @@ namespace SpellBook.Core.Tests.Structure
             Assert.That(editor.ReferenceNames,
                 Is.EquivalentTo(new[] { "SpellBook.Core", "SpellBook.Time", "SpellBook.UI", "SpellBook.Core.Editor" }));
             Assert.That(LoadedAssembly("SpellBook.UI.Editor"), Is.Not.Null, "o assembly SpellBook.UI.Editor não foi compilado");
+        }
+
+        [Test]
+        public void UGuiEditorAsmdef_References()
+        {
+            AsmdefFile editor = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.UI.UGUI.Editor");
+
+            Assert.That(editor, Is.Not.Null, "não existe asmdef SpellBook.UI.UGUI.Editor");
+            Assert.That(editor.Path, Is.EqualTo("Editor/UI.UGUI/SpellBook.UI.UGUI.Editor.asmdef"));
+            Assert.That(editor.Kind, Is.EqualTo(AsmdefKind.Editor));
+            Assert.That(editor.ReferenceNames,
+                Is.EquivalentTo(new[]
+                {
+                    "SpellBook.Core", "SpellBook.Time", "SpellBook.UI", "SpellBook.UI.UGUI", "SpellBook.Core.Editor",
+                    "UnityEngine.UI", "Unity.TextMeshPro",
+                }));
+            Assert.That(LoadedAssembly("SpellBook.UI.UGUI.Editor"), Is.Not.Null, "o assembly SpellBook.UI.UGUI.Editor não foi compilado");
         }
 
         [Test]
