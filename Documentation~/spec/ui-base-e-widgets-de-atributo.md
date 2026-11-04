@@ -216,6 +216,7 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Teste
 - Testes red: `Bar_Fraction_ZeroMax_Zero`; `Bar_TrailHoldsThenFalls_TickOnlyWhileAbove`; `TwoBars_Independent_NoShieldField` (CA3, com fontes de teste); `ModelUpdates10000_DoNotAllocate` (CA13, parte).
 - Critério de pronto: CA3 verde (lado da UI).
 - Tamanho estimado: ~380 linhas; 8 arquivos. Depende de: UI4.
+- Divisão (2026-11-04, ADR 0042): o UI5 medido passou de +30% do teto e virou dois tickets. **UI5a** (#239): modelos e os três binders, sem rastro na barra (CA3 e CA13, parte); depende de UI4. **UI5b** (#333): rastro atrasado do `BarBinder` e tick do próprio binder (CA13, parte); depende de UI5a. O UI6 e o UI10 dependem também do UI5b.
 
 #### Detalhe (2026-11-04) — UI5a (#239)
 - Divisão pela ADR 0042: o UI5 medido deu ~704 linhas (+41%) e foi dividido em UI5a (esta issue, #239) e UI5b (#333). O UI5a entrega os modelos e os três binders; o `BarBinder` não tem rastro, e a fração entra direto (o `TrailFraction` do `BarModel` sai igual à `Fraction`). O rastro e o tick do binder ficam no UI5b.
@@ -249,7 +250,7 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Teste
 - Escopo: `Runtime/GAS.UI/SpellBook.GAS.UI.asmdef` (novo; Core, Tags, Time, GAS, UI), `Runtime/GAS.UI/AttributeSources.cs` (novo), `Tests/GAS.UI/EditMode/SpellBook.GAS.UI.Tests.EditMode.asmdef`, `Tests/GAS.UI/EditMode/AttributeSourcePreviewTests.cs`, `Tests/GAS.UI/PlayMode/SpellBook.GAS.UI.Tests.PlayMode.asmdef`, `Tests/GAS.UI/PlayMode/AttributeSourcesTests.cs` (novos), `AsmdefRulesTests.cs` (`GAS.UI` nas listas; referências exatas; sem Bridges, uGUI e TMP; o GAS não referencia UI), `CHANGELOG.md`.
 - Testes red: `Bar_VidaAndVidaMax_ByEvent_NoUpdate` (CA1, C1); `Bar_MaxFromLimitSource_FollowsAR1`; `Text_FormatAndInjectedCulture_NoMarkup` (CA2, C2); `TwoBars_VidaAndEscudo_Independent` (CA3, C3); `Preview_50Of100`; `GasUiAsmdef_ReferencesExactly_NoBridgesNoUgui` (CA12); `Updates10000_DoNotAllocate` (CA13, parte).
 - Critério de pronto: CA1 a CA3 e CA12 verdes.
-- Tamanho estimado: ~470 linhas; 8 arquivos. Depende de: UI5, DE7, AR1, EA1.
+- Tamanho estimado: ~470 linhas; 8 arquivos. Depende de: UI5a, UI5b, DE7, AR1, EA1.
 
 ### UI7 — `TagSource` e páginas dos widgets de atributo e tag
 - Escopo: `Runtime/GAS.UI/TagSource.cs` (novo), `Tests/GAS.UI/PlayMode/TagSourceTests.cs` (novo), `DocUrls.cs` (`UiAttributeBar`, `UiAttributeText`, `UiTagIndicator`), `DocUrlsTests.cs`, `Documentation~/manual/ui/barra-de-atributo.md`, `texto-de-atributo.md`, `indicador-de-tag.md` (novas), `CHANGELOG.md`.
@@ -273,7 +274,7 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Teste
 - Escopo: `Runtime/UI/FloatingTextStyle.cs`, `Runtime/UI/FloatingTextBinder.cs` (novos), `UIModels.cs` (`FloatingTextRequest`, `IFloatingTextView`), `UIEditors.cs`, `Tests/UI/PlayMode/FloatingTextBinderTests.cs` (novo; spawner de teste que conta vivos), `DocUrls.cs` (`UiFloatingText`), `DocUrlsTests.cs`, `Documentation~/manual/ui/numeros-flutuantes.md` (nova), `CHANGELOG.md`.
 - Testes red: `Publish_SpawnsThroughSpawner_ReleasedAtEnd_LiveCountStable` (CA8, parte); `NullSpawn_SkipsWithWarning_NoException`; `PausedTime_NumberStays`; `Numbers1000_DoNotAllocate` (CA13, parte).
 - Critério de pronto: partes do CA8 e do CA13 verdes.
-- Tamanho estimado: ~450 linhas; 9 arquivos. Depende de: UI9.
+- Tamanho estimado: ~450 linhas; 9 arquivos. Depende de: UI9, UI5b.
 
 ### UI11 — `FloatingTextSource`, regras e Editor do GAS.UI
 - Escopo: `Runtime/GAS.UI/FloatingTextRules.cs`, `FloatingTextSource.cs` (novos), `Editor/GAS.UI/SpellBook.GAS.UI.Editor.asmdef`, `Editor/GAS.UI/GasUIEditors.cs` (novos), `Tests/GAS.UI/PlayMode/FloatingTextSourceTests.cs` (novo), `AsmdefRulesTests.cs` (`GAS.UI` em `EditorModules`), `SpellBookEditorCoverageTests.cs` (+`SpellBook.GAS.UI`), `numeros-flutuantes.md`, `CHANGELOG.md`.
@@ -307,18 +308,19 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Teste
 | UI2 | sim | UI1, DE1 | ~450 / 10 |
 | UI3 | sim | UI2 | ~470 / 7 |
 | UI4 | sim | UI3, AR4 | ~420 / 10 |
-| UI5 | sim | UI4 | ~380 / 8 |
-| UI6 | sim | UI5, DE7, AR1, EA1 | ~470 / 8 |
+| UI5a (#239) | sim | UI4 | ~447 / 7 |
+| UI5b (#333) | sim | UI5a | ~290 / 3 |
+| UI6 | sim | UI5a, UI5b, DE7, AR1, EA1 | ~470 / 8 |
 | UI7 | sim | UI6, AV2 | ~280 / 8 |
 | UI8 | sim | UI7, ADR 0039, Q1 | ~430 / 9 |
 | UI9 | sim | UI8 | ~240 / 10 |
-| UI10 | sim | UI9 | ~450 / 9 |
+| UI10 | sim | UI9, UI5b | ~450 / 9 |
 | UI11 | sim | UI10, DM2, RL1 | ~470 / 9 |
 | UI12 | sim | UI11 | ~250 / 6 |
 | UI13 | sim | UI12, AV1 | ~430 / 10 |
 | UI14 | sim | UI13 | ~380 / 9 |
 
-Fila: UI1 → UI14 em série, depois do DE7 (o B-015 não espera o resto do B-008). O B-016 começa depois do UI14 (usa o Editor do GAS.UI, criado no UI11, e o Inspector de binder do UI13). CA12 e CA15 rodam em todos.
+Fila: UI1 → UI14 em série (UI5a antes do UI5b), depois do DE7 (o B-015 não espera o resto do B-008). O B-016 começa depois do UI14 (usa o Editor do GAS.UI, criado no UI11, e o Inspector de binder do UI13). CA12 e CA15 rodam em todos.
 
 ## Perguntas ao usuário
 
