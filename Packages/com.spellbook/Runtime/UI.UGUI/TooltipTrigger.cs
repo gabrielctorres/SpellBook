@@ -1,7 +1,9 @@
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
 namespace SpellBook.UI.UGUI
@@ -30,7 +32,8 @@ namespace SpellBook.UI.UGUI
     /// </summary>
     [DisallowMultipleComponent]
     [HelpURL(DocUrls.UiTooltip + "#tooltiptrigger")]
-    public sealed class TooltipTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, ISelectHandler, IDeselectHandler
+    public sealed class TooltipTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, ISelectHandler, IDeselectHandler,
+        IValidatable
     {
         [SerializeReference, TypePicker]
         [Tooltip("O que o tooltip mostra.")]
@@ -158,6 +161,39 @@ namespace SpellBook.UI.UGUI
             _shownOn = null;
         }
 
+        /// <summary>
+        /// Acrescenta os problemas do gatilho (Design 6, R14): sem fonte ou sem âncora de binder (erro), atraso negativo
+        /// (aviso), modo de ponteiro sem <see cref="Graphic"/> com <c>raycastTarget</c> no objeto nem nos filhos (aviso), e
+        /// os da fonte, no caminho <c>source</c>.
+        /// </summary>
+        public void Validate(ValidationResult result)
+        {
+            if (source == null)
+            {
+                result.AddError("Sem fonte. Escolha o que o tooltip mostra.", nameof(source));
+            }
+            else
+            {
+                source.Validate(result, nameof(source));
+            }
+
+            if (binder == null)
+            {
+                result.AddError("Sem âncora de binder. Escolha a âncora em que o TooltipBinder da tela se publica.", nameof(binder));
+            }
+
+            if (delay < 0f)
+            {
+                result.AddWarning("Atraso negativo. O tooltip abre na hora; use 0 ou mais.", nameof(delay));
+            }
+
+            if (OpensByPointer && !HasRaycastGraphic())
+            {
+                result.AddWarning("Modo de ponteiro sem Graphic com Raycast Target neste objeto nem nos filhos. O ponteiro não " +
+                    "abre o tooltip; ligue o Raycast Target de um Graphic ou use o modo Focus ou Code.", nameof(mode));
+            }
+        }
+
         void IPointerEnterHandler.OnPointerEnter(PointerEventData eventData)
         {
             if (OpensByPointer)
@@ -193,6 +229,20 @@ namespace SpellBook.UI.UGUI
         private bool OpensByPointer => mode == TooltipOpenMode.Pointer || mode == TooltipOpenMode.PointerAndFocus;
 
         private bool OpensByFocus => mode == TooltipOpenMode.Focus || mode == TooltipOpenMode.PointerAndFocus;
+
+        // A uGUI manda o PointerEnter do objeto atingido também aos pais, então um Graphic num filho serve
+        private bool HasRaycastGraphic()
+        {
+            foreach (Graphic graphic in GetComponentsInChildren<Graphic>(true))
+            {
+                if (graphic.raycastTarget)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         private void Awake()
         {

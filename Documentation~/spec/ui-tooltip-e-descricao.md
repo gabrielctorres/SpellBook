@@ -397,6 +397,30 @@ Detalhe (2026-11-04), da Fábrica, sobre a divisão acima.
 - Critério de pronto: CA16 verde; CA15 pela guarda do UI14.
 - Tamanho estimado: ~380 linhas; 9 arquivos. Depende de: TT6.
 
+### Detalhe (2026-11-04)
+- CA: CA16 (o validador cobre os casos do R14 que não dependem da cena, com o objeto clicável: `Context` e `PropertyPath` em cada mensagem); CA15 pela guarda do UI14 (`GasUiSourceScanTests`). As duas checagens de cena do R14 (binder duplicado e modo ponteiro sem `EventSystem`) já estão nos Inspectors do TT6 (Design 6). Cobre a validação do Design 6.
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/UI.UGUI/TooltipTrigger.cs:33` passa a implementar `IValidatable`; `Validate(ValidationResult)` novo, depois do `Hide()` (`:159`):
+    - sem fonte: erro em `source`; com fonte, `source.Validate(result, "source")` (como o `UIBinder`);
+    - sem âncora de binder: erro em `binder`;
+    - atraso negativo: aviso em `delay` (o binder abre na hora com atraso ≤ 0, então não quebra);
+    - modo `Pointer` ou `PointerAndFocus` sem nenhum `Graphic` com `raycastTarget` no objeto nem nos filhos: aviso em `mode`. Os filhos contam porque a uGUI manda o `PointerEnter` do objeto atingido também aos pais.
+  - `Runtime/GAS.UI/TooltipSubjectRule.cs` (novo, `internal static`): `Validate(result, assunto, caminho, nome)` dá erro em `<caminho>.<campo>` quando o assunto configurado é nulo (destruído conta como nulo) e o objeto validado (`result.Context`) não é um `Component` com `UIItemContext` no mesmo objeto, que é onde o `TooltipTrigger` o lê. Sem API nova: a fonte já recebe o `ValidationResult` com o objeto.
+  - `Runtime/GAS.UI/AbilityTooltipSource.cs:79`, `EffectTooltipSource.cs:40` e `AttributeTooltipSource.cs:48`: `override Validate(ValidationResult, string)` chamando a regra para `ability`, `effect` e `attribute`.
+  - `Runtime/UI/TooltipBinder.cs`: não muda; o `Validate` do TT1a (sem view; view que não implementa `IView<TooltipModel>`) ganha os testes que faltavam.
+  - `Tests/UI.UGUI/EditMode/TooltipValidationTests.cs` e `Tests/GAS.UI/EditMode/TooltipSourceValidationTests.cs` (novos). Os asmdefs de teste já referenciam o que os testes usam.
+- Decisões; o Examinador julga: atraso negativo é aviso, e não erro (abre na hora); o `Graphic` pode estar num filho; a regra do assunto vê o `UIItemContext` só no objeto do gatilho, como o `Awake` dele.
+- Fora deste ticket: `manual/ferramentas/validador.md` fica para o passe de documentação (emenda de 2026-11-03 da ADR 0007); o `CHANGELOG.md` sai porque não há quebra (só API aditiva numa classe do lote).
+- Testes red (EditMode):
+  - `SpellBook.UI.UGUI.Tests.EditMode`, classe `TooltipValidationTests`: `Trigger_NoSource_IsError`; `Trigger_NoBinderAnchor_IsError`; `Trigger_NegativeDelay_IsWarning`; `Trigger_PointerMode_NoRaycastGraphic_IsWarning` (com `Graphic` sem `raycastTarget`, avisa; com um num filho, não; modo `Focus` e `Code`, não); `Trigger_SourceRulesUnderSourcePath` (a mensagem da fonte sai em `source.ability`, com o gatilho como contexto); `Trigger_Valid_HasNoMessages`; `Binder_NoView_IsError`; `Binder_ViewNotTooltipView_IsError`; todos pelo `SpellBookEditor.CollectMessages`, conferindo `Context` e `PropertyPath`.
+  - `SpellBook.GAS.UI.Tests.EditMode`, classe `TooltipSourceValidationTests`: `AbilitySource_NoAbility_NoItemContext_IsError`, `EffectSource_NoEffect_NoItemContext_IsError`, `AttributeSource_NoAttribute_NoItemContext_IsError`, `Sources_EmptyWithItemContext_HaveNoMessages`, `Sources_Configured_HaveNoMessages`.
+- Critério de pronto: os 13 testes verdes, com o `total` do XML conferido; `GasUiSourceScanTests` e `TypeCatalogSummaryTests` verdes no mesmo filtro.
+- Red, com os testes contra o código do TT6 (compilam sem mudar o runtime, pelo `CollectMessages` e o `Validate` vazio da base da fonte): 13 rodam e 8 falham por falta da mensagem (os 5 do gatilho com regra e os 3 de fonte sem assunto). Os 5 que passam testam ausência de mensagem ou o `Validate` do binder, que já existia, e ficam provados por mutação.
+- Green: 16 de 16 (`total` = 16): os 13 do ticket, `GasUiSourceScanTests` e `TypeCatalogSummaryTests`.
+- Mutações, desfeitas em seguida (conferidas por `cmp`), em três rodadas: a regra ignorando o `UIItemContext` derruba só o `Sources_EmptyWithItemContext_HaveNoMessages`; o `Graphic` só no próprio objeto, só o `Trigger_PointerMode_NoRaycastGraphic_IsWarning` (o filho); o binder sem a regra da view nula, só o `Binder_NoView_IsError`; o `UIItemContext` do pai contando, só os 3 de fonte sem assunto (contexto "Child"); o binder sem a regra da view errada, só o `Binder_ViewNotTooltipView_IsError`; a regra ignorando o assunto configurado, só o `Sources_Configured_HaveNoMessages`.
+- Tamanho medido (`git diff --numstat` e `wc -l` dos novos): 381 linhas em 7 arquivos (mais esta Spec): `TooltipValidationTests.cs` 160, `TooltipSourceValidationTests.cs` 124, `TooltipTrigger.cs` +51/−1, `TooltipSubjectRule.cs` 30, as três fontes +5 cada. O `TooltipBinder.cs` não mudou. Exceção: nenhuma.
+- Commit: `feat(ui): validação do tooltip (#266)`
+
 ### TT8 — Tooltip no slot de habilidade
 - Escopo: `Runtime/UI.UGUI/Prefabs/AbilitySlot.prefab` (+`TooltipTrigger` com `AbilityTooltipSource` sem habilidade, assunto do item), `Tests/UI.UGUI/EditMode/WidgetPrefabsTests.cs` (caso novo), `slot-de-habilidade.md` (seção "Tooltip em slot"), `tooltip.md`, `CHANGELOG.md` (R15 completo).
 - Testes red: `AbilitySlotPrefab_HasTooltipTrigger_WithAbilitySourceFromItem`.

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using SpellBook.Core.Inspector;
 using SpellBook.Core.Text;
+using SpellBook.Core.Validation;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Description;
@@ -38,6 +39,10 @@ namespace SpellBook.GAS.UI
 
         /// <inheritdoc />
         public override UIBinding<TooltipModel> CreateBinding() => new Binding(this);
+
+        /// <summary>Sem efeito e sem <see cref="UIItemContext"/> no objeto: erro no campo (R14).</summary>
+        public override void Validate(ValidationResult result, string propertyPath) =>
+            TooltipSubjectRule.Validate(result, effect, $"{propertyPath}.{nameof(effect)}", "o", "efeito");
 
         /// <summary>O tooltip do efeito configurado no nível do contexto, sem instância; vazio sem efeito.</summary>
         public override TooltipModel CreatePreview(in UIPreviewContext context)

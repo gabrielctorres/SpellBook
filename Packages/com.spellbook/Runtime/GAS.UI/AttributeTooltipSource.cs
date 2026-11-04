@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
 using SpellBook.Core.Text;
+using SpellBook.Core.Validation;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Description;
@@ -46,6 +47,10 @@ namespace SpellBook.GAS.UI
 
         /// <inheritdoc />
         public override UIBinding<TooltipModel> CreateBinding() => new Binding(this);
+
+        /// <summary>Sem atributo e sem <see cref="UIItemContext"/> no objeto: erro no campo (R14).</summary>
+        public override void Validate(ValidationResult result, string propertyPath) =>
+            TooltipSubjectRule.Validate(result, attribute, $"{propertyPath}.{nameof(attribute)}", "o", "atributo");
 
         /// <summary>O tooltip do atributo configurado sem dono: nome e ícone, sem valor; vazio sem atributo.</summary>
         public override TooltipModel CreatePreview(in UIPreviewContext context)
