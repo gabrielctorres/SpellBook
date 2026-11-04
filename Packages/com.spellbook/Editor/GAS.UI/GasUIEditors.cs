@@ -7,4 +7,8 @@ namespace SpellBook.GAS.UI.Editor
     [CustomEditor(typeof(FloatingTextRules))]
     [CanEditMultipleObjects]
     internal sealed class FloatingTextRulesEditor : SpellBookEditor { }
+
+    [CustomEditor(typeof(AbilityLoadout))]
+    [CanEditMultipleObjects]
+    internal sealed class AbilityLoadoutEditor : SpellBookEditor { }
 }

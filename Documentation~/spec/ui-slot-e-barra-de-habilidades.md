@@ -208,6 +208,29 @@ Divisão do SL1 pela ADR 0042, decidida pelo usuário em 2026-11-04. O SL1 imple
 - Critério de pronto: testes verdes.
 - Tamanho estimado: ~240 linhas; 7 arquivos. Depende de: SL2.
 
+### Detalhe (2026-11-04)
+- CA: nenhum CA do PRD fecha aqui. Cobre o R1 (lista ordenada que não concede) e a parte "sem alocação ao ler" do R2, com o Design 3 e a P4. Prepara o CA1 (ordem, SL6) e o CA10 (rótulo, SL4).
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/GAS.UI/AbilityLoadout.cs` (novo): `sealed class AbilityLoadout : ScriptableObject`, com `[CreateAssetMenu(menuName = "SpellBook/UI/Ability Loadout")]`, como o R1 e o Design 3, e `[HelpURL(DocUrls.UiAbilityBar + "#abilityloadout")]`.
+    - `[Serializable] struct Entry { GameplayTag slot; GameplayAbility ability; }`, com construtor e leitura (`Slot`, `Ability`), como o `Entry` do `FixedKeyLabelProvider`;
+    - `List<Entry> entries` e `KeyLabelProvider keyLabels`; leitura por `IReadOnlyList<Entry> Entries` e `KeyLabels`;
+    - `bool TryFindEntry(GameplayTag slot, out Entry entry)`: laço sem alocar; tag inválida ou ausente devolve `false`; na tag repetida a primeira entrada vence (o erro é do SL9).
+    - Não referencia o ASC e não concede (R1).
+  - `Editor/GAS.UI/GasUIEditors.cs:9`: `AbilityLoadoutEditor : SpellBookEditor`, para a guarda `SpellBookEditorCoverageTests`. O SL9 o troca pelo `AbilityLoadoutEditor.cs` com a lista.
+  - `Runtime/Core/DocUrls.cs:31`: `UiAbilityBar = Base + "ui/barra-de-habilidades/"`. `Tests/Core/EditMode/DocUrlsTests.cs:39`: o `TestCase` dela.
+  - `Tests/GAS.UI/EditMode/AbilityLoadoutTests.cs` (novo).
+  - Os asmdefs não mudam: o runtime `SpellBook.GAS.UI` já referencia GAS, Tags, Core e UI, e o editor já referencia o runtime e as dependências dele (ADR 0012, item 2; ADR 0039, item 9). Não há tipo oferecido por seletor, então a ADR 0013, item 4, não se aplica.
+- Fora deste ticket: a página `manual/ui/barra-de-habilidades.md` fica para o passe de documentação (emenda de 2026-11-03 da ADR 0007). Até lá, a guarda `ManualLinksTests` (categoria `Documentacao`) acusa a constante e a âncora sem página, como no SL2. O `CHANGELOG.md` sai porque não há quebra (item 4 da mesma emenda). A validação do loadout (Design 7) fica com o SL9.
+- Testes red (EditMode, `SpellBook.GAS.UI.Tests.EditMode`, classe `AbilityLoadoutTests`):
+  - `Entries_InListOrder`;
+  - `FindEntryBySlot_NoAllocation` (acha a entrada pela tag; tag ausente e inválida devolvem `false`; 10 000 buscas sem alocar);
+  - `DoesNotGrant` (ASC sem habilidades continua sem nenhuma depois de ler e buscar no loadout);
+  - `DocUrlsTests.DocUrls_PageConstantPointsToPageUnderBase("UiAbilityBar", ...)`.
+  Red contra um esqueleto que compila e não faz nada (`Entries` vazio, `TryFindEntry` sempre `false`, `HelpURL` provisório em `DocUrls.Ui`): 4 de 4 falham (3 entradas esperadas e 0 lidas; 20 000 buscas esperadas e 0 achadas; `DocUrls.UiAbilityBar` inexistente). O `DoesNotGrant` cai ao ler a entrada que o esqueleto não lista; a asserção de não conceder passaria nele, porque guarda uma ausência.
+- Critério de pronto: os 3 testes de `AbilityLoadoutTests` e o caso novo do `DocUrlsTests` verdes, com 4 no XML; `DocUrlsTests`, `HelpUrlTests` e `SpellBookEditorCoverageTests` verdes.
+- Tamanho medido (`git diff --numstat` e `wc -l` dos novos): 212 linhas em 6 arquivos. Em `.cs`: `AbilityLoadout.cs` 77, `AbilityLoadoutTests.cs` 129, `GasUIEditors.cs` +4, `DocUrls.cs` +1 e `DocUrlsTests.cs` +1; a Spec conta só como arquivo. Exceção: nenhuma.
+- Commit: `feat(gas-ui): AbilityLoadout (#251)`
+
 ### SL4 — Fonte do slot: tags, recarga, custo, rótulo e pulso; consulta com escopo
 - Escopo: `Runtime/GAS/Abilities/ActivationCheckScope.cs` (novo), `AbilitySystemComponent.cs` (sobrecarga), `Tests/GAS/PlayMode/ActivationScopeTests.cs` (novo), `Runtime/GAS.UI/SlotReader.cs`, `Runtime/GAS.UI/AbilitySlotSource.cs`, `Runtime/UI/AbilitySlotBinder.cs` (novos), `UIEditors.cs`, `Tests/GAS.UI/PlayMode/AbilitySlotSourceTests.cs` (novo), `slot-de-habilidade.md`, `CHANGELOG.md`.
 - Testes red: `Scope_WithoutConditions_StopsBeforeRules_SameOrder`; `Cooldown8s_ReadyCooldownReady_FractionSeconds_PulseOnce_PauseStops` (CA2, C2); `ReducedCooldown_ShowsRealDuration` (CA3, C3); `LowMana_NoResource_BackWhenManaRises` (CA5, C5); `BlockingTag_Blocked_BackOnRemove` (CA6, C6); `KeyLabel_FromProvider_UpdatesOnChanged` (CA10, C10); `SlotState_MatchesTryActivate_UpToCost` (CA16); `SlotUpdates10000_DoNotAllocate` (CA14, parte).
