@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using UnityEngine;
 
 namespace SpellBook.UI
@@ -167,6 +168,33 @@ namespace SpellBook.UI
 
             _entries.Clear();
             RefreshOverflow();
+        }
+
+        /// <summary>
+        /// Acrescenta os problemas da fonte (no caminho <c>source</c>), do resolvedor e do prefab: sem fonte, sem prefab ou
+        /// prefab sem um componente na raiz que implemente <see cref="IView{TItem}"/>.
+        /// </summary>
+        public override void Validate(ValidationResult result)
+        {
+            if (source == null)
+            {
+                result.AddError("Sem fonte. Escolha o que o binder lê do dono.", nameof(source));
+            }
+            else
+            {
+                source.Validate(result, nameof(source));
+            }
+
+            base.Validate(result);
+            if (itemPrefab == null)
+            {
+                result.AddError("Sem prefab de item. Ligue o prefab com a view do item.", nameof(itemPrefab));
+            }
+            else if (itemPrefab.GetComponent<IView<TItem>>() == null)
+            {
+                result.AddError($"O prefab {itemPrefab.name} não tem na raiz um componente que implemente " +
+                    $"IView<{typeof(TItem).Name}>. Ligue um prefab que desenhe esse modelo.", nameof(itemPrefab));
+            }
         }
 
         private protected override Type SourceOwnerType => source?.OwnerType;

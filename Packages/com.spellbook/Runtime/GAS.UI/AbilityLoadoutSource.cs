@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using SpellBook.Core.Inspector;
 using SpellBook.Core.Text;
+using SpellBook.Core.Validation;
 using SpellBook.GAS.Core;
 using SpellBook.UI;
 using UnityEngine;
@@ -52,6 +53,15 @@ namespace SpellBook.GAS.UI
 
         /// <inheritdoc />
         public override UIListBinding<SlotModel> CreateBinding() => new Binding(this);
+
+        /// <summary>Sem loadout: erro no campo (Design 7; R14). O loadout se valida no próprio Inspector.</summary>
+        public override void Validate(ValidationResult result, string propertyPath)
+        {
+            if (loadout == null)
+            {
+                result.AddError("Fonte sem loadout. Escolha o loadout com as entradas da barra.", $"{propertyPath}.{nameof(loadout)}");
+            }
+        }
 
         /// <summary>Um slot de prévia por entrada, na ordem, como a prévia do <see cref="AbilitySlotSource"/> (R12).</summary>
         public override void CreatePreview(in UIPreviewContext context, List<SlotModel> items)

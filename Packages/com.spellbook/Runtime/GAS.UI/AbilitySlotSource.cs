@@ -1,6 +1,7 @@
 using System;
 using SpellBook.Core.Inspector;
 using SpellBook.Core.Text;
+using SpellBook.Core.Validation;
 using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Core;
 using SpellBook.Tags;
@@ -45,6 +46,26 @@ namespace SpellBook.GAS.UI
 
         /// <inheritdoc />
         public override UIBinding<SlotModel> CreateBinding() => new Binding(this);
+
+        /// <summary>Sem loadout, sem tag ou com a tag fora do loadout: erro no campo (Design 7; R14).</summary>
+        public override void Validate(ValidationResult result, string propertyPath)
+        {
+            if (loadout == null)
+            {
+                result.AddError("Fonte sem loadout. Escolha o loadout com a entrada do slot.", $"{propertyPath}.{nameof(loadout)}");
+                return;
+            }
+
+            if (!slot.IsValid)
+            {
+                result.AddError("Fonte sem tag de slot. Escolha a tag procurada no loadout.", $"{propertyPath}.{nameof(slot)}");
+            }
+            else if (!loadout.TryFindEntry(slot, out _))
+            {
+                result.AddError($"A tag {slot.Name} não está no loadout {loadout.name}. Escolha a tag de uma das entradas dele.",
+                    $"{propertyPath}.{nameof(slot)}");
+            }
+        }
 
         /// <summary>A habilidade da entrada, metade da recarga, duas cargas e o rótulo do provedor ou "Q" (R12).</summary>
         public override SlotModel CreatePreview(in UIPreviewContext context)
