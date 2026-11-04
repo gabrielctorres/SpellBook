@@ -21,9 +21,18 @@ namespace SpellBook.Core.Tests.Structure
         };
 
         /// <summary>Módulos opcionais de integração: compilam só com o pacote externo (ADR 0038, itens 6 e 7).</summary>
-        private static readonly string[] OptionalModules = { "SpellBook.Localization" };
+        private static readonly string[] OptionalModules = { "SpellBook.Localization", "SpellBook.Localization.Editor" };
 
-        private static readonly string[] EditorModules = { "Core", "Events", "Time", "Tags", "Pooling", "GAS", "GAS.Bridges", "Teams", "Cues" };
+        /// <summary>Asmdefs do adaptador: os únicos que podem referenciar o Unity Localization e o próprio adaptador (CA10).</summary>
+        private static readonly string[] AdapterAsmdefs =
+        {
+            "SpellBook.Localization", "SpellBook.Localization.Editor", "SpellBook.Localization.Tests.EditMode",
+        };
+
+        private static readonly string[] EditorModules =
+        {
+            "Core", "Events", "Time", "Tags", "Pooling", "GAS", "GAS.Bridges", "Teams", "Cues", "Localization",
+        };
 
         private static readonly string[] PlayModeModules = { "Core", "Time", "Events", "GAS", "GAS.Bridges", "Cues" };
 
@@ -110,6 +119,56 @@ namespace SpellBook.Core.Tests.Structure
             Assert.That(localization.ReferenceNames, Is.EquivalentTo(new[] { "SpellBook.Core", "Unity.Localization" }));
             Assert.That(localization.Data.versionDefines.Select(v => (v.name, v.define)),
                 Is.EqualTo(new[] { ("com.unity.localization", "SPELLBOOK_UNITY_LOCALIZATION") }));
+        }
+
+        [Test]
+        public void LocalizationEditor_ConstraintMatchesRuntime()
+        {
+            List<AsmdefFile> asmdefs = PackageFiles.Asmdefs().ToList();
+            AsmdefFile runtime = asmdefs.Single(a => a.Data.name == "SpellBook.Localization");
+            AsmdefFile editor = asmdefs.SingleOrDefault(a => a.Data.name == "SpellBook.Localization.Editor");
+
+            Assert.That(editor, Is.Not.Null, "não existe asmdef SpellBook.Localization.Editor");
+            Assert.That(editor.Path, Is.EqualTo("Editor/Localization/SpellBook.Localization.Editor.asmdef"));
+            Assert.That(editor.Kind, Is.EqualTo(AsmdefKind.Editor));
+            Assert.That(editor.ReferenceNames,
+                Is.EquivalentTo(new[] { "SpellBook.Core", "SpellBook.Localization", "SpellBook.Core.Editor" }));
+            Assert.That(editor.Data.defineConstraints, Is.EqualTo(runtime.Data.defineConstraints));
+            Assert.That(editor.Data.versionDefines.Select(v => (v.name, v.expression, v.define)),
+                Is.EqualTo(runtime.Data.versionDefines.Select(v => (v.name, v.expression, v.define))));
+        }
+
+        [Test]
+        public void NoAsmdefOutsideAdapter_ReferencesUnityLocalization()
+        {
+            List<AsmdefFile> asmdefs = PackageFiles.Asmdefs().ToList();
+            var violations = new List<string>();
+
+            foreach (AsmdefFile asmdef in asmdefs.Where(a => !AdapterAsmdefs.Contains(a.Data.name)))
+            {
+                foreach (string reference in asmdef.ReferenceNames)
+                {
+                    bool unityLocalization = reference.StartsWith("Unity.Localization", StringComparison.Ordinal);
+                    bool adapter = AdapterAsmdefs.Contains(reference);
+                    if (unityLocalization || adapter)
+                    {
+                        violations.Add($"{asmdef.Path}: {asmdef.Data.name} não pode referenciar {reference}");
+                    }
+                }
+            }
+
+            Assert.That(asmdefs.Select(a => a.Data.name).Intersect(AdapterAsmdefs), Is.EquivalentTo(AdapterAsmdefs),
+                "a varredura não achou os asmdefs do adaptador");
+            Assert.That(violations, Is.Empty);
+        }
+
+        [Test]
+        public void PackageJson_DoesNotDeclareLocalization()
+        {
+            string packageJson = PackageFiles.ReadText("package.json");
+
+            Assert.That(packageJson, Does.Contain("\"name\": \"com.spellbook\""), "o package.json lido não é o do SpellBook");
+            Assert.That(packageJson, Does.Not.Contain("com.unity.localization"));
         }
 
         [Test]

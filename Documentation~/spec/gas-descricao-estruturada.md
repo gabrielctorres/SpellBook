@@ -232,6 +232,19 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Cada 
 - Critério de pronto: CA10 (E) verde.
 - Tamanho estimado: ~220 linhas; 7 arquivos. Depende de: DE3.
 
+### Detalhe (2026-11-03)
+- CA: CA10 (E): o adaptador compila só com o pacote (os dois asmdefs com a constraint do próprio `versionDefines`), o `package.json` não o declara e nenhum asmdef fora do adaptador o referencia (ADR 0038, itens 6 e 7).
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Editor/Localization/SpellBook.Localization.Editor.asmdef` (novo): referências `SpellBook.Core`, `SpellBook.Localization`, `SpellBook.Core.Editor` (por GUID), `includePlatforms` `Editor`, `autoReferenced` true, mesmo `versionDefines` e mesma `defineConstraints` do runtime.
+  - `Editor/Localization/LocalizationEditors.cs` (novo): `LocalizationTextProviderEditor : SpellBookEditor` de uma linha.
+  - `Tests/Core/EditMode/Structure/AsmdefRulesTests.cs:24` (`SpellBook.Localization.Editor` em `OptionalModules`), `:26` (`Localization` em `EditorModules`) e três testes novos depois de `:113`. O adaptador, para a guarda de isolamento, é o runtime, o Editor e o asmdef de testes dele (`SpellBook.Localization.Tests.EditMode`, que precisa de `Unity.Localization` para montar as tabelas; pendência do DE3).
+  - `Tests/Core/EditMode/Inspector/SpellBookEditorCoverageTests.cs:21` (+`SpellBook.Localization`; a varredura é por nome, sem referência ao asmdef).
+  - Sem `PackageJsonTests.cs` novo: o caso entra no `AsmdefRulesTests`, junto da guarda. Sem `texto.md` e sem `CHANGELOG.md`: a página entra no passe de documentação e o ticket só acrescenta tipos (emenda de 2026-11-03 da 0007).
+- Testes red (EditMode, `SpellBook.Core.Tests.EditMode`): `AsmdefRulesTests`: `NoAsmdefOutsideAdapter_ReferencesUnityLocalization` (também cobra que a varredura acha os três asmdefs do adaptador), `PackageJson_DoesNotDeclareLocalization`, `LocalizationEditor_ConstraintMatchesRuntime`, e `OptionalModule_OnlyConstraintIsOwnVersionDefine` e `AllExpectedAssembliesExist` com o Editor na lista; `SpellBookEditorCoverageTests.EveryPublicConcreteMbAndSo_InRuntimeAssemblies_UsesSpellBookEditor` com `SpellBook.Localization`.
+- Critério de pronto: os testes acima verdes pelo filtro `\.AsmdefRulesTests\.;\.SpellBookEditorCoverageTests\.;\.LocalizationTextProviderTests\.`; suíte EditMode `!Documentacao` verde.
+- Tamanho: ~110 linhas e 4 arquivos (mais esta página do Spec), pela ADR 0042. Exceção: nenhuma.
+- Commit: `feat(localization): Inspector e guardas de isolamento do adaptador (#225)`
+
 ### DE5 — Nomes exibidos com `LocalizedText` (quebra com migração)
 - Escopo: `Runtime/GAS/Abilities/GameplayAbility.cs`, `Runtime/GAS/Effects/GameplayEffect.cs`, `Runtime/GAS/Attributes/AttributeDefinition.cs`, `Runtime/GAS/Attributes/AttributeCategory.cs` (campo novo, legado, conversão), `Editor/GAS/GasAssetMigration.cs`, `Tests/GAS/EditMode/DisplayNameMigrationTests.cs` (novo), testes que escrevem `DisplayName` (lista no PR), `gas.md`, `CHANGELOG.md` (quebra).
 - Testes red: `LegacyYaml_AbilityDisplayName_LoadsAsText` e o mesmo para atributo, efeito e categoria (YAML 2.x temporário em `Assets/`, como o VN2); `NewAsset_SavesWithoutLegacy`; `Migrate_RewritesAbilitiesAttributesCategories_Idempotent`; `DisplayName_Resolve_KeyThroughProvider`.
