@@ -478,6 +478,27 @@ O T8 toca `Conjurador.prefab` e `Sandbox.unity`, que o SL12 e o SL13 tocam de no
   - a suíte verde com `Samples~`.
 - Tamanho estimado: ~60 linhas de código; 9 arquivos (6 fixtures, 1 página).
 
+#### Detalhe (2026-11-04)
+- CA: CA2, CA8, CA9 e CA30 (parte: tique e falha) do PRD, pela D7 (itens 2 a 4) e H2/H3 do gate parcial de 2026-11-01. Nenhum CA muda.
+- Escopo (caminhos em `Packages/com.spellbook/Samples~/Sandbox/`; autoria pela ADR 0028, com a pasta renomeada):
+  - `Scripts/SandboxCaster.cs:19-27`: campo `[SerializeField] private StringEventChannel failureChannel`; `:92-112`: o `HandleFailed` monta o mesmo texto de hoje e faz `failureChannel.Raise(texto, this)` no lugar dos três `Debug.Log`; sem canal, não escreve nada. O "Bola de Fogo conjurada" (`:84-90`) não muda. `using SpellBook.Events` (Events já está na asmdef).
+  - `Scripts/SandboxDirector.cs:142-167`: campos `RuntimeAnchor hudAnchor` e `EventListener consoleWithoutHud`; `:172-175` (`Start`) e `:216-224` (`Restart`): `consoleWithoutHud.enabled = hudAnchor == null || hudAnchor.UntypedValue == null`, só quando `consoleWithoutHud` não é nulo. Sem sondagem por quadro e sem assinar o `Changed` (D7, item 4).
+  - `Data/UI/ANC_HUD.asset` (novo, `TransformAnchor`), `Data/Events/CH_QueimaduraTique.asset` (novo, `VoidEventChannel`), `Data/Events/CH_FalhaDeConjuracao.asset` (novo, `StringEventChannel`), criados pela Unity com `.meta` gerado (e o `Data/UI.meta` da pasta nova).
+  - `Data/Effects/GE_Queimadura.asset`: o `OnTick` troca a `DebugLogAction` "Queimadura: tique" por uma `RaiseEventAction` com `EventEmission<Void>` em `CH_QueimaduraTique` e `payloadSource` Fixed.
+  - `Prefabs/Conjurador.prefab`: `SandboxCaster.failureChannel` = `CH_FalhaDeConjuracao`. Ao salvar, a Unity também grava o `startingEffects: []` do ASC, campo que já existe no pacote e faltava no YAML (sem mudança de valor).
+  - `Scenes/Sandbox.unity`: objeto novo "Console sem HUD" com `EventListener` (`VoidEventResponse` em `CH_QueimaduraTique` → `LogReaction` "Queimadura: tique"; `StringEventResponse` em `CH_FalhaDeConjuracao` → `LogPayloadReaction` "{0}"); no "Sandbox Director", `hudAnchor` = `ANC_HUD` e `consoleWithoutHud` = esse ouvinte.
+  - A edição dos assets, do prefab e da cena é feita na Unity por um script de Editor descartável em `Assets/__SpellBookTestTemp_T8/` (ignorado pelo `.gitignore`), rodado em batchmode com `-executeMethod` e apagado antes dos testes. Nenhum YAML é escrito à mão.
+  - Fora do ticket, embora o escopo acima cite `Documentation~/manual/exemplos/sandbox.md`: pelo `AGENTS.md` ("WIP, trava e testes") e pela emenda de 2026-11-03 da 0007, o manual só entra no passe de documentação. A tabela dos scripts (campos novos) e a origem das mensagens do Console (tabela "O que fica no Console com o HUD" da D7 e o risco 5) ficam para o passe. O `Samples~/Sandbox/README.md` também fica para o passe. Sem `CHANGELOG.md`: a emenda não quebra nada (seção "Quebras de compatibilidade").
+  - Paralelo com o UI5a: o UI5a toca `Runtime/UI/`, `Editor/UI/` e `Tests/UI/`; o T8 só toca `Samples~/Sandbox/` e este Detalhe. Não há arquivo em comum.
+- Testes red (EditMode, `SpellBook.Core.Tests.EditMode`, classe `SampleStructureTests`): nenhum teste novo de comportamento (cena conferida à mão, decisão do usuário). As guardas do T1 e do T2a cobrem os scripts e os assets mudados (`SampleSources_UseNoInputSystemUiOrEditor`, `SampleSources_HaveNoFindOrGetComponentInUpdate`, `SampleBehaviours_HaveHelpUrlToSamplesPage`, `SampleFiles_EveryAssetHasMetaAndUniqueGuid`, `Package_HasNoUntildedSamplesFolder`). Red forçado: `using TMPro;` no `SandboxDirector`, ver o `SampleSources_UseNoInputSystemUiOrEditor` falhar e tirar.
+- Critério de pronto:
+  - com a pasta renomeada: zero erros e avisos de compilação do `SpellBook.Samples.Sandbox`, a asmdef sem referência nova, e o `ProjectValidator` (o mesmo da `SpellBook > Validar projeto`, aplicado aos assets, prefabs e cena do Sample) sem erro;
+  - com a pasta de volta como `Samples~` e sem `Samples.meta`: as sete guardas da `SampleStructureTests` verdes;
+  - pendente para o usuário (conferência manual no Editor): em Play sem HUD, CA8, CA9, o "Queimadura: tique" a cada 0,5 s e nenhum "Missing" (CA2); com um `AnchorRegistrar` temporário na `ANC_HUD`, tique e falha somem do Console e acerto, pausa, câmera lenta e reinício continuam (CA30, parte);
+  - a suíte completa roda na `/revisao`.
+- Tamanho: ~45 linhas e 8 arquivos (2 scripts, 6 fixtures; `.meta` e o Detalhe não contam), pela ADR 0042. Exceção: nenhuma.
+- Commit: `feat(samples): Console sem HUD ligado pela âncora do HUD`
+
 ---
 
 ## Decisões do gate (2026-10-31)
