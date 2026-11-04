@@ -34,6 +34,7 @@ Caminhos relativos a `Packages/com.spellbook/`.
 
 - `SlotState { Empty, Ready, OnCooldown, NoCharges, NoResource, Blocked }`.
 - `SlotModel`: `State`, `Icon` (`Sprite`), `Subject` (a habilidade como `ScriptableObject`), `CooldownFraction`, `CooldownRemaining`, `HasCharges`, `Charges`, `MaxCharges`, `ChargeFraction`, `KeyLabel` (`TextSpan`), `FailureKey` (`string`), `FailureText` (`TextSpan`), `FailureVisible`, `FailureCount`, `ReadyPulseCount`, `IsActive`, `IsToggledOn`, `IsChanneling`, `AutocastAllowed`, `AutocastEnabled`.
+  **Emenda de 2026-11-04:** o `SlotModel` ganha `FailureTag` (`ScriptableObject`), a tag do motivo de falha, ao lado de `FailureKey` e `FailureCount`. A cópia passa a ser `WithFailure(string key, TextSpan text, bool visible, int count, ScriptableObject tag = null)`; as outras cópias preservam a tag. O R3 e o CA7 do PRD pedem a chave e a tag do motivo, e o `SpellBook.UI` não referencia Tags (ADR 0012 e 0038), então a tag vai como `ScriptableObject`, como a chave de slot da P5. É API pública nova e aditiva, sem quebra, e não muda CA. O SL5 (#253) já entrou com ela.
 - **`Active` vira marca, não estado** (R3 e R6): o PRD pede que o estado ativo "não substitua o estado de falha"; com `Active` no mesmo enum isso é impossível. `IsActive`/`IsToggledOn`/`IsChanneling` são campos à parte, e o resultado `AlreadyActive` da consulta vira `Ready` com `IsActive` verdadeiro.
 - `KeyLabelProvider` e `FixedKeyLabelProvider` (P5).
 
