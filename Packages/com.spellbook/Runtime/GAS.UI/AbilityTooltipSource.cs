@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
 using SpellBook.Core.Inspector;
 using SpellBook.Core.Text;
 using SpellBook.GAS.Abilities;
+using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Description;
+using SpellBook.GAS.Effects;
 using SpellBook.UI;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -13,8 +16,9 @@ namespace SpellBook.GAS.UI
     /// <summary>
     /// Fonte do tooltip de uma habilidade (Spec UI-3, Design 4; R3 do PRD): título, ícone, subtítulo, as linhas da
     /// descrição e as de custo, recarga e cargas, no nível do <see cref="AbilitySpec"/> do ASC dono. Sem ASC (dono
-    /// ausente ou de outro tipo), mostra só o que o asset sabe, no <see cref="LevelWithoutOwner"/> (P2 do PRD). Monta o
-    /// modelo ao ligar; não pede tick e não altera o ASC.
+    /// ausente ou de outro tipo), mostra só o que o asset sabe, no <see cref="LevelWithoutOwner"/> (P2 do PRD). Atualiza
+    /// por evento do nível, da recarga, das cargas, da redução de recarga e dos atributos do custo; não pede tick e não
+    /// altera o ASC.
     /// </summary>
     [Serializable, TypeCategory("Tooltip", Summary = "Tooltip de uma habilidade: descrição, custo, recarga e cargas no nível do dono, ou no nível configurado sem dono.",
         Line = "{ability}")]
@@ -98,29 +102,103 @@ namespace SpellBook.GAS.UI
             return new TooltipModel(shown.DisplayName.Resolve(text), shown.Icon, writer.Lines, sub);
         }
 
-        // Estado de uma ligação: o writer reaproveitado; monta o modelo ao ligar
+        // Estado de uma ligação: o writer, o ASC e os atributos assinados; os delegates nascem uma vez
         private sealed class Binding : UIBinding<TooltipModel>
         {
             private readonly AbilityTooltipSource _source;
             private readonly TooltipLineWriter _writer = new TooltipLineWriter();
+            private readonly List<AttributeState> _states = new List<AttributeState>(4);
+            private readonly Action<AbilitySpec, int, int> _onSpecChanged;
+            private readonly Action<AbilitySpec, CooldownChange> _onCooldownChanged;
+            private readonly Action<float, float> _onValueChanged;
+
+            private AbilitySystemComponent _asc;
+            private GameplayAbility _ability;
 
             public Binding(AbilityTooltipSource source)
             {
                 _source = source;
+                _onSpecChanged = (_, _, _) => Refresh();
+                _onCooldownChanged = (_, _) => Refresh();
+                _onValueChanged = (_, _) => Refresh();
             }
 
-            // Dono que não é ASC (o binder sem dono liga a si mesmo): só o asset, no nível sem dono
+            // Dono que não é ASC (o binder sem dono liga a si mesmo): só o asset, sem assinar nada
             protected override void OnAttach(Object owner)
             {
-                GameplayAbility ability = _source.ability != null ? _source.ability : Context.Subject as GameplayAbility;
-                AbilitySystemComponent asc = owner as AbilitySystemComponent;
-                AbilitySpec spec = asc != null && ability != null ? asc.FindSpec(ability) : null;
-                int level = spec != null ? spec.Level : _source.levelWithoutOwner;
-                Publish(_source.Build(_writer, ability, level, asc, Context.Text));
+                _ability = _source.ability != null ? _source.ability : Context.Subject as GameplayAbility;
+                if (owner is AbilitySystemComponent asc && _ability != null)
+                {
+                    _asc = asc;
+                    _asc.OnAbilityLevelChanged += _onSpecChanged;
+                    _asc.OnCooldownChanged += _onCooldownChanged;
+                    _asc.OnChargesChanged += _onSpecChanged;
+                    Listen(_ability.CooldownReductionAttribute);
+                    ListenCost(_ability.CostEffect);
+                }
+
+                Refresh();
             }
 
+            // Solta pelo ReferenceEquals: um ASC destruído ainda guarda os delegates
             protected override void OnDetach()
             {
+                if (!ReferenceEquals(_asc, null))
+                {
+                    _asc.OnAbilityLevelChanged -= _onSpecChanged;
+                    _asc.OnCooldownChanged -= _onCooldownChanged;
+                    _asc.OnChargesChanged -= _onSpecChanged;
+                }
+
+                for (int i = 0; i < _states.Count; i++)
+                {
+                    _states[i].OnValueChanged -= _onValueChanged;
+                }
+
+                _states.Clear();
+                _asc = null;
+                _ability = null;
+            }
+
+            private void Refresh()
+            {
+                AbilitySystemComponent asc = _asc != null ? _asc : null;
+                AbilitySpec spec = asc != null && _ability != null ? asc.FindSpec(_ability) : null;
+                int level = spec != null ? spec.Level : _source.levelWithoutOwner;
+                Publish(_source.Build(_writer, _ability, level, asc, Context.Text));
+            }
+
+            // Atributos de que o valor do custo depende, assinados uma vez por ligação
+            private void ListenCost(GameplayEffect cost)
+            {
+                if (cost == null || cost.Modifiers == null) return;
+
+                foreach (AttributeEffectModifier modifier in cost.Modifiers)
+                {
+                    ModifierValueSource value = modifier?.ValueSource;
+                    if (value == null) continue;
+
+                    if (value.Type == ModifierValueSource.SourceType.Attribute)
+                    {
+                        Listen(value.Attribute);
+                    }
+                    else if (value.Type == ModifierValueSource.SourceType.Formula && value.Formula != null)
+                    {
+                        foreach (AttributeDefinition dependency in value.Formula.GetSourceDependencies())
+                        {
+                            Listen(dependency);
+                        }
+                    }
+                }
+            }
+
+            private void Listen(AttributeDefinition definition)
+            {
+                if (definition == null || _asc.AttributeSet == null
+                    || !_asc.AttributeSet.TryGetState(definition, out AttributeState state) || _states.Contains(state)) return;
+
+                _states.Add(state);
+                state.OnValueChanged += _onValueChanged;
             }
         }
     }

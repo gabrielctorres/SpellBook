@@ -17,13 +17,16 @@ using SpellBook.Time;
 using SpellBook.UI;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.TestTools.Constraints;
+using Is = UnityEngine.TestTools.Constraints.Is;
 using Object = UnityEngine.Object;
 
 namespace SpellBook.GAS.UI.Tests
 {
     /// <summary>
-    /// Fonte do tooltip de habilidade (Spec UI-3, TT4a): título, ícone, subtítulo e linhas no nível (CA1), cultura e
-    /// provedor (CA9), sem dono pelo binder (CA10) e sem linha repetida.
+    /// Fonte do tooltip de habilidade (Spec UI-3, TT4): título, ícone, subtítulo e linhas no nível (CA1), valores vivos
+    /// (CA2), nível (CA3), cultura e provedor (CA9), sem dono pelo binder (CA10), aberto sem alocar nem tick (CA13, parte),
+    /// eventos soltos ao fechar e habilidade destruída como nula.
     /// </summary>
     public class AbilityTooltipSourceTests
     {
@@ -34,6 +37,7 @@ namespace SpellBook.GAS.UI.Tests
         private AttributeDefinition _mana;
         private AttributeDefinition _health;
         private AttributeDefinition _reduction;
+        private AttributeDefinition _maxMana;
         private UIUpdateDriver _driver;
         private TooltipBinder _binder;
         private Recorder _view;
@@ -47,6 +51,7 @@ namespace SpellBook.GAS.UI.Tests
             _mana = Attribute("Mana");
             _health = Attribute("Vida");
             _reduction = Attribute("Redução");
+            _maxMana = Attribute("Mana máxima");
 
             var theme = Track(ScriptableObject.CreateInstance<UITheme>());
             using (var serialized = new SerializedObject(theme))
@@ -107,6 +112,64 @@ namespace SpellBook.GAS.UI.Tests
             Assert.That(asc.IsOnCooldown(fireball.CooldownEffect), Is.False, "o tooltip não põe em recarga");
             Assert.That(asc.GetCharges(spec), Is.EqualTo(chargesBefore), "o tooltip não gasta carga");
             Assert.That(spec.Level, Is.EqualTo(3), "o tooltip não muda o nível");
+        }
+
+        [Test]
+        public void ReductionChangesWhileOpen_CooldownUpdates()
+        {
+            AbilitySystemComponent asc = Asc(0f);
+            GameplayAbility fireball = Fireball();
+            asc.GiveAbility(fireball, 3);
+            Open(new AbilityTooltipSource { Ability = fireball }, asc);
+            Assert.That(Line(_view.Last, TooltipLineKind.Cooldown), Is.EqualTo("4 s"));
+
+            State(asc, _reduction).SetBaseValue(0.5f);
+
+            Assert.That(Line(_view.Last, TooltipLineKind.Cooldown), Is.EqualTo("2 s"), "a recarga real, após a redução");
+            Assert.That(Line(_view.Last, TooltipLineKind.Charges), Is.EqualTo("2 charges, one every 2.5 s"));
+        }
+
+        [TestCase(ModifierValueSource.SourceType.Attribute, "200", "300")]
+        [TestCase(ModifierValueSource.SourceType.Formula, "100", "150")]
+        public void CostAttributeChangesWhileOpen_CostUpdates_OneRenderPerChange(
+            ModifierValueSource.SourceType type, string before, string after)
+        {
+            AbilitySystemComponent asc = Asc(0f);
+            GameplayAbility fireball = Fireball();
+            fireball.CostEffect = CostFromMaxMana(type);
+            asc.GiveAbility(fireball, 1);
+            Open(new AbilityTooltipSource { Ability = fireball }, asc);
+            Assert.That(Line(_view.Last, TooltipLineKind.Cost), Is.EqualTo(before));
+            int renders = _view.Renders;
+
+            State(asc, _maxMana).SetBaseValue(300f);
+
+            Assert.That(Line(_view.Last, TooltipLineKind.Cost), Is.EqualTo(after), "o custo vivo, com o tooltip aberto");
+            Assert.That(_view.Renders - renders, Is.EqualTo(1), "uma mudança do atributo do custo, um desenho");
+        }
+
+        [Test]
+        public void LevelChangesWhileOpen_LinesUpdate()
+        {
+            AbilitySystemComponent asc = Asc(0f);
+            GameplayAbility fireball = Fireball();
+            asc.GiveAbility(fireball, 1);
+            Open(new AbilityTooltipSource { Ability = fireball }, asc);
+            string[] level1 = Lines(_view.Last);
+
+            asc.SetAbilityLevel(fireball, 3);
+
+            Assert.That(level1, Is.EqualTo(new[]
+            {
+                "Description|Arremessa fogo|",
+                "Modifier|Vida|-20",
+                "Cost|Mana|10",
+                "Cooldown|Cooldown|8 s",
+                "Charges||2 charges, one every 5 s",
+            }));
+            Assert.That(Line(_view.Last, TooltipLineKind.Modifier), Is.EqualTo("-40"), "o nível 3 chega pelo evento");
+            Assert.That(Line(_view.Last, TooltipLineKind.Cost), Is.EqualTo("30"));
+            Assert.That(Line(_view.Last, TooltipLineKind.Cooldown), Is.EqualTo("4 s"));
         }
 
         [Test]
@@ -175,6 +238,78 @@ namespace SpellBook.GAS.UI.Tests
             Assert.That(Count(_view.Last, TooltipLineKind.Cooldown), Is.EqualTo(1));
         }
 
+        [Test]
+        public void Updates10000_NoAlloc_NoTickRequested()
+        {
+            AbilitySystemComponent asc = Asc(0f);
+            GameplayAbility fireball = Fireball();
+            asc.GiveAbility(fireball, 3);
+            Open(new AbilityTooltipSource { Ability = fireball }, asc);
+            AttributeState reduction = State(asc, _reduction);
+            reduction.SetBaseValue(0.1f);
+            _driver.Tick();
+            int rendersBefore = _view.Renders;
+
+            Assert.That(() =>
+            {
+                for (int i = 0; i < 10000; i++)
+                {
+                    reduction.SetBaseValue((i % 5) * 0.1f);
+                    _driver.Tick();
+                }
+            }, Is.Not.AllocatingGCMemory());
+            Assert.That(_view.Renders - rendersBefore, Is.EqualTo(10000), "cada mudança da redução refaz o tooltip");
+            Assert.That(Line(_view.Last, TooltipLineKind.Cooldown), Is.EqualTo("2.4 s"));
+            Assert.That(_driver.TickingCount, Is.Zero, "o tooltip de habilidade não pede tick");
+        }
+
+        [Test]
+        public void ClosedThenReopenedOnOtherAsc_OldAscIgnored_OneRenderPerChange()
+        {
+            GameplayAbility fireball = Fireball();
+            AbilitySystemComponent first = Asc(0f);
+            AbilitySystemComponent second = Asc(0f);
+            first.GiveAbility(fireball, 1);
+            second.GiveAbility(fireball, 3);
+            var source = new AbilityTooltipSource { Ability = fireball };
+            var requester = new object();
+            _binder.Show(requester, source, first, null, null, 0f);
+            _binder.Hide(requester);
+            Open(source, second);
+            int renders = _view.Renders;
+
+            State(first, _reduction).SetBaseValue(0.5f);
+            first.SetAbilityLevel(fireball, 2);
+            Assert.That(first.TryActivateAbility(fireball, Vector3.zero), Is.EqualTo(AbilityActivationResult.Success));
+            int afterFirst = _view.Renders;
+            State(second, _reduction).SetBaseValue(0.5f);
+
+            Assert.That(afterFirst, Is.EqualTo(renders), "o Detach desassina o ASC anterior: redução, nível, recarga e cargas");
+            Assert.That(_view.Renders - renders, Is.EqualTo(1), "uma assinatura por evento depois de reabrir");
+            Assert.That(Line(_view.Last, TooltipLineKind.Cooldown), Is.EqualTo("2 s"));
+        }
+
+        [Test]
+        public void DestroyedAbilityOrSubject_CountsAsNull_EmptyModel_NoException()
+        {
+            AbilitySystemComponent asc = Asc(0f);
+            GameplayAbility fireball = Fireball();
+            asc.GiveAbility(fireball, 3);
+            GameplayAbility gone = Fireball();
+            Object.DestroyImmediate(gone);
+
+            Assert.That(() => _binder.Show(new object(), new AbilityTooltipSource { Ability = gone }, asc, null, null, 0f),
+                Throws.Nothing);
+            Assert.That(_view.Last.IsEmpty, Is.True, "habilidade configurada destruída e sem assunto: modelo vazio");
+            Assert.That(() => _binder.Show(new object(), new AbilityTooltipSource(), asc, gone, null, 0f), Throws.Nothing);
+            Assert.That(_view.Last.IsEmpty, Is.True, "assunto destruído: modelo vazio");
+
+            Open(new AbilityTooltipSource { Ability = fireball }, asc);
+            Object.DestroyImmediate(fireball);
+            Assert.That(() => State(asc, _reduction).SetBaseValue(0.5f), Throws.Nothing);
+            Assert.That(_view.Last.IsEmpty, Is.True, "habilidade destruída com o tooltip aberto: modelo vazio");
+        }
+
         private void Open(AbilityTooltipSource source, AbilitySystemComponent asc)
         {
             _binder.Show(new object(), source, asc, null, null, 0f);
@@ -222,6 +357,33 @@ namespace SpellBook.GAS.UI.Tests
             return effect;
         }
 
+        // Custo de mana lido da mana máxima do ASC: o atributo inteiro ou a fórmula com metade dele
+        private GameplayEffect CostFromMaxMana(ModifierValueSource.SourceType type)
+        {
+            GameplayEffect effect = Effect(_mana, ScalableFloat.Constant(0f));
+            ModifierValueSource value = effect.Modifiers[0].ValueSource;
+            value.Type = type;
+            if (type == ModifierValueSource.SourceType.Attribute)
+            {
+                value.Attribute = _maxMana;
+                return effect;
+            }
+
+            var formula = Track(ScriptableObject.CreateInstance<SimpleAttributeFormula>());
+            using (var serialized = new SerializedObject(formula))
+            {
+                SerializedProperty attributes = serialized.FindProperty("attributes");
+                attributes.arraySize = 1;
+                SerializedProperty entry = attributes.GetArrayElementAtIndex(0);
+                entry.FindPropertyRelative(nameof(SimpleAttributeFormula.AttributeComponent.Attribute)).objectReferenceValue = _maxMana;
+                entry.FindPropertyRelative(nameof(SimpleAttributeFormula.AttributeComponent.Multiplier)).floatValue = 0.5f;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
+
+            value.Formula = formula;
+            return effect;
+        }
+
         private AttributeDefinition Attribute(string name)
         {
             AttributeDefinition attribute = _gas.CreateAttribute(name);
@@ -231,10 +393,16 @@ namespace SpellBook.GAS.UI.Tests
 
         private AbilitySystemComponent Asc(float reduction)
         {
-            AbilitySystemComponent asc = _gas.CreateAsc((_mana, 100f), (_health, 100f), (_reduction, reduction));
+            AbilitySystemComponent asc = _gas.CreateAsc((_mana, 100f), (_health, 100f), (_reduction, reduction), (_maxMana, 200f));
             GasFactory.SetAutoTick(asc, false);
             asc.SetTimeSource(_clock);
             return asc;
+        }
+
+        private static AttributeState State(AbilitySystemComponent asc, AttributeDefinition definition)
+        {
+            Assert.That(asc.AttributeSet.TryGetState(definition, out AttributeState state), Is.True);
+            return state;
         }
 
         private static string[] Lines(in TooltipModel model)
