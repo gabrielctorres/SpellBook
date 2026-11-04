@@ -168,6 +168,8 @@ namespace SpellBook.GAS.Thinkers
                 _hasEffect = creationContext.HasEffect;
                 _effect = creationContext.Effect;
             }
+            // Comportamento atribuído depois do Awake: o estado nasce na primeira vida
+            if (_state == null && behaviour != null) _state = behaviour.CreateState();
             LifeDuration = Evaluate(duration);
             LifeInterval = Evaluate(pulseInterval);
             AbilitySystem.RunActions(_life, RentContext(), this);
