@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using SpellBook.Core.Text;
 using SpellBook.Core.Validation;
@@ -94,6 +95,38 @@ namespace SpellBook.UI
 
         /// <summary>Modelo mostrado em edição, fora do Play.</summary>
         public abstract TModel CreatePreview(in UIPreviewContext context);
+    }
+
+    /// <summary>Recebe os itens que uma ligação de lista publica. O binder de lista implementa (ADR 0039, item 6).</summary>
+    /// <typeparam name="TItem">Modelo de cada item.</typeparam>
+    public interface IUIListReceiver<TItem> where TItem : struct
+    {
+        /// <summary>Acrescenta o item <paramref name="id"/> no fim da lista.</summary>
+        void AddItem(int id, in TItem item);
+
+        /// <summary>Muda o conteúdo do item <paramref name="id"/>, sem mudar a posição.</summary>
+        void UpdateItem(int id, in TItem item);
+
+        /// <summary>Tira o item <paramref name="id"/> da lista.</summary>
+        void RemoveItem(int id);
+
+        /// <summary>Tira todos os itens.</summary>
+        void ClearItems();
+    }
+
+    /// <summary>
+    /// Fonte que lê um sistema para um dono e produz uma lista de <typeparamref name="TItem"/>, cada item com um
+    /// identificador inteiro estável (ADR 0039, itens 2 e 6).
+    /// </summary>
+    /// <typeparam name="TItem">Modelo de cada item.</typeparam>
+    [Serializable]
+    public abstract class UIListSource<TItem> : UISourceBase where TItem : struct
+    {
+        /// <summary>Cria a ligação de um binder de lista. O binder chama uma vez e reaproveita a ligação a cada troca de dono.</summary>
+        public abstract UIListBinding<TItem> CreateBinding();
+
+        /// <summary>Acrescenta a <paramref name="items"/>, já vazia, os itens mostrados em edição, fora do Play.</summary>
+        public abstract void CreatePreview(in UIPreviewContext context, List<TItem> items);
     }
 
     /// <summary>
@@ -195,6 +228,58 @@ namespace SpellBook.UI
             if (IsAttached)
             {
                 _receiver?.Receive(model);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Ligação de lista: acrescenta, muda e remove itens por um identificador inteiro estável; a ordem é a de chegada
+    /// (ADR 0039, item 6). Fora de ligação ou sem receptor, os métodos não fazem nada.
+    /// </summary>
+    /// <typeparam name="TItem">Modelo de cada item.</typeparam>
+    public abstract class UIListBinding<TItem> : UIBinding where TItem : struct
+    {
+        private IUIListReceiver<TItem> _receiver;
+
+        /// <summary>Define quem recebe os itens; o binder chama uma vez, ao criar a ligação.</summary>
+        public void SetReceiver(IUIListReceiver<TItem> receiver)
+        {
+            _receiver = receiver;
+        }
+
+        /// <summary>Acrescenta o item <paramref name="id"/> no fim; um id já presente só muda o conteúdo.</summary>
+        protected void AddItem(int id, in TItem item)
+        {
+            if (IsAttached)
+            {
+                _receiver?.AddItem(id, item);
+            }
+        }
+
+        /// <summary>Muda o conteúdo do item <paramref name="id"/>; um id ausente não faz nada.</summary>
+        protected void UpdateItem(int id, in TItem item)
+        {
+            if (IsAttached)
+            {
+                _receiver?.UpdateItem(id, item);
+            }
+        }
+
+        /// <summary>Tira o item <paramref name="id"/>; um id ausente não faz nada.</summary>
+        protected void RemoveItem(int id)
+        {
+            if (IsAttached)
+            {
+                _receiver?.RemoveItem(id);
+            }
+        }
+
+        /// <summary>Tira todos os itens.</summary>
+        protected void ClearItems()
+        {
+            if (IsAttached)
+            {
+                _receiver?.ClearItems();
             }
         }
     }

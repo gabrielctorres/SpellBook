@@ -91,6 +91,63 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Mesma
 - Critério de pronto: testes verdes.
 - Tamanho estimado: ~480 linhas; 8 arquivos. Depende de: UI14.
 
+### Detalhe (2026-11-04)
+Divisão do SL1 pela ADR 0042, decidida pelo usuário em 2026-11-04. O SL1 implementado inteiro mediu 870 linhas em `.cs`, acima de +30% (650): `UISource.cs` +90, `UIModels.cs` +16, `UIEditors.cs` +4, `UIListBinder.cs` 380, `UIItemContext.cs` 50 e `UIListBinderTests.cs` 330. Ele virou o SL1a (#249) e o SL1b (#335). Em comum aos dois: o manual (`visao-geral.md`) fica para o passe de documentação (emenda de 2026-11-03 da ADR 0007), e o `CHANGELOG.md` sai porque não há quebra (item 4 da mesma emenda).
+
+#### SL1a — contratos de lista, `UIItemContext` e "+N" (#249)
+- CA: nenhum CA do PRD fecha aqui. É a base do Design 1 e do item 6 da ADR 0039.
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/UI/UISource.cs:87` (depois de `UISource<TModel>`) e `:200` (depois de `UIBinding<TModel>`):
+    - `IUIListReceiver<TItem>`, com `AddItem`, `UpdateItem`, `RemoveItem` e `ClearItems`. É o par de lista do `IUIModelReceiver<TModel>` e entra como API nova, sem quebra.
+    - `UIListSource<TItem> : UISourceBase`, com `CreateBinding()` e `CreatePreview(in UIPreviewContext, List<TItem>)`.
+    - `UIListBinding<TItem> : UIBinding`, com `SetReceiver` e os quatro métodos protegidos. Eles só repassam ao receptor enquanto a ligação está ligada, como o `Publish`.
+  - `Runtime/UI/UIModels.cs:302` (depois de `TagIndicatorModel`): `readonly struct ListOverflowModel`, com `Hidden`. Um valor negativo vale 0.
+  - `Runtime/UI/UIItemContext.cs` (novo):
+    - membros: `Owner` (`Object`, com `internal SetOwner`), `Subject` (`ScriptableObject`, com `public SetSubject`) e `event Action Changed`, que dispara só quando um valor muda;
+    - atributo `[HelpURL(DocUrls.Ui + "#uiitemcontext")]`, como o do `UIUpdateDriver`. A âncora nasce no passe de documentação.
+  - `Editor/UI/UIEditors.cs:34`: `UIItemContextEditor : SpellBookEditor`, para a guarda `SpellBookEditorCoverageTests`.
+  - `Tests/UI/EditMode/UIListContractsTests.cs` (novo).
+- Testes red (EditMode, `SpellBook.UI.Tests.EditMode`, classe `UIListContractsTests`):
+  - `ListBinding_ForwardsOnlyWhileAttached`;
+  - `ItemContext_Changed_OnlyWhenValueChanges`;
+  - `ListOverflowModel_NegativeIsZero`.
+
+  Nenhum precisa do binder. O `ItemContext_OwnerFromBinder` precisa e foi para o SL1b.
+- Critério de pronto: os 3 testes verdes, com `total` = 3 no XML; `UIContractsTests`, `HelpUrlTests` e `SpellBookEditorCoverageTests` verdes.
+- Tamanho medido: 276 linhas em 6 arquivos. Em `.cs`: `UISource.cs` +85, `UIModels.cs` +16, `UIEditors.cs` +4, `UIItemContext.cs` 50 e `UIListContractsTests.cs` 121; a Spec conta só como arquivo. Exceção: nenhuma.
+- Commit: `feat(ui): contratos de lista, UIItemContext e "+N" (#249)`
+
+#### SL1b — `UIListBinder<TItem>` (#335)
+- Depende do SL1a. O SL2 e os tickets seguintes passam a depender também do SL1b (a linha "Depende de" da parte fixa não muda; vale esta nota).
+- Código: já implementado e verde antes da divisão, guardado fora do repositório em `C:/Users/gabri/orca/workspaces/SpellBook/_guardado-sl1b/`. Os passos para reaplicar estão no `NOTA.md` da pasta.
+- Escopo:
+  - `Runtime/UI/UIListBinder.cs` (novo):
+    - campos do Design 1 e `SetSource`;
+    - entradas em ordem de chegada, numa lista pré-alocada;
+    - visíveis são as `maxVisible` primeiras (0 = todas), cada uma com um objeto do `SpawnerAsset`, posto sob o `container` (vazio: o próprio binder) com `SetAsLastSibling`;
+    - remover devolve o objeto ao spawner e promove o primeiro oculto; `UpdateItem` reaproveita o objeto;
+    - `AddItem` com um id que já existe vale como `UpdateItem`; `UpdateItem` e `RemoveItem` com um id ausente não fazem nada;
+    - sem prefab, com prefab sem `IView<TItem>` ou com o spawner sem instância, o item é pulado com um aviso por motivo, só em desenvolvimento;
+    - views e `UIItemContext` são lidos uma vez por instância e guardados;
+    - `DetachBinding` e `ShowEmpty` devolvem todos os itens;
+    - o "+N" recebe o `ListOverflowModel` a cada mudança na contagem de ocultos.
+  - `Runtime/UI/UISource.cs` (`UIBinding`): `internal Object Owner`, escrito no `Attach` antes do `OnAttach` e limpo no `Detach`. O binder o escreve no `UIItemContext`. São 7 linhas que saíram do SL1a para não ficarem sem uso.
+  - `Tests/UI/PlayMode/UIListBinderTests.cs` (novo): fonte, ligação, dono, views e binder de teste aninhados; spawner pelo `RecordingSpawnerAsset`.
+- Prévia em edição: o binder chama `CreatePreview` e só entrega ao "+N" a contagem de ocultos da prévia. Ele não cria itens fora do Play, porque um spawn em edição salvaria instâncias na cena (o `FloatingTextBinder` já evita isso). A ordem dos slots em edição (R12 do PRD) é pendência do SL6 e do SL8.
+- Testes red (PlayMode, `SpellBook.UI.Tests.PlayMode`, classe `UIListBinderTests`):
+  - `Items_FromSpawner_ArrivalOrder`;
+  - `Remove_Releases_LiveCountStable`;
+  - `ContentChange_ReusesItem`;
+  - `MaxVisible_HiddenCount_PromotesOldestHidden`;
+  - `ItemContext_OwnerFromBinder`;
+  - `NullSpawn_SkipsWithWarning`;
+  - `AddRemove1000_DoNotAllocate`.
+
+  O red já rodou no SL1 inteiro: as falhas foram `NullReferenceException`, porque o esqueleto do binder não liga a fonte.
+- Critério de pronto: os 7 testes verdes, com `total` = 7 no XML; `HelpUrlTests` e `SpellBookEditorCoverageTests` verdes.
+- Tamanho: ~700 linhas em 3 arquivos, medidas no código guardado: `UIListBinder.cs` 380, `UIListBinderTests.cs` ~311 (316 sem o teste que foi para o SL1a, e ainda sem a classe `SubjectAsset`) e `UISource.cs` +7. A estimativa de ~650 da divisão não contava o arquivo de teste inteiro. **Passa de +30% (650).** Antes de reaplicar, o Controlador decide: dividir de novo (por exemplo, separar `maxVisible` e "+N" num SL1c) ou enxugar o arquivo de teste. Exceção: nenhuma registrada.
+- Commit: `feat(ui): UIListBinder com prévia (#335)`
+
 ### SL2 — `SlotModel` e `KeyLabelProvider`
 - Escopo: `UIModels.cs` (`SlotModel`, `SlotState`), `Runtime/UI/KeyLabelProvider.cs`, `Runtime/UI/FixedKeyLabelProvider.cs` (novos), `UIEditors.cs`, `Tests/UI/EditMode/KeyLabelProviderTests.cs` (novo), `DocUrls.cs` (`UiAbilitySlot`), `DocUrlsTests.cs`, `Documentation~/manual/ui/slot-de-habilidade.md` (nova), `CHANGELOG.md`.
 - Testes red: `Fixed_LabelForKey_MissingKeyFalse`; `Fixed_LocalizedThroughProvider`; `Changed_RaisedOnEdit`; `WriteLabel_DoesNotAllocate`.

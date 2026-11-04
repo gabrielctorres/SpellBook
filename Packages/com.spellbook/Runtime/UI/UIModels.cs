@@ -101,6 +101,22 @@ namespace SpellBook.UI
     }
 
     /// <summary>
+    /// Modelo do "+N" de uma lista (ADR 0039, item 6): quantos itens estão na lista sem objeto, acima do máximo visível.
+    /// O <c>default</c> é zero oculto.
+    /// </summary>
+    public readonly struct ListOverflowModel
+    {
+        /// <summary>Cria o modelo; negativos valem 0.</summary>
+        public ListOverflowModel(int hidden)
+        {
+            Hidden = hidden > 0 ? hidden : 0;
+        }
+
+        /// <summary>Itens ocultos.</summary>
+        public int Hidden { get; }
+    }
+
+    /// <summary>
     /// Pedido de um número flutuante (R14): onde nasce, o texto, o papel e o estilo. O texto é escrito no buffer da
     /// ligação e vale só durante o <see cref="IFloatingTextView.Show"/>. O <c>default</c> é o estado vazio: nada nasce.
     /// </summary>

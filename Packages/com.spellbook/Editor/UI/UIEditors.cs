@@ -33,6 +33,10 @@ namespace SpellBook.UI.Editor
     [CanEditMultipleObjects]
     internal sealed class FloatingTextBinderEditor : UIBinderEditor { }
 
+    [CustomEditor(typeof(UIItemContext))]
+    [CanEditMultipleObjects]
+    internal sealed class UIItemContextEditor : SpellBookEditor { }
+
     /// <summary>Ensina o resolvedor a reconhecer a cena de prévia do Prefab Mode, que não é a cena do jogo.</summary>
     [InitializeOnLoad]
     internal static class ActorResolverPreviewScene
