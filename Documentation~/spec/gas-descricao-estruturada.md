@@ -25,7 +25,7 @@ Caminhos relativos a `Packages/com.spellbook/`. As linhas são as de hoje; os Lo
 - **P4. Uma struct de linha.** `DescriptionLine`, uma só, com `Kind` e marcas em `[Flags]` (`Variable`, `Invalid`, `Permanent`). O texto do valor não é guardado na linha: o `DescriptionWriter` o escreve num `TextBuffer` quando alguém pede (formatador do R8). Assim `Describe` não aloca, e a linha continua tendo "texto do valor" para quem chama (CA1).
 - **P5. `DescriptionContext`.** Classe reaproveitada por quem chama (`Reset(...)` entre usos), não `struct`: ela é dona da lista de linhas e o elemento precisa acrescentar. Para avaliar valores, monta um `EffectContext` (B-007) com instigador = ASC de origem (pode ser nulo), habilidade e nível; não há contexto paralelo. Ela não tem relação com o `ActionContext` do B-012: descrever não executa ação.
 - **P6. Cultura da prévia.** Campo do Inspector (`DescriptionPreviewElement`), padrão `CultureInfo.CurrentCulture` do Editor, guardado em `SessionState`. O Editor monta o `DescriptionContext` com essa cultura e um provedor opcional escolhido no Inspector; o runtime não lê cultura de lugar nenhum.
-- **P7. Ordem.** Texto e provedor (DE1–DE4) primeiro, sem dependência de GAS; nomes com `LocalizedText` (DE5, DE6); `EffectDescriber` (DE7); elementos (DE8–DE10); motivo de falha (DE11); validação (DE12); prévia (DE13).
+- **P7. Ordem.** Texto e provedor (DE1–DE4) primeiro, sem dependência de GAS; nomes com `LocalizedText` (DE5, DE6); `DescriptionLine` e `DescriptionWriter` (DE7a) e `EffectDescriber` (DE7b); elementos (DE8–DE10); motivo de falha (DE11); validação (DE12); prévia (DE13).
 
 ## Design
 
@@ -285,17 +285,38 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Cada 
 - Tamanho: ~0 linhas e 7 arquivos (fixtures), pela ADR 0042. Exceção: nenhuma.
 - Commit: `chore(sample): Sample com nomes exibidos no formato novo (#227)`
 
-### DE7 — `DescriptionLine`, `DescriptionContext`, `EffectDescriber` e formatador
-- Escopo: `Runtime/GAS/Description/DescriptionLine.cs`, `DescriptionContext.cs`, `EffectDescriber.cs`, `ModifierTextFormatter.cs` (com o padrão), `DescriptionWriter.cs` (novos), `Runtime/GAS/Attributes/AttributeDisplay.cs` (`Format` em `TextBuffer`), `Runtime/GAS/Effects/EffectContext.cs` (fábrica `ForDescription(instigador, habilidade, nível)`, só se o VN5 não tiver construtor público), `Tests/GAS/EditMode/EffectDescriberTests.cs` (novo), `CHANGELOG.md`.
-- Testes red: `Armor20Percent_LineAttributeValueOpRoleBeneficial_ValueText` (CA1, C1); `Stacks3Level2_ValueComposed_VariableWhenLevelOrCaller` (CA2, C2); `Seconds1_5_PtBr_EnUs` (CA3, C3); `CustomFormatter_ChangesOnlyValueText` (CA4, C4); `HiddenAttribute_Skipped`; `Describe_AppendsWithoutClearing`; `WriterOutput_HasNoMarkup` (CA8, parte); `Describe10000_ReusedContext_DoesNotAllocate` (CA12, parte); `AttributeDisplay_FormatToBuffer_SameAsString`.
-- Critério de pronto: CA1 a CA4 verdes; partes do CA8 e do CA12.
-- Tamanho estimado: ~490 linhas; 9 arquivos. Depende de: DE1, AR5, VN6, VN7.
+### DE7a — `DescriptionLine`, `DescriptionContext`, formatador e `DescriptionWriter` (#228)
+- Escopo: `Runtime/GAS/Description/DescriptionLine.cs`, `DescriptionContext.cs`, `ModifierTextFormatter.cs` (com o padrão), `DescriptionWriter.cs` (novos), `Runtime/GAS/Attributes/AttributeDisplay.cs` (`Format` em `TextBuffer`), `Tests/GAS/EditMode/EffectDescriberTests.cs` (novo, com linhas montadas à mão).
+- Testes red: `Seconds1_5_PtBr_EnUs` (CA3, C3); `CustomFormatter_ChangesOnlyValueText` (CA4, C4); `WriterOutput_HasNoMarkup` (CA8, parte); `AttributeDisplay_FormatToBuffer_SameAsString`.
+- Critério de pronto: CA3 e CA4 verdes; parte do CA8.
+- Tamanho estimado: ~470 linhas; 6 arquivos. Depende de: DE1, AR5. Nasceu da divisão do DE7 (ADR 0042, acima de +30%).
+
+### Detalhe (2026-11-04)
+- CA: CA3, CA4; parte do CA8 (saída do `DescriptionWriter` sem marcação). As linhas dos testes são montadas à mão; o `EffectDescriber`, o CA1, o CA2 e a parte do CA12 ficam no DE7b. Dependências conferidas no código: AR5 (`AttributeDisplay.Format`, `GetDeltaRole`, `Hidden`).
+- Escopo (caminhos em `Packages/com.spellbook/`, namespace `SpellBook.GAS.Description`):
+  - `Runtime/GAS/Description/DescriptionLine.cs` (novo): `DescriptionLineKind`, `DescriptionLineFlags`, `DescriptionLine` com construtor público e `DescriptionLine.ForModifier(...)` (único caminho com `HasOperation`). O `Source` (`DescriptionElement`) entra no DE8, com o tipo novo; aqui ele ainda está em `SpellBook.GAS.Abilities` com o contrato antigo.
+  - `Runtime/GAS/Description/DescriptionContext.cs` (novo): como o Design 4; `Reset` limpa `Lines`, `Effect` e `Stacks` e mantém `Text` e `Formatter`; `EvaluationContext` usa o construtor `internal` do `EffectContext` (mesmo assembly), então o `EffectContext.cs` não muda.
+  - `Runtime/GAS/Description/ModifierTextFormatter.cs` (novo): `ModifierTextFormatter` e `DefaultModifierTextFormatter`.
+  - `Runtime/GAS/Description/DescriptionWriter.cs` (novo): `WriteValue` para as linhas com atributo (`Modifier`, `Attribute`, `Cost`) pelo formatador; `WriteLine` = rótulo resolvido, espaço e valor. Os segundos de `Cooldown`/`Duration`/`Charges` e os rótulos com `{0}`/`{1}` ficam no DE9, junto dos elementos que geram essas linhas e do CA5 que os testa.
+  - `Runtime/GAS/Attributes/AttributeDisplay.cs:51-123`: `Format(TextBuffer, valor, cultura)` e `Format(TextBuffer, valor, operação, cultura)`; o `Compose` passa a escrever no `TextBuffer`, e as duas sobrecargas de `string` usam um buffer `[ThreadStatic]` (uma só regra de formato; o texto de saída não muda, os `AttributeDisplayTests` guardam).
+  - `Tests/GAS/EditMode/EffectDescriberTests.cs` (novo): os 4 testes com linhas montadas à mão; o DE7b acrescenta os do `EffectDescriber` no mesmo arquivo.
+  - Sem `EffectContext.cs` (o construtor `internal` basta) e sem `CHANGELOG.md` (só acrescenta tipos; emenda de 2026-11-03 da 0007).
+- Testes red (EditMode, `SpellBook.GAS.Tests.EditMode`, `EffectDescriberTests`): `Seconds1_5_PtBr_EnUs`, `CustomFormatter_ChangesOnlyValueText`, `WriterOutput_HasNoMarkup` (linhas de modificador com cada operação, de atributo e de custo), `AttributeDisplay_FormatToBuffer_SameAsString`, `DefaultFormatter_HasTypeCategoryWithSummary` (metadados do tipo concreto pela emenda da 0013; achado da revisão).
+- Critério de pronto: os 5 testes verdes e os `AttributeDisplayTests` verdes pelo filtro `\.EffectDescriberTests\.;\.AttributeDisplayTests\.`; suíte EditMode `!Documentacao` verde.
+- Tamanho: medido 497 linhas e 6 arquivos, pela ADR 0042 (`AttributeDisplay.cs` 65, `DescriptionLine.cs` 122, `DescriptionContext.cs` 60, `ModifierTextFormatter.cs` 34, `DescriptionWriter.cs` 45, `EffectDescriberTests.cs` 171). Exceção: nenhuma.
+- Commit: `feat(gas): DescriptionLine, DescriptionWriter e formatador (#228)`
+
+### DE7b — `EffectDescriber` (#330)
+- Escopo: `Runtime/GAS/Description/EffectDescriber.cs` (novo; como o Design 4: `PeriodicModifiers` só com `Period > 0`; entrada nula ou sem atributo, pulada; `SetByCaller` vale o `CallerDefault` ou 0 sem chamar o `GetValue`; sem instigador, atributo e fórmula valem 0; atributo do alvo vale 0; os três com `Variable`), `Tests/GAS/EditMode/EffectDescriberTests.cs` (acrescenta os testes do `EffectDescriber`).
+- Testes red: `Armor20Percent_LineAttributeValueOpRoleBeneficial_ValueText` (CA1, C1); `Stacks3Level2_ValueComposed_VariableWhenLevelOrCaller` (CA2, C2); `HiddenAttribute_Skipped`; `Describe_AppendsWithoutClearing`; `Describe10000_ReusedContext_DoesNotAllocate` (CA12, parte); `AttributeSource_NoInstigator_ZeroVariable_WithInstigator_Value`; `PeriodicModifiers_OnlyWithPeriod`.
+- Critério de pronto: CA1 e CA2 verdes; parte do CA12.
+- Tamanho estimado: ~290 linhas; 2 arquivos. Depende de: DE7a, VN6, VN7.
 
 ### DE8 — Contrato novo do `DescriptionElement` e elementos de texto, atributo e efeito
 - Escopo: `Runtime/GAS/Abilities/AbilityDescription.cs` (apagado, com substituto), `Runtime/GAS/Description/DescriptionElement.cs` (base e `AbilityDescription`), `Runtime/GAS/Description/DescriptionElements.cs` (`TextElement`, `AttributeElement`, `EffectModifiersElement`, `[MovedFrom]`), `GameplayAbility.cs` (`Describe`; sai `GetDescription`), `Runtime/Core/DocUrls.cs` (`Description = Base + "modulos/descricao/"`), `DocUrlsTests.cs`, `Documentation~/manual/modulos/descricao.md` (nova), `Tests/GAS/EditMode/DescriptionElementsTests.cs` (novo), `Tests/GAS/EditMode/GasTextScanTests.cs` (novo; guarda textual do CA15), `CHANGELOG.md` (quebra).
 - Testes red: `TextElement_KeyAndFallback`; `AttributeElement_SourceValue_NoSourceVariable`; `EffectModifiersElement_SameLinesAsDescriber`; `CustomElement_NewContract_AddsLines` (CA14, parte); `AbilityDescription_InOrder_NullSkipped`; `OldGetTextGone` (guarda textual); `GasRuntime_HasNoRichTextNorFixedCulture` (CA15: nenhum `.cs` de `Runtime/GAS/**` com `<color`, `<b>`, `<i>`, `<size` ou `new CultureInfo(`; `InvariantCulture` só no fallback do `AttributeDisplay` (Q3 do B-005) e no `ScalableFloat.TryParse` do Editor; red forçado).
 - Critério de pronto: CA15 e parte do CA14 verdes; CA17 (suíte sem edição, nenhum teste trocado).
-- Tamanho estimado: ~480 linhas; 10 arquivos. Depende de: DE7, DE5.
+- Tamanho estimado: ~480 linhas; 10 arquivos. Depende de: DE7b, DE5.
 
 ### DE9 — Custo, recarga, duração e cargas
 - Escopo: `Runtime/GAS/Description/AbilityStatElements.cs` (novo: `CostElement`, `CooldownElement`, `DurationElement`, `ChargesElement`), `DescriptionWriter.cs` (rótulos com `{0}`/`{1}`), `Tests/GAS/PlayMode/AbilityStatElementsTests.cs` (novo), `descricao.md`, `CHANGELOG.md`.
@@ -337,15 +358,16 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Cada 
 | DE4 | sim | DE3 | ~220 / 7 |
 | DE5 | sim | DE1, AR5, AR7, VN3 (fila: depois do EV21, CU9, TK8) | ~420 / ≤10 |
 | DE6 | sim | DE5, EV21 | ~0 / 5 |
-| DE7 | sim | DE1, AR5, VN6, VN7 | ~490 / 9 |
-| DE8 | sim | DE7, DE5 | ~480 / 10 |
+| DE7a | sim | DE1, AR5 | ~470 / 6 |
+| DE7b | sim | DE7a, VN6, VN7 | ~290 / 2 |
+| DE8 | sim | DE7b, DE5 | ~480 / 10 |
 | DE9 | sim | DE8, AV7, EA6 | ~440 / 5 |
 | DE10 | sim | DE9, VN4 | ~420 / 6 |
 | DE11 | sim | DE10, DE2, AV5 | ~320 / 8 |
 | DE12 | sim | DE11, AV8 | ~380 / 7 |
 | DE13 | sim | DE12, EV17 | ~360 / 5 |
 
-Fila: DE1 → DE4 podem entrar cedo (só Core e o adaptador); DE5 → DE13 em série depois dos Lotes C e D. O B-015 precisa só do DE1 e do DE7; o B-016 precisa do DE11; o B-017 precisa do DE13. CA15 roda em todos depois do DE8.
+Fila: DE1 → DE4 podem entrar cedo (só Core e o adaptador); DE5 → DE13 em série depois dos Lotes C e D. O B-015 precisa só do DE1 e do DE7b; o B-016 precisa do DE11; o B-017 precisa do DE13. CA15 roda em todos depois do DE8.
 
 ## Depois deste item
 
