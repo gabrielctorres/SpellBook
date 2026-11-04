@@ -49,15 +49,22 @@ namespace SpellBook.GAS.UI
         /// <summary>A habilidade da entrada, metade da recarga, duas cargas e o rótulo do provedor ou "Q" (R12).</summary>
         public override SlotModel CreatePreview(in UIPreviewContext context)
         {
-            GameplayAbility ability = FindAbility();
             TextBuffer label = _preview ??= new TextBuffer(8);
             label.Clear();
+            return Preview(FindAbility(), slot, loadout, context.Text, label);
+        }
+
+        // Prévia de uma entrada, também usada pela barra: o rótulo é escrito no fim de label
+        internal static SlotModel Preview(GameplayAbility ability, GameplayTag slot, AbilityLoadout loadout,
+            ITextProvider text, TextBuffer label)
+        {
+            int start = label.Length;
             KeyLabelProvider labels = loadout != null ? loadout.KeyLabels : null;
-            if (labels == null || !labels.TryWriteLabel(slot.GetDefinition(), context.Text, label)) label.Append("Q");
+            if (labels == null || !labels.TryWriteLabel(slot.GetDefinition(), text, label)) label.Append("Q");
 
             float duration = ability != null ? ability.GetCooldownDuration(null) : 0f;
             return new SlotModel(SlotState.OnCooldown, ability != null ? ability.Icon : null, ability)
-                .WithKeyLabel(label.SpanFrom(0))
+                .WithKeyLabel(label.SpanFrom(start))
                 .WithCooldown(0.5f, duration * 0.5f)
                 .WithCharges(2, 3, 0.5f);
         }

@@ -336,6 +336,34 @@ Divisão do SL4 pela ADR 0042, decidida pelo usuário em 2026-11-04. O SL4 escri
 - Critério de pronto: CA1, CA8, CA11 e CA13 verdes.
 - Tamanho estimado: ~420 linhas; 6 arquivos. Depende de: SL5.
 
+### Detalhe (2026-11-04)
+- CA: CA1, CA8, CA11 e CA13, com o R2 (trocar o loadout refaz a barra). Fecha também a parte da barra do CA14 (sem alocar), que o SL1b deixou para cá.
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/GAS.UI/AbilityLoadoutSource.cs` (novo): `[Serializable, TypeCategory("Habilidades", Summary = ..., Line = ...)] sealed class AbilityLoadoutSource : UIListSource<SlotModel>`, como o `AbilitySlotSource` (ADR 0013, item 4: é oferecida pelo seletor do `source` do binder de lista).
+    - campos `loadout` e `failureSeconds` (padrão 1, como no slot); `Loadout`, `FailureSeconds` e `SetLoadout(AbilityLoadout)`, que avisa as ligações vivas por um evento `[NonSerialized]` da fonte e refaz a lista, também com o mesmo asset (reler depois de mudar a ordem); `OwnerType` = ASC;
+    - ligação: um `SlotReader` por entrada, id = índice, criado uma vez e reaproveitado entre religações; ao ligar, `Attach` de cada leitor e `AddItem` na ordem da lista; o aviso de cada leitor vira `UpdateItem` do id dele; tick só dos leitores que pedem, e `RequestTick` enquanto algum pede; `SetLoadout` solta os leitores, `ClearItems` e liga de novo; dono que não é ASC não publica item;
+    - prévia: um `SlotModel` por entrada, na ordem, com a mesma prévia do slot (ícone, 50 % da recarga, 2 de 3 cargas, rótulo do provedor ou "Q"), num `TextBuffer` `[NonSerialized]` limpo a cada chamada.
+  - `Runtime/GAS.UI/AbilitySlotSource.cs:52-65`: a montagem da prévia de uma entrada sai para um `internal static SlotModel Preview(...)` usado pelas duas fontes, sem mudar o resultado (`Preview_HalfCooldownTwoCharges_LabelQ` segue verde).
+  - `Runtime/UI/AbilityBarBinder.cs` (novo): `sealed class AbilityBarBinder : UIListBinder<SlotModel>`, com `[HelpURL(DocUrls.UiAbilityBar + "#abilitybarbinder")]`. Herda os membros de receptor explícitos do `UIListBinder` e não declara nenhum.
+  - `Editor/UI/UIEditors.cs:48-50`: `AbilityBarBinderEditor : UIBinderEditor`, para a guarda `SpellBookEditorCoverageTests`.
+  - `Tests/GAS.UI/PlayMode/AbilityBarTests.cs` (novo), com rig próprio (driver, relógio manual, `RecordingSpawnerAsset`, prefab com view de teste e `UIItemContext`).
+  - Os asmdefs não mudam: o runtime `SpellBook.GAS.UI` já referencia GAS, Tags, Core e UI; o `SpellBook.GAS.UI.Editor` já referencia o runtime e as dependências dele (ADR 0012, item 2; ADR 0039, item 9); o assembly de teste PlayMode já referencia `SpellBook.Testing`.
+- Decisão, com base no R7 e no Design 3: o `failureSeconds` entra também na fonte da barra. O Design 3 só lista o `loadout`, mas o `SlotReader` pede os segundos do motivo, e fixá-los em 1 deixaria a barra, o uso principal, sem a opção que o slot tem. É campo novo num tipo novo: não muda CA, não quebra API nem formato serializado.
+- Fora deste ticket: a página `barra-de-habilidades.md` fica para o passe de documentação (emenda de 2026-11-03 da ADR 0007); até lá a guarda `ManualLinksTests` (categoria `Documentacao`) acusa a âncora `#abilitybarbinder` sem página, como no SL3. O `CHANGELOG.md` sai porque não há quebra (item 4 da mesma emenda). A validação da barra (sem prefab, prefab sem `IView<SlotModel>`) é do SL9. A ordem em edição (R12): a fonte já dá a prévia na ordem; o binder de lista não cria itens fora do Play (SL1b), e mostrá-la fica com o SL8 (views e prefabs). Editar o asset do loadout no Play não refaz a barra sozinho (o `AbilityLoadout` não tem evento); refaz com `SetLoadout` ou ao religar.
+- Testes red (PlayMode, `SpellBook.GAS.UI.Tests.PlayMode`, classe `AbilityBarTests`):
+  - `TwoEntries_TwoSlots_ListOrder_ReorderChangesOrder` (CA1, C1: `Slot.Q → Fireball`, `Slot.W → Heal` dão dois slots nessa ordem sob o container; trocada a ordem no asset e chamado `SetLoadout`, a ordem visual troca);
+  - `GrantRemove_EmptyByEvent_NoUpdate` (CA8, C8: não concedida dá `Empty`; conceder dá `Ready` e remover volta a `Empty`, só por evento, sem tick no driver);
+  - `AnchorRespawn_Rebinds` (CA11, C11: dono pela `AbilitySystemAnchor`; outro ASC na âncora religa os slots a ele, e o ASC antigo não mexe mais na barra);
+  - `Slots_FromSpawner_Released_LiveStable` (CA13, C13: os slots vêm do spawner; trocar entre um loadout de dois e um de um devolve ao spawner, e os vivos não crescem em 50 trocas);
+  - `SetLoadout_Rebuilds` (R2: outro loadout troca os assuntos dos slots e solta os leitores do anterior);
+  - `BarUpdates10000_DoNotAllocate` (CA14, barra: tag que entra e sai e tick com recarga correndo, dois slots);
+  - `Preview_OneSlotPerEntry_InOrder` (R12, parte da fonte: um slot de prévia por entrada, na ordem, com a prévia do slot; o buffer do rótulo é escrito do zero a cada chamada).
+
+  Red contra um esqueleto que compila (fonte com os campos, `SetLoadout` e uma ligação que não publica item; prévia vazia; o binder e o editor já completos): 7 de 7 falham (nenhum slot ativo no container; 0 itens de prévia onde se esperavam 2; 0 vivos onde se esperava 1). Green: 15 de 15, com os 8 do `AbilitySlotSourceTests` (a prévia do slot passou a usar o `Preview` comum); `TypeCatalogSummaryTests`, `GasUiSourceScanTests`, `HelpUrlTests` e `SpellBookEditorCoverageTests`, 10 de 10.
+- Critério de pronto: os 7 testes verdes, com `total` = 7 no XML; `AbilitySlotSourceTests` (8), `TypeCatalogSummaryTests`, `GasUiSourceScanTests`, `HelpUrlTests` e `SpellBookEditorCoverageTests` verdes.
+- Tamanho medido (`git diff --numstat` e `wc -l` dos novos): 543 linhas em 6 arquivos. Em `.cs`: `AbilityLoadoutSource.cs` 169, `AbilityBarBinder.cs` 14, `AbilitySlotSource.cs` +10 −3, `UIEditors.cs` +4 e `AbilityBarTests.cs` 343; a Spec conta só como arquivo. Exceção: 543 passa do teto de 500, dentro de +30% (650). Motivo: o arquivo de teste tem 343 linhas, com sete casos (quatro CA, o CA14 da barra, o R2 e a prévia) e o rig de driver, relógio, spawner, prefab de slot e âncora que o PlayMode precisa. Dividir separaria a fonte da barra dos testes dela.
+- Commit: `feat(gas-ui): barra de habilidades pelo loadout (#254)`
+
 ### SL7 — Estado ativo, toggle e autocast no slot
 - Escopo: `SlotReader.cs`, `Tests/GAS.UI/PlayMode/SlotActiveStateTests.cs` (novo), `slot-de-habilidade.md`, `CHANGELOG.md`.
 - Testes red: `Channel_Toggle_Autocast_SetActiveFlags_StateUnchanged` (CA9, C9); `AutocastFailure_NotShown` (CA7 completo); `ActiveFlags_ByEvent`.
