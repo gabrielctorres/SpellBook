@@ -78,7 +78,7 @@ namespace SpellBook.GAS.Attributes
         {
             if (Definition.Type == AttributeType.Derived)
             {
-                Debug.LogWarning($"Trying to set base value of a Derived attribute: {Definition.DisplayName}. This will be overwritten by formula.");
+                Debug.LogWarning($"Trying to set base value of a Derived attribute: {Definition.DisplayName.Text}. This will be overwritten by formula.");
             }
             BaseValue = ClampToLimits(newValue);
             Recalculate();

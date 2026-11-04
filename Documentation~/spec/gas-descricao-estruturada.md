@@ -251,6 +251,23 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Cada 
 - Critério de pronto: testes verdes; suíte do GAS verde com os testes editados listados no PR.
 - Tamanho estimado: ~420 linhas; até 10 arquivos. Depende de: DE1, AR5, AR7, VN3 (fila: depois do EV21, do CU9 e do TK8).
 
+### Detalhe (2026-11-03)
+- CA: nenhum CA numerado fecha aqui; o ticket entrega o Design 3 (R4, N4): os quatro nomes exibidos em `LocalizedText`, asset antigo abre com o texto que tinha (Design 8) e o menu do VN3 regrava os quatro tipos. Base da linha `Attribute`/`Modifier` do DE7 (rótulo `Attribute.DisplayName`).
+- Nome serializado: o campo novo é `localizedName` nos quatro donos, porque o `FormerlySerializedAs` do legado precisa de um nome que o campo novo não use (o efeito já gravava `displayName`, os outros três `DisplayName`). `DisplayName` passa a propriedade `LocalizedText` (com `set` na habilidade, no atributo e na categoria; só leitura no efeito, como hoje), então `x.DisplayName = new LocalizedText(null, "x")` compila, como a seção de quebras prevê.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/GAS/Abilities/GameplayAbility.cs:35-40` (`ISerializationCallbackReceiver`; `localizedName`, `legacyDisplayName` com `FormerlySerializedAs("DisplayName")`, propriedade `DisplayName`; conversão no `OnAfterDeserialize`).
+  - `Runtime/GAS/Effects/GameplayEffect.cs:48-57` (o mesmo, com `FormerlySerializedAs("displayName")`) e `:411-416` (a conversão junto da do `legacyDuration`).
+  - `Runtime/GAS/Attributes/AttributeDefinition.cs:33-37` e `Runtime/GAS/Attributes/AttributeCategory.cs:9-11` (o mesmo que a habilidade).
+  - `Runtime/GAS/Attributes/AttributeState.cs:81` (consequência direta: o aviso interpola `DisplayName.Text`, senão sairia o nome do tipo).
+  - `Editor/GAS/GasAssetMigration.cs:10-39` (+`AttributeDefinition` e `AttributeCategory` no menu e no `MigrateAll`; mensagem e resumo).
+  - `Tests/GAS/EditMode/DisplayNameMigrationTests.cs` (novo; YAML 2.x temporário em `Assets/__DisplayNameMigrationTests`, como o VN2).
+  - Testes que escrevem ou leem `DisplayName`: `Tests/GAS/EditMode/EffectMetadataTests.cs:69,71,84,95,169` (`localizedName.text` e `.Text`) e `Tests/GAS/EditMode/AttributeDisplayTests.cs:153` (`new LocalizedText(null, "Ofensivo")`).
+  - `CHANGELOG.md` (quebra com a migração). Sem `gas.md`: a página entra no passe de documentação (emenda de 2026-11-03 da 0007).
+- Testes red (EditMode, `SpellBook.GAS.Tests.EditMode`): `DisplayNameMigrationTests`: `LegacyYaml_AbilityDisplayName_LoadsAsText`, `LegacyYaml_AttributeDisplayName_LoadsAsText`, `LegacyYaml_EffectDisplayName_LoadsAsText`, `LegacyYaml_CategoryDisplayName_LoadsAsText`, `NewAsset_SavesWithoutLegacy`, `Migrate_RewritesAbilitiesAttributesCategories_Idempotent`, `DisplayName_Resolve_KeyThroughProvider`.
+- Critério de pronto: os testes acima, `EffectMetadataTests`, `AttributeDisplayTests`, `GasAssetMigrationTests` e `ScalableMigrationTests` verdes pelo filtro `\.DisplayNameMigrationTests\.;\.EffectMetadataTests\.;\.AttributeDisplayTests\.;\.GasAssetMigrationTests\.;\.ScalableMigrationTests\.`; suíte EditMode `!Documentacao` verde.
+- Tamanho: ~352 linhas e 10 arquivos (mais esta página do Spec), pela ADR 0042. Exceção: nenhuma.
+- Commit: `feat(gas)!: DisplayName como LocalizedText, com migração (#226)`
+
 ### DE6 — Sample no formato novo
 - Escopo: `Samples~/Sandbox/Data/Abilities/GA_BolaDeFogo.asset`, `Data/Attributes/ATR_Vida.asset`, `ATR_Mana.asset` (regravados pelo menu, com a pasta renomeada pela ADR 0028), `Documentation~/manual/regras/migracao-2-para-3.md` (nomes exibidos), `CHANGELOG.md`.
 - Testes red: nenhum novo; as guardas do SB-T1 seguem verdes.

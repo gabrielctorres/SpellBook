@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Text;
 using SpellBook.Core.Validation;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -47,14 +48,18 @@ namespace SpellBook.GAS.Effects
     public class GameplayEffect : ScriptableObject, ISerializationCallbackReceiver, IValidatable
     {
         [Header("Identidade")]
-        [Tooltip("Nome exibido do efeito (lista de buffs, tooltip). Vazio por padrão.")]
-        [SerializeField] private string displayName;
+        [Tooltip("Nome exibido do efeito (lista de buffs, tooltip), com chave opcional para o provedor de texto. Vazio por padrão.")]
+        [SerializeField] private LocalizedText localizedName;
+
+        // Só leitura do formato 2.x ("displayName: texto"); convertido em OnAfterDeserialize (ADR 0009). Sai antes da 3.0 final.
+        [FormerlySerializedAs("displayName")]
+        [SerializeField, HideInInspector] private string legacyDisplayName;
 
         [Tooltip("Ícone do efeito. Opcional.")]
         [SerializeField] private Sprite icon;
 
-        /// <summary>Nome exibido; vazio por padrão, nunca nulo.</summary>
-        public string DisplayName => displayName ?? string.Empty;
+        /// <summary>Nome exibido; vazio por padrão. Resolva com <see cref="LocalizedText.Resolve"/> ou leia <see cref="LocalizedText.Text"/>.</summary>
+        public LocalizedText DisplayName => localizedName;
 
         /// <summary>Ícone do efeito; nulo por padrão.</summary>
         public Sprite Icon => icon;
@@ -410,6 +415,12 @@ namespace SpellBook.GAS.Effects
 
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
+            if (!string.IsNullOrEmpty(legacyDisplayName))
+            {
+                localizedName = new LocalizedText(null, legacyDisplayName);
+                legacyDisplayName = null;
+            }
+
             if (float.IsNaN(legacyDuration)) return;
             duration = ScalableFloat.Constant(legacyDuration);
             legacyDuration = float.NaN;

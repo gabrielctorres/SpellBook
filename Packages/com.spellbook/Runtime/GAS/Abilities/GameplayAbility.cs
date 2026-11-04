@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Core.Conditions;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Text;
 using SpellBook.Core.Validation;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -32,12 +33,24 @@ namespace SpellBook.GAS.Abilities
     /// </summary>
     [CreateAssetMenu(fileName = "GA_NewAbility", menuName = "GAS/Gameplay Ability")]
     [HelpURL(DocUrls.Gas + "#gameplayability")]
-    public class GameplayAbility : ScriptableObject, IValidatable
+    public class GameplayAbility : ScriptableObject, ISerializationCallbackReceiver, IValidatable
     {
         [Header("Identidade")]
         public Sprite Icon;
 
-        public string DisplayName;
+        [Tooltip("Nome exibido da habilidade, com chave opcional para o provedor de texto.")]
+        [SerializeField] private LocalizedText localizedName;
+
+        // Só leitura do formato 2.x ("DisplayName: texto"); convertido em OnAfterDeserialize (ADR 0009). Sai antes da 3.0 final.
+        [FormerlySerializedAs("DisplayName")]
+        [SerializeField, HideInInspector] private string legacyDisplayName;
+
+        /// <summary>Nome exibido; resolva com <see cref="LocalizedText.Resolve"/> ou leia o texto padrão em <see cref="LocalizedText.Text"/>.</summary>
+        public LocalizedText DisplayName
+        {
+            get => localizedName;
+            set => localizedName = value;
+        }
 
         public GameplayTag AbilityTag;
 
@@ -596,6 +609,15 @@ namespace SpellBook.GAS.Abilities
         {
             if (Description == null) return string.Empty;
             return Description.GetFullDescription(this, source);
+        }
+
+        void ISerializationCallbackReceiver.OnBeforeSerialize() { }
+
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            if (string.IsNullOrEmpty(legacyDisplayName)) return;
+            localizedName = new LocalizedText(null, legacyDisplayName);
+            legacyDisplayName = null;
         }
     }
 }
