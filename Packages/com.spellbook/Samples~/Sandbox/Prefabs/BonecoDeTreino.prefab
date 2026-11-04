@@ -106,6 +106,7 @@ GameObject:
   - component: {fileID: 5605621693066905443}
   - component: {fileID: 5588178653336017363}
   - component: {fileID: 2379561564034608382}
+  - component: {fileID: 2358290342380636715}
   m_Layer: 0
   m_Name: BonecoDeTreino
   m_TagString: Untagged
@@ -181,6 +182,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: SpellBook.GAS::SpellBook.GAS.Core.AbilitySystemComponent
   attributeSet: {fileID: 4162690574170307805}
   startingAbilities: []
+  startingEffects: []
   timeSource: {fileID: 11400000, guid: 270467b95be598945b2fbce277c1d6b9, type: 2}
   autoTick: 1
 --- !u!114 &2702453895243035718
@@ -271,3 +273,17 @@ MonoBehaviour:
   entries:
   - attribute: {fileID: 11400000, guid: 9e242287da19ef24897717e50ec580eb, type: 2}
     current: 0
+--- !u!114 &2358290342380636715
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5939457354471458340}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82866ee1586d1154cb6867d8d5c57deb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpellBook.Core::SpellBook.Core.AnchorRegistrar
+  anchor: {fileID: 11400000, guid: 0471630398ccfdd449757eda6094bea1, type: 2}
+  value: {fileID: 0}
