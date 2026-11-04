@@ -164,6 +164,21 @@ namespace SpellBook.GAS.Tests
             Assert.That(a.GetAttributeBaseValue(_health), Is.EqualTo(99f), "100 - 1");
         }
 
+        // Sem seletor e fora do ForEachTarget, o ApplyEffect segue nos alvos do evento (quem bateu), não no dono da lista
+        [Test]
+        public void ReactionDamage_ApplyEffectWithoutOwnTarget_HitsEventTargets()
+        {
+            AbilitySystemComponent a = CreateAsc();
+            AbilitySystemComponent b = CreateAsc();
+            var thorns = new ApplyEffectAction { Effects = new List<GameplayEffect> { Hit(_health, -1f) } };
+            b.ApplyEffect(Reacting(onTakeDamage: thorns), b);
+
+            b.ApplyEffect(Hit(_health, -10f), a);
+
+            Assert.That(a.GetAttributeBaseValue(_health), Is.EqualTo(99f), "o espinho não voltou em quem bateu");
+            Assert.That(b.GetAttributeBaseValue(_health), Is.EqualTo(90f), "o espinho caiu no dono da lista");
+        }
+
         [Test]
         public void ReactionDepth_CappedAt8_WarnsOnce()
         {

@@ -411,6 +411,24 @@ Todos usam a Unity e seguem o WIP 1. Tempo por `asc.Tick` com `ManualTimeSource`
 - Critério de pronto: os testes verdes; CA29 (S) conferido pelo Examinador no host (abas, resumo, seletor inline, cabeçalho da aura e Gizmo); CA31 (E): páginas com as receitas, `[HelpURL]`, CHANGELOG com o R25.
 - Tamanho estimado: ~460 linhas; 8 arquivos. Depende de: TK7, TM5, EV17.
 
+### TK8a — receitas e ApplyEffect nos alvos da ação (#219)
+- Objetivo: as receitas R12 e R13 rodam como teste, e o `ApplyEffectAction` aplica nos alvos do seletor da ação e do `ForEachTargetAction` (decisão do usuário, 2026-11-04).
+- CA: CA16 (R12, R13). CA25 e CA32 pela suíte completa. Depende de: TK7.
+
+### Detalhe (2026-11-04)
+- CA: CA16 (R12, R13). CA25 e CA32 pela suíte completa `!Documentacao` e pelas guardas de assemblies, sem teste novo.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - Correção do R13, por decisão do usuário (2026-11-04): o `ApplyEffectAction` aplica nos alvos resolvidos da própria ação (`context.Targets`) quando eles vêm do seletor dela ou do `ForEachTargetAction`, e segue nos `context.EventTargets` quando a ação usa o alvo padrão da lista. `Runtime/GAS/Abilities/Actions/ApplyEffectAction.cs:32`; `Runtime/GAS/Actions/ActionRunner.cs` (`Entry.OwnTargets`, `ResolveTargets` devolve se o alvo é próprio, e `SetTargets` o repassa no `Advance` e no cancelamento); `Runtime/GAS/Actions/ActionContext.cs:137-144` (`HasOwnTargets` interno, gravado pelo `SetTargets`). Sem mudança de API pública nem de formato serializado. O filho de `DelayedAction` herda os alvos sem contar como próprios e mantém o comportamento antigo.
+  - `Tests/GAS/PlayMode/EffectReactionsTests.cs` (caso de compatibilidade).
+  - `Tests/GAS/PlayMode/ThinkerRecipesTests.cs` (novo), com os próprios auxiliares, sem tocar no `GasFactory`.
+  - Sem manual nem `CHANGELOG.md`: manual só no passe de documentação, e o ticket não quebra nada.
+- Testes red:
+  - PlayMode, `SpellBook.GAS.Tests.PlayMode`, classe `ThinkerRecipesTests`: `Recipe_AuraOnUnit_EffectCreatesFollowingThinker` (R12: segue a unidade, aplica nos vizinhos, a remoção do efeito termina o thinker e tira a aura de todos); `Recipe_PulseRenewal_ForEachApplyRenews` (R13: `ForEachTarget` + `ApplyEffect` com o `AreaSelector` em "A cada pulso" renova a mesma instância, e quem sai perde o efeito quando a duração vence). Antes da correção, só o R13 falhava: o `ApplyEffectAction` aplicava só nos `context.EventTargets`, e no thinker os alvos do evento são o próprio thinker.
+  - PlayMode, `SpellBook.GAS.Tests.PlayMode`, classe `EffectReactionsTests`: `ReactionDamage_ApplyEffectWithoutOwnTarget_HitsEventTargets` (guarda de compatibilidade: sem seletor nem `ForEachTarget`, o espinho volta em quem bateu, e não no dono da lista; passa antes e depois da correção).
+- Critério de pronto: os testes acima verdes pelo filtro `\.ThinkerRecipesTests\.;\.EffectReactionsTests\.` (PlayMode), e as suítes EditMode e PlayMode `!Documentacao` verdes, com os testes das ações que já existiam.
+- Tamanho: ~200 linhas e 5 arquivos, pela ADR 0042 (medido no diff: 152 no `ThinkerRecipesTests.cs`, 33 na correção em `ActionRunner.cs`, `ActionContext.cs` e `ApplyEffectAction.cs` e 15 no `EffectReactionsTests.cs`). Exceção: nenhuma.
+- Commit: `fix(gas): ApplyEffect nos alvos do seletor e do ForEachTarget (#219)`
+
 ### Ordem e resumo
 
 | Ticket | Unity | Depende de | Tamanho |

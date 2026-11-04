@@ -43,6 +43,8 @@ namespace SpellBook.GAS.Actions
             public double Deadline;
             // Os alvos da ação corrente já foram resolvidos
             public bool Started;
+            // Os alvos vieram do seletor da ação ou do ForEachTargetAction, não do alvo padrão da lista
+            public bool OwnTargets;
         }
 
         internal sealed class Execution
@@ -242,9 +244,9 @@ namespace SpellBook.GAS.Actions
                 if (!top.Started)
                 {
                     top.Started = true;
-                    ResolveTargets(action, execution, targets);
+                    top.OwnTargets = ResolveTargets(action, execution, targets);
                 }
-                execution.Context.SetTargets(targets);
+                execution.Context.SetTargets(targets, top.OwnTargets);
 
                 Execution previous = _current;
                 _current = execution;
@@ -292,9 +294,9 @@ namespace SpellBook.GAS.Actions
         /// <summary>
         /// Põe em <paramref name="targets"/> os alvos do seletor da ação. Sem seletor, o alvo corrente do
         /// <see cref="ForEachTargetAction"/> mais próximo que a contém ou, fora dele, o alvo padrão da lista: o dono, nas
-        /// listas de efeito, ou os alvos do evento.
+        /// listas de efeito, ou os alvos do evento. Verdadeiro com o seletor ou o <see cref="ForEachTargetAction"/>.
         /// </summary>
-        private static void ResolveTargets(GameplayAction action, Execution execution, List<AbilitySystemComponent> targets)
+        private static bool ResolveTargets(GameplayAction action, Execution execution, List<AbilitySystemComponent> targets)
         {
             targets.Clear();
             ActionContext context = execution.Context;
@@ -302,15 +304,16 @@ namespace SpellBook.GAS.Actions
             if (selector != null)
             {
                 selector.Select(context, targets);
-                return;
+                return true;
             }
-            if (TryAddForEachTarget(execution, targets)) return;
+            if (TryAddForEachTarget(execution, targets)) return true;
 
             Execution root = execution;
             while (root.Mother != null) root = root.Mother;
             if (root.HasInherited) AddLiving(root.Inherited, targets);
             else if (context.DefaultTarget == DefaultTarget.Owner && context.Owner != null) targets.Add(context.Owner);
             else AddLiving(context.EventTargets, targets);
+            return false;
         }
 
         private static void AddLiving(List<AbilitySystemComponent> source, List<AbilitySystemComponent> targets)
@@ -468,7 +471,7 @@ namespace SpellBook.GAS.Actions
                 if (entry.List == null || entry.Index >= entry.End) continue;
                 GameplayAction action = entry.List[entry.Index];
                 if (action == null) continue;
-                execution.Context.SetTargets(execution.Targets[d]);
+                execution.Context.SetTargets(execution.Targets[d], entry.OwnTargets);
                 action.InvokeCancel(execution.Context, ref entry.Frame);
             }
             Release(execution);

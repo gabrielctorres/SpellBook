@@ -134,7 +134,14 @@ namespace SpellBook.GAS.Actions
         }
 
         // O executor aponta Targets para o buffer do quadro da ação corrente; nulo volta à lista própria
-        internal void SetTargets(List<AbilitySystemComponent> targets) => _targets = targets;
+        // own: os alvos vieram do seletor da ação ou do ForEachTargetAction, e não do alvo padrão da lista
+        internal void SetTargets(List<AbilitySystemComponent> targets, bool own = false)
+        {
+            _targets = targets;
+            HasOwnTargets = own;
+        }
+
+        internal bool HasOwnTargets { get; private set; }
 
         // Contexto das condições avaliadas nesta execução: alvos da ação corrente e o ponto do evento
         internal ConditionContext ToConditionContext()
@@ -174,7 +181,7 @@ namespace SpellBook.GAS.Actions
         {
             _eventTargets.Clear();
             _ownTargets.Clear();
-            _targets = null;
+            SetTargets(null);
             // Um contexto do pool nunca herda o comparador de outra execução
             if (_customData != null && !Equals(_customData.Comparer, EqualityComparer<string>.Default)) _customData = null;
             else _customData?.Clear();
