@@ -277,6 +277,7 @@ Divisão do SL4 pela ADR 0042, decidida pelo usuário em 2026-11-04. O SL4 escri
   - `BlockingTag_Blocked_BackOnRemove` (CA6, C6);
   - `SlotState_MatchesTryActivate_UpToCost` (CA16: não concedida, tag bloqueadora, tag exigida, habilidade ativa, recarga, custo e pronta);
   - `Preview_HalfCooldownTwoCharges_LabelQ`.
+  Red contra um esqueleto em que o `SlotReader` tem as assinaturas e publica `default` e a prévia devolve `default`: 5 de 5 falham (estado `Empty` onde se esperava `Ready` ou `Blocked`, recarga 0 onde se esperava 6 s, prévia sem habilidade). Green: 5 de 5; as guardas `HelpUrlTests`, `TypeCatalogSummaryTests`, `GasUiSourceScanTests` e `SpellBookEditorCoverageTests`, 10 de 10.
 - Critério de pronto: os 5 testes verdes, com `total` = 5 no XML; `HelpUrlTests`, `TypeCatalogSummaryTests`, `GasUiSourceScanTests` e `SpellBookEditorCoverageTests` verdes.
 - Tamanho medido (`wc -l` dos novos e o patch guardado do `UIEditors.cs`): 524 linhas em 6 arquivos. Em `.cs`: `SlotReader.cs` 129, `AbilitySlotSource.cs` 93, `AbilitySlotBinder.cs` 11, `AbilitySlotSourceTests.cs` 287 e `UIEditors.cs` +4; a Spec conta só como arquivo. Exceção: 524 passa do teto de 500, dentro de +30% (650). Motivo: o arquivo de teste tem 287 linhas, com o cenário de sete casos do CA16 e o rig de driver, relógio e loadout que o PlayMode precisa. Dividir de novo separaria a fonte dos testes dela.
 - Commit: `feat(gas-ui): fonte do slot com estado e recarga (#337)`
