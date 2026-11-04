@@ -16,6 +16,10 @@ namespace SpellBook.GAS.Editor
     [CanEditMultipleObjects]
     internal sealed class AbilitySystemComponentEditor : SpellBookEditor { }
 
+    [CustomEditor(typeof(AbilitySystemAnchor))]
+    [CanEditMultipleObjects]
+    internal sealed class AbilitySystemAnchorEditor : SpellBookEditor { }
+
     [CustomEditor(typeof(AttributeSet))]
     [CanEditMultipleObjects]
     internal sealed class AttributeSetEditor : SpellBookEditor { }

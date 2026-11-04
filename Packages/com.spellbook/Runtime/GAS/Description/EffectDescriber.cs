@@ -52,7 +52,7 @@ namespace SpellBook.GAS.Description
 
         // Valor de uma pilha. O contexto de descrição não tem alvo nem valores do chamador: o que lê o alvo vale 0, o
         // valor do chamador vale o padrão, e o que lê o instigador vale 0 sem ele. Todos esses saem como variáveis.
-        private static float Evaluate(ModifierValueSource source, in EffectContext evaluation, out bool variable)
+        internal static float Evaluate(ModifierValueSource source, in EffectContext evaluation, out bool variable)
         {
             if (source == null)
             {

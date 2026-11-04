@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
+using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
 namespace SpellBook.Core.Tests.Structure
 {
@@ -17,7 +18,8 @@ namespace SpellBook.Core.Tests.Structure
         /// <summary>Módulos de runtime da lista final do CA1 e do CA32.</summary>
         private static readonly string[] RuntimeModules =
         {
-            "Core", "Time", "Events", "Pooling", "Tags", "GAS", "GAS.Bridges", "Teams", "Cues", "Localization",
+            "Core", "Time", "Events", "Pooling", "Tags", "GAS", "GAS.Bridges", "Teams", "Cues", "Localization", "UI", "GAS.UI",
+            "UI.UGUI",
         };
 
         /// <summary>Módulos opcionais de integração: compilam só com o pacote externo (ADR 0038, itens 6 e 7).</summary>
@@ -31,10 +33,11 @@ namespace SpellBook.Core.Tests.Structure
 
         private static readonly string[] EditorModules =
         {
-            "Core", "Events", "Time", "Tags", "Pooling", "GAS", "GAS.Bridges", "Teams", "Cues", "Localization",
+            "Core", "Events", "Time", "Tags", "Pooling", "GAS", "GAS.Bridges", "Teams", "Cues", "Localization", "UI",
+            "UI.UGUI", "GAS.UI",
         };
 
-        private static readonly string[] PlayModeModules = { "Core", "Time", "Events", "GAS", "GAS.Bridges", "Cues" };
+        private static readonly string[] PlayModeModules = { "Core", "Time", "Events", "GAS", "GAS.Bridges", "Cues", "UI", "GAS.UI" };
 
         [Test]
         public void AsmdefRules_Scan_FindsCoreAndThisTestAsmdef()
@@ -169,6 +172,17 @@ namespace SpellBook.Core.Tests.Structure
 
             Assert.That(packageJson, Does.Contain("\"name\": \"com.spellbook\""), "o package.json lido não é o do SpellBook");
             Assert.That(packageJson, Does.Not.Contain("com.unity.localization"));
+        }
+
+        [Test]
+        public void PackageJson_DeclaresUgui200()
+        {
+            PackageInfo package = PackageInfo.FindForAssembly(typeof(AsmdefRulesTests).Assembly);
+
+            Assert.That(package, Is.Not.Null, "o assembly de testes não está num pacote");
+            Assert.That(package.name, Is.EqualTo("com.spellbook"));
+            Assert.That(package.dependencies.Where(d => d.name == "com.unity.ugui").Select(d => d.version),
+                Is.EqualTo(new[] { "2.0.0" }), "o package.json não declara com.unity.ugui 2.0.0 (ADR 0039, item 8)");
         }
 
         [Test]
@@ -403,6 +417,141 @@ namespace SpellBook.Core.Tests.Structure
                 cues.ReferenceNames.Where(r => r.StartsWith("SpellBook.", StringComparison.Ordinal)),
                 Is.EquivalentTo(new[] { "SpellBook.Core", "SpellBook.Tags", "SpellBook.Time" }));
             Assert.That(LoadedAssembly("SpellBook.Cues"), Is.Not.Null, "o assembly SpellBook.Cues não foi compilado");
+        }
+
+        [Test]
+        public void UIAsmdef_ReferencesOnlyCoreAndTime()
+        {
+            AsmdefFile ui = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.UI");
+
+            Assert.That(ui, Is.Not.Null, "não existe asmdef SpellBook.UI");
+            Assert.That(ui.Path, Is.EqualTo("Runtime/UI/SpellBook.UI.asmdef"));
+            Assert.That(ui.Kind, Is.EqualTo(AsmdefKind.Runtime));
+            Assert.That(ui.ReferenceNames, Is.EquivalentTo(new[] { "SpellBook.Core", "SpellBook.Time" }));
+            Assembly assembly = LoadedAssembly("SpellBook.UI");
+            Assert.That(assembly, Is.Not.Null, "o assembly SpellBook.UI não foi compilado");
+            Assert.That(
+                assembly.GetReferencedAssemblies().Select(a => a.Name).Where(n => n.StartsWith("SpellBook.GAS", StringComparison.Ordinal)
+                    || n == "UnityEngine.UI" || n == "Unity.TextMeshPro"),
+                Is.Empty,
+                "o assembly SpellBook.UI compilou com o GAS, a uGUI ou o TextMeshPro");
+        }
+
+        [Test]
+        public void GasUiAsmdef_ReferencesExactly_NoBridgesNoUgui()
+        {
+            AsmdefFile gasUi = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.GAS.UI");
+
+            Assert.That(gasUi, Is.Not.Null, "não existe asmdef SpellBook.GAS.UI");
+            Assert.That(gasUi.Path, Is.EqualTo("Runtime/GAS.UI/SpellBook.GAS.UI.asmdef"));
+            Assert.That(gasUi.Kind, Is.EqualTo(AsmdefKind.Runtime));
+            Assert.That(gasUi.ReferenceNames, Is.EquivalentTo(new[]
+            {
+                "SpellBook.Core", "SpellBook.Tags", "SpellBook.Time", "SpellBook.GAS", "SpellBook.UI",
+            }));
+            Assembly assembly = LoadedAssembly("SpellBook.GAS.UI");
+            Assert.That(assembly, Is.Not.Null, "o assembly SpellBook.GAS.UI não foi compilado");
+            Assert.That(
+                assembly.GetReferencedAssemblies().Select(a => a.Name)
+                    .Where(n => n == "SpellBook.GAS.Bridges" || n == "UnityEngine.UI" || n == "Unity.TextMeshPro"),
+                Is.Empty,
+                "o assembly SpellBook.GAS.UI compilou com o Bridges, a uGUI ou o TextMeshPro");
+            Assert.That(
+                LoadedAssembly("SpellBook.GAS").GetReferencedAssemblies().Select(a => a.Name)
+                    .Where(n => n.StartsWith("SpellBook.UI", StringComparison.Ordinal) || n == "SpellBook.GAS.UI"),
+                Is.Empty,
+                "o assembly SpellBook.GAS referencia a UI");
+        }
+
+        [Test]
+        public void UGuiAsmdef_ReferencesExactly()
+        {
+            AsmdefFile ugui = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.UI.UGUI");
+
+            Assert.That(ugui, Is.Not.Null, "não existe asmdef SpellBook.UI.UGUI");
+            Assert.That(ugui.Path, Is.EqualTo("Runtime/UI.UGUI/SpellBook.UI.UGUI.asmdef"));
+            Assert.That(ugui.Kind, Is.EqualTo(AsmdefKind.Runtime));
+            Assert.That(ugui.ReferenceNames, Is.EquivalentTo(new[]
+            {
+                "SpellBook.Core", "SpellBook.Time", "SpellBook.UI", "UnityEngine.UI", "Unity.TextMeshPro",
+            }));
+            Assert.That(LoadedAssembly("SpellBook.UI.UGUI"), Is.Not.Null, "o assembly SpellBook.UI.UGUI não foi compilado");
+        }
+
+        [Test]
+        public void UiAndGasUi_DoNotReferenceUgui()
+        {
+            string[] ugui = { "UnityEngine.UI", "Unity.TextMeshPro", "SpellBook.UI.UGUI" };
+            List<AsmdefFile> guarded = PackageFiles.Asmdefs()
+                .Where(a => !a.Data.name.StartsWith("SpellBook.UI.UGUI", StringComparison.Ordinal)
+                    && (a.Data.name.StartsWith("SpellBook.UI", StringComparison.Ordinal)
+                        || a.Data.name.StartsWith("SpellBook.GAS.UI", StringComparison.Ordinal)))
+                .ToList();
+            var violations = new List<string>();
+
+            foreach (AsmdefFile asmdef in guarded)
+            {
+                violations.AddRange(asmdef.ReferenceNames.Where(ugui.Contains)
+                    .Select(r => $"{asmdef.Path}: {asmdef.Data.name} não pode referenciar {r}"));
+            }
+
+            foreach (string name in new[] { "SpellBook.UI", "SpellBook.GAS.UI" })
+            {
+                violations.AddRange(LoadedAssembly(name).GetReferencedAssemblies().Select(a => a.Name).Where(ugui.Contains)
+                    .Select(r => $"o assembly {name} compilou com {r}"));
+            }
+
+            Assert.That(LoadedAssembly("UnityEngine.UI"), Is.Not.Null, "a uGUI não está no projeto: a guarda passaria vazia");
+            Assert.That(LoadedAssembly("Unity.TextMeshPro"), Is.Not.Null, "o TextMeshPro não está no projeto");
+            Assert.That(guarded.Select(a => a.Data.name), Does.Contain("SpellBook.UI").And.Contain("SpellBook.GAS.UI"));
+            Assert.That(violations, Is.Empty);
+        }
+
+        [Test]
+        public void UIEditorAsmdef_References()
+        {
+            AsmdefFile editor = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.UI.Editor");
+
+            Assert.That(editor, Is.Not.Null, "não existe asmdef SpellBook.UI.Editor");
+            Assert.That(editor.Path, Is.EqualTo("Editor/UI/SpellBook.UI.Editor.asmdef"));
+            Assert.That(editor.Kind, Is.EqualTo(AsmdefKind.Editor));
+            Assert.That(editor.ReferenceNames,
+                Is.EquivalentTo(new[] { "SpellBook.Core", "SpellBook.Time", "SpellBook.UI", "SpellBook.Core.Editor" }));
+            Assert.That(LoadedAssembly("SpellBook.UI.Editor"), Is.Not.Null, "o assembly SpellBook.UI.Editor não foi compilado");
+        }
+
+        [Test]
+        public void UGuiEditorAsmdef_References()
+        {
+            AsmdefFile editor = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.UI.UGUI.Editor");
+
+            Assert.That(editor, Is.Not.Null, "não existe asmdef SpellBook.UI.UGUI.Editor");
+            Assert.That(editor.Path, Is.EqualTo("Editor/UI.UGUI/SpellBook.UI.UGUI.Editor.asmdef"));
+            Assert.That(editor.Kind, Is.EqualTo(AsmdefKind.Editor));
+            Assert.That(editor.ReferenceNames,
+                Is.EquivalentTo(new[]
+                {
+                    "SpellBook.Core", "SpellBook.Time", "SpellBook.UI", "SpellBook.UI.UGUI", "SpellBook.Core.Editor",
+                    "UnityEngine.UI", "Unity.TextMeshPro",
+                }));
+            Assert.That(LoadedAssembly("SpellBook.UI.UGUI.Editor"), Is.Not.Null, "o assembly SpellBook.UI.UGUI.Editor não foi compilado");
+        }
+
+        [Test]
+        public void GasUiEditorAsmdef_References()
+        {
+            AsmdefFile editor = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.GAS.UI.Editor");
+
+            Assert.That(editor, Is.Not.Null, "não existe asmdef SpellBook.GAS.UI.Editor");
+            Assert.That(editor.Path, Is.EqualTo("Editor/GAS.UI/SpellBook.GAS.UI.Editor.asmdef"));
+            Assert.That(editor.Kind, Is.EqualTo(AsmdefKind.Editor));
+            Assert.That(editor.ReferenceNames,
+                Is.EquivalentTo(new[]
+                {
+                    "SpellBook.Core", "SpellBook.Tags", "SpellBook.Time", "SpellBook.GAS", "SpellBook.UI", "SpellBook.GAS.UI",
+                    "SpellBook.Core.Editor",
+                }));
+            Assert.That(LoadedAssembly("SpellBook.GAS.UI.Editor"), Is.Not.Null, "o assembly SpellBook.GAS.UI.Editor não foi compilado");
         }
 
         [Test]

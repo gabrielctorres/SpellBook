@@ -68,6 +68,7 @@ MonoBehaviour:
   attributeSet: {fileID: 8702698153085977016}
   startingAbilities:
   - {fileID: 11400000, guid: 9d277aace03affb48a3e28d68970e162, type: 2}
+  startingEffects: []
   timeSource: {fileID: 11400000, guid: 270467b95be598945b2fbce277c1d6b9, type: 2}
   autoTick: 1
 --- !u!114 &2786895689758257457
@@ -85,6 +86,7 @@ MonoBehaviour:
   ability: {fileID: 11400000, guid: 9d277aace03affb48a3e28d68970e162, type: 2}
   castKey: 49
   aimHeight: 1.2
+  failureChannel: {fileID: 11400000, guid: 030456ce5d1510941b516001475f7988, type: 2}
 --- !u!114 &3376212011050092599
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -88,6 +88,18 @@ namespace SpellBook.GAS.Values
             return -1;
         }
 
+        /// <summary>Como <see cref="IndexOf(string)"/>, com o nome num trecho de texto (por exemplo, de um template). Não aloca.</summary>
+        public int IndexOf(ReadOnlySpan<char> name)
+        {
+            for (int i = 0; i < entries.Count; i++)
+            {
+                string entryName = entries[i]?.Name;
+                if (entryName != null && name.SequenceEqual(entryName.AsSpan())) return i;
+            }
+
+            return -1;
+        }
+
         /// <summary>Valor da entrada no nível, avaliado sem tabela: uma entrada nunca lê outra.</summary>
         public float Evaluate(int index, int level)
         {
@@ -145,10 +157,13 @@ namespace SpellBook.GAS.Values
             }
         }
 
-        /// <summary>Nome só com letras ASCII, dígitos e <c>_</c>, não vazio. Também vale para o nome do SetByCaller.</summary>
-        internal static bool IsIdentifier(string name)
+        /// <summary>
+        /// Nome só com letras ASCII, dígitos e <c>_</c>, não vazio (string nula é vazia). Também vale para o nome do
+        /// SetByCaller e para o <c>{nome}</c> do <c>TemplateElement</c>.
+        /// </summary>
+        internal static bool IsIdentifier(ReadOnlySpan<char> name)
         {
-            if (string.IsNullOrEmpty(name)) return false;
+            if (name.IsEmpty) return false;
 
             for (int i = 0; i < name.Length; i++)
             {

@@ -116,5 +116,48 @@ namespace SpellBook.Core.Tests.Text
             Assert.That(buffer.Chars.Length, Is.EqualTo(capacity));
             Assert.That(buffer.ToString(), Is.Empty);
         }
+
+        [Test]
+        public void Append_Substring_OnlyThatRange()
+        {
+            var buffer = new TextBuffer(4);
+            buffer.Append("<");
+
+            TextSpan middle = buffer.Append("abcdefgh", 2, 3);
+            TextSpan empty = buffer.Append("abc", 1, 0);
+
+            Assert.That(buffer.ToString(middle), Is.EqualTo("cde"));
+            Assert.That(empty.IsEmpty, Is.True);
+            Assert.That(buffer.ToString(), Is.EqualTo("<cde"));
+        }
+
+        [Test]
+        public void SpanFrom_CoversWrittenSinceStart()
+        {
+            var buffer = new TextBuffer(4);
+            buffer.Append("Vida: ");
+            int start = buffer.Length;
+            buffer.Append(50f, "F0", EnUs);
+            buffer.Append(" / ");
+            buffer.Append(100f, "F0", EnUs);
+
+            TextSpan written = buffer.SpanFrom(start);
+            TextSpan end = buffer.SpanFrom(buffer.Length);
+
+            Assert.That(buffer.ToString(written), Is.EqualTo("50 / 100"));
+            Assert.That(written.Start, Is.EqualTo(6));
+            Assert.That(written.Buffer, Is.SameAs(buffer));
+            Assert.That(end.IsEmpty, Is.True);
+        }
+
+        [Test]
+        public void SpanFrom_OutOfRange_Throws()
+        {
+            var buffer = new TextBuffer();
+            buffer.Append("abc");
+
+            Assert.That(() => buffer.SpanFrom(-1), Throws.TypeOf<System.ArgumentOutOfRangeException>());
+            Assert.That(() => buffer.SpanFrom(4), Throws.TypeOf<System.ArgumentOutOfRangeException>());
+        }
     }
 }

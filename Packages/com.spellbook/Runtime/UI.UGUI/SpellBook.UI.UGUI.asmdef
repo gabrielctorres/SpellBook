@@ -1,0 +1,20 @@
+{
+    "name": "SpellBook.UI.UGUI",
+    "rootNamespace": "SpellBook.UI.UGUI",
+    "references": [
+        "GUID:7834e8f3d0902ad45bfb6fab58f7b919",
+        "GUID:660a209bfdce2334b96a64748b0192f3",
+        "GUID:a8497955e6327384bbdcbc36ffe5b95e",
+        "GUID:2bafac87e7f4b9b418d9448d219b01ab",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

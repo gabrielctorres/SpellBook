@@ -1,5 +1,6 @@
 using System.Globalization;
 using SpellBook.Core;
+using SpellBook.Events;
 using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Core;
 using UnityEngine;
@@ -8,7 +9,8 @@ namespace SpellBook.Samples.Sandbox
 {
     /// <summary>
     /// Mira com o mouse num plano horizontal e conjura a habilidade com uma tecla. Escreve no Console quando a
-    /// habilidade é conjurada e o motivo de cada falha (recarga, mana, ou a chave ou a tag do motivo).
+    /// habilidade é conjurada. O motivo de cada falha (recarga, mana, ou a chave ou a tag do motivo) vai como texto
+    /// para o canal de falha; quem o escreve no Console é o ouvinte da cena.
     /// </summary>
     [RequireComponent(typeof(AbilitySystemComponent))]
     [HelpURL(DocUrls.Samples + "#sandboxcaster")]
@@ -24,6 +26,9 @@ namespace SpellBook.Samples.Sandbox
 
         [SerializeField, Tooltip("Altura do plano de mira, em metros.")]
         private float aimHeight = 1.2f;
+
+        [SerializeField, Tooltip("Canal que recebe o texto de cada falha. Vazio, a falha não é escrita.")]
+        private StringEventChannel failureChannel;
 
         private AbilitySystemComponent _asc;
         private Camera _camera;
@@ -96,19 +101,27 @@ namespace SpellBook.Samples.Sandbox
                 return;
             }
 
+            if (failureChannel == null)
+            {
+                return;
+            }
+
+            string message;
             switch (failure.Result)
             {
                 case AbilityActivationResult.OnCooldown:
                     float remaining = _asc.GetCooldownTimeRemaining(ability.CooldownEffect);
-                    Debug.Log(string.Format(PtBr, "Bola de Fogo em recarga: {0:0.0} s", remaining), this);
+                    message = string.Format(PtBr, "Bola de Fogo em recarga: {0:0.0} s", remaining);
                     break;
                 case AbilityActivationResult.CannotAffordCost:
-                    Debug.Log("Sem mana para a Bola de Fogo", this);
+                    message = "Sem mana para a Bola de Fogo";
                     break;
                 default:
-                    Debug.Log($"Bola de Fogo não disparou: {Reason(in failure)}", this);
+                    message = $"Bola de Fogo não disparou: {Reason(in failure)}";
                     break;
             }
+
+            failureChannel.Raise(message, this);
         }
 
         // Chave do motivo; sem chave, a tag; sem as duas, o resultado.

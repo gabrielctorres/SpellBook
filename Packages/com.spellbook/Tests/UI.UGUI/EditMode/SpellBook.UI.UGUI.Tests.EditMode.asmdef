@@ -1,0 +1,31 @@
+{
+    "name": "SpellBook.UI.UGUI.Tests.EditMode",
+    "rootNamespace": "SpellBook.UI.UGUI.Tests",
+    "references": [
+        "SpellBook.Core",
+        "SpellBook.Time",
+        "SpellBook.UI",
+        "SpellBook.UI.UGUI",
+        "SpellBook.GAS.UI",
+        "SpellBook.Testing",
+        "UnityEngine.UI",
+        "Unity.TextMeshPro",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

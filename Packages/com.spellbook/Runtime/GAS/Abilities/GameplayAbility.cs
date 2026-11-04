@@ -309,6 +309,7 @@ namespace SpellBook.GAS.Abilities
         /// redução, cada nome do modo Table que um efeito usado pela habilidade lê e não está na tabela (recarga, custo e
         /// <see cref="CollectActionEffects"/>), e <c>MaxLevel</c> acima do tamanho de um array da tabela (aviso).
         /// Valida as seis listas de ações e as filhas, o comportamento, o commit, os gatilhos e o autocast (Design 9 do B-012).
+        /// Valida também a <see cref="Description"/> e os elementos dela (Design 7 do B-008).
         /// </summary>
         public virtual void Validate(ValidationResult result)
         {
@@ -333,6 +334,7 @@ namespace SpellBook.GAS.Abilities
             ValidateEffectTableNames(result);
             ValidateActivationRules(result);
             charges?.Validate(result, nameof(charges), values);
+            Description?.Validate(result, nameof(Description), this);
 
             var commits = new List<string>();
             var ownerEvents = new List<GameplayTag>();

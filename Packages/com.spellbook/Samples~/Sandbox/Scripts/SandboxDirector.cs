@@ -1,5 +1,6 @@
 using System.Globalization;
 using SpellBook.Core;
+using SpellBook.Events;
 using SpellBook.Time;
 using UnityEngine;
 
@@ -8,6 +9,7 @@ namespace SpellBook.Samples.Sandbox
     /// <summary>
     /// Cria o conjurador e o boneco e cuida das teclas da cena: pausa do grupo de gameplay, câmera lenta pelo
     /// <c>Time.timeScale</c> e reinício. Não depende do grupo pausável, então as teclas valem durante a pausa.
+    /// No início e no reinício, liga o Console sem HUD só quando a âncora do HUD está vazia.
     /// </summary>
     [HelpURL(DocUrls.Samples + "#sandboxdirector")]
     public sealed class SandboxDirector : MonoBehaviour
@@ -41,11 +43,18 @@ namespace SpellBook.Samples.Sandbox
         [SerializeField, Tooltip("Reinicia a cena.")]
         private KeyCode restartKey = KeyCode.R;
 
+        [SerializeField, Tooltip("Âncora em que o HUD se publica. Vazia ou sem âncora, o HUD conta como ausente.")]
+        private RuntimeAnchor hudAnchor;
+
+        [SerializeField, Tooltip("Ouvinte que escreve no Console o que o HUD mostraria. Ligado só sem o HUD.")]
+        private EventListener consoleWithoutHud;
+
         private GameObject _caster;
         private GameObject _dummy;
 
         private void Start()
         {
+            UpdateConsoleWithoutHud();
             Spawn();
         }
 
@@ -94,8 +103,18 @@ namespace SpellBook.Samples.Sandbox
             UnityEngine.Time.timeScale = 1f;
             Destroy(_caster);
             Destroy(_dummy);
+            UpdateConsoleWithoutHud();
             Spawn();
             Debug.Log("Cena reiniciada", this);
+        }
+
+        // Lido só no Start e no reinício: os OnEnable da cena, onde o HUD se publica, rodam antes de qualquer Start.
+        private void UpdateConsoleWithoutHud()
+        {
+            if (consoleWithoutHud != null)
+            {
+                consoleWithoutHud.enabled = hudAnchor == null || hudAnchor.UntypedValue == null;
+            }
         }
 
         private void Spawn()

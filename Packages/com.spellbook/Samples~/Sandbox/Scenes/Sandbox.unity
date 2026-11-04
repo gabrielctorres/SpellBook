@@ -242,6 +242,86 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &448427601
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 448427603}
+  - component: {fileID: 448427602}
+  m_Layer: 0
+  m_Name: Console sem HUD
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &448427602
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 448427601}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c4e8cc53ab8fc24e956316dab9ff805, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpellBook.Events::SpellBook.Events.EventListener
+  responses:
+  - rid: 2960844178658164738
+  - rid: 2960844178658164739
+  references:
+    version: 2
+    RefIds:
+    - rid: 2960844178658164738
+      type: {class: VoidEventResponse, ns: SpellBook.Events, asm: SpellBook.Events}
+      data:
+        channel: {fileID: 11400000, guid: 74b910a9c3d0eaf43b27655ddf0ee376, type: 2}
+        reactions:
+        - rid: 2960844178658164740
+        escape:
+          Event:
+            m_PersistentCalls:
+              m_Calls: []
+    - rid: 2960844178658164739
+      type: {class: StringEventResponse, ns: SpellBook.Events, asm: SpellBook.Events}
+      data:
+        channel: {fileID: 11400000, guid: 030456ce5d1510941b516001475f7988, type: 2}
+        reactions:
+        - rid: 2960844178658164741
+        escape:
+          Event:
+            m_PersistentCalls:
+              m_Calls: []
+    - rid: 2960844178658164740
+      type: {class: LogReaction, ns: SpellBook.Events, asm: SpellBook.Events}
+      data:
+        message: 'Queimadura: tique'
+        type: 3
+    - rid: 2960844178658164741
+      type: {class: LogPayloadReaction, ns: SpellBook.Samples.Sandbox, asm: SpellBook.Samples.Sandbox}
+      data:
+        format: '{0}'
+        type: 3
+--- !u!4 &448427603
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 448427601}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &692335789
 GameObject:
   m_ObjectHideFlags: 0
@@ -557,6 +637,8 @@ MonoBehaviour:
   pauseKey: 112
   slowKey: 116
   restartKey: 114
+  hudAnchor: {fileID: 11400000, guid: 6a7ca006b7ccb4f4d9ad3aaf673ad4a5, type: 2}
+  consoleWithoutHud: {fileID: 448427602}
 --- !u!4 &1886058989
 Transform:
   m_ObjectHideFlags: 0
@@ -613,4 +695,5 @@ SceneRoots:
   - {fileID: 1977806419}
   - {fileID: 1886058989}
   - {fileID: 1587523588}
+  - {fileID: 448427603}
   - {fileID: 1004050356}

@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03f7385509121b342b7e1f76becaa61b, type: 3}
+  m_Name: GasTexts.pt-BR
+  m_EditorClassIdentifier: SpellBook.Core::SpellBook.Core.Text.TextTable
+  cultureName: pt-BR
+  entries:
+  - key: gas.activation.invalid
+    text: "Habilidade inv\xE1lida"
+  - key: gas.activation.not_granted
+    text: "Habilidade n\xE3o aprendida"
+  - key: gas.activation.already_active
+    text: "Habilidade j\xE1 est\xE1 ativa"
+  - key: gas.activation.blocked_by_tags
+    text: Bloqueada pelo estado atual
+  - key: gas.activation.missing_required_tags
+    text: "Requisito n\xE3o atendido"
+  - key: gas.activation.blocked_by_active_ability
+    text: Bloqueada por outra habilidade
+  - key: gas.activation.on_cooldown
+    text: Em recarga
+  - key: gas.activation.cannot_afford_cost
+    text: Recurso insuficiente
+  - key: gas.activation.blocked_by_condition
+    text: "Condi\xE7\xE3o n\xE3o atendida"
+  - key: gas.activation.no_charges
+    text: Sem cargas
+  - key: gas.activation.attribute_threshold
+    text: Atributo insuficiente
+  - key: gas.activation.cast_range
+    text: Fora de alcance
+  - key: gas.activation.no_target
+    text: Sem alvo
+  - key: gas.activation.has_targets
+    text: "Nenhum alvo v\xE1lido"
+  - key: gas.activation.tag_query
+    text: "Estado n\xE3o permite"
+  - key: gas.description.cooldown
+    text: Recarga
+  - key: gas.description.duration
+    text: "Dura\xE7\xE3o"
+  - key: gas.description.permanent
+    text: Permanente
+  - key: gas.description.charges
+    text: '{0} cargas, uma a cada {1}'

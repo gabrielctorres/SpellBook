@@ -65,7 +65,7 @@ MonoBehaviour:
   isPurgable: 0
   OnApplied: []
   OnTick:
-  - rid: 3572287606067036160
+  - rid: 2960844178658164736
   OnRemoved: []
   OnTakeDamage: []
   OnDeath: []
@@ -87,10 +87,17 @@ MonoBehaviour:
     RefIds:
     - rid: -2
       type: {class: , ns: , asm: }
-    - rid: 3572287606067036160
-      type: {class: DebugLogAction, ns: SpellBook.GAS.Effects, asm: SpellBook.GAS}
+    - rid: 2960844178658164736
+      type: {class: RaiseEventAction, ns: SpellBook.GAS.Bridges, asm: SpellBook.GAS.Bridges}
       data:
         target:
           rid: -2
-        Message: 'Queimadura: tique'
-        LogColor: {r: 1, g: 1, b: 1, a: 1}
+        emission:
+          rid: 2960844178658164737
+        payloadSource: 0
+        attribute: {fileID: 0}
+        modifierIndex: 0
+    - rid: 2960844178658164737
+      type: {class: 'EventEmission`1[[SpellBook.Core.Void, SpellBook.Core]]', ns: SpellBook.Events, asm: SpellBook.Events}
+      data:
+        channel: {fileID: 11400000, guid: 74b910a9c3d0eaf43b27655ddf0ee376, type: 2}
