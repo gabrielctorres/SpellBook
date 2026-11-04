@@ -49,6 +49,10 @@ namespace SpellBook.UI.Editor
     [CanEditMultipleObjects]
     internal sealed class AbilityBarBinderEditor : UIBinderEditor { }
 
+    [CustomEditor(typeof(CastBarBinder))]
+    [CanEditMultipleObjects]
+    internal sealed class CastBarBinderEditor : UIBinderEditor { }
+
     [CustomEditor(typeof(TooltipBinder))]
     [CanEditMultipleObjects]
     internal sealed class TooltipBinderEditor : SpellBookEditor { }

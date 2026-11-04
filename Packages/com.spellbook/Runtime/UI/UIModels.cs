@@ -291,6 +291,75 @@ namespace SpellBook.UI
             enabled);
     }
 
+    /// <summary>Estado da barra de cast (R17).</summary>
+    public enum CastBarState
+    {
+        /// <summary>Sem canalização; o <c>default</c> do modelo.</summary>
+        Idle,
+
+        /// <summary>Uma habilidade canaliza.</summary>
+        Channeling,
+    }
+
+    /// <summary>Como acabou a última canalização mostrada (R17).</summary>
+    public enum CastBarResult
+    {
+        /// <summary>Nenhuma acabou ainda.</summary>
+        None,
+
+        /// <summary>Chegou ao fim da duração ou terminou sem cancelamento.</summary>
+        Completed,
+
+        /// <summary>Foi cancelada.</summary>
+        Cancelled,
+    }
+
+    /// <summary>
+    /// Modelo da barra de cast (R17; Spec do B-016, Design 5): a canalização mostrada e o resultado da última. Sem GAS e
+    /// sem <see cref="string"/> montada: o nome vem do provedor de texto. No <see cref="CastBarState.Idle"/> depois de um
+    /// fim, o ícone e o nome são os da que acabou. O <c>default</c> é o estado <see cref="CastBarState.Idle"/> sem resultado.
+    /// </summary>
+    public readonly struct CastBarModel
+    {
+        /// <summary>Cria o modelo; a fração fica entre 0 e 1, e segundos e contador negativos valem 0.</summary>
+        public CastBarModel(CastBarState state, Sprite icon, string name, float fraction, float remaining,
+            bool indeterminate, CastBarResult lastResult, int resultCount)
+        {
+            State = state;
+            Icon = icon;
+            Name = name;
+            Fraction = Mathf.Clamp01(fraction);
+            Remaining = Mathf.Max(0f, remaining);
+            Indeterminate = indeterminate;
+            LastResult = lastResult;
+            ResultCount = Math.Max(0, resultCount);
+        }
+
+        /// <summary>Se há canalização.</summary>
+        public CastBarState State { get; }
+
+        /// <summary>Ícone da habilidade, ou nulo.</summary>
+        public Sprite Icon { get; }
+
+        /// <summary>Nome da habilidade, pelo provedor de texto; nulo sem habilidade.</summary>
+        public string Name { get; }
+
+        /// <summary>Progresso, de 0 a 1; 0 na canalização indeterminada.</summary>
+        public float Fraction { get; }
+
+        /// <summary>Segundos até o fim; 0 na canalização indeterminada.</summary>
+        public float Remaining { get; }
+
+        /// <summary>Verdadeiro na canalização sem duração, que dura até ser cancelada.</summary>
+        public bool Indeterminate { get; }
+
+        /// <summary>Como acabou a última canalização mostrada.</summary>
+        public CastBarResult LastResult { get; }
+
+        /// <summary>Contador que muda a cada fim; a view anima quando ele muda.</summary>
+        public int ResultCount { get; }
+    }
+
     /// <summary>
     /// Pedido de um número flutuante (R14): onde nasce, o texto, o papel e o estilo. O texto é escrito no buffer da
     /// ligação e vale só durante o <see cref="IFloatingTextView.Show"/>. O <c>default</c> é o estado vazio: nada nasce.
