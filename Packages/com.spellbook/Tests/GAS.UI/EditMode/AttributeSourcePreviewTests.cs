@@ -60,7 +60,7 @@ namespace SpellBook.GAS.UI.Tests
                 .OrderBy(name => name, StringComparer.Ordinal)
                 .ToArray();
 
-            Assert.That(sources, Is.SupersetOf(new[] { typeof(AttributeBarSource), typeof(AttributeTextSource) }));
+            Assert.That(sources, Is.SupersetOf(new[] { typeof(AttributeBarSource), typeof(AttributeTextSource), typeof(TagSource) }));
             Assert.That(missing, Is.Empty,
                 "fontes de UI sem resumo; ponha [TypeCategory(caminho, Summary = \"...\")] em:\n" + string.Join("\n", missing));
         }
