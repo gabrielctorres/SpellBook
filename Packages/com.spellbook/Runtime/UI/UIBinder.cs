@@ -1,0 +1,247 @@
+using System;
+using SpellBook.Core;
+using SpellBook.Core.Inspector;
+using UnityEngine;
+using Object = UnityEngine.Object;
+
+namespace SpellBook.UI
+{
+    /// <summary>
+    /// Base não genérica dos binders (ADR 0017 e 0039, itens 1, 5 e 7). No Play, acha o dono pelo
+    /// <see cref="ActorResolver"/> ao habilitar, liga a fonte a ele e religa quando a âncora muda; dono ausente mostra o
+    /// estado vazio, sem exceção. Fora do Play, desenha a prévia da fonte e não liga nada. Não tem <c>Update</c>.
+    /// </summary>
+    [ExecuteAlways]
+    public abstract class UIBinderBase : MonoBehaviour
+    {
+        [SerializeField]
+        [Tooltip("Onde achar o dono que a fonte lê.")]
+        private ActorResolver owner = ActorResolver.ForSelfOrParent();
+
+        private Action<RuntimeAnchor> _onAnchorChanged;
+        private RuntimeAnchor _subscribedAnchor;
+        private bool _bound;
+        private bool _warnedMissingOwner;
+
+        /// <summary>Como o binder acha o dono.</summary>
+        public ActorResolver Owner => owner;
+
+        /// <summary>Troca o resolvedor do dono (nulo vale <see cref="ActorResolver.ForSelfOrParent"/>) e religa.</summary>
+        public void SetOwner(ActorResolver resolver)
+        {
+            owner = resolver ?? ActorResolver.ForSelfOrParent();
+            Rebind();
+        }
+
+        /// <summary>
+        /// No Play, desliga e liga de novo na mesma ligação, procurando o dono outra vez. Fora do Play, redesenha a
+        /// prévia. Sem efeito com o binder desabilitado.
+        /// </summary>
+        public void Rebind()
+        {
+            if (!isActiveAndEnabled)
+            {
+                return;
+            }
+
+            if (!Application.isPlaying)
+            {
+                DrawPreview();
+                return;
+            }
+
+            Unbind();
+            Bind();
+        }
+
+        /// <summary>No Play, liga ao dono; fora dele, desenha a prévia. Quem sobrescreve chama a base.</summary>
+        protected virtual void OnEnable()
+        {
+            if (Application.isPlaying)
+            {
+                Bind();
+            }
+            else
+            {
+                DrawPreview();
+            }
+        }
+
+        /// <summary>Desliga e solta a âncora. Quem sobrescreve chama a base.</summary>
+        protected virtual void OnDisable()
+        {
+            if (_bound)
+            {
+                Unbind();
+            }
+        }
+
+        // Tipo do dono pedido pela fonte; nulo sem fonte
+        private protected abstract Type SourceOwnerType { get; }
+
+        // A ligação da fonte atual, criada uma vez por fonte
+        private protected abstract UIBinding AcquireBinding();
+
+        private protected abstract void DetachBinding();
+
+        private protected abstract void ShowEmpty();
+
+        private protected abstract void DrawPreview();
+
+        private void Bind()
+        {
+            _bound = true;
+            if (owner.Mode == ActorResolveMode.FromAnchor && owner.Anchor != null)
+            {
+                _onAnchorChanged ??= OnAnchorChanged;
+                _subscribedAnchor = owner.Anchor;
+                _subscribedAnchor.Changed += _onAnchorChanged;
+            }
+
+            AttachToOwner();
+        }
+
+        private void Unbind()
+        {
+            _bound = false;
+            if (_subscribedAnchor != null)
+            {
+                _subscribedAnchor.Changed -= _onAnchorChanged;
+                _subscribedAnchor = null;
+            }
+
+            DetachBinding();
+        }
+
+        private void OnAnchorChanged(RuntimeAnchor anchor)
+        {
+            DetachBinding();
+            AttachToOwner();
+        }
+
+        private void AttachToOwner()
+        {
+            // Sem fonte, o estado vazio vem sem aviso: a regra é do validador
+            Type ownerType = SourceOwnerType;
+            Object found = null;
+            if (ownerType != null && !owner.TryResolve(this, ownerType, out found))
+            {
+                WarnMissingOwner(ownerType);
+            }
+
+            UIBinding binding = found != null ? AcquireBinding() : null;
+            if (binding == null)
+            {
+                ShowEmpty();
+                return;
+            }
+
+            binding.Attach(found, new UIBindContext(null));
+        }
+
+        private void WarnMissingOwner(Type ownerType)
+        {
+            // Âncora sem valor é o ator que ainda não nasceu: o binder espera o Changed sem avisar
+            bool waitingForAnchor = owner.Mode == ActorResolveMode.FromAnchor && owner.Anchor != null
+                && owner.Anchor.UntypedValue == null;
+            if (waitingForAnchor || _warnedMissingOwner || !Debug.isDebugBuild)
+            {
+                return;
+            }
+
+            _warnedMissingOwner = true;
+            Debug.LogWarning($"[UI] '{name}': dono do tipo {ownerType.Name} não encontrado (modo {owner.Mode}); a view mostra o estado vazio.", this);
+        }
+    }
+
+    /// <summary>
+    /// Binder de um modelo (ADR 0039, itens 2 e 3): liga a <see cref="UISource{TModel}"/> ao dono e entrega cada modelo
+    /// à <see cref="IView{TModel}"/>. A ligação é criada uma vez e reaproveitada a cada troca de dono. O estado vazio é
+    /// <c>default(TModel)</c>.
+    /// </summary>
+    /// <typeparam name="TModel">Modelo desenhado.</typeparam>
+    public abstract class UIBinder<TModel> : UIBinderBase, IUIModelReceiver<TModel> where TModel : struct
+    {
+        [SerializeReference, TypePicker]
+        [Tooltip("O que o binder lê do dono.")]
+        private UISource<TModel> source;
+
+        [SerializeField]
+        [Tooltip("Componente que implementa IView do modelo e o desenha.")]
+        private MonoBehaviour view;
+
+        private UIBinding<TModel> _binding;
+        private UISource<TModel> _bindingSource;
+        private IView<TModel> _view;
+        private MonoBehaviour _viewComponent;
+
+        /// <summary>A fonte do modelo.</summary>
+        public UISource<TModel> Source => source;
+
+        /// <summary>A view que recebe o modelo, ou <c>null</c> se o componente não implementa <see cref="IView{TModel}"/>.</summary>
+        public IView<TModel> View
+        {
+            get
+            {
+                if (!ReferenceEquals(_viewComponent, view))
+                {
+                    _viewComponent = view;
+                    _view = view as IView<TModel>;
+                }
+
+                return _view;
+            }
+        }
+
+        /// <summary>Troca a fonte e religa (em edição, redesenha a prévia). A ligação da fonte antiga é descartada.</summary>
+        public void SetSource(UISource<TModel> newSource)
+        {
+            if (ReferenceEquals(source, newSource))
+            {
+                return;
+            }
+
+            source = newSource;
+            Rebind();
+        }
+
+        /// <summary>Troca a view e religa, para a nova receber o estado atual (em edição, redesenha a prévia).</summary>
+        public void SetView(IView<TModel> newView)
+        {
+            view = newView as MonoBehaviour;
+            _viewComponent = view;
+            _view = newView;
+            Rebind();
+        }
+
+        /// <summary>Recebe cada modelo publicado; por padrão, entrega à <see cref="View"/>.</summary>
+        protected virtual void OnModel(in TModel model) => View?.Render(model);
+
+        void IUIModelReceiver<TModel>.Receive(in TModel model) => OnModel(model);
+
+        private protected override Type SourceOwnerType => source?.OwnerType;
+
+        private protected override UIBinding AcquireBinding()
+        {
+            if (_binding == null || !ReferenceEquals(_bindingSource, source))
+            {
+                _binding?.Detach();
+                _bindingSource = source;
+                _binding = source.CreateBinding();
+                _binding?.SetReceiver(this);
+            }
+
+            return _binding;
+        }
+
+        private protected override void DetachBinding() => _binding?.Detach();
+
+        private protected override void ShowEmpty() => OnModel(default);
+
+        private protected override void DrawPreview()
+        {
+            TModel preview = source != null ? source.CreatePreview(new UIPreviewContext(1)) : default;
+            OnModel(preview);
+        }
+    }
+}

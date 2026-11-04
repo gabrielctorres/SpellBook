@@ -34,7 +34,7 @@ namespace SpellBook.Core.Tests.Structure
             "Core", "Events", "Time", "Tags", "Pooling", "GAS", "GAS.Bridges", "Teams", "Cues", "Localization",
         };
 
-        private static readonly string[] PlayModeModules = { "Core", "Time", "Events", "GAS", "GAS.Bridges", "Cues" };
+        private static readonly string[] PlayModeModules = { "Core", "Time", "Events", "GAS", "GAS.Bridges", "Cues", "UI" };
 
         [Test]
         public void AsmdefRules_Scan_FindsCoreAndThisTestAsmdef()
