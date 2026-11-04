@@ -239,6 +239,24 @@ Todos usam a Unity e seguem o WIP 1. Tempo por `asc.Tick` com `ManualTimeSource`
 - Critério de pronto: CA17, CA18 e CA21 a CA24 verdes.
 - Tamanho estimado: ~430 linhas; 5 arquivos. Depende de: TK1.
 
+### Detalhe (2026-11-03)
+- CA: CA17, CA18, CA21, CA22, CA23, CA24 e a parte do projétil do CA27 (C10, C11, C15, C16). Design 3, sem `ImpactFilter`, `OnEnded` e `End(reason)` (TK3).
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/GAS/Abilities/Projectiles/Projectile.cs`:
+    - campos públicos `Pierce = 0`, `UnlimitedPierce = false` e `HitEachTargetOnce = true` (seção nova `[Header("Pierce")]` depois de `Lifetime`, `:48-49`);
+    - estado: vetor "já acertou" de 32 posições pré-alocado, com contador, e o contador de impactos (`:80-86`); `OnEnable` limpa os dois (`:130-139`, CA24);
+    - o contexto derivado no `Setup` (`:104-128`) passa a ser um modelo guardado: cada impacto deriva dele (`CreateDerived`), em vez de consumir na primeira vez. Com perfuração, o segundo impacto mantém instigador, habilidade e nível. O modelo volta ao pool do ASC dono no término (`ReturnToPool`, `:289-301`) ou num novo `Setup`;
+    - `HandleCollision` (`:313-321`): ignora depois do término; acha o ASC subindo a hierarquia com `TryGetComponent` (C15); sem ASC, o caminho de hoje (impacto sem alvo e término, sem gastar perfuração; o `Obstacle` é do TK3); dono sem `DamageOwner` ignora (agora também por colisor filho do dono); com `HitEachTargetOnce` e perfuração, alvo já no vetor, ou o vetor cheio, conta como repetido e é ignorado (P6);
+    - `HandleImpact` (`:323-338`): roda `OnImpact`, registra o alvo e conta o impacto; termina só com `impactos > Pierce` e sem `UnlimitedPierce`.
+  - `Tests/Testing/GasFactory.cs`: `CreateProjectile<T>(TimeSourceAsset, Action<T> configure)` (projétil parado, sem limite de vida e sem invulnerabilidade, configurado antes do `OnEnable`) e `AddChildCollider(AbilitySystemComponent)` (filho com `BoxCollider`).
+  - `Tests/GAS/PlayMode/ProjectilePierceTests.cs` (novo).
+  - Sem `SpawnProjectileAction.cs`: os campos ficam no prefab. Sem `gas.md` nem `CHANGELOG.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007), e o ASC no pai é correção (seção "Quebras"), sem `!`.
+  - O vínculo `FollowsOwner` (TK1) não entra: o impacto roda sem dono, como hoje.
+- Testes red (PlayMode, `SpellBook.GAS.Tests.PlayMode`, classe `ProjectilePierceTests`): `Pierce2_HitsThree_ImpactOncePerTarget_EndsOnThird`; `Pierce_EveryImpact_KeepsAbilityContext`; `Pierce_Obstacle_EndsAtOnce`; `Unlimited_PassesAll_EndsByLifetime`; `ChildCollider_HitsParentAsc_TwoCollidersOneHit` (física real, gatilho); `NoNewFields_BehavesAsToday`; `DamageOwner_Invulnerability_Lifetime_Homing_Unchanged`; `FromPool_HitSetCleared`; `HitSetBeyond32_CountsAsRepeated`; `Impacts_1000_WithPierce_DoNotAllocate`.
+- Critério de pronto: os testes acima verdes pelo filtro `\.ProjectilePierceTests\.`, e os `Projectile_*` de `AbilityWaitTests`, `SpawnActionsTests`, `EffectContextTests` e `TargetSelectorTests` verdes sem edição.
+- Tamanho: ~450 linhas e 3 arquivos, pela ADR 0042 (medido no diff: 450 linhas). Exceção: nenhuma.
+- Commit: `feat(gas): perfuração do projétil e ASC no pai`
+
 ### TK3 — Projétil: "Ao terminar" com motivo e filtro de impacto
 - Escopo: `Projectile.cs` (`OnEnded`, `End(reason)`, `ImpactFilter`), `Runtime/GAS/Actions/ActionEndReason.cs` (novo), `ActionContext.cs` (`EndReason`), `Tests/GAS/PlayMode/ProjectileEndTests.cs`, `ProjectileImpactFilterTests.cs` (novos), `gas.md`, `CHANGELOG.md`.
 - Testes red:

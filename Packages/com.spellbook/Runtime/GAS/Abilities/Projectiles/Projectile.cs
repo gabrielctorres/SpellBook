@@ -47,6 +47,14 @@ namespace SpellBook.GAS.Abilities.Projectiles
 
         [Header("Lifetime")]
         public float Lifetime = 5f;
+
+        [Header("Pierce")]
+        [Tooltip("Alvos que o projétil atravessa depois do primeiro impacto. 0 termina no primeiro.")]
+        public int Pierce = 0;
+        [Tooltip("Atravessa todos os alvos; termina só pelo Lifetime ou por um colisor sem ASC.")]
+        public bool UnlimitedPierce = false;
+        [Tooltip("Com perfuração, cada alvo é acertado uma vez por vida do projétil, até 32 alvos; além disso, o choque conta como repetido.")]
+        public bool HitEachTargetOnce = true;
         
         [Header("Homing (Optional)")]
         public bool IsHoming = false;
@@ -81,6 +89,11 @@ namespace SpellBook.GAS.Abilities.Projectiles
         private float _lifetimeRemaining;
         private float _invulnerabilityRemaining;
         private bool _released;
+        /// <summary>Capacidade do vetor "já acertou" (P6): os acertos além dele contam como repetidos.</summary>
+        public const int HitCapacity = 32;
+        private readonly AbilitySystemComponent[] _hitTargets = new AbilitySystemComponent[HitCapacity];
+        private int _hitTargetCount;
+        private int _impactCount;
         /// <summary>Delta do último <c>FixedUpdate</c>, lido da fonte de tempo por diferença.</summary>
         protected float _deltaTime;
         private double _timeCursor;
@@ -101,16 +114,17 @@ namespace SpellBook.GAS.Abilities.Projectiles
             _initialLocalScale = transform.localScale;
         }
 
-        // Contexto do impacto, derivado no Setup do contexto de quem disparou (habilidade, nível e instigador). É
-        // derivado já no Setup porque o contexto de quem disparou volta ao pool do executor quando a lista dele acaba.
-        private ActionContext _impactContext;
+        // Modelo do contexto de impacto, derivado no Setup do contexto de quem disparou (habilidade, nível e instigador).
+        // É derivado já no Setup porque o contexto de quem disparou volta ao pool do executor quando a lista dele acaba.
+        // Cada impacto deriva dele; o modelo volta ao pool do ASC dono no término ou num novo Setup.
+        private ActionContext _impactTemplate;
 
         public void Setup(SpawnerAsset spawner, AbilitySystemComponent source, List<GameplayAction> onImpact)
         {
             _spawner = spawner;
             Source = source;
             OnImpact = onImpact;
-            _impactContext = null;
+            ReleaseImpactTemplate();
         }
 
         /// <summary>
@@ -123,8 +137,18 @@ namespace SpellBook.GAS.Abilities.Projectiles
             Setup(spawner, parentContext?.Instigator, onImpact);
             if (parentContext != null && onImpact != null && onImpact.Count > 0)
             {
-                _impactContext = parentContext.CreateDerived(parentContext.Point);
+                _impactTemplate = parentContext.CreateDerived(parentContext.Point);
+                // Contexto sem executor (criado à mão): os impactos alugam do pool de quem lançou
+                if (_impactTemplate.Owner == null) _impactTemplate.Owner = Source;
             }
+        }
+
+        private void ReleaseImpactTemplate()
+        {
+            if (_impactTemplate == null) return;
+            AbilitySystemComponent owner = _impactTemplate.Owner;
+            if (owner != null) owner.Runner.ReturnContext(_impactTemplate);
+            _impactTemplate = null;
         }
 
         protected virtual void OnEnable()
@@ -136,6 +160,9 @@ namespace SpellBook.GAS.Abilities.Projectiles
             _invulnerabilityRemaining = InitialInvulnerabilityDuration;
             if (_invulnerabilityRemaining > 0f) _isInvulnerable = true; // sem contador, a flag fica com a subclasse
             _released = false;
+            Array.Clear(_hitTargets, 0, _hitTargetCount);
+            _hitTargetCount = 0;
+            _impactCount = 0;
         }
 
         protected virtual void Initialization()
@@ -297,6 +324,7 @@ namespace SpellBook.GAS.Abilities.Projectiles
             if (_collider2D != null) _collider2D.enabled = false;
 
             StopAllCoroutines();
+            ReleaseImpactTemplate();
             SpawnerAsset.OrDefault(_spawner).Release(gameObject);
         }
 
@@ -312,26 +340,65 @@ namespace SpellBook.GAS.Abilities.Projectiles
 
         protected virtual void HandleCollision(GameObject other)
         {
-            if (_isInvulnerable) return;
+            if (_isInvulnerable || _released) return;
 
-            AbilitySystemComponent hitASC = other.GetComponent<AbilitySystemComponent>();
-            if (hitASC != null && hitASC == Source && !DamageOwner) return;
+            // O colisor pode estar num filho da unidade: o ASC é o primeiro da hierarquia, sem alocar quando não há
+            AbilitySystemComponent hitASC = FindAsc(other.transform);
+            if (hitASC != null)
+            {
+                if (hitASC == Source && !DamageOwner) return;
+                if (TracksHits && IsRepeatedHit(hitASC)) return;
+            }
 
             HandleImpact(transform.position, hitASC);
         }
 
+        private bool TracksHits => HitEachTargetOnce && (UnlimitedPierce || Pierce > 0);
+
+        private static AbilitySystemComponent FindAsc(Transform node)
+        {
+            for (; node != null; node = node.parent)
+            {
+                if (node.TryGetComponent(out AbilitySystemComponent asc)) return asc;
+            }
+            return null;
+        }
+
+        // Alvo já acertado, ou vetor cheio (P6): o choque conta como repetido
+        private bool IsRepeatedHit(AbilitySystemComponent target)
+        {
+            if (_hitTargetCount >= HitCapacity) return true;
+            for (int i = 0; i < _hitTargetCount; i++)
+            {
+                if (_hitTargets[i] == target) return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Roda <see cref="OnImpact"/> no ASC de quem lançou e conta o impacto. Termina quando os impactos passam de
+        /// <see cref="Pierce"/>, salvo com <see cref="UnlimitedPierce"/>. Sem <paramref name="hitTarget"/> (colisor sem
+        /// ASC), termina sempre, mesmo com perfuração (P7).
+        /// </summary>
         protected virtual void HandleImpact(Vector3 impactPoint, AbilitySystemComponent hitTarget)
         {
-            ActionContext impactContext = _impactContext;
-            _impactContext = null;
             if (OnImpact != null && OnImpact.Count > 0 && Source != null && Source.isActiveAndEnabled)
             {
-                impactContext ??= Source.Runner.RentContext();
+                ActionContext impactContext = _impactTemplate != null
+                    ? _impactTemplate.CreateDerived(impactPoint)
+                    : Source.Runner.RentContext();
                 impactContext.SetPoint(impactPoint);
                 if (hitTarget != null) impactContext.EventTargets.Add(hitTarget);
 
-                // Roda no ASC de quem lançou, sem dono: o projétil volta ao pool logo abaixo
+                // Roda no ASC de quem lançou, sem dono: o projétil pode voltar ao pool logo abaixo
                 Source.RunActions(OnImpact, impactContext, null);
+            }
+
+            if (hitTarget != null)
+            {
+                if (TracksHits && _hitTargetCount < HitCapacity) _hitTargets[_hitTargetCount++] = hitTarget;
+                _impactCount++;
+                if (UnlimitedPierce || _impactCount <= Pierce) return;
             }
 
             ReturnToPool();

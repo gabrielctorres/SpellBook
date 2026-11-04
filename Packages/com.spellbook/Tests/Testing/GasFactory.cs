@@ -2,12 +2,14 @@
 using System;
 using System.Collections.Generic;
 using SpellBook.GAS.Abilities;
+using SpellBook.GAS.Abilities.Projectiles;
 using SpellBook.GAS.Actions;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
 using SpellBook.GAS.Values;
 using SpellBook.Tags;
+using SpellBook.Time;
 using UnityEngine;
 using UnityEditor;
 using Object = UnityEngine.Object;
@@ -50,6 +52,36 @@ namespace SpellBook.Testing
 
             go.SetActive(true);
             return asc;
+        }
+
+        /// <summary>
+        /// Projétil ativo do tipo <typeparamref name="T"/>, parado, sem limite de vida e sem invulnerabilidade, com a
+        /// <paramref name="timeSource"/>. O <paramref name="configure"/> roda antes do <c>OnEnable</c>.
+        /// </summary>
+        public T CreateProjectile<T>(TimeSourceAsset timeSource, Action<T> configure = null) where T : Projectile
+        {
+            var go = new GameObject("Projectile_Test");
+            go.SetActive(false);
+            _created.Add(go);
+
+            var projectile = go.AddComponent<T>();
+            projectile.Speed = 0f;
+            projectile.Lifetime = 0f;
+            projectile.InitialInvulnerabilityDuration = 0f;
+            SetObjectField(projectile, "timeSource", timeSource);
+            configure?.Invoke(projectile);
+
+            go.SetActive(true);
+            return projectile;
+        }
+
+        /// <summary>Filho de <paramref name="asc"/> com um <see cref="BoxCollider"/> de lado 1, na posição do pai.</summary>
+        public GameObject AddChildCollider(AbilitySystemComponent asc)
+        {
+            var child = new GameObject("Collider_Test");
+            child.transform.SetParent(asc.transform, false);
+            child.AddComponent<BoxCollider>();
+            return child;
         }
 
         /// <summary>Tag nova; o <paramref name="parent"/>, se houver, precisa ter sido criado por esta factory.</summary>
