@@ -127,6 +127,22 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Teste
 - Critério de pronto: testes verdes; os testes do CU1 passam sem edição.
 - Tamanho estimado: ~360 linhas; 10 arquivos. Depende de: CU1.
 
+#### Detalhe (2026-11-04)
+- CA: nenhum CA do PRD diretamente; base do P3, do Design 1 e do CA5 (C5, parte: o respawn não apaga o novo). ADR 0039, item 5.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/Core/Anchors/RuntimeAnchor.cs:13-67`: nova base `public abstract class RuntimeAnchor : ScriptableObject` no mesmo arquivo, com `UntypedValue`, `ValueType`, `event Action<RuntimeAnchor> Changed`, `bool ProvideUntyped(Object)` (tipo errado: devolve `false`, sem mudar o valor e sem evento; `null` esvazia como `Provide(null)`) e `void UnsetUntyped(Object)` (tipo errado: nada). O registro de sessão (`IAnchor`, `OnEnable`/`OnDisable` protegidos virtuais) sobe para a base, e o reset limpa também `Changed`. `RuntimeAnchor<T>` passa a derivar da base; `Provide` e `Unset` disparam `OnChanged` e `Changed` no mesmo ponto. A API pública do `RuntimeAnchor<T>` não muda. A base só é derivável pelo `RuntimeAnchor<T>` (membro abstrato `private protected`).
+  - `Runtime/Core/Anchors/AnchorRegistrar.cs` (novo; `[HelpURL(DocUrls.Concepts + "#ancoras")]`, `IValidatable`): campos `anchor` (`RuntimeAnchor`) e `value` (`Component`); vazio, lê no `Awake` o `GetComponent(anchor.ValueType)` (só se o tipo for `Component` ou interface). `OnEnable` → `ProvideUntyped`; `OnDisable` → `UnsetUntyped` (só limpa se for o mesmo). Validação: sem âncora, erro; `value` que não é do `ValueType`, erro; `value` vazio sem componente do tipo no objeto, erro.
+  - `Editor/Core/Inspector/CoreEditors.cs:7-22`: `AnchorRegistrarEditor`, uma linha.
+  - `Runtime/GAS/Core/AbilitySystemAnchor.cs` (novo): `AbilitySystemAnchor : RuntimeAnchor<AbilitySystemComponent>`, `[HelpURL(DocUrls.Gas + "#abilitysystemanchor")]`, menu `SpellBook/GAS/Ability System Anchor`.
+  - `Editor/GAS/GasEditors.cs:15-33`: `AbilitySystemAnchorEditor`, uma linha (cobertura de Inspector).
+  - `Tests/Core/EditMode/RuntimeAnchorBaseTests.cs` (novo; usa o `TestObjectAnchor` do CU1).
+  - `Tests/Core/PlayMode/AnchorRegistrarTests.cs` (novo; âncora de teste `RuntimeAnchor<BoxCollider>` no arquivo, campos pelo `SerializedObject` com o objeto inativo, como `Tests/Testing/CuesFactory.cs:79-92`).
+  - Sem `conceitos.md`, `gas.md` nem `CHANGELOG.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007) e o ticket não quebra nada. As guardas de âncora do manual são da categoria `Documentacao`.
+- Testes red: EditMode (`SpellBook.Core.Tests.EditMode`, `RuntimeAnchorBaseTests`): `Base_UntypedValue_ValueType_ChangedWithTyped`; `ProvideUntyped_WrongType_Rejected`. PlayMode (`SpellBook.Core.Tests.PlayMode`, `AnchorRegistrarTests`): `Registrar_ProvidesOnEnable_UnsetsOnDisable`; `Respawn_NewProvides_OldDisableDoesNotClear`; `Registrar_EmptyValue_UsesComponentOfAnchorType`; `Registrar_Validate_NoAnchorOrWrongType_Error`.
+- Critério de pronto: os 6 testes verdes pelos filtros `\.RuntimeAnchorBaseTests\.` e `\.AnchorRegistrarTests\.`; os 5 `RuntimeAnchorTests` do CU1 verdes sem edição; `SpellBookEditorCoverageTests` e `HelpUrlTests` verdes.
+- Tamanho: ~440 linhas e 7 arquivos, pela ADR 0042. Exceção: nenhuma.
+- Commit: `feat(core): âncora não genérica, AnchorRegistrar e âncora do ASC`
+
 ### UI2 — Módulo `SpellBook.UI`: contratos e `ActorResolver`
 - Escopo: `Runtime/UI/SpellBook.UI.asmdef` (novo; Core, Time), `Runtime/UI/UISource.cs` (contratos do Design 2), `Runtime/UI/ActorResolver.cs` (novos), `Tests/UI/EditMode/SpellBook.UI.Tests.EditMode.asmdef`, `Tests/UI/EditMode/UIContractsTests.cs` (novos), `AsmdefRulesTests.cs` (`UI` em `RuntimeModules`; referências exatas Core e Time; nada de `UnityEngine.UI`, `Unity.TextMeshPro` nem `SpellBook.GAS*`), `Runtime/Core/DocUrls.cs` (`Ui = Base + "ui/visao-geral/"`), `DocUrlsTests.cs`, `Documentation~/manual/ui/visao-geral.md` (nova: três camadas, dono, contratos), `CHANGELOG.md`.
 - Testes red: `Resolver_SelfOrParent_FindsOwnerInParent`; `Resolver_Explicit`; `Resolver_Anchor_ReadsUntypedValue_TypeChecked`; `Resolver_Missing_FalseNoException` (C6); `Binding_AttachPublishesCurrent_DetachStops`; `Binding_RequestTick_TogglesWantsTick`; `UIAsmdef_ReferencesOnlyCoreAndTime` (C12, CA12).

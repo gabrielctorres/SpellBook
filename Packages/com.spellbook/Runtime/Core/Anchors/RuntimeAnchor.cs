@@ -5,12 +5,64 @@ using UnityEngine;
 namespace SpellBook.Core
 {
     /// <summary>
+    /// Base não genérica de toda âncora (ADR 0039, item 5). Deixa quem não conhece o tipo do valor, como a UI, ler e
+    /// publicar o objeto e ouvir a troca. Só o <see cref="RuntimeAnchor{T}"/> deriva dela. Ao entrar em Play, a âncora
+    /// volta a vazio e esquece os assinantes de <see cref="Changed"/>.
+    /// </summary>
+    public abstract class RuntimeAnchor : ScriptableObject, RuntimeAnchorRegistry.IAnchor
+    {
+        /// <summary>O objeto publicado, sem tipo, ou <c>null</c> se não houver um ou se ele foi destruído.</summary>
+        public abstract UnityEngine.Object UntypedValue { get; }
+
+        /// <summary>Tipo que a âncora aceita.</summary>
+        public abstract Type ValueType { get; }
+
+        /// <summary>Chamado com a própria âncora quando o objeto publicado muda, logo depois do evento tipado.</summary>
+        public event Action<RuntimeAnchor> Changed;
+
+        /// <summary>
+        /// Publica <paramref name="value"/> se ele for do <see cref="ValueType"/>; <c>null</c> esvazia. Devolve
+        /// <c>false</c>, sem mudar nada e sem avisar, se o tipo for outro.
+        /// </summary>
+        public abstract bool ProvideUntyped(UnityEngine.Object value);
+
+        /// <summary>Esvazia a âncora, mas só se <paramref name="value"/> for o objeto publicado.</summary>
+        public abstract void UnsetUntyped(UnityEngine.Object value);
+
+        private protected void RaiseChanged()
+        {
+            Changed?.Invoke(this);
+        }
+
+        // Abstrato e privado ao assembly: só o RuntimeAnchor<T> deriva da base
+        private protected abstract void ResetValue();
+
+        /// <summary>Registra a instância para o reset de sessão. Quem sobrescreve chama a base.</summary>
+        protected virtual void OnEnable()
+        {
+            RuntimeAnchorRegistry.Register(this);
+        }
+
+        /// <summary>Remove a instância do registro. Quem sobrescreve chama a base.</summary>
+        protected virtual void OnDisable()
+        {
+            RuntimeAnchorRegistry.Unregister(this);
+        }
+
+        void RuntimeAnchorRegistry.IAnchor.ResetState()
+        {
+            ResetValue();
+            Changed = null;
+        }
+    }
+
+    /// <summary>
     /// Asset que guarda um objeto de runtime, como um componente de cena, para quem aponta o asset
     /// (ADR 0012). O valor não é salvo. Ao entrar em Play, com ou sem domain reload, toda âncora
     /// volta a vazio e esquece os assinantes de <see cref="OnChanged"/>.
     /// </summary>
     /// <typeparam name="T">Tipo do objeto publicado.</typeparam>
-    public abstract class RuntimeAnchor<T> : ScriptableObject, RuntimeAnchorRegistry.IAnchor where T : UnityEngine.Object
+    public abstract class RuntimeAnchor<T> : RuntimeAnchor where T : UnityEngine.Object
     {
         [NonSerialized]
         private T _value;
@@ -34,6 +86,7 @@ namespace SpellBook.Core
 
             _value = value;
             OnChanged?.Invoke(Value);
+            RaiseChanged();
         }
 
         /// <summary>Esvazia a âncora, mas só se <paramref name="value"/> for o objeto publicado.</summary>
@@ -46,21 +99,43 @@ namespace SpellBook.Core
 
             _value = null;
             OnChanged?.Invoke(null);
+            RaiseChanged();
         }
 
-        /// <summary>Registra a instância para o reset de sessão. Quem sobrescreve chama a base.</summary>
-        protected virtual void OnEnable()
+        /// <inheritdoc />
+        public override UnityEngine.Object UntypedValue => Value;
+
+        /// <inheritdoc />
+        public override Type ValueType => typeof(T);
+
+        /// <inheritdoc />
+        public override bool ProvideUntyped(UnityEngine.Object value)
         {
-            RuntimeAnchorRegistry.Register(this);
+            if (value is null)
+            {
+                Provide(null);
+                return true;
+            }
+
+            if (!(value is T typed))
+            {
+                return false;
+            }
+
+            Provide(typed);
+            return true;
         }
 
-        /// <summary>Remove a instância do registro. Quem sobrescreve chama a base.</summary>
-        protected virtual void OnDisable()
+        /// <inheritdoc />
+        public override void UnsetUntyped(UnityEngine.Object value)
         {
-            RuntimeAnchorRegistry.Unregister(this);
+            if (value is T typed)
+            {
+                Unset(typed);
+            }
         }
 
-        void RuntimeAnchorRegistry.IAnchor.ResetState()
+        private protected override void ResetValue()
         {
             _value = null;
             OnChanged = null;
