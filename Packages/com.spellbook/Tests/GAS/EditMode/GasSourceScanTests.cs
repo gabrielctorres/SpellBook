@@ -33,6 +33,16 @@ namespace SpellBook.GAS.Tests
         private static readonly Regex GameplayObjects =
             new Regex(@"\bPoolManager\.Instance\b|\bInstantiate\s*\(|\bDestroy(Immediate)?\s*\(|\bPlayClipAtPoint\b");
 
+        // Som sem dono que devolva o objeto (ADR 0015).
+        private static readonly Regex PlayClipAtPoint = new Regex(@"\bPlayClipAtPoint\b");
+
+        // As ações de apresentação que saíram do GAS, também pelo nome antigo do [MovedFrom] (ADR 0037, item 6).
+        private static readonly Regex RemovedPresentationActions =
+            new Regex(@"\b(PlayCueAction|SpawnVFXAction|SpawnVFXEffectAction)\b");
+
+        // Criar ou destruir objeto direto, sem spawner (não casa o nome de um campo como DestroyOnRemoval).
+        private static readonly Regex CreateOrDestroy = new Regex(@"\b(Instantiate|Destroy|DestroyImmediate)\s*\(");
+
         [Test]
         public void GasSources_DoNotReadUnityTimeOrWaitForSeconds()
         {
@@ -102,6 +112,39 @@ namespace SpellBook.GAS.Tests
             violations.AddRange(Scan(Coroutines, thinkers));
             violations.AddRange(Scan(Forbidden, thinkers));
             violations.AddRange(Scan(GameplayObjects, thinkers));
+            Assert.That(violations, Is.Empty);
+        }
+
+        /// <summary>
+        /// Nenhum <c>.cs</c> do pacote toca som por <c>AudioSource.PlayClipAtPoint</c>: o som é do roteador de cues (CA11;
+        /// ADR 0015). <c>Tests</c> fica de fora porque esta guarda cita o nome.
+        /// </summary>
+        [Test]
+        public void NoPlayClipAtPoint_InPackage()
+        {
+            var violations = new List<string>();
+            foreach (string folder in new[] { "Runtime", "Editor", "Samples~" })
+            {
+                if (Directory.Exists(Path.Combine(PackageRoot(), folder))) violations.AddRange(Scan(PlayClipAtPoint, folder));
+            }
+
+            Assert.That(violations, Is.Empty);
+        }
+
+        /// <summary>
+        /// O <c>PlayCueAction</c> e o <c>SpawnVFXAction</c> saíram do GAS, arquivo e nome, e nenhuma ação do GAS cria ou
+        /// destrói objeto: VFX e som são do módulo Cues, pelas ações do Bridges (CA16; ADR 0037, item 6).
+        /// </summary>
+        [Test]
+        public void GasHasNoVfxOrCueActions()
+        {
+            string root = PackageRoot();
+            var violations = new List<string>();
+            const string playCue = "Abilities/Actions/PlayCueAction.cs";
+            if (File.Exists(Path.Combine(root, "Runtime", "GAS", playCue))) violations.Add($"Runtime/GAS/{playCue} existe");
+            violations.AddRange(Scan(RemovedPresentationActions, "Runtime"));
+            violations.AddRange(Scan(RemovedPresentationActions, "Editor"));
+            violations.AddRange(Scan(CreateOrDestroy, Path.Combine("Runtime", "GAS"), onlyFilesMatching: ActionDeclaration));
 
             Assert.That(violations, Is.Empty);
         }

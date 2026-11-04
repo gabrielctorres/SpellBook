@@ -444,6 +444,21 @@ O CU8 mediu 732 linhas e 10 arquivos no Detalhe, +46% sobre o teto da ADR 0042, 
 - Critério de pronto: CA11, CA16 e CA22 verdes; CA21 (E) conferido: CHANGELOG, página e `[HelpURL]`.
 - Tamanho estimado: ~200 linhas; 6 arquivos (+1 remoção pura). Depende de: CU8b (era CU8, divisão de 2026-11-03).
 
+### Detalhe (2026-11-03) — CU9 (#211)
+- CA: CA11 (`PlayClipAtPoint` fora do pacote), CA16 (as duas ações fora do GAS), CA22 (N8: só saem os testes das duas ações) e CA21 (E, a parte do CHANGELOG).
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/GAS/Abilities/Actions/PlayCueAction.cs` e o `.meta` (remoção pura).
+  - `Runtime/GAS/Effects/Actions/CommonEffectActions.cs:32-98` (sai o `SpawnVFXAction`, com o `[MovedFrom]` do `SpawnVFXEffectAction`; o `DebugLogAction` fica; saem os `using` que só ele usava).
+  - `Tests/GAS/PlayMode/SpawnActionsTests.cs`: saem os testes das duas ações (N8), que hoje são cinco, não dois: `PlayCue_NoSpawner_NoPoolManager_NoException` (`:53-66`), `SpawnVfx_ReleasesThroughConfiguredSpawner` (`:68-87`), `SpawnVfx_ReleasedOnRemoval` (`:89-110`), `SpawnVfx_SpawnerReturnsNull_WarnsWithoutException` (`:164-180`) e `SpawnVfx_SpawnerReturnsNull_RemovalReleasesNothing` (`:182-203`). Os três últimos chegaram depois da Spec, no RP-07 e no EV2; o caso equivalente (spawner que devolve `null`) é coberto pelo `SpawnerEmpty_InEffectCue_SkipsWithWarning` do CU8a. Os testes do projétil ficam.
+  - `Tests/GAS/EditMode/GasSourceScanTests.cs`: testes novos `NoPlayClipAtPoint_InPackage` (os `.cs` de `Runtime`, `Editor` e `Samples~`; `Tests` fica de fora porque a própria guarda cita o nome) e `GasHasNoVfxOrCueActions` (o arquivo `PlayCueAction.cs` não existe; `PlayCueAction`, `SpawnVFXAction` e `SpawnVFXEffectAction` em nenhum `.cs` de `Runtime` e `Editor`; nenhum arquivo de `Runtime/GAS` que declara ação chama `Instantiate(` ou `Destroy(`).
+  - `CHANGELOG.md` (Quebras): o fim das duas ações e do `PlayClipAtPoint`, com a migração para `ExecuteCueAction`/`AddCueAction`.
+  - Sem `migracao-2-para-3.md` nem `gas.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007).
+  - Fica como está, fora do escopo: o enum público `AbilityTargetSource` (só o `PlayCueAction` o usava) e a interface interna `IEffectActionCleanup` (só o `SpawnVFXAction` a implementava). Tirá-los é outra quebra de API, que a Spec não prevê.
+- Testes red: EditMode, `SpellBook.GAS.Tests.EditMode`, classe `GasSourceScanTests`: `NoPlayClipAtPoint_InPackage`; `GasHasNoVfxOrCueActions`.
+- Critério de pronto: os dois testes verdes pelo filtro `\.GasSourceScanTests\.` no EditMode, e a classe `SpawnActionsTests` verde no PlayMode pelo filtro `\.SpawnActionsTests\.`, com `total` conferido no XML. O pacote compila sem as duas ações.
+- Tamanho: ~230 linhas e 5 arquivos (+1 remoção pura), pela ADR 0042. Exceção: nenhuma. Medido no diff: 222 linhas e 4 arquivos (+1 remoção pura).
+- Commit: `feat(gas)!: fim do PlayCueAction e do SpawnVFXAction`
+
 ### Ordem e resumo
 
 | Ticket | Unity | Depende de | Tamanho |

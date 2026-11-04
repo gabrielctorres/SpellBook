@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using SpellBook.Core;
-using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Abilities.Actions;
 using SpellBook.GAS.Abilities.Projectiles;
 using SpellBook.GAS.Actions;
 using SpellBook.GAS.Core;
-using SpellBook.GAS.Effects;
 using SpellBook.Testing;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -49,68 +47,6 @@ namespace SpellBook.GAS.Tests
 
             List<Projectile> spawned = TrackSpawned(existing);
             Assert.That(spawned, Has.Count.EqualTo(1), "o projétil deveria ter sido criado pelo spawner padrão");
-        }
-
-        [Test]
-        public void PlayCue_NoSpawner_NoPoolManager_NoException()
-        {
-            GameObject prefab = _spawn.CreateParticlePrefab("Cue_Test");
-            var position = new Vector3(3f, 0f, 4f);
-            var action = new PlayCueAction { VFX_Prefab = prefab, TargetSource = AbilityTargetSource.Location };
-            ActionContext context = GasFactory.CreateActionContext(_gas.CreateAsc(), position);
-            HashSet<ParticleSystem> existing = FindExisting<ParticleSystem>();
-
-            Assert.DoesNotThrow(() => RunToEnd(action, context));
-
-            List<ParticleSystem> spawned = TrackSpawned(existing);
-            Assert.That(spawned, Has.Count.EqualTo(1), "o VFX deveria ter sido criado pelo spawner padrão");
-            Assert.That(spawned[0].transform.position, Is.EqualTo(position));
-        }
-
-        [Test]
-        public void SpawnVfx_ReleasesThroughConfiguredSpawner()
-        {
-            RecordingSpawner spawner = CreateRecordingSpawner();
-            var action = new SpawnVFXAction
-            {
-                Prefab = _spawn.CreatePrefab("Vfx_Test"),
-                AttachPointName = string.Empty,
-                DestroyOnRemoval = true,
-                Spawner = spawner,
-            };
-            GameplayEffect effect = _gas.CreateDurationEffect(2f);
-            effect.OnApplied.Add(action);
-            AbilitySystemComponent target = _gas.CreateAsc();
-            ActiveEffectInstance instance = target.ApplyEffect(effect);
-
-            target.RemoveEffect(instance);
-
-            Assert.That(spawner.Spawned, Has.Count.EqualTo(1), "o VFX deveria ser criado pelo spawner configurado");
-            Assert.That(spawner.Released, Is.EqualTo(spawner.Spawned), "o VFX deveria voltar pelo mesmo spawner");
-        }
-
-        [Test]
-        public void SpawnVfx_ReleasedOnRemoval()
-        {
-            RecordingSpawner spawner = CreateRecordingSpawner();
-            var action = new SpawnVFXAction
-            {
-                Prefab = _spawn.CreatePrefab("Vfx_Test"),
-                AttachPointName = string.Empty,
-                DestroyOnRemoval = true,
-                Spawner = spawner,
-            };
-            GameplayEffect effect = _gas.CreateDurationEffect(2f);
-            effect.OnApplied.Add(action);
-            AbilitySystemComponent target = _gas.CreateAsc();
-            ActiveEffectInstance instance = target.ApplyEffect(effect);
-            int releasedWhileActive = spawner.Released.Count;
-
-            target.RemoveEffect(instance);
-
-            Assert.That(spawner.Spawned, Has.Count.EqualTo(1), "o VFX não foi criado na aplicação");
-            Assert.That(releasedWhileActive, Is.EqualTo(0), "o VFX voltou antes da remoção");
-            Assert.That(spawner.Released, Is.EqualTo(spawner.Spawned), "o VFX não voltou na remoção");
         }
 
         [Test]
@@ -159,47 +95,6 @@ namespace SpellBook.GAS.Tests
             Assert.That(spawner.Spawned, Has.Count.EqualTo(1), "o segundo tiro deveria sair depois do primeiro falhar");
             Projectile projectile = spawner.Spawned[0].GetComponent<Projectile>();
             Assert.That(projectile.Source, Is.SameAs(caster), "o projétil do segundo tiro deveria receber o Setup");
-        }
-
-        [Test]
-        public void SpawnVfx_SpawnerReturnsNull_WarnsWithoutException()
-        {
-            NullSpawner spawner = CreateNullSpawner(nullCalls: int.MaxValue);
-            GameObject prefab = _spawn.CreatePrefab("Vfx_Test");
-            var action = new SpawnVFXAction
-            {
-                Prefab = prefab,
-                AttachPointName = string.Empty,
-                DestroyOnRemoval = false,
-                Spawner = spawner,
-            };
-            AbilitySystemComponent target = _gas.CreateAsc();
-            LogAssert.Expect(LogType.Warning, SpawnFailedWarning(spawner, prefab));
-
-            Assert.DoesNotThrow(() => target.RunActions(new GameplayAction[] { action }, null, null));
-        }
-
-        [Test]
-        public void SpawnVfx_SpawnerReturnsNull_RemovalReleasesNothing()
-        {
-            NullSpawner spawner = CreateNullSpawner(nullCalls: int.MaxValue);
-            GameObject prefab = _spawn.CreatePrefab("Vfx_Test");
-            var action = new SpawnVFXAction
-            {
-                Prefab = prefab,
-                AttachPointName = string.Empty,
-                DestroyOnRemoval = true,
-                Spawner = spawner,
-            };
-            GameplayEffect effect = _gas.CreateDurationEffect(2f);
-            effect.OnApplied.Add(action);
-            AbilitySystemComponent target = _gas.CreateAsc();
-            LogAssert.Expect(LogType.Warning, SpawnFailedWarning(spawner, prefab));
-            ActiveEffectInstance instance = target.ApplyEffect(effect);
-
-            target.RemoveEffect(instance);
-
-            Assert.That(spawner.ReleaseCalls, Is.EqualTo(0), "sem instância criada, a remoção não deveria devolver nada");
         }
 
         private RecordingSpawner CreateRecordingSpawner()
