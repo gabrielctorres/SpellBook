@@ -39,7 +39,10 @@ namespace SpellBook.UI
         /// <summary>Fração preenchida, de 0 a 1.</summary>
         public float Fraction { get; }
 
-        /// <summary>Fração do rastro, de 0 a 1; igual à <see cref="Fraction"/> por padrão, e <see cref="WithTrail"/> a muda.</summary>
+        /// <summary>
+        /// Fração do rastro, de 0 a 1; igual à <see cref="Fraction"/> por padrão, e <see cref="WithTrail"/> a muda. O
+        /// <see cref="BarBinder"/> a segura acima da fração depois de uma queda.
+        /// </summary>
         public float TrailFraction { get; }
 
         /// <summary>Texto da barra, escrito no buffer da ligação; vazio sem texto.</summary>

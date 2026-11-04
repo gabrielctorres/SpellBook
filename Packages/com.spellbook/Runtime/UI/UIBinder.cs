@@ -30,6 +30,7 @@ namespace SpellBook.UI
         private Action<RuntimeAnchor> _onAnchorChanged;
         private UIUpdateDriver _activeDriver;
         private UIBinding _registered;
+        private BinderTicker _ticker;
         private RuntimeAnchor _subscribedAnchor;
         private bool _bound;
         private bool _warnedMissingOwner;
@@ -101,6 +102,32 @@ namespace SpellBook.UI
             }
         }
 
+        /// <summary>
+        /// Pede (<c>true</c>) ou solta (<c>false</c>) o tick do próprio binder ao driver ativo, para animações do binder
+        /// como o rastro da barra. Devolve <c>false</c> sem driver ativo ou fora de ligação: o binder não anima.
+        /// </summary>
+        protected bool RequestBinderTick(bool on)
+        {
+            if (!_bound || _activeDriver == null)
+            {
+                return false;
+            }
+
+            if (on && !(_ticker ??= new BinderTicker(this)).IsAttached)
+            {
+                _ticker.Attach(this, default);
+                _activeDriver.Register(_ticker);
+            }
+
+            _ticker?.Request(on);
+            return true;
+        }
+
+        /// <summary>Chamado pelo driver enquanto o binder pede tick, com o tempo da fonte de tempo.</summary>
+        protected virtual void OnBinderTick(double time)
+        {
+        }
+
         // Tipo do dono pedido pela fonte; nulo sem fonte
         private protected abstract Type SourceOwnerType { get; }
 
@@ -137,6 +164,14 @@ namespace SpellBook.UI
 
             LeaveDriver();
             DetachBinding();
+            if (_ticker != null)
+            {
+                _ticker.Detach();
+                if (_activeDriver != null)
+                {
+                    _activeDriver.Unregister(_ticker);
+                }
+            }
         }
 
         private void OnAnchorChanged(RuntimeAnchor anchor)
@@ -192,6 +227,29 @@ namespace SpellBook.UI
 
             _warnedMissingOwner = true;
             Debug.LogWarning($"[UI] '{name}': dono do tipo {ownerType.Name} não encontrado (modo {owner.Mode}); a view mostra o estado vazio.", this);
+        }
+
+        // Ligação do próprio binder no driver: repassa o tick ao OnBinderTick
+        private sealed class BinderTicker : UIBinding
+        {
+            private readonly UIBinderBase _binder;
+
+            public BinderTicker(UIBinderBase binder)
+            {
+                _binder = binder;
+            }
+
+            public void Request(bool on) => RequestTick(on);
+
+            public override void Tick(double time) => _binder.OnBinderTick(time);
+
+            protected override void OnAttach(Object owner)
+            {
+            }
+
+            protected override void OnDetach()
+            {
+            }
         }
     }
 

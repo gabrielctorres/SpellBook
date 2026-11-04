@@ -15,8 +15,8 @@ using Object = UnityEngine.Object;
 namespace SpellBook.UI.Tests
 {
     /// <summary>
-    /// Modelos e binders de barra, texto e indicador (R7): fração da barra, duas barras independentes sem campo de escudo
-    /// (CA3, lado da UI) e atualizações sem alocar (CA13, parte). ADR 0039, itens 1 a 4.
+    /// Modelos e binders de barra, texto e indicador (R7): fração da barra, rastro atrasado por tick do driver, duas barras
+    /// independentes sem campo de escudo (CA3, lado da UI) e atualizações sem alocar (CA13, parte). ADR 0039, itens 1 a 4.
     /// </summary>
     public class WidgetBindersTests
     {
@@ -56,6 +56,148 @@ namespace SpellBook.UI.Tests
             Assert.That(half.WithTrail(2f).TrailFraction, Is.EqualTo(1f));
             Assert.That(half.WithTrail(0.8f).Fraction, Is.EqualTo(0.5f));
             Assert.That(default(BarModel).IsEmpty, Is.True);
+        }
+
+        [Test]
+        public void Bar_TrailHoldsThenFalls_TickOnlyWhileAbove()
+        {
+            UIUpdateDriver driver = CreateDriver(out ManualTimeSource time);
+            ValueOwner owner = CreateOwner();
+            BarBinder binder = CreateBar(owner, 0, driver.transform, out Recorder view);
+            binder.SetTrail(0.5f, 1f);
+            binder.gameObject.SetActive(true);
+
+            owner.Set(0, 50f);
+            int tickingAfterHit = driver.TickingCount;
+            float trailAfterHit = view.Bar.TrailFraction;
+            driver.Tick();
+            time.Advance(0.4f);
+            driver.Tick();
+            float trailInsideDelay = view.Bar.TrailFraction;
+            time.Advance(0.2f);
+            driver.Tick();
+            float trailFalling = view.Bar.TrailFraction;
+            time.Advance(1f);
+            driver.Tick();
+
+            Assert.That(tickingAfterHit, Is.EqualTo(1), "a queda deveria pedir tick");
+            Assert.That(trailAfterHit, Is.EqualTo(1f), "o rastro deveria ficar no valor antigo");
+            Assert.That(view.Bar.Fraction, Is.EqualTo(0.5f));
+            Assert.That(trailInsideDelay, Is.EqualTo(1f), "o rastro não deveria cair dentro do atraso");
+            Assert.That(trailFalling, Is.EqualTo(0.9f).Within(1e-4f), "0,1 s depois do atraso, a 1 por segundo");
+            Assert.That(view.Bar.TrailFraction, Is.EqualTo(0.5f), "o rastro deveria parar na fração");
+            Assert.That(driver.TickingCount, Is.Zero, "o rastro na fração deveria soltar o tick");
+            Assert.That(driver.enabled, Is.False);
+        }
+
+        [Test]
+        public void Bar_RiseBelowTrail_TrailSnapsToFraction()
+        {
+            UIUpdateDriver driver = CreateDriver(out ManualTimeSource time);
+            ValueOwner owner = CreateOwner();
+            BarBinder binder = CreateBar(owner, 0, driver.transform, out Recorder view);
+            binder.SetTrail(0.5f, 1f);
+            binder.gameObject.SetActive(true);
+            owner.Set(0, 20f);
+            driver.Tick();
+            time.Advance(0.2f);
+            driver.Tick();
+
+            owner.Set(0, 60f);
+
+            Assert.That(view.Bar.Fraction, Is.EqualTo(0.6f).Within(1e-4f));
+            Assert.That(view.Bar.TrailFraction, Is.EqualTo(0.6f).Within(1e-4f), "a subida deveria levar o rastro à fração");
+            Assert.That(driver.TickingCount, Is.Zero, "o rastro na fração deveria soltar o tick");
+        }
+
+        [Test]
+        public void Bar_RepublishSameFraction_KeepsFalling()
+        {
+            UIUpdateDriver driver = CreateDriver(out ManualTimeSource time);
+            ValueOwner owner = CreateOwner();
+            BarBinder binder = CreateBar(owner, 0, driver.transform, out Recorder view);
+            binder.SetTrail(0.5f, 1f);
+            binder.gameObject.SetActive(true);
+            owner.Set(0, 20f);
+            driver.Tick();
+            time.Advance(0.6f);
+            driver.Tick();
+
+            owner.Set(0, 20f);
+            time.Advance(0.1f);
+            driver.Tick();
+
+            Assert.That(view.Bar.TrailFraction, Is.EqualTo(0.8f).Within(1e-4f),
+                "a mesma fração não é queda e não deveria reiniciar o atraso");
+        }
+
+        [Test]
+        public void Bar_RebindWhileFalling_TrailDoesNotStick()
+        {
+            UIUpdateDriver driver = CreateDriver(out ManualTimeSource time);
+            ValueOwner owner = CreateOwner();
+            BarBinder binder = CreateBar(owner, 0, driver.transform, out Recorder view);
+            binder.SetTrail(0.5f, 1f);
+            binder.gameObject.SetActive(true);
+            owner.Set(0, 20f);
+            driver.Tick();
+
+            binder.Rebind();
+
+            Assert.That(view.Bar.TrailFraction, Is.EqualTo(0.2f).Within(1e-4f), "religar deveria levar o rastro à fração");
+            Assert.That(driver.TickingCount, Is.Zero, "o rastro na fração deveria soltar o tick");
+        }
+
+        [Test]
+        public void Bar_ReenableWhileFalling_TrailDoesNotStick()
+        {
+            UIUpdateDriver driver = CreateDriver(out ManualTimeSource time);
+            ValueOwner owner = CreateOwner();
+            BarBinder binder = CreateBar(owner, 0, driver.transform, out Recorder view);
+            binder.SetTrail(0.5f, 1f);
+            binder.gameObject.SetActive(true);
+            owner.Set(0, 20f);
+            driver.Tick();
+
+            binder.gameObject.SetActive(false);
+            binder.gameObject.SetActive(true);
+
+            Assert.That(view.Bar.TrailFraction, Is.EqualTo(0.2f).Within(1e-4f), "habilitar deveria levar o rastro à fração");
+            Assert.That(driver.TickingCount, Is.Zero, "o rastro na fração deveria soltar o tick");
+        }
+
+        [Test]
+        public void Bar_SpeedZeroWhileFalling_TrailSnapsAndReleasesTick()
+        {
+            UIUpdateDriver driver = CreateDriver(out ManualTimeSource time);
+            ValueOwner owner = CreateOwner();
+            BarBinder binder = CreateBar(owner, 0, driver.transform, out Recorder view);
+            binder.SetTrail(0.5f, 1f);
+            binder.gameObject.SetActive(true);
+            owner.Set(0, 20f);
+            driver.Tick();
+            time.Advance(0.6f);
+            driver.Tick();
+
+            binder.SetTrail(0.5f, 0f);
+            time.Advance(0.1f);
+            driver.Tick();
+
+            Assert.That(view.Bar.TrailFraction, Is.EqualTo(0.2f).Within(1e-4f), "velocidade 0 deveria desligar o rastro");
+            Assert.That(driver.TickingCount, Is.Zero, "sem rastro, o binder não deveria pedir tick");
+        }
+
+        [Test]
+        public void Bar_NoDriver_TrailFollowsFraction()
+        {
+            ValueOwner owner = CreateOwner();
+            BarBinder binder = CreateBar(owner, 0, null, out Recorder view);
+            binder.gameObject.SetActive(true);
+
+            owner.Set(0, 25f);
+
+            Assert.That(view.Bar.Fraction, Is.EqualTo(0.25f));
+            Assert.That(view.Bar.TrailFraction, Is.EqualTo(0.25f));
         }
 
         [Test]
