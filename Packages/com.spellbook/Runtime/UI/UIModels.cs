@@ -1,3 +1,4 @@
+using System;
 using SpellBook.Core;
 using SpellBook.Core.Text;
 using UnityEngine;
@@ -114,6 +115,176 @@ namespace SpellBook.UI
 
         /// <summary>Itens ocultos.</summary>
         public int Hidden { get; }
+    }
+
+    /// <summary>
+    /// Estado do slot (Spec do B-016, Design 2), pelas checagens de ativação até o custo. O estado ativo não está aqui:
+    /// é marca à parte no <see cref="SlotModel"/>, para não esconder uma falha.
+    /// </summary>
+    public enum SlotState
+    {
+        /// <summary>Sem habilidade concedida; o <c>default</c> do modelo.</summary>
+        Empty,
+
+        /// <summary>Pode ativar.</summary>
+        Ready,
+
+        /// <summary>Em recarga.</summary>
+        OnCooldown,
+
+        /// <summary>Sem cargas.</summary>
+        NoCharges,
+
+        /// <summary>Sem recurso para o custo.</summary>
+        NoResource,
+
+        /// <summary>Bloqueado por tag ou por outra habilidade ativa.</summary>
+        Blocked,
+    }
+
+    /// <summary>
+    /// Modelo do slot de habilidade (R3; Spec do B-016, Design 2). Sem GAS e sem <see cref="string"/> montada: os textos
+    /// são trechos do buffer da ligação. O construtor dá o estado, o ícone e o assunto; as cópias <c>With</c> dão o
+    /// resto. O <c>default</c> é o slot vazio.
+    /// </summary>
+    public readonly struct SlotModel
+    {
+        /// <summary>Cria o modelo com o estado, o ícone (pode ser nulo) e a habilidade como assunto (pode ser nula).</summary>
+        public SlotModel(SlotState state, Sprite icon, ScriptableObject subject)
+            : this(state, icon, subject, default, 0f, 0f, false, 0, 0, 0f, null, default, false, 0, 0, false, false,
+                false, false, false)
+        {
+        }
+
+        private SlotModel(SlotState state, Sprite icon, ScriptableObject subject, TextSpan keyLabel,
+            float cooldownFraction, float cooldownRemaining, bool hasCharges, int charges, int maxCharges,
+            float chargeFraction, string failureKey, TextSpan failureText, bool failureVisible, int failureCount,
+            int readyPulseCount, bool isActive, bool isToggledOn, bool isChanneling, bool autocastAllowed,
+            bool autocastEnabled)
+        {
+            State = state;
+            Icon = icon;
+            Subject = subject;
+            KeyLabel = keyLabel;
+            CooldownFraction = Mathf.Clamp01(cooldownFraction);
+            CooldownRemaining = Mathf.Max(0f, cooldownRemaining);
+            HasCharges = hasCharges;
+            Charges = Math.Max(0, charges);
+            MaxCharges = Math.Max(0, maxCharges);
+            ChargeFraction = Mathf.Clamp01(chargeFraction);
+            FailureKey = failureKey;
+            FailureText = failureText;
+            FailureVisible = failureVisible;
+            FailureCount = failureCount;
+            ReadyPulseCount = readyPulseCount;
+            IsActive = isActive;
+            IsToggledOn = isToggledOn;
+            IsChanneling = isChanneling;
+            AutocastAllowed = autocastAllowed;
+            AutocastEnabled = autocastEnabled;
+        }
+
+        /// <summary>Estado pelas checagens até o custo.</summary>
+        public SlotState State { get; }
+
+        /// <summary>Ícone da habilidade, ou nulo.</summary>
+        public Sprite Icon { get; }
+
+        /// <summary>A habilidade, vista como <see cref="ScriptableObject"/>; a view a escreve no <see cref="UIItemContext"/>.</summary>
+        public ScriptableObject Subject { get; }
+
+        /// <summary>Rótulo da tecla, escrito no buffer da ligação; vazio sem rótulo.</summary>
+        public TextSpan KeyLabel { get; }
+
+        /// <summary>Fração da recarga que falta, de 0 a 1.</summary>
+        public float CooldownFraction { get; }
+
+        /// <summary>Segundos de recarga que faltam; nunca negativo.</summary>
+        public float CooldownRemaining { get; }
+
+        /// <summary>Verdadeiro quando a habilidade usa cargas.</summary>
+        public bool HasCharges { get; }
+
+        /// <summary>Cargas atuais; nunca negativo.</summary>
+        public int Charges { get; }
+
+        /// <summary>Cargas máximas; nunca negativo.</summary>
+        public int MaxCharges { get; }
+
+        /// <summary>Fração da recarga da próxima carga, de 0 a 1.</summary>
+        public float ChargeFraction { get; }
+
+        /// <summary>Chave do texto do último motivo de falha, ou nula.</summary>
+        public string FailureKey { get; }
+
+        /// <summary>Texto do último motivo de falha, escrito no buffer da ligação.</summary>
+        public TextSpan FailureText { get; }
+
+        /// <summary>Verdadeiro enquanto o motivo da falha deve aparecer.</summary>
+        public bool FailureVisible { get; }
+
+        /// <summary>Contador que muda a cada falha; a view anima quando ele muda.</summary>
+        public int FailureCount { get; }
+
+        /// <summary>Contador que muda quando o slot volta a ficar pronto; a view pulsa quando ele muda.</summary>
+        public int ReadyPulseCount { get; }
+
+        /// <summary>Verdadeiro com a habilidade ativa.</summary>
+        public bool IsActive { get; }
+
+        /// <summary>Verdadeiro com a habilidade de alternar ligada.</summary>
+        public bool IsToggledOn { get; }
+
+        /// <summary>Verdadeiro enquanto a habilidade canaliza.</summary>
+        public bool IsChanneling { get; }
+
+        /// <summary>Verdadeiro quando a habilidade aceita autocast.</summary>
+        public bool AutocastAllowed { get; }
+
+        /// <summary>Verdadeiro com o autocast ligado.</summary>
+        public bool AutocastEnabled { get; }
+
+        /// <summary>Cópia com o rótulo da tecla.</summary>
+        public SlotModel WithKeyLabel(TextSpan keyLabel) => new SlotModel(State, Icon, Subject, keyLabel,
+            CooldownFraction, CooldownRemaining, HasCharges, Charges, MaxCharges, ChargeFraction, FailureKey,
+            FailureText, FailureVisible, FailureCount, ReadyPulseCount, IsActive, IsToggledOn, IsChanneling,
+            AutocastAllowed, AutocastEnabled);
+
+        /// <summary>Cópia com a recarga; a fração fica entre 0 e 1 e os segundos negativos valem 0.</summary>
+        public SlotModel WithCooldown(float fraction, float remaining) => new SlotModel(State, Icon, Subject, KeyLabel,
+            fraction, remaining, HasCharges, Charges, MaxCharges, ChargeFraction, FailureKey, FailureText,
+            FailureVisible, FailureCount, ReadyPulseCount, IsActive, IsToggledOn, IsChanneling, AutocastAllowed,
+            AutocastEnabled);
+
+        /// <summary>Cópia com as cargas e a fração da próxima; liga <see cref="HasCharges"/>. Negativos valem 0.</summary>
+        public SlotModel WithCharges(int charges, int maxCharges, float nextChargeFraction) => new SlotModel(State,
+            Icon, Subject, KeyLabel, CooldownFraction, CooldownRemaining, true, charges, maxCharges, nextChargeFraction,
+            FailureKey, FailureText, FailureVisible, FailureCount, ReadyPulseCount, IsActive, IsToggledOn,
+            IsChanneling, AutocastAllowed, AutocastEnabled);
+
+        /// <summary>Cópia com o último motivo de falha, se ele aparece e o contador.</summary>
+        public SlotModel WithFailure(string key, TextSpan text, bool visible, int count) => new SlotModel(State, Icon,
+            Subject, KeyLabel, CooldownFraction, CooldownRemaining, HasCharges, Charges, MaxCharges, ChargeFraction,
+            key, text, visible, count, ReadyPulseCount, IsActive, IsToggledOn, IsChanneling, AutocastAllowed,
+            AutocastEnabled);
+
+        /// <summary>Cópia com o contador do pulso de pronto.</summary>
+        public SlotModel WithReadyPulse(int count) => new SlotModel(State, Icon, Subject, KeyLabel, CooldownFraction,
+            CooldownRemaining, HasCharges, Charges, MaxCharges, ChargeFraction, FailureKey, FailureText,
+            FailureVisible, FailureCount, count, IsActive, IsToggledOn, IsChanneling, AutocastAllowed,
+            AutocastEnabled);
+
+        /// <summary>Cópia com as marcas de ativa, alternar ligada e canalizando.</summary>
+        public SlotModel WithActivity(bool isActive, bool isToggledOn, bool isChanneling) => new SlotModel(State, Icon,
+            Subject, KeyLabel, CooldownFraction, CooldownRemaining, HasCharges, Charges, MaxCharges, ChargeFraction,
+            FailureKey, FailureText, FailureVisible, FailureCount, ReadyPulseCount, isActive, isToggledOn,
+            isChanneling, AutocastAllowed, AutocastEnabled);
+
+        /// <summary>Cópia com o autocast: se a habilidade aceita e se está ligado.</summary>
+        public SlotModel WithAutocast(bool allowed, bool enabled) => new SlotModel(State, Icon, Subject, KeyLabel,
+            CooldownFraction, CooldownRemaining, HasCharges, Charges, MaxCharges, ChargeFraction, FailureKey,
+            FailureText, FailureVisible, FailureCount, ReadyPulseCount, IsActive, IsToggledOn, IsChanneling, allowed,
+            enabled);
     }
 
     /// <summary>

@@ -180,6 +180,28 @@ Divisão do SL1 pela ADR 0042, decidida pelo usuário em 2026-11-04. O SL1 imple
 - Critério de pronto: testes verdes.
 - Tamanho estimado: ~300 linhas; 9 arquivos. Depende de: SL1c.
 
+### Detalhe (2026-11-04)
+- CA: nenhum CA do PRD fecha aqui. Prepara o CA10 (rótulo da tecla, que fecha no SL4) e o R3 (modelo do slot), com o Design 2 e a P5.
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/UI/UIModels.cs:122` (depois de `ListOverflowModel`):
+    - `enum SlotState { Empty, Ready, OnCooldown, NoCharges, NoResource, Blocked }`. `Empty` vale 0, então o `default` do modelo é o slot vazio;
+    - `readonly struct SlotModel`, com os campos do Design 2. O construtor público recebe `State`, `Icon` e `Subject`; as cópias `WithKeyLabel`, `WithCooldown`, `WithCharges`, `WithFailure`, `WithReadyPulse`, `WithActivity` e `WithAutocast` preenchem o resto, como o `WithTrail` do `BarModel`. Assim o `SlotReader` do SL4, do SL5 e do SL7 acrescenta campos sem trocar o construtor. As frações ficam entre 0 e 1; segundos e cargas negativos valem 0; `WithCharges` liga `HasCharges`.
+  - `Runtime/UI/KeyLabelProvider.cs` (novo): `abstract class KeyLabelProvider : ScriptableObject`, com `abstract bool TryWriteLabel(ScriptableObject slotKey, ITextProvider text, TextBuffer into)`, `event Action Changed` e `protected RaiseChanged()`. Quem chama guarda `into.Length` antes e pega o trecho com `TextBuffer.SpanFrom`.
+  - `Runtime/UI/FixedKeyLabelProvider.cs` (novo): `sealed class FixedKeyLabelProvider : KeyLabelProvider`, com `[CreateAssetMenu("SpellBook/UI/Fixed Key Labels")]` e `[HelpURL(DocUrls.UiAbilitySlot + "#fixedkeylabelprovider")]`. Guarda uma lista de `Entry { ScriptableObject key; LocalizedText label; }` e procura a chave por laço, sem alocar. Chave nula ou ausente devolve `false` e não escreve nada. O `OnValidate` (edição no Inspector) dispara `Changed`. Não conhece nenhum sistema de entrada.
+  - `Editor/UI/UIEditors.cs:38`: `FixedKeyLabelProviderEditor : SpellBookEditor`, para a guarda `SpellBookEditorCoverageTests`.
+  - `Runtime/Core/DocUrls.cs:30`: `UiAbilitySlot = Base + "ui/slot-de-habilidade/"`. `Tests/Core/EditMode/DocUrlsTests.cs:39`: o `TestCase` dela.
+  - `Tests/UI/EditMode/KeyLabelProviderTests.cs` e `Tests/UI/EditMode/SlotModelTests.cs` (novos).
+- Decisão, com base na ADR 0038, item 5: o `TryWriteLabel` recebe o `ITextProvider`. A P5 escreve a assinatura sem ele. Mas a ADR diz que, na UI, o provedor vem do `UITheme`, pelo `UIBindContext`. Um campo de provedor no `FixedKeyLabelProvider` seria uma segunda configuração de cultura. O SL4 passa o provedor do contexto. É API nova, sem quebra, e não muda CA.
+- Fora deste ticket: a página `manual/ui/slot-de-habilidade.md` fica para o passe de documentação (emenda de 2026-11-03 da ADR 0007). Até lá, a guarda `ManualLinksTests` (categoria `Documentacao`) acusa a constante e a âncora sem página, como no SL1a. O `CHANGELOG.md` sai porque não há quebra (item 4 da mesma emenda). A validação do provedor (chave repetida ou vazia) fica com o SL9.
+- Testes red (EditMode, `SpellBook.UI.Tests.EditMode`):
+  - `KeyLabelProviderTests`: `Fixed_LabelForKey_MissingKeyFalse`, `Fixed_LocalizedThroughProvider`, `Changed_RaisedOnEdit` e `WriteLabel_DoesNotAllocate`;
+  - `SlotModelTests`: `Default_IsEmptySlot`, `With_FillsOnlyItsFields` e `With_ClampsFractionsAndNegatives`;
+  - `DocUrlsTests.DocUrls_PageConstantPointsToPageUnderBase("UiAbilitySlot", ...)`.
+  Red contra um esqueleto que compila e não faz nada: 7 de 8 falham (rótulo não escrito, `Changed` não disparado, campos do modelo vazios, `DocUrls.UiAbilitySlot` inexistente). O `Default_IsEmptySlot` passa já no esqueleto, porque guarda a ordem do enum (`Empty` = 0).
+- Critério de pronto: os 7 testes das duas classes e o caso novo do `DocUrlsTests` verdes, com 8 no XML; `DocUrlsTests`, `HelpUrlTests` e `SpellBookEditorCoverageTests` verdes.
+- Tamanho medido (`git diff --numstat` e `wc -l` dos novos): 528 linhas em 9 arquivos. Em `.cs`: `UIModels.cs` +171, `KeyLabelProvider.cs` 30, `FixedKeyLabelProvider.cs` 69, `UIEditors.cs` +4, `DocUrls.cs` +1, `DocUrlsTests.cs` +1, `KeyLabelProviderTests.cs` 171 e `SlotModelTests.cs` 81; a Spec conta só como arquivo. Exceção: 528 passa do teto de 500, dentro de +30% (650). Motivo: o `SlotModel` tem os 20 campos do Design 2, e cada cópia `With` repete o construtor completo (171 linhas no `UIModels.cs`). Dividir separaria o modelo do provedor de rótulo que ele carrega.
+- Commit: `feat(ui): SlotModel e KeyLabelProvider (#250)`
+
 ### SL3 — `AbilityLoadout`
 - Escopo: `Runtime/GAS.UI/AbilityLoadout.cs` (novo), `Editor/GAS.UI/GasUIEditors.cs`, `Tests/GAS.UI/EditMode/AbilityLoadoutTests.cs` (novo), `DocUrls.cs` (`UiAbilityBar`), `DocUrlsTests.cs`, `Documentation~/manual/ui/barra-de-habilidades.md` (nova), `CHANGELOG.md`.
 - Testes red: `Entries_InListOrder`; `FindEntryBySlot_NoAllocation`; `DoesNotGrant`.

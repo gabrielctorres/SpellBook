@@ -28,6 +28,7 @@ namespace SpellBook.Core
         public const string UiAttributeText = Base + "ui/texto-de-atributo/";
         public const string UiTagIndicator = Base + "ui/indicador-de-tag/";
         public const string UiFloatingText = Base + "ui/numeros-flutuantes/";
+        public const string UiAbilitySlot = Base + "ui/slot-de-habilidade/";
         public const string Validator = Base + "ferramentas/validador/";
         public const string EventDebugger = Base + "ferramentas/event-debugger/";
         public const string GasDebugger = Base + "ferramentas/gas-debugger/";
