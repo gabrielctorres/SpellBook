@@ -427,6 +427,24 @@ Detalhe (2026-11-04), da Fábrica, sobre a divisão acima.
 - Critério de pronto: no host, passar o mouse num slot da barra abre o tooltip da habilidade do slot (S); CA17 (E).
 - Tamanho estimado: ~40 linhas; 5 arquivos (1 fixture). Depende de: TT7.
 
+### Detalhe (2026-11-04)
+- CA: o critério de pronto deste ticket (S: no host, o ponteiro num slot da barra abre o tooltip da habilidade do slot); CA16 e CA15 seguem pelas guardas existentes. O CA17 (página e CHANGELOG do R15) fica para o passe de documentação (emenda de 2026-11-03 da ADR 0007).
+- **Ajuste da leitura do CA12 do B-016 (SL8), com o OK do Controlador em 2026-11-04.** O Detalhe do SL8 lê o R11 do B-016 ("o slot é só exibição: a view não ativa") como "todo `Graphic` com `raycastTarget` desligado", e o `SlotViewTests` confere isso. O tooltip por ponteiro precisa de um `Graphic` com `raycastTarget` no slot: a uGUI só manda o `PointerEnter` a um objeto atingido pelo raycast, e o `Validate` do TT7 avisa o modo de ponteiro sem ele. Por isso, a partir deste ticket, a parte automática do CA12 passa a ser: **só o `Frame` recebe raycast, e o slot não tem `Selectable` nem `IPointerClickHandler`**. O R11 continua valendo: o slot não ativa a habilidade, porque nada no prefab trata clique. O `Frame` é o escolhido porque fica sempre visível e cobre o slot inteiro, também vazio (`hideWhenEmpty` só esconde o `Content`).
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/UI.UGUI/Prefabs/AbilitySlot.prefab` (fixture, salvo pela Unity, sem edição do YAML à mão): na raiz (`:964-967`, componentes), um `TooltipTrigger` com `AbilityTooltipSource` sem habilidade (vale o assunto do `UIItemContext` da raiz, que o `SlotView` escreve), modo `PointerAndFocus` (o padrão), atraso padrão de 0,3 s, alvo vazio (o próprio slot) e **âncora do binder vazia**: a âncora é do projeto, como a do `AnchorRegistrar` do `Tooltip.prefab`, e o projeto a liga numa variante do slot. Com isso, o `Validate` do gatilho do prefab do pacote acusa só "sem âncora de binder"; o validador do projeto varre só `Assets/` e não o vê. No `Frame` (`:698`), `m_RaycastTarget` passa a 1.
+  - `Tests/UI.UGUI/EditMode/WidgetPrefabsTests.cs`: caso novo depois de `AttributeBarPrefab_InEditMode_ShowsPreviewHalfAnd50Of100` (`:71`).
+  - `Tests/UI.UGUI/EditMode/SlotViewTests.cs:239-240`: a asserção "nenhum gráfico recebe clique" vira "só o `Frame` recebe raycast" mais "nenhum `Selectable`" e "nenhum `IPointerClickHandler`" no slot (ajuste acima).
+  - Fora deste ticket: `slot-de-habilidade.md` (seção "Tooltip em slot"), `tooltip.md` e o `CHANGELOG.md` ficam para o passe de documentação (emenda de 2026-11-03 da ADR 0007); o `CHANGELOG.md` também porque não há quebra.
+- Testes red (EditMode, `SpellBook.UI.UGUI.Tests.EditMode`):
+  - `WidgetPrefabsTests.AbilitySlotPrefab_HasTooltipTrigger_WithAbilitySourceFromItem`: `TooltipTrigger` na raiz, ao lado do `UIItemContext`; fonte `AbilityTooltipSource` sem habilidade; modo `PointerAndFocus`; alvo e âncora vazios; o `CollectMessages` do gatilho dá só o erro em `binder` (sem o aviso de raycast e sem o erro de assunto da fonte).
+  - `SlotViewTests.Prefabs_SlotAndBar_Wired_SlotPreviewInEditMode` (asserção ajustada).
+- Critério de pronto: os 2 testes verdes, com o `total` do XML conferido, junto de `TooltipValidationTests` e `TooltipTriggerEditorTests` no mesmo filtro. A conferência no host (S) é manual, no Editor.
+- Red: 15 rodam e 2 falham pelo motivo esperado (`AbilitySlot sem TooltipTrigger na raiz`; a lista de gráficos com raycast vazia em vez de `Frame`).
+- Green: 15 de 15 (`total` = 15): os 2 do ticket, os 8 de `TooltipValidationTests` e os 5 de `TooltipTriggerEditorTests`.
+- O prefab foi salvo pela Unity (`PrefabUtility.SaveAsPrefabAsset`, por um script descartável numa pasta ignorada pelo git, já apagado). Ao carregar, o TMP gravou a fonte padrão nos 4 textos; essas linhas voltaram ao `{fileID: 0}` original (ADR 0039). O `git diff --check` aponta só os espaços finais que a Unity grava (`m_Name: `, `key: `, `text: `), como no resto do arquivo.
+- Tamanho medido (`git diff --numstat`): 34 linhas em 3 arquivos (`WidgetPrefabsTests.cs` +26, `SlotViewTests.cs` +6/−2; o `AbilitySlot.prefab`, +42/−1, conta só como arquivo). Exceção: nenhuma.
+- Commit: `feat(ugui): tooltip no slot de habilidade (#267)`
+
 ### Ordem e resumo
 
 | Ticket | Unity | Depende de | Tamanho |

@@ -7,6 +7,7 @@ using TMPro;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 using RecordingText = SpellBook.UI.UGUI.Tests.WidgetViewsTests.RecordingText;
@@ -236,8 +237,11 @@ namespace SpellBook.UI.UGUI.Tests
 
             Assert.That(Field<Image>(slotView, "cooldownFill").type, Is.EqualTo(Image.Type.Filled));
             Assert.That(Field<Image>(slotView, "cooldownFill").fillMethod, Is.EqualTo(Image.FillMethod.Radial360));
-            Assert.That(slot.GetComponentsInChildren<Graphic>(true).Where(g => g.raycastTarget), Is.Empty,
-                "o slot é só exibição: nenhum gráfico recebe clique (R11)");
+            Assert.That(slot.GetComponentsInChildren<Graphic>(true).Where(g => g.raycastTarget).Select(g => g.name),
+                Is.EqualTo(new[] { "Frame" }), "só a moldura recebe o ponteiro, para o tooltip (TT8 do B-017)");
+            Assert.That(slot.GetComponentsInChildren<Selectable>(true), Is.Empty, "o slot é só exibição: não ativa (R11)");
+            Assert.That(slot.GetComponentsInChildren<IPointerClickHandler>(true), Is.Empty,
+                "o slot é só exibição: nada trata o clique (R11)");
             Assert.That(slot.GetComponentsInChildren<TMP_Text>(true).Where(t => new SerializedObject(t).FindProperty("m_fontAsset").objectReferenceValue != null),
                 Is.Empty, "os textos caem na fonte padrão do TMP_Settings (ADR 0039)");
             var animator = Field<Animator>(slotView, "animator");

@@ -695,7 +695,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 0.12, g: 0.12, b: 0.14, a: 1}
-  m_RaycastTarget: 0
+  m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -978,6 +978,7 @@ GameObject:
   - component: {fileID: 1387346279255626517}
   - component: {fileID: 4308434537171831921}
   - component: {fileID: 8877476408626225354}
+  - component: {fileID: 7813480590020214850}
   m_Layer: 0
   m_Name: AbilitySlot
   m_TagString: Untagged
@@ -1067,3 +1068,43 @@ MonoBehaviour:
   animator: {fileID: 4308434537171831921}
   pulseTrigger: Pulse
   shakeTrigger: Shake
+--- !u!114 &7813480590020214850
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8961956819419409654}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d8ca665c11a45248a1465bb1af583d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpellBook.UI.UGUI::SpellBook.UI.UGUI.TooltipTrigger
+  source:
+    rid: 2960844187389657088
+  owner:
+    mode: 0
+    anchor: {fileID: 0}
+    explicitOwner: {fileID: 0}
+  mode: 2
+  delay: 0.3
+  binder: {fileID: 0}
+  target: {fileID: 0}
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 2960844187389657088
+      type: {class: AbilityTooltipSource, ns: SpellBook.GAS.UI, asm: SpellBook.GAS.UI}
+      data:
+        ability: {fileID: 0}
+        subtitle:
+          key: 
+          text: 
+        levelWithoutOwner: 1
+        formatter:
+          rid: -2
+        showCost: 1
+        showCooldown: 1
+        showCharges: 1

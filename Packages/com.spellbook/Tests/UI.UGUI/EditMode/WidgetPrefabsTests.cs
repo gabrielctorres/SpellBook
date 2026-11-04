@@ -1,5 +1,9 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
+using SpellBook.Core.Editor;
+using SpellBook.Core.Validation;
 using SpellBook.GAS.UI;
 using TMPro;
 using UnityEditor;
@@ -69,6 +73,28 @@ namespace SpellBook.UI.UGUI.Tests
 
             Assert.That(Field<Image>(view, "fill").fillAmount, Is.EqualTo(0.5f));
             Assert.That(Field<TMP_Text>(view, "label").text, Is.EqualTo("50 / 100"));
+        }
+
+        [Test]
+        public void AbilitySlotPrefab_HasTooltipTrigger_WithAbilitySourceFromItem()
+        {
+            GameObject slot = LoadPrefab("AbilitySlot");
+
+            var trigger = slot.GetComponent<TooltipTrigger>();
+
+            Assert.That(trigger, Is.Not.Null, "AbilitySlot sem TooltipTrigger na raiz");
+            Assert.That(slot.GetComponent<UIItemContext>(), Is.Not.Null,
+                "o gatilho lê o dono e o assunto do UIItemContext do mesmo objeto");
+            var source = trigger.Source as AbilityTooltipSource;
+            Assert.That(source, Is.Not.Null, "AbilitySlot: a fonte do tooltip não é a de habilidade");
+            Assert.That(source.Ability, Is.Null, "sem habilidade, a fonte mostra a do item (o assunto que o SlotView escreve)");
+            Assert.That(trigger.Mode, Is.EqualTo(TooltipOpenMode.PointerAndFocus));
+            Assert.That(trigger.Target, Is.Null, "o tooltip abre ao lado do próprio slot");
+            Assert.That(trigger.Binder, Is.Null, "a âncora do binder é do projeto, como a do prefab Tooltip");
+            IReadOnlyList<ValidationMessage> messages = SpellBookEditor.CollectMessages(new Object[] { trigger });
+            Assert.That(messages.Select(m => (m.Severity, m.PropertyPath)),
+                Is.EqualTo(new[] { (ValidationSeverity.Error, "binder") }),
+                "só falta a âncora: o ponteiro tem onde bater e a fonte usa o assunto do item");
         }
 
         private static TView AssertWired<TModel, TBinder, TView, TSource>(GameObject prefab)
