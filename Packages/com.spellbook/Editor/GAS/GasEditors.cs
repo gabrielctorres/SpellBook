@@ -3,6 +3,7 @@ using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Abilities.Projectiles;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
+using SpellBook.GAS.Thinkers;
 using UnityEditor;
 
 namespace SpellBook.GAS.Editor
@@ -31,4 +32,8 @@ namespace SpellBook.GAS.Editor
     [CustomEditor(typeof(Projectile))]
     [CanEditMultipleObjects]
     internal sealed class ProjectileEditor : SpellBookEditor { }
+
+    [CustomEditor(typeof(GameplayThinker))]
+    [CanEditMultipleObjects]
+    internal sealed class GameplayThinkerEditor : SpellBookEditor { }
 }

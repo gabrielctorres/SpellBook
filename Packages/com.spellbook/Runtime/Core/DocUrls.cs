@@ -20,6 +20,7 @@ namespace SpellBook.Core
         public const string Damage = Base + "modulos/dano-escudo-e-morte/";
         public const string Teams = Base + "modulos/times/";
         public const string Cues = Base + "modulos/cues/";
+        public const string Thinkers = Base + "modulos/thinkers-e-auras/";
         public const string Validator = Base + "ferramentas/validador/";
         public const string EventDebugger = Base + "ferramentas/event-debugger/";
         public const string GasDebugger = Base + "ferramentas/gas-debugger/";

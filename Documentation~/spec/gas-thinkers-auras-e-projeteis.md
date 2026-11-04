@@ -302,6 +302,26 @@ Todos usam a Unity e seguem o WIP 1. Tempo por `asc.Tick` com `ManualTimeSource`
 - Critério de pronto: CA1, CA2, CA6, CA8 e CA9 verdes; `HelpUrlTests` e `ManualLinksTests` verdes.
 - Tamanho estimado: ~480 linhas; 8 arquivos (1 página). Depende de: TK1.
 
+### Detalhe (2026-11-03)
+- CA: CA1, CA2, CA6, CA8, CA9 e a parte do thinker do CA26 (C1, C2, P2). Design 4 (ciclo, `End`, thinker na cena) e ADR 0036, itens 1 a 3. Criador, `followOwner`, `endWithExecution` e a vigia ficam no TK5; a aura no TK6; o `Validate` no TK7.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/GAS/Thinkers/GameplayThinker.cs` (novo): `[RequireComponent(typeof(AbilitySystemComponent))]`, `[HelpURL(DocUrls.Thinkers + "#gameplaythinker")]`; `ScalableFloat duration` e `pulseInterval`, `[SerializeReference, TypePicker] ThinkerBehaviour behaviour` e as listas `onCreated`, `onPulse` e `onEnded` com `[ActionEvent(..., DefaultTarget.Owner, true)]` (o ASC do thinker entra nos alvos do evento, como o dono nas listas de efeito, porque `ApplyEffectAction` e `PlayCueAction` leem `EventTargets`); `Begin(AbilitySystemComponent creator, ActionContext creationContext, SpawnerAsset spawner)` copia instigador (o criador), habilidade, spec, nível e `EffectContext`, avalia duração e intervalo no nível e na tabela da habilidade e roda a vida no ASC do thinker com dono lógico = o thinker; `Start` chama `Begin(null, null, null)` se ninguém chamou; `End(ActionEndReason)` uma vez (cancela as execuções do thinker, roda `onEnded` com `EndReason`, chama `behaviour.OnEnd`, cancela o que `onEnded` deixou pendente e volta por `SpawnerAsset.OrDefault(spawner)`); `OnEnable` zera o estado do ciclo; `OnDisable` sem `End` cancela as execuções do thinker.
+  - `Runtime/GAS/Thinkers/ThinkerBehaviour.cs` (novo): `[Serializable] abstract`, com `CreateState`, `OnBegin`, `OnPulse`, `OnEnd` e `Validate` virtuais. O estado é criado uma vez no `Awake` do thinker.
+  - `Runtime/GAS/Thinkers/ThinkerLifeAction.cs` (novo, `internal sealed`, fora do catálogo): fase 0 chama `behaviour.OnBegin` e roda `onCreated`; depois espera com `ActionStatus.Wait` até o próximo marco (pulso ou fim). No pulso chama `behaviour.OnPulse` e roda `onPulse` como execução própria; no mesmo instante, o pulso vem antes do fim (`End(Expired)`). Sem duração e sem intervalo, `WaitUntilCancelled`.
+  - `Runtime/Core/DocUrls.cs:23`: `Thinkers = Base + "modulos/thinkers-e-auras/"`.
+  - `Tests/Testing/GasFactory.cs`: `CreateThinkerPrefab(duration, pulseInterval, configure)` cria um thinker inativo (modelo de prefab) com `autoTick` desligado.
+  - `Tests/GAS/PlayMode/ThinkerTests.cs` (novo).
+  - `Tests/GAS/EditMode/GasSourceScanTests.cs`: guarda textual do CA26 em `Runtime/GAS/Thinkers`.
+  - `Editor/GAS/GasEditors.cs:35`: `GameplayThinkerEditor : SpellBookEditor`, como o `ProjectileEditor` (consequência direta, ADR 0042 item 6: a guarda `SpellBookEditorCoverageTests` cobre todo `MonoBehaviour` público concreto).
+  - Sem página `thinkers-e-auras.md` nem `CHANGELOG.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007), e o ticket só acrescenta. As guardas `Documentacao` da URL nova ficam para o passe.
+  - O vínculo `FollowsOwner` não entra: as execuções do thinker são `Holds` com dono = o thinker. A lacuna do TK1 (herança do vínculo pelas filhas em paralelo e pelo `DelayedAction`) fica para quem usar esse caminho.
+- Testes red:
+  - PlayMode, `SpellBook.GAS.Tests.PlayMode`, classe `ThinkerTests`: `Created_PulsesAt1To5_EndedOnce_ThenReturnsToPool`; `Pulse_TickInSameFrameAsPulseEnd_Counts`; `SameAction_InPulseAndAbilityActivate`; `End_CancelsRunningAndDelayed_TwiceDoesNotRepeat`; `FromPool_StartsClean`; `ScenePlaced_NoCreator_RunsWithOwnAsc`; `PulseOverlap_LongPulseDoesNotDelayNext`.
+  - EditMode, `SpellBook.GAS.Tests.EditMode`, classe `GasSourceScanTests`: `ThinkerSources_NoCoroutineTimeOrInstantiate`.
+- Critério de pronto: os testes acima verdes pelo filtro `\.ThinkerTests\.` (PlayMode) e `\.GasSourceScanTests\.` (EditMode), e `HelpUrlTests`, `SpellBookEditorCoverageTests` e `SourceRulesTests` verdes (EditMode). `ManualLinksTests` é da categoria `Documentacao` e roda no passe.
+- Tamanho: ~645 linhas e 8 arquivos, pela ADR 0042 (medido no diff: 644 linhas, 309 delas no `ThinkerTests`, e 5 no `GasEditors.cs`, que entrou na revisão). Exceção: até +30% (+29%), porque os sete testes PlayMode trazem os próprios auxiliares (spawner de uma vaga, comportamento e ações de registro), e o código novo do thinker (~290 linhas) é o mínimo do Design 4 sem criador nem aura.
+- Commit: `feat(gas): GameplayThinker com vida, pulsos e término`
+
 ### TK5 — `CreateThinkerAction`, criador, seguir e terminar com a execução
 - Escopo: `Runtime/GAS/Thinkers/CreateThinkerAction.cs`, `ThinkerWatchAction.cs` (novos), `GameplayThinker.cs` (`Begin` com criador, `followOwner`, `OwnerGone`), `ActionContext.cs` (`LastCreatedThinker`), `Tests/GAS/PlayMode/CreateThinkerActionTests.cs` (novo), `thinkers-e-auras.md`, `CHANGELOG.md`.
 - Testes red:

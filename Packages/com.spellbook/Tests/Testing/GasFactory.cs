@@ -7,6 +7,7 @@ using SpellBook.GAS.Actions;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
+using SpellBook.GAS.Thinkers;
 using SpellBook.GAS.Values;
 using SpellBook.Tags;
 using SpellBook.Time;
@@ -73,6 +74,25 @@ namespace SpellBook.Testing
 
             go.SetActive(true);
             return projectile;
+        }
+
+        /// <summary>
+        /// Thinker inativo, com ASC sem <c>autoTick</c> (avança só por <c>Tick</c>), a <paramref name="duration"/> e o
+        /// <paramref name="pulseInterval"/> constantes. Serve de prefab ou, ativado, de instância. O
+        /// <paramref name="configure"/> roda antes de ativar.
+        /// </summary>
+        public GameplayThinker CreateThinkerPrefab(float duration, float pulseInterval, Action<GameplayThinker> configure = null)
+        {
+            var go = new GameObject("Thinker");
+            go.SetActive(false);
+            _created.Add(go);
+
+            var thinker = go.AddComponent<GameplayThinker>();
+            SetAutoTick(go.GetComponent<AbilitySystemComponent>(), false);
+            thinker.Duration = ScalableFloat.Constant(duration);
+            thinker.PulseInterval = ScalableFloat.Constant(pulseInterval);
+            configure?.Invoke(thinker);
+            return thinker;
         }
 
         /// <summary>Filho de <paramref name="asc"/> com um <see cref="BoxCollider"/> de lado 1, na posição do pai.</summary>

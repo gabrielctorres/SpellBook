@@ -29,6 +29,10 @@ namespace SpellBook.GAS.Tests
         // Membro protected internal: o override muda de forma conforme o compilador (ADR 0034, emenda de 2026-11-02).
         private static readonly Regex ProtectedInternal = new Regex(@"\bprotected\s+internal\b");
 
+        // Criação e destruição de objetos de gameplay fora do spawner (ADR 0015) e som solto (CA26 do B-014).
+        private static readonly Regex GameplayObjects =
+            new Regex(@"\bPoolManager\.Instance\b|\bInstantiate\s*\(|\bDestroy(Immediate)?\s*\(|\bPlayClipAtPoint\b");
+
         [Test]
         public void GasSources_DoNotReadUnityTimeOrWaitForSeconds()
         {
@@ -81,6 +85,23 @@ namespace SpellBook.GAS.Tests
             var violations = new List<string>();
             violations.AddRange(Scan(ProtectedInternal, Path.Combine("Runtime", "GAS")));
             violations.AddRange(Scan(ProtectedInternal, Path.Combine("Runtime", "GAS.Bridges")));
+
+            Assert.That(violations, Is.Empty);
+        }
+
+        /// <summary>
+        /// O thinker conta o tempo pelo ASC dele e cria e devolve objetos só pelo spawner: nenhum fonte de
+        /// <c>Runtime/GAS/Thinkers</c> usa corrotina, o relógio da Unity, <c>Instantiate</c>, <c>Destroy</c>,
+        /// a instância global do pool nem <c>PlayClipAtPoint</c> (CA26 do B-014; ADR 0014, 0015 e 0036).
+        /// </summary>
+        [Test]
+        public void ThinkerSources_NoCoroutineTimeOrInstantiate()
+        {
+            string thinkers = Path.Combine("Runtime", "GAS", "Thinkers");
+            var violations = new List<string>();
+            violations.AddRange(Scan(Coroutines, thinkers));
+            violations.AddRange(Scan(Forbidden, thinkers));
+            violations.AddRange(Scan(GameplayObjects, thinkers));
 
             Assert.That(violations, Is.Empty);
         }
