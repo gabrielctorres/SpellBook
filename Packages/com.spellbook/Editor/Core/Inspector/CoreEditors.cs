@@ -1,3 +1,4 @@
+using SpellBook.Core.Text;
 using UnityEditor;
 
 namespace SpellBook.Core.Editor
@@ -10,4 +11,12 @@ namespace SpellBook.Core.Editor
     [CustomEditor(typeof(TextRoleTheme))]
     [CanEditMultipleObjects]
     internal sealed class TextRoleThemeEditor : SpellBookEditor { }
+
+    [CustomEditor(typeof(TextTable))]
+    [CanEditMultipleObjects]
+    internal sealed class TextTableEditor : SpellBookEditor { }
+
+    [CustomEditor(typeof(TableTextProvider))]
+    [CanEditMultipleObjects]
+    internal sealed class TableTextProviderEditor : SpellBookEditor { }
 }

@@ -190,6 +190,20 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Cada 
 - Critério de pronto: CA9 verde; `HelpUrlTests`, `SpellBookEditorCoverageTests`, `ManualLinksTests` verdes.
 - Tamanho estimado: ~430 linhas; 8 arquivos. Depende de: DE1.
 
+### Detalhe (2026-11-03)
+- CA: CA9 (chave presente, chave ausente e provedor ausente pela tabela) e a parte de N1 (ler chave já resolvida sem alocar). Base do Design 1 (ADR 0038, item 2).
+- Escopo (caminhos em `Packages/com.spellbook/`, namespace `SpellBook.Core.Text`):
+  - `Runtime/Core/Text/TextTable.cs` (novo): `TextTable : ScriptableObject, IValidatable` com `[CreateAssetMenu("SpellBook/Text/Text Table")]`, `[HelpURL(DocUrls.Text + "#texttable")]`, `cultureName`, `List<Entry>` (`[Serializable] struct Entry`: `key`, `text`); `CultureName`, `Entries`; `Validate`: chave fora de `TextKey`, aviso; chave repetida, erro; com `propertyPath`.
+  - `Runtime/Core/Text/TableTextProvider.cs` (novo): `TableTextProvider : TextProviderAsset, IValidatable` com `[CreateAssetMenu("SpellBook/Text/Table Text Provider")]`, `[HelpURL(DocUrls.Text + "#tabletextprovider")]`, `List<TextTable> tables`, `cultureName`; `Culture` (vazia ou desconhecida: invariante); `SetCulture(CultureInfo)` (nula: invariante; dispara `Changed`); `GetText` lê um `Dictionary<string,string>` (ordinal) montado na primeira leitura depois de cada troca: cultura, cultura pai até a invariante, tabelas sem cultura (a primeira chave vence); `OnValidate` invalida e dispara `Changed`; `Validate`: tabela nula, erro; mesma chave com textos diferentes em tabelas da mesma cultura, aviso.
+  - `Editor/Core/Inspector/CoreEditors.cs:12` (+2 Inspectors de uma linha: `TextTableEditor`, `TableTextProviderEditor`).
+  - `Runtime/Core/DocUrls.cs:24` (+`Text = Base + "modulos/texto/"`) e `Tests/Core/EditMode/DocUrlsTests.cs:35` (+`[TestCase("Text", "modulos/texto/")]`).
+  - `Tests/Core/EditMode/Text/TableTextProviderTests.cs` (novo; tabelas montadas por `SerializedObject` numa fábrica do teste, sem API de escrita nova).
+  - Sem `texto.md` e sem `CHANGELOG.md`: a página entra no passe de documentação e o ticket só acrescenta tipos (emenda de 2026-11-03 da 0007). O `EveryDocUrlHasPage` (categoria `Documentacao`) fica vermelho para `Text` até o passe, como `Cues` e `Thinkers`.
+- Testes red (EditMode, `SpellBook.Core.Tests.EditMode`): `TableTextProviderTests`: `KeyInTable_ReturnsText`, `MissingKey_ReturnsFallback`, `NoProvider_FieldText`, `CultureChain_PtBr_Pt_Neutral_Fallback`, `SetCulture_RaisesChanged_CultureExposed`, `EmptyCulture_Invariant`, `ResolvedKey_10000Reads_DoesNotAllocate`, `Table_DuplicateKey_Error_BadKey_Warning`, `Provider_SameKeyDifferentText_Warning`, `Provider_NullTable_Error`; `DocUrlsTests.DocUrls_PageConstantPointsToPageUnderBase("Text", "modulos/texto/")`.
+- Critério de pronto: os testes acima verdes pelo filtro `\.TableTextProviderTests\.;\.DocUrlsTests\.;\.HelpUrlTests\.;\.SpellBookEditorCoverageTests\.`.
+- Tamanho: ~465 linhas e 6 arquivos (mais esta página do Spec), pela ADR 0042. Exceção: nenhuma.
+- Commit: `feat(core): TextTable e TableTextProvider (#223)`
+
 ### DE3 — Adaptador do Unity Localization: código e testes
 - Escopo: `Packages/manifest.json` do projeto host (+`com.unity.localization`, só se a Q2 for aprovada) e o `packages-lock.json` que a Unity regrava, `Runtime/Localization/SpellBook.Localization.asmdef`, `Runtime/Localization/LocalizationTextProvider.cs`, `Tests/Localization/EditMode/SpellBook.Localization.Tests.EditMode.asmdef` (mesma constraint), `Tests/Localization/EditMode/LocalizationTextProviderTests.cs`, `Tests/Core/EditMode/Structure/AsmdefRulesTests.cs` (`Localization` em `RuntimeModules`; exceção do módulo opcional, ADR 0038 item 7), `CHANGELOG.md`.
 - Testes red: `EntryInStringTable_ReturnsLocalized`; `MissingEntry_ReturnsFallback`; `LocaleChange_RaisesChanged_CultureFollowsLocale`; `ResolvedKey_DoesNotAllocate`; `OptionalModule_OnlyConstraintIsOwnVersionDefine`.
