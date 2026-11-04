@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: SpellBook.GAS::SpellBook.GAS.Abilities.GameplayAbility
   Icon: {fileID: 0}
   localizedName:
-    key: 
-    text: 
+    key: sandbox.ability.bola_de_fogo
+    text: Bola de Fogo
   legacyDisplayName: 
   AbilityTag:
     definition: {fileID: 0}
