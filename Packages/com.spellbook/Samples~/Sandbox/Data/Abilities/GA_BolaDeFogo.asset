@@ -13,7 +13,10 @@ MonoBehaviour:
   m_Name: GA_BolaDeFogo
   m_EditorClassIdentifier: SpellBook.GAS::SpellBook.GAS.Abilities.GameplayAbility
   Icon: {fileID: 0}
-  DisplayName: 
+  localizedName:
+    key: 
+    text: 
+  legacyDisplayName: 
   AbilityTag:
     definition: {fileID: 0}
   Description:

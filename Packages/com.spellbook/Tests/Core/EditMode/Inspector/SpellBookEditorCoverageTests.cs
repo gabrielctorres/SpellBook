@@ -19,6 +19,7 @@ namespace SpellBook.Core.Tests.Inspector
         {
             "SpellBook.Core", "SpellBook.Time", "SpellBook.Tags", "SpellBook.Pooling",
             "SpellBook.GAS", "SpellBook.Events", "SpellBook.GAS.Bridges", "SpellBook.Teams", "SpellBook.Cues",
+            "SpellBook.Localization",
         };
 
         private readonly List<Object> _created = new List<Object>();

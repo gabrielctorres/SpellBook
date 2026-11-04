@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using SpellBook.Core;
+using SpellBook.Core.Text;
 
 namespace SpellBook.GAS.Attributes
 {
@@ -25,6 +26,9 @@ namespace SpellBook.GAS.Attributes
 
         // Tabela fixa para não montar o texto de formato a cada chamada.
         private static readonly string[] DecimalFormats = { "F0", "F1", "F2", "F3", "F4", "F5", "F6" };
+
+        // Buffer das sobrecargas que devolvem string: a regra de formato fica só no Compose.
+        [ThreadStatic] private static TextBuffer _sharedBuffer;
 
         public ValueKind Kind;
 
@@ -54,7 +58,9 @@ namespace SpellBook.GAS.Attributes
         /// </summary>
         public string Format(float value, IFormatProvider culture = null)
         {
-            return Compose(null, value, Kind, culture, true);
+            TextBuffer buffer = SharedBuffer();
+            Format(buffer, value, culture);
+            return buffer.ToString();
         }
 
         /// <summary>
@@ -64,16 +70,36 @@ namespace SpellBook.GAS.Attributes
         /// </summary>
         public string Format(float value, ModifierOperation op, IFormatProvider culture = null)
         {
+            TextBuffer buffer = SharedBuffer();
+            Format(buffer, value, op, culture);
+            return buffer.ToString();
+        }
+
+        /// <summary>Como <see cref="Format(float, IFormatProvider)"/>, escrito no fim de <paramref name="into"/>. Não aloca.</summary>
+        public void Format(TextBuffer into, float value, IFormatProvider culture = null)
+        {
+            Compose(into, null, value, Kind, culture, true);
+        }
+
+        /// <summary>
+        /// Como <see cref="Format(float, ModifierOperation, IFormatProvider)"/>, escrito no fim de <paramref name="into"/>.
+        /// Não aloca.
+        /// </summary>
+        public void Format(TextBuffer into, float value, ModifierOperation op, IFormatProvider culture = null)
+        {
             switch (op)
             {
                 case ModifierOperation.Add:
                 case ModifierOperation.AddFinal:
-                    return Compose(SignOf(value), Math.Abs(value), Kind, culture, true);
+                    Compose(into, SignOf(value), Math.Abs(value), Kind, culture, true);
+                    break;
                 case ModifierOperation.Multiply:
                 case ModifierOperation.MultiplyCompound:
-                    return Compose(SignOf(value), Math.Abs(value), ValueKind.Percent, culture, false);
+                    Compose(into, SignOf(value), Math.Abs(value), ValueKind.Percent, culture, false);
+                    break;
                 default:
-                    return Compose(null, value, Kind, culture, true);
+                    Compose(into, null, value, Kind, culture, true);
+                    break;
             }
         }
 
@@ -95,31 +121,44 @@ namespace SpellBook.GAS.Attributes
 
         private static string SignOf(float value) => value < 0f ? "-" : "+";
 
-        private string Compose(string sign, float value, ValueKind kind, IFormatProvider culture, bool affixes)
+        private static TextBuffer SharedBuffer()
         {
-            IFormatProvider provider = culture ?? CultureInfo.InvariantCulture;
+            TextBuffer buffer = _sharedBuffer ??= new TextBuffer();
+            buffer.Clear();
+            return buffer;
+        }
+
+        private void Compose(TextBuffer into, string sign, float value, ValueKind kind, IFormatProvider culture, bool affixes)
+        {
+            if (into == null) throw new ArgumentNullException(nameof(into));
+
             string format = DecimalFormats[Math.Clamp(Decimals, 0, MaxDecimals)];
-            string body;
+            if (affixes) into.Append(Prefix);
+            into.Append(sign);
             switch (kind)
             {
                 case ValueKind.Percent:
-                    body = (value * 100f).ToString(format, provider) + "%";
+                    into.Append(value * 100f, format, culture);
+                    into.Append("%");
                     break;
                 case ValueKind.PercentPoints:
-                    body = value.ToString(format, provider) + "%";
+                    into.Append(value, format, culture);
+                    into.Append("%");
                     break;
                 case ValueKind.Multiplier:
-                    body = "x" + value.ToString(format, provider);
+                    into.Append("x");
+                    into.Append(value, format, culture);
                     break;
                 case ValueKind.Seconds:
-                    body = value.ToString(format, provider) + " s";
+                    into.Append(value, format, culture);
+                    into.Append(" s");
                     break;
                 default:
-                    body = value.ToString(format, provider);
+                    into.Append(value, format, culture);
                     break;
             }
 
-            return affixes ? string.Concat(Prefix, sign, body, Suffix) : string.Concat(sign, body);
+            if (affixes) into.Append(Suffix);
         }
     }
 }

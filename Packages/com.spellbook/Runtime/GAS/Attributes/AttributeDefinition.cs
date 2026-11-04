@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Text;
 using SpellBook.Core.Validation;
 using SpellBook.Tags;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SpellBook.GAS.Attributes
 {
@@ -30,11 +32,23 @@ namespace SpellBook.GAS.Attributes
 
     [CreateAssetMenu(fileName = "NewAttribute", menuName = "GAS/Attribute Definition")]
     [HelpURL(DocUrls.Gas + "#attributedefinition")]
-    public class AttributeDefinition : ScriptableObject, IValidatable
+    public class AttributeDefinition : ScriptableObject, ISerializationCallbackReceiver, IValidatable
     {
         public Sprite Icon;
 
-        public string DisplayName;
+        [Tooltip("Nome exibido do atributo, com chave opcional para o provedor de texto.")]
+        [SerializeField] private LocalizedText localizedName;
+
+        // Só leitura do formato 2.x ("DisplayName: texto"); convertido em OnAfterDeserialize (ADR 0009). Sai antes da 3.0 final.
+        [FormerlySerializedAs("DisplayName")]
+        [SerializeField, HideInInspector] private string legacyDisplayName;
+
+        /// <summary>Nome exibido; resolva com <see cref="LocalizedText.Resolve"/> ou leia o texto padrão em <see cref="LocalizedText.Text"/>.</summary>
+        public LocalizedText DisplayName
+        {
+            get => localizedName;
+            set => localizedName = value;
+        }
 
         public AttributeType Type = AttributeType.Primary;
 
@@ -204,6 +218,15 @@ namespace SpellBook.GAS.Attributes
             }
 
             return false;
+        }
+
+        void ISerializationCallbackReceiver.OnBeforeSerialize() { }
+
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            if (string.IsNullOrEmpty(legacyDisplayName)) return;
+            localizedName = new LocalizedText(null, legacyDisplayName);
+            legacyDisplayName = null;
         }
     }
 }

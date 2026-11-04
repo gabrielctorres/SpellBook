@@ -29,6 +29,43 @@ namespace SpellBook.GAS.Tests
         // Membro protected internal: o override muda de forma conforme o compilador (ADR 0034, emenda de 2026-11-02).
         private static readonly Regex ProtectedInternal = new Regex(@"\bprotected\s+internal\b");
 
+        // Criação e destruição de objetos de gameplay fora do spawner (ADR 0015) e som solto (CA26 do B-014).
+        private static readonly Regex GameplayObjects =
+            new Regex(@"\bPoolManager\.Instance\b|\bInstantiate\s*\(|\bDestroy(Immediate)?\s*\(|\bPlayClipAtPoint\b");
+
+        // Som sem dono que devolva o objeto (ADR 0015).
+        private static readonly Regex PlayClipAtPoint = new Regex(@"\bPlayClipAtPoint\b");
+
+        // As ações de apresentação que saíram do GAS, também pelo nome antigo do [MovedFrom] (ADR 0037, item 6).
+        private static readonly Regex RemovedPresentationActions =
+            new Regex(@"\b(PlayCueAction|SpawnVFXAction|SpawnVFXEffectAction)\b");
+
+        // Criar ou destruir objeto direto, sem spawner (não casa o nome de um campo como DestroyOnRemoval).
+        private static readonly Regex CreateOrDestroy = new Regex(@"\b(Instantiate|Destroy|DestroyImmediate)\s*\(");
+
+        // O contrato antigo da descrição (Spec do B-008, P3).
+        private static readonly Regex OldDescriptionApi =
+            new Regex(@"\bGetFullDescription\b|\bGetDescription\s*\(|GetText\s*\(\s*GameplayAbility\b");
+
+        // Marcação de rich text (CA15 do B-008).
+        private static readonly Regex RichText = new Regex(@"<color|<b>|<i>|<size", RegexOptions.IgnoreCase);
+
+        // Cultura fixa criada no código (CA15 do B-008).
+        private static readonly Regex FixedCulture = new Regex(@"new\s+CultureInfo\s*\(|CultureInfo\.(GetCultureInfo|CreateSpecificCulture)\b");
+
+        private static readonly Regex InvariantCulture = new Regex(@"\bInvariantCulture\b");
+
+        // Onde a cultura invariante não fixa texto exibido: fallback sem cultura (AttributeDisplay, Q3 do B-005; contexto
+        // sem provedor, Design 4 do B-008) e leitura de número e de fórmula.
+        private static readonly string[] InvariantCultureAllowed =
+        {
+            "Attributes/AttributeDisplay.cs",
+            "Description/DescriptionContext.cs",
+            "Values/ScalableFloat.cs",
+            "Attributes/Formulas/ExpressionFormula.cs",
+            "Attributes/Formulas/Utils/ExpressionParser.cs"
+        };
+
         [Test]
         public void GasSources_DoNotReadUnityTimeOrWaitForSeconds()
         {
@@ -83,6 +120,94 @@ namespace SpellBook.GAS.Tests
             violations.AddRange(Scan(ProtectedInternal, Path.Combine("Runtime", "GAS.Bridges")));
 
             Assert.That(violations, Is.Empty);
+        }
+
+        /// <summary>
+        /// O thinker conta o tempo pelo ASC dele e cria e devolve objetos só pelo spawner: nenhum fonte de
+        /// <c>Runtime/GAS/Thinkers</c> usa corrotina, o relógio da Unity, <c>Instantiate</c>, <c>Destroy</c>,
+        /// a instância global do pool nem <c>PlayClipAtPoint</c> (CA26 do B-014; ADR 0014, 0015 e 0036).
+        /// </summary>
+        [Test]
+        public void ThinkerSources_NoCoroutineTimeOrInstantiate()
+        {
+            string thinkers = Path.Combine("Runtime", "GAS", "Thinkers");
+            var violations = new List<string>();
+            violations.AddRange(Scan(Coroutines, thinkers));
+            violations.AddRange(Scan(Forbidden, thinkers));
+            violations.AddRange(Scan(GameplayObjects, thinkers));
+            Assert.That(violations, Is.Empty);
+        }
+
+        /// <summary>
+        /// Nenhum <c>.cs</c> do pacote toca som por <c>AudioSource.PlayClipAtPoint</c>: o som é do roteador de cues (CA11;
+        /// ADR 0015). <c>Tests</c> fica de fora porque esta guarda cita o nome.
+        /// </summary>
+        [Test]
+        public void NoPlayClipAtPoint_InPackage()
+        {
+            var violations = new List<string>();
+            foreach (string folder in new[] { "Runtime", "Editor", "Samples~" })
+            {
+                if (Directory.Exists(Path.Combine(PackageRoot(), folder))) violations.AddRange(Scan(PlayClipAtPoint, folder));
+            }
+
+            Assert.That(violations, Is.Empty);
+        }
+
+        /// <summary>
+        /// O <c>PlayCueAction</c> e o <c>SpawnVFXAction</c> saíram do GAS, arquivo e nome, e nenhuma ação do GAS cria ou
+        /// destrói objeto: VFX e som são do módulo Cues, pelas ações do Bridges (CA16; ADR 0037, item 6).
+        /// </summary>
+        [Test]
+        public void GasHasNoVfxOrCueActions()
+        {
+            string root = PackageRoot();
+            var violations = new List<string>();
+            const string playCue = "Abilities/Actions/PlayCueAction.cs";
+            if (File.Exists(Path.Combine(root, "Runtime", "GAS", playCue))) violations.Add($"Runtime/GAS/{playCue} existe");
+            violations.AddRange(Scan(RemovedPresentationActions, "Runtime"));
+            violations.AddRange(Scan(RemovedPresentationActions, "Editor"));
+            violations.AddRange(Scan(CreateOrDestroy, Path.Combine("Runtime", "GAS"), onlyFilesMatching: ActionDeclaration));
+
+            Assert.That(violations, Is.Empty);
+        }
+
+        /// <summary>
+        /// O contrato antigo da descrição saiu do pacote: o arquivo, o <c>GetText(habilidade, origem)</c> do elemento, o
+        /// <c>GetFullDescription</c> e o <c>GameplayAbility.GetDescription</c> (Spec do B-008, P3).
+        /// </summary>
+        [Test]
+        public void OldGetTextGone()
+        {
+            var violations = new List<string>();
+            const string old = "Abilities/AbilityDescription.cs";
+            if (File.Exists(Path.Combine(PackageRoot(), "Runtime", "GAS", old))) violations.Add($"Runtime/GAS/{old} existe");
+            violations.AddRange(Scan(OldDescriptionApi, "Runtime"));
+            violations.AddRange(Scan(OldDescriptionApi, "Editor"));
+
+            Assert.That(violations, Is.Empty);
+        }
+
+        /// <summary>
+        /// O runtime do GAS não escreve marcação nem fixa cultura em texto exibido (CA15 do B-008). Exceções: a cor no
+        /// texto do Console do <c>DebugLogAction</c>, que o jogador não vê, e a cultura invariante nos arquivos de
+        /// <see cref="InvariantCultureAllowed"/>.
+        /// </summary>
+        [Test]
+        public void GasRuntime_HasNoRichTextNorFixedCulture()
+        {
+            string gas = Path.Combine("Runtime", "GAS");
+            var violations = new List<string>();
+            violations.AddRange(Scan(RichText, gas).FindAll(line => !line.Contains("Debug.Log")));
+            violations.AddRange(Scan(FixedCulture, gas));
+            violations.AddRange(Scan(InvariantCulture, gas).FindAll(line => !IsInvariantCultureAllowed(line)));
+
+            Assert.That(violations, Is.Empty);
+        }
+
+        private static bool IsInvariantCultureAllowed(string violation)
+        {
+            return Array.Exists(InvariantCultureAllowed, file => violation.StartsWith("Runtime/GAS/" + file + ":", StringComparison.Ordinal));
         }
 
         /// <summary>

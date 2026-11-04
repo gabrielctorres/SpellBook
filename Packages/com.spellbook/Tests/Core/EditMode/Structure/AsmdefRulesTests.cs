@@ -17,10 +17,22 @@ namespace SpellBook.Core.Tests.Structure
         /// <summary>Módulos de runtime da lista final do CA1 e do CA32.</summary>
         private static readonly string[] RuntimeModules =
         {
-            "Core", "Time", "Events", "Pooling", "Tags", "GAS", "GAS.Bridges", "Teams", "Cues",
+            "Core", "Time", "Events", "Pooling", "Tags", "GAS", "GAS.Bridges", "Teams", "Cues", "Localization",
         };
 
-        private static readonly string[] EditorModules = { "Core", "Events", "Time", "Tags", "Pooling", "GAS", "GAS.Bridges", "Teams", "Cues" };
+        /// <summary>Módulos opcionais de integração: compilam só com o pacote externo (ADR 0038, itens 6 e 7).</summary>
+        private static readonly string[] OptionalModules = { "SpellBook.Localization", "SpellBook.Localization.Editor" };
+
+        /// <summary>Asmdefs do adaptador: os únicos que podem referenciar o Unity Localization e o próprio adaptador (CA10).</summary>
+        private static readonly string[] AdapterAsmdefs =
+        {
+            "SpellBook.Localization", "SpellBook.Localization.Editor", "SpellBook.Localization.Tests.EditMode",
+        };
+
+        private static readonly string[] EditorModules =
+        {
+            "Core", "Events", "Time", "Tags", "Pooling", "GAS", "GAS.Bridges", "Teams", "Cues", "Localization",
+        };
 
         private static readonly string[] PlayModeModules = { "Core", "Time", "Events", "GAS", "GAS.Bridges", "Cues" };
 
@@ -67,13 +79,96 @@ namespace SpellBook.Core.Tests.Structure
                     violations.Add($"{asmdef.Path}: autoReferenced não é true");
                 }
 
-                if (asmdef.Data.defineConstraints.Length > 0)
+                if (asmdef.Data.defineConstraints.Length > 0 && !OptionalModules.Contains(asmdef.Data.name))
                 {
                     violations.Add($"{asmdef.Path}: defineConstraints não está vazio");
                 }
             }
 
             Assert.That(violations, Is.Empty);
+        }
+
+        [Test]
+        public void OptionalModule_OnlyConstraintIsOwnVersionDefine()
+        {
+            List<AsmdefFile> optional = PackageFiles.Asmdefs().Where(a => OptionalModules.Contains(a.Data.name)).ToList();
+            var violations = new List<string>();
+
+            foreach (AsmdefFile asmdef in optional)
+            {
+                string[] constraints = asmdef.Data.defineConstraints;
+                VersionDefineData[] defines = asmdef.Data.versionDefines;
+                if (constraints.Length != 1 || defines.Length != 1 || constraints[0] != defines[0].define)
+                {
+                    violations.Add($"{asmdef.Path}: a única defineConstraints tem de ser o símbolo do próprio versionDefines");
+                }
+            }
+
+            Assert.That(optional.Select(a => a.Data.name), Is.EquivalentTo(OptionalModules), "módulo opcional sem asmdef");
+            Assert.That(violations, Is.Empty);
+        }
+
+        [Test]
+        public void LocalizationAsmdef_ReferencesCoreAndUnityLocalization()
+        {
+            AsmdefFile localization = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.Localization");
+
+            Assert.That(localization, Is.Not.Null, "não existe asmdef SpellBook.Localization");
+            Assert.That(localization.Path, Is.EqualTo("Runtime/Localization/SpellBook.Localization.asmdef"));
+            Assert.That(localization.Kind, Is.EqualTo(AsmdefKind.Runtime));
+            Assert.That(localization.ReferenceNames, Is.EquivalentTo(new[] { "SpellBook.Core", "Unity.Localization" }));
+            Assert.That(localization.Data.versionDefines.Select(v => (v.name, v.define)),
+                Is.EqualTo(new[] { ("com.unity.localization", "SPELLBOOK_UNITY_LOCALIZATION") }));
+        }
+
+        [Test]
+        public void LocalizationEditor_ConstraintMatchesRuntime()
+        {
+            List<AsmdefFile> asmdefs = PackageFiles.Asmdefs().ToList();
+            AsmdefFile runtime = asmdefs.Single(a => a.Data.name == "SpellBook.Localization");
+            AsmdefFile editor = asmdefs.SingleOrDefault(a => a.Data.name == "SpellBook.Localization.Editor");
+
+            Assert.That(editor, Is.Not.Null, "não existe asmdef SpellBook.Localization.Editor");
+            Assert.That(editor.Path, Is.EqualTo("Editor/Localization/SpellBook.Localization.Editor.asmdef"));
+            Assert.That(editor.Kind, Is.EqualTo(AsmdefKind.Editor));
+            Assert.That(editor.ReferenceNames,
+                Is.EquivalentTo(new[] { "SpellBook.Core", "SpellBook.Localization", "SpellBook.Core.Editor" }));
+            Assert.That(editor.Data.defineConstraints, Is.EqualTo(runtime.Data.defineConstraints));
+            Assert.That(editor.Data.versionDefines.Select(v => (v.name, v.expression, v.define)),
+                Is.EqualTo(runtime.Data.versionDefines.Select(v => (v.name, v.expression, v.define))));
+        }
+
+        [Test]
+        public void NoAsmdefOutsideAdapter_ReferencesUnityLocalization()
+        {
+            List<AsmdefFile> asmdefs = PackageFiles.Asmdefs().ToList();
+            var violations = new List<string>();
+
+            foreach (AsmdefFile asmdef in asmdefs.Where(a => !AdapterAsmdefs.Contains(a.Data.name)))
+            {
+                foreach (string reference in asmdef.ReferenceNames)
+                {
+                    bool unityLocalization = reference.StartsWith("Unity.Localization", StringComparison.Ordinal);
+                    bool adapter = AdapterAsmdefs.Contains(reference);
+                    if (unityLocalization || adapter)
+                    {
+                        violations.Add($"{asmdef.Path}: {asmdef.Data.name} não pode referenciar {reference}");
+                    }
+                }
+            }
+
+            Assert.That(asmdefs.Select(a => a.Data.name).Intersect(AdapterAsmdefs), Is.EquivalentTo(AdapterAsmdefs),
+                "a varredura não achou os asmdefs do adaptador");
+            Assert.That(violations, Is.Empty);
+        }
+
+        [Test]
+        public void PackageJson_DoesNotDeclareLocalization()
+        {
+            string packageJson = PackageFiles.ReadText("package.json");
+
+            Assert.That(packageJson, Does.Contain("\"name\": \"com.spellbook\""), "o package.json lido não é o do SpellBook");
+            Assert.That(packageJson, Does.Not.Contain("com.unity.localization"));
         }
 
         [Test]
@@ -245,6 +340,7 @@ namespace SpellBook.Core.Tests.Structure
                 Is.EquivalentTo(new[]
                 {
                     "SpellBook.Core", "SpellBook.Tags", "SpellBook.Time", "SpellBook.GAS", "SpellBook.Events", "SpellBook.Teams",
+                    "SpellBook.Cues",
                 }));
             Assert.That(LoadedAssembly("SpellBook.GAS.Bridges"), Is.Not.Null, "o assembly SpellBook.GAS.Bridges não foi compilado");
         }
@@ -263,6 +359,22 @@ namespace SpellBook.Core.Tests.Structure
                 "o Teams referencia o GAS ou o Bridges");
             Assert.That(LoadedAssembly("SpellBook.GAS").GetReferencedAssemblies().Select(a => a.Name),
                 Has.None.EqualTo("SpellBook.Teams"), "o assembly do GAS compilou com o Teams");
+        }
+
+        [Test]
+        public void BridgesReferencesCues_GasDoesNot()
+        {
+            List<AsmdefFile> asmdefs = PackageFiles.Asmdefs().ToList();
+            AsmdefFile bridges = asmdefs.Single(a => a.Data.name == "SpellBook.GAS.Bridges");
+            AsmdefFile gas = asmdefs.Single(a => a.Data.name == "SpellBook.GAS");
+            AsmdefFile cues = asmdefs.Single(a => a.Data.name == "SpellBook.Cues");
+
+            Assert.That(bridges.ReferenceNames, Does.Contain("SpellBook.Cues"), "o Bridges não referencia o Cues");
+            Assert.That(gas.ReferenceNames, Has.None.EqualTo("SpellBook.Cues"), "o GAS referencia o Cues");
+            Assert.That(cues.ReferenceNames.Where(r => r.StartsWith("SpellBook.GAS", StringComparison.Ordinal)), Is.Empty,
+                "o Cues referencia o GAS ou o Bridges");
+            Assert.That(LoadedAssembly("SpellBook.GAS").GetReferencedAssemblies().Select(a => a.Name),
+                Has.None.EqualTo("SpellBook.Cues"), "o assembly do GAS compilou com o Cues");
         }
 
         [Test]

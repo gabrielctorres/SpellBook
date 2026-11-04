@@ -66,9 +66,9 @@ namespace SpellBook.GAS.Tests
             Sprite icon = CreateSprite();
             SetNameAndIcon(named, "Veneno", icon);
 
-            Assert.That(plain.DisplayName, Is.Not.Null.And.Empty);
+            Assert.That(plain.DisplayName.Text, Is.Not.Null.And.Empty);
             Assert.That(plain.Icon, Is.Null);
-            Assert.That(named.DisplayName, Is.EqualTo("Veneno"));
+            Assert.That(named.DisplayName.Text, Is.EqualTo("Veneno"));
             Assert.That(named.Icon, Is.SameAs(icon));
         }
 
@@ -81,7 +81,7 @@ namespace SpellBook.GAS.Tests
 
             var instance = new ActiveEffectInstance(named, null, null);
 
-            Assert.That(instance.Effect.DisplayName, Is.EqualTo("Veneno"));
+            Assert.That(instance.Effect.DisplayName.Text, Is.EqualTo("Veneno"));
             Assert.That(instance.Effect.Icon, Is.SameAs(icon));
         }
 
@@ -92,7 +92,7 @@ namespace SpellBook.GAS.Tests
                 "  DurationPolicy: 2\n  Duration: 4\n  Period: 0\n  CanStack: 1\n  MaxStacks: 3\n");
             _legacyFolder = System.IO.Path.GetDirectoryName(AssetDatabase.GetAssetPath(effect))?.Replace('\\', '/');
 
-            Assert.That(effect.DisplayName, Is.Not.Null.And.Empty);
+            Assert.That(effect.DisplayName.Text, Is.Not.Null.And.Empty);
             Assert.That(effect.Icon, Is.Null);
             Assert.That(new[] { effect.IsBuff, effect.IsDebuff, effect.IsHidden, effect.IsPurgable }, Is.All.False);
             Assert.That(effect.Duration.Evaluate(1), Is.EqualTo(4f), "o resto do asset abre sem perda");
@@ -166,7 +166,7 @@ namespace SpellBook.GAS.Tests
         private static void SetNameAndIcon(GameplayEffect effect, string displayName, Sprite icon)
         {
             var so = new SerializedObject(effect);
-            so.FindProperty("displayName").stringValue = displayName;
+            so.FindProperty("localizedName.text").stringValue = displayName;
             so.FindProperty("icon").objectReferenceValue = icon;
             so.ApplyModifiedPropertiesWithoutUndo();
         }

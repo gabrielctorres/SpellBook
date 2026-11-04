@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Threading;
 using NUnit.Framework;
 using SpellBook.Core;
+using SpellBook.Core.Text;
 using SpellBook.GAS.Attributes;
 using UnityEngine;
 using UnityEngine.TestTools.Constraints;
@@ -150,7 +151,7 @@ namespace SpellBook.GAS.Tests
             Assert.That(_definition.Category, Is.Null);
 
             _category = ScriptableObject.CreateInstance<AttributeCategory>();
-            _category.DisplayName = "Ofensivo";
+            _category.DisplayName = new LocalizedText(null, "Ofensivo");
             _definition.Display.Category = _category;
 
             Assert.That(_definition.Category, Is.SameAs(_category));

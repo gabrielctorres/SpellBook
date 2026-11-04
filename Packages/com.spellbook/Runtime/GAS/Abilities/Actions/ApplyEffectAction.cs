@@ -9,13 +9,16 @@ namespace SpellBook.GAS.Abilities.Actions
 {
     /// <summary>
     /// Aplica os efeitos com a habilidade, o nível e o ponto do contexto (<see cref="EffectSpec.FromAbility"/>) nos alvos
-    /// do evento e, com <see cref="ApplyToSource"/>, em quem lançou.
+    /// do seletor da ação ou no alvo corrente do <see cref="ForEachTargetAction"/>; sem eles, nos alvos do evento. Com
+    /// <see cref="ApplyToSource"/>, também em quem lançou.
     /// </summary>
     [Serializable, TypeCategory("Efeito", Summary = "Aplica efeitos nos alvos e, se marcado, em quem lançou.")]
     public class ApplyEffectAction : GameplayAction
     {
         public List<GameplayEffect> Effects;
         public bool ApplyToSource = false;
+
+        internal override bool ReadsInstigator => true;
 
         protected override ActionStatus Execute(ActionContext context, ref ActionFrame frame)
         {
@@ -26,7 +29,7 @@ namespace SpellBook.GAS.Abilities.Actions
                 foreach (var effect in Effects) context.Instigator.ApplyEffect(EffectSpec.FromAbility(effect, context));
             }
 
-            List<AbilitySystemComponent> targets = context.EventTargets;
+            List<AbilitySystemComponent> targets = context.HasOwnTargets ? context.Targets : context.EventTargets;
             targets.RemoveAll(t => t == null);
             // Cópia: aplicar um efeito pode disparar ações que alteram a lista de alvos
             var snapshot = targets.ToArray();

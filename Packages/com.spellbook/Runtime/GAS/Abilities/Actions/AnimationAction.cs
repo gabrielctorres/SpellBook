@@ -17,6 +17,8 @@ namespace SpellBook.GAS.Abilities.Actions
 
         public override bool UsesTargets => false;
 
+        internal override bool ReadsInstigator => true;
+
         protected override ActionStatus Execute(ActionContext context, ref ActionFrame frame)
         {
             if (context.Instigator == null) return ActionStatus.Done;

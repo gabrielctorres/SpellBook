@@ -211,6 +211,20 @@ Todos usam a Unity e seguem o WIP 1. Tempo por `asc.Tick` com `ManualTimeSource`
 - Critério de pronto: testes verdes; a suíte do B-012 sem edição.
 - Tamanho estimado: ~320 linhas; 7 arquivos. Depende de: EV21.
 
+### Detalhe (2026-11-03)
+- CA: nenhum CA do PRD diretamente; base do CA5 (TK5) e do cue contínuo (CU8). Design 1 e ADR 0036, itens 4 e 5.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/GAS/Actions/ExecutionLink.cs` (novo): `public enum ExecutionLink { Holds, FollowsOwner }`.
+  - `Runtime/GAS/Actions/ActionStatus.cs:24,44`: `StatusKind.WaitUntilCancelled` e `public static ActionStatus WaitUntilCancelled`.
+  - `Runtime/GAS/Actions/ActionRunner.cs`: estado `EntryState.Suspended` (`:82`), que pára o avanço sem ler o relógio (`:246-255`, `:288-303`); campo `Execution.Link` (`:96-114`); `Run(..., link)` (`:133-152`); `HasRunning` ignora as `FollowsOwner` (`:154-161`); `Start` recebe o vínculo (`:208-223`), herdado pelas filhas em paralelo (`:403-417`) e pela execução agendada do `DelayedAction` com dono (`:357-377`).
+  - `Runtime/GAS/Core/AbilitySystemComponent.cs`: `RunActions(actions, context, owner, ExecutionLink link = ExecutionLink.Holds)` (`:365-375`); doc de `HasRunningActions` (`:385-390`); `EndAbility` cancela as execuções que restam do spec antes das listas "Ao terminar"/"Ao ser cancelada" e do `OnAbilityEnded` (`:1275-1297`). A remoção da instância de efeito já cancela tudo do dono (`:2336`), sem mudança.
+  - `Tests/GAS/PlayMode/ExecutionLinkTests.cs` (novo).
+  - Sem `gas.md` nem `CHANGELOG.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007), e o ticket não quebra nada (parâmetro opcional).
+- Testes red (PlayMode, `SpellBook.GAS.Tests.PlayMode`, classe `ExecutionLinkTests`): `FollowsOwner_CancelledWhenActivationEnds_DoesNotHoldIt`; `FollowsOwner_CancelledWithEffectRemoval_AllReasons` (Removed, RemovedByTag, Expired, StacksDepleted); `FollowsOwner_CancelledOnAbilityCancel`; `WaitUntilCancelled_NeverEndsByTime`; `Holds_StillDefault_DelayedRuleUnchanged`; `FollowsOwner_DoesNotAllocate_AfterWarmup`.
+- Critério de pronto: os testes acima verdes pelo filtro `\.ExecutionLinkTests\.`, e `ActionRunnerTests`, `DelayedActionTests`, `AbilityEndCancelListsTests`, `EffectEventActionsTests` e `RunningActionsQueryTests` (suíte do B-012) verdes sem edição.
+- Tamanho: ~360 linhas e 5 arquivos, pela ADR 0042 (medido no diff: 357 linhas). Exceção: nenhuma.
+- Commit: `feat(gas): vínculo FollowsOwner e espera até cancelar`
+
 ### TK2 — Projétil: ASC no pai, perfuração e um acerto por alvo
 - Escopo: `Runtime/GAS/Abilities/Projectiles/Projectile.cs`, `Tests/GAS/PlayMode/ProjectilePierceTests.cs` (novo), `Tests/Testing/GasFactory.cs` (`CreateProjectile`, alvo com colisor filho), `gas.md` (`#projectile`), `CHANGELOG.md` (correção do ASC no pai).
 - Testes red:
@@ -225,6 +239,24 @@ Todos usam a Unity e seguem o WIP 1. Tempo por `asc.Tick` com `ManualTimeSource`
 - Critério de pronto: CA17, CA18 e CA21 a CA24 verdes.
 - Tamanho estimado: ~430 linhas; 5 arquivos. Depende de: TK1.
 
+### Detalhe (2026-11-03)
+- CA: CA17, CA18, CA21, CA22, CA23, CA24 e a parte do projétil do CA27 (C10, C11, C15, C16). Design 3, sem `ImpactFilter`, `OnEnded` e `End(reason)` (TK3).
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/GAS/Abilities/Projectiles/Projectile.cs`:
+    - campos públicos `Pierce = 0`, `UnlimitedPierce = false` e `HitEachTargetOnce = true` (seção nova `[Header("Pierce")]` depois de `Lifetime`, `:48-49`);
+    - estado: vetor "já acertou" de 32 posições pré-alocado, com contador, e o contador de impactos (`:80-86`); `OnEnable` limpa os dois (`:130-139`, CA24);
+    - o contexto derivado no `Setup` (`:104-128`) passa a ser um modelo guardado: cada impacto deriva dele (`CreateDerived`), em vez de consumir na primeira vez. Com perfuração, o segundo impacto mantém instigador, habilidade e nível. O modelo volta ao pool do ASC dono no término (`ReturnToPool`, `:289-301`) ou num novo `Setup`;
+    - `HandleCollision` (`:313-321`): ignora depois do término; acha o ASC subindo a hierarquia com `TryGetComponent` (C15); sem ASC, o caminho de hoje (impacto sem alvo e término, sem gastar perfuração; o `Obstacle` é do TK3); dono sem `DamageOwner` ignora (agora também por colisor filho do dono); com `HitEachTargetOnce` e perfuração, alvo já no vetor, ou o vetor cheio, conta como repetido e é ignorado (P6);
+    - `HandleImpact` (`:323-338`): roda `OnImpact`, registra o alvo e conta o impacto; termina só com `impactos > Pierce` e sem `UnlimitedPierce`.
+  - `Tests/Testing/GasFactory.cs`: `CreateProjectile<T>(TimeSourceAsset, Action<T> configure)` (projétil parado, sem limite de vida e sem invulnerabilidade, configurado antes do `OnEnable`) e `AddChildCollider(AbilitySystemComponent)` (filho com `BoxCollider`).
+  - `Tests/GAS/PlayMode/ProjectilePierceTests.cs` (novo).
+  - Sem `SpawnProjectileAction.cs`: os campos ficam no prefab. Sem `gas.md` nem `CHANGELOG.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007), e o ASC no pai é correção (seção "Quebras"), sem `!`.
+  - O vínculo `FollowsOwner` (TK1) não entra: o impacto roda sem dono, como hoje.
+- Testes red (PlayMode, `SpellBook.GAS.Tests.PlayMode`, classe `ProjectilePierceTests`): `Pierce2_HitsThree_ImpactOncePerTarget_EndsOnThird`; `Pierce_EveryImpact_KeepsAbilityContext`; `Pierce_Obstacle_EndsAtOnce`; `Unlimited_PassesAll_EndsByLifetime`; `ChildCollider_HitsParentAsc_TwoCollidersOneHit` (física real, gatilho); `NoNewFields_BehavesAsToday`; `DamageOwner_Invulnerability_Lifetime_Homing_Unchanged`; `FromPool_HitSetCleared`; `HitSetBeyond32_CountsAsRepeated`; `Impacts_1000_WithPierce_DoNotAllocate`.
+- Critério de pronto: os testes acima verdes pelo filtro `\.ProjectilePierceTests\.`, e os `Projectile_*` de `AbilityWaitTests`, `SpawnActionsTests`, `EffectContextTests` e `TargetSelectorTests` verdes sem edição.
+- Tamanho: ~450 linhas e 3 arquivos, pela ADR 0042 (medido no diff: 450 linhas). Exceção: nenhuma.
+- Commit: `feat(gas): perfuração do projétil e ASC no pai`
+
 ### TK3 — Projétil: "Ao terminar" com motivo e filtro de impacto
 - Escopo: `Projectile.cs` (`OnEnded`, `End(reason)`, `ImpactFilter`), `Runtime/GAS/Actions/ActionEndReason.cs` (novo), `ActionContext.cs` (`EndReason`), `Tests/GAS/PlayMode/ProjectileEndTests.cs`, `ProjectileImpactFilterTests.cs` (novos), `gas.md`, `CHANGELOG.md`.
 - Testes red:
@@ -234,6 +266,27 @@ Todos usam a Unity e seguem o WIP 1. Tempo por `asc.Tick` com `ManualTimeSource`
   - `End_RunsOnCasterAsc_AtCurrentPosition`.
 - Critério de pronto: CA19 e CA20 verdes.
 - Tamanho estimado: ~420 linhas; 7 arquivos. Depende de: TK2, EV8 (com a emenda da ADR 0035).
+
+### Detalhe (2026-11-03)
+- CA: CA19 e CA20 (C12, C13, C14). Design 2 e 3: `OnEnded`, `End(reason)` e `ImpactFilter`. Validação do projétil fica no TK7.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/GAS/Actions/ActionEndReason.cs` (novo): `public enum ActionEndReason { None, Hit, Lifetime, Obstacle, Released, Expired, OwnerGone, ExecutionEnded }`.
+  - `Runtime/GAS/Actions/ActionContext.cs`: `public ActionEndReason EndReason { get; internal set; }` (depois de `:81`), zerado no `Reset` (`:149-174`); o `CreateDerived` não o copia.
+  - `Runtime/GAS/Abilities/Projectiles/Projectile.cs`:
+    - campos `[SerializeReference, TypePicker] Condition<ConditionContext> ImpactFilter` e `[SerializeReference, TypePicker, ActionEvent("Ao terminar", DefaultTarget.EventTargets, false)] List<GameplayAction> OnEnded` (perto de `OnImpact`, `:68-70`);
+    - `Setup(spawner, parentContext, …)` (`:135-144`) guarda o modelo de contexto sempre que há `parentContext`, não só com impacto: o término e o filtro também leem habilidade, nível e instigador;
+    - `FixedUpdate` (`:194-199`): fim do `Lifetime` chama `End(Lifetime)`;
+    - `ReturnToPool()` (`:316-329`) vira `End(Released)`; o corpo de hoje passa a `protected virtual void End(ActionEndReason reason)`, que antes de devolver roda `OnEnded` uma vez no ASC de quem lançou (com `Source` ativo), com `EndReason` e `Point` = posição atual, sem alvo e sem dono; sem ações, o caminho de hoje (C16);
+    - `HandleCollision` (`:341-354`): depois do dono e do repetido, o filtro de candidato com `Owner` = `Source`, `Target` = `AtUnit(ASC)`, habilidade e nível do modelo; falha ignora o choque (C14);
+    - `HandleImpact` (`:383-405`): termina com `End(Hit)` por perfuração e `End(Obstacle)` sem ASC. O colisor sem ASC continua rodando "No impacto" sem alvo antes de terminar, como hoje (C16, e o `NoNewFields_BehavesAsToday` do TK2 sem edição).
+  - `Tests/GAS/PlayMode/ProjectileEndTests.cs` e `ProjectileImpactFilterTests.cs` (novos).
+  - Sem `gas.md` nem `CHANGELOG.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007), e o ticket só acrescenta (a seção "Quebras" já lista o término por `Lifetime` com `OnEnded` como correção).
+- Testes red (PlayMode, `SpellBook.GAS.Tests.PlayMode`):
+  - `ProjectileEndTests`: `End_RunsOnce_WithReason_HitLifetimeObstacleReleased`; `End_WithoutActions_SameAsToday`; `End_RunsOnCasterAsc_AtCurrentPosition`; `EndReason_IsNone_InImpact`.
+  - `ProjectileImpactFilterTests`: `ImpactFilter_Fails_PassesThrough_NoImpactNoPierceSpentNoEnd` (`TagQueryCondition` com sujeito `TargetUnit`); `ImpactFilter_OwnerIsCaster_WithAbilityLevel`; `ImpactFilter_Passing_OwnerStillIgnoredWithoutDamageOwner`.
+- Critério de pronto: os testes acima verdes pelo filtro `\.ProjectileEndTests\.;\.ProjectileImpactFilterTests\.`, e `ProjectilePierceTests`, os `Projectile_*` de `AbilityWaitTests`, `SpawnActionsTests`, `EffectContextTests` e `TargetSelectorTests` verdes sem edição.
+- Tamanho: ~510 linhas e 5 arquivos, pela ADR 0042 (medido no diff: 512 linhas, 403 delas nos dois testes). Exceção: até +30% (+2%), porque cada classe de teste traz os próprios auxiliares (projétil que expõe o choque, ações e condição de registro), como o `ProjectilePierceTests`, sem tocar no `GasFactory`.
+- Commit: `feat(gas): término com motivo e filtro de impacto do projétil`
 
 ### TK4 — `GameplayThinker`: vida, pulsos e término
 - Escopo: `Runtime/GAS/Thinkers/GameplayThinker.cs`, `ThinkerBehaviour.cs`, `ThinkerLifeAction.cs` (novos), `Tests/GAS/PlayMode/ThinkerTests.cs` (novo), `Tests/Testing/GasFactory.cs` (`CreateThinkerPrefab`), `Runtime/Core/DocUrls.cs` (`Thinkers = Base + "modulos/thinkers-e-auras/"`), `Documentation~/manual/modulos/thinkers-e-auras.md` (nova), `CHANGELOG.md`.
@@ -249,6 +302,26 @@ Todos usam a Unity e seguem o WIP 1. Tempo por `asc.Tick` com `ManualTimeSource`
 - Critério de pronto: CA1, CA2, CA6, CA8 e CA9 verdes; `HelpUrlTests` e `ManualLinksTests` verdes.
 - Tamanho estimado: ~480 linhas; 8 arquivos (1 página). Depende de: TK1.
 
+### Detalhe (2026-11-03)
+- CA: CA1, CA2, CA6, CA8, CA9 e a parte do thinker do CA26 (C1, C2, P2). Design 4 (ciclo, `End`, thinker na cena) e ADR 0036, itens 1 a 3. Criador, `followOwner`, `endWithExecution` e a vigia ficam no TK5; a aura no TK6; o `Validate` no TK7.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/GAS/Thinkers/GameplayThinker.cs` (novo): `[RequireComponent(typeof(AbilitySystemComponent))]`, `[HelpURL(DocUrls.Thinkers + "#gameplaythinker")]`; `ScalableFloat duration` e `pulseInterval`, `[SerializeReference, TypePicker] ThinkerBehaviour behaviour` e as listas `onCreated`, `onPulse` e `onEnded` com `[ActionEvent(..., DefaultTarget.Owner, true)]` (o ASC do thinker entra nos alvos do evento, como o dono nas listas de efeito, porque `ApplyEffectAction` e `PlayCueAction` leem `EventTargets`); `Begin(AbilitySystemComponent creator, ActionContext creationContext, SpawnerAsset spawner)` copia instigador (o criador), habilidade, spec, nível e `EffectContext`, avalia duração e intervalo no nível e na tabela da habilidade e roda a vida no ASC do thinker com dono lógico = o thinker; `Start` chama `Begin(null, null, null)` se ninguém chamou; `End(ActionEndReason)` uma vez (cancela as execuções do thinker, roda `onEnded` com `EndReason`, chama `behaviour.OnEnd`, cancela o que `onEnded` deixou pendente e volta por `SpawnerAsset.OrDefault(spawner)`); `OnEnable` zera o estado do ciclo; `OnDisable` sem `End` cancela as execuções do thinker.
+  - `Runtime/GAS/Thinkers/ThinkerBehaviour.cs` (novo): `[Serializable] abstract`, com `CreateState`, `OnBegin`, `OnPulse`, `OnEnd` e `Validate` virtuais. O estado é criado uma vez no `Awake` do thinker.
+  - `Runtime/GAS/Thinkers/ThinkerLifeAction.cs` (novo, `internal sealed`, fora do catálogo): fase 0 chama `behaviour.OnBegin` e roda `onCreated`; depois espera com `ActionStatus.Wait` até o próximo marco (pulso ou fim). No pulso chama `behaviour.OnPulse` e roda `onPulse` como execução própria; no mesmo instante, o pulso vem antes do fim (`End(Expired)`). Sem duração e sem intervalo, `WaitUntilCancelled`.
+  - `Runtime/Core/DocUrls.cs:23`: `Thinkers = Base + "modulos/thinkers-e-auras/"`.
+  - `Tests/Testing/GasFactory.cs`: `CreateThinkerPrefab(duration, pulseInterval, configure)` cria um thinker inativo (modelo de prefab) com `autoTick` desligado.
+  - `Tests/GAS/PlayMode/ThinkerTests.cs` (novo).
+  - `Tests/GAS/EditMode/GasSourceScanTests.cs`: guarda textual do CA26 em `Runtime/GAS/Thinkers`.
+  - `Editor/GAS/GasEditors.cs:35`: `GameplayThinkerEditor : SpellBookEditor`, como o `ProjectileEditor` (consequência direta, ADR 0042 item 6: a guarda `SpellBookEditorCoverageTests` cobre todo `MonoBehaviour` público concreto).
+  - Sem página `thinkers-e-auras.md` nem `CHANGELOG.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007), e o ticket só acrescenta. As guardas `Documentacao` da URL nova ficam para o passe.
+  - O vínculo `FollowsOwner` não entra: as execuções do thinker são `Holds` com dono = o thinker. A lacuna do TK1 (herança do vínculo pelas filhas em paralelo e pelo `DelayedAction`) fica para quem usar esse caminho.
+- Testes red:
+  - PlayMode, `SpellBook.GAS.Tests.PlayMode`, classe `ThinkerTests`: `Created_PulsesAt1To5_EndedOnce_ThenReturnsToPool`; `Pulse_TickInSameFrameAsPulseEnd_Counts`; `SameAction_InPulseAndAbilityActivate`; `End_CancelsRunningAndDelayed_TwiceDoesNotRepeat`; `FromPool_StartsClean`; `ScenePlaced_NoCreator_RunsWithOwnAsc`; `PulseOverlap_LongPulseDoesNotDelayNext`.
+  - EditMode, `SpellBook.GAS.Tests.EditMode`, classe `GasSourceScanTests`: `ThinkerSources_NoCoroutineTimeOrInstantiate`.
+- Critério de pronto: os testes acima verdes pelo filtro `\.ThinkerTests\.` (PlayMode) e `\.GasSourceScanTests\.` (EditMode), e `HelpUrlTests`, `SpellBookEditorCoverageTests` e `SourceRulesTests` verdes (EditMode). `ManualLinksTests` é da categoria `Documentacao` e roda no passe.
+- Tamanho: ~645 linhas e 8 arquivos, pela ADR 0042 (medido no diff: 644 linhas, 309 delas no `ThinkerTests`, e 5 no `GasEditors.cs`, que entrou na revisão). Exceção: até +30% (+29%), porque os sete testes PlayMode trazem os próprios auxiliares (spawner de uma vaga, comportamento e ações de registro), e o código novo do thinker (~290 linhas) é o mínimo do Design 4 sem criador nem aura.
+- Commit: `feat(gas): GameplayThinker com vida, pulsos e término`
+
 ### TK5 — `CreateThinkerAction`, criador, seguir e terminar com a execução
 - Escopo: `Runtime/GAS/Thinkers/CreateThinkerAction.cs`, `ThinkerWatchAction.cs` (novos), `GameplayThinker.cs` (`Begin` com criador, `followOwner`, `OwnerGone`), `ActionContext.cs` (`LastCreatedThinker`), `Tests/GAS/PlayMode/CreateThinkerActionTests.cs` (novo), `thinkers-e-auras.md`, `CHANGELOG.md`.
 - Testes red:
@@ -260,6 +333,21 @@ Todos usam a Unity e seguem o WIP 1. Tempo por `asc.Tick` com `ManualTimeSource`
   - `SpawnerReturnsNull_SkipsWithWarning` (CA7, C17).
 - Critério de pronto: CA3, CA4, CA5 e CA7 verdes.
 - Tamanho estimado: ~430 linhas; 7 arquivos. Depende de: TK4.
+
+### Detalhe (2026-11-03)
+- CA: CA3, CA4, CA5 e CA7 (C3, C4, C5, C17; R6, R7, R8). Design 4 (criador, `followOwner`, `OwnerGone`, a vigia no `End`) e 5, ADR 0036, itens 1, 5 e 6. A validação da ação e do thinker fica no TK7, e a aura no TK6.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/GAS/Thinkers/CreateThinkerAction.cs` (novo): `[Serializable, TypeCategory("Mundo", Summary = …, Line = "Criar {prefab}")]`, `[HelpURL(DocUrls.Thinkers + "#createthinkeraction")]`; campos privados com propriedades `GameplayThinker prefab`, `SpawnerAsset spawner`, `ThinkerPosition position` (`Point`, `Caster`, `FirstTarget`; `Point` sem ponto usa o dono, e `FirstTarget` lê os alvos resolvidos da ação, do seletor dela quando há; sem alvo vivo, não cria) e `ThinkerRotation rotation` (`Identity`, `Caster`, `TowardPoint`). Execução: `Spawn` pelo spawner (vazio: o padrão); `null` avisa uma vez por ação e devolve `Done` (C17); o ASC do thinker recebe `SetTimeSource(context.Owner.TimeSource)`; `thinker.Begin(context.Owner, context, spawner usado)`; grava `context.LastCreatedThinker`; com `EndWithExecution` e a vida ainda em curso, começa a vigia por `context.RunFollowingOwner` e a entrega ao thinker. Devolve `Done` na hora.
+  - `Runtime/GAS/Thinkers/ThinkerWatchAction.cs` (novo, `internal sealed`, fora do catálogo): guarda `context.LastCreatedThinker` em `frame.Data` e devolve `WaitUntilCancelled`; o `OnCancel` termina o thinker se ele está ativo (o `OnDisable` do thinker cancela a vigia sem terminar), com `OwnerGone` se o ASC da vigia (`context.Owner`, o criador) está nulo ou inativo e `ExecutionEnded` nos outros casos: o `OnDisable` do ASC do criador cancela as ativações, e com elas a vigia, antes do `LateUpdate` do thinker (achado da revisão de 2026-11-03; PRD R6, CA4).
+  - `Runtime/GAS/Thinkers/GameplayThinker.cs`: campos `followOwner = false`, `endWithExecution = true` e `followRotation = false` com propriedades (`:23-33`); `_hasCreator` e a vigia (ASC e handle) no estado, limpos no `OnEnable` (`:83-94`); `LateUpdate` novo: com criador, `followOwner` copia a posição (e a rotação com `followRotation`) e, com `followOwner` ou `endWithExecution`, criador nulo ou inativo leva a `End(OwnerGone)`; `End` cancela a vigia depois do `OnEnd` do comportamento (`:137-157`); `OnDisable` cancela a vigia (`:103-106`).
+  - `Runtime/GAS/Actions/ActionContext.cs`: `public GameplayThinker LastCreatedThinker { get; internal set; }` (depois de `:83`), zerado no `Reset` (`:163-189`); `internal bool RunFollowingOwner(actions, out ActionExecutionHandle)` ao lado do público (`:121-124`).
+  - `Runtime/GAS/Actions/ActionRunner.cs`: `Follow` devolve o handle da execução (`:347-363`); `Cancel(ActionExecutionHandle)` cancela só essa execução (perto de `:149-162`); `CopyContext` copia o `LastCreatedThinker` (`:418-439`), para a vigia e a execução agendada lerem o thinker; `ActionExecutionHandle` ganha o acesso interno à execução viva (`:10-23`).
+  - `Tests/GAS/PlayMode/CreateThinkerActionTests.cs` (novo), com os próprios auxiliares (spawner de uma vaga que entrega o modelo, ações de registro), sem tocar no `GasFactory`.
+  - Sem `thinkers-e-auras.md` nem `CHANGELOG.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007), e o ticket só acrescenta (os campos novos do thinker estão na seção "Quebras" como adicionados).
+- Testes red (PlayMode, `SpellBook.GAS.Tests.PlayMode`, classe `CreateThinkerActionTests`): `Create_BySpawner_WithCreatorAbilityLevelContext_ReturnsThinker`; `TimeSource_InheritedFromCreator`; `FollowOwner_Tracks_CreatorDisabledOrDestroyed_EndsOwnerGone`; `DefaultConfig_ActivationRunning_CreatorDisabledOrDestroyed_EndsOwnerGone` (padrão `followOwner` e `endWithExecution`, com a ativação em curso); `EndWithExecution_EffectRemoved_AbilityCancelled_EndsExecutionEnded`; `EndWithExecution_ThinkerEndsFirst_WatchCancelled`; `NoFlags_OutlivesCreator`; `SpawnerReturnsNull_SkipsWithWarning`.
+- Critério de pronto: os testes acima verdes pelo filtro `\.CreateThinkerActionTests\.` (PlayMode), e `ThinkerTests` e `ExecutionLinkTests` (PlayMode) e `HelpUrlTests`, `TypeCatalogSummaryTests`, `GasSourceScanTests` e `SourceRulesTests` (EditMode) verdes sem edição.
+- Tamanho: ~640 linhas e 6 arquivos, pela ADR 0042 (medido no diff depois da correção da revisão: 641 linhas, 376 delas no teste). Exceção: até +30% (+28%), porque a classe de teste traz os próprios auxiliares (spawner e ações de registro), como o `ThinkerTests`, sem tocar no `GasFactory`, e o cancelamento da vigia pelo handle pede o `Cancel(ActionExecutionHandle)` no executor.
+- Commit: `feat(gas): CreateThinkerAction, criador e término com a execução`
 
 ### TK6 — Aura
 - Escopo: `Runtime/GAS/Thinkers/AuraBehaviour.cs` (novo), `GameplayThinker.cs` (ganchos do comportamento), `Tests/GAS/PlayMode/AuraTests.cs` (novo), `thinkers-e-auras.md`, `CHANGELOG.md`.
@@ -274,11 +362,43 @@ Todos usam a Unity e seguem o WIP 1. Tempo por `asc.Tick` com `ManualTimeSource`
 - Critério de pronto: CA10 a CA13, CA15 e CA28 verdes.
 - Tamanho estimado: ~480 linhas; 5 arquivos. Depende de: TK5, EV8 (emenda 0035).
 
+### Detalhe (2026-11-03)
+- CA: CA10, CA11, CA12, CA13, CA15 e CA28 (C6, C7, C8, C9; R9, R10, R11; P3). Design 6 e ADR 0035, itens 1 e 4. A validação da aura fica no TK7, e o filtro de time no TK8.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/GAS/Thinkers/AuraBehaviour.cs` (novo): `[Serializable, TypeCategory("Mundo", Summary = …, Line = "Aura {effect}")]`, `[HelpURL(DocUrls.Thinkers + "#aurabehaviour")]`; campos `GameplayEffect effect` e `[SerializeReference, TypePicker] AreaSelector area` (origem padrão `FirstEventTarget`, que é o ASC do thinker nos alvos do evento). Estado (`CreateState`): uma lista de entradas (alvo, instância, desfecho da aplicação) com capacidade 32 e o buffer `scratch` do pulso, sem `HashSet`. `OnBegin` faz o pulso imediato (C6). `OnPulse`: `area.Select` com `Owner` = o criador (ADR 0035, item 1; o thinker da cena usa o próprio ASC), que decide raio, filtro, `includeOwner`, máximo e ordem; sai quem não está em `scratch`, foi destruído ou teve a instância removida por outra via; entra quem está em `scratch` e não na lista, com `EffectSpec.FromAbility` (instigador = criador, habilidade e nível de criação). Só a instância `Applied` é da aura e sai pelo `RemoveEffect`; `Stacked` tira a pilha dela; `Refreshed` (instância de outra fonte, um efeito por asset no ASC) não remove nada (CA11); `AppliedInstant` não tem o que remover nem reaplica enquanto o alvo fica dentro; bloqueado não entra e tenta de novo no pulso seguinte. Ouvinte que termina o thinker no meio do pulso: a aura para e desfaz a aplicação em curso (CA28). `OnEnd` remove todas as entradas e limpa as listas (C7).
+  - `Runtime/GAS/Thinkers/GameplayThinker.cs:171`: `Begin` cria o estado do comportamento se ele foi atribuído depois do `Awake` (`:103`).
+  - `Tests/GAS/PlayMode/AuraTests.cs` (novo), com os próprios auxiliares (unidade com colisor, spawner de uma vaga, ação de registro), sem tocar no `GasFactory`.
+  - Sem `thinkers-e-auras.md` nem `CHANGELOG.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007), e o ticket só acrescenta.
+  - Sem `OnDisable` com limpeza: o thinker desligado sem `End` mantém o comportamento de TK4 (a vida para sem término); o `OnBegin` da aura desfaz as entradas do ciclo anterior com o mesmo laço de `Undo` do `OnEnd` (ignora alvo nulo e instância inativa) antes do pulso imediato (R9, R10, P3; P13).
+- Testes red (PlayMode, `SpellBook.GAS.Tests.PlayMode`, classe `AuraTests`): `Enter_Applies_InsideAtBirth_Applies_Exit_RemovesOwnInstance`; `End_RemovesFromAll_OtherSourceSameEffectKept`; `Purged_ReappliedNextPulseIfInside`; `Filter_TagOnTarget_IncludeOwner_Max_Order_StopsMatchingLoses`; `RadiusAndInterval_ByLevel_NoRecreate`; `TwoAurasSameAsset_NoSharedState`; `PulseActionCreatesDestroysThinkers_RemovesAuraEffect_NoCorruption`; `DisabledWithoutEnd_BeginAgain_UndoesPreviousCycle_EndRemoves` (achado da revisão: religado sem término, o novo ciclo desfaz o anterior e o término remove tudo).
+- Critério de pronto: os testes acima verdes pelo filtro `\.AuraTests\.` (PlayMode), e `ThinkerTests` e `CreateThinkerActionTests` (PlayMode) e `HelpUrlTests`, `TypeCatalogSummaryTests`, `GasSourceScanTests`, `SourceRulesTests` e `TypePickerUsageTests` (EditMode) verdes sem edição, e a suíte completa `!Documentacao` (EditMode e PlayMode) verde.
+- Tamanho: ~533 linhas e 3 arquivos, pela ADR 0042 (medido no diff: 533 linhas, 162 no `AuraBehaviour`, 2 no thinker e 369 no teste). Exceção: até +30% (+7%), porque a classe de teste traz os próprios auxiliares (unidade com colisor, spawner de uma vaga e ação de registro), sem tocar no `GasFactory`, como o `ThinkerTests`.
+- Commit: `feat(gas): AuraBehaviour aplica e remove o efeito por pulso (#217)`
+
 ### TK7 — Validação e Gizmo
 - Escopo: `GameplayThinker.cs`, `AuraBehaviour.cs`, `Projectile.cs`, `CreateThinkerAction.cs` (`Validate`; Gizmo no thinker), `Tests/GAS/EditMode/ThinkerValidationTests.cs` (novo), `Documentation~/manual/ferramentas/validador.md`, `CHANGELOG.md`.
 - Testes red: um por regra do Design 7 (CA30), com `propertyPath`; `CreateThinker_InInstantAbility_WithEndWithExecution_Warns`.
 - Critério de pronto: CA30 verde.
 - Tamanho estimado: ~400 linhas; 7 arquivos. Depende de: TK6.
+
+### Detalhe (2026-11-03)
+- CA: CA30 (R23) e a parte do Gizmo do R22 (a conferência visual é o CA29, no TK8). Design 7, sem o Inspector (`ActionEventsView` e cabeçalho da aura ficam no TK8).
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/GAS/Thinkers/GameplayThinker.cs:21`: `IValidatable`. `Validate`: `ScalableFloat.Validate` de `duration` e `pulseInterval`; constante negativa (erro); sem duração, sem pulso e sem `endWithExecution` (aviso em `duration`); ações em `onPulse` sem intervalo (aviso); comportamento que pulsa (`ThinkerBehaviour.Pulses`) sem intervalo (aviso: só o pulso inicial) ou com intervalo constante abaixo de 1/60 s (aviso), os dois em `pulseInterval`; sem ASC no objeto (erro; o `[RequireComponent]` impede no Editor, a regra cobre o YAML); as três listas por `ActionLists.Validate`, e, no thinker de cena (`gameObject.scene.IsValid()` e fora de cena de prévia; prefab em asset e prefab aberto no Prefab Mode ficam fora), cada ação que lê o instigador (aviso no caminho da ação); o `Validate` do comportamento com o caminho `behaviour.` na frente. `OnDrawGizmosSelected` repassa ao comportamento. `CollectScalables` (interno) junta duração, intervalo e os valores do comportamento, para a `CreateThinkerAction`.
+  - `Runtime/GAS/Thinkers/ThinkerBehaviour.cs:22-27`: internos virtuais `Pulses`, `CollectScalables(List<ScalableFloat>)` e `DrawGizmos(GameplayThinker)`.
+  - `Runtime/GAS/Thinkers/AuraBehaviour.cs:40`: `Validate`: sem efeito (erro em `effect`), efeito `Instant` (aviso em `effect`), raio constante ≤ 0 (erro em `area.radius`); `Pulses = true`; `CollectScalables` com o raio; `DrawGizmos` desenha a esfera do raio no nível 1, sem tabela, na posição do thinker.
+  - `Runtime/GAS/Thinkers/CreateThinkerAction.cs:225`: `Validate`: sem prefab (erro em `prefab`); com o resultado de uma `GameplayAbility` (`ValidationResult.Context`, o asset validado), cada `%nome` dos valores do thinker que não está na tabela da habilidade (erro em `prefab`, texto do VN9) e `EndWithExecution` numa habilidade `Instant` (aviso em `prefab`, Q1). Sem `GameplayAbility.cs`, que o DE5 toca: a regra lê a habilidade pelo `Context`.
+  - `Runtime/GAS/Abilities/Projectiles/Projectile.cs:21`: `IValidatable`. `Validate`: `Pierce` negativo (erro), `Pierce` acima de 31 (aviso), `UnlimitedPierce` com `Lifetime ≤ 0` (aviso), `HitEachTargetOnce` desligado com perfuração (aviso), `OnEnded` por `ActionLists.Validate`, com aviso de laço em cada `SpawnProjectileAction` do mesmo prefab.
+  - `Runtime/GAS/Actions/GameplayAction.cs:56`: `internal virtual bool ReadsInstigator => false`, com `true` em `ApplyEffectAction.cs`, `AnimationAction.cs` e `SpawnProjectileAction.cs` (as ações que não fazem nada sem instigador).
+  - `Runtime/GAS/Thinkers/GameplayThinker.cs`: gancho `internal static Func<GameObject, bool> IsInPreviewScene` sob `#if UNITY_EDITOR`, como o `EventChannel.Observed` (achado da revisão de 2026-11-04: o Prefab Mode põe o prefab numa cena de prévia válida, e o runtime não referencia o `UnityEditor`).
+  - `Runtime/GAS/AssemblyInfo.cs` (novo): `InternalsVisibleTo("SpellBook.GAS.Editor")`.
+  - `Editor/GAS/GasEditors.cs:38`: `[InitializeOnLoad] GameplayThinkerPreviewScene` preenche o gancho com `EditorSceneManager.IsPreviewScene`.
+  - `Tests/GAS/EditMode/ThinkerValidationTests.cs` (novo).
+  - Sem `validador.md` nem `CHANGELOG.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007), e o ticket só acrescenta. Sem arquivo em comum com o DE5.
+- Testes red (EditMode, `SpellBook.GAS.Tests.EditMode`, classe `ThinkerValidationTests`): `Thinker_Valid_NoMessages`; `Thinker_NeverEnds_Warns`; `Thinker_NegativeConstant_Error` (duração e intervalo); `Thinker_PulseActionsWithoutInterval_Warns`; `Thinker_Scene_InstigatorReader_Warns`; `Thinker_PrefabAsset_InstigatorReader_NoWarning`; `Thinker_PrefabStage_InstigatorReader_NoWarning` (achado da revisão; o `Thinker_Scene_InstigatorReader_Warns` usa um thinker ativo na cena, não o modelo do `CreateThinkerPrefab`); `Aura_NoEffect_Error`; `Aura_InstantEffect_Warns`; `Aura_RadiusNotPositive_Error` (0 e −1); `Aura_NoInterval_WarnsOnlyInitialPulse`; `Aura_IntervalBelowOneFrame_Warns`; `Projectile_Defaults_NoMessages`; `Projectile_NegativePierce_Error`; `Projectile_PierceAbove31_Warns`; `Projectile_UnlimitedWithoutLifetime_Warns`; `Projectile_HitEachTargetOnceOff_WithPierce_Warns`; `Projectile_OnEndedSpawnsSamePrefab_WarnsLoop`; `CreateThinker_NoPrefab_Error`; `CreateThinker_TableNameMissing_Error`; `CreateThinker_TableNameInAbility_NoMessages`; `CreateThinker_InInstantAbility_WithEndWithExecution_Warns`. Cada um confere severidade, objeto e `propertyPath` (que existe no `SerializedObject`).
+- Critério de pronto: os testes acima verdes pelo filtro `\.ThinkerValidationTests\.`, e `ActionModelValidationTests`, `GasSourceScanTests`, `HelpUrlTests` e `SourceRulesTests` (EditMode) verdes sem edição; suíte EditMode `!Documentacao` verde. O Gizmo é conferido no host no CA29 (TK8).
+- Tamanho: ~585 linhas e 12 arquivos, pela ADR 0042 (medido no diff depois da correção da revisão: 585 linhas, 325 delas no teste, 120 no thinker e 11 no `GasEditors.cs`). Exceção: até +30% (+17% em linhas, +20% em arquivos), porque o teste traz um caso por regra do Design 7 (CA30), com o próprio auxiliar de `propertyPath`, o aviso do instigador pede o `ReadsInstigator` nas três ações que leem o instigador, e excluir o Prefab Mode pede o gancho de Editor (`AssemblyInfo.cs` e `GasEditors.cs`).
+- Commit: `feat(gas): validação do thinker, da aura e do projétil e Gizmo da aura (#218)`
 
 ### TK8 — Inspector do thinker, receitas, desempenho e documentação
 - Escopo: `Editor/GAS/Thinkers/GameplayThinkerEditor.cs` (novo), `Tests/GAS/PlayMode/ThinkerRecipesTests.cs`, `ThinkerAllocationTests.cs` (novos), `Tests/GAS.Bridges/PlayMode/AuraTeamFilterTests.cs` (novo; aura e projétil com `TeamRelationCondition`), `thinkers-e-auras.md` (três receitas), `gas.md` (projétil: perfuração, término, filtro), `migracao-2-para-3.md` (projétil), `CHANGELOG.md`.
@@ -290,6 +410,44 @@ Todos usam a Unity e seguem o WIP 1. Tempo por `asc.Tick` com `ManualTimeSource`
   - `GasSuite_PassesWithoutEdits` (CA32, CA25 pela guarda de assemblies).
 - Critério de pronto: os testes verdes; CA29 (S) conferido pelo Examinador no host (abas, resumo, seletor inline, cabeçalho da aura e Gizmo); CA31 (E): páginas com as receitas, `[HelpURL]`, CHANGELOG com o R25.
 - Tamanho estimado: ~460 linhas; 8 arquivos. Depende de: TK7, TM5, EV17.
+
+### TK8a — receitas e ApplyEffect nos alvos da ação (#219)
+- Objetivo: as receitas R12 e R13 rodam como teste, e o `ApplyEffectAction` aplica nos alvos do seletor da ação e do `ForEachTargetAction` (decisão do usuário, 2026-11-04).
+- CA: CA16 (R12, R13). CA25 e CA32 pela suíte completa. Depende de: TK7.
+
+### Detalhe (2026-11-04)
+- CA: CA16 (R12, R13). CA25 e CA32 pela suíte completa `!Documentacao` e pelas guardas de assemblies, sem teste novo.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - Correção do R13, por decisão do usuário (2026-11-04): o `ApplyEffectAction` aplica nos alvos resolvidos da própria ação (`context.Targets`) quando eles vêm do seletor dela ou do `ForEachTargetAction`, e segue nos `context.EventTargets` quando a ação usa o alvo padrão da lista. `Runtime/GAS/Abilities/Actions/ApplyEffectAction.cs:32`; `Runtime/GAS/Actions/ActionRunner.cs` (`Entry.OwnTargets`, `ResolveTargets` devolve se o alvo é próprio, e `SetTargets` o repassa no `Advance` e no cancelamento); `Runtime/GAS/Actions/ActionContext.cs:137-144` (`HasOwnTargets` interno, gravado pelo `SetTargets`). Sem mudança de API pública nem de formato serializado. O filho de `DelayedAction` herda os alvos sem contar como próprios e mantém o comportamento antigo.
+  - `Tests/GAS/PlayMode/EffectReactionsTests.cs` (caso de compatibilidade).
+  - `Tests/GAS/PlayMode/ThinkerRecipesTests.cs` (novo), com os próprios auxiliares, sem tocar no `GasFactory`.
+  - Sem manual nem `CHANGELOG.md`: manual só no passe de documentação, e o ticket não quebra nada.
+- Testes red:
+  - PlayMode, `SpellBook.GAS.Tests.PlayMode`, classe `ThinkerRecipesTests`: `Recipe_AuraOnUnit_EffectCreatesFollowingThinker` (R12: segue a unidade, aplica nos vizinhos, a remoção do efeito termina o thinker e tira a aura de todos); `Recipe_PulseRenewal_ForEachApplyRenews` (R13: `ForEachTarget` + `ApplyEffect` com o `AreaSelector` em "A cada pulso" renova a mesma instância, e quem sai perde o efeito quando a duração vence). Antes da correção, só o R13 falhava: o `ApplyEffectAction` aplicava só nos `context.EventTargets`, e no thinker os alvos do evento são o próprio thinker.
+  - PlayMode, `SpellBook.GAS.Tests.PlayMode`, classe `EffectReactionsTests`: `ReactionDamage_ApplyEffectWithoutOwnTarget_HitsEventTargets` (guarda de compatibilidade: sem seletor nem `ForEachTarget`, o espinho volta em quem bateu, e não no dono da lista; passa antes e depois da correção).
+- Critério de pronto: os testes acima verdes pelo filtro `\.ThinkerRecipesTests\.;\.EffectReactionsTests\.` (PlayMode), e as suítes EditMode e PlayMode `!Documentacao` verdes, com os testes das ações que já existiam.
+- Tamanho: ~200 linhas e 5 arquivos, pela ADR 0042 (medido no diff: 152 no `ThinkerRecipesTests.cs`, 33 na correção em `ActionRunner.cs`, `ActionContext.cs` e `ApplyEffectAction.cs` e 15 no `EffectReactionsTests.cs`). Exceção: nenhuma.
+- Commit: `fix(gas): ApplyEffect nos alvos do seletor e do ForEachTarget (#219)`
+
+### TK8b — Inspector do thinker, desempenho e filtro de time (#331)
+- Objetivo: o Inspector do thinker (cabeçalho da aura e abas das ações) e do projétil, o teste de alocação (C18) e o filtro de time da aura e do projétil, a segunda metade do TK8, dividido por tamanho (ADR 0042).
+- CA: CA14, CA27 e CA29. CA25 e CA32 pela suíte completa. Depende de: TK7, TM5 e EV17.
+
+### Detalhe (2026-11-04)
+- CA: CA14 (filtro de time), CA27 (C18) e CA29 (S: abas, cabeçalho da aura e Gizmo, conferidos no host pelo Examinador). CA25 e CA32 pela suíte completa `!Documentacao` e pelas guardas de assemblies, sem teste novo. O CA31 (páginas, receitas e CHANGELOG do R25) fica no passe de documentação (emenda de 2026-11-03 da 0007).
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Editor/GAS/GameplayThinkerEditor.cs` (novo): `SpellBookEditor` do `GameplayThinker`, que sai do `GasEditors.cs:37-39`. `BuildAfterDefault` põe um `Label` (`HeaderName`) antes do `PropertyField:behaviour`, esconde as três listas do Inspector padrão (`ActionEventsView.HideDefaultFields`) e as mostra nas abas da `ActionEventsView`, com o texto de vazio. O cabeçalho só aparece com `AuraBehaviour` e um objeto só: resumo do comportamento (`SummaryFormatter.Format`), raio do `AreaSelector`, intervalo do thinker (constante, `%tabela` ou "por nível") e o resumo do filtro, atualizado por `TrackSerializedObjectValue`.
+  - `Editor/GAS/GasEditors.cs:33-35`: o `ProjectileEditor` esconde o `OnEnded` do padrão e o mostra na aba "Ao terminar" da `ActionEventsView`.
+  - `Tests/GAS/EditMode/ThinkerInspectorTests.cs` (novo), `Tests/GAS/PlayMode/ThinkerAllocationTests.cs` (novo) e `Tests/GAS.Bridges/PlayMode/AuraTeamFilterTests.cs` (novo), com os próprios auxiliares, sem tocar no `GasFactory`.
+  - Sem mudança de runtime, de API pública ou de formato serializado. Sem manual nem `CHANGELOG.md`.
+- Testes red:
+  - EditMode, `SpellBook.GAS.Tests.EditMode`, classe `ThinkerInspectorTests`: `Thinker_ThreeEventTabs_ListsLeaveDefaultInspector`; `Thinker_AuraHeader_EffectRadiusIntervalFilter`; `Projectile_EndedTab` (os três falham antes do Inspector); `Thinker_NoAura_NoHeader` (guarda: passa antes e depois).
+  - PlayMode, `SpellBook.GAS.Tests.PlayMode`, classe `ThinkerAllocationTests`: `Aura1000Pulses20Targets_DoNotAllocate`; `Projectile1000Impacts_PierceAndFilter_DoNotAllocate` (CA27).
+  - PlayMode, `SpellBook.GAS.Bridges.Tests.PlayMode`, classe `AuraTeamFilterTests`: `Aura_TeamFilter_OnlyAllies`; `Projectile_TeamFilter_OnlyHostiles` (CA14).
+  - Os quatro do PlayMode são de aceite sobre o runtime do TK3, do TK6 e do TM5 e já passam antes do ticket, que não muda runtime. Eles fixam o CA14 e o CA27 contra regressão.
+- Critério de pronto: os testes acima verdes pelos filtros `\.ThinkerInspectorTests\.` (EditMode) e `\.ThinkerAllocationTests\.;\.AuraTeamFilterTests\.` (PlayMode), `HelpUrlTests`, `SourceRulesTests` e `GasSourceScanTests` (EditMode) verdes sem edição, e as suítes EditMode e PlayMode `!Documentacao` verdes. O CA29 é conferido pelo Examinador no host.
+- Tamanho: ~484 linhas e 5 arquivos, pela ADR 0042 (medido no diff: 74 no `GameplayThinkerEditor.cs`, 16 no `GasEditors.cs`, 119 no `ThinkerInspectorTests.cs`, 143 no `ThinkerAllocationTests.cs` e 132 no `AuraTeamFilterTests.cs`). Exceção: nenhuma.
+- Commit: `feat(editor): Inspector do thinker, desempenho e filtro de time (#331)`
 
 ### Ordem e resumo
 

@@ -167,10 +167,10 @@ Para o CHANGELOG e `manual/regras/migracao-2-para-3.md` (ADR 0009):
 Todos usam a Unity e seguem o WIP 1. Tempo por `ManualTimeSource`, aleatoriedade por `SeededRandomSource` e objetos por factory (`CuesFactory`, `SpawnFactory`). Áudio real só no PlayMode. Cada ticket escreve a sua parte de `manual/modulos/cues.md` e do `CHANGELOG.md`. Teto: ~500 linhas e 10 arquivos.
 
 **Conflitos com a fila:**
-- `AsmdefRulesTests.cs`: CU2, CU4, CU7 e CU8, e também TM1, TM4 e TM5.
+- `AsmdefRulesTests.cs`: CU2, CU4, CU7 e CU8a, e também TM1, TM4 e TM5.
 - `DocUrls.cs`: CU2, TM1 e TK4.
 - `SpellBook.Testing.asmdef`: CU3a e TM2.
-- `SpellBook.GAS.Bridges.asmdef`: CU8 e TM5.
+- `SpellBook.GAS.Bridges.asmdef`: CU8a e TM5.
 - `SpellBookEditorCoverageTests.cs`: CU7 e TM4.
 - `SpawnActionsTests.cs` e `CommonEffectActions.cs`: CU9, EV2 e EV3.
 - `migracao-2-para-3.md`: CU9 e EV21.
@@ -396,11 +396,68 @@ Depende de: CU3b.
 - Critério de pronto: CA13, CA15 e CA17 verdes. CA14 do PRD é substituído pelo teste de vigia (ADR 0037, item 5).
 - Tamanho estimado: ~470 linhas; 9 arquivos. Depende de: CU3c (era CU3, divisão de 2026-11-03), EV21, TK1 (`ExecutionLink`).
 
+O CU8 mediu 732 linhas e 10 arquivos no Detalhe, +46% sobre o teto da ADR 0042, e se dividiu em CU8a e CU8b em 2026-11-03.
+
+#### CU8a — `ExecuteCueAction` e `CueMagnitude` (#210, divisão de 2026-11-03 do CU8)
+- Objetivo: tocar um cue de disparo único por ação no GAS, com os parâmetros do contexto e a magnitude do efeito.
+- CA: CA13 (parte do `ExecuteCueAction`), CA15 (C13) e CA17.
+- Tamanho: 461 linhas e 6 arquivos, medido no diff. Depende de: CU3c, EV21, TK1 (`ExecutionLink`).
+
+### Detalhe (2026-11-03) — CU8a (#210)
+- Divisão: o CU8 mediu 732 linhas e 10 arquivos (+46%, ADR 0042) e se dividiu em CU8a (`ExecuteCueAction`) e CU8b (`AddCueAction`). Fica no CU8b: `AddCueAction.cs` (com `CueWatchAction` interna), `ActionContext.RunFollowingOwner` e `ActionRunner.Follow`, o `InternalsVisibleTo("SpellBook.GAS.Bridges")` do Cues e os testes `AddCue_*` (com os casos do `AddCueAction` em `EmptyAnchor_*` e `Validate_*`); depende do CU8a.
+- CA: CA13 (parte do `ExecuteCueAction`), CA15 e CA17 (C13). C12 e CA14 pela vigia (ADR 0036, itens 4 e 5; ADR 0037, item 5) ficam no CU8b.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/GAS.Bridges/SpellBook.GAS.Bridges.asmdef:4-11` (+`SpellBook.Cues` por GUID).
+  - `Runtime/GAS.Bridges/Cues/CueMagnitude.cs` (novo): `CueMagnitude` (`None`, `Value` com `ScalableFloat` no nível do `EffectContext` quando há, senão no da execução, `SetByCaller` pelo nome nos valores do efeito; `max` para a normalizada) e `CueActionUtility` interna: monta o `CueParameters` (alvo, senão `context.Point`, senão a posição do dono; `Instigator` = transform do `context.Instigator`), resolve a âncora com aviso uma vez e valida tag (erro), âncora vazia (aviso) e magnitude.
+  - `Runtime/GAS.Bridges/Cues/ExecuteCueAction.cs` (novo): um `Execute` por alvo resolvido, ou um no ponto sem alvo; `Done` na hora.
+  - `Tests/GAS.Bridges/PlayMode/SpellBook.GAS.Bridges.Tests.PlayMode.asmdef:4-11` (+`SpellBook.Cues`) e `Tests/GAS.Bridges/PlayMode/CueActionsTests.cs` (novo).
+  - `Tests/Core/EditMode/Structure/AsmdefRulesTests.cs:245-249` (o Cues na lista de referências do Bridges) e `:269-283` (teste novo `BridgesReferencesCues_GasDoesNot`).
+  - Sem `cues.md` nem `CHANGELOG.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007), e o ticket não quebra nada.
+- Testes red: PlayMode, `SpellBook.GAS.Bridges.Tests.PlayMode`, classe `CueActionsTests`: `ExecuteCue_InAbility_PlaysWithContextParameters`; `ExecuteCue_InEffectTick_UsesEffectMagnitudeBySetByCaller`; `EmptyAnchor_WarnsOnce_NoException`; `SpawnerEmpty_InEffectCue_SkipsWithWarning`; `Validate_InvalidTagError_EmptyAnchorWarning`. EditMode, `SpellBook.Core.Tests.EditMode`: `AsmdefRulesTests.BridgesReferencesCues_GasDoesNot`.
+- Critério de pronto: os testes acima verdes pelo filtro `\.CueActionsTests\.` (PlayMode) e `\.AsmdefRulesTests\.` (EditMode), com `total` conferido no XML.
+- Tamanho: 461 linhas e 6 arquivos, medido no diff, pela ADR 0042. Exceção: nenhuma.
+- Commit: `feat(gas-bridges): ExecuteCueAction e magnitude de cue`
+
+#### CU8b — `AddCueAction` e cue que segue o dono (#329, divisão de 2026-11-03 do CU8)
+- Objetivo: ligar um cue contínuo por ação no GAS que acaba junto com quem o ligou (efeito ou ativação), sem segurar a ativação.
+- Escopo: `Runtime/GAS.Bridges/Cues/AddCueAction.cs` (novo, com `CueWatchAction` interna), `ActionContext.RunFollowingOwner` e `ActionRunner.Follow` no GAS, `InternalsVisibleTo("SpellBook.GAS.Bridges")` no Cues e os testes em `CueActionsTests.cs`.
+- Testes red: `AddCue_InEffectApplied_RemovedOnExpireRemoveTagAndStacksZero` (CA13, C12, os quatro motivos); `AddCue_StackingDoesNotPlayAgain` (C12); `AddCue_InAbility_RemovedWhenActivationEnds_DoesNotHoldActivation` (ADR 0036); os casos do `AddCueAction` em `EmptyAnchor_*` e `Validate_*`.
+- CA: CA13 (parte do `AddCueAction`) e C12. O CA14 do PRD é substituído pelo teste de vigia (ADR 0036, itens 4 e 5; ADR 0037, item 5).
+- Tamanho estimado: ~340 linhas; 5 arquivos. Depende de: CU8a.
+
+### Detalhe (2026-11-03) — CU8b (#329)
+- CA: CA13 (parte do `AddCueAction`) e C12. O CA14 do PRD é coberto pelo teste de vigia (ADR 0036, itens 4 e 5; ADR 0037, item 5).
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/GAS.Bridges/Cues/AddCueAction.cs` (novo): liga o cue `Looping` por uma execução de vigia `FollowsOwner` (`CueWatchAction` interna, `WaitUntilCancelled`, remove o cue no `OnCancel`); numa lista sem dono, toca e remove na hora, com aviso uma vez.
+  - `Runtime/GAS/Actions/ActionContext.cs:111` (novo `RunFollowingOwner`, público) e `Runtime/GAS/Actions/ActionRunner.cs:340` (novo `Follow`, interno): execução nova do mesmo dono com `ExecutionLink.FollowsOwner`, numa cópia do contexto, com os alvos da ação corrente herdados; falso sem dono ou com o efeito dono já removido.
+  - `Runtime/Cues/AssemblyInfo.cs:3` (`InternalsVisibleTo("SpellBook.GAS.Bridges")`, para o construtor e os campos internos do `CueHandle`).
+  - `Tests/GAS.Bridges/PlayMode/CueActionsTests.cs`: testes `AddCue_*`, o `AddCueAction` em `EmptyAnchor_WarnsOnce_NoException` e em `Validate_InvalidTagError_EmptyAnchorWarning`.
+  - Sem `cues.md` nem `CHANGELOG.md`: manual só no passe de documentação, e a API nova só acrescenta.
+- Testes red: PlayMode, `SpellBook.GAS.Bridges.Tests.PlayMode`, classe `CueActionsTests`: `AddCue_InEffectApplied_RemovedOnExpireRemoveTagAndStacksZero` (4 casos); `AddCue_StackingDoesNotPlayAgain`; `AddCue_InAbility_RemovedWhenActivationEnds_DoesNotHoldActivation`; `AddCue_WithoutOwner_PlaysOnceWithWarning`; `EmptyAnchor_WarnsOnce_NoException` e `Validate_InvalidTagError_EmptyAnchorWarning` (com o `AddCueAction`).
+- Critério de pronto: a classe `CueActionsTests` verde pelo filtro `\.CueActionsTests\.` no PlayMode, com `total` conferido no XML.
+- Tamanho: 281 linhas e 5 arquivos, medido no diff, pela ADR 0042. Exceção: nenhuma.
+- Commit: `feat(gas-bridges): AddCueAction e cue que segue o dono`
+
 ### CU9 — Fim do `PlayCueAction` e do `SpawnVFXAction`
 - Escopo: `Runtime/GAS/Abilities/Actions/PlayCueAction.cs` (remoção pura), `Runtime/GAS/Effects/Actions/CommonEffectActions.cs` (sai `SpawnVFXAction`), `Tests/GAS/PlayMode/SpawnActionsTests.cs` (saem os dois testes, N8), `Tests/GAS/EditMode/GasSourceScanTests.cs` (guarda: `PlayClipAtPoint` em nenhum `.cs` do pacote; nenhuma ação do GAS chama `Instantiate`/`Destroy`), `Documentation~/manual/regras/migracao-2-para-3.md` (ação antiga → nova), `Documentation~/manual/modulos/gas.md` (tira as ações), `CHANGELOG.md` (quebra).
 - Testes red: `NoPlayClipAtPoint_InPackage` (CA11, CA16); `GasHasNoVfxOrCueActions` (guarda textual). A suíte do GAS passa com só os dois testes removidos, listados no PR (CA22).
 - Critério de pronto: CA11, CA16 e CA22 verdes; CA21 (E) conferido: CHANGELOG, página e `[HelpURL]`.
-- Tamanho estimado: ~200 linhas; 6 arquivos (+1 remoção pura). Depende de: CU8.
+- Tamanho estimado: ~200 linhas; 6 arquivos (+1 remoção pura). Depende de: CU8b (era CU8, divisão de 2026-11-03).
+
+### Detalhe (2026-11-03) — CU9 (#211)
+- CA: CA11 (`PlayClipAtPoint` fora do pacote), CA16 (as duas ações fora do GAS), CA22 (N8: só saem os testes das duas ações) e CA21 (E, a parte do CHANGELOG).
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/GAS/Abilities/Actions/PlayCueAction.cs` e o `.meta` (remoção pura).
+  - `Runtime/GAS/Effects/Actions/CommonEffectActions.cs:32-98` (sai o `SpawnVFXAction`, com o `[MovedFrom]` do `SpawnVFXEffectAction`; o `DebugLogAction` fica; saem os `using` que só ele usava).
+  - `Tests/GAS/PlayMode/SpawnActionsTests.cs`: saem os testes das duas ações (N8), que hoje são cinco, não dois: `PlayCue_NoSpawner_NoPoolManager_NoException` (`:53-66`), `SpawnVfx_ReleasesThroughConfiguredSpawner` (`:68-87`), `SpawnVfx_ReleasedOnRemoval` (`:89-110`), `SpawnVfx_SpawnerReturnsNull_WarnsWithoutException` (`:164-180`) e `SpawnVfx_SpawnerReturnsNull_RemovalReleasesNothing` (`:182-203`). Os três últimos chegaram depois da Spec, no RP-07 e no EV2; o caso equivalente (spawner que devolve `null`) é coberto pelo `SpawnerEmpty_InEffectCue_SkipsWithWarning` do CU8a. Os testes do projétil ficam.
+  - `Tests/GAS/EditMode/GasSourceScanTests.cs`: testes novos `NoPlayClipAtPoint_InPackage` (os `.cs` de `Runtime`, `Editor` e `Samples~`; `Tests` fica de fora porque a própria guarda cita o nome) e `GasHasNoVfxOrCueActions` (o arquivo `PlayCueAction.cs` não existe; `PlayCueAction`, `SpawnVFXAction` e `SpawnVFXEffectAction` em nenhum `.cs` de `Runtime` e `Editor`; nenhum arquivo de `Runtime/GAS` que declara ação chama `Instantiate(` ou `Destroy(`).
+  - `CHANGELOG.md` (Quebras): o fim das duas ações e do `PlayClipAtPoint`, com a migração para `ExecuteCueAction`/`AddCueAction`.
+  - Sem `migracao-2-para-3.md` nem `gas.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007).
+  - Fica como está, fora do escopo: o enum público `AbilityTargetSource` (só o `PlayCueAction` o usava) e a interface interna `IEffectActionCleanup` (só o `SpawnVFXAction` a implementava). Tirá-los é outra quebra de API, que a Spec não prevê.
+- Testes red: EditMode, `SpellBook.GAS.Tests.EditMode`, classe `GasSourceScanTests`: `NoPlayClipAtPoint_InPackage`; `GasHasNoVfxOrCueActions`.
+- Critério de pronto: os dois testes verdes pelo filtro `\.GasSourceScanTests\.` no EditMode, e a classe `SpawnActionsTests` verde no PlayMode pelo filtro `\.SpawnActionsTests\.`, com `total` conferido no XML. O pacote compila sem as duas ações.
+- Tamanho: ~230 linhas e 5 arquivos (+1 remoção pura), pela ADR 0042. Exceção: nenhuma. Medido no diff: 222 linhas e 4 arquivos (+1 remoção pura).
+- Commit: `feat(gas)!: fim do PlayCueAction e do SpawnVFXAction`
 
 ### Ordem e resumo
 
@@ -415,10 +472,11 @@ Depende de: CU3b.
 | CU5 | sim | CU4, EV4a | ~470 / 8 |
 | CU6 | sim | CU5 | ~380 / 8 |
 | CU7 | sim | CU6, AV1 | ~420 / 9 |
-| CU8 | sim | CU3c, EV21, TK1 | ~470 / 9 |
-| CU9 | sim | CU8 | ~200 / 6 |
+| CU8a (#210) | sim | CU3c, EV21, TK1 | 461 / 6 (medido no diff; divisão de 2026-11-03 do CU8, que mediu 732 / 10; era ~470 / 9) |
+| CU8b (#329) | sim | CU8a | ~340 / 5 (divisão de 2026-11-03 do CU8) |
+| CU9 | sim | CU8b | ~200 / 6 |
 
-Fila: CU1 → CU7 podem entrar antes do fim do B-012, mas o CU5 espera o EV4a e o CU7 espera o AV1. CU8 e CU9 entram depois do EV21 e do TK1. CA11 e CA17 rodam em todos.
+Fila: CU1 → CU7 podem entrar antes do fim do B-012, mas o CU5 espera o EV4a e o CU7 espera o AV1. CU8a, CU8b e CU9 entram depois do EV21 e do TK1. CA11 e CA17 rodam em todos.
 
 ## Perguntas ao usuário
 

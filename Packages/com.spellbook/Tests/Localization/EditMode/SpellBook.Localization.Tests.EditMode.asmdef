@@ -1,0 +1,37 @@
+{
+    "name": "SpellBook.Localization.Tests.EditMode",
+    "rootNamespace": "SpellBook.Localization.Tests",
+    "references": [
+        "SpellBook.Core",
+        "SpellBook.Localization",
+        "SpellBook.Time",
+        "SpellBook.Testing",
+        "Unity.Localization",
+        "Unity.Addressables",
+        "Unity.ResourceManager",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS",
+        "SPELLBOOK_UNITY_LOCALIZATION"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.localization",
+            "expression": "",
+            "define": "SPELLBOOK_UNITY_LOCALIZATION"
+        }
+    ],
+    "noEngineReferences": false
+}

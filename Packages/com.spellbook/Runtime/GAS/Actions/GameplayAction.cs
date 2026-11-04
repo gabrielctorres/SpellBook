@@ -54,6 +54,9 @@ namespace SpellBook.GAS.Actions
 
         // Listas filhas, para a validação descer na árvore de ações. O padrão não tem filhas.
         internal virtual void CollectChildLists(List<ChildActionList> results) { }
+
+        // Se a ação não faz nada sem ActionContext.Instigator: o validador avisa no thinker colocado na cena, sem criador
+        internal virtual bool ReadsInstigator => false;
     }
 
     /// <summary>Lista filha de uma ação: o nome do campo serializado e se ela roda num evento próprio, com alvos.</summary>

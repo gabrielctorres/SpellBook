@@ -38,6 +38,8 @@ namespace SpellBook.GAS.Abilities.Actions
         public bool HomeInOnTargets = false;
         public float HomingTurnSpeed = 10f;
 
+        internal override bool ReadsInstigator => true;
+
         /// <summary>Origem e direção da rajada, medidas no primeiro tiro e mantidas entre os tiros.</summary>
         private struct Burst
         {

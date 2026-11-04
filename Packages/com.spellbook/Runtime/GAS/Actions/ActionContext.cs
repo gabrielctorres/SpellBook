@@ -6,6 +6,7 @@ using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Conditions;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
+using SpellBook.GAS.Thinkers;
 using UnityEngine;
 
 namespace SpellBook.GAS.Actions
@@ -79,6 +80,10 @@ namespace SpellBook.GAS.Actions
         public bool IsCancelled { get; internal set; }
         /// <summary>Soma das pilhas que a última <see cref="RemoveEffectAction"/> da execução removeu. 0 antes da primeira.</summary>
         public int LastRemovedStacks { get; internal set; }
+        /// <summary>Motivo do término na lista "Ao terminar" do projétil ou do thinker. <see cref="ActionEndReason.None"/> fora dela.</summary>
+        public ActionEndReason EndReason { get; internal set; }
+        /// <summary>Último thinker criado pela <see cref="CreateThinkerAction"/> nesta execução. Nulo antes do primeiro.</summary>
+        public GameplayThinker LastCreatedThinker { get; internal set; }
 
         /// <summary>
         /// Dados livres da execução, criados no primeiro acesso. As chaves usam o comparador de
@@ -109,8 +114,34 @@ namespace SpellBook.GAS.Actions
             HasPoint = true;
         }
 
+        /// <summary>
+        /// Roda <paramref name="actions"/> numa execução nova ligada ao dono da execução corrente por
+        /// <see cref="ExecutionLink.FollowsOwner"/> (ADR 0036): ela é cancelada quando o dono termina ou é cancelado, e o
+        /// dono não espera por ela. Roda numa cópia deste contexto, e as ações sem seletor recebem os alvos da ação corrente.
+        /// Chame de dentro do <c>Execute</c> de uma ação que roda neste contexto. Falso, sem rodar, fora disso ou se a
+        /// execução corrente não tem dono (efeito instantâneo, impacto de projétil, listas de fim da habilidade).
+        /// </summary>
+        public bool RunFollowingOwner(IReadOnlyList<GameplayAction> actions)
+        {
+            return RunFollowingOwner(actions, out _);
+        }
+
+        // Como o público, com o handle da execução nova para quem precisa cancelá-la antes do dono
+        internal bool RunFollowingOwner(IReadOnlyList<GameplayAction> actions, out ActionExecutionHandle handle)
+        {
+            handle = default;
+            return Owner != null && Owner.Runner.Follow(this, actions, out handle);
+        }
+
         // O executor aponta Targets para o buffer do quadro da ação corrente; nulo volta à lista própria
-        internal void SetTargets(List<AbilitySystemComponent> targets) => _targets = targets;
+        // own: os alvos vieram do seletor da ação ou do ForEachTargetAction, e não do alvo padrão da lista
+        internal void SetTargets(List<AbilitySystemComponent> targets, bool own = false)
+        {
+            _targets = targets;
+            HasOwnTargets = own;
+        }
+
+        internal bool HasOwnTargets { get; private set; }
 
         // Contexto das condições avaliadas nesta execução: alvos da ação corrente e o ponto do evento
         internal ConditionContext ToConditionContext()
@@ -150,7 +181,7 @@ namespace SpellBook.GAS.Actions
         {
             _eventTargets.Clear();
             _ownTargets.Clear();
-            _targets = null;
+            SetTargets(null);
             // Um contexto do pool nunca herda o comparador de outra execução
             if (_customData != null && !Equals(_customData.Comparer, EqualityComparer<string>.Default)) _customData = null;
             else _customData?.Clear();
@@ -171,6 +202,8 @@ namespace SpellBook.GAS.Actions
             DefaultTarget = DefaultTarget.EventTargets;
             IsCancelled = false;
             LastRemovedStacks = 0;
+            EndReason = ActionEndReason.None;
+            LastCreatedThinker = null;
         }
     }
 }

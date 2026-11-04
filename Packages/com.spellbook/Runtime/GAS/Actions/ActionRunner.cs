@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SpellBook.GAS.Core;
+using SpellBook.GAS.Effects;
 using SpellBook.GAS.Targeting;
 
 namespace SpellBook.GAS.Actions
@@ -19,6 +20,9 @@ namespace SpellBook.GAS.Actions
 
         /// <summary>Se a execução ainda está em curso.</summary>
         public bool IsRunning => _execution != null && _execution.Version == _version && _execution.Running;
+
+        // A execução, enquanto ainda é esta e está em curso
+        internal ActionRunner.Execution Live => IsRunning ? _execution : null;
     }
 
     /// <summary>
@@ -27,7 +31,7 @@ namespace SpellBook.GAS.Actions
     /// </summary>
     internal sealed class ActionRunner
     {
-        internal enum EntryState : byte { Ready, Waiting, Children, Parallel }
+        internal enum EntryState : byte { Ready, Waiting, Children, Parallel, Suspended }
 
         internal struct Entry
         {
@@ -39,6 +43,8 @@ namespace SpellBook.GAS.Actions
             public double Deadline;
             // Os alvos da ação corrente já foram resolvidos
             public bool Started;
+            // Os alvos vieram do seletor da ação ou do ForEachTargetAction, não do alvo padrão da lista
+            public bool OwnTargets;
         }
 
         internal sealed class Execution
@@ -49,6 +55,7 @@ namespace SpellBook.GAS.Actions
             public int Depth;
             public double Cursor;
             public object Owner;
+            public ExecutionLink Link;
             public ActionContext Context;
             public bool OwnsContext;
             public Execution Mother;
@@ -78,32 +85,38 @@ namespace SpellBook.GAS.Actions
             return context;
         }
 
-        public ActionExecutionHandle Run(IReadOnlyList<GameplayAction> actions, ActionContext context, object owner)
+        public ActionExecutionHandle Run(IReadOnlyList<GameplayAction> actions, ActionContext context, object owner,
+            ExecutionLink link = ExecutionLink.Holds)
         {
-            return Run(actions, context, owner, true);
+            return Run(actions, context, owner, true, link);
         }
 
         /// <summary>
-        /// Como <see cref="Run(IReadOnlyList{GameplayAction}, ActionContext, object)"/>. Com <paramref name="ownsContext"/>
-        /// falso, o contexto não volta ao pool no fim: quem chamou o devolve por <see cref="ReturnContext"/>.
+        /// Como <see cref="Run(IReadOnlyList{GameplayAction}, ActionContext, object, ExecutionLink)"/>. Com
+        /// <paramref name="ownsContext"/> falso, o contexto não volta ao pool no fim: quem chamou o devolve por
+        /// <see cref="ReturnContext"/>.
         /// </summary>
-        internal ActionExecutionHandle Run(IReadOnlyList<GameplayAction> actions, ActionContext context, object owner, bool ownsContext)
+        internal ActionExecutionHandle Run(IReadOnlyList<GameplayAction> actions, ActionContext context, object owner, bool ownsContext,
+            ExecutionLink link = ExecutionLink.Holds)
         {
             if (context == null) context = RentContext();
             else if (context.Owner == null) context.Owner = _asc;
 
-            Execution execution = Start(actions, 0, actions != null ? actions.Count : 0, context, owner, null, _asc.TickedTime);
+            Execution execution = Start(actions, 0, actions != null ? actions.Count : 0, context, owner, link, null,
+                _asc.TickedTime);
             execution.OwnsContext = ownsContext;
             var handle = new ActionExecutionHandle(execution);
             Advance(execution);
             return handle;
         }
 
+        /// <summary>Se há execução em curso de <paramref name="owner"/> que o segura (<see cref="ExecutionLink.Holds"/>).</summary>
         public bool HasRunning(object owner)
         {
             for (int i = 0; i < _executions.Count; i++)
             {
-                if (_executions[i].Running && Equals(_executions[i].Owner, owner)) return true;
+                Execution execution = _executions[i];
+                if (execution.Running && execution.Link == ExecutionLink.Holds && Equals(execution.Owner, owner)) return true;
             }
             return false;
         }
@@ -153,12 +166,20 @@ namespace SpellBook.GAS.Actions
             }
         }
 
+        /// <summary>Cancela só a execução de <paramref name="handle"/>, se ela é deste executor e ainda está em curso.</summary>
+        public void Cancel(ActionExecutionHandle handle)
+        {
+            Execution execution = handle.Live;
+            if (execution != null && _executions.IndexOf(execution) >= 0) CancelExecution(execution);
+        }
+
         private Execution Start(IReadOnlyList<GameplayAction> list, int index, int end, ActionContext context,
-            object owner, Execution mother, double cursor)
+            object owner, ExecutionLink link, Execution mother, double cursor)
         {
             Execution execution = _executionPool.Count > 0 ? _executionPool.Pop() : new Execution();
             execution.Running = true;
             execution.Owner = owner;
+            execution.Link = link;
             execution.Context = context;
             execution.OwnsContext = false;
             execution.Mother = mother;
@@ -191,6 +212,8 @@ namespace SpellBook.GAS.Actions
             while (execution.Depth > 0)
             {
                 ref Entry top = ref execution.Stack[execution.Depth - 1];
+                // Espera até cancelar: só o cancelamento tira a execução daqui
+                if (top.State == EntryState.Suspended) break;
                 if (top.State == EntryState.Waiting)
                 {
                     if (now < top.Deadline) break;
@@ -221,9 +244,9 @@ namespace SpellBook.GAS.Actions
                 if (!top.Started)
                 {
                     top.Started = true;
-                    ResolveTargets(action, execution, targets);
+                    top.OwnTargets = ResolveTargets(action, execution, targets);
                 }
-                execution.Context.SetTargets(targets);
+                execution.Context.SetTargets(targets, top.OwnTargets);
 
                 Execution previous = _current;
                 _current = execution;
@@ -249,6 +272,9 @@ namespace SpellBook.GAS.Actions
                         }
                         else execution.Cursor = deadline;
                         break;
+                    case ActionStatus.StatusKind.WaitUntilCancelled:
+                        top.State = EntryState.Suspended;
+                        break;
                     case ActionStatus.StatusKind.Run:
                         top.State = EntryState.Children;
                         IReadOnlyList<GameplayAction> children = status.Children;
@@ -268,9 +294,9 @@ namespace SpellBook.GAS.Actions
         /// <summary>
         /// Põe em <paramref name="targets"/> os alvos do seletor da ação. Sem seletor, o alvo corrente do
         /// <see cref="ForEachTargetAction"/> mais próximo que a contém ou, fora dele, o alvo padrão da lista: o dono, nas
-        /// listas de efeito, ou os alvos do evento.
+        /// listas de efeito, ou os alvos do evento. Verdadeiro com o seletor ou o <see cref="ForEachTargetAction"/>.
         /// </summary>
-        private static void ResolveTargets(GameplayAction action, Execution execution, List<AbilitySystemComponent> targets)
+        private static bool ResolveTargets(GameplayAction action, Execution execution, List<AbilitySystemComponent> targets)
         {
             targets.Clear();
             ActionContext context = execution.Context;
@@ -278,15 +304,16 @@ namespace SpellBook.GAS.Actions
             if (selector != null)
             {
                 selector.Select(context, targets);
-                return;
+                return true;
             }
-            if (TryAddForEachTarget(execution, targets)) return;
+            if (TryAddForEachTarget(execution, targets)) return true;
 
             Execution root = execution;
             while (root.Mother != null) root = root.Mother;
             if (root.HasInherited) AddLiving(root.Inherited, targets);
             else if (context.DefaultTarget == DefaultTarget.Owner && context.Owner != null) targets.Add(context.Owner);
             else AddLiving(context.EventTargets, targets);
+            return false;
         }
 
         private static void AddLiving(List<AbilitySystemComponent> source, List<AbilitySystemComponent> targets)
@@ -300,7 +327,7 @@ namespace SpellBook.GAS.Actions
         /// <summary>
         /// Agenda <paramref name="actions"/> numa execução nova, com o cursor <paramref name="delay"/> segundos depois do
         /// cursor da execução corrente, numa cópia do contexto dela. As filhas sem seletor recebem os alvos da ação que
-        /// agendou. A execução nova é do mesmo dono, ou fica sem dono com <paramref name="withoutOwner"/>.
+        /// agendou. A execução nova é do mesmo dono, com o mesmo vínculo, ou fica sem dono com <paramref name="withoutOwner"/>.
         /// </summary>
         internal void Schedule(IReadOnlyList<GameplayAction> actions, float delay, bool withoutOwner)
         {
@@ -310,8 +337,8 @@ namespace SpellBook.GAS.Actions
             ActionContext source = current.Context;
             ActionContext context = RentContext();
             CopyContext(source, context);
-            Execution execution = Start(actions, 0, actions.Count, context, withoutOwner ? null : current.Owner, null,
-                current.Cursor);
+            Execution execution = Start(actions, 0, actions.Count, context, withoutOwner ? null : current.Owner,
+                withoutOwner ? ExecutionLink.Holds : current.Link, null, current.Cursor);
             execution.OwnsContext = true;
             execution.Inherited.AddRange(source.Targets);
             execution.HasInherited = true;
@@ -322,6 +349,33 @@ namespace SpellBook.GAS.Actions
                 top.State = EntryState.Waiting;
             }
             Advance(execution);
+        }
+
+        /// <summary>
+        /// Roda <paramref name="actions"/> numa execução nova <see cref="ExecutionLink.FollowsOwner"/> do dono da execução
+        /// corrente, numa cópia do <paramref name="context"/>, com os alvos da ação corrente como herdados. Falso, sem rodar,
+        /// se <paramref name="context"/> não é o da execução corrente, se ela não tem dono ou se o dono já terminou (a
+        /// lista "Ao remover" roda depois do cancelamento das execuções da instância). <paramref name="handle"/> é o da
+        /// execução nova, ou o vazio quando ela não começa.
+        /// </summary>
+        internal bool Follow(ActionContext context, IReadOnlyList<GameplayAction> actions, out ActionExecutionHandle handle)
+        {
+            handle = default;
+            Execution current = _current;
+            if (current == null || current.Context != context || current.Owner == null) return false;
+            if (current.Owner is ActiveEffectInstance instance && !instance.IsActive) return false;
+            if (actions == null || actions.Count == 0) return true;
+
+            ActionContext copy = RentContext();
+            CopyContext(context, copy);
+            Execution execution = Start(actions, 0, actions.Count, copy, current.Owner, ExecutionLink.FollowsOwner, null,
+                current.Cursor);
+            execution.OwnsContext = true;
+            execution.Inherited.AddRange(context.Targets);
+            execution.HasInherited = true;
+            handle = new ActionExecutionHandle(execution);
+            Advance(execution);
+            return true;
         }
 
         // Procura nos quadros que contêm a ação corrente, desta execução e das mães (filhas em paralelo), o ForEach mais
@@ -359,7 +413,7 @@ namespace SpellBook.GAS.Actions
             for (int i = 0; i < count && mother.Running; i++)
             {
                 if (children[i] == null) continue;
-                Execution child = Start(children, i, i + 1, mother.Context, mother.Owner, mother, mother.Cursor);
+                Execution child = Start(children, i, i + 1, mother.Context, mother.Owner, mother.Link, mother, mother.Cursor);
                 Advance(child);
             }
         }
@@ -393,6 +447,7 @@ namespace SpellBook.GAS.Actions
             copy.EventInstigator = source.EventInstigator;
             copy.Change = source.Change;
             copy.DefaultTarget = source.DefaultTarget;
+            copy.LastCreatedThinker = source.LastCreatedThinker;
             // Cópia rasa, como no CreateDerived; o dicionário da fonte vem do pool com o contexto dela
             Dictionary<string, object> data = source.CustomData;
             if (data.Count == 0) return;
@@ -416,7 +471,7 @@ namespace SpellBook.GAS.Actions
                 if (entry.List == null || entry.Index >= entry.End) continue;
                 GameplayAction action = entry.List[entry.Index];
                 if (action == null) continue;
-                execution.Context.SetTargets(execution.Targets[d]);
+                execution.Context.SetTargets(execution.Targets[d], entry.OwnTargets);
                 action.InvokeCancel(execution.Context, ref entry.Frame);
             }
             Release(execution);
@@ -444,6 +499,7 @@ namespace SpellBook.GAS.Actions
             if (execution.OwnsContext && execution.Context != null) ReturnContext(execution.Context);
             execution.Context = null;
             execution.Owner = null;
+            execution.Link = ExecutionLink.Holds;
             execution.Mother = null;
             execution.Inherited.Clear();
             execution.HasInherited = false;
