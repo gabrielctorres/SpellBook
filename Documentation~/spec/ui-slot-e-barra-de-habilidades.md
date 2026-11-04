@@ -84,7 +84,7 @@ Nenhuma. Adicionado: lista genérica (`UIListSource`, `UIListBinder`, `UIItemCon
 
 Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Mesmas regras de teste do B-015. Teto: ~500 linhas e 10 arquivos.
 
-**Conflitos com a fila:** `UIModels.cs`, `UIEditors.cs`, `UGUIEditors.cs`, `GasUIEditors.cs`, `DocUrls.cs` e `validador.md` (B-015, B-017, B-018): em série. SL4 toca `AbilitySystemComponent.cs` (Lotes B a D, DE*). SL12 e SL13 tocam assets e a cena do Sample (VN3, EV21, DE6, SB-T8) e a página do Sample.
+**Conflitos com a fila:** `UIModels.cs`, `UIEditors.cs`, `UGUIEditors.cs`, `GasUIEditors.cs`, `DocUrls.cs` e `validador.md` (B-015, B-017, B-018): em série. SL4a toca `AbilitySystemComponent.cs` (Lotes B a D, DE*). SL12 e SL13 tocam assets e a cena do Sample (VN3, EV21, DE6, SB-T8) e a página do Sample.
 
 ### SL1 — Lista genérica, `UIItemContext` e "+N"
 - Escopo: `Runtime/UI/UISource.cs` (tipos de lista), `Runtime/UI/UIListBinder.cs`, `Runtime/UI/UIItemContext.cs` (novos), `UIModels.cs` (`ListOverflowModel`), `UIEditors.cs`, `Tests/UI/PlayMode/UIListBinderTests.cs` (novo; fonte de lista e spawner de teste), `visao-geral.md`, `CHANGELOG.md`.
@@ -237,6 +237,11 @@ Divisão do SL1 pela ADR 0042, decidida pelo usuário em 2026-11-04. O SL1 imple
 - Testes red: `Scope_WithoutConditions_StopsBeforeRules_SameOrder`; `Cooldown8s_ReadyCooldownReady_FractionSeconds_PulseOnce_PauseStops` (CA2, C2); `ReducedCooldown_ShowsRealDuration` (CA3, C3); `LowMana_NoResource_BackWhenManaRises` (CA5, C5); `BlockingTag_Blocked_BackOnRemove` (CA6, C6); `KeyLabel_FromProvider_UpdatesOnChanged` (CA10, C10); `SlotState_MatchesTryActivate_UpToCost` (CA16); `SlotUpdates10000_DoNotAllocate` (CA14, parte).
 - Critério de pronto: CA2, CA3, CA5, CA6, CA10 e CA16 verdes.
 - Tamanho estimado: ~490 linhas; 10 arquivos. Depende de: SL3, AV4, EA5, EA6.
+- Divisão de 2026-11-04 (ADR 0042): o SL4 passou do teto e virou três tickets, em série. Os testes red e o escopo acima se repartem entre eles, como diz o Detalhe.
+  - SL4a (#252): consulta de ativação com escopo no GAS. Depende de: SL3, AV4, EA5, EA6. Medido: 124 linhas; 4 arquivos.
+  - SL4b (#337): fonte do slot com estado e recarga. Depende de: SL4a. Medido: 524 linhas; 6 arquivos (exceção de até +30% registrada no Detalhe).
+  - SL4c (#338): custo por evento, rótulo da tecla e sem alocar. Depende de: SL4b. Medido: 209 linhas; 4 arquivos.
+  - Quem dependia do SL4 passa a depender do SL4c.
 
 ### Detalhe (2026-11-04)
 Divisão do SL4 pela ADR 0042, decidida pelo usuário em 2026-11-04. O SL4 escrito inteiro mediu 825 linhas em `.cs` (`git diff --numstat` e `wc -l` dos novos), acima de +30% (650): `ActivationCheckScope.cs` 18, `AbilitySystemComponent.cs` +18 −5, `ActivationScopeTests.cs` 83, `SlotReader.cs` 212, `AbilitySlotSource.cs` 95, `AbilitySlotBinder.cs` 11, `UIEditors.cs` +4 e `AbilitySlotSourceTests.cs` 379. Ele virou três tickets, em série: SL4a (#252), SL4b (#337) e SL4c (#338). O código do SL4b e do SL4c está guardado em `C:/Users/gabri/orca/workspaces/SpellBook/_guardado-sl4b/` e `_guardado-sl4c/`, e o `NOTA.md` de cada pasta diz como reaplicar. Quem dependia do SL4 passa a depender do SL4c (a linha "Depende de" da parte fixa não muda; vale esta nota). Em comum aos três: a página `slot-de-habilidade.md` fica para o passe de documentação (emenda de 2026-11-03 da ADR 0007), e o `CHANGELOG.md` sai porque não há quebra (item 4 da mesma emenda). Os asmdefs não mudam: o runtime `SpellBook.GAS.UI` já referencia GAS, Tags, Core e UI, e o editor já referencia o runtime e as dependências dele (ADR 0012, item 2; ADR 0039, item 9).
@@ -295,7 +300,7 @@ Divisão do SL4 pela ADR 0042, decidida pelo usuário em 2026-11-04. O SL4 escri
 - Escopo: `SlotReader.cs`, `AbilitySlotSource.cs` (`failureSeconds`), `Tests/GAS.UI/PlayMode/SlotChargesAndFailureTests.cs` (novo), `slot-de-habilidade.md`, `CHANGELOG.md`.
 - Testes red: `Charges3_Spend_Shows2_NextRadial_NoCharges` (CA4, C4); `ChargeBack_PulsesOnce`; `LowMana_TryActivate_FailureKeyTagText_OneSecond_CountUp` (CA7, C7, sem autocast); `FailureOrder_FollowsAdr0022`; `LevelChange_UpdatesCooldownAndCost`.
 - Critério de pronto: CA4 e CA7 (menos autocast) verdes.
-- Tamanho estimado: ~400 linhas; 5 arquivos. Depende de: SL4, AV7, DE11.
+- Tamanho estimado: ~400 linhas; 5 arquivos. Depende de: SL4c, AV7, DE11.
 
 ### SL6 — `AbilityLoadoutSource` e `AbilityBarBinder`
 - Escopo: `Runtime/GAS.UI/AbilityLoadoutSource.cs`, `Runtime/UI/AbilityBarBinder.cs` (novos), `UIEditors.cs`, `Tests/GAS.UI/PlayMode/AbilityBarTests.cs` (novo), `barra-de-habilidades.md`, `CHANGELOG.md`.
@@ -355,8 +360,10 @@ Complemento do B-032, planejado aqui a pedido do Controlador. Segue a emenda do 
 | SL1c | sim | SL1b | 135 / 3 |
 | SL2 | sim | SL1c | ~300 / 9 |
 | SL3 | sim | SL2 | ~240 / 7 |
-| SL4 | sim | SL3, AV4, EA5, EA6 | ~490 / 10 |
-| SL5 | sim | SL4, AV7, DE11 | ~400 / 5 |
+| SL4a | sim | SL3, AV4, EA5, EA6 | 124 / 4 |
+| SL4b | sim | SL4a | 524 / 6 |
+| SL4c | sim | SL4b | 209 / 4 |
+| SL5 | sim | SL4c, AV7, DE11 | ~400 / 5 |
 | SL6 | sim | SL5 | ~420 / 6 |
 | SL7 | sim | SL6, EV14 | ~280 / 4 |
 | SL8 | sim | SL7 | ~380 / 8 |
@@ -366,7 +373,7 @@ Complemento do B-032, planejado aqui a pedido do Controlador. Segue a emenda do 
 | SL12 | sim | SL11, UI14, DE11, DE6, EV21, SB-T8 | ~0 / 9 |
 | SL13 | sim | SL12, UI12 | ~0 / 7 |
 
-Fila: SL1a → SL1b → SL1c → SL2 → … → SL13 em série (o SL1 se dividiu em 2026-11-04, ADR 0042). A barra de cast (SL10, SL11) só depende do EV13 e pode adiantar logo depois do SL9. O B-017 e o B-018 começam depois do SL8 (precisam da lista genérica, do `UIItemContext` e do slot com assunto). CA14 e CA17 rodam em todos.
+Fila: SL1a → SL1b → SL1c → SL2 → SL3 → SL4a → SL4b → SL4c → SL5 → … → SL13 em série (o SL1 e o SL4 se dividiram em 2026-11-04, ADR 0042). A barra de cast (SL10, SL11) só depende do EV13 e pode adiantar logo depois do SL9. O B-017 e o B-018 começam depois do SL8 (precisam da lista genérica, do `UIItemContext` e do slot com assunto). CA14 e CA17 rodam em todos.
 
 ## Perguntas ao usuário
 
