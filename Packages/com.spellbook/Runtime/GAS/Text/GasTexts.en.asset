@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03f7385509121b342b7e1f76becaa61b, type: 3}
+  m_Name: GasTexts.en
+  m_EditorClassIdentifier: SpellBook.Core::SpellBook.Core.Text.TextTable
+  cultureName: en
+  entries:
+  - key: gas.activation.invalid
+    text: Invalid ability
+  - key: gas.activation.not_granted
+    text: Ability not learned
+  - key: gas.activation.already_active
+    text: Ability already active
+  - key: gas.activation.blocked_by_tags
+    text: Blocked by current state
+  - key: gas.activation.missing_required_tags
+    text: Requirement not met
+  - key: gas.activation.blocked_by_active_ability
+    text: Blocked by another ability
+  - key: gas.activation.on_cooldown
+    text: On cooldown
+  - key: gas.activation.cannot_afford_cost
+    text: Not enough resources
+  - key: gas.activation.blocked_by_condition
+    text: Condition not met
+  - key: gas.activation.no_charges
+    text: No charges
+  - key: gas.activation.attribute_threshold
+    text: Attribute requirement not met
+  - key: gas.activation.cast_range
+    text: Out of range
+  - key: gas.activation.no_target
+    text: No target
+  - key: gas.activation.has_targets
+    text: No valid targets
+  - key: gas.activation.tag_query
+    text: Not allowed in current state
+  - key: gas.description.cooldown
+    text: Cooldown
+  - key: gas.description.duration
+    text: Duration
+  - key: gas.description.permanent
+    text: Permanent
+  - key: gas.description.charges
+    text: '{0} charges, one every {1}'

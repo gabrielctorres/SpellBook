@@ -6,6 +6,7 @@ using SpellBook.Core.Text;
 using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Effects;
+using SpellBook.GAS.Text;
 using SpellBook.GAS.Values;
 using UnityEngine;
 
@@ -67,7 +68,7 @@ namespace SpellBook.GAS.Description
     [TypeCategory("Descrição/Recarga", Summary = "Recarga da habilidade no nível, com a redução de quem lança.")]
     public sealed class CooldownElement : DescriptionElement
     {
-        internal static readonly LocalizedText Label = new LocalizedText("gas.description.cooldown", "Recarga");
+        internal static readonly LocalizedText Label = new LocalizedText(GasTextKeys.DescriptionCooldown, "Recarga");
 
         /// <summary>Sem habilidade ou sem efeito de recarga, nada.</summary>
         public override void Describe(DescriptionContext context)
@@ -109,8 +110,8 @@ namespace SpellBook.GAS.Description
     [TypeCategory("Descrição/Duração", Summary = "Duração de um efeito no nível, ou permanente.", Line = "{effect}")]
     public sealed class DurationElement : DescriptionElement
     {
-        internal static readonly LocalizedText Label = new LocalizedText("gas.description.duration", "Duração");
-        internal static readonly LocalizedText PermanentLabel = new LocalizedText("gas.description.permanent", "Permanente");
+        internal static readonly LocalizedText Label = new LocalizedText(GasTextKeys.DescriptionDuration, "Duração");
+        internal static readonly LocalizedText PermanentLabel = new LocalizedText(GasTextKeys.DescriptionPermanent, "Permanente");
 
         [SerializeField] private GameplayEffect effect;
 
@@ -151,7 +152,7 @@ namespace SpellBook.GAS.Description
     [TypeCategory("Descrição/Cargas", Summary = "Máximo de cargas e a recarga de cada uma, no nível.")]
     public sealed class ChargesElement : DescriptionElement
     {
-        internal static readonly LocalizedText Label = new LocalizedText("gas.description.charges", "{0} cargas, uma a cada {1}");
+        internal static readonly LocalizedText Label = new LocalizedText(GasTextKeys.DescriptionCharges, "{0} cargas, uma a cada {1}");
 
         /// <summary>Sem habilidade ou com as cargas desligadas, nada.</summary>
         public override void Describe(DescriptionContext context)
