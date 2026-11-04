@@ -304,6 +304,31 @@ Divisão do SL4 pela ADR 0042, decidida pelo usuário em 2026-11-04. O SL4 escri
 - Critério de pronto: CA4 e CA7 (menos autocast) verdes.
 - Tamanho estimado: ~400 linhas; 5 arquivos. Depende de: SL4c, AV7, DE11.
 
+### Detalhe (2026-11-04)
+- CA: CA4 e CA7 (menos o autocast, que fecha no SL7), com o R7, o R8 (pulso na carga que volta) e o Design 3 (falha e pulso). Dependências conferidas no código: AV7 (`OnChargesChanged`, `GetCharges`, `GetMaxCharges`, `GetChargeRechargeRemaining/Normalized`), DE11 (`ActivationFailureDescriber`, `GasTextKeys`), AV5 (`OnAbilityFailed`) e VN4 (`OnAbilityLevelChanged`).
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/GAS.UI/SlotReader.cs`:
+    - `Attach` ganha `failureSeconds`; assina `OnChargesChanged`, `OnAbilityFailed` e `OnAbilityLevelChanged` com delegates criados uma vez (`:40-50`, `:62-107`);
+    - `Refresh` (`:115-129`): com `Charges.Enabled` e spec concedido, `WithCharges(GetCharges, GetMaxCharges, GetChargeRechargeNormalized)`; `WithFailure` com o último motivo; `WantsTick` também com a recarga da carga correndo ou o motivo visível;
+    - falha: no `OnAbilityFailed` desta habilidade, `ActivationFailureDescriber.Describe` num `DescriptionContext` só do leitor (lista pré-alocada) dá a linha; a chave é `Label.Key`, a tag é `Tag.GetDefinition()`, e o texto sai de `DescriptionWriter.WriteLine` com o provedor do contexto da ligação, num `TextBuffer` só do leitor. `FailureCount++`; `FailureVisible` até `failureSeconds` depois da falha, medidos pelo `TimeSource` do ASC e conferidos no tick (R7: "pelo `ITimeSource`"; o ASC é a mesma fonte da recarga, P2). `failureSeconds` ≤ 0: o contador sobe e o motivo não aparece;
+    - pulso: `ReadyPulseCount++` quando `OnChargesChanged` desta habilidade aumenta as cargas (R8); a concessão não dispara o evento;
+    - nível: `OnAbilityLevelChanged` refaz o modelo (custo e máximo de cargas mudam com o nível sem outro evento).
+  - `Runtime/GAS.UI/AbilitySlotSource.cs`: `[SerializeField, Min(0f)] float failureSeconds = 1f`, com `Tooltip` e a propriedade `FailureSeconds`, passado ao `Attach` (`:296-298`); o `Summary` cita cargas e motivo de falha.
+  - `Runtime/UI/UIModels.cs:150-288`: `SlotModel` ganha `ScriptableObject FailureTag` (a tag do motivo, como a chave de slot da P5: a UI não referencia Tags) e `WithFailure(string key, TextSpan text, bool visible, int count, ScriptableObject tag = null)`; as outras cópias o preservam. O parâmetro opcional no fim mantém as chamadas do SL2.
+  - `Tests/GAS.UI/PlayMode/SlotChargesAndFailureTests.cs` (novo), com o próprio rig (driver, relógio manual, loadout e tema com provedor de teste).
+- Decisão, com base no R3 e no CA7 do PRD ("chave (e a tag)") e na P5: o Design 2 não lista campo para a tag do motivo, e sem ele a tag não chega à view (o `DescriptionWriter` não a escreve). O campo `FailureTag` é aditivo, num tipo ainda não lançado; não muda CA, não quebra API nem formato serializado (o `SlotModel` não é serializado). A levar ao usuário pelo Controlador.
+- Fora deste ticket: a seção da página `slot-de-habilidade.md` fica para o passe de documentação (emenda de 2026-11-03 da ADR 0007); o `CHANGELOG.md` sai porque não há quebra (item 4 da mesma emenda). Os asmdefs não mudam: o runtime `SpellBook.GAS.UI` já referencia GAS, Tags, Core e UI, e o editor já referencia o runtime e as dependências dele (ADR 0012, item 2; ADR 0039, item 9). O `AbilitySlotSource` já é oferecido pelo seletor com `TypeCategory` e `Summary` (ADR 0013, item 4); só o texto do `Summary` muda. A falha de autocast é do SL7.
+- Testes red (PlayMode, `SpellBook.GAS.UI.Tests.PlayMode`, classe `SlotChargesAndFailureTests`):
+  - `Charges3_Spend_Shows2_NextRadial_NoCharges` (CA4, C4);
+  - `ChargeBack_PulsesOnce` (R8; uma carga volta, um pulso; a primeira publicação não pulsa);
+  - `LowMana_TryActivate_FailureKeyTagText_OneSecond_CountUp` (CA7, C7, sem autocast: chave `gas.activation.cannot_afford_cost`, sem tag, texto do provedor, visível por 1 s, contador sobe a cada tentativa; a consulta sozinha não conta falha);
+  - `FailureOrder_FollowsAdr0022` (tag bloqueadora com a tag no modelo, depois recarga, depois custo, depois condição; na condição o estado é `Ready` e só o motivo a mostra, Q3);
+  - `LevelChange_UpdatesCooldownAndCost` (nível 2 com custo maior dá `NoResource` pelo evento, sem tick; a recarga ativada no nível 2 mostra a duração do nível 2).
+- Critério de pronto: os 5 testes verdes, com `total` = 5 no XML; `AbilitySlotSourceTests` (8), `SlotModelTests`, `TypeCatalogSummaryTests` e `GasUiSourceScanTests` verdes.
+- Testes red rodados contra um esqueleto que compila (o `SlotModel` com `FailureTag`, o `failureSeconds` na fonte e o `Attach` com o parâmetro, sem comportamento novo no leitor): 5 de 5 falham (sem cargas no modelo; chave do motivo nula; `Ready` onde se esperava `NoResource` depois do nível 2). Green: 13 de 13 com o `AbilitySlotSourceTests`; `SlotModelTests`, `TypeCatalogSummaryTests` e `GasUiSourceScanTests`, 6 de 6.
+- Tamanho medido (`git diff --numstat` e `wc -l` do novo): 476 linhas em 5 arquivos. Em `.cs`: `SlotReader.cs` +77 −9, `AbilitySlotSource.cs` +11 −4, `UIModels.cs` +20 −16 e `SlotChargesAndFailureTests.cs` 339; a Spec conta só como arquivo. Exceção: nenhuma.
+- Commit: `feat(gas-ui): cargas, motivo de falha e nível no slot (#253)`
+
 ### SL6 — `AbilityLoadoutSource` e `AbilityBarBinder`
 - Escopo: `Runtime/GAS.UI/AbilityLoadoutSource.cs`, `Runtime/UI/AbilityBarBinder.cs` (novos), `UIEditors.cs`, `Tests/GAS.UI/PlayMode/AbilityBarTests.cs` (novo), `barra-de-habilidades.md`, `CHANGELOG.md`.
 - Testes red: `TwoEntries_TwoSlots_ListOrder_ReorderChangesOrder` (CA1, C1); `GrantRemove_EmptyByEvent_NoUpdate` (CA8, C8); `AnchorRespawn_Rebinds` (CA11, C11); `Slots_FromSpawner_Released_LiveStable` (CA13, C13); `SetLoadout_Rebuilds`.

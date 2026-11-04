@@ -4,6 +4,7 @@ using SpellBook.Core.Text;
 using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
+using SpellBook.GAS.Description;
 using SpellBook.GAS.Effects;
 using SpellBook.Tags;
 using SpellBook.UI;
@@ -14,8 +15,9 @@ namespace SpellBook.GAS.UI
     /// <summary>
     /// Monta o <see cref="SlotModel"/> de uma habilidade num ASC (Spec do B-016, Design 3, P1 a P3). O estado vem da
     /// consulta com escopo <see cref="ActivationCheckScope.WithoutConditions"/>, o mesmo caminho da ativação, a cada
-    /// evento do ASC que pode mudá-lo. A recarga é lida do ASC a cada tick, pedido só enquanto ela corre. Ligar e soltar
-    /// assinam com delegates criados uma vez; atualizar não aloca.
+    /// evento do ASC que pode mudá-lo. A recarga e a próxima carga são lidas do ASC a cada tick, pedido só enquanto uma
+    /// delas corre ou o motivo da última falha aparece. Ligar e soltar assinam com delegates criados uma vez; atualizar
+    /// não aloca.
     /// </summary>
     internal sealed class SlotReader
     {
@@ -24,10 +26,15 @@ namespace SpellBook.GAS.UI
         private readonly Action<AbilitySpec> _onSpecChanged;
         private readonly Action<AbilitySpec, bool> _onSpecEnded;
         private readonly Action<AbilitySpec, CooldownChange> _onCooldownChanged;
+        private readonly Action<AbilitySpec, int, int> _onChargesChanged;
+        private readonly Action<AbilitySpec, int, int> _onLevelChanged;
+        private readonly Action<GameplayAbility, ActivationFailure> _onFailed;
         private readonly Action<float, float> _onValueChanged;
         private readonly Action _onLabelChanged;
         private readonly List<AttributeState> _costStates = new List<AttributeState>(4);
         private readonly TextBuffer _label = new TextBuffer(16);
+        private readonly TextBuffer _failureText = new TextBuffer(32);
+        private readonly DescriptionContext _describe = new DescriptionContext();
 
         private AbilitySystemComponent _asc;
         private GameplayAbility _ability;
@@ -36,6 +43,13 @@ namespace SpellBook.GAS.UI
         private ITextProvider _text;
         private TextSpan _labelSpan;
         private int _readyPulses;
+        private float _failureSeconds;
+        private string _failureKey;
+        private ScriptableObject _failureTag;
+        private TextSpan _failureSpan;
+        private int _failureCount;
+        private bool _failureVisible;
+        private double _failureUntil;
 
         /// <summary>Cria o leitor; <paramref name="changed"/> é chamado a cada modelo novo.</summary>
         public SlotReader(Action changed)
@@ -45,22 +59,27 @@ namespace SpellBook.GAS.UI
             _onSpecChanged = _ => Refresh();
             _onSpecEnded = (_, _) => Refresh();
             _onCooldownChanged = OnCooldownChanged;
+            _onChargesChanged = OnChargesChanged;
+            _onLevelChanged = (_, _, _) => Refresh();
+            _onFailed = OnFailed;
             _onValueChanged = (_, _) => Refresh();
             _onLabelChanged = OnLabelChanged;
+            _describe.Lines.Capacity = 1;
         }
 
         /// <summary>O último modelo montado.</summary>
         public SlotModel Model { get; private set; }
 
-        /// <summary>Verdadeiro enquanto a recarga corre e o leitor precisa de <see cref="Tick"/>.</summary>
+        /// <summary>Verdadeiro enquanto a recarga, a próxima carga ou o motivo visível pedem <see cref="Tick"/>.</summary>
         public bool WantsTick { get; private set; }
 
         /// <summary>
         /// Liga à <paramref name="ability"/> (nula: slot vazio) no <paramref name="asc"/>, assina os eventos e monta o
-        /// primeiro modelo. O rótulo vem de <paramref name="keyLabels"/> pela chave <paramref name="slotKey"/>.
+        /// primeiro modelo. O rótulo vem de <paramref name="keyLabels"/> pela chave <paramref name="slotKey"/>; o motivo da
+        /// falha aparece por <paramref name="failureSeconds"/>, medidos pelo tempo do ASC.
         /// </summary>
         public void Attach(AbilitySystemComponent asc, GameplayAbility ability, ScriptableObject slotKey,
-            KeyLabelProvider keyLabels, ITextProvider text)
+            KeyLabelProvider keyLabels, ITextProvider text, float failureSeconds)
         {
             Detach();
             _asc = asc;
@@ -68,6 +87,7 @@ namespace SpellBook.GAS.UI
             _slotKey = slotKey;
             _keyLabels = keyLabels;
             _text = text;
+            _failureSeconds = failureSeconds;
 
             _asc.OnTagChanged += _onTagChanged;
             _asc.OnAbilityGranted += _onSpecChanged;
@@ -75,6 +95,9 @@ namespace SpellBook.GAS.UI
             _asc.OnAbilityActivated += _onSpecChanged;
             _asc.OnAbilityEnded += _onSpecEnded;
             _asc.OnCooldownChanged += _onCooldownChanged;
+            _asc.OnChargesChanged += _onChargesChanged;
+            _asc.OnAbilityLevelChanged += _onLevelChanged;
+            _asc.OnAbilityFailed += _onFailed;
             ListenCostAttributes();
             if (_keyLabels != null) _keyLabels.Changed += _onLabelChanged;
 
@@ -93,6 +116,9 @@ namespace SpellBook.GAS.UI
             _asc.OnAbilityActivated -= _onSpecChanged;
             _asc.OnAbilityEnded -= _onSpecEnded;
             _asc.OnCooldownChanged -= _onCooldownChanged;
+            _asc.OnChargesChanged -= _onChargesChanged;
+            _asc.OnAbilityLevelChanged -= _onLevelChanged;
+            _asc.OnAbilityFailed -= _onFailed;
             for (int i = 0; i < _costStates.Count; i++)
             {
                 _costStates[i].OnValueChanged -= _onValueChanged;
@@ -103,13 +129,20 @@ namespace SpellBook.GAS.UI
             _asc = null;
             _ability = null;
             _keyLabels = null;
+            _failureKey = null;
+            _failureTag = null;
+            _failureSpan = default;
+            _failureVisible = false;
             WantsTick = false;
         }
 
-        /// <summary>Lê a recarga de novo; quando ela acaba, o estado também muda.</summary>
+        /// <summary>Lê a recarga e a próxima carga de novo e esconde o motivo da falha quando o tempo dele acaba.</summary>
         public void Tick()
         {
-            if (_asc != null) Refresh();
+            if (_asc == null) return;
+
+            if (_failureVisible && _asc.TimeSource.ElapsedTime >= _failureUntil) _failureVisible = false;
+            Refresh();
         }
 
         private void Refresh()
@@ -119,12 +152,18 @@ namespace SpellBook.GAS.UI
             GameplayEffect cooldown = _ability != null ? _ability.CooldownEffect : null;
             bool cooling = result != AbilityActivationResult.InvalidAbility && result != AbilityActivationResult.NotGranted
                 && _asc.IsOnCooldown(cooldown);
-            Model = new SlotModel(ToState(result), _ability != null ? _ability.Icon : null, _ability)
+            AbilitySpec spec = _ability != null && _ability.Charges.Enabled ? _asc.FindSpec(_ability) : null;
+            bool charging = spec != null && _asc.GetChargeRechargeRemaining(spec) > 0f;
+            SlotModel model = new SlotModel(ToState(result), _ability != null ? _ability.Icon : null, _ability)
                 .WithKeyLabel(_labelSpan)
                 .WithCooldown(cooling ? _asc.GetCooldownNormalized(cooldown) : 0f,
                     cooling ? _asc.GetCooldownTimeRemaining(cooldown) : 0f)
+                .WithFailure(_failureKey, _failureSpan, _failureVisible, _failureCount, _failureTag)
                 .WithReadyPulse(_readyPulses);
-            WantsTick = cooling;
+            Model = spec != null
+                ? model.WithCharges(_asc.GetCharges(spec), _asc.GetMaxCharges(spec), _asc.GetChargeRechargeNormalized(spec))
+                : model;
+            WantsTick = cooling || charging || _failureVisible;
             _changed();
         }
 
@@ -154,6 +193,35 @@ namespace SpellBook.GAS.UI
         private void OnCooldownChanged(AbilitySpec spec, CooldownChange change)
         {
             if (change == CooldownChange.Ended && spec.Ability == _ability) _readyPulses++;
+            Refresh();
+        }
+
+        // Pulso de pronto (R8) também quando volta uma carga desta habilidade; a concessão não dispara o evento
+        private void OnChargesChanged(AbilitySpec spec, int before, int after)
+        {
+            if (spec.Ability == _ability && after > before) _readyPulses++;
+            Refresh();
+        }
+
+        // Motivo da falha (R7): chave, tag e texto pelo DE11, com o provedor da ligação; a consulta não dispara o evento
+        private void OnFailed(GameplayAbility ability, ActivationFailure failure)
+        {
+            if (ability == null || ability != _ability) return;
+
+            _describe.Text = _text;
+            _describe.Lines.Clear();
+            ActivationFailureDescriber.Describe(in failure, _describe);
+            if (_describe.Lines.Count == 0) return;
+
+            DescriptionLine line = _describe.Lines[0];
+            _failureKey = line.Label.Key;
+            _failureTag = line.Tag.IsValid ? line.Tag.GetDefinition() : null;
+            _failureText.Clear();
+            DescriptionWriter.WriteLine(in line, _describe, _failureText);
+            _failureSpan = _failureText.SpanFrom(0);
+            _failureCount++;
+            _failureVisible = _failureSeconds > 0f;
+            _failureUntil = _asc.TimeSource.ElapsedTime + _failureSeconds;
             Refresh();
         }
 

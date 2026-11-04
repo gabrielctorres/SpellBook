@@ -12,10 +12,11 @@ namespace SpellBook.GAS.UI
 {
     /// <summary>
     /// Fonte do slot de uma habilidade (Spec do B-016, Design 3; R4 do PRD): acha a entrada do <see cref="Loadout"/> pela
-    /// tag <see cref="Slot"/> e lê do ASC dono o estado, a recarga e o rótulo da tecla. Atualiza por evento e pede tick só
-    /// enquanto a recarga corre. O "pronto" vem da mesma consulta da ativação, até o custo (Q3). Não ativa nada (R11).
+    /// tag <see cref="Slot"/> e lê do ASC dono o estado, a recarga, as cargas, o motivo da última falha e o rótulo da
+    /// tecla. Atualiza por evento e pede tick só enquanto a recarga, a próxima carga ou o motivo visível correm. O
+    /// "pronto" vem da mesma consulta da ativação, até o custo (Q3). Não ativa nada (R11).
     /// </summary>
-    [Serializable, TypeCategory("Habilidades", Summary = "Slot de uma habilidade do loadout, pela tag: estado, recarga e rótulo da tecla.",
+    [Serializable, TypeCategory("Habilidades", Summary = "Slot de uma habilidade do loadout, pela tag: estado, recarga, cargas, motivo de falha e rótulo da tecla.",
         Line = "Slot {slot.definition} · {loadout}")]
     public sealed class AbilitySlotSource : UISource<SlotModel>
     {
@@ -25,6 +26,9 @@ namespace SpellBook.GAS.UI
         [Tooltip("Tag do slot procurada no loadout, como Slot.Q.")]
         [SerializeField] private GameplayTag slot;
 
+        [Tooltip("Segundos em que o motivo da última falha aparece no slot. 0: o contador sobe e o motivo não aparece.")]
+        [SerializeField, Min(0f)] private float failureSeconds = 1f;
+
         [NonSerialized] private TextBuffer _preview;
 
         /// <summary>O loadout lido.</summary>
@@ -32,6 +36,9 @@ namespace SpellBook.GAS.UI
 
         /// <summary>A tag do slot procurada no loadout.</summary>
         public GameplayTag Slot { get => slot; set => slot = value; }
+
+        /// <summary>Segundos em que o motivo da última falha aparece; negativo vale 0.</summary>
+        public float FailureSeconds { get => failureSeconds; set => failureSeconds = Mathf.Max(0f, value); }
 
         /// <inheritdoc />
         public override Type OwnerType => typeof(AbilitySystemComponent);
@@ -83,7 +90,7 @@ namespace SpellBook.GAS.UI
 
                 AbilityLoadout loadout = _source.loadout;
                 _reader.Attach(asc, _source.FindAbility(), _source.slot.GetDefinition(),
-                    loadout != null ? loadout.KeyLabels : null, Context.Text);
+                    loadout != null ? loadout.KeyLabels : null, Context.Text, _source.failureSeconds);
             }
 
             protected override void OnDetach() => _reader.Detach();
