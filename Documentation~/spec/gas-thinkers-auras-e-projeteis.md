@@ -429,6 +429,26 @@ Todos usam a Unity e seguem o WIP 1. Tempo por `asc.Tick` com `ManualTimeSource`
 - Tamanho: ~200 linhas e 5 arquivos, pela ADR 0042 (medido no diff: 152 no `ThinkerRecipesTests.cs`, 33 na correção em `ActionRunner.cs`, `ActionContext.cs` e `ApplyEffectAction.cs` e 15 no `EffectReactionsTests.cs`). Exceção: nenhuma.
 - Commit: `fix(gas): ApplyEffect nos alvos do seletor e do ForEachTarget (#219)`
 
+### TK8b — Inspector do thinker, desempenho e filtro de time (#331)
+- Objetivo: o Inspector do thinker (cabeçalho da aura e abas das ações) e do projétil, o teste de alocação (C18) e o filtro de time da aura e do projétil, a segunda metade do TK8, dividido por tamanho (ADR 0042).
+- CA: CA14, CA27 e CA29. CA25 e CA32 pela suíte completa. Depende de: TK7, TM5 e EV17.
+
+### Detalhe (2026-11-04)
+- CA: CA14 (filtro de time), CA27 (C18) e CA29 (S: abas, cabeçalho da aura e Gizmo, conferidos no host pelo Examinador). CA25 e CA32 pela suíte completa `!Documentacao` e pelas guardas de assemblies, sem teste novo. O CA31 (páginas, receitas e CHANGELOG do R25) fica no passe de documentação (emenda de 2026-11-03 da 0007).
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Editor/GAS/GameplayThinkerEditor.cs` (novo): `SpellBookEditor` do `GameplayThinker`, que sai do `GasEditors.cs:37-39`. `BuildAfterDefault` põe um `Label` (`HeaderName`) antes do `PropertyField:behaviour`, esconde as três listas do Inspector padrão (`ActionEventsView.HideDefaultFields`) e as mostra nas abas da `ActionEventsView`, com o texto de vazio. O cabeçalho só aparece com `AuraBehaviour` e um objeto só: resumo do comportamento (`SummaryFormatter.Format`), raio do `AreaSelector`, intervalo do thinker (constante, `%tabela` ou "por nível") e o resumo do filtro, atualizado por `TrackSerializedObjectValue`.
+  - `Editor/GAS/GasEditors.cs:33-35`: o `ProjectileEditor` esconde o `OnEnded` do padrão e o mostra na aba "Ao terminar" da `ActionEventsView`.
+  - `Tests/GAS/EditMode/ThinkerInspectorTests.cs` (novo), `Tests/GAS/PlayMode/ThinkerAllocationTests.cs` (novo) e `Tests/GAS.Bridges/PlayMode/AuraTeamFilterTests.cs` (novo), com os próprios auxiliares, sem tocar no `GasFactory`.
+  - Sem mudança de runtime, de API pública ou de formato serializado. Sem manual nem `CHANGELOG.md`.
+- Testes red:
+  - EditMode, `SpellBook.GAS.Tests.EditMode`, classe `ThinkerInspectorTests`: `Thinker_ThreeEventTabs_ListsLeaveDefaultInspector`; `Thinker_AuraHeader_EffectRadiusIntervalFilter`; `Projectile_EndedTab` (os três falham antes do Inspector); `Thinker_NoAura_NoHeader` (guarda: passa antes e depois).
+  - PlayMode, `SpellBook.GAS.Tests.PlayMode`, classe `ThinkerAllocationTests`: `Aura1000Pulses20Targets_DoNotAllocate`; `Projectile1000Impacts_PierceAndFilter_DoNotAllocate` (CA27).
+  - PlayMode, `SpellBook.GAS.Bridges.Tests.PlayMode`, classe `AuraTeamFilterTests`: `Aura_TeamFilter_OnlyAllies`; `Projectile_TeamFilter_OnlyHostiles` (CA14).
+  - Os quatro do PlayMode são de aceite sobre o runtime do TK3, do TK6 e do TM5 e já passam antes do ticket, que não muda runtime. Eles fixam o CA14 e o CA27 contra regressão.
+- Critério de pronto: os testes acima verdes pelos filtros `\.ThinkerInspectorTests\.` (EditMode) e `\.ThinkerAllocationTests\.;\.AuraTeamFilterTests\.` (PlayMode), `HelpUrlTests`, `SourceRulesTests` e `GasSourceScanTests` (EditMode) verdes sem edição, e as suítes EditMode e PlayMode `!Documentacao` verdes. O CA29 é conferido pelo Examinador no host.
+- Tamanho: ~484 linhas e 5 arquivos, pela ADR 0042 (medido no diff: 74 no `GameplayThinkerEditor.cs`, 16 no `GasEditors.cs`, 119 no `ThinkerInspectorTests.cs`, 143 no `ThinkerAllocationTests.cs` e 132 no `AuraTeamFilterTests.cs`). Exceção: nenhuma.
+- Commit: `feat(editor): Inspector do thinker, desempenho e filtro de time (#331)`
+
 ### Ordem e resumo
 
 | Ticket | Unity | Depende de | Tamanho |
