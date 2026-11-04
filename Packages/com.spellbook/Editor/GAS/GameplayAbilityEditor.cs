@@ -16,7 +16,7 @@ namespace SpellBook.GAS.Editor
     /// <summary>
     /// Inspector da <see cref="GameplayAbility"/> (R29). Depois do Inspector padrão: o "nível de prévia", limitado a
     /// [1, MaxLevel], e a prévia nesse nível de cada valor da tabela e da recarga (sem a redução do atributo); a seção
-    /// "Ativação", com uma linha por regra (resumo da condição e motivo da falha); a prévia das cargas no mesmo nível; e as
+    /// "Descrição", com a <see cref="DescriptionPreviewElement"/> no mesmo nível; a seção "Ativação", com uma linha por regra (resumo da condição e motivo da falha); a prévia das cargas no mesmo nível; e as
     /// abas de ações por evento, com "A cada passo" só em <see cref="AbilityBehavior.Channel"/>.
     /// </summary>
     [CustomEditor(typeof(GameplayAbility))]
@@ -28,11 +28,13 @@ namespace SpellBook.GAS.Editor
         public const string ActivationName = "spellbook-ability-activation";
         public const string RuleRowClass = "spellbook-ability-rule-row";
         public const string ChargesPreviewName = "spellbook-ability-charges-preview";
+        public const string DescriptionSectionName = "spellbook-ability-description";
 
         private IntegerField _level;
         private Label _preview;
         private VisualElement _rules;
         private Label _charges;
+        private DescriptionPreviewElement _description;
 
         protected override void BuildAfterDefault(VisualElement root)
         {
@@ -40,6 +42,12 @@ namespace SpellBook.GAS.Editor
             _preview = new Label { name = PreviewName };
             root.Add(_level);
             root.Add(_preview);
+
+            var description = new VisualElement { name = DescriptionSectionName };
+            description.Add(new Label("Descrição") { style = { unityFontStyleAndWeight = UnityEngine.FontStyle.Bold } });
+            _description = new DescriptionPreviewElement(serializedObject);
+            description.Add(_description);
+            root.Add(description);
 
             var activation = new VisualElement { name = ActivationName };
             activation.Add(new Label("Ativação") { style = { unityFontStyleAndWeight = UnityEngine.FontStyle.Bold } });
@@ -72,6 +80,7 @@ namespace SpellBook.GAS.Editor
             level = level < 1 ? 1 : level > ability.MaxLevel ? ability.MaxLevel : level;
             _level.SetValueWithoutNotify(level);
             _preview.text = Preview(ability, level);
+            _description.SetLevel(level);
             RefreshRules(ability);
             string charges = ChargesPreview(ability, level);
             _charges.text = charges ?? string.Empty;
