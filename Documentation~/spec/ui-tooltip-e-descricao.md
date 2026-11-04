@@ -360,6 +360,37 @@ Detalhe (2026-11-04), da Fábrica, sobre a divisão acima.
 - Critério de pronto: testes verdes; CA11 e CA14 (S) no host.
 - Tamanho estimado: ~380 linhas; 7 arquivos. Depende de: TT5.
 
+### Detalhe (2026-11-04)
+- CA: a parte automatizável do CA11 (prévia por nível em edição) e do CA14 (seletor e resumo do trigger); o CA11 e o CA14 (S) no host ficam como pendência manual. Cobre a P6, o R12 e o R13 no `TooltipTrigger`, e as duas checagens de cena do Design 6. A validação por `IValidatable` é do TT7.
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Editor/UI.UGUI/TooltipTriggerEditor.cs` (novo): `[CustomEditor(typeof(TooltipTrigger)), CanEditMultipleObjects] public sealed class TooltipTriggerEditor : SpellBookEditor`. Acima do Inspector padrão (fonte pelo seletor, resolvedor, modo, atraso, âncora e alvo):
+    - resumo de uma linha `Tooltip · <resumo da fonte> · <modo>, <atraso> s`: o resumo da fonte pelo `SummaryFormatter` (o `Line` do tipo), o modo em texto (`ponteiro`, `foco`, `ponteiro e foco`, `código`) e o atraso no formato `0.##` da cultura do Editor, como o `SummaryFormatter`; escondido na multisseleção, como o do `UIBinderEditor`;
+    - aviso de cena (`HelpBox`): modo `Pointer` ou `PointerAndFocus`, alvo numa cena carregada que não é de prévia, e nenhum `EventSystem` ativo nas cenas carregadas. Refeito ao mudar a configuração e no `EditorApplication.hierarchyChanged`, assinado só enquanto o Inspector está no painel;
+    - prévia por nível: `IntegerField` "Nível de prévia" (mínimo 1) e o `TooltipModel` do `CreatePreview(new UIPreviewContext(nível, null, cultura do Editor))` da fonte, em texto simples (UI Toolkit, `enableRichText = false`): título, subtítulo, uma linha por `TooltipLine` (rótulo e valor), pilhas, tempo e rodapé, com a cor do papel pelo `TextRoleTheme.Default`. Sem fonte ou com modelo vazio, um texto diz que não há prévia. Só no alvo único. `SetPreviewLevel(int)` e `Refresh()` públicos, como o `Refresh` do `UIBinderEditor`, para os testes.
+  - `Editor/UI/TooltipBinderEditor.cs` (novo): `[CustomEditor(typeof(TooltipBinder)), CanEditMultipleObjects] public sealed class TooltipBinderEditor : SpellBookEditor`, com o aviso de cena quando há mais de um `TooltipBinder` ativo nas cenas carregadas (o alvo numa cena que não é de prévia), refeito como o do trigger, e `Refresh()` público. A view e o tema ficam no Inspector padrão.
+  - `Editor/UI/UIEditors.cs:56-58` e `Editor/UI.UGUI/UGUIEditors.cs:39-41`: saem as declarações de uma linha do `TooltipBinderEditor` e do `TooltipTriggerEditor`.
+  - `Runtime/GAS.UI/AbilityTooltipSource.cs:24`, `EffectTooltipSource.cs:22` e `AttributeTooltipSource.cs:24`: o `Line` passa a `Habilidade {ability}`, `Efeito {effect}` e `Atributo {attribute}`, para o resumo do R13 ("Tooltip · Habilidade Fireball · ponteiro, 0,3 s"). Consequência direta do ticket (item 6 da ADR 0042); o `Line` só é lido pelo `SummaryFormatter` e o catálogo de tipos não o usa.
+  - `Tests/UI.UGUI/EditMode/SpellBook.UI.UGUI.Tests.EditMode.asmdef`: referências a `SpellBook.GAS` (os assets das três fontes no teste do resumo), `SpellBook.Core.Editor`, `SpellBook.UI.Editor` e `SpellBook.UI.UGUI.Editor` (o assembly de teste do GAS.UI já referencia o GAS e o `.Editor` dele; a `AsmdefRulesTests` permite).
+  - `Tests/UI.UGUI/EditMode/TooltipTriggerEditorTests.cs` (novo), com fonte de teste cuja prévia depende do nível e objetos criados na cena aberta do Test Runner, destruídos no `TearDown`.
+  - Os asmdefs de runtime e de Editor não mudam; nenhum `.Editor` referencia outro (P6).
+- Decisões; o Examinador julga:
+  - As checagens de cena olham as cenas carregadas e só objetos ativos: um `EventSystem` numa cena aditiva serve, e um binder inativo não publica. Na cena de prévia do Prefab Mode e num prefab fora de cena, não avisam.
+  - A prévia usa o `TextRoleTheme.Default`: o tema do binder está na cena e o trigger só conhece a âncora, que fica vazia fora do Play. Sem provedor de texto, como a prévia dos binders (ADR 0039, item 7).
+  - Os dois Editors ficam `public`, como o `GameplayAbilityEditor`, para os testes lerem os nomes dos elementos.
+- Fora deste ticket: a página `manual/ui/tooltip.md` (prévia, fonte e view próprias) fica para o passe de documentação (emenda de 2026-11-03 da ADR 0007). O `CHANGELOG.md` sai porque não há quebra.
+- Testes red (EditMode, `SpellBook.UI.UGUI.Tests.EditMode`, classe `TooltipTriggerEditorTests`):
+  - `TriggerEditor_PickerResolverModeDelay_Summary` (CA14, parte): o Inspector é o `TooltipTriggerEditor`, tem os campos `source`, `owner`, `mode` e `delay`, e o resumo diz `Tooltip · <resumo da fonte> · ponteiro, 0,3 s`; mudar o modo para `Code` e o atraso refaz o resumo; sem fonte, `(nenhum)`;
+  - `Preview_LevelControl_ChangesLines` (CA11, parte): a prévia mostra título e linhas do nível 1; `SetPreviewLevel(3)` mostra as do nível 3, com a cor do papel; nível 0 vale 1; sem fonte, o texto de sem prévia;
+  - `PointerMode_NoEventSystemInScene_Warns`: modo ponteiro sem `EventSystem` avisa; com um, não; modo `Code`, não;
+  - `SecondBinderInScene_Warns`: um binder não avisa; dois avisam.
+  - `SummaryLine_AbilityEffectAttributeSources_NamePrefix`: o `SummaryFormatter` das três fontes do GAS dá `Habilidade <nome>`, `Efeito <nome>` e `Atributo <nome>`.
+- Critério de pronto: os 5 testes verdes, com o `total` do XML igual a 5; `SpellBookEditorCoverageTests`, `AsmdefRulesTests`, `TypeCatalogSummaryTests` e `SummaryFormatterTests` verdes.
+- Red: com os dois Editors em esqueleto (constantes e métodos vazios), 5 rodam e os 5 falham por falta do elemento (resumo, controle de nível, aviso de cena do trigger e do binder). Com os Editors prontos e o `Line` antigo, só o `SummaryLine_AbilityEffectAttributeSources_NamePrefix` falha (`Tooltip · Fireball · …` em vez de `Tooltip · Habilidade Fireball · …`).
+- Green: 52 de 52 (`total` = 52): `TooltipTriggerEditorTests` 5, `AsmdefRulesTests` 43, `SummaryFormatterTests` 2, `SpellBookEditorCoverageTests` 1 e `TypeCatalogSummaryTests` 1.
+- Mutação, desfeita em seguida (conferida por `cmp`), num só run: o modo `PointerAndFocus` fora do aviso derruba só o `PointerMode_NoEventSystemInScene_Warns` ("ponteiro e foco também usa o ponteiro"); a cor fixa no lugar da do papel, só o `Preview_LevelControl_ChangesLines` ("a cor vem do papel"); o aviso com um binder só, só o `SecondBinderInScene_Warns` ("um binder só não avisa").
+- Tamanho medido (`git diff --numstat` e `wc -l` dos novos): 536 linhas em 10 arquivos (contando esta Spec): `TooltipTriggerEditorTests.cs` 255, `TooltipTriggerEditor.cs` 205, `TooltipBinderEditor.cs` 58, `UIEditors.cs` −4, `UGUIEditors.cs` −4, asmdef +4, fontes +3/−3. Exceção: 536 passa de 500, abaixo de 650 (+7%). Motivo: a prévia por nível e os dois avisos de cena vêm com os testes de cada um, e o `Line` das três fontes entra para o resumo do R13.
+- Commit: `feat(ui-editor): Inspector e prévia por nível do tooltip (#265)`
+
 ### TT7 — Validação do tooltip
 - Escopo: `TooltipTrigger.cs`, `TooltipBinder.cs`, `AbilityTooltipSource.cs`, `EffectTooltipSource.cs`, `AttributeTooltipSource.cs` (`Validate`), `Tests/UI.UGUI/EditMode/TooltipValidationTests.cs`, `Tests/GAS.UI/EditMode/TooltipSourceValidationTests.cs` (novos), `manual/ferramentas/validador.md`, `CHANGELOG.md`.
 - Testes red: um por regra do Design 6, com o objeto clicável (CA16).

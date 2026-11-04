@@ -35,8 +35,4 @@ namespace SpellBook.UI.UGUI.Editor
     [CustomEditor(typeof(TooltipLineView))]
     [CanEditMultipleObjects]
     internal sealed class TooltipLineViewEditor : SpellBookEditor { }
-
-    [CustomEditor(typeof(TooltipTrigger))]
-    [CanEditMultipleObjects]
-    internal sealed class TooltipTriggerEditor : SpellBookEditor { }
 }

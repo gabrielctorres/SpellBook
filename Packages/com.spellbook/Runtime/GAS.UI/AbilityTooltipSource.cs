@@ -21,7 +21,7 @@ namespace SpellBook.GAS.UI
     /// altera o ASC.
     /// </summary>
     [Serializable, TypeCategory("Tooltip", Summary = "Tooltip de uma habilidade: descrição, custo, recarga e cargas no nível do dono, ou no nível configurado sem dono.",
-        Line = "{ability}")]
+        Line = "Habilidade {ability}")]
     public sealed class AbilityTooltipSource : UISource<TooltipModel>
     {
         private static readonly CostElement CostLines = new CostElement();

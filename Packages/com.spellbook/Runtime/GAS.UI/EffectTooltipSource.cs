@@ -19,7 +19,7 @@ namespace SpellBook.GAS.UI
     /// com duração finita. Sem instância ou sem ASC, mostra só o que o asset sabe. Não altera o ASC.
     /// </summary>
     [Serializable, TypeCategory("Tooltip", Summary = "Tooltip de um efeito: modificadores, pilhas e tempo restante no dono, ou só o asset sem instância ativa.",
-        Line = "{effect}")]
+        Line = "Efeito {effect}")]
     public sealed class EffectTooltipSource : UISource<TooltipModel>
     {
         // Tempo restante em segundos inteiros, arredondados para cima, como o texto da recarga no slot

@@ -21,7 +21,7 @@ namespace SpellBook.GAS.UI
     /// evento do atributo e, com a decomposição, dos efeitos do ASC; não pede tick e não altera o ASC.
     /// </summary>
     [Serializable, TypeCategory("Tooltip", Summary = "Tooltip de um atributo do dono: valor atual no formato do atributo e, opcional, a base e os modificadores.",
-        Line = "{attribute}")]
+        Line = "Atributo {attribute}")]
     public sealed class AttributeTooltipSource : UISource<TooltipModel>
     {
         private static readonly LocalizedText BaseLabel = new LocalizedText(GasTextKeys.TooltipBase, "Base");
