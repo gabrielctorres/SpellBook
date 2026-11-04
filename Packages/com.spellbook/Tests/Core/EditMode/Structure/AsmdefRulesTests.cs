@@ -245,6 +245,7 @@ namespace SpellBook.Core.Tests.Structure
                 Is.EquivalentTo(new[]
                 {
                     "SpellBook.Core", "SpellBook.Tags", "SpellBook.Time", "SpellBook.GAS", "SpellBook.Events", "SpellBook.Teams",
+                    "SpellBook.Cues",
                 }));
             Assert.That(LoadedAssembly("SpellBook.GAS.Bridges"), Is.Not.Null, "o assembly SpellBook.GAS.Bridges não foi compilado");
         }
@@ -263,6 +264,22 @@ namespace SpellBook.Core.Tests.Structure
                 "o Teams referencia o GAS ou o Bridges");
             Assert.That(LoadedAssembly("SpellBook.GAS").GetReferencedAssemblies().Select(a => a.Name),
                 Has.None.EqualTo("SpellBook.Teams"), "o assembly do GAS compilou com o Teams");
+        }
+
+        [Test]
+        public void BridgesReferencesCues_GasDoesNot()
+        {
+            List<AsmdefFile> asmdefs = PackageFiles.Asmdefs().ToList();
+            AsmdefFile bridges = asmdefs.Single(a => a.Data.name == "SpellBook.GAS.Bridges");
+            AsmdefFile gas = asmdefs.Single(a => a.Data.name == "SpellBook.GAS");
+            AsmdefFile cues = asmdefs.Single(a => a.Data.name == "SpellBook.Cues");
+
+            Assert.That(bridges.ReferenceNames, Does.Contain("SpellBook.Cues"), "o Bridges não referencia o Cues");
+            Assert.That(gas.ReferenceNames, Has.None.EqualTo("SpellBook.Cues"), "o GAS referencia o Cues");
+            Assert.That(cues.ReferenceNames.Where(r => r.StartsWith("SpellBook.GAS", StringComparison.Ordinal)), Is.Empty,
+                "o Cues referencia o GAS ou o Bridges");
+            Assert.That(LoadedAssembly("SpellBook.GAS").GetReferencedAssemblies().Select(a => a.Name),
+                Has.None.EqualTo("SpellBook.Cues"), "o assembly do GAS compilou com o Cues");
         }
 
         [Test]

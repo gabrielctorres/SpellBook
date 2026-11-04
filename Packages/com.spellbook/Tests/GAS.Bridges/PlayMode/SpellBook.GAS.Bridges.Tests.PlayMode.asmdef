@@ -9,6 +9,7 @@
         "SpellBook.Events",
         "SpellBook.GAS.Bridges",
         "SpellBook.Teams",
+        "SpellBook.Cues",
         "SpellBook.Testing",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
