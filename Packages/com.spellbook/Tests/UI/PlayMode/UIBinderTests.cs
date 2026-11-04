@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using SpellBook.Core;
+using SpellBook.Time;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Constraints;
@@ -14,7 +15,8 @@ namespace SpellBook.UI.Tests
 {
     /// <summary>
     /// Binder base no Play: liga e desenha por evento (CA1, parte), religa pela âncora (CA5), mostra o vazio sem lançar
-    /// (CA6) e entrega o modelo a uma view própria (CA11). ADR 0039, itens 1, 3 e 5.
+    /// (CA6), entrega o modelo a uma view própria (CA11) e registra a ligação no driver do pai com o tema no contexto
+    /// (CA7, parte). ADR 0039, itens 1, 3 e 5.
     /// </summary>
     public class UIBinderTests
     {
@@ -172,6 +174,41 @@ namespace SpellBook.UI.Tests
             Assert.That(view.Last.Value, Is.EqualTo(5));
         }
 
+        [Test]
+        public void Binder_RegistersInParentDriver_ThemeInContext_LeavesOnDisable()
+        {
+            UIUpdateDriver driver = CreateObject("tela").AddComponent<UIUpdateDriver>();
+            var time = Create<ManualTimeSource>();
+            driver.SetTimeSource(time);
+            UITheme theme = Create<UITheme>();
+            CountOwner owner = CreateOwner("ator", 1);
+            var source = new CountSource { TickOnAttach = true };
+            CountBinder binder = CreateBinder(ActorResolver.ForExplicit(owner), source, out _);
+            binder.SetTheme(theme);
+            binder.transform.SetParent(driver.transform);
+
+            binder.gameObject.SetActive(true);
+            bool enabledWhileBound = driver.enabled;
+            time.Advance(0.5f);
+            driver.Tick();
+            binder.enabled = false;
+            bool enabledAfterDisable = driver.enabled;
+            driver.Tick();
+            binder.enabled = true;
+
+            CountBinding binding = source.LastBinding;
+            Assert.That(binding, Is.Not.Null);
+            Assert.That(binder.Theme, Is.SameAs(theme));
+            Assert.That(binding.Theme, Is.SameAs(theme), "o contexto da ligação deveria trazer o tema do binder");
+            Assert.That(enabledWhileBound, Is.True, "a ligação que pede tick deveria ligar o driver do pai");
+            Assert.That(binding.Ticks, Is.EqualTo(1));
+            Assert.That(binding.LastTime, Is.EqualTo(0.5d));
+            Assert.That(enabledAfterDisable, Is.False, "o binder desabilitado deveria sair do driver");
+            Assert.That(driver.enabled, Is.True, "o binder habilitado de novo deveria voltar ao driver");
+            Assert.That(driver.TickingCount, Is.EqualTo(1));
+            Assert.That(source.CreatedBindings, Is.EqualTo(1));
+        }
+
         private CountBinder CreateBinder(ActorResolver resolver, CountSource source, out RecordingView view)
         {
             GameObject gameObject = CreateObject("binder");
@@ -240,13 +277,16 @@ namespace SpellBook.UI.Tests
         public sealed class CountSource : UISource<CountModel>
         {
             public int CreatedBindings;
+            public bool TickOnAttach;
+            public CountBinding LastBinding;
 
             public override Type OwnerType => typeof(CountOwner);
 
             public override UIBinding<CountModel> CreateBinding()
             {
                 CreatedBindings++;
-                return new CountBinding();
+                LastBinding = new CountBinding(TickOnAttach);
+                return LastBinding;
             }
 
             public override CountModel CreatePreview(in UIPreviewContext context) => new CountModel(50);
@@ -254,15 +294,32 @@ namespace SpellBook.UI.Tests
 
         public sealed class CountBinding : UIBinding<CountModel>
         {
+            public int Ticks;
+            public double LastTime;
+            public UITheme Theme;
+
             private readonly Action _onChanged;
+            private readonly bool _tickOnAttach;
             private CountOwner _owner;
 
-            public CountBinding() => _onChanged = OnChanged;
+            public CountBinding(bool tickOnAttach)
+            {
+                _onChanged = OnChanged;
+                _tickOnAttach = tickOnAttach;
+            }
+
+            public override void Tick(double time)
+            {
+                Ticks++;
+                LastTime = time;
+            }
 
             protected override void OnAttach(Object owner)
             {
                 _owner = (CountOwner)owner;
                 _owner.Changed += _onChanged;
+                Theme = Context.Theme;
+                RequestTick(_tickOnAttach);
                 OnChanged();
             }
 

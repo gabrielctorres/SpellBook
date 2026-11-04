@@ -23,6 +23,7 @@ namespace SpellBook.Core
         public const string Thinkers = Base + "modulos/thinkers-e-auras/";
         public const string Text = Base + "modulos/texto/";
         public const string Description = Base + "modulos/descricao/";
+        public const string Ui = Base + "ui/visao-geral/";
         public const string Validator = Base + "ferramentas/validador/";
         public const string EventDebugger = Base + "ferramentas/event-debugger/";
         public const string GasDebugger = Base + "ferramentas/gas-debugger/";

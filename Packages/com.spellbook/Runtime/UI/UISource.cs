@@ -23,12 +23,16 @@ namespace SpellBook.UI
         void Receive(in TModel model);
     }
 
-    /// <summary>O que a ligação recebe ao ligar: o provedor de texto e a cultura dos números (ADR 0039, item 4).</summary>
+    /// <summary>O que a ligação recebe ao ligar: o provedor de texto, a cultura dos números e o tema (ADR 0039, item 4).</summary>
     public readonly struct UIBindContext
     {
-        /// <summary>Cria o contexto. Sem <paramref name="culture"/>, vale a do provedor e, sem ele, a invariante.</summary>
-        public UIBindContext(ITextProvider text, IFormatProvider culture = null)
+        /// <summary>
+        /// Cria o contexto. Sem <paramref name="culture"/>, vale a do provedor e, sem ele, a invariante.
+        /// <paramref name="theme"/> pode ser nulo.
+        /// </summary>
+        public UIBindContext(ITextProvider text, IFormatProvider culture = null, UITheme theme = null)
         {
+            Theme = theme;
             Text = text;
             Culture = culture ?? text?.Culture ?? CultureInfo.InvariantCulture;
         }
@@ -38,6 +42,9 @@ namespace SpellBook.UI
 
         /// <summary>Cultura dos números; nunca nula num contexto criado pelo construtor.</summary>
         public IFormatProvider Culture { get; }
+
+        /// <summary>Tema do binder, ou nulo sem tema.</summary>
+        public UITheme Theme { get; }
     }
 
     /// <summary>O que a fonte recebe para montar o modelo de prévia em edição (ADR 0039, item 7).</summary>
@@ -95,7 +102,7 @@ namespace SpellBook.UI
     /// </summary>
     public abstract class UIBinding
     {
-        /// <summary>Verdadeiro enquanto a ligação pede <see cref="Tick"/> ao driver.</summary>
+        /// <summary>Verdadeiro enquanto a ligação pede <see cref="Tick"/> ao driver; o driver registrado é avisado da troca.</summary>
         public bool WantsTick { get; private set; }
 
         /// <summary>Verdadeiro entre <see cref="Attach"/> e <see cref="Detach"/>.</summary>
@@ -103,6 +110,9 @@ namespace SpellBook.UI
 
         /// <summary>Contexto recebido no último <see cref="Attach"/>.</summary>
         protected UIBindContext Context { get; private set; }
+
+        // Driver em que a ligação está registrada; avisado quando WantsTick muda
+        internal UIUpdateDriver Driver { get; set; }
 
         /// <summary>
         /// Liga a <paramref name="owner"/>. Se já estiver ligada, desliga antes. A subclasse assina os eventos e publica o
@@ -132,7 +142,7 @@ namespace SpellBook.UI
 
             OnDetach();
             IsAttached = false;
-            WantsTick = false;
+            SetWantsTick(false);
         }
 
         /// <summary>Chamado pelo driver enquanto <see cref="WantsTick"/> é verdadeiro, com o tempo da fonte de tempo.</summary>
@@ -143,7 +153,7 @@ namespace SpellBook.UI
         /// <summary>Pede (<c>true</c>) ou solta (<c>false</c>) o tick. Fora de ligação, não pede.</summary>
         protected void RequestTick(bool on)
         {
-            WantsTick = on && IsAttached;
+            SetWantsTick(on && IsAttached);
         }
 
         /// <summary>Assina os eventos de <paramref name="owner"/> e publica o estado atual.</summary>
@@ -151,6 +161,20 @@ namespace SpellBook.UI
 
         /// <summary>Desassina o que <see cref="OnAttach"/> assinou.</summary>
         protected abstract void OnDetach();
+
+        private void SetWantsTick(bool value)
+        {
+            if (WantsTick == value)
+            {
+                return;
+            }
+
+            WantsTick = value;
+            if (Driver != null)
+            {
+                Driver.OnWantsTickChanged(this);
+            }
+        }
     }
 
     /// <summary>Ligação que publica <typeparamref name="TModel"/> para um receptor.</summary>

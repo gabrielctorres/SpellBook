@@ -9,7 +9,8 @@ namespace SpellBook.UI
     /// <summary>
     /// Base não genérica dos binders (ADR 0017 e 0039, itens 1, 5 e 7). No Play, acha o dono pelo
     /// <see cref="ActorResolver"/> ao habilitar, liga a fonte a ele e religa quando a âncora muda; dono ausente mostra o
-    /// estado vazio, sem exceção. Fora do Play, desenha a prévia da fonte e não liga nada. Não tem <c>Update</c>.
+    /// estado vazio, sem exceção. A ligação recebe o tema no contexto e é registrada no <see cref="UIUpdateDriver"/>, que a
+    /// chama só enquanto ela pede tick. Fora do Play, desenha a prévia da fonte e não liga nada. Não tem <c>Update</c>.
     /// </summary>
     [ExecuteAlways]
     public abstract class UIBinderBase : MonoBehaviour
@@ -18,13 +19,36 @@ namespace SpellBook.UI
         [Tooltip("Onde achar o dono que a fonte lê.")]
         private ActorResolver owner = ActorResolver.ForSelfOrParent();
 
+        [SerializeField]
+        [Tooltip("Cores por papel e provedor dos textos entregues à fonte. Vazio: padrões do pacote.")]
+        private UITheme theme;
+
+        [SerializeField]
+        [Tooltip("Driver que chama o tick da ligação. Vazio: o UIUpdateDriver do pai, lido ao habilitar.")]
+        private UIUpdateDriver driver;
+
         private Action<RuntimeAnchor> _onAnchorChanged;
+        private UIUpdateDriver _activeDriver;
+        private UIBinding _registered;
         private RuntimeAnchor _subscribedAnchor;
         private bool _bound;
         private bool _warnedMissingOwner;
 
         /// <summary>Como o binder acha o dono.</summary>
         public ActorResolver Owner => owner;
+
+        /// <summary>O tema entregue à ligação no contexto; pode ser nulo.</summary>
+        public UITheme Theme => theme;
+
+        /// <summary>O driver do campo; vazio, o binder usa o do pai.</summary>
+        public UIUpdateDriver Driver => driver;
+
+        /// <summary>Troca o tema e religa, para a ligação recebê-lo no contexto.</summary>
+        public void SetTheme(UITheme newTheme)
+        {
+            theme = newTheme;
+            Rebind();
+        }
 
         /// <summary>Troca o resolvedor do dono (nulo vale <see cref="ActorResolver.ForSelfOrParent"/>) e religa.</summary>
         public void SetOwner(ActorResolver resolver)
@@ -59,6 +83,7 @@ namespace SpellBook.UI
         {
             if (Application.isPlaying)
             {
+                _activeDriver = driver != null ? driver : GetComponentInParent<UIUpdateDriver>();
                 Bind();
             }
             else
@@ -110,6 +135,7 @@ namespace SpellBook.UI
                 _subscribedAnchor = null;
             }
 
+            LeaveDriver();
             DetachBinding();
         }
 
@@ -136,7 +162,22 @@ namespace SpellBook.UI
                 return;
             }
 
-            binding.Attach(found, new UIBindContext(null));
+            binding.Attach(found, new UIBindContext(theme != null ? theme.Text : null, null, theme));
+            if (_activeDriver != null)
+            {
+                _activeDriver.Register(binding);
+                _registered = binding;
+            }
+        }
+
+        private void LeaveDriver()
+        {
+            if (_registered != null && _activeDriver != null)
+            {
+                _activeDriver.Unregister(_registered);
+            }
+
+            _registered = null;
         }
 
         private void WarnMissingOwner(Type ownerType)
