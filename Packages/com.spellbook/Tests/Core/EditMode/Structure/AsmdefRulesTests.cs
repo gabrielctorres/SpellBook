@@ -17,8 +17,11 @@ namespace SpellBook.Core.Tests.Structure
         /// <summary>Módulos de runtime da lista final do CA1 e do CA32.</summary>
         private static readonly string[] RuntimeModules =
         {
-            "Core", "Time", "Events", "Pooling", "Tags", "GAS", "GAS.Bridges", "Teams", "Cues",
+            "Core", "Time", "Events", "Pooling", "Tags", "GAS", "GAS.Bridges", "Teams", "Cues", "Localization",
         };
+
+        /// <summary>Módulos opcionais de integração: compilam só com o pacote externo (ADR 0038, itens 6 e 7).</summary>
+        private static readonly string[] OptionalModules = { "SpellBook.Localization" };
 
         private static readonly string[] EditorModules = { "Core", "Events", "Time", "Tags", "Pooling", "GAS", "GAS.Bridges", "Teams", "Cues" };
 
@@ -67,13 +70,46 @@ namespace SpellBook.Core.Tests.Structure
                     violations.Add($"{asmdef.Path}: autoReferenced não é true");
                 }
 
-                if (asmdef.Data.defineConstraints.Length > 0)
+                if (asmdef.Data.defineConstraints.Length > 0 && !OptionalModules.Contains(asmdef.Data.name))
                 {
                     violations.Add($"{asmdef.Path}: defineConstraints não está vazio");
                 }
             }
 
             Assert.That(violations, Is.Empty);
+        }
+
+        [Test]
+        public void OptionalModule_OnlyConstraintIsOwnVersionDefine()
+        {
+            List<AsmdefFile> optional = PackageFiles.Asmdefs().Where(a => OptionalModules.Contains(a.Data.name)).ToList();
+            var violations = new List<string>();
+
+            foreach (AsmdefFile asmdef in optional)
+            {
+                string[] constraints = asmdef.Data.defineConstraints;
+                VersionDefineData[] defines = asmdef.Data.versionDefines;
+                if (constraints.Length != 1 || defines.Length != 1 || constraints[0] != defines[0].define)
+                {
+                    violations.Add($"{asmdef.Path}: a única defineConstraints tem de ser o símbolo do próprio versionDefines");
+                }
+            }
+
+            Assert.That(optional.Select(a => a.Data.name), Is.EquivalentTo(OptionalModules), "módulo opcional sem asmdef");
+            Assert.That(violations, Is.Empty);
+        }
+
+        [Test]
+        public void LocalizationAsmdef_ReferencesCoreAndUnityLocalization()
+        {
+            AsmdefFile localization = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.Localization");
+
+            Assert.That(localization, Is.Not.Null, "não existe asmdef SpellBook.Localization");
+            Assert.That(localization.Path, Is.EqualTo("Runtime/Localization/SpellBook.Localization.asmdef"));
+            Assert.That(localization.Kind, Is.EqualTo(AsmdefKind.Runtime));
+            Assert.That(localization.ReferenceNames, Is.EquivalentTo(new[] { "SpellBook.Core", "Unity.Localization" }));
+            Assert.That(localization.Data.versionDefines.Select(v => (v.name, v.define)),
+                Is.EqualTo(new[] { ("com.unity.localization", "SPELLBOOK_UNITY_LOCALIZATION") }));
         }
 
         [Test]
