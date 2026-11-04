@@ -81,6 +81,59 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Mesma
 - Critério de pronto: CA12 verde; partes do CA7 e do CA13.
 - Tamanho estimado: ~480 linhas; 10 arquivos. Depende de: SL8.
 
+### Detalhe (2026-11-04)
+O TT1 passou do teto (~839 linhas medidas) e foi dividido por decisão do usuário: TT1a (#260) e TT1b (#339). O código do TT1b está guardado fora do repositório, em `C:/Users/gabri/orca/workspaces/SpellBook/_guardado-tt1b/` (`NOTA.md`, `tt1b.patch` sobre o TT1a, e o binder e o teste nas formas TT1a e completa).
+
+#### TT1a — Modelo, binder básico e âncora (#260)
+- CA: CA12 completo; partes do CA7 (um por vez, sem duplicar) e do CA13 (aberto, 10 000 atualizações sem alocar). Cobre o Design 1 e o Design 2 sem o atraso, o alvo e a posição (TT1b) e sem o `TooltipPlacement` (TT2), e a P1 e a P3.
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/UI/TooltipModel.cs` (novo):
+    - `enum TooltipLineKind { Description, Modifier, Cost, Cooldown, Duration, Charges, Value, Breakdown }`;
+    - `readonly struct TooltipLine`, com `Label` (`string`), `Value` (`TextSpan`), `Role` (`TextRole`), `Kind` e `Subject` (`ScriptableObject`, opcional no construtor);
+    - `readonly struct TooltipModel`: construtor `(string title, Sprite icon, IReadOnlyList<TooltipLine> lines, string subtitle = null, string footer = null)`, com `Lines` vazia (não nula) sem lista. As cópias `WithStacks(int)` e `WithRemaining(float seconds, TextSpan text)` ligam `HasStacks`/`Stacks` e `HasRemaining`/`Remaining`/`RemainingText`, como o `WithTrail` do `BarModel`. `IsEmpty` no `default`. Sem cor nem rich text.
+  - `Runtime/UI/UISource.cs:28-49`: `UIBindContext` ganha `Subject` (`UnityEngine.Object`) e o parâmetro opcional `subject = null` no fim do construtor. As chamadas existentes (`UIBinder.cs:210` e testes) não mudam.
+  - `Runtime/UI/TooltipBinder.cs` (novo): `sealed class TooltipBinder : MonoBehaviour, IValidatable, IUIModelReceiver<TooltipModel>`, `[DisallowMultipleComponent]`, `[HelpURL(DocUrls.UiTooltip + "#tooltipbinder")]`.
+    - Campos `[SerializeField]` privados `view` (`MonoBehaviour`), `theme` (`UITheme`) e `driver` (`UIUpdateDriver`; vazio: o do pai, lido no `OnEnable`, como o `UIBinderBase`), com `SetView`, `SetTheme` e `SetDriver`;
+    - `Show(object requester, UISource<TooltipModel> source, Object owner, Object subject)` (`TooltipBinder.cs:80`): requester, fonte ou dono nulos não fazem nada; o mesmo requester aberto não refaz nada; outro requester fecha o atual. Abrir pega a ligação da fonte num `Dictionary<UISourceBase, UIBinding<TooltipModel>>` (criada e com o receptor na primeira abertura), faz `Attach(owner, new UIBindContext(theme.Text, null, theme, subject))` e registra a ligação no driver. O TT1b troca esta assinatura pela do Design 2, com alvo e atraso, ainda dentro do lote e sem chamador fora dos testes;
+    - `Hide(object requester)` só fecha se o requester é o atual; `HideAll()` fecha sempre. Fechar desliga a ligação, a tira do driver, entrega `default(TooltipModel)` à view e solta o requester;
+    - receptor explícito (`void IUIModelReceiver<TooltipModel>.Receive`), como no `UIBinder`, que entrega o modelo à view;
+    - `OnDisable`: `HideAll` e sai do driver. `Validate`: sem view, ou view que não implementa `IView<TooltipModel>` (erro), como o `UIBinder`. Sem `Update`.
+  - `Runtime/UI/TooltipBinderAnchor.cs` (novo): `sealed class TooltipBinderAnchor : RuntimeAnchor<TooltipBinder>`, `[CreateAssetMenu(menuName = "SpellBook/UI/Tooltip Binder Anchor")]`, `[HelpURL(DocUrls.UiTooltip + "#tooltipbinderanchor")]`. O binder se publica pelo `AnchorRegistrar` existente, sem código novo nele.
+  - `Editor/UI/UIEditors.cs:52-58`: `TooltipBinderEditor` e `TooltipBinderAnchorEditor : SpellBookEditor`, para a guarda `SpellBookEditorCoverageTests` (o TT6 troca o do binder pelo `TooltipBinderEditor.cs`).
+  - `Runtime/Core/DocUrls.cs:33`: `UiTooltip = Base + "ui/tooltip/"`. `Tests/Core/EditMode/DocUrlsTests.cs:41`: o `TestCase` dela.
+  - `Tests/UI/PlayMode/TooltipBinderTests.cs` (novo), com rig próprio: driver com `ManualTimeSource`, dono de teste com evento, fonte e ligação de teste que escrevem um valor num `TextBuffer` da ligação e numa lista de linhas reaproveitada, e uma view de teste que só conhece `SpellBook.UI` e implementa `IView<TooltipModel>`.
+  - Os asmdefs não mudam: `SpellBook.UI` já referencia Core e Time; `SpellBook.UI.Editor` já referencia o runtime e as dependências dele (ADR 0012, item 2; ADR 0039, item 9); o assembly de teste PlayMode já referencia Core, Time, UI e Testing. Não há tipo de runtime oferecido por seletor (as fontes chegam no TT4 e no TT5), então a ADR 0013, item 4, não se aplica. Não há guarda de regex nova; a `GasUiSourceScanTests` já varre `Runtime/UI`.
+- Decisão, com base no `UIBinding.Attach` (lança com dono nulo, `UISource.cs:158-163`, e o teste `UIContractsTests` cobre): `Show` com dono nulo não abre e não lança. O tooltip sem dono (CA10, P2 do PRD) fica com o TT4, que decide como a fonte de habilidade monta o modelo sem dono. O Examinador julga; o Design 2 não diz o que o binder faz sem dono.
+- Fora deste ticket: a página `manual/ui/tooltip.md` fica para o passe de documentação (emenda de 2026-11-03 da ADR 0007); até lá, a guarda `ManualLinksTests` (categoria `Documentacao`) acusa a constante e as âncoras sem página, como no SL2. O `CHANGELOG.md` sai porque não há quebra (item 4 da mesma emenda). Sem arquivo em comum com o SL9 (#257), que toca `GasUIEditors.cs` e arquivos de `GAS.UI`.
+- Testes red (PlayMode, `SpellBook.UI.Tests.PlayMode`, classe `TooltipBinderTests`):
+  - `Show_OneAtATime_SecondClosesFirst` (CA7, parte): o segundo requester desliga a primeira ligação (dono sem ouvinte) e a view mostra o segundo modelo;
+  - `SameRequesterTwice_NoDuplicate`: uma ligação criada, um `Attach` e um desenho;
+  - `Reopen_SameSource_NoAllocation`: depois da primeira abertura, 100 `Show`/`Hide` com a mesma fonte não alocam e criam uma ligação só;
+  - `CustomView_ReceivesModel` (CA12): a view de teste recebe título, ícone, linhas e o assunto do contexto, sem conhecer o GAS;
+  - `OpenThenUpdates10000_NoAlloc` (CA13, parte): aberto e aquecido, 10 000 mudanças do dono com tick do driver não alocam.
+- Critério de pronto: os 5 testes verdes, com o `total` do XML igual a 5; `DocUrlsTests`, `HelpUrlTests`, `SpellBookEditorCoverageTests` e `GasUiSourceScanTests` verdes.
+- Tamanho: 634 linhas em 9 arquivos, pela ADR 0042, medidas por `git diff --numstat` e `wc -l` dos novos: `TooltipBinderTests.cs` 282, `TooltipBinder.cs` 183, `TooltipModel.cs` 131, `TooltipBinderAnchor.cs` 15, `UISource.cs` +10/-3, `UIEditors.cs` +8, `DocUrls.cs` +1, `DocUrlsTests.cs` +1, e esta Spec. Exceção: 634 passa de 500, abaixo de 650 (+30%). O motivo é que o modelo, o binder e os cinco testes vêm juntos, com o rig próprio de dono, fonte, ligação e view, e o modelo não se testa sem o binder.
+- Commit: `feat(ui): TooltipModel, TooltipBinder e âncora (#260)`
+
+#### TT1b — Atraso, alvo e posição no `TooltipBinder` (#339)
+- Depende de: TT1a. O TT2 em diante dependem também do TT1b.
+- CA: parte do CA7 (alvo destruído fecha sem exceção). Completa o Design 2 menos o `TooltipPlacement` (TT2).
+- Escopo (caminhos relativos a `Packages/com.spellbook/`), já escrito e guardado em `_guardado-tt1b/tt1b.patch`:
+  - `Runtime/UI/TooltipBinder.cs`:
+    - `interface ITooltipPlacementTarget { void Place(RectTransform target); }`, que a view do TT2 implementa;
+    - `Show` passa à assinatura do Design 2, `Show(object requester, UISource<TooltipModel> source, Object owner, Object subject, RectTransform target, float delay)`: o mesmo requester aberto ou esperando não refaz nada. Com `delay > 0` e driver, guarda o pedido e abre no tick em que o tempo do driver chega a `início + delay`; sem driver, abre na hora. Ao abrir com alvo, chama `Place(target)` se a view implementa `ITooltipPlacementTarget`;
+    - `Hide` antes do tempo cancela o pedido esperando; fechar solta também o dono, o assunto e o alvo;
+    - tick próprio por uma ligação interna registrada no driver (como o `BinderTicker` do `UIBinderBase`): abre o pedido vencido; aberto, fecha se o alvo dado foi destruído e chama `Place` só se a posição do alvo mudou. Sem `Update`.
+  - `Tests/UI/PlayMode/TooltipBinderTests.cs`: as chamadas passam à assinatura nova; a view de teste implementa `ITooltipPlacementTarget`; `SameRequesterTwice_NoDuplicate` volta a conferir um `Place` no alvo.
+- Decisão, com base no Design 2 ("o atraso conta pelo driver"): sem driver, o atraso não tem relógio e o tooltip abre na hora. O validador do TT7 pode avisar. O Examinador julga.
+- Decisão: o binder pede tick só com pedido esperando ou aberto com alvo; aberto sem alvo, não há o que conferir no tick. O Examinador julga.
+- Testes red (PlayMode, `TooltipBinderTests`):
+  - `Delay_CountedByDriver`: com 0,3 s, fechado em 0,2 s do relógio manual e aberto em 0,4 s; `Hide` antes do tempo cancela; fechado, o binder não pede tick;
+  - `TargetDestroyed_ClosesNoException` (CA7, parte): alvo destruído, o tick fecha (modelo vazio, ligação desligada) sem exceção; alvo movido chama `Place` de novo, parado não.
+- Critério de pronto: os 7 testes de `TooltipBinderTests` verdes, com o `total` do XML igual a 7. Antes da divisão, o código guardado passou 7 de 7, e 8 mutações derrubaram cada uma o teste esperado.
+- Tamanho: 297 linhas em 2 arquivos (mais esta Spec), medido por `git diff --no-index --numstat` entre as formas TT1a e completa: `TooltipBinder.cs` +166/-34, `TooltipBinderTests.cs` +85/-12. Exceção: nenhuma.
+- Commit: `feat(ui): atraso, alvo e posição no TooltipBinder (#339)`
+
 ### TT2 — `TooltipPlacement`, view e prefab
 - Escopo: `Runtime/UI/TooltipPlacement.cs`, `Tests/UI/EditMode/TooltipPlacementTests.cs`, `Runtime/UI.UGUI/TooltipView.cs` (novos), `Runtime/UI.UGUI/Prefabs/Tooltip.prefab` (fixture), `UGUIEditors.cs`, `Tests/UI.UGUI/EditMode/TooltipViewTests.cs` (novo), `tooltip.md`, `CHANGELOG.md`.
 - Testes red: `Placement_PreferredSide_FlipsAtEdge_ClampsVertical` (CA8, parte automatizável); `View_TitleIconLinesFooter_ColorByRole_NoMarkupFromModel` (CA9, parte da view); `View_StacksAndRemaining_OnlyWhenPresent`.

@@ -38,6 +38,7 @@ namespace SpellBook.Core.Tests
         [TestCase("UiFloatingText", "ui/numeros-flutuantes/")]
         [TestCase("UiAbilitySlot", "ui/slot-de-habilidade/")]
         [TestCase("UiAbilityBar", "ui/barra-de-habilidades/")]
+        [TestCase("UiTooltip", "ui/tooltip/")]
         [TestCase("Validator", "ferramentas/validador/")]
         [TestCase("EventDebugger", "ferramentas/event-debugger/")]
         [TestCase("GasDebugger", "ferramentas/gas-debugger/")]

@@ -24,16 +24,20 @@ namespace SpellBook.UI
         void Receive(in TModel model);
     }
 
-    /// <summary>O que a ligação recebe ao ligar: o provedor de texto, a cultura dos números e o tema (ADR 0039, item 4).</summary>
+    /// <summary>
+    /// O que a ligação recebe ao ligar: o provedor de texto, a cultura dos números, o tema (ADR 0039, item 4) e o assunto
+    /// do tooltip.
+    /// </summary>
     public readonly struct UIBindContext
     {
         /// <summary>
         /// Cria o contexto. Sem <paramref name="culture"/>, vale a do provedor e, sem ele, a invariante.
-        /// <paramref name="theme"/> pode ser nulo.
+        /// <paramref name="theme"/> e <paramref name="subject"/> podem ser nulos.
         /// </summary>
-        public UIBindContext(ITextProvider text, IFormatProvider culture = null, UITheme theme = null)
+        public UIBindContext(ITextProvider text, IFormatProvider culture = null, UITheme theme = null, UnityEngine.Object subject = null)
         {
             Theme = theme;
+            Subject = subject;
             Text = text;
             Culture = culture ?? text?.Culture ?? CultureInfo.InvariantCulture;
         }
@@ -46,6 +50,9 @@ namespace SpellBook.UI
 
         /// <summary>Tema do binder, ou nulo sem tema.</summary>
         public UITheme Theme { get; }
+
+        /// <summary>O assunto vindo do item (habilidade, efeito ou atributo do tooltip), ou nulo.</summary>
+        public UnityEngine.Object Subject { get; }
     }
 
     /// <summary>O que a fonte recebe para montar o modelo de prévia em edição (ADR 0039, item 7).</summary>
