@@ -17,7 +17,7 @@ namespace SpellBook.Core.Tests.Structure
         /// <summary>Módulos de runtime da lista final do CA1 e do CA32.</summary>
         private static readonly string[] RuntimeModules =
         {
-            "Core", "Time", "Events", "Pooling", "Tags", "GAS", "GAS.Bridges", "Teams", "Cues", "Localization",
+            "Core", "Time", "Events", "Pooling", "Tags", "GAS", "GAS.Bridges", "Teams", "Cues", "Localization", "UI",
         };
 
         /// <summary>Módulos opcionais de integração: compilam só com o pacote externo (ADR 0038, itens 6 e 7).</summary>
@@ -403,6 +403,24 @@ namespace SpellBook.Core.Tests.Structure
                 cues.ReferenceNames.Where(r => r.StartsWith("SpellBook.", StringComparison.Ordinal)),
                 Is.EquivalentTo(new[] { "SpellBook.Core", "SpellBook.Tags", "SpellBook.Time" }));
             Assert.That(LoadedAssembly("SpellBook.Cues"), Is.Not.Null, "o assembly SpellBook.Cues não foi compilado");
+        }
+
+        [Test]
+        public void UIAsmdef_ReferencesOnlyCoreAndTime()
+        {
+            AsmdefFile ui = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.UI");
+
+            Assert.That(ui, Is.Not.Null, "não existe asmdef SpellBook.UI");
+            Assert.That(ui.Path, Is.EqualTo("Runtime/UI/SpellBook.UI.asmdef"));
+            Assert.That(ui.Kind, Is.EqualTo(AsmdefKind.Runtime));
+            Assert.That(ui.ReferenceNames, Is.EquivalentTo(new[] { "SpellBook.Core", "SpellBook.Time" }));
+            Assembly assembly = LoadedAssembly("SpellBook.UI");
+            Assert.That(assembly, Is.Not.Null, "o assembly SpellBook.UI não foi compilado");
+            Assert.That(
+                assembly.GetReferencedAssemblies().Select(a => a.Name).Where(n => n.StartsWith("SpellBook.GAS", StringComparison.Ordinal)
+                    || n == "UnityEngine.UI" || n == "Unity.TextMeshPro"),
+                Is.Empty,
+                "o assembly SpellBook.UI compilou com o GAS, a uGUI ou o TextMeshPro");
         }
 
         [Test]
