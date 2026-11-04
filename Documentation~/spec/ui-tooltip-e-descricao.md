@@ -289,6 +289,19 @@ O TT4 passou do teto (707 linhas medidas) e foi dividido por decisão do usuári
 - Critério de pronto: CA4, CA5 e CA13 completos.
 - Tamanho estimado: ~470 linhas; 9 arquivos (2 fixtures). Depende de: TT4.
 
+### Detalhe (2026-11-04)
+**Proposta de divisão, à espera do Controlador (ADR 0042).** Lido o código, o TT5 passa dos +30%. A estimativa vem da medida do TT4, que tem uma fonte só: `AbilityTooltipSource.cs` com 214 linhas e os testes com 491 (TT4a mais TT4b). O TT5 tem duas fontes do mesmo porte, com eventos (uma delas também com tick), mais o `EffectAggregate`. Dá ~1 000 linhas; mesmo com uma conta otimista, passa de 680. Nada foi implementado e a trava não foi criada.
+
+Fatos do código que entram no Detalhe de cada parte:
+- O ASC guarda no máximo uma instância por asset (`AbilitySystemComponent.cs:1645-1650`, `FindActiveInstance`). Pela API pública do ASC, a soma de várias instâncias do `EffectAggregate` (Design 4, e o B-018 depende dela) fica sem teste. Para cobrir a soma, o agregado ganha uma entrada por lista de instâncias. O teste monta as instâncias pelo construtor público de `ActiveEffectInstance` e chega ao tipo interno por um `Runtime/GAS.UI/AssemblyInfo.cs` novo (`InternalsVisibleTo("SpellBook.GAS.UI.Tests.PlayMode")`), como já fazem Time e Events.
+- A `GasTextTablesTests.GasTextKeys_FollowConvention` (`Tests/GAS/EditMode/GasTextTablesTests.cs:55-66`) espera 19 chaves com os prefixos `gas.activation.` e `gas.description.`. As chaves `gas.tooltip.*` levam a contagem a 21 e acrescentam o prefixo, como consequência direta do ticket (item 6 da ADR 0042). As outras guardas do DE11 continuam valendo para as chaves novas nas duas tabelas.
+- O `TooltipLineWriter` (TT4a) converte tudo de uma vez. A decomposição do atributo pede linhas `Breakdown`, então ele ganha um `Convert(TooltipLineKind)` que converte só as linhas ainda não convertidas, com o tipo dado.
+
+Divisão proposta, em série ou em worktrees separados (não há arquivo em comum, e as duas dependem só do TT4b):
+- **TT5a: `EffectAggregate` e `EffectTooltipSource`.** CA4 e a parte do efeito no CA13. Escopo: `Runtime/GAS.UI/EffectAggregate.cs` (~65; `internal readonly struct` com `Count`, `Stacks`, `Remaining`, `Duration`, `IsInfinite` e `First`, e as entradas `Of(asc, efeito, lista reaproveitada)` e `Of(lista)`, para o BF1 usar no grupo e no tick), `EffectTooltipSource.cs` (~190), `AssemblyInfo.cs` (~4), `Tests/GAS.UI/PlayMode/EffectTooltipSourceTests.cs` (~330). Total: ~590 linhas, 4 arquivos mais esta Spec, com exceção de até +30% se a medida passar de 500.
+- **TT5b: `AttributeTooltipSource` e chaves `gas.tooltip.*`.** CA5, a parte do atributo no CA13 e a guarda do DE11. Escopo: `AttributeTooltipSource.cs` (~150), `TooltipLineWriter.cs` (+15), `GasTextKeys.cs` (+6), `GasTexts.pt-BR.asset` e `GasTexts.en.asset` (só contam como arquivo), `GasTextTablesTests.cs` (+2/−2), `Tests/GAS.UI/PlayMode/AttributeTooltipSourceTests.cs` (~260). Total: ~435 linhas, 7 arquivos mais esta Spec.
+- O TT6 passa a depender do TT5a e do TT5b. O `EffectAndAttributeTooltipTests.cs` da parte fixa vira os dois arquivos acima, um por ticket. O manual e o `CHANGELOG.md` ficam para o passe de documentação (emenda de 2026-11-03 da ADR 0007); não há quebra.
+
 ### TT6 — Inspector e prévia por nível
 - Escopo: `Editor/UI.UGUI/TooltipTriggerEditor.cs`, `Editor/UI/TooltipBinderEditor.cs` (novos), `UGUIEditors.cs`, `UIEditors.cs` (tiram as linhas de uma linha), `Tests/UI.UGUI/EditMode/TooltipTriggerEditorTests.cs` (novo), `tooltip.md` (prévia, fonte e view próprias), `CHANGELOG.md`.
 - Testes red: `TriggerEditor_PickerResolverModeDelay_Summary`; `Preview_LevelControl_ChangesLines`; `PointerMode_NoEventSystemInScene_Warns`; `SecondBinderInScene_Warns`.
