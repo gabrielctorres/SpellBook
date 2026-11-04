@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
 using SpellBook.Core.Text;
+using SpellBook.Core.Validation;
 using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Effects;
@@ -27,6 +28,15 @@ namespace SpellBook.GAS.Description
             for (int i = 0; i < modifiers.Count; i++)
             {
                 if (TryLine(modifiers[i], in evaluation, this, out DescriptionLine line)) context.Lines.Add(line);
+            }
+        }
+
+        /// <summary>Habilidade sem <see cref="GameplayAbility.CostEffect"/>, aviso: o elemento não gera linha.</summary>
+        public override void Validate(ValidationResult result, string propertyPath, GameplayAbility owner)
+        {
+            if (owner != null && owner.CostEffect == null)
+            {
+                result.AddWarning("Elemento de custo numa habilidade sem Cost Effect: não gera linha.", propertyPath);
             }
         }
 
@@ -74,6 +84,15 @@ namespace SpellBook.GAS.Description
         public override void Describe(DescriptionContext context)
         {
             if (TryLine(context, this, out DescriptionLine line)) context.Lines.Add(line);
+        }
+
+        /// <summary>Habilidade sem <see cref="GameplayAbility.CooldownEffect"/>, aviso: o elemento não gera linha.</summary>
+        public override void Validate(ValidationResult result, string propertyPath, GameplayAbility owner)
+        {
+            if (owner != null && owner.CooldownEffect == null)
+            {
+                result.AddWarning("Elemento de recarga numa habilidade sem Cooldown Effect: não gera linha.", propertyPath);
+            }
         }
 
         /// <summary>Linha de recarga; <c>false</c> sem habilidade ou sem efeito de recarga.</summary>
@@ -158,6 +177,15 @@ namespace SpellBook.GAS.Description
         public override void Describe(DescriptionContext context)
         {
             if (TryLine(context, this, out DescriptionLine line)) context.Lines.Add(line);
+        }
+
+        /// <summary>Habilidade com as cargas desligadas, aviso: o elemento não gera linha.</summary>
+        public override void Validate(ValidationResult result, string propertyPath, GameplayAbility owner)
+        {
+            if (owner != null && !owner.Charges.Enabled)
+            {
+                result.AddWarning("Elemento de cargas numa habilidade com as cargas desligadas: não gera linha.", propertyPath);
+            }
         }
 
         /// <summary>Linha de cargas; <c>false</c> sem habilidade ou com as cargas desligadas.</summary>

@@ -413,6 +413,21 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Cada 
 - Critério de pronto: CA14 completo.
 - Tamanho estimado: ~380 linhas; 7 arquivos. Depende de: DE11, AV8.
 
+### Detalhe (2026-11-04)
+- CA: CA14 completo (o validador acusa elemento nulo e as regras do R18, com mensagem clicável; o elemento próprio no contrato novo já está verde desde o DE8). Dependências conferidas no código: DE11 (elementos e `GasTextKeys` prontos), AV8 (`GameplayAbility.Validate` com `ChargesConfig.Validate` e o padrão de `propertyPath` das regras de ativação).
+- Escopo (caminhos em `Packages/com.spellbook/`, namespace `SpellBook.GAS.Description`):
+  - `Runtime/GAS/Description/DescriptionElement.cs:17` (+`public virtual void Validate(ValidationResult result, string propertyPath, GameplayAbility owner)`, vazio, como o Design 5) e `:28-38` (+`AbilityDescription.Validate(result, propertyPath, owner)`: elemento nulo, erro em `<path>.Elements.Array.data[i]`; cada elemento valida com o próprio caminho; `TextElement` e `TemplateElement` com a mesma chave e textos padrão diferentes, aviso no campo do texto do elemento que repete).
+  - `Runtime/GAS/Description/DescriptionElements.cs:18-32` (`TextElement.Validate`: `Text.IsEmpty`, erro em `<path>.text`) e `:107-293` (`TemplateElement.Validate`: cada `{nome}` do texto padrão que não está em `owner.Values`, erro em `<path>.template`, citando o nome; usa os trechos já analisados).
+  - `Runtime/GAS/Description/AbilityStatElements.cs:18`, `:69`, `:153` (`CostElement` sem `CostEffect`, `CooldownElement` sem `CooldownEffect`, `ChargesElement` com as cargas desligadas: aviso no caminho do elemento).
+  - `Runtime/GAS/Abilities/GameplayAbility.cs:313-354` (`Validate` repassa a `Description?.Validate(result, nameof(Description), this)`, depois das cargas; o resumo do método cita a descrição).
+  - `Tests/GAS/EditMode/DescriptionValidationTests.cs` (novo).
+  - Sem `validador.md` (passe de documentação, emenda de 2026-11-03 da 0007) e sem `CHANGELOG.md`: o ticket só acrescenta um método virtual e regras de validação, sem quebra.
+  - Fora do R18, sem regra nova: `AttributeElement` sem atributo, `EffectModifiersElement` e `DurationElement` sem efeito, atalho `{@x}` desconhecido (a linha já sai `Invalid` na descrição).
+- Testes red (EditMode, `SpellBook.GAS.Tests.EditMode`, `DescriptionValidationTests`): `NullElement_Error`, `EmptyTextElement_Error`, `TemplateUnknownName_Error_NamesIt`, `TemplateKnownNamesAndShortcuts_NoMessages`, `CostElementWithoutCost_Warns`, `CooldownElementWithoutCooldown_Warns`, `ChargesElementWithoutCharges_Warns`, `SameKeyDifferentDefaults_Warns_SameDefault_NoMessage`, `ValidDescription_NoMessages`, `CustomElement_ValidateCalledWithItsPath`, `ProjectValidator_ReportsAbilityAsContext`. Cada mensagem é conferida com severidade, `Context` e `propertyPath` encontrado por `SerializedObject.FindProperty` (clicável).
+- Critério de pronto: os testes acima verdes pelo filtro `\.DescriptionValidationTests\.;\.ActivationValidationTests\.;\.DescriptionElementsTests\.;\.AbilityStatElementsTests\.;\.TemplateElementTests\.`; suíte EditMode `!Documentacao` verde na revisão.
+- Tamanho: medido 363 linhas e 5 arquivos (mais esta página do Spec), pela ADR 0042 (`DescriptionElement.cs` 72, `DescriptionElements.cs` 29, `AbilityStatElements.cs` 28, `GameplayAbility.cs` 2, `DescriptionValidationTests.cs` 232). Exceção: nenhuma.
+- Commit: `feat(gas): validação da descrição da habilidade (#233)`
+
 ### DE13 — Prévia por nível no Inspector e fechamento da documentação
 - Escopo: `Editor/GAS/DescriptionPreviewElement.cs` (novo), `Editor/GAS/GameplayAbilityEditor.cs` (seção "Descrição"), `Tests/GAS/EditMode/DescriptionPreviewTests.cs` (novo), `descricao.md` (prévia, elemento e formatador próprios), `CHANGELOG.md` (R19 completo).
 - Testes red: `Preview_LevelChange_UpdatesLines`; `Preview_AssetEdit_Updates`; `Preview_CultureField_DefaultIsEditorCulture`; `Preview_PlainText_NoMarkup`.

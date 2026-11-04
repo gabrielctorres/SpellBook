@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
 using SpellBook.Core.Text;
+using SpellBook.Core.Validation;
+using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Effects;
 using SpellBook.GAS.Values;
@@ -17,6 +19,8 @@ namespace SpellBook.GAS.Description
     [TypeCategory("Descrição/Texto", Summary = "Uma linha de texto, com chave opcional.", Line = "{text.text}")]
     public sealed class TextElement : DescriptionElement
     {
+        internal const string TextField = nameof(text);
+
         [SerializeField] private LocalizedText text;
 
         public LocalizedText Text
@@ -28,6 +32,12 @@ namespace SpellBook.GAS.Description
         public override void Describe(DescriptionContext context)
         {
             context.Lines.Add(new DescriptionLine(DescriptionLineKind.Text, text, 0f, TextRole.None, source: this));
+        }
+
+        /// <summary>Sem chave e sem texto, erro.</summary>
+        public override void Validate(ValidationResult result, string propertyPath, GameplayAbility owner)
+        {
+            if (text.IsEmpty) result.AddError("Elemento de texto sem chave e sem texto.", propertyPath + "." + TextField);
         }
     }
 
@@ -131,6 +141,8 @@ namespace SpellBook.GAS.Description
             public int Length { get; }
         }
 
+        internal const string TemplateField = nameof(template);
+
         [SerializeField] private LocalizedText template;
 
         // Trechos do último texto analisado; refeitos quando o texto resolvido muda, na mesma lista.
@@ -155,6 +167,23 @@ namespace SpellBook.GAS.Description
             }
 
             context.Lines.Add(new DescriptionLine(DescriptionLineKind.Text, template, 0f, TextRole.None, flags, source: this));
+        }
+
+        /// <summary>Cada <c>{nome}</c> do texto padrão fora da tabela de valores de <paramref name="owner"/>, erro.</summary>
+        public override void Validate(ValidationResult result, string propertyPath, GameplayAbility owner)
+        {
+            string text = template.Text;
+            List<Part> parts = PartsOf(text);
+            AbilityValues values = owner != null ? owner.Values : null;
+            for (int i = 0; i < parts.Count; i++)
+            {
+                Part part = parts[i];
+                if (part.Kind != PartKind.Name || (values != null && values.IndexOf(NameOf(part, text)) >= 0)) continue;
+
+                result.AddError(
+                    $"O template usa {text.Substring(part.Start, part.Length)}, que não está na tabela de valores da habilidade.",
+                    propertyPath + "." + TemplateField);
+            }
         }
 
         /// <summary>Escreve <paramref name="text"/> (o template resolvido) com os nomes e atalhos expandidos. Não aloca.</summary>
