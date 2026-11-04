@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
+using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
 namespace SpellBook.Core.Tests.Structure
 {
@@ -18,6 +19,7 @@ namespace SpellBook.Core.Tests.Structure
         private static readonly string[] RuntimeModules =
         {
             "Core", "Time", "Events", "Pooling", "Tags", "GAS", "GAS.Bridges", "Teams", "Cues", "Localization", "UI", "GAS.UI",
+            "UI.UGUI",
         };
 
         /// <summary>Módulos opcionais de integração: compilam só com o pacote externo (ADR 0038, itens 6 e 7).</summary>
@@ -169,6 +171,17 @@ namespace SpellBook.Core.Tests.Structure
 
             Assert.That(packageJson, Does.Contain("\"name\": \"com.spellbook\""), "o package.json lido não é o do SpellBook");
             Assert.That(packageJson, Does.Not.Contain("com.unity.localization"));
+        }
+
+        [Test]
+        public void PackageJson_DeclaresUgui200()
+        {
+            PackageInfo package = PackageInfo.FindForAssembly(typeof(AsmdefRulesTests).Assembly);
+
+            Assert.That(package, Is.Not.Null, "o assembly de testes não está num pacote");
+            Assert.That(package.name, Is.EqualTo("com.spellbook"));
+            Assert.That(package.dependencies.Where(d => d.name == "com.unity.ugui").Select(d => d.version),
+                Is.EqualTo(new[] { "2.0.0" }), "o package.json não declara com.unity.ugui 2.0.0 (ADR 0039, item 8)");
         }
 
         [Test]
@@ -447,6 +460,50 @@ namespace SpellBook.Core.Tests.Structure
                     .Where(n => n.StartsWith("SpellBook.UI", StringComparison.Ordinal) || n == "SpellBook.GAS.UI"),
                 Is.Empty,
                 "o assembly SpellBook.GAS referencia a UI");
+        }
+
+        [Test]
+        public void UGuiAsmdef_ReferencesExactly()
+        {
+            AsmdefFile ugui = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.UI.UGUI");
+
+            Assert.That(ugui, Is.Not.Null, "não existe asmdef SpellBook.UI.UGUI");
+            Assert.That(ugui.Path, Is.EqualTo("Runtime/UI.UGUI/SpellBook.UI.UGUI.asmdef"));
+            Assert.That(ugui.Kind, Is.EqualTo(AsmdefKind.Runtime));
+            Assert.That(ugui.ReferenceNames, Is.EquivalentTo(new[]
+            {
+                "SpellBook.Core", "SpellBook.Time", "SpellBook.UI", "UnityEngine.UI", "Unity.TextMeshPro",
+            }));
+            Assert.That(LoadedAssembly("SpellBook.UI.UGUI"), Is.Not.Null, "o assembly SpellBook.UI.UGUI não foi compilado");
+        }
+
+        [Test]
+        public void UiAndGasUi_DoNotReferenceUgui()
+        {
+            string[] ugui = { "UnityEngine.UI", "Unity.TextMeshPro", "SpellBook.UI.UGUI" };
+            List<AsmdefFile> guarded = PackageFiles.Asmdefs()
+                .Where(a => !a.Data.name.StartsWith("SpellBook.UI.UGUI", StringComparison.Ordinal)
+                    && (a.Data.name.StartsWith("SpellBook.UI", StringComparison.Ordinal)
+                        || a.Data.name.StartsWith("SpellBook.GAS.UI", StringComparison.Ordinal)))
+                .ToList();
+            var violations = new List<string>();
+
+            foreach (AsmdefFile asmdef in guarded)
+            {
+                violations.AddRange(asmdef.ReferenceNames.Where(ugui.Contains)
+                    .Select(r => $"{asmdef.Path}: {asmdef.Data.name} não pode referenciar {r}"));
+            }
+
+            foreach (string name in new[] { "SpellBook.UI", "SpellBook.GAS.UI" })
+            {
+                violations.AddRange(LoadedAssembly(name).GetReferencedAssemblies().Select(a => a.Name).Where(ugui.Contains)
+                    .Select(r => $"o assembly {name} compilou com {r}"));
+            }
+
+            Assert.That(LoadedAssembly("UnityEngine.UI"), Is.Not.Null, "a uGUI não está no projeto: a guarda passaria vazia");
+            Assert.That(LoadedAssembly("Unity.TextMeshPro"), Is.Not.Null, "o TextMeshPro não está no projeto");
+            Assert.That(guarded.Select(a => a.Data.name), Does.Contain("SpellBook.UI").And.Contain("SpellBook.GAS.UI"));
+            Assert.That(violations, Is.Empty);
         }
 
         [Test]
