@@ -6,6 +6,8 @@ using NUnit.Framework;
 using SpellBook.Core.Validation;
 using SpellBook.Cues;
 using SpellBook.GAS.Abilities;
+using SpellBook.GAS.Abilities.Actions;
+using SpellBook.GAS.Actions;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
@@ -20,11 +22,13 @@ using UnityEngine.TestTools;
 namespace SpellBook.GAS.Bridges.Tests
 {
     /// <summary>
-    /// <see cref="ExecuteCueAction"/> nas listas da habilidade e do efeito (B-013, CU8a: CA13, CA15). Os ASCs têm
-    /// <c>autoTick</c> desligado e o roteador avança só por <c>Tick</c>.
+    /// <see cref="ExecuteCueAction"/> e <see cref="AddCueAction"/> nas listas da habilidade e do efeito (B-013, CU8: CA13,
+    /// CA15; ADR 0037, item 5). Os ASCs têm <c>autoTick</c> desligado e o roteador avança só por <c>Tick</c>.
     /// </summary>
     public class CueActionsTests
     {
+        public enum RemovalPath { Removed, RemovedByTag, Expired, StacksDepleted }
+
         private GasFactory _gas;
         private CuesFactory _cues;
         private SpawnFactory _spawns;
@@ -119,14 +123,106 @@ namespace SpellBook.GAS.Bridges.Tests
             Assert.That(item.Played[0].NormalizedMagnitude, Is.EqualTo(0.25f));
         }
 
+        [TestCase(RemovalPath.Removed)]
+        [TestCase(RemovalPath.RemovedByTag)]
+        [TestCase(RemovalPath.Expired)]
+        [TestCase(RemovalPath.StacksDepleted)]
+        public void AddCue_InEffectApplied_RemovedOnExpireRemoveTagAndStacksZero(RemovalPath path)
+        {
+            CueRouter router = RouterWithLoopingVfx();
+            GameplayTag granted = _gas.CreateTag("Test.Burning");
+            GameplayEffect effect = _gas.CreateDurationEffect(10f, granted);
+            effect.OnApplied.Add(AddCue());
+            AbilitySystemComponent target = CreateAsc();
+
+            ActiveEffectInstance instance = target.ApplyEffect(effect);
+            target.Tick(1f);
+            int activeBefore = router.ActiveCount;
+            int liveBefore = _spawner.Live.Count;
+            switch (path)
+            {
+                case RemovalPath.Removed: target.RemoveEffect(instance); break;
+                case RemovalPath.RemovedByTag: target.RemoveEffectsWithTag(granted); break;
+                case RemovalPath.Expired: target.Tick(9f); break;
+                case RemovalPath.StacksDepleted: target.SetEffectStacks(instance, 0); break;
+            }
+
+            Assert.That(activeBefore, Is.EqualTo(1), "o cue não ficou ligado enquanto o efeito dura");
+            Assert.That(liveBefore, Is.EqualTo(1));
+            Assert.That(target.ActiveEffects, Has.No.Member(instance), "a instância não saiu");
+            Assert.That(router.ActiveCount, Is.EqualTo(0), "o cue continuou depois da remoção");
+            Assert.That(_spawner.ReleaseCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void AddCue_StackingDoesNotPlayAgain()
+        {
+            CueRouter router = RouterWithLoopingVfx();
+            GameplayEffect effect = _gas.CreateDurationEffect(10f);
+            effect.CanStack = true;
+            effect.MaxStacks = 3;
+            effect.OnApplied.Add(AddCue());
+            AbilitySystemComponent target = CreateAsc();
+
+            ActiveEffectInstance instance = target.ApplyEffect(effect);
+            target.ApplyEffect(effect);
+            target.ApplyEffect(effect);
+            int activeWhileStacked = router.ActiveCount;
+            target.RemoveEffect(instance);
+
+            Assert.That(instance.CurrentStacks, Is.EqualTo(3));
+            Assert.That(_spawner.SpawnCount, Is.EqualTo(1), "empilhar tocou o cue de novo");
+            Assert.That(activeWhileStacked, Is.EqualTo(1));
+            Assert.That(router.ActiveCount, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void AddCue_InAbility_RemovedWhenActivationEnds_DoesNotHoldActivation()
+        {
+            CueRouter router = RouterWithLoopingVfx();
+            GameplayAbility ability = _gas.CreateAbility(AddCue(), new WaitAction { Duration = ScalableFloat.Constant(1f) });
+            AbilitySystemComponent asc = CreateAsc();
+            AbilitySpec spec = asc.GiveAbility(ability);
+
+            asc.TryActivateAbility(spec, Vector3.zero);
+            bool activeWhileWaiting = spec.IsActive;
+            int cuesWhileWaiting = router.ActiveCount;
+            asc.Tick(1f);
+
+            Assert.That(activeWhileWaiting, Is.True);
+            Assert.That(cuesWhileWaiting, Is.EqualTo(1), "o cue não ligou na ativação");
+            Assert.That(spec.IsActive, Is.False, "a vigia do cue segurou a ativação");
+            Assert.That(router.ActiveCount, Is.EqualTo(0), "o cue continuou depois do fim da ativação");
+            Assert.That(_spawner.ReleaseCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void AddCue_WithoutOwner_PlaysOnceWithWarning()
+        {
+            CueRouter router = RouterWithLoopingVfx();
+            var actions = new GameplayAction[] { AddCue() };
+            AbilitySystemComponent asc = CreateAsc();
+
+            LogAssert.Expect(LogType.Warning, new Regex("AddCueAction.*sem dono"));
+            asc.RunActions(actions, null, null);
+            asc.RunActions(actions, null, null);
+
+            Assert.That(_spawner.SpawnCount, Is.EqualTo(2), "sem dono, o cue não tocou");
+            Assert.That(router.ActiveCount, Is.EqualTo(0), "sem dono, o cue ficou ligado sem quem o remova");
+            Assert.That(_spawner.ReleaseCount, Is.EqualTo(2));
+            Assert.That(asc.HasRunningActions(null), Is.False);
+            LogAssert.NoUnexpectedReceived();
+        }
+
         [Test]
         public void EmptyAnchor_WarnsOnce_NoException()
         {
-            GameplayAbility ability = _gas.CreateAbility(new ExecuteCueAction { Router = _anchor, Tag = _tag });
+            GameplayAbility ability = _gas.CreateAbility(new ExecuteCueAction { Router = _anchor, Tag = _tag }, AddCue());
             AbilitySystemComponent asc = CreateAsc();
             AbilitySpec spec = asc.GiveAbility(ability);
 
             LogAssert.Expect(LogType.Warning, new Regex("ExecuteCueAction.*roteador"));
+            LogAssert.Expect(LogType.Warning, new Regex("AddCueAction.*roteador"));
             asc.TryActivateAbility(spec, Vector3.zero);
             asc.TryActivateAbility(spec, Vector3.zero);
 
@@ -156,10 +252,12 @@ namespace SpellBook.GAS.Bridges.Tests
         public void Validate_InvalidTagError_EmptyAnchorWarning()
         {
             var empty = new ValidationResult(null);
+            var emptyAdd = new ValidationResult(null);
             var configured = new ValidationResult(null);
             var badMagnitude = new ValidationResult(null);
 
             new ExecuteCueAction().Validate(empty);
+            new AddCueAction().Validate(emptyAdd);
             new ExecuteCueAction { Router = _anchor, Tag = _tag }.Validate(configured);
             new ExecuteCueAction
             {
@@ -171,6 +269,8 @@ namespace SpellBook.GAS.Bridges.Tests
                 Is.EqualTo(new[] { "tag" }));
             Assert.That(empty.Messages.Where(m => m.Severity == ValidationSeverity.Warning).Select(m => m.PropertyPath),
                 Is.EqualTo(new[] { "router" }));
+            Assert.That(emptyAdd.Messages.Select(m => (m.Severity, m.PropertyPath)),
+                Is.EqualTo(empty.Messages.Select(m => (m.Severity, m.PropertyPath))), "o AddCueAction valida diferente");
             Assert.That(configured.Messages, Is.Empty);
             Assert.That(badMagnitude.Messages.Select(m => m.PropertyPath),
                 Is.EquivalentTo(new[] { "magnitude.callerName", "magnitude.max" }));
@@ -195,6 +295,14 @@ namespace SpellBook.GAS.Bridges.Tests
             item.Played.Clear();
             return item;
         }
+
+        private CueRouter RouterWithLoopingVfx()
+        {
+            return Router(_cues.CreateCue(_tag, CueKind.Looping,
+                new VfxCueItem { Prefab = _spawns.CreatePrefab(), End = CueEnd.OnRemove }));
+        }
+
+        private AddCueAction AddCue() => new AddCueAction { Router = _anchor, Tag = _tag };
 
         /// <summary>Item que só registra os parâmetros com que tocou.</summary>
         [Serializable]

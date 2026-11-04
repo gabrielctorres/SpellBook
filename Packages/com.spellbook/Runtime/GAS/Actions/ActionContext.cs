@@ -111,6 +111,18 @@ namespace SpellBook.GAS.Actions
             HasPoint = true;
         }
 
+        /// <summary>
+        /// Roda <paramref name="actions"/> numa execução nova ligada ao dono da execução corrente por
+        /// <see cref="ExecutionLink.FollowsOwner"/> (ADR 0036): ela é cancelada quando o dono termina ou é cancelado, e o
+        /// dono não espera por ela. Roda numa cópia deste contexto, e as ações sem seletor recebem os alvos da ação corrente.
+        /// Chame de dentro do <c>Execute</c> de uma ação que roda neste contexto. Falso, sem rodar, fora disso ou se a
+        /// execução corrente não tem dono (efeito instantâneo, impacto de projétil, listas de fim da habilidade).
+        /// </summary>
+        public bool RunFollowingOwner(IReadOnlyList<GameplayAction> actions)
+        {
+            return Owner != null && Owner.Runner.Follow(this, actions);
+        }
+
         // O executor aponta Targets para o buffer do quadro da ação corrente; nulo volta à lista própria
         internal void SetTargets(List<AbilitySystemComponent> targets) => _targets = targets;
 

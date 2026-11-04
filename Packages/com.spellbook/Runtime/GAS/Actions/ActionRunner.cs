@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SpellBook.GAS.Core;
+using SpellBook.GAS.Effects;
 using SpellBook.GAS.Targeting;
 
 namespace SpellBook.GAS.Actions
@@ -335,6 +336,30 @@ namespace SpellBook.GAS.Actions
                 top.State = EntryState.Waiting;
             }
             Advance(execution);
+        }
+
+        /// <summary>
+        /// Roda <paramref name="actions"/> numa execução nova <see cref="ExecutionLink.FollowsOwner"/> do dono da execução
+        /// corrente, numa cópia do <paramref name="context"/>, com os alvos da ação corrente como herdados. Falso, sem rodar,
+        /// se <paramref name="context"/> não é o da execução corrente, se ela não tem dono ou se o dono já terminou (a
+        /// lista "Ao remover" roda depois do cancelamento das execuções da instância).
+        /// </summary>
+        internal bool Follow(ActionContext context, IReadOnlyList<GameplayAction> actions)
+        {
+            Execution current = _current;
+            if (current == null || current.Context != context || current.Owner == null) return false;
+            if (current.Owner is ActiveEffectInstance instance && !instance.IsActive) return false;
+            if (actions == null || actions.Count == 0) return true;
+
+            ActionContext copy = RentContext();
+            CopyContext(context, copy);
+            Execution execution = Start(actions, 0, actions.Count, copy, current.Owner, ExecutionLink.FollowsOwner, null,
+                current.Cursor);
+            execution.OwnsContext = true;
+            execution.Inherited.AddRange(context.Targets);
+            execution.HasInherited = true;
+            Advance(execution);
+            return true;
         }
 
         // Procura nos quadros que contêm a ação corrente, desta execução e das mães (filhas em paralelo), o ForEach mais

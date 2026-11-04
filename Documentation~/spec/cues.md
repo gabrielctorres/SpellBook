@@ -425,6 +425,19 @@ O CU8 mediu 732 linhas e 10 arquivos no Detalhe, +46% sobre o teto da ADR 0042, 
 - CA: CA13 (parte do `AddCueAction`) e C12. O CA14 do PRD é substituído pelo teste de vigia (ADR 0036, itens 4 e 5; ADR 0037, item 5).
 - Tamanho estimado: ~340 linhas; 5 arquivos. Depende de: CU8a.
 
+### Detalhe (2026-11-03) — CU8b (#329)
+- CA: CA13 (parte do `AddCueAction`) e C12. O CA14 do PRD é coberto pelo teste de vigia (ADR 0036, itens 4 e 5; ADR 0037, item 5).
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/GAS.Bridges/Cues/AddCueAction.cs` (novo): liga o cue `Looping` por uma execução de vigia `FollowsOwner` (`CueWatchAction` interna, `WaitUntilCancelled`, remove o cue no `OnCancel`); numa lista sem dono, toca e remove na hora, com aviso uma vez.
+  - `Runtime/GAS/Actions/ActionContext.cs:111` (novo `RunFollowingOwner`, público) e `Runtime/GAS/Actions/ActionRunner.cs:340` (novo `Follow`, interno): execução nova do mesmo dono com `ExecutionLink.FollowsOwner`, numa cópia do contexto, com os alvos da ação corrente herdados; falso sem dono ou com o efeito dono já removido.
+  - `Runtime/Cues/AssemblyInfo.cs:3` (`InternalsVisibleTo("SpellBook.GAS.Bridges")`, para o construtor e os campos internos do `CueHandle`).
+  - `Tests/GAS.Bridges/PlayMode/CueActionsTests.cs`: testes `AddCue_*`, o `AddCueAction` em `EmptyAnchor_WarnsOnce_NoException` e em `Validate_InvalidTagError_EmptyAnchorWarning`.
+  - Sem `cues.md` nem `CHANGELOG.md`: manual só no passe de documentação, e a API nova só acrescenta.
+- Testes red: PlayMode, `SpellBook.GAS.Bridges.Tests.PlayMode`, classe `CueActionsTests`: `AddCue_InEffectApplied_RemovedOnExpireRemoveTagAndStacksZero` (4 casos); `AddCue_StackingDoesNotPlayAgain`; `AddCue_InAbility_RemovedWhenActivationEnds_DoesNotHoldActivation`; `AddCue_WithoutOwner_PlaysOnceWithWarning`; `EmptyAnchor_WarnsOnce_NoException` e `Validate_InvalidTagError_EmptyAnchorWarning` (com o `AddCueAction`).
+- Critério de pronto: a classe `CueActionsTests` verde pelo filtro `\.CueActionsTests\.` no PlayMode, com `total` conferido no XML.
+- Tamanho: 281 linhas e 5 arquivos, medido no diff, pela ADR 0042. Exceção: nenhuma.
+- Commit: `feat(gas-bridges): AddCueAction e cue que segue o dono`
+
 ### CU9 — Fim do `PlayCueAction` e do `SpawnVFXAction`
 - Escopo: `Runtime/GAS/Abilities/Actions/PlayCueAction.cs` (remoção pura), `Runtime/GAS/Effects/Actions/CommonEffectActions.cs` (sai `SpawnVFXAction`), `Tests/GAS/PlayMode/SpawnActionsTests.cs` (saem os dois testes, N8), `Tests/GAS/EditMode/GasSourceScanTests.cs` (guarda: `PlayClipAtPoint` em nenhum `.cs` do pacote; nenhuma ação do GAS chama `Instantiate`/`Destroy`), `Documentation~/manual/regras/migracao-2-para-3.md` (ação antiga → nova), `Documentation~/manual/modulos/gas.md` (tira as ações), `CHANGELOG.md` (quebra).
 - Testes red: `NoPlayClipAtPoint_InPackage` (CA11, CA16); `GasHasNoVfxOrCueActions` (guarda textual). A suíte do GAS passa com só os dois testes removidos, listados no PR (CA22).
