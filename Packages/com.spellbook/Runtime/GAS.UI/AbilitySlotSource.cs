@@ -12,11 +12,11 @@ namespace SpellBook.GAS.UI
 {
     /// <summary>
     /// Fonte do slot de uma habilidade (Spec do B-016, Design 3; R4 do PRD): acha a entrada do <see cref="Loadout"/> pela
-    /// tag <see cref="Slot"/> e lê do ASC dono o estado, a recarga, as cargas, o motivo da última falha e o rótulo da
-    /// tecla. Atualiza por evento e pede tick só enquanto a recarga, a próxima carga ou o motivo visível correm. O
-    /// "pronto" vem da mesma consulta da ativação, até o custo (Q3). Não ativa nada (R11).
+    /// tag <see cref="Slot"/> e lê do ASC dono o estado, a recarga, as cargas, o motivo da última falha, as marcas de
+    /// ativa e de autocast e o rótulo da tecla. Atualiza por evento e pede tick só enquanto a recarga, a próxima carga
+    /// ou o motivo visível correm. O "pronto" vem da mesma consulta da ativação, até o custo (Q3). Não ativa nada (R11).
     /// </summary>
-    [Serializable, TypeCategory("Habilidades", Summary = "Slot de uma habilidade do loadout, pela tag: estado, recarga, cargas, motivo de falha e rótulo da tecla.",
+    [Serializable, TypeCategory("Habilidades", Summary = "Slot de uma habilidade do loadout, pela tag: estado, recarga, cargas, motivo de falha, ativa, autocast e rótulo da tecla.",
         Line = "Slot {slot.definition} · {loadout}")]
     public sealed class AbilitySlotSource : UISource<SlotModel>
     {

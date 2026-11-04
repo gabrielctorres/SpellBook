@@ -12,10 +12,11 @@ namespace SpellBook.GAS.UI
     /// <summary>
     /// Fonte da barra de habilidades (Spec do B-016, Design 3; R2 do PRD): um slot por entrada do <see cref="Loadout"/>,
     /// na ordem da lista, com o id igual ao índice. Cada slot lê o ASC dono como o <see cref="AbilitySlotSource"/>: estado,
-    /// recarga, cargas, motivo de falha e rótulo da tecla, por evento, com tick só enquanto algum slot pede. A habilidade
-    /// não concedida aparece como slot vazio. <see cref="SetLoadout"/> refaz a barra. Não ativa nem concede nada.
+    /// recarga, cargas, motivo de falha, marcas de ativa e de autocast e rótulo da tecla, por evento, com tick só
+    /// enquanto algum slot pede. A habilidade não concedida aparece como slot vazio. <see cref="SetLoadout"/> refaz a
+    /// barra. Não ativa nem concede nada.
     /// </summary>
-    [Serializable, TypeCategory("Habilidades", Summary = "Barra pelo loadout: um slot por entrada, na ordem da lista, com estado, recarga, cargas, motivo de falha e rótulo da tecla.",
+    [Serializable, TypeCategory("Habilidades", Summary = "Barra pelo loadout: um slot por entrada, na ordem da lista, com estado, recarga, cargas, motivo de falha, ativa, autocast e rótulo da tecla.",
         Line = "Barra · {loadout}")]
     public sealed class AbilityLoadoutSource : UIListSource<SlotModel>
     {

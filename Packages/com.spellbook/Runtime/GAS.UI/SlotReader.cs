@@ -16,8 +16,8 @@ namespace SpellBook.GAS.UI
     /// Monta o <see cref="SlotModel"/> de uma habilidade num ASC (Spec do B-016, Design 3, P1 a P3). O estado vem da
     /// consulta com escopo <see cref="ActivationCheckScope.WithoutConditions"/>, o mesmo caminho da ativação, a cada
     /// evento do ASC que pode mudá-lo. A recarga e a próxima carga são lidas do ASC a cada tick, pedido só enquanto uma
-    /// delas corre ou o motivo da última falha aparece. Ligar e soltar assinam com delegates criados uma vez; atualizar
-    /// não aloca.
+    /// delas corre ou o motivo da última falha aparece. As marcas de ativa e de autocast vêm do spec (B-012), por
+    /// evento, e não mudam o estado (R6). Ligar e soltar assinam com delegates criados uma vez; atualizar não aloca.
     /// </summary>
     internal sealed class SlotReader
     {
@@ -29,6 +29,7 @@ namespace SpellBook.GAS.UI
         private readonly Action<AbilitySpec, int, int> _onChargesChanged;
         private readonly Action<AbilitySpec, int, int> _onLevelChanged;
         private readonly Action<GameplayAbility, ActivationFailure> _onFailed;
+        private readonly Action<AbilitySpec, bool> _onAutocastChanged;
         private readonly Action<float, float> _onValueChanged;
         private readonly Action _onLabelChanged;
         private readonly List<AttributeState> _costStates = new List<AttributeState>(4);
@@ -62,6 +63,7 @@ namespace SpellBook.GAS.UI
             _onChargesChanged = OnChargesChanged;
             _onLevelChanged = (_, _, _) => Refresh();
             _onFailed = OnFailed;
+            _onAutocastChanged = (_, _) => Refresh();
             _onValueChanged = (_, _) => Refresh();
             _onLabelChanged = OnLabelChanged;
             _describe.Lines.Capacity = 1;
@@ -98,6 +100,7 @@ namespace SpellBook.GAS.UI
             _asc.OnChargesChanged += _onChargesChanged;
             _asc.OnAbilityLevelChanged += _onLevelChanged;
             _asc.OnAbilityFailed += _onFailed;
+            _asc.OnAutocastChanged += _onAutocastChanged;
             ListenCostAttributes();
             if (_keyLabels != null) _keyLabels.Changed += _onLabelChanged;
 
@@ -119,6 +122,7 @@ namespace SpellBook.GAS.UI
             _asc.OnChargesChanged -= _onChargesChanged;
             _asc.OnAbilityLevelChanged -= _onLevelChanged;
             _asc.OnAbilityFailed -= _onFailed;
+            _asc.OnAutocastChanged -= _onAutocastChanged;
             for (int i = 0; i < _costStates.Count; i++)
             {
                 _costStates[i].OnValueChanged -= _onValueChanged;
@@ -152,15 +156,19 @@ namespace SpellBook.GAS.UI
             GameplayEffect cooldown = _ability != null ? _ability.CooldownEffect : null;
             bool cooling = result != AbilityActivationResult.InvalidAbility && result != AbilityActivationResult.NotGranted
                 && _asc.IsOnCooldown(cooldown);
-            AbilitySpec spec = _ability != null && _ability.Charges.Enabled ? _asc.FindSpec(_ability) : null;
-            bool charging = spec != null && _asc.GetChargeRechargeRemaining(spec) > 0f;
+            AbilitySpec spec = _asc.FindSpec(_ability);
+            bool granted = spec != null;
+            bool charged = granted && _ability.Charges.Enabled;
+            bool charging = charged && _asc.GetChargeRechargeRemaining(spec) > 0f;
             SlotModel model = new SlotModel(ToState(result), _ability != null ? _ability.Icon : null, _ability)
                 .WithKeyLabel(_labelSpan)
                 .WithCooldown(cooling ? _asc.GetCooldownNormalized(cooldown) : 0f,
                     cooling ? _asc.GetCooldownTimeRemaining(cooldown) : 0f)
                 .WithFailure(_failureKey, _failureSpan, _failureVisible, _failureCount, _failureTag)
-                .WithReadyPulse(_readyPulses);
-            Model = spec != null
+                .WithReadyPulse(_readyPulses)
+                .WithActivity(granted && spec.IsActive, granted && spec.IsToggledOn, granted && spec.IsChanneling)
+                .WithAutocast(granted && AcceptsAutocast(_ability), _asc.IsAutocastEnabled(spec));
+            Model = charged
                 ? model.WithCharges(_asc.GetCharges(spec), _asc.GetMaxCharges(spec), _asc.GetChargeRechargeNormalized(spec))
                 : model;
             WantsTick = cooling || charging || _failureVisible;
@@ -187,6 +195,13 @@ namespace SpellBook.GAS.UI
                 default:
                     return SlotState.Blocked;
             }
+        }
+
+        // O mesmo que o SetAutocast aceita: Allowed em Instant ou Channel (EV14, R40)
+        private static bool AcceptsAutocast(GameplayAbility ability)
+        {
+            return ability.Autocast.Allowed && ability.Behavior != AbilityBehavior.Passive
+                && ability.Behavior != AbilityBehavior.Toggle;
         }
 
         // Pulso de pronto (R8): só no fim da recarga desta habilidade, nunca ao conceder nem no primeiro modelo
