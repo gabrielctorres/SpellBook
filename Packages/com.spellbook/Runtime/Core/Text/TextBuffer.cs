@@ -45,6 +45,21 @@ namespace SpellBook.Core.Text
             return new TextSpan(this, start, text.Length);
         }
 
+        /// <summary>Copia <paramref name="length"/> caracteres de <paramref name="text"/>, a partir de <paramref name="start"/>, para o fim do buffer.</summary>
+        public TextSpan Append(string text, int start, int length)
+        {
+            if (text == null) throw new ArgumentNullException(nameof(text));
+            if (start < 0 || length < 0 || start > text.Length - length) throw new ArgumentOutOfRangeException(nameof(length));
+
+            int begin = _length;
+            if (length == 0) return new TextSpan(this, begin, 0);
+
+            EnsureCapacity(begin + length);
+            text.CopyTo(start, _chars, begin, length);
+            _length = begin + length;
+            return new TextSpan(this, begin, length);
+        }
+
         /// <summary>
         /// Escreve o número com o formato e a cultura dados, sem alocar. Cultura nula usa a invariante (mesma regra do
         /// <c>AttributeDisplay.Format</c>).

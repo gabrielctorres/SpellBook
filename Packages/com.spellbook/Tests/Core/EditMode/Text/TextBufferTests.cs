@@ -116,5 +116,19 @@ namespace SpellBook.Core.Tests.Text
             Assert.That(buffer.Chars.Length, Is.EqualTo(capacity));
             Assert.That(buffer.ToString(), Is.Empty);
         }
+
+        [Test]
+        public void Append_Substring_OnlyThatRange()
+        {
+            var buffer = new TextBuffer(4);
+            buffer.Append("<");
+
+            TextSpan middle = buffer.Append("abcdefgh", 2, 3);
+            TextSpan empty = buffer.Append("abc", 1, 0);
+
+            Assert.That(buffer.ToString(middle), Is.EqualTo("cde"));
+            Assert.That(empty.IsEmpty, Is.True);
+            Assert.That(buffer.ToString(), Is.EqualTo("<cde"));
+        }
     }
 }
