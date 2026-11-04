@@ -90,6 +90,11 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Mesma
 - Testes red: `Items_FromSpawner_ArrivalOrder`; `Remove_Releases_LiveCountStable`; `ContentChange_ReusesItem`; `MaxVisible_HiddenCount_PromotesOldestHidden`; `ItemContext_OwnerFromBinder`; `NullSpawn_SkipsWithWarning`; `AddRemove1000_DoNotAllocate`.
 - Critério de pronto: testes verdes.
 - Tamanho estimado: ~480 linhas; 8 arquivos. Depende de: UI14.
+- Divisão de 2026-11-04 (ADR 0042): o SL1 passou do teto e virou três tickets, em série. Os testes red e o escopo acima se repartem entre eles, como diz o Detalhe.
+  - SL1a (#249): contratos de lista, `UIItemContext` e "+N". Depende de: UI14. Medido: 276 linhas; 5 arquivos.
+  - SL1b (#335): `UIListBinder<TItem>` com ordem, remoção e troca de conteúdo. Depende de: SL1a. Medido: 623 linhas; 4 arquivos (exceção de +30% registrada no Detalhe).
+  - SL1c (#336): `maxVisible` e "+N" no `UIListBinder<TItem>`. Depende de: SL1b. Medido: 135 linhas; 3 arquivos.
+  - Quem dependia do SL1 passa a depender do SL1c.
 
 ### Detalhe (2026-11-04)
 Divisão do SL1 pela ADR 0042, decidida pelo usuário em 2026-11-04. O SL1 implementado inteiro mediu 870 linhas em `.cs`, acima de +30% (650): `UISource.cs` +90, `UIModels.cs` +16, `UIEditors.cs` +4, `UIListBinder.cs` 380, `UIItemContext.cs` 50 e `UIListBinderTests.cs` 330. Ele virou o SL1a (#249) e o SL1b (#335); o SL1b se dividiu de novo em SL1b e SL1c (#336). Em comum aos dois: o manual (`visao-geral.md`) fica para o passe de documentação (emenda de 2026-11-03 da ADR 0007), e o `CHANGELOG.md` sai porque não há quebra (item 4 da mesma emenda).
@@ -173,7 +178,7 @@ Divisão do SL1 pela ADR 0042, decidida pelo usuário em 2026-11-04. O SL1 imple
 - Escopo: `UIModels.cs` (`SlotModel`, `SlotState`), `Runtime/UI/KeyLabelProvider.cs`, `Runtime/UI/FixedKeyLabelProvider.cs` (novos), `UIEditors.cs`, `Tests/UI/EditMode/KeyLabelProviderTests.cs` (novo), `DocUrls.cs` (`UiAbilitySlot`), `DocUrlsTests.cs`, `Documentation~/manual/ui/slot-de-habilidade.md` (nova), `CHANGELOG.md`.
 - Testes red: `Fixed_LabelForKey_MissingKeyFalse`; `Fixed_LocalizedThroughProvider`; `Changed_RaisedOnEdit`; `WriteLabel_DoesNotAllocate`.
 - Critério de pronto: testes verdes.
-- Tamanho estimado: ~300 linhas; 9 arquivos. Depende de: SL1.
+- Tamanho estimado: ~300 linhas; 9 arquivos. Depende de: SL1c.
 
 ### SL3 — `AbilityLoadout`
 - Escopo: `Runtime/GAS.UI/AbilityLoadout.cs` (novo), `Editor/GAS.UI/GasUIEditors.cs`, `Tests/GAS.UI/EditMode/AbilityLoadoutTests.cs` (novo), `DocUrls.cs` (`UiAbilityBar`), `DocUrlsTests.cs`, `Documentation~/manual/ui/barra-de-habilidades.md` (nova), `CHANGELOG.md`.
@@ -246,8 +251,10 @@ Complemento do B-032, planejado aqui a pedido do Controlador. Segue a emenda do 
 
 | Ticket | Unity | Depende de | Tamanho |
 |---|---|---|---|
-| SL1 | sim | UI14 | ~480 / 8 |
-| SL2 | sim | SL1 | ~300 / 9 |
+| SL1a | sim | UI14 | 276 / 5 |
+| SL1b | sim | SL1a | 623 / 4 |
+| SL1c | sim | SL1b | 135 / 3 |
+| SL2 | sim | SL1c | ~300 / 9 |
 | SL3 | sim | SL2 | ~240 / 7 |
 | SL4 | sim | SL3, AV4, EA5, EA6 | ~490 / 10 |
 | SL5 | sim | SL4, AV7, DE11 | ~400 / 5 |
@@ -260,7 +267,7 @@ Complemento do B-032, planejado aqui a pedido do Controlador. Segue a emenda do 
 | SL12 | sim | SL11, UI14, DE11, DE6, EV21, SB-T8 | ~0 / 9 |
 | SL13 | sim | SL12, UI12 | ~0 / 7 |
 
-Fila: SL1 → SL13 em série. A barra de cast (SL10, SL11) só depende do EV13 e pode adiantar logo depois do SL9. O B-017 e o B-018 começam depois do SL8 (precisam da lista genérica, do `UIItemContext` e do slot com assunto). CA14 e CA17 rodam em todos.
+Fila: SL1a → SL1b → SL1c → SL2 → … → SL13 em série (o SL1 se dividiu em 2026-11-04, ADR 0042). A barra de cast (SL10, SL11) só depende do EV13 e pode adiantar logo depois do SL9. O B-017 e o B-018 começam depois do SL8 (precisam da lista genérica, do `UIItemContext` e do slot com assunto). CA14 e CA17 rodam em todos.
 
 ## Perguntas ao usuário
 

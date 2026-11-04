@@ -68,7 +68,7 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Mesma
 - Escopo: `UIModels.cs` (`EffectIconModel`), `Runtime/GAS.UI/ActiveEffectsSource.cs` (novo, sem filtros além de `IsHidden`), `Tests/GAS.UI/PlayMode/ActiveEffectsSourceTests.cs` (novo), `DocUrls.cs` (`UiEffectList`), `DocUrlsTests.cs`, `Documentation~/manual/ui/lista-de-efeitos.md` (nova), `CHANGELOG.md`.
 - Testes red: `Apply_AddsIcon_Expire_RemovedAndReleased_RemoveByCodeTagStacks_OnlyWhenLast` (CA1, C1); `Fraction_Seconds_ManualTime_PauseStops_InfiniteNoClock` (CA2, C2); `Stacks_ByEvent_HiddenAtOneByDefault` (CA3, C3); `Role_FromBuffDebuff_NeutralDefault` (CA4, C4); `ApplicationOrder_NewAtEnd_PositionFixed` (CA6, C6); `SameEffect_TwoSources_WithAndWithoutCanStack_OneIcon_SumStacks_MaxRemaining_InfiniteIfAny_DifferentAssetsNeverMerge` (CA8, C8); `OpenWithActiveEffects_ShowsAll` (CA11, C11); `IconAndName_FromEffectFields` (CA17); `List_MatchesAscAfterRandomOps_NoOwnRegistry` (CA18).
 - Critério de pronto: CA1 a CA4, CA6, CA8, CA11, CA17 e CA18 verdes.
-- Tamanho estimado: ~490 linhas; 7 arquivos. Depende de: TT5, SL1.
+- Tamanho estimado: ~490 linhas; 7 arquivos. Depende de: TT5, SL1c (o SL1 se dividiu em SL1a, SL1b e SL1c em 2026-11-04, ADR 0042).
 
 ### BF2 — Filtros, fim próximo e respawn
 - Escopo: `ActiveEffectsSource.cs` (`EffectListFilter`, `SetFilter`, `EndingSoon`), `Tests/GAS.UI/PlayMode/ActiveEffectsFilterTests.cs` (novo), `lista-de-efeitos.md`, `CHANGELOG.md`.
@@ -98,7 +98,7 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Mesma
 
 | Ticket | Unity | Depende de | Tamanho |
 |---|---|---|---|
-| BF1 | sim | TT5, SL1 | ~490 / 7 |
+| BF1 | sim | TT5, SL1c | ~490 / 7 |
 | BF2 | sim | BF1 | ~380 / 4 |
 | BF3 | sim | BF2 | ~330 / 5 |
 | BF4 | sim | BF3, TT8 | ~380 / 9 |
