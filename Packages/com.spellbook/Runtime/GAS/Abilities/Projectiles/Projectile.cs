@@ -5,6 +5,8 @@ using UnityEngine.Serialization;
 using SpellBook.Core;
 using SpellBook.Core.Conditions;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
+using SpellBook.GAS.Abilities.Actions;
 using SpellBook.GAS.Actions;
 using SpellBook.GAS.Conditions;
 using SpellBook.GAS.Core;
@@ -18,7 +20,7 @@ namespace SpellBook.GAS.Abilities.Projectiles
     /// Volta pelo <see cref="SpawnerAsset"/> recebido no <c>Setup</c> e reinicia o estado no <c>OnEnable</c> (ADR 0015).
     /// </summary>
     [HelpURL(DocUrls.Gas + "#projectile")]
-    public class Projectile : MonoBehaviour
+    public class Projectile : MonoBehaviour, IValidatable
     {
         public enum MovementVectors { Forward, Right, Up }
 
@@ -172,6 +174,39 @@ namespace SpellBook.GAS.Abilities.Projectiles
             AbilitySystemComponent owner = _impactTemplate.Owner;
             if (owner != null) owner.Runner.ReturnContext(_impactTemplate);
             _impactTemplate = null;
+        }
+
+        /// <summary>
+        /// Acusa <see cref="Pierce"/> negativo (erro); perfuração acima do que o "já acertou" guarda, "sem limite" sem
+        /// <see cref="Lifetime"/>, perfuração sem <see cref="HitEachTargetOnce"/> e, em <see cref="OnEnded"/>, ação que
+        /// lança este mesmo projétil (avisos). Valida a lista "Ao terminar".
+        /// </summary>
+        public virtual void Validate(ValidationResult result)
+        {
+            if (Pierce < 0) result.AddError($"Pierce é {Pierce}: use 0 para terminar no primeiro impacto.", nameof(Pierce));
+            else if (Pierce >= HitCapacity)
+            {
+                result.AddWarning($"Pierce {Pierce} passa de {HitCapacity - 1}: depois de {HitCapacity} alvos, o acerto conta como repetido.",
+                    nameof(Pierce));
+            }
+
+            if (UnlimitedPierce && Lifetime <= 0f)
+            {
+                result.AddWarning("Unlimited Pierce sem Lifetime: o projétil só termina num colisor sem ASC.", nameof(UnlimitedPierce));
+            }
+
+            if (!HitEachTargetOnce && (UnlimitedPierce || Pierce > 0))
+            {
+                result.AddWarning("Perfuração sem Hit Each Target Once: o mesmo alvo pode ser acertado a cada choque.", nameof(HitEachTargetOnce));
+            }
+
+            ActionLists.Validate(this, nameof(OnEnded), OnEnded, result, (action, path, _) =>
+            {
+                if (action is SpawnProjectileAction spawn && spawn.ProjectilePrefab != null && spawn.ProjectilePrefab == gameObject)
+                {
+                    result.AddWarning("\"Ao terminar\" lança este mesmo projétil: possível laço sem fim.", path);
+                }
+            });
         }
 
         protected virtual void OnEnable()

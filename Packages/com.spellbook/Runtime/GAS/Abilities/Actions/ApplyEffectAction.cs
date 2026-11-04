@@ -17,6 +17,8 @@ namespace SpellBook.GAS.Abilities.Actions
         public List<GameplayEffect> Effects;
         public bool ApplyToSource = false;
 
+        internal override bool ReadsInstigator => true;
+
         protected override ActionStatus Execute(ActionContext context, ref ActionFrame frame)
         {
             if (Effects == null || context.Instigator == null) return ActionStatus.Done;

@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using SpellBook.Core.Validation;
 using SpellBook.GAS.Actions;
+using SpellBook.GAS.Values;
 
 namespace SpellBook.GAS.Thinkers
 {
@@ -25,5 +27,14 @@ namespace SpellBook.GAS.Thinkers
 
         /// <summary>Acusa a configuração inválida. O padrão não acusa nada.</summary>
         public virtual void Validate(ValidationResult result) { }
+
+        // Se o comportamento age nos pulsos: o validador do thinker avisa o intervalo ausente ou curto demais
+        internal virtual bool Pulses => false;
+
+        // Valores por nível que leem a tabela da habilidade de criação, para a regra do %nome da CreateThinkerAction
+        internal virtual void CollectScalables(List<ScalableFloat> results) { }
+
+        // Prévia na cena, pelo OnDrawGizmosSelected do thinker
+        internal virtual void DrawGizmos(GameplayThinker thinker) { }
     }
 }

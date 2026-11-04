@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
+using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Actions;
 using SpellBook.GAS.Core;
+using SpellBook.GAS.Values;
 using UnityEngine;
 
 namespace SpellBook.GAS.Thinkers
@@ -94,6 +97,40 @@ namespace SpellBook.GAS.Thinkers
                 thinker.SetWatch(creator, watch);
             }
             return ActionStatus.Done;
+        }
+
+        /// <summary>
+        /// Acusa a ação sem prefab (erro). Numa habilidade, acusa também cada valor do thinker em modo Table cujo nome não
+        /// está na tabela dela (erro) e o End With Execution numa habilidade Instant, que termina o thinker com a ativação
+        /// (aviso).
+        /// </summary>
+        public override void Validate(ValidationResult result)
+        {
+            if (prefab == null)
+            {
+                result.AddError("Create Thinker sem prefab: escolha o thinker criado.", nameof(prefab));
+                return;
+            }
+
+            // A ação não conhece a habilidade; o objeto validado é ela quando a ação está numa lista da habilidade
+            if (!(result.Context is GameplayAbility ability)) return;
+
+            var values = new List<ScalableFloat>();
+            prefab.CollectScalables(values);
+            for (int i = 0; i < values.Count; i++)
+            {
+                ScalableFloat value = values[i];
+                if (value.Mode != ScalableFloat.ScalableMode.Table || string.IsNullOrEmpty(value.TableName)) continue;
+                if (ability.Values != null && ability.Values.IndexOf(value.TableName) >= 0) continue;
+                result.AddError($"O thinker \"{prefab.name}\" lê o valor \"{value.TableName}\" da tabela, que não existe nesta habilidade.",
+                    nameof(prefab));
+            }
+
+            if (prefab.EndWithExecution && ability.Behavior == AbilityBehavior.Instant)
+            {
+                result.AddWarning("End With Execution numa habilidade Instant: o thinker termina quando a ativação termina. " +
+                    "Para a zona que fica depois do lançamento, desligue End With Execution no thinker.", nameof(prefab));
+            }
         }
 
         private bool TryGetPosition(ActionContext context, AbilitySystemComponent creator, out Vector3 point)

@@ -5,6 +5,7 @@ using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Thinkers;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 
 namespace SpellBook.GAS.Editor
 {
@@ -36,4 +37,14 @@ namespace SpellBook.GAS.Editor
     [CustomEditor(typeof(GameplayThinker))]
     [CanEditMultipleObjects]
     internal sealed class GameplayThinkerEditor : SpellBookEditor { }
+
+    /// <summary>Ensina o thinker a reconhecer a cena de prévia do Prefab Mode, que não é a cena do jogo.</summary>
+    [InitializeOnLoad]
+    internal static class GameplayThinkerPreviewScene
+    {
+        static GameplayThinkerPreviewScene()
+        {
+            GameplayThinker.IsInPreviewScene = go => EditorSceneManager.IsPreviewScene(go.scene);
+        }
+    }
 }

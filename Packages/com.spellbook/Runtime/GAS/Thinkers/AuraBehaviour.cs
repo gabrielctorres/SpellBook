@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using SpellBook.GAS.Actions;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
 using SpellBook.GAS.Targeting;
+using SpellBook.GAS.Values;
 using UnityEngine;
 
 namespace SpellBook.GAS.Thinkers
@@ -38,6 +40,36 @@ namespace SpellBook.GAS.Thinkers
         public AreaSelector Area { get => area; set => area = value; }
 
         public override object CreateState() => new State();
+
+        /// <summary>Acusa a aura sem efeito e o raio constante zero ou negativo (erros), e o efeito instantâneo (aviso).</summary>
+        public override void Validate(ValidationResult result)
+        {
+            if (effect == null) result.AddError("Aura sem efeito: escolha o efeito aplicado em quem está dentro.", nameof(effect));
+            else if (effect.DurationPolicy == EffectDurationPolicy.Instant)
+            {
+                result.AddWarning("Efeito instantâneo na aura: ele é aplicado na entrada, e não há o que remover na saída.", nameof(effect));
+            }
+
+            ScalableFloat radius = area?.Radius;
+            if (radius != null && radius.Mode == ScalableFloat.ScalableMode.Constant && radius.Evaluate(1) <= 0f)
+            {
+                result.AddError("Raio da aura zero ou negativo: ninguém fica dentro.", nameof(area) + ".radius");
+            }
+        }
+
+        internal override bool Pulses => true;
+
+        internal override void CollectScalables(List<ScalableFloat> results)
+        {
+            if (area?.Radius != null) results.Add(area.Radius);
+        }
+
+        // Raio no nível 1, sem a tabela da habilidade, em volta do thinker
+        internal override void DrawGizmos(GameplayThinker thinker)
+        {
+            if (area?.Radius == null) return;
+            Gizmos.DrawWireSphere(thinker.transform.position, Mathf.Max(0f, area.Radius.Evaluate(1)));
+        }
 
         // Um ciclo anterior sem término (thinker desligado) deixou entradas: desfaz o que a aura aplicou nele
         public override void OnBegin(object state, GameplayThinker thinker, ActionContext context)

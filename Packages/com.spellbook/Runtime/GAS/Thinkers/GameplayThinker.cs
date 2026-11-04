@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using SpellBook.GAS.Abilities;
+using SpellBook.GAS.Abilities.Actions;
 using SpellBook.GAS.Actions;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
@@ -18,7 +20,7 @@ namespace SpellBook.GAS.Thinkers
     /// </summary>
     [RequireComponent(typeof(AbilitySystemComponent))]
     [HelpURL(DocUrls.Thinkers + "#gameplaythinker")]
-    public class GameplayThinker : MonoBehaviour
+    public class GameplayThinker : MonoBehaviour, IValidatable
     {
         [Tooltip("Vida em segundos do ASC, por nível. 0 ou menos: sem duração.")]
         [SerializeField] private ScalableFloat duration = ScalableFloat.Constant(0f);
@@ -216,6 +218,122 @@ namespace SpellBook.GAS.Thinkers
             _watchHost = null;
             if (host != null && _watch.IsRunning) host.Runner.Cancel(_watch);
             _watch = default;
+        }
+
+        /// <summary>
+        /// Acusa duração ou intervalo constantes negativos e o objeto sem ASC (erros); o thinker que nunca termina, ações
+        /// "A cada pulso" sem intervalo, comportamento que pulsa sem intervalo ou com intervalo abaixo de um quadro e, no
+        /// thinker colocado na cena, ações que leem o instigador, que ele não tem (avisos). Valida as listas de ações e o
+        /// comportamento.
+        /// </summary>
+        public void Validate(ValidationResult result)
+        {
+            duration?.Validate(result, nameof(duration));
+            pulseInterval?.Validate(result, nameof(pulseInterval));
+            bool hasDuration = !NeverPositive(duration);
+            bool hasPulse = !NeverPositive(pulseInterval);
+            if (IsNegativeConstant(duration)) result.AddError("Duração negativa: use 0 para \"sem duração\".", nameof(duration));
+            if (IsNegativeConstant(pulseInterval)) result.AddError("Intervalo negativo: use 0 para \"sem pulsos\".", nameof(pulseInterval));
+            if (!hasDuration && !hasPulse && !endWithExecution)
+            {
+                result.AddWarning("Sem duração, sem pulsos e sem End With Execution: o thinker nunca termina sozinho.", nameof(duration));
+            }
+
+            if (!hasPulse && onPulse != null && onPulse.Count > 0)
+            {
+                result.AddWarning($"{onPulse.Count} ações em \"A cada pulso\" não vão rodar: o thinker não tem intervalo.", nameof(onPulse));
+            }
+
+            if (behaviour != null && behaviour.Pulses) ValidatePulses(result, hasPulse);
+            if (!TryGetComponent(out AbilitySystemComponent _))
+            {
+                result.AddError("Thinker sem AbilitySystemComponent: acrescente o componente, que roda as ações e o tempo dele.");
+            }
+
+            // O thinker da cena começa sem criador e sem instigador (P2)
+            bool inScene = IsPlacedInScene();
+            ActionVisitor visitor = (action, path, _) =>
+            {
+                if (inScene && action.ReadsInstigator)
+                {
+                    result.AddWarning("Ação que lê o instigador num thinker colocado na cena: sem criador, ele é nulo e a ação não faz nada.", path);
+                }
+            };
+            ActionLists.Validate(this, nameof(onCreated), onCreated, result, visitor);
+            ActionLists.Validate(this, nameof(onPulse), onPulse, result, visitor);
+            ActionLists.Validate(this, nameof(onEnded), onEnded, result, visitor);
+            ValidateBehaviour(result);
+        }
+
+#if UNITY_EDITOR
+        /// <summary>
+        /// Diz se o objeto está numa cena de prévia do Editor, como a do Prefab Mode. Preenchido pelo código de Editor,
+        /// que o runtime não referencia.
+        /// </summary>
+        internal static System.Func<GameObject, bool> IsInPreviewScene;
+#endif
+
+        // Prefab em asset não tem cena, e o prefab aberto no Prefab Mode fica numa cena de prévia: os dois ficam fora
+        private bool IsPlacedInScene()
+        {
+            if (!gameObject.scene.IsValid()) return false;
+#if UNITY_EDITOR
+            if (IsInPreviewScene != null && IsInPreviewScene(gameObject)) return false;
+#endif
+            return true;
+        }
+
+        private void ValidatePulses(ValidationResult result, bool hasPulse)
+        {
+            if (!hasPulse)
+            {
+                result.AddWarning("Comportamento que age nos pulsos sem intervalo: só o pulso inicial roda.", nameof(pulseInterval));
+            }
+            else if (pulseInterval.Mode == ScalableFloat.ScalableMode.Constant && pulseInterval.Evaluate(1) < MinPulseInterval)
+            {
+                result.AddWarning("Intervalo menor que um quadro (1/60 s): vários pulsos podem cair no mesmo passo.", nameof(pulseInterval));
+            }
+        }
+
+        // O comportamento acusa o caminho relativo a ele; aqui ele ganha o do campo
+        private void ValidateBehaviour(ValidationResult result)
+        {
+            if (behaviour == null) return;
+            var own = new ValidationResult(result.Context);
+            behaviour.Validate(own);
+            for (int i = 0; i < own.Messages.Count; i++)
+            {
+                ValidationMessage message = own.Messages[i];
+                string path = string.IsNullOrEmpty(message.PropertyPath) ? nameof(behaviour) : nameof(behaviour) + "." + message.PropertyPath;
+                if (message.Severity == ValidationSeverity.Error) result.AddError(message.Message, path);
+                else result.AddWarning(message.Message, path);
+            }
+        }
+
+        private const float MinPulseInterval = 1f / 60f;
+
+        // Só a constante é conferida: array, curva e tabela variam com o nível
+        private static bool NeverPositive(ScalableFloat value)
+        {
+            return value == null || (value.Mode == ScalableFloat.ScalableMode.Constant && value.Evaluate(1) <= 0f);
+        }
+
+        private static bool IsNegativeConstant(ScalableFloat value)
+        {
+            return value != null && value.Mode == ScalableFloat.ScalableMode.Constant && value.Evaluate(1) < 0f;
+        }
+
+        // Duração, intervalo e valores do comportamento, lidos da tabela da habilidade de criação
+        internal void CollectScalables(List<ScalableFloat> results)
+        {
+            if (duration != null) results.Add(duration);
+            if (pulseInterval != null) results.Add(pulseInterval);
+            behaviour?.CollectScalables(results);
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            behaviour?.DrawGizmos(this);
         }
 
         // Valor por nível com a tabela da habilidade de criação
