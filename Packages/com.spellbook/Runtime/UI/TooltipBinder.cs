@@ -6,10 +6,18 @@ using Object = UnityEngine.Object;
 
 namespace SpellBook.UI
 {
+    /// <summary>View de tooltip que se posiciona perto do alvo.</summary>
+    public interface ITooltipPlacementTarget
+    {
+        /// <summary>Posiciona o tooltip perto de <paramref name="target"/>.</summary>
+        void Place(RectTransform target);
+    }
+
     /// <summary>
     /// Binder único do tooltip da tela (Spec UI-3, Design 2). Mostra um tooltip por vez: o pedido de outro requester fecha
-    /// o atual, e o mesmo requester não reabre. Cada fonte ganha uma ligação, criada na primeira abertura e reaproveitada,
-    /// e registrada no <see cref="UIUpdateDriver"/> enquanto aberta. Não tem <c>Update</c>.
+    /// o atual, e o mesmo requester não reabre. Cada fonte ganha uma ligação, criada na primeira abertura e reaproveitada.
+    /// O atraso conta pelo tempo do <see cref="UIUpdateDriver"/>; sem driver, abre na hora. Aberto, fecha se o alvo é
+    /// destruído e reposiciona a view só quando o alvo se move. Não tem <c>Update</c>.
     /// </summary>
     [DisallowMultipleComponent]
     [HelpURL(DocUrls.UiTooltip + "#tooltipbinder")]
@@ -24,17 +32,26 @@ namespace SpellBook.UI
         private UITheme theme;
 
         [SerializeField]
-        [Tooltip("Driver que chama o tick da ligação aberta. Vazio: o UIUpdateDriver do pai, lido ao habilitar.")]
+        [Tooltip("Driver que conta o atraso e chama o tick. Vazio: o UIUpdateDriver do pai, lido ao habilitar.")]
         private UIUpdateDriver driver;
 
         private readonly Dictionary<UISourceBase, UIBinding<TooltipModel>> _bindings =
             new Dictionary<UISourceBase, UIBinding<TooltipModel>>();
 
         private UIUpdateDriver _activeDriver;
+        private Ticker _ticker;
 
-        // Requester do tooltip aberto e a ligação dele
+        // Pedido atual, esperando o atraso ou aberto
         private object _requester;
+        private UISource<TooltipModel> _source;
+        private Object _owner;
+        private Object _subject;
+        private RectTransform _target;
+        private bool _hasTarget;
+        private bool _pending;
+        private double _openAt;
         private UIBinding<TooltipModel> _open;
+        private Vector3 _lastTargetPosition;
 
         /// <summary>A view que recebe o modelo, ou <c>null</c> se o componente não implementa <see cref="IView{TModel}"/>.</summary>
         public IView<TooltipModel> View => view as IView<TooltipModel>;
@@ -73,11 +90,11 @@ namespace SpellBook.UI
         }
 
         /// <summary>
-        /// Abre o tooltip de <paramref name="source"/> lido de <paramref name="owner"/>, com <paramref name="subject"/> no
-        /// contexto da ligação. Requester, fonte ou dono nulos não fazem nada. O mesmo requester aberto não refaz nada;
-        /// outro requester fecha o atual.
+        /// Pede o tooltip de <paramref name="source"/> lido de <paramref name="owner"/>, perto de <paramref name="target"/>,
+        /// depois de <paramref name="delay"/> segundos do driver. Requester, fonte ou dono nulos não fazem nada. O mesmo
+        /// requester, aberto ou esperando, não refaz nada; outro requester fecha o atual.
         /// </summary>
-        public void Show(object requester, UISource<TooltipModel> source, Object owner, Object subject)
+        public void Show(object requester, UISource<TooltipModel> source, Object owner, Object subject, RectTransform target, float delay)
         {
             if (requester == null || source == null || owner == null || !isActiveAndEnabled)
             {
@@ -90,22 +107,24 @@ namespace SpellBook.UI
             }
 
             HideAll();
-            UIBinding<TooltipModel> binding = AcquireBinding(source);
-            if (binding == null)
+            _requester = requester;
+            _source = source;
+            _owner = owner;
+            _subject = subject;
+            _target = target;
+            _hasTarget = target != null;
+            if (delay > 0f && _activeDriver != null)
             {
+                _pending = true;
+                _openAt = _activeDriver.TimeSource.ElapsedTime + delay;
+                RequestTick(true);
                 return;
             }
 
-            _requester = requester;
-            _open = binding;
-            binding.Attach(owner, new UIBindContext(theme != null ? theme.Text : null, null, theme, subject));
-            if (_activeDriver != null)
-            {
-                _activeDriver.Register(binding);
-            }
+            Open();
         }
 
-        /// <summary>Fecha o tooltip, se for de <paramref name="requester"/>.</summary>
+        /// <summary>Fecha o tooltip ou cancela o pedido esperando, se forem de <paramref name="requester"/>.</summary>
         public void Hide(object requester)
         {
             if (requester != null && ReferenceEquals(requester, _requester))
@@ -114,24 +133,33 @@ namespace SpellBook.UI
             }
         }
 
-        /// <summary>Fecha o tooltip aberto, de qualquer requester.</summary>
+        /// <summary>Fecha o tooltip aberto e cancela o pedido esperando, de qualquer requester.</summary>
         public void HideAll()
         {
+            bool wasOpen = _open != null;
+            if (wasOpen)
+            {
+                UIBinding<TooltipModel> open = _open;
+                _open = null;
+                open.Detach();
+                if (_activeDriver != null)
+                {
+                    _activeDriver.Unregister(open);
+                }
+            }
+
+            _pending = false;
             _requester = null;
-            if (_open == null)
+            _source = null;
+            _owner = null;
+            _subject = null;
+            _target = null;
+            _hasTarget = false;
+            RequestTick(false);
+            if (wasOpen)
             {
-                return;
+                View?.Render(default);
             }
-
-            UIBinding<TooltipModel> open = _open;
-            _open = null;
-            open.Detach();
-            if (_activeDriver != null)
-            {
-                _activeDriver.Unregister(open);
-            }
-
-            View?.Render(default);
         }
 
         /// <summary>Acrescenta os problemas da view: sem view ou view que não desenha <see cref="TooltipModel"/>.</summary>
@@ -165,19 +193,124 @@ namespace SpellBook.UI
 
         private void LeaveDriver()
         {
+            if (_ticker != null && _activeDriver != null)
+            {
+                _activeDriver.Unregister(_ticker);
+            }
+
             _activeDriver = null;
         }
 
-        private UIBinding<TooltipModel> AcquireBinding(UISource<TooltipModel> source)
+        private void Open()
         {
-            if (!_bindings.TryGetValue(source, out UIBinding<TooltipModel> binding))
+            _pending = false;
+            if (!_bindings.TryGetValue(_source, out UIBinding<TooltipModel> binding))
             {
-                binding = source.CreateBinding();
+                binding = _source.CreateBinding();
                 binding?.SetReceiver(this);
-                _bindings.Add(source, binding);
+                _bindings.Add(_source, binding);
             }
 
-            return binding;
+            // Alvo destruído durante o atraso fecha sem abrir, como o dono nulo
+            if (binding == null || _owner == null || (_hasTarget && _target == null))
+            {
+                HideAll();
+                return;
+            }
+
+            _open = binding;
+            binding.Attach(_owner, new UIBindContext(theme != null ? theme.Text : null, null, theme, _subject));
+            if (_activeDriver != null)
+            {
+                _activeDriver.Register(binding);
+            }
+
+            if (_hasTarget)
+            {
+                _lastTargetPosition = _target.position;
+                PlaceView();
+            }
+
+            RequestTick(_hasTarget);
+        }
+
+        private void PlaceView()
+        {
+            if (view is ITooltipPlacementTarget placement)
+            {
+                placement.Place(_target);
+            }
+        }
+
+        private void RequestTick(bool on)
+        {
+            if (_activeDriver == null)
+            {
+                return;
+            }
+
+            if (on && (_ticker ??= new Ticker(this)).Driver == null)
+            {
+                _ticker.Attach(this, default);
+                _activeDriver.Register(_ticker);
+            }
+
+            _ticker?.Request(on);
+        }
+
+        private void OnTick(double time)
+        {
+            if (_pending)
+            {
+                if (time >= _openAt)
+                {
+                    Open();
+                }
+
+                return;
+            }
+
+            if (_open == null || !_hasTarget)
+            {
+                return;
+            }
+
+            // Alvo destruído: o operador == da Unity vê o objeto morto
+            if (_target == null)
+            {
+                HideAll();
+                return;
+            }
+
+            Vector3 position = _target.position;
+            if (position != _lastTargetPosition)
+            {
+                _lastTargetPosition = position;
+                PlaceView();
+            }
+        }
+
+        // Ligação do próprio binder no driver: repassa o tick ao OnTick
+        private sealed class Ticker : UIBinding
+        {
+            private readonly TooltipBinder _binder;
+
+            public Ticker(TooltipBinder binder)
+            {
+                _binder = binder;
+            }
+
+            public void Request(bool on) => RequestTick(on);
+
+            public override void Tick(double time) => _binder.OnTick(time);
+
+            protected override void OnAttach(Object owner)
+            {
+            }
+
+            protected override void OnDetach()
+            {
+            }
         }
     }
 }

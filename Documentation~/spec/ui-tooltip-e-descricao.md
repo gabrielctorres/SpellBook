@@ -130,8 +130,9 @@ O TT1 passou do teto (~839 linhas medidas) e foi dividido por decisão do usuár
 - Testes red (PlayMode, `TooltipBinderTests`):
   - `Delay_CountedByDriver`: com 0,3 s, fechado em 0,2 s do relógio manual e aberto em 0,4 s; `Hide` antes do tempo cancela; fechado, o binder não pede tick;
   - `TargetDestroyed_ClosesNoException` (CA7, parte): alvo destruído, o tick fecha (modelo vazio, ligação desligada) sem exceção; alvo movido chama `Place` de novo, parado não.
-- Critério de pronto: os 7 testes de `TooltipBinderTests` verdes, com o `total` do XML igual a 7. Antes da divisão, o código guardado passou 7 de 7, e 8 mutações derrubaram cada uma o teste esperado.
-- Tamanho: 297 linhas em 2 arquivos (mais esta Spec), medido por `git diff --no-index --numstat` entre as formas TT1a e completa: `TooltipBinder.cs` +166/-34, `TooltipBinderTests.cs` +85/-12. Exceção: nenhuma.
+  - `TargetDestroyedDuringDelay_ClosesWithoutOpening` (CA7, parte; achado da revisão): alvo destruído durante o atraso, o tick vencido fecha sem abrir e sem exceção, sem ligar a fonte e com `TickingCount` 0. No `Open`, alvo dado e destruído fecha como o dono nulo.
+- Critério de pronto: os 8 testes de `TooltipBinderTests` verdes, com o `total` do XML igual a 8. Antes da divisão, o código guardado passou 7 de 7, e 8 mutações derrubaram cada uma o teste esperado; o 8º falha sem a guarda do alvo no `Open` (`MissingReferenceException`).
+- Tamanho: 315 linhas em 2 arquivos (mais esta Spec), medido por `git diff --numstat` sobre o TT1a: `TooltipBinder.cs` +167/-34, `TooltipBinderTests.cs` +102/-12. Exceção: nenhuma.
 - Commit: `feat(ui): atraso, alvo e posição no TooltipBinder (#339)`
 
 ### TT2 — `TooltipPlacement`, view e prefab

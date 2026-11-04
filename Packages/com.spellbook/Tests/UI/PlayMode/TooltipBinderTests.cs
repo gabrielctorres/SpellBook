@@ -14,13 +14,14 @@ using Object = UnityEngine.Object;
 namespace SpellBook.UI.Tests
 {
     /// <summary>
-    /// Binder do tooltip (Spec UI-3, Design 2): um aberto por vez e sem duplicar (CA7, parte), reabrir sem alocar, view
-    /// própria recebe o modelo (CA12) e aberto sem alocar (CA13, parte).
+    /// Binder do tooltip (Spec UI-3, Design 2): um aberto por vez e sem duplicar (CA7, parte), atraso pelo driver, alvo
+    /// destruído fecha, reabrir sem alocar, view própria recebe o modelo (CA12) e aberto sem alocar (CA13, parte).
     /// </summary>
     public class TooltipBinderTests
     {
         private readonly List<Object> _created = new List<Object>();
         private UIUpdateDriver _driver;
+        private ManualTimeSource _time;
         private TooltipBinder _binder;
         private RecordingView _view;
 
@@ -28,7 +29,8 @@ namespace SpellBook.UI.Tests
         public void SetUp()
         {
             _driver = CreateObject("tela").AddComponent<UIUpdateDriver>();
-            _driver.SetTimeSource(Create<ManualTimeSource>());
+            _time = Create<ManualTimeSource>();
+            _driver.SetTimeSource(_time);
             GameObject gameObject = CreateObject("tooltip");
             gameObject.SetActive(false);
             gameObject.transform.SetParent(_driver.transform);
@@ -60,8 +62,8 @@ namespace SpellBook.UI.Tests
             var firstSource = new TestSource();
             var secondSource = new TestSource();
 
-            _binder.Show(new object(), firstSource, first, null);
-            _binder.Show(new object(), secondSource, second, null);
+            _binder.Show(new object(), firstSource, first, null, null, 0f);
+            _binder.Show(new object(), secondSource, second, null, null, 0f);
             first.Set(5);
 
             Assert.That(firstSource.LastBinding.IsAttached, Is.False, "abrir o segundo deveria fechar o primeiro");
@@ -76,13 +78,86 @@ namespace SpellBook.UI.Tests
             Owner owner = CreateOwner(1);
             var source = new TestSource();
             var requester = new object();
+            RectTransform target = CreateTarget();
 
-            _binder.Show(requester, source, owner, null);
-            _binder.Show(requester, source, owner, null);
+            _binder.Show(requester, source, owner, null, target, 0f);
+            _binder.Show(requester, source, owner, null, target, 0f);
 
             Assert.That(source.CreatedBindings, Is.EqualTo(1));
             Assert.That(source.LastBinding.Attaches, Is.EqualTo(1));
             Assert.That(_view.Renders, Is.EqualTo(1));
+            Assert.That(_view.Places, Is.EqualTo(1));
+            Assert.That(_view.LastTarget, Is.SameAs(target));
+        }
+
+        [Test]
+        public void Delay_CountedByDriver()
+        {
+            Owner owner = CreateOwner(3);
+            var source = new TestSource();
+            var requester = new object();
+
+            _binder.Show(requester, source, owner, null, null, 0.3f);
+            int rendersAtShow = _view.Renders;
+            _time.Advance(0.2f);
+            _driver.Tick();
+            int rendersAt02 = _view.Renders;
+            _time.Advance(0.2f);
+            _driver.Tick();
+            string valueAt04 = ValueOf(_view.Last);
+            var cancelled = new object();
+            _binder.Show(cancelled, source, owner, null, null, 0.3f);
+            _binder.Hide(cancelled);
+            _time.Advance(1f);
+            _driver.Tick();
+
+            Assert.That(rendersAtShow, Is.Zero, "o atraso deveria segurar a abertura");
+            Assert.That(rendersAt02, Is.Zero, "0,2 s do driver não chega a 0,3 s");
+            Assert.That(valueAt04, Is.EqualTo("3"));
+            Assert.That(_view.Last.IsEmpty, Is.True, "o Hide antes do tempo deveria cancelar a abertura");
+            Assert.That(source.LastBinding.IsAttached, Is.False);
+            Assert.That(_driver.TickingCount, Is.Zero, "fechado, o binder não deveria pedir tick");
+        }
+
+        [Test]
+        public void TargetDestroyed_ClosesNoException()
+        {
+            Owner owner = CreateOwner(1);
+            var source = new TestSource();
+            RectTransform target = CreateTarget();
+            _binder.Show(new object(), source, owner, null, target, 0f);
+
+            _driver.Tick();
+            int placesStill = _view.Places;
+            target.position += new Vector3(10f, 0f, 0f);
+            _driver.Tick();
+            int placesMoved = _view.Places;
+            Object.DestroyImmediate(target.gameObject);
+
+            Assert.DoesNotThrow(() => _driver.Tick());
+            Assert.That(placesStill, Is.EqualTo(1), "alvo parado não deveria reposicionar");
+            Assert.That(placesMoved, Is.EqualTo(2), "alvo movido deveria reposicionar");
+            Assert.That(_view.Last.IsEmpty, Is.True, "alvo destruído deveria fechar o tooltip");
+            Assert.That(source.LastBinding.IsAttached, Is.False);
+            Assert.That(owner.Listeners, Is.Zero);
+            Assert.That(_driver.TickingCount, Is.Zero);
+        }
+
+        [Test]
+        public void TargetDestroyedDuringDelay_ClosesWithoutOpening()
+        {
+            Owner owner = CreateOwner(1);
+            var source = new TestSource();
+            RectTransform target = CreateTarget();
+            _binder.Show(new object(), source, owner, null, target, 0.3f);
+            Object.DestroyImmediate(target.gameObject);
+            _time.Advance(0.4f);
+
+            Assert.DoesNotThrow(() => _driver.Tick());
+            Assert.That(_view.Renders, Is.Zero, "alvo destruído no atraso não deveria abrir o tooltip");
+            Assert.That(source.LastBinding?.IsAttached ?? false, Is.False, "a fonte não deveria ser ligada");
+            Assert.That(owner.Listeners, Is.Zero);
+            Assert.That(_driver.TickingCount, Is.Zero);
         }
 
         [Test]
@@ -91,14 +166,15 @@ namespace SpellBook.UI.Tests
             Owner owner = CreateOwner(4);
             var source = new TestSource();
             var requester = new object();
-            _binder.Show(requester, source, owner, null);
+            RectTransform target = CreateTarget();
+            _binder.Show(requester, source, owner, null, target, 0f);
             _binder.Hide(requester);
 
             Assert.That(() =>
             {
                 for (int i = 0; i < 100; i++)
                 {
-                    _binder.Show(requester, source, owner, null);
+                    _binder.Show(requester, source, owner, null, target, 0f);
                     _binder.Hide(requester);
                 }
             }, Is.Not.AllocatingGCMemory());
@@ -118,7 +194,7 @@ namespace SpellBook.UI.Tests
             var source = new TestSource { Icon = icon };
             Subject subject = Create<Subject>();
 
-            _binder.Show(new object(), source, owner, subject);
+            _binder.Show(new object(), source, owner, subject, null, 0f);
 
             TooltipModel model = _view.Last;
             Assert.That(model.IsEmpty, Is.False);
@@ -142,7 +218,7 @@ namespace SpellBook.UI.Tests
         {
             Owner owner = CreateOwner(0);
             var source = new TestSource { TickOnAttach = true };
-            _binder.Show(new object(), source, owner, null);
+            _binder.Show(new object(), source, owner, null, CreateTarget(), 0f);
             owner.Set(1);
             _driver.Tick();
             int rendersBefore = _view.Renders;
@@ -172,6 +248,12 @@ namespace SpellBook.UI.Tests
             Owner owner = CreateObject("dono").AddComponent<Owner>();
             owner.Set(value);
             return owner;
+        }
+
+        private RectTransform CreateTarget()
+        {
+            GameObject gameObject = CreateObject("alvo");
+            return gameObject.AddComponent<RectTransform>();
         }
 
         private GameObject CreateObject(string name)
@@ -267,15 +349,23 @@ namespace SpellBook.UI.Tests
             }
         }
 
-        public sealed class RecordingView : MonoBehaviour, IView<TooltipModel>
+        public sealed class RecordingView : MonoBehaviour, IView<TooltipModel>, ITooltipPlacementTarget
         {
             public int Renders;
+            public int Places;
             public TooltipModel Last;
+            public RectTransform LastTarget;
 
             public void Render(in TooltipModel model)
             {
                 Renders++;
                 Last = model;
+            }
+
+            public void Place(RectTransform target)
+            {
+                Places++;
+                LastTarget = target;
             }
         }
     }
