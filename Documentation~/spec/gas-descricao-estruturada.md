@@ -171,6 +171,19 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Cada 
 - Critério de pronto: testes verdes; `AsmdefRules_CoreDoesNotReferenceGas` verde.
 - Tamanho estimado: ~360 linhas; 6 arquivos. Depende de: nada (fila: depois do AR4).
 
+### Detalhe (2026-11-03)
+- CA: CA3 (parte: número com cultura injetada no `TextBuffer`), CA9 (parte: chave presente, ausente e provedor ausente no `LocalizedText`), CA12 (parte: `Append` de número sem alocar depois do aquecimento). Base do Design 1 (ADR 0038, itens 1, 3 e 5).
+- Escopo (caminhos em `Packages/com.spellbook/`, namespace `SpellBook.Core.Text`, ao lado de `Runtime/Core/Text/TextRoleTheme.cs`, que fica como está):
+  - `Runtime/Core/Text/TextBuffer.cs` (novo): `TextBuffer` (`char[]` que dobra ao crescer, `Chars`, `Length`, `Clear`, `Append(string)`, `Append(float, string, IFormatProvider)` por `float.TryFormat` num `Span<char>` do próprio array, `Append(TextSpan)`, `ToString(TextSpan)` e `ToString()`) e `TextSpan` (`readonly struct`: `Buffer`, `Start`, `Length`, `IsEmpty`). Cultura nula: invariante (mesma regra do `AttributeDisplay`, Q3 do B-005).
+  - `Runtime/Core/Text/LocalizedText.cs` (novo): `[Serializable] struct` com `key`, `text`, `Key`, `Text`, `IsEmpty`, construtor e `Resolve(ITextProvider)`.
+  - `Runtime/Core/Text/TextProvider.cs` (novo): `ITextProvider`; `TextProviderAsset` (abstrata, `Culture` e `GetText` abstratos, `Changed` com `protected void RaiseChanged()`; sem `[HelpURL]`, que o `HelpUrlRule` pede só a tipo concreto); `TextKey.IsValid` por varredura de caracteres, sem `Regex`.
+  - `Tests/Core/EditMode/Text/TextBufferTests.cs` e `Tests/Core/EditMode/Text/LocalizedTextTests.cs` (novos; o segundo com um `TestTextProvider` de dicionário e os testes do `TextKey`).
+  - Sem `CHANGELOG.md`: o ticket só acrescenta tipos e não quebra nada (emenda de 2026-11-03 da 0007); os tipos novos entram no CHANGELOG da quebra do DE5/DE8. Sem `DocUrls.Text` (DE2).
+- Testes red (EditMode, `SpellBook.Core.Tests.EditMode`): `TextBufferTests`: `Append_Float_F1_PtBrComma_EnUsDot`, `Append_10000Floats_ReusedBuffer_DoesNotAllocate` (aquece com o mesmo laço: o formatador do runtime inicializa tabelas na primeira chamada), `Span_ToString_OnlyThatSpan`, `Grow_KeepsContent`, mais `Append_NullCulture_UsesInvariant`, `Append_SpanFromOtherBuffer_CopiesChars`, `Clear_ResetsLength_KeepsCapacity`; `LocalizedTextTests`: `LocalizedText_NullProvider_ReturnsText`, `LocalizedText_KeyFound_ProviderText_KeyMissing_Fallback`, `TextKey_Valid_gas_activation_no_charges_Invalid_Upper_Space_SingleSegment`, mais `LocalizedText_IsEmpty_OnlyWithoutKeyAndText`.
+- Critério de pronto: os 11 testes verdes pelo filtro `\.TextBufferTests\.;\.LocalizedTextTests\.`; `AsmdefRules_CoreDoesNotReferenceGas` e `HelpUrlTests` verdes.
+- Tamanho: ~460 linhas e 5 arquivos (mais esta página do Spec), pela ADR 0042. Exceção: nenhuma.
+- Commit: `feat(core): TextBuffer, LocalizedText e ITextProvider (#222)`
+
 ### DE2 — `TextTable` e `TableTextProvider`
 - Escopo: `Runtime/Core/Text/TextTable.cs`, `TableTextProvider.cs` (novos), `Editor/Core/Inspector/CoreEditors.cs` (duas linhas), `Runtime/Core/DocUrls.cs` (`Text = Base + "modulos/texto/"`), `Tests/Core/EditMode/DocUrlsTests.cs`, `Tests/Core/EditMode/Text/TableTextProviderTests.cs` (novo), `Documentation~/manual/modulos/texto.md` (nova: provedor, tabela, convenção de chaves), `CHANGELOG.md`.
 - Testes red: `KeyInTable_ReturnsText` (CA9); `MissingKey_ReturnsFallback`, `NoProvider_FieldText` (CA9); `CultureChain_PtBr_Pt_Neutral_Fallback`; `SetCulture_RaisesChanged_CultureExposed`; `EmptyCulture_Invariant`; `ResolvedKey_10000Reads_DoesNotAllocate` (N1); `Table_DuplicateKey_Error_BadKey_Warning`; `Provider_SameKeyDifferentText_Warning`; `DocUrls_PageConstantPointsToPageUnderBase("Text", "modulos/texto/")`.
