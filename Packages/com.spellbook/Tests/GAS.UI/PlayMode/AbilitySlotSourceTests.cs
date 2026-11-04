@@ -4,6 +4,7 @@ using NUnit.Framework;
 using SpellBook.Core.Text;
 using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Attributes;
+using SpellBook.GAS.Conditions;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
 using SpellBook.GAS.Values;
@@ -13,13 +14,15 @@ using SpellBook.Time;
 using SpellBook.UI;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.TestTools.Constraints;
+using Is = UnityEngine.TestTools.Constraints.Is;
 using Object = UnityEngine.Object;
 
 namespace SpellBook.GAS.UI.Tests
 {
     /// <summary>
-    /// Fonte do slot (SL4b): recarga, recarga reduzida, tag bloqueadora, o "pronto" igual à tentativa até o custo e a
-    /// prévia (CA2, CA3, CA6 e CA16).
+    /// Fonte do slot (SL4): recarga, recarga reduzida, custo, tag bloqueadora, rótulo da tecla, o "pronto" igual à
+    /// tentativa até o custo e atualizar sem alocar (CA2, CA3, CA5, CA6, CA10, CA14 e CA16).
     /// </summary>
     public class AbilitySlotSourceTests
     {
@@ -59,7 +62,7 @@ namespace SpellBook.GAS.UI.Tests
             AbilitySystemComponent asc = Asc(0f);
             GameplayAbility fireball = _gas.CreateAbilityWithCooldown(8f);
             asc.GiveAbility(fireball);
-            Rig rig = CreateSlot(asc, fireball);
+            Rig rig = CreateSlot(asc, fireball, null);
             SlotState initial = rig.View.Last.State;
 
             asc.TryActivateAbility(fireball, Vector3.zero);
@@ -95,7 +98,7 @@ namespace SpellBook.GAS.UI.Tests
             GameplayAbility fireball = _gas.CreateAbilityWithCooldown(8f);
             fireball.CooldownReductionAttribute = cdr;
             asc.GiveAbility(fireball);
-            Rig rig = CreateSlot(asc, fireball);
+            Rig rig = CreateSlot(asc, fireball, null);
 
             asc.TryActivateAbility(fireball, Vector3.zero);
             SlotModel started = rig.View.Last;
@@ -107,6 +110,23 @@ namespace SpellBook.GAS.UI.Tests
         }
 
         [Test]
+        public void LowMana_NoResource_BackWhenManaRises()
+        {
+            AbilitySystemComponent asc = Asc(5f);
+            GameplayAbility fireball = _gas.CreateAbility();
+            fireball.CostEffect = Cost(10f);
+            asc.GiveAbility(fireball);
+            Rig rig = CreateSlot(asc, fireball, null);
+            SlotState low = rig.View.Last.State;
+
+            State(asc, _mana).SetBaseValue(20f);
+
+            Assert.That(low, Is.EqualTo(SlotState.NoResource));
+            Assert.That(rig.View.Last.State, Is.EqualTo(SlotState.Ready), "a mana sobe e o slot volta por evento");
+            Assert.That(asc.GetAttributeValue(_mana), Is.EqualTo(20f), "a consulta não cobra o custo");
+        }
+
+        [Test]
         public void BlockingTag_Blocked_BackOnRemove()
         {
             GameplayTag stunned = _gas.CreateTag("Stunned");
@@ -114,7 +134,7 @@ namespace SpellBook.GAS.UI.Tests
             GameplayAbility fireball = _gas.CreateAbility();
             fireball.BlockedTags.Add(stunned);
             asc.GiveAbility(fireball);
-            Rig rig = CreateSlot(asc, fireball);
+            Rig rig = CreateSlot(asc, fireball, null);
 
             asc.AddTag(stunned);
             SlotState blocked = rig.View.Last.State;
@@ -122,6 +142,24 @@ namespace SpellBook.GAS.UI.Tests
 
             Assert.That(blocked, Is.EqualTo(SlotState.Blocked));
             Assert.That(rig.View.Last.State, Is.EqualTo(SlotState.Ready));
+        }
+
+        [Test]
+        public void KeyLabel_FromProvider_UpdatesOnChanged()
+        {
+            AbilitySystemComponent asc = Asc(0f);
+            GameplayAbility fireball = _gas.CreateAbility();
+            asc.GiveAbility(fireball);
+            var labels = Track(ScriptableObject.CreateInstance<TestKeyLabels>());
+            labels.Key = _slotQ.GetDefinition();
+            labels.Label = "Q";
+            Rig rig = CreateSlot(asc, fireball, labels);
+            string first = Text(rig.View.Last.KeyLabel);
+
+            labels.SetLabel("Botão A");
+
+            Assert.That(first, Is.EqualTo("Q"));
+            Assert.That(Text(rig.View.Last.KeyLabel), Is.EqualTo("Botão A"));
         }
 
         [Test]
@@ -149,7 +187,7 @@ namespace SpellBook.GAS.UI.Tests
                 ability.BlockedTags.Add(stunned);
                 ability.AbilityTag = channel;
                 c.Arrange(asc, ability);
-                SlotState shown = CreateSlot(asc, ability).View.Last.State;
+                SlotState shown = CreateSlot(asc, ability, null).View.Last.State;
 
                 AbilityActivationResult tried = asc.TryActivateAbility(ability, Vector3.zero);
 
@@ -160,10 +198,31 @@ namespace SpellBook.GAS.UI.Tests
         }
 
         [Test]
+        public void SlotUpdates10000_DoNotAllocate()
+        {
+            GameplayTag stunned = _gas.CreateTag("Stunned");
+            AbilitySystemComponent asc = Asc(50f);
+            GameplayAbility fireball = _gas.CreateAbilityWithCooldown(100f);
+            fireball.CostEffect = Cost(10f);
+            fireball.BlockedTags.Add(stunned);
+            asc.GiveAbility(fireball);
+            var labels = Track(ScriptableObject.CreateInstance<TestKeyLabels>());
+            labels.Key = _slotQ.GetDefinition();
+            labels.Label = "Q";
+            Rig rig = CreateSlot(asc, fireball, labels);
+            asc.TryActivateAbility(fireball, Vector3.zero);
+            Updates(rig, asc, stunned, 10);
+
+            Assert.That(() => Updates(rig, asc, stunned, 10000), Is.Not.AllocatingGCMemory());
+            Assert.That(rig.View.Last.State, Is.EqualTo(SlotState.OnCooldown));
+            Assert.That(rig.View.Renders, Is.GreaterThan(20000), "cada tick e cada tag desenham o slot");
+        }
+
+        [Test]
         public void Preview_HalfCooldownTwoCharges_LabelQ()
         {
             GameplayAbility fireball = _gas.CreateAbilityWithCooldown(8f);
-            var source = new AbilitySlotSource { Loadout = Loadout(fireball), Slot = _slotQ };
+            var source = new AbilitySlotSource { Loadout = Loadout(fireball, null), Slot = _slotQ };
 
             SlotModel preview = source.CreatePreview(new UIPreviewContext(1));
 
@@ -172,6 +231,19 @@ namespace SpellBook.GAS.UI.Tests
             Assert.That(preview.CooldownRemaining, Is.EqualTo(4f).Within(1e-4f));
             Assert.That(preview.Charges, Is.EqualTo(2));
             Assert.That(Text(preview.KeyLabel), Is.EqualTo("Q"));
+            Assert.That(Text(source.CreatePreview(new UIPreviewContext(1)).KeyLabel), Is.EqualTo("Q"),
+                "o buffer da prévia é guardado e escrito do zero");
+        }
+
+        // Uma atualização por tag (entra e sai) e um tick com a recarga correndo
+        private static void Updates(Rig rig, AbilitySystemComponent asc, GameplayTag tag, int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                asc.AddTag(tag);
+                asc.RemoveTag(tag);
+                Step(rig, asc, 0.001f);
+            }
         }
 
         private static void Step(Rig rig, AbilitySystemComponent asc, float seconds)
@@ -226,7 +298,7 @@ namespace SpellBook.GAS.UI.Tests
         private static string Text(TextSpan span) => span.IsEmpty ? string.Empty : span.Buffer.ToString(span);
 
         /// <summary>Loadout com a entrada <c>Slot.Q</c>, gravado pelo <see cref="SerializedObject"/>.</summary>
-        private AbilityLoadout Loadout(GameplayAbility ability)
+        private AbilityLoadout Loadout(GameplayAbility ability, KeyLabelProvider labels)
         {
             var loadout = Track(ScriptableObject.CreateInstance<AbilityLoadout>());
             var serialized = new SerializedObject(loadout);
@@ -234,12 +306,13 @@ namespace SpellBook.GAS.UI.Tests
             list.InsertArrayElementAtIndex(0);
             list.GetArrayElementAtIndex(0).FindPropertyRelative("slot.definition").objectReferenceValue = _slotQ.GetDefinition();
             list.GetArrayElementAtIndex(0).FindPropertyRelative("ability").objectReferenceValue = ability;
+            serialized.FindProperty("keyLabels").objectReferenceValue = labels;
             serialized.ApplyModifiedPropertiesWithoutUndo();
             return loadout;
         }
 
         // Slot sob um driver com o relógio manual, ligado ao ASC pelo dono explícito
-        private Rig CreateSlot(AbilitySystemComponent asc, GameplayAbility ability)
+        private Rig CreateSlot(AbilitySystemComponent asc, GameplayAbility ability, KeyLabelProvider labels)
         {
             var rig = new Rig { Clock = _clock };
             rig.Driver = Track(new GameObject("tela")).AddComponent<UIUpdateDriver>();
@@ -250,7 +323,7 @@ namespace SpellBook.GAS.UI.Tests
             rig.View = slot.AddComponent<Recorder>();
             AbilitySlotBinder binder = slot.AddComponent<AbilitySlotBinder>();
             binder.SetOwner(ActorResolver.ForExplicit(asc));
-            binder.SetSource(new AbilitySlotSource { Loadout = Loadout(ability), Slot = _slotQ });
+            binder.SetSource(new AbilitySlotSource { Loadout = Loadout(ability, labels), Slot = _slotQ });
             binder.SetView(rig.View);
             slot.SetActive(true);
             return rig;
@@ -280,6 +353,27 @@ namespace SpellBook.GAS.UI.Tests
             {
                 if (Renders++ == 0) First = model;
                 Last = model;
+            }
+        }
+
+        /// <summary>Rótulo de teste: um texto para uma chave, trocado por código com aviso.</summary>
+        public sealed class TestKeyLabels : KeyLabelProvider
+        {
+            public ScriptableObject Key;
+            public string Label;
+
+            public void SetLabel(string label)
+            {
+                Label = label;
+                RaiseChanged();
+            }
+
+            public override bool TryWriteLabel(ScriptableObject slotKey, ITextProvider text, TextBuffer into)
+            {
+                if (slotKey == null || slotKey != Key) return false;
+
+                into.Append(Label);
+                return true;
             }
         }
     }

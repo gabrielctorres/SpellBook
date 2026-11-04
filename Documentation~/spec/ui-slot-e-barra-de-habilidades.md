@@ -287,14 +287,15 @@ Divisão do SL4 pela ADR 0042, decidida pelo usuário em 2026-11-04. O SL4 escri
 - CA: CA5, CA10 e CA14 (parte do slot).
 - Escopo (caminhos relativos a `Packages/com.spellbook/`):
   - `Runtime/GAS.UI/SlotReader.cs`: `Attach` ganha `slotKey`, `keyLabels` e `text`; assina o `OnValueChanged` dos atributos que o custo mexe e dos que o valor dele lê (`Attribute`, `TargetAttribute` e `Formula.GetSourceDependencies`), coletados uma vez por ligação (P1); assina o `Changed` do `KeyLabelProvider` e escreve o rótulo num `TextBuffer` só dele, com o provedor do contexto (emenda da P5); o modelo ganha `WithKeyLabel`.
-  - `Runtime/GAS.UI/AbilitySlotSource.cs`: o binding passa `slot.GetDefinition()`, `loadout.KeyLabels` e `Context.Text`.
-  - `Tests/GAS.UI/PlayMode/AbilitySlotSourceTests.cs`: os três testes, o `TestKeyLabels` e o parâmetro `labels` do rig.
+  - `Runtime/GAS.UI/AbilitySlotSource.cs`: o binding passa `slot.GetDefinition()`, `loadout.KeyLabels` e `Context.Text`. A prévia guarda o `TextBuffer` num campo `[NonSerialized]` e o limpa a cada chamada, como a `AttributeSource` (nota leve do Examinador no SL4b; +3 linhas).
+  - `Tests/GAS.UI/PlayMode/AbilitySlotSourceTests.cs`: os três testes, o `TestKeyLabels` e o parâmetro `labels` do rig; o `Preview_HalfCooldownTwoCharges_LabelQ` pede a prévia de novo e confere "Q" (o buffer guardado é escrito do zero).
 - Testes red (PlayMode, `SpellBook.GAS.UI.Tests.PlayMode`, classe `AbilitySlotSourceTests`):
   - `LowMana_NoResource_BackWhenManaRises` (CA5, C5);
   - `KeyLabel_FromProvider_UpdatesOnChanged` (CA10, C10);
   - `SlotUpdates10000_DoNotAllocate` (CA14, parte: tag que entra e sai e tick com recarga correndo, rótulo ligado).
-- Critério de pronto: os 8 testes da classe verdes, com `total` = 8 no XML; `GasUiSourceScanTests` verde.
-- Tamanho medido (o patch guardado, sobre a forma do SL4b): 209 linhas em 4 arquivos. Em `.cs`: `SlotReader.cs`, `AbilitySlotSource.cs` e `AbilitySlotSourceTests.cs`, +193 −16 no total; a Spec conta só como arquivo. Exceção: nenhuma.
+  Red contra um esqueleto em que o `Attach` tem a assinatura nova mas não ouve o custo nem o provedor e o rótulo fica vazio: 2 de 8 falham (CA5: `NoResource` onde se esperava `Ready`; CA10: rótulo vazio onde se esperava "Q"). O CA14 é guarda e passa no esqueleto, que não aloca; numa mutação em que o `Refresh` cria um `TextBuffer` e a prévia não limpa o buffer, ele e a prévia falham ("not allocates GC memory"; "QQ" onde se esperava "Q"). Green: 8 de 8; `GasUiSourceScanTests` e `TypeCatalogSummaryTests`, 3 de 3.
+- Critério de pronto: os 8 testes da classe verdes, com `total` = 8 no XML; `GasUiSourceScanTests` e `TypeCatalogSummaryTests` verdes (o `Summary` muda).
+- Tamanho medido (`git diff --numstat`): 216 linhas em 4 arquivos. Em `.cs`: `SlotReader.cs` +86 −3, `AbilitySlotSource.cs` +9 −4 e `AbilitySlotSourceTests.cs` +104 −10; a Spec conta só como arquivo. Exceção: nenhuma.
 - Commit: `feat(gas-ui): custo, rótulo da tecla e sem alocar no slot (#338)`
 
 ### SL5 — Cargas, motivo de falha e nível

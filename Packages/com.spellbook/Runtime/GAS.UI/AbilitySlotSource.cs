@@ -12,10 +12,10 @@ namespace SpellBook.GAS.UI
 {
     /// <summary>
     /// Fonte do slot de uma habilidade (Spec do B-016, Design 3; R4 do PRD): acha a entrada do <see cref="Loadout"/> pela
-    /// tag <see cref="Slot"/> e lê do ASC dono o estado e a recarga. Atualiza por evento e pede tick só
+    /// tag <see cref="Slot"/> e lê do ASC dono o estado, a recarga e o rótulo da tecla. Atualiza por evento e pede tick só
     /// enquanto a recarga corre. O "pronto" vem da mesma consulta da ativação, até o custo (Q3). Não ativa nada (R11).
     /// </summary>
-    [Serializable, TypeCategory("Habilidades", Summary = "Slot de uma habilidade do loadout, pela tag: estado e recarga.",
+    [Serializable, TypeCategory("Habilidades", Summary = "Slot de uma habilidade do loadout, pela tag: estado, recarga e rótulo da tecla.",
         Line = "Slot {slot.definition} · {loadout}")]
     public sealed class AbilitySlotSource : UISource<SlotModel>
     {
@@ -24,6 +24,8 @@ namespace SpellBook.GAS.UI
 
         [Tooltip("Tag do slot procurada no loadout, como Slot.Q.")]
         [SerializeField] private GameplayTag slot;
+
+        [NonSerialized] private TextBuffer _preview;
 
         /// <summary>O loadout lido.</summary>
         public AbilityLoadout Loadout { get => loadout; set => loadout = value; }
@@ -41,7 +43,8 @@ namespace SpellBook.GAS.UI
         public override SlotModel CreatePreview(in UIPreviewContext context)
         {
             GameplayAbility ability = FindAbility();
-            var label = new TextBuffer(8);
+            TextBuffer label = _preview ??= new TextBuffer(8);
+            label.Clear();
             KeyLabelProvider labels = loadout != null ? loadout.KeyLabels : null;
             if (labels == null || !labels.TryWriteLabel(slot.GetDefinition(), context.Text, label)) label.Append("Q");
 
@@ -78,7 +81,9 @@ namespace SpellBook.GAS.UI
                     return;
                 }
 
-                _reader.Attach(asc, _source.FindAbility());
+                AbilityLoadout loadout = _source.loadout;
+                _reader.Attach(asc, _source.FindAbility(), _source.slot.GetDefinition(),
+                    loadout != null ? loadout.KeyLabels : null, Context.Text);
             }
 
             protected override void OnDetach() => _reader.Detach();
