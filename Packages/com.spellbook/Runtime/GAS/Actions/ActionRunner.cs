@@ -20,6 +20,9 @@ namespace SpellBook.GAS.Actions
 
         /// <summary>Se a execução ainda está em curso.</summary>
         public bool IsRunning => _execution != null && _execution.Version == _version && _execution.Running;
+
+        // A execução, enquanto ainda é esta e está em curso
+        internal ActionRunner.Execution Live => IsRunning ? _execution : null;
     }
 
     /// <summary>
@@ -159,6 +162,13 @@ namespace SpellBook.GAS.Actions
                 Execution execution = _executions[i];
                 if (execution.Running && Equals(execution.Owner, owner)) CancelExecution(execution);
             }
+        }
+
+        /// <summary>Cancela só a execução de <paramref name="handle"/>, se ela é deste executor e ainda está em curso.</summary>
+        public void Cancel(ActionExecutionHandle handle)
+        {
+            Execution execution = handle.Live;
+            if (execution != null && _executions.IndexOf(execution) >= 0) CancelExecution(execution);
         }
 
         private Execution Start(IReadOnlyList<GameplayAction> list, int index, int end, ActionContext context,
@@ -342,10 +352,12 @@ namespace SpellBook.GAS.Actions
         /// Roda <paramref name="actions"/> numa execução nova <see cref="ExecutionLink.FollowsOwner"/> do dono da execução
         /// corrente, numa cópia do <paramref name="context"/>, com os alvos da ação corrente como herdados. Falso, sem rodar,
         /// se <paramref name="context"/> não é o da execução corrente, se ela não tem dono ou se o dono já terminou (a
-        /// lista "Ao remover" roda depois do cancelamento das execuções da instância).
+        /// lista "Ao remover" roda depois do cancelamento das execuções da instância). <paramref name="handle"/> é o da
+        /// execução nova, ou o vazio quando ela não começa.
         /// </summary>
-        internal bool Follow(ActionContext context, IReadOnlyList<GameplayAction> actions)
+        internal bool Follow(ActionContext context, IReadOnlyList<GameplayAction> actions, out ActionExecutionHandle handle)
         {
+            handle = default;
             Execution current = _current;
             if (current == null || current.Context != context || current.Owner == null) return false;
             if (current.Owner is ActiveEffectInstance instance && !instance.IsActive) return false;
@@ -358,6 +370,7 @@ namespace SpellBook.GAS.Actions
             execution.OwnsContext = true;
             execution.Inherited.AddRange(context.Targets);
             execution.HasInherited = true;
+            handle = new ActionExecutionHandle(execution);
             Advance(execution);
             return true;
         }
@@ -431,6 +444,7 @@ namespace SpellBook.GAS.Actions
             copy.EventInstigator = source.EventInstigator;
             copy.Change = source.Change;
             copy.DefaultTarget = source.DefaultTarget;
+            copy.LastCreatedThinker = source.LastCreatedThinker;
             // Cópia rasa, como no CreateDerived; o dicionário da fonte vem do pool com o contexto dela
             Dictionary<string, object> data = source.CustomData;
             if (data.Count == 0) return;

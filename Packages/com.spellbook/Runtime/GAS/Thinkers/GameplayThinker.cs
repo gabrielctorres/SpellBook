@@ -24,6 +24,12 @@ namespace SpellBook.GAS.Thinkers
         [SerializeField] private ScalableFloat duration = ScalableFloat.Constant(0f);
         [Tooltip("Segundos entre pulsos, por nível. 0 ou menos: sem pulsos.")]
         [SerializeField] private ScalableFloat pulseInterval = ScalableFloat.Constant(0f);
+        [Tooltip("Copia a posição de quem o criou a cada quadro. Criador destruído ou desativado termina o thinker.")]
+        [SerializeField] private bool followOwner;
+        [Tooltip("Com Follow Owner, copia também a rotação.")]
+        [SerializeField] private bool followRotation;
+        [Tooltip("Termina quando a ativação ou o efeito que o criou termina ou é cancelado, ou quando o criador some.")]
+        [SerializeField] private bool endWithExecution = true;
         [SerializeReference, TypePicker] private ThinkerBehaviour behaviour;
         [SerializeReference, TypePicker, ActionEvent("Ao criar", DefaultTarget.Owner, true)]
         private List<GameplayAction> onCreated = new List<GameplayAction>();
@@ -45,12 +51,29 @@ namespace SpellBook.GAS.Thinkers
         private int _level = 1;
         private EffectContext _effect;
         private bool _hasEffect;
+        private bool _hasCreator;
+        // Vigia de EndWithExecution no ASC do criador, cancelada no término
+        private AbilitySystemComponent _watchHost;
+        private ActionExecutionHandle _watch;
 
         /// <summary>Vida por nível, avaliada no <see cref="Begin"/> com o nível e a tabela da habilidade de criação.</summary>
         public ScalableFloat Duration { get => duration; set => duration = value; }
 
         /// <summary>Intervalo entre pulsos por nível, avaliado no <see cref="Begin"/>.</summary>
         public ScalableFloat PulseInterval { get => pulseInterval; set => pulseInterval = value; }
+
+        /// <summary>Se segue a posição do criador. Criador destruído ou desativado termina com <see cref="ActionEndReason.OwnerGone"/>.</summary>
+        public bool FollowOwner { get => followOwner; set => followOwner = value; }
+
+        /// <summary>Com <see cref="FollowOwner"/>, se segue também a rotação do criador.</summary>
+        public bool FollowRotation { get => followRotation; set => followRotation = value; }
+
+        /// <summary>
+        /// Se termina com <see cref="ActionEndReason.ExecutionEnded"/> quando o dono da execução que o criou (ativação ou
+        /// instância de efeito) termina ou é cancelado (ADR 0036, item 5), e com <see cref="ActionEndReason.OwnerGone"/>
+        /// quando o criador some.
+        /// </summary>
+        public bool EndWithExecution { get => endWithExecution; set => endWithExecution = value; }
 
         /// <summary>Comportamento do thinker, como a aura. Nulo: só as listas de ações.</summary>
         public ThinkerBehaviour Behaviour { get => behaviour; set => behaviour = value; }
@@ -91,6 +114,9 @@ namespace SpellBook.GAS.Thinkers
             _level = 1;
             _effect = default;
             _hasEffect = false;
+            _hasCreator = false;
+            _watchHost = null;
+            _watch = default;
         }
 
         // Thinker colocado na cena (P2): sem criador, instigador nulo e nível 1
@@ -103,6 +129,22 @@ namespace SpellBook.GAS.Thinkers
         private void OnDisable()
         {
             if (_begun && !_ended && AbilitySystem != null) AbilitySystem.CancelActions(this);
+            CancelWatch();
+        }
+
+        // Segue o criador e confere se ele continua ativo (ADR 0036, item 6). Só lê o transform; o tempo é do ASC.
+        private void LateUpdate()
+        {
+            if (!_hasCreator || _ended || !_begun) return;
+            if (_instigator == null || !_instigator.isActiveAndEnabled)
+            {
+                if (followOwner || endWithExecution) End(ActionEndReason.OwnerGone);
+                return;
+            }
+            if (!followOwner) return;
+            Transform creator = _instigator.transform;
+            if (followRotation) transform.SetPositionAndRotation(creator.position, creator.rotation);
+            else transform.position = creator.position;
         }
 
         /// <summary>
@@ -117,6 +159,7 @@ namespace SpellBook.GAS.Thinkers
             _begun = true;
             _spawner = spawner;
             _instigator = creator;
+            _hasCreator = creator != null;
             if (creationContext != null)
             {
                 _ability = creationContext.Ability;
@@ -151,9 +194,26 @@ namespace SpellBook.GAS.Thinkers
                 try { behaviour.OnEnd(_state, this, context); }
                 finally { asc.Runner.ReturnContext(context); }
             }
+            CancelWatch();
             // O que "Ao terminar" deixou esperando não passa do término
             asc.CancelActions(this);
             SpawnerAsset.OrDefault(_spawner).Release(gameObject);
+        }
+
+        // Guarda a vigia de EndWithExecution que a CreateThinkerAction começou no ASC do criador
+        internal void SetWatch(AbilitySystemComponent host, ActionExecutionHandle watch)
+        {
+            _watchHost = host;
+            _watch = watch;
+        }
+
+        // Cancela a vigia, se ainda está em curso. O OnCancel dela não termina o thinker já terminado ou desligado.
+        private void CancelWatch()
+        {
+            AbilitySystemComponent host = _watchHost;
+            _watchHost = null;
+            if (host != null && _watch.IsRunning) host.Runner.Cancel(_watch);
+            _watch = default;
         }
 
         // Valor por nível com a tabela da habilidade de criação

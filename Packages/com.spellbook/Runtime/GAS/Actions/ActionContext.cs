@@ -6,6 +6,7 @@ using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Conditions;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
+using SpellBook.GAS.Thinkers;
 using UnityEngine;
 
 namespace SpellBook.GAS.Actions
@@ -81,6 +82,8 @@ namespace SpellBook.GAS.Actions
         public int LastRemovedStacks { get; internal set; }
         /// <summary>Motivo do término na lista "Ao terminar" do projétil ou do thinker. <see cref="ActionEndReason.None"/> fora dela.</summary>
         public ActionEndReason EndReason { get; internal set; }
+        /// <summary>Último thinker criado pela <see cref="CreateThinkerAction"/> nesta execução. Nulo antes do primeiro.</summary>
+        public GameplayThinker LastCreatedThinker { get; internal set; }
 
         /// <summary>
         /// Dados livres da execução, criados no primeiro acesso. As chaves usam o comparador de
@@ -120,7 +123,14 @@ namespace SpellBook.GAS.Actions
         /// </summary>
         public bool RunFollowingOwner(IReadOnlyList<GameplayAction> actions)
         {
-            return Owner != null && Owner.Runner.Follow(this, actions);
+            return RunFollowingOwner(actions, out _);
+        }
+
+        // Como o público, com o handle da execução nova para quem precisa cancelá-la antes do dono
+        internal bool RunFollowingOwner(IReadOnlyList<GameplayAction> actions, out ActionExecutionHandle handle)
+        {
+            handle = default;
+            return Owner != null && Owner.Runner.Follow(this, actions, out handle);
         }
 
         // O executor aponta Targets para o buffer do quadro da ação corrente; nulo volta à lista própria
@@ -186,6 +196,7 @@ namespace SpellBook.GAS.Actions
             IsCancelled = false;
             LastRemovedStacks = 0;
             EndReason = ActionEndReason.None;
+            LastCreatedThinker = null;
         }
     }
 }
