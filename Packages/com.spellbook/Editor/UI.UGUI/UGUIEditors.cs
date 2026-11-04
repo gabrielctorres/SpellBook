@@ -19,4 +19,20 @@ namespace SpellBook.UI.UGUI.Editor
     [CustomEditor(typeof(FloatingTextView))]
     [CanEditMultipleObjects]
     internal sealed class FloatingTextViewEditor : SpellBookEditor { }
+
+    [CustomEditor(typeof(SlotView))]
+    [CanEditMultipleObjects]
+    internal sealed class SlotViewEditor : SpellBookEditor { }
+
+    [CustomEditor(typeof(ListOverflowView))]
+    [CanEditMultipleObjects]
+    internal sealed class ListOverflowViewEditor : SpellBookEditor { }
+
+    [CustomEditor(typeof(TooltipView))]
+    [CanEditMultipleObjects]
+    internal sealed class TooltipViewEditor : SpellBookEditor { }
+
+    [CustomEditor(typeof(TooltipLineView))]
+    [CanEditMultipleObjects]
+    internal sealed class TooltipLineViewEditor : SpellBookEditor { }
 }

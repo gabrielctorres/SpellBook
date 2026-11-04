@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c5365bee9afc0c7419466cd6d10ea317, type: 3}
   m_Name: GA_BolaDeFogo
   m_EditorClassIdentifier: SpellBook.GAS::SpellBook.GAS.Abilities.GameplayAbility
-  Icon: {fileID: 0}
+  Icon: {fileID: 21300000, guid: 2412ced8b490a544282a6f55563f978c, type: 3}
   localizedName:
-    key: 
-    text: 
+    key: sandbox.ability.bola_de_fogo
+    text: Bola de Fogo
   legacyDisplayName: 
   AbilityTag:
     definition: {fileID: 0}

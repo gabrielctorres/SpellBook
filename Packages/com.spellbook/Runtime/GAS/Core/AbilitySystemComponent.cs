@@ -903,7 +903,18 @@ namespace SpellBook.GAS.Core
         /// </summary>
         public AbilityActivationResult GetActivationResult(GameplayAbility ability, in AbilityTarget target, out ActivationFailure failure)
         {
-            CheckActivation(ability != null ? FindSpec(ability) : null, ability, in target, out failure);
+            return GetActivationResult(ability, in target, ActivationCheckScope.All, out failure);
+        }
+
+        /// <summary>
+        /// Como <see cref="GetActivationResult(GameplayAbility, in AbilityTarget, out ActivationFailure)"/>, até o
+        /// <paramref name="scope"/>: com <see cref="ActivationCheckScope.WithoutConditions"/>, para antes das regras de
+        /// ativação, na mesma ordem. Sem ativar, sem evento e sem alocar.
+        /// </summary>
+        public AbilityActivationResult GetActivationResult(GameplayAbility ability, in AbilityTarget target,
+            ActivationCheckScope scope, out ActivationFailure failure)
+        {
+            CheckActivation(ability != null ? FindSpec(ability) : null, ability, in target, scope, out failure);
             return failure.Result;
         }
 
@@ -940,7 +951,7 @@ namespace SpellBook.GAS.Core
         // silent: a falha não dispara OnAbilityFailed (ativação da passiva)
         private AbilityActivationResult TryActivate(AbilitySpec spec, GameplayAbility ability, in AbilityTarget target, bool silent = false)
         {
-            if (!CheckActivation(spec, ability, in target, out ActivationFailure failure))
+            if (!CheckActivation(spec, ability, in target, ActivationCheckScope.All, out ActivationFailure failure))
             {
                 if (!silent) OnAbilityFailed?.Invoke(ability, failure);
                 return failure.Result;
@@ -952,8 +963,10 @@ namespace SpellBook.GAS.Core
             return AbilityActivationResult.Success;
         }
 
-        // Caminho único das checagens (ADR 0022): pré-requisitos, tags, recarga, custo e regras, nessa ordem. Não escreve estado.
-        private bool CheckActivation(AbilitySpec spec, GameplayAbility ability, in AbilityTarget target, out ActivationFailure failure)
+        // Caminho único das checagens (ADR 0022): pré-requisitos, tags, recarga, custo e regras, nessa ordem; o escopo
+        // WithoutConditions para antes das regras. Não escreve estado.
+        private bool CheckActivation(AbilitySpec spec, GameplayAbility ability, in AbilityTarget target,
+            ActivationCheckScope scope, out ActivationFailure failure)
         {
             if (ability == null) return Fail(AbilityActivationResult.InvalidAbility, default, out failure);
             if (spec == null) return Fail(AbilityActivationResult.NotGranted, default, out failure);
@@ -989,7 +1002,7 @@ namespace SpellBook.GAS.Core
             }
 
             List<ActivationRule> rules = ability.ActivationConditions;
-            if (rules.Count > 0)
+            if (scope == ActivationCheckScope.All && rules.Count > 0)
             {
                 var context = new ConditionContext(this, ability, spec.Level, spec, target, null);
                 for (int i = 0; i < rules.Count; i++)

@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aea143851a3ca7847a1599922fc40c11, type: 3}
+  m_Name: HUD_Regras
+  m_EditorClassIdentifier: SpellBook.GAS.UI::SpellBook.GAS.UI.FloatingTextRules
+  rules:
+  - attribute: {fileID: 11400000, guid: 9e242287da19ef24897717e50ec580eb, type: 2}
+    sign: 0
+    damageTags:
+      tags: []
+    style: {fileID: 11400000, guid: 9baef9d8b04cd6e4cbc02cbfa4b330b1, type: 2}
+  - attribute: {fileID: 11400000, guid: 9e242287da19ef24897717e50ec580eb, type: 2}
+    sign: 1
+    damageTags:
+      tags: []
+    style: {fileID: 11400000, guid: fa624a36b76e8e24db221b12e8fa09a9, type: 2}
+  blocked: {fileID: 0}

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using SpellBook.Core.Text;
 using SpellBook.Core.Validation;
@@ -23,16 +24,20 @@ namespace SpellBook.UI
         void Receive(in TModel model);
     }
 
-    /// <summary>O que a ligação recebe ao ligar: o provedor de texto, a cultura dos números e o tema (ADR 0039, item 4).</summary>
+    /// <summary>
+    /// O que a ligação recebe ao ligar: o provedor de texto, a cultura dos números, o tema (ADR 0039, item 4) e o assunto
+    /// do tooltip.
+    /// </summary>
     public readonly struct UIBindContext
     {
         /// <summary>
         /// Cria o contexto. Sem <paramref name="culture"/>, vale a do provedor e, sem ele, a invariante.
-        /// <paramref name="theme"/> pode ser nulo.
+        /// <paramref name="theme"/> e <paramref name="subject"/> podem ser nulos.
         /// </summary>
-        public UIBindContext(ITextProvider text, IFormatProvider culture = null, UITheme theme = null)
+        public UIBindContext(ITextProvider text, IFormatProvider culture = null, UITheme theme = null, UnityEngine.Object subject = null)
         {
             Theme = theme;
+            Subject = subject;
             Text = text;
             Culture = culture ?? text?.Culture ?? CultureInfo.InvariantCulture;
         }
@@ -45,6 +50,9 @@ namespace SpellBook.UI
 
         /// <summary>Tema do binder, ou nulo sem tema.</summary>
         public UITheme Theme { get; }
+
+        /// <summary>O assunto vindo do item (habilidade, efeito ou atributo do tooltip), ou nulo.</summary>
+        public UnityEngine.Object Subject { get; }
     }
 
     /// <summary>O que a fonte recebe para montar o modelo de prévia em edição (ADR 0039, item 7).</summary>
@@ -96,6 +104,38 @@ namespace SpellBook.UI
         public abstract TModel CreatePreview(in UIPreviewContext context);
     }
 
+    /// <summary>Recebe os itens que uma ligação de lista publica. O binder de lista implementa (ADR 0039, item 6).</summary>
+    /// <typeparam name="TItem">Modelo de cada item.</typeparam>
+    public interface IUIListReceiver<TItem> where TItem : struct
+    {
+        /// <summary>Acrescenta o item <paramref name="id"/> no fim da lista.</summary>
+        void AddItem(int id, in TItem item);
+
+        /// <summary>Muda o conteúdo do item <paramref name="id"/>, sem mudar a posição.</summary>
+        void UpdateItem(int id, in TItem item);
+
+        /// <summary>Tira o item <paramref name="id"/> da lista.</summary>
+        void RemoveItem(int id);
+
+        /// <summary>Tira todos os itens.</summary>
+        void ClearItems();
+    }
+
+    /// <summary>
+    /// Fonte que lê um sistema para um dono e produz uma lista de <typeparamref name="TItem"/>, cada item com um
+    /// identificador inteiro estável (ADR 0039, itens 2 e 6).
+    /// </summary>
+    /// <typeparam name="TItem">Modelo de cada item.</typeparam>
+    [Serializable]
+    public abstract class UIListSource<TItem> : UISourceBase where TItem : struct
+    {
+        /// <summary>Cria a ligação de um binder de lista. O binder chama uma vez e reaproveita a ligação a cada troca de dono.</summary>
+        public abstract UIListBinding<TItem> CreateBinding();
+
+        /// <summary>Acrescenta a <paramref name="items"/>, já vazia, os itens mostrados em edição, fora do Play.</summary>
+        public abstract void CreatePreview(in UIPreviewContext context, List<TItem> items);
+    }
+
     /// <summary>
     /// Estado da ligação entre uma fonte e um dono (ADR 0039, item 1). O ciclo é <see cref="Attach"/> e
     /// <see cref="Detach"/>, repetido a cada troca de dono na mesma instância.
@@ -114,6 +154,9 @@ namespace SpellBook.UI
         // Driver em que a ligação está registrada; avisado quando WantsTick muda
         internal UIUpdateDriver Driver { get; set; }
 
+        // Dono do Attach atual; o binder de lista o escreve no UIItemContext de cada item
+        internal UnityEngine.Object Owner { get; private set; }
+
         /// <summary>
         /// Liga a <paramref name="owner"/>. Se já estiver ligada, desliga antes. A subclasse assina os eventos e publica o
         /// estado atual em <see cref="OnAttach"/>.
@@ -128,6 +171,7 @@ namespace SpellBook.UI
 
             Detach();
             Context = context;
+            Owner = owner;
             IsAttached = true;
             OnAttach(owner);
         }
@@ -142,6 +186,7 @@ namespace SpellBook.UI
 
             OnDetach();
             IsAttached = false;
+            Owner = null;
             SetWantsTick(false);
         }
 
@@ -195,6 +240,58 @@ namespace SpellBook.UI
             if (IsAttached)
             {
                 _receiver?.Receive(model);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Ligação de lista: acrescenta, muda e remove itens por um identificador inteiro estável; a ordem é a de chegada
+    /// (ADR 0039, item 6). Fora de ligação ou sem receptor, os métodos não fazem nada.
+    /// </summary>
+    /// <typeparam name="TItem">Modelo de cada item.</typeparam>
+    public abstract class UIListBinding<TItem> : UIBinding where TItem : struct
+    {
+        private IUIListReceiver<TItem> _receiver;
+
+        /// <summary>Define quem recebe os itens; o binder chama uma vez, ao criar a ligação.</summary>
+        public void SetReceiver(IUIListReceiver<TItem> receiver)
+        {
+            _receiver = receiver;
+        }
+
+        /// <summary>Acrescenta o item <paramref name="id"/> no fim; um id já presente só muda o conteúdo.</summary>
+        protected void AddItem(int id, in TItem item)
+        {
+            if (IsAttached)
+            {
+                _receiver?.AddItem(id, item);
+            }
+        }
+
+        /// <summary>Muda o conteúdo do item <paramref name="id"/>; um id ausente não faz nada.</summary>
+        protected void UpdateItem(int id, in TItem item)
+        {
+            if (IsAttached)
+            {
+                _receiver?.UpdateItem(id, item);
+            }
+        }
+
+        /// <summary>Tira o item <paramref name="id"/>; um id ausente não faz nada.</summary>
+        protected void RemoveItem(int id)
+        {
+            if (IsAttached)
+            {
+                _receiver?.RemoveItem(id);
+            }
+        }
+
+        /// <summary>Tira todos os itens.</summary>
+        protected void ClearItems()
+        {
+            if (IsAttached)
+            {
+                _receiver?.ClearItems();
             }
         }
     }

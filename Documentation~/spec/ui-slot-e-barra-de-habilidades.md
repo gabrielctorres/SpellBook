@@ -18,6 +18,7 @@ Caminhos relativos a `Packages/com.spellbook/`.
 - **P3. `NoResource` sem efeito colateral.** Pela consulta do caminho único do B-009 com escopo: `GetActivationResult(ability, in AbilityTarget.None, ActivationCheckScope.WithoutConditions, out ActivationFailure)`, que para antes das regras de ativação (checagens 0 a 3 da ADR 0022). É o mesmo `CheckActivation` com um parâmetro, não um caminho paralelo. Por que sem as condições: ver a Q3.
 - **P4. Slot por tag e habilidade repetida.** O ASC tem no máximo um spec por habilidade (`GiveAbility` devolve o existente, R11 do B-003). O slot é a entrada do loadout (tag de slot + habilidade) e acha o spec por `FindSpec`. A mesma habilidade em duas entradas é aviso do validador, e os dois slots mostram o mesmo estado.
 - **P5. Rótulo de tecla.** Não é `[SerializeReference]`: o rótulo muda em runtime (troca de tecla) e precisa avisar, e estado não fica em instância serializada (0013, item 4). Vira `KeyLabelProvider` (`ScriptableObject` abstrato em `SpellBook.UI`, reutilizado por vários loadouts, critério do item 5 da 0013), com `bool TryWriteLabel(ScriptableObject slotKey, TextBuffer into)` e `event Action Changed`. A chave é o asset da tag de slot visto como `ScriptableObject` (a UI não referencia Tags). O pacote entrega `FixedKeyLabelProvider` (lista chave → `LocalizedText`), configurado no loadout; nenhuma implementação conhece sistema de entrada. O nome `IKeyLabelSource` do PRD muda por isso.
+  **Emenda de 2026-11-04:** a assinatura passa a ser `bool TryWriteLabel(ScriptableObject slotKey, ITextProvider text, TextBuffer into)`. Quem chama passa o `ITextProvider`, porque a cultura fica num lugar só (ADR 0038, item 5). Na UI, o provedor vem do `UITheme` pelo contexto da ligação (ADR 0039, item 4). Por isso o `FixedKeyLabelProvider` não tem campo de provedor, que seria uma segunda configuração de cultura. É API nova, sem quebra, e não muda CA. O SL2 (#250) já entrou com essa assinatura.
 - **P6. Ordem.** Lista genérica (SL1), modelo e rótulo (SL2), loadout (SL3), slot por recarga, custo e tags (SL4), cargas e falha (SL5), barra (SL6), estado ativo (SL7), views (SL8), Inspector e validação (SL9), barra de cast (SL10, SL11), HUD do Sample (SL12, SL13).
 - **P7. Canalização.** Leitura do EV13: `spec.IsChanneling`, `spec.ChannelDuration` (aplicada; 0 = indeterminada), `GetChannelRemaining/Normalized(spec)`. Início: `OnAbilityActivated` com `IsChanneling`; fim: `OnAbilityEnded(spec, cancelado)`. Simultâneas: a fonte mostra a que começou por último; quando ela acaba, procura em `Abilities` outra que ainda canaliza (laço sem alocar). Tick só enquanto a mostrada tem `ChannelDuration > 0`.
 
@@ -33,6 +34,7 @@ Caminhos relativos a `Packages/com.spellbook/`.
 
 - `SlotState { Empty, Ready, OnCooldown, NoCharges, NoResource, Blocked }`.
 - `SlotModel`: `State`, `Icon` (`Sprite`), `Subject` (a habilidade como `ScriptableObject`), `CooldownFraction`, `CooldownRemaining`, `HasCharges`, `Charges`, `MaxCharges`, `ChargeFraction`, `KeyLabel` (`TextSpan`), `FailureKey` (`string`), `FailureText` (`TextSpan`), `FailureVisible`, `FailureCount`, `ReadyPulseCount`, `IsActive`, `IsToggledOn`, `IsChanneling`, `AutocastAllowed`, `AutocastEnabled`.
+  **Emenda de 2026-11-04:** o `SlotModel` ganha `FailureTag` (`ScriptableObject`), a tag do motivo de falha, ao lado de `FailureKey` e `FailureCount`. A cópia passa a ser `WithFailure(string key, TextSpan text, bool visible, int count, ScriptableObject tag = null)`; as outras cópias preservam a tag. O R3 e o CA7 do PRD pedem a chave e a tag do motivo, e o `SpellBook.UI` não referencia Tags (ADR 0012 e 0038), então a tag vai como `ScriptableObject`, como a chave de slot da P5. É API pública nova e aditiva, sem quebra, e não muda CA. O SL5 (#253) já entrou com ela.
 - **`Active` vira marca, não estado** (R3 e R6): o PRD pede que o estado ativo "não substitua o estado de falha"; com `Active` no mesmo enum isso é impossível. `IsActive`/`IsToggledOn`/`IsChanneling` são campos à parte, e o resultado `AlreadyActive` da consulta vira `Ready` com `IsActive` verdadeiro.
 - `KeyLabelProvider` e `FixedKeyLabelProvider` (P5).
 
@@ -83,19 +85,124 @@ Nenhuma. Adicionado: lista genérica (`UIListSource`, `UIListBinder`, `UIItemCon
 
 Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Mesmas regras de teste do B-015. Teto: ~500 linhas e 10 arquivos.
 
-**Conflitos com a fila:** `UIModels.cs`, `UIEditors.cs`, `UGUIEditors.cs`, `GasUIEditors.cs`, `DocUrls.cs` e `validador.md` (B-015, B-017, B-018): em série. SL4 toca `AbilitySystemComponent.cs` (Lotes B a D, DE*). SL12 e SL13 tocam assets e a cena do Sample (VN3, EV21, DE6, SB-T8) e a página do Sample.
+**Conflitos com a fila:** `UIModels.cs`, `UIEditors.cs`, `UGUIEditors.cs`, `GasUIEditors.cs`, `DocUrls.cs` e `validador.md` (B-015, B-017, B-018): em série. SL4a toca `AbilitySystemComponent.cs` (Lotes B a D, DE*). SL12 e SL13 tocam assets e a cena do Sample (VN3, EV21, DE6, SB-T8) e a página do Sample.
 
 ### SL1 — Lista genérica, `UIItemContext` e "+N"
 - Escopo: `Runtime/UI/UISource.cs` (tipos de lista), `Runtime/UI/UIListBinder.cs`, `Runtime/UI/UIItemContext.cs` (novos), `UIModels.cs` (`ListOverflowModel`), `UIEditors.cs`, `Tests/UI/PlayMode/UIListBinderTests.cs` (novo; fonte de lista e spawner de teste), `visao-geral.md`, `CHANGELOG.md`.
 - Testes red: `Items_FromSpawner_ArrivalOrder`; `Remove_Releases_LiveCountStable`; `ContentChange_ReusesItem`; `MaxVisible_HiddenCount_PromotesOldestHidden`; `ItemContext_OwnerFromBinder`; `NullSpawn_SkipsWithWarning`; `AddRemove1000_DoNotAllocate`.
 - Critério de pronto: testes verdes.
 - Tamanho estimado: ~480 linhas; 8 arquivos. Depende de: UI14.
+- Divisão de 2026-11-04 (ADR 0042): o SL1 passou do teto e virou três tickets, em série. Os testes red e o escopo acima se repartem entre eles, como diz o Detalhe.
+  - SL1a (#249): contratos de lista, `UIItemContext` e "+N". Depende de: UI14. Medido: 276 linhas; 5 arquivos.
+  - SL1b (#335): `UIListBinder<TItem>` com ordem, remoção e troca de conteúdo. Depende de: SL1a. Medido: 623 linhas; 4 arquivos (exceção de +30% registrada no Detalhe).
+  - SL1c (#336): `maxVisible` e "+N" no `UIListBinder<TItem>`. Depende de: SL1b. Medido: 135 linhas; 3 arquivos.
+  - Quem dependia do SL1 passa a depender do SL1c.
+
+### Detalhe (2026-11-04)
+Divisão do SL1 pela ADR 0042, decidida pelo usuário em 2026-11-04. O SL1 implementado inteiro mediu 870 linhas em `.cs`, acima de +30% (650): `UISource.cs` +90, `UIModels.cs` +16, `UIEditors.cs` +4, `UIListBinder.cs` 380, `UIItemContext.cs` 50 e `UIListBinderTests.cs` 330. Ele virou o SL1a (#249) e o SL1b (#335); o SL1b se dividiu de novo em SL1b e SL1c (#336). Em comum aos dois: o manual (`visao-geral.md`) fica para o passe de documentação (emenda de 2026-11-03 da ADR 0007), e o `CHANGELOG.md` sai porque não há quebra (item 4 da mesma emenda).
+
+#### SL1a — contratos de lista, `UIItemContext` e "+N" (#249)
+- CA: nenhum CA do PRD fecha aqui. É a base do Design 1 e do item 6 da ADR 0039.
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/UI/UISource.cs:87` (depois de `UISource<TModel>`) e `:200` (depois de `UIBinding<TModel>`):
+    - `IUIListReceiver<TItem>`, com `AddItem`, `UpdateItem`, `RemoveItem` e `ClearItems`. É o par de lista do `IUIModelReceiver<TModel>` e entra como API nova, sem quebra.
+    - `UIListSource<TItem> : UISourceBase`, com `CreateBinding()` e `CreatePreview(in UIPreviewContext, List<TItem>)`.
+    - `UIListBinding<TItem> : UIBinding`, com `SetReceiver` e os quatro métodos protegidos. Eles só repassam ao receptor enquanto a ligação está ligada, como o `Publish`.
+  - `Runtime/UI/UIModels.cs:302` (depois de `TagIndicatorModel`): `readonly struct ListOverflowModel`, com `Hidden`. Um valor negativo vale 0.
+  - `Runtime/UI/UIItemContext.cs` (novo):
+    - membros: `Owner` (`Object`, com `internal SetOwner`), `Subject` (`ScriptableObject`, com `public SetSubject`) e `event Action Changed`, que dispara só quando um valor muda;
+    - atributo `[HelpURL(DocUrls.Ui + "#uiitemcontext")]`, como o do `UIUpdateDriver`. A âncora nasce no passe de documentação.
+  - `Editor/UI/UIEditors.cs:34`: `UIItemContextEditor : SpellBookEditor`, para a guarda `SpellBookEditorCoverageTests`.
+  - `Tests/UI/EditMode/UIListContractsTests.cs` (novo).
+- Testes red (EditMode, `SpellBook.UI.Tests.EditMode`, classe `UIListContractsTests`):
+  - `ListBinding_ForwardsOnlyWhileAttached`;
+  - `ItemContext_Changed_OnlyWhenValueChanges`;
+  - `ListOverflowModel_NegativeIsZero`.
+
+  Nenhum precisa do binder. O `ItemContext_OwnerFromBinder` precisa e foi para o SL1b.
+- Critério de pronto: os 3 testes verdes, com `total` = 3 no XML; `UIContractsTests`, `HelpUrlTests` e `SpellBookEditorCoverageTests` verdes.
+- Tamanho medido: 276 linhas em 6 arquivos. Em `.cs`: `UISource.cs` +85, `UIModels.cs` +16, `UIEditors.cs` +4, `UIItemContext.cs` 50 e `UIListContractsTests.cs` 121; a Spec conta só como arquivo. Exceção: nenhuma.
+- Commit: `feat(ui): contratos de lista, UIItemContext e "+N" (#249)`
+
+#### SL1b — `UIListBinder<TItem>`: ordem, remoção e troca de conteúdo (#335)
+- Depende do SL1a. O SL2 e os tickets seguintes passam a depender também do SL1b e do SL1c (a linha "Depende de" da parte fixa não muda; vale esta nota).
+- Divisão de novo pela ADR 0042, decidida pelo usuário em 2026-11-04: o binder guardado mediu ~700 linhas. O SL1b é o núcleo, sem limite de visíveis (todos os itens ganham objeto). O SL1c (#336) põe o `maxVisible`, o "+N" e a promoção do oculto. O código do SL1c está guardado em `C:/Users/gabri/orca/workspaces/SpellBook/_guardado-sl1c/`, e o `NOTA.md` da pasta diz como reaplicar.
+- CA: nenhum CA do PRD fecha aqui. Prepara o CA1 (ordem), o CA13 (spawner e vivos) e o CA14 (sem alocar), que fecham na barra (SL6).
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/UI/UIListBinder.cs` (novo, 328 linhas):
+    - campos `source` (`[SerializeReference, TypePicker]`), `itemPrefab`, `spawner` e `container`, e `SetSource`. Os campos `maxVisible` e `overflowView` do Design 1 entram no SL1c; o binder do SL1b não os conhece;
+    - o binder recebe a lista só pela ligação: `IUIListReceiver<TItem>` é implementado de forma explícita, como o `IUIModelReceiver<TModel>` no `UIBinder<TModel>`, e `AddItem`, `UpdateItem`, `RemoveItem` e `ClearItems` não são públicos. Uma chamada direta fora do Play criaria itens salvos na cena;
+    - entradas em ordem de chegada, numa lista pré-alocada;
+    - cada entrada ganha um objeto do `SpawnerAsset`, posto sob o `container` (vazio: o próprio binder) com `SetAsLastSibling`;
+    - remover devolve o objeto ao spawner; `UpdateItem` reaproveita o objeto;
+    - `AddItem` com um id que já existe vale como `UpdateItem`; `UpdateItem` e `RemoveItem` com um id ausente não fazem nada;
+    - sem prefab, com prefab sem `IView<TItem>` ou com o spawner sem instância, o item é pulado com um aviso por motivo, só em desenvolvimento. A entrada fica sem objeto, e o próximo `UpdateItem` tenta de novo;
+    - views e `UIItemContext` são lidos uma vez por instância e guardados;
+    - `DetachBinding` e `ShowEmpty` devolvem todos os itens;
+    - `DrawPreview` não faz nada: o binder não cria itens fora do Play, porque um spawn em edição salvaria instâncias na cena (o `FloatingTextBinder` já evita isso). A ordem dos slots em edição (R12 do PRD) é pendência do SL6 e do SL8.
+
+    Para o SL1c encaixar, a entrada já aceita ficar sem objeto (o mesmo caminho do spawn nulo), e `Show` e `Release` trabalham por índice.
+  - `Runtime/UI/UISource.cs:150-152`, `:167` e `:182` (`UIBinding`): `internal Object Owner`, escrito no `Attach` antes do `OnAttach` e limpo no `Detach`. O binder o escreve no `UIItemContext`. São as linhas que saíram do SL1a para não ficarem sem uso.
+  - `Tests/UI/PlayMode/UIListBinderTests.cs` (novo): fonte, ligação, dono, view e binder de teste aninhados; spawner pelo `RecordingSpawnerAsset`. Os `.meta` dos dois arquivos novos são os que a Unity gerou antes da divisão.
+- Testes red (PlayMode, `SpellBook.UI.Tests.PlayMode`, classe `UIListBinderTests`):
+  - `Items_FromSpawner_ArrivalOrder`;
+  - `Remove_Releases_LiveCountStable`;
+  - `ContentChange_ReusesItem`;
+  - `ItemContext_OwnerFromBinder`;
+  - `NullSpawn_SkipsWithWarning`;
+  - `AddRemove1000_DoNotAllocate`, sem limite: de quatro a cinco itens vivos, 4 no fim;
+  - `Receiver_NotPublicOnBinder`: por reflexão, o binder não expõe `AddItem`, `UpdateItem`, `RemoveItem` nem `ClearItems` como membros públicos.
+
+  Red contra um esqueleto que liga a fonte e não cria item: 6 de 6 falham (`SpawnCount` 0, índice fora da lista de vivos, aviso esperado que não veio, vivos 0). O `Receiver_NotPublicOnBinder` veio da revisão: red com os quatro métodos públicos (1 de 7 falha, com os quatro nomes na lista), green com a implementação explícita.
+- Critério de pronto: os 7 testes verdes, com `total` = 7 no XML; `UIListContractsTests`, `UIContractsTests`, `UIBinderTests`, `HelpUrlTests` e `SpellBookEditorCoverageTests` verdes.
+- Tamanho medido: 623 linhas em 4 arquivos. Em `.cs`: `UIListBinder.cs` 328, `UIListBinderTests.cs` 290 e `UISource.cs` +5; a Spec conta só como arquivo. Exceção: 623 passa do teto de 500, dentro de +30% (650). Motivo: o arquivo de teste tem 290 linhas, com a fonte, a ligação, a view e o binder de teste que o PlayMode precisa. Dividir de novo separaria o binder dos testes dele.
+- Commit: `feat(ui): UIListBinder com ordem, remoção e troca de conteúdo (#335)`
+
+#### SL1c — `maxVisible` e "+N" no `UIListBinder<TItem>` (#336)
+- Depende do SL1b.
+- CA: nenhum CA do PRD fecha aqui. Fecha a parte de `maxVisible` e "+N" do Design 1 e prepara o CA14 (sem alocar com ocultos).
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/UI/UIListBinder.cs` (+68 −7):
+    - campos `[SerializeField, Min(0)] int maxVisible` (0 = sem limite) e `MonoBehaviour overflowView` (`IView<ListOverflowModel>`, opcional), com as propriedades `MaxVisible` e `OverflowView`. São campos novos: o formato do SL1b continua lido;
+    - os visíveis são os `maxVisible` primeiros (`IsVisible`, `HiddenCount`); `AddItem` e `UpdateItem` só criam ou desenham objeto para índice visível;
+    - `RemoveItem` promove o primeiro oculto ao último lugar visível, no fim do container;
+    - `AddItem`, `RemoveItem` e `ClearItems` entregam o `ListOverflowModel` ao "+N" só quando a contagem de ocultos muda;
+    - `DrawPreview` chama `CreatePreview` numa lista pré-alocada e entrega ao "+N" a contagem de ocultos da prévia, sem criar itens.
+  - `Tests/UI/PlayMode/UIListBinderTests.cs` (+49 −11): `CreateRig(int maxVisible)` com a view de "+N" de teste; os testes do SL1b passam `maxVisible: 0`.
+- Testes red (PlayMode, `SpellBook.UI.Tests.PlayMode`, classe `UIListBinderTests`):
+  - `MaxVisible_HiddenCount_PromotesOldestHidden` (novo);
+  - `AddRemove1000_DoNotAllocate` muda para `maxVisible: 3`, para cobrir oculto e promoção sem alocar: 3 vivos e `Hidden` = 1 no fim.
+- Critério de pronto: os 8 testes da classe verdes, com `total` = 8 no XML; `HelpUrlTests` e `SpellBookEditorCoverageTests` verdes.
+- Tamanho medido pelo `git diff --numstat`: 135 linhas em 3 arquivos. Em `.cs`: `UIListBinder.cs` +68 −7 e `UIListBinderTests.cs` +49 −11; a Spec conta só como arquivo. Exceção: nenhuma.
+- Commit: `feat(ui): maxVisible e "+N" no UIListBinder (#336)`
 
 ### SL2 — `SlotModel` e `KeyLabelProvider`
 - Escopo: `UIModels.cs` (`SlotModel`, `SlotState`), `Runtime/UI/KeyLabelProvider.cs`, `Runtime/UI/FixedKeyLabelProvider.cs` (novos), `UIEditors.cs`, `Tests/UI/EditMode/KeyLabelProviderTests.cs` (novo), `DocUrls.cs` (`UiAbilitySlot`), `DocUrlsTests.cs`, `Documentation~/manual/ui/slot-de-habilidade.md` (nova), `CHANGELOG.md`.
 - Testes red: `Fixed_LabelForKey_MissingKeyFalse`; `Fixed_LocalizedThroughProvider`; `Changed_RaisedOnEdit`; `WriteLabel_DoesNotAllocate`.
 - Critério de pronto: testes verdes.
-- Tamanho estimado: ~300 linhas; 9 arquivos. Depende de: SL1.
+- Tamanho estimado: ~300 linhas; 9 arquivos. Depende de: SL1c.
+
+### Detalhe (2026-11-04)
+- CA: nenhum CA do PRD fecha aqui. Prepara o CA10 (rótulo da tecla, que fecha no SL4) e o R3 (modelo do slot), com o Design 2 e a P5.
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/UI/UIModels.cs:122` (depois de `ListOverflowModel`):
+    - `enum SlotState { Empty, Ready, OnCooldown, NoCharges, NoResource, Blocked }`. `Empty` vale 0, então o `default` do modelo é o slot vazio;
+    - `readonly struct SlotModel`, com os campos do Design 2. O construtor público recebe `State`, `Icon` e `Subject`; as cópias `WithKeyLabel`, `WithCooldown`, `WithCharges`, `WithFailure`, `WithReadyPulse`, `WithActivity` e `WithAutocast` preenchem o resto, como o `WithTrail` do `BarModel`. Assim o `SlotReader` do SL4, do SL5 e do SL7 acrescenta campos sem trocar o construtor. As frações ficam entre 0 e 1; segundos e cargas negativos valem 0; `WithCharges` liga `HasCharges`.
+  - `Runtime/UI/KeyLabelProvider.cs` (novo): `abstract class KeyLabelProvider : ScriptableObject`, com `abstract bool TryWriteLabel(ScriptableObject slotKey, ITextProvider text, TextBuffer into)`, `event Action Changed` e `protected RaiseChanged()`. Quem chama guarda `into.Length` antes e pega o trecho com `TextBuffer.SpanFrom`.
+  - `Runtime/UI/FixedKeyLabelProvider.cs` (novo): `sealed class FixedKeyLabelProvider : KeyLabelProvider`, com `[CreateAssetMenu("SpellBook/UI/Fixed Key Labels")]` e `[HelpURL(DocUrls.UiAbilitySlot + "#fixedkeylabelprovider")]`. Guarda uma lista de `Entry { ScriptableObject key; LocalizedText label; }` e procura a chave por laço, sem alocar. Chave nula ou ausente devolve `false` e não escreve nada. O `OnValidate` (edição no Inspector) dispara `Changed`. Não conhece nenhum sistema de entrada.
+  - `Editor/UI/UIEditors.cs:38`: `FixedKeyLabelProviderEditor : SpellBookEditor`, para a guarda `SpellBookEditorCoverageTests`.
+  - `Runtime/Core/DocUrls.cs:30`: `UiAbilitySlot = Base + "ui/slot-de-habilidade/"`. `Tests/Core/EditMode/DocUrlsTests.cs:39`: o `TestCase` dela.
+  - `Tests/UI/EditMode/KeyLabelProviderTests.cs` e `Tests/UI/EditMode/SlotModelTests.cs` (novos).
+- Decisão, com base na ADR 0038, item 5: o `TryWriteLabel` recebe o `ITextProvider`. A P5 escreve a assinatura sem ele. Mas a ADR diz que, na UI, o provedor vem do `UITheme`, pelo `UIBindContext`. Um campo de provedor no `FixedKeyLabelProvider` seria uma segunda configuração de cultura. O SL4 passa o provedor do contexto. É API nova, sem quebra, e não muda CA.
+- Fora deste ticket: a página `manual/ui/slot-de-habilidade.md` fica para o passe de documentação (emenda de 2026-11-03 da ADR 0007). Até lá, a guarda `ManualLinksTests` (categoria `Documentacao`) acusa a constante e a âncora sem página, como no SL1a. O `CHANGELOG.md` sai porque não há quebra (item 4 da mesma emenda). A validação do provedor (chave repetida ou vazia) fica com o SL9.
+- Testes red (EditMode, `SpellBook.UI.Tests.EditMode`):
+  - `KeyLabelProviderTests`: `Fixed_LabelForKey_MissingKeyFalse`, `Fixed_LocalizedThroughProvider`, `Changed_RaisedOnEdit` e `WriteLabel_DoesNotAllocate`;
+  - `SlotModelTests`: `Default_IsEmptySlot`, `With_FillsOnlyItsFields` e `With_ClampsFractionsAndNegatives`;
+  - `DocUrlsTests.DocUrls_PageConstantPointsToPageUnderBase("UiAbilitySlot", ...)`.
+  Red contra um esqueleto que compila e não faz nada: 7 de 8 falham (rótulo não escrito, `Changed` não disparado, campos do modelo vazios, `DocUrls.UiAbilitySlot` inexistente). O `Default_IsEmptySlot` passa já no esqueleto, porque guarda a ordem do enum (`Empty` = 0).
+- Critério de pronto: os 7 testes das duas classes e o caso novo do `DocUrlsTests` verdes, com 8 no XML; `DocUrlsTests`, `HelpUrlTests` e `SpellBookEditorCoverageTests` verdes.
+- Tamanho medido (`git diff --numstat` e `wc -l` dos novos): 528 linhas em 9 arquivos. Em `.cs`: `UIModels.cs` +171, `KeyLabelProvider.cs` 30, `FixedKeyLabelProvider.cs` 69, `UIEditors.cs` +4, `DocUrls.cs` +1, `DocUrlsTests.cs` +1, `KeyLabelProviderTests.cs` 171 e `SlotModelTests.cs` 81; a Spec conta só como arquivo. Exceção: 528 passa do teto de 500, dentro de +30% (650). Motivo: o `SlotModel` tem os 20 campos do Design 2, e cada cópia `With` repete o construtor completo (171 linhas no `UIModels.cs`). Dividir separaria o modelo do provedor de rótulo que ele carrega.
+- Commit: `feat(ui): SlotModel e KeyLabelProvider (#250)`
 
 ### SL3 — `AbilityLoadout`
 - Escopo: `Runtime/GAS.UI/AbilityLoadout.cs` (novo), `Editor/GAS.UI/GasUIEditors.cs`, `Tests/GAS.UI/EditMode/AbilityLoadoutTests.cs` (novo), `DocUrls.cs` (`UiAbilityBar`), `DocUrlsTests.cs`, `Documentation~/manual/ui/barra-de-habilidades.md` (nova), `CHANGELOG.md`.
@@ -103,17 +210,125 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Mesma
 - Critério de pronto: testes verdes.
 - Tamanho estimado: ~240 linhas; 7 arquivos. Depende de: SL2.
 
+### Detalhe (2026-11-04)
+- CA: nenhum CA do PRD fecha aqui. Cobre o R1 (lista ordenada que não concede) e a parte "sem alocação ao ler" do R2, com o Design 3 e a P4. Prepara o CA1 (ordem, SL6) e o CA10 (rótulo, SL4).
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/GAS.UI/AbilityLoadout.cs` (novo): `sealed class AbilityLoadout : ScriptableObject`, com `[CreateAssetMenu(menuName = "SpellBook/UI/Ability Loadout")]`, como o R1 e o Design 3, e `[HelpURL(DocUrls.UiAbilityBar + "#abilityloadout")]`.
+    - `[Serializable] struct Entry { GameplayTag slot; GameplayAbility ability; }`, com construtor e leitura (`Slot`, `Ability`), como o `Entry` do `FixedKeyLabelProvider`;
+    - `List<Entry> entries` e `KeyLabelProvider keyLabels`; leitura por `IReadOnlyList<Entry> Entries` e `KeyLabels`;
+    - `bool TryFindEntry(GameplayTag slot, out Entry entry)`: laço sem alocar; tag inválida ou ausente devolve `false`; na tag repetida a primeira entrada vence (o erro é do SL9).
+    - Não referencia o ASC e não concede (R1).
+  - `Editor/GAS.UI/GasUIEditors.cs:9`: `AbilityLoadoutEditor : SpellBookEditor`, para a guarda `SpellBookEditorCoverageTests`. O SL9 o troca pelo `AbilityLoadoutEditor.cs` com a lista.
+  - `Runtime/Core/DocUrls.cs:31`: `UiAbilityBar = Base + "ui/barra-de-habilidades/"`. `Tests/Core/EditMode/DocUrlsTests.cs:39`: o `TestCase` dela.
+  - `Tests/GAS.UI/EditMode/AbilityLoadoutTests.cs` (novo).
+  - Os asmdefs não mudam: o runtime `SpellBook.GAS.UI` já referencia GAS, Tags, Core e UI, e o editor já referencia o runtime e as dependências dele (ADR 0012, item 2; ADR 0039, item 9). Não há tipo oferecido por seletor, então a ADR 0013, item 4, não se aplica.
+- Fora deste ticket: a página `manual/ui/barra-de-habilidades.md` fica para o passe de documentação (emenda de 2026-11-03 da ADR 0007). Até lá, a guarda `ManualLinksTests` (categoria `Documentacao`) acusa a constante e a âncora sem página, como no SL2. O `CHANGELOG.md` sai porque não há quebra (item 4 da mesma emenda). A validação do loadout (Design 7) fica com o SL9.
+- Testes red (EditMode, `SpellBook.GAS.UI.Tests.EditMode`, classe `AbilityLoadoutTests`):
+  - `Entries_InListOrder`;
+  - `FindEntryBySlot_NoAllocation` (acha a entrada pela tag; tag ausente e inválida devolvem `false`; 10 000 buscas sem alocar);
+  - `DoesNotGrant` (ASC sem habilidades continua sem nenhuma depois de ler e buscar no loadout);
+  - `DocUrlsTests.DocUrls_PageConstantPointsToPageUnderBase("UiAbilityBar", ...)`.
+  Red contra um esqueleto que compila e não faz nada (`Entries` vazio, `TryFindEntry` sempre `false`, `HelpURL` provisório em `DocUrls.Ui`): 4 de 4 falham (3 entradas esperadas e 0 lidas; 20 000 buscas esperadas e 0 achadas; `DocUrls.UiAbilityBar` inexistente). O `DoesNotGrant` cai ao ler a entrada que o esqueleto não lista; a asserção de não conceder passaria nele, porque guarda uma ausência.
+- Critério de pronto: os 3 testes de `AbilityLoadoutTests` e o caso novo do `DocUrlsTests` verdes, com 4 no XML; `DocUrlsTests`, `HelpUrlTests` e `SpellBookEditorCoverageTests` verdes.
+- Tamanho medido (`git diff --numstat` e `wc -l` dos novos): 212 linhas em 6 arquivos. Em `.cs`: `AbilityLoadout.cs` 77, `AbilityLoadoutTests.cs` 129, `GasUIEditors.cs` +4, `DocUrls.cs` +1 e `DocUrlsTests.cs` +1; a Spec conta só como arquivo. Exceção: nenhuma.
+- Commit: `feat(gas-ui): AbilityLoadout (#251)`
+
 ### SL4 — Fonte do slot: tags, recarga, custo, rótulo e pulso; consulta com escopo
 - Escopo: `Runtime/GAS/Abilities/ActivationCheckScope.cs` (novo), `AbilitySystemComponent.cs` (sobrecarga), `Tests/GAS/PlayMode/ActivationScopeTests.cs` (novo), `Runtime/GAS.UI/SlotReader.cs`, `Runtime/GAS.UI/AbilitySlotSource.cs`, `Runtime/UI/AbilitySlotBinder.cs` (novos), `UIEditors.cs`, `Tests/GAS.UI/PlayMode/AbilitySlotSourceTests.cs` (novo), `slot-de-habilidade.md`, `CHANGELOG.md`.
 - Testes red: `Scope_WithoutConditions_StopsBeforeRules_SameOrder`; `Cooldown8s_ReadyCooldownReady_FractionSeconds_PulseOnce_PauseStops` (CA2, C2); `ReducedCooldown_ShowsRealDuration` (CA3, C3); `LowMana_NoResource_BackWhenManaRises` (CA5, C5); `BlockingTag_Blocked_BackOnRemove` (CA6, C6); `KeyLabel_FromProvider_UpdatesOnChanged` (CA10, C10); `SlotState_MatchesTryActivate_UpToCost` (CA16); `SlotUpdates10000_DoNotAllocate` (CA14, parte).
 - Critério de pronto: CA2, CA3, CA5, CA6, CA10 e CA16 verdes.
 - Tamanho estimado: ~490 linhas; 10 arquivos. Depende de: SL3, AV4, EA5, EA6.
+- Divisão de 2026-11-04 (ADR 0042): o SL4 passou do teto e virou três tickets, em série. Os testes red e o escopo acima se repartem entre eles, como diz o Detalhe.
+  - SL4a (#252): consulta de ativação com escopo no GAS. Depende de: SL3, AV4, EA5, EA6. Medido: 124 linhas; 4 arquivos.
+  - SL4b (#337): fonte do slot com estado e recarga. Depende de: SL4a. Medido: 524 linhas; 6 arquivos (exceção de até +30% registrada no Detalhe).
+  - SL4c (#338): custo por evento, rótulo da tecla e sem alocar. Depende de: SL4b. Medido: 209 linhas; 4 arquivos.
+  - Quem dependia do SL4 passa a depender do SL4c.
+
+### Detalhe (2026-11-04)
+Divisão do SL4 pela ADR 0042, decidida pelo usuário em 2026-11-04. O SL4 escrito inteiro mediu 825 linhas em `.cs` (`git diff --numstat` e `wc -l` dos novos), acima de +30% (650): `ActivationCheckScope.cs` 18, `AbilitySystemComponent.cs` +18 −5, `ActivationScopeTests.cs` 83, `SlotReader.cs` 212, `AbilitySlotSource.cs` 95, `AbilitySlotBinder.cs` 11, `UIEditors.cs` +4 e `AbilitySlotSourceTests.cs` 379. Ele virou três tickets, em série: SL4a (#252), SL4b (#337) e SL4c (#338). O código do SL4b e do SL4c está guardado em `C:/Users/gabri/orca/workspaces/SpellBook/_guardado-sl4b/` e `_guardado-sl4c/`, e o `NOTA.md` de cada pasta diz como reaplicar. Quem dependia do SL4 passa a depender do SL4c (a linha "Depende de" da parte fixa não muda; vale esta nota). Em comum aos três: a página `slot-de-habilidade.md` fica para o passe de documentação (emenda de 2026-11-03 da ADR 0007), e o `CHANGELOG.md` sai porque não há quebra (item 4 da mesma emenda). Os asmdefs não mudam: o runtime `SpellBook.GAS.UI` já referencia GAS, Tags, Core e UI, e o editor já referencia o runtime e as dependências dele (ADR 0012, item 2; ADR 0039, item 9).
+
+#### SL4a — consulta com escopo no GAS (#252)
+- CA: nenhum CA do PRD fecha aqui. Cobre o Design 4 e a P3; prepara o CA5 e o CA16 (o "pronto" igual à tentativa até o custo, Q3), que fecham no SL4b e no SL4c.
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/GAS/Abilities/ActivationCheckScope.cs` (novo): `enum ActivationCheckScope { All, WithoutConditions }`.
+  - `Runtime/GAS/Core/AbilitySystemComponent.cs:904-918` e `:954-1002`:
+    - sobrecarga pública `GetActivationResult(GameplayAbility, in AbilityTarget, ActivationCheckScope, out ActivationFailure)`; a de três parâmetros passa a chamá-la com `All`, sem mudar o resultado;
+    - o `CheckActivation` privado ganha o parâmetro `scope` e, com `WithoutConditions`, pula as regras de ativação (a última checagem da ADR 0022); a tentativa (`TryActivate`) passa `All`. É o mesmo caminho, não um paralelo (N4).
+  - `Tests/GAS/PlayMode/ActivationScopeTests.cs` (novo).
+- API: a sobrecarga é pública e nova, aditiva, prevista no Design 4 e na lista "Adicionado" das quebras de compatibilidade. Nenhuma assinatura existente muda.
+- Testes red (PlayMode, `SpellBook.GAS.Tests.PlayMode`, classe `ActivationScopeTests`):
+  - `Scope_WithoutConditions_StopsBeforeRules_SameOrder`: com uma condição que falha sem alvo, `All` (e a sobrecarga antiga) dá `BlockedByCondition` e `WithoutConditions` dá `Success`; tag bloqueadora, recarga e custo dão o mesmo resultado nos dois escopos, na ordem da ADR 0022; 10 000 consultas com `WithoutConditions` não alocam.
+  Red contra um esqueleto em que a sobrecarga existe e ignora o escopo: 1 de 1 falha (`WithoutConditions` deu `BlockedByCondition`, esperado `Success`). Green: 13 de 13, com o teste do ticket, 3 do `ActivationQueryTests` e 9 do `ActivationOrderTests`.
+- Critério de pronto: o teste verde, com `total` = 1 no XML; `ActivationQueryTests` e `ActivationOrderTests` verdes (o escopo `All` não muda nada).
+- Tamanho medido (`git diff --numstat` e `wc -l` dos novos): 124 linhas em 4 arquivos. Em `.cs`: `ActivationCheckScope.cs` 18, `AbilitySystemComponent.cs` +18 −5 e `ActivationScopeTests.cs` 83; a Spec conta só como arquivo. Exceção: nenhuma.
+- Commit: `feat(gas): consulta de ativação com escopo (#252)`
+
+#### SL4b — fonte do slot com estado e recarga (#337)
+- Depende do SL4a.
+- CA: CA2, CA3, CA6 e CA16. A prévia (R12) fica pronta na fonte; o CA12 (S) é do SL8.
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/GAS.UI/SlotReader.cs` (novo, interno): `Attach(asc, ability)`, `Detach`, `Tick`, `Model` e `WantsTick`. Assina `OnTagChanged`, `OnAbilityGranted`, `OnAbilityRemoved`, `OnAbilityActivated`, `OnAbilityEnded` e `OnCooldownChanged` com delegates criados uma vez. A cada evento e a cada tick, monta o modelo pela consulta com `WithoutConditions` e o mapeamento do Design 3; recarga pelo `GetCooldownNormalized` e `GetCooldownTimeRemaining`; pede tick só com a recarga correndo; `ReadyPulseCount++` só no `OnCooldownChanged(Ended)` da própria habilidade. Sem custo por evento nem rótulo: são do SL4c.
+  - `Runtime/GAS.UI/AbilitySlotSource.cs` (novo): `[Serializable, TypeCategory("Habilidades", Summary = ..., Line = ...)]`, como a `TagSource` (ADR 0013, item 4: é oferecida pelo seletor de tipos do binder); campos `loadout` e `slot`, com propriedades; `OwnerType` = ASC; um `SlotReader` por ligação (N3); dono que não é ASC publica `default`; prévia com a habilidade da entrada, 50 % da recarga, 2 de 3 cargas e o rótulo do provedor ou "Q". O `failureSeconds` entra no SL5 e o `Validate` no SL9.
+  - `Runtime/UI/AbilitySlotBinder.cs` (novo): `sealed class AbilitySlotBinder : UIBinder<SlotModel>`, com `[HelpURL(DocUrls.UiAbilitySlot + "#abilityslotbinder")]`, como o `TagIndicatorBinder`. A âncora nasce no passe de documentação.
+  - `Editor/UI/UIEditors.cs:42`: `AbilitySlotBinderEditor : UIBinderEditor`, para a guarda `SpellBookEditorCoverageTests`.
+  - `Tests/GAS.UI/PlayMode/AbilitySlotSourceTests.cs` (novo).
+- Testes red (PlayMode, `SpellBook.GAS.UI.Tests.PlayMode`, classe `AbilitySlotSourceTests`):
+  - `Cooldown8s_ReadyCooldownReady_FractionSeconds_PulseOnce_PauseStops` (CA2, C2);
+  - `ReducedCooldown_ShowsRealDuration` (CA3, C3);
+  - `BlockingTag_Blocked_BackOnRemove` (CA6, C6);
+  - `SlotState_MatchesTryActivate_UpToCost` (CA16: não concedida, tag bloqueadora, tag exigida, habilidade ativa, recarga, custo e pronta);
+  - `Preview_HalfCooldownTwoCharges_LabelQ`.
+  Red contra um esqueleto em que o `SlotReader` tem as assinaturas e publica `default` e a prévia devolve `default`: 5 de 5 falham (estado `Empty` onde se esperava `Ready` ou `Blocked`, recarga 0 onde se esperava 6 s, prévia sem habilidade). Green: 5 de 5; as guardas `HelpUrlTests`, `TypeCatalogSummaryTests`, `GasUiSourceScanTests` e `SpellBookEditorCoverageTests`, 10 de 10.
+- Critério de pronto: os 5 testes verdes, com `total` = 5 no XML; `HelpUrlTests`, `TypeCatalogSummaryTests`, `GasUiSourceScanTests` e `SpellBookEditorCoverageTests` verdes.
+- Tamanho medido (`wc -l` dos novos e o patch guardado do `UIEditors.cs`): 524 linhas em 6 arquivos. Em `.cs`: `SlotReader.cs` 129, `AbilitySlotSource.cs` 93, `AbilitySlotBinder.cs` 11, `AbilitySlotSourceTests.cs` 287 e `UIEditors.cs` +4; a Spec conta só como arquivo. Exceção: 524 passa do teto de 500, dentro de +30% (650). Motivo: o arquivo de teste tem 287 linhas, com o cenário de sete casos do CA16 e o rig de driver, relógio e loadout que o PlayMode precisa. Dividir de novo separaria a fonte dos testes dela.
+- Commit: `feat(gas-ui): fonte do slot com estado e recarga (#337)`
+
+#### SL4c — custo por evento, rótulo da tecla e sem alocar (#338)
+- Depende do SL4b.
+- CA: CA5, CA10 e CA14 (parte do slot).
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/GAS.UI/SlotReader.cs`: `Attach` ganha `slotKey`, `keyLabels` e `text`; assina o `OnValueChanged` dos atributos que o custo mexe e dos que o valor dele lê (`Attribute`, `TargetAttribute` e `Formula.GetSourceDependencies`), coletados uma vez por ligação (P1); assina o `Changed` do `KeyLabelProvider` e escreve o rótulo num `TextBuffer` só dele, com o provedor do contexto (emenda da P5); o modelo ganha `WithKeyLabel`.
+  - `Runtime/GAS.UI/AbilitySlotSource.cs`: o binding passa `slot.GetDefinition()`, `loadout.KeyLabels` e `Context.Text`. A prévia guarda o `TextBuffer` num campo `[NonSerialized]` e o limpa a cada chamada, como a `AttributeSource` (nota leve do Examinador no SL4b; +3 linhas).
+  - `Tests/GAS.UI/PlayMode/AbilitySlotSourceTests.cs`: os três testes, o `TestKeyLabels` e o parâmetro `labels` do rig; o `Preview_HalfCooldownTwoCharges_LabelQ` pede a prévia de novo e confere "Q" (o buffer guardado é escrito do zero).
+- Testes red (PlayMode, `SpellBook.GAS.UI.Tests.PlayMode`, classe `AbilitySlotSourceTests`):
+  - `LowMana_NoResource_BackWhenManaRises` (CA5, C5);
+  - `KeyLabel_FromProvider_UpdatesOnChanged` (CA10, C10);
+  - `SlotUpdates10000_DoNotAllocate` (CA14, parte: tag que entra e sai e tick com recarga correndo, rótulo ligado).
+  Red contra um esqueleto em que o `Attach` tem a assinatura nova mas não ouve o custo nem o provedor e o rótulo fica vazio: 2 de 8 falham (CA5: `NoResource` onde se esperava `Ready`; CA10: rótulo vazio onde se esperava "Q"). O CA14 é guarda e passa no esqueleto, que não aloca; numa mutação em que o `Refresh` cria um `TextBuffer` e a prévia não limpa o buffer, ele e a prévia falham ("not allocates GC memory"; "QQ" onde se esperava "Q"). Green: 8 de 8; `GasUiSourceScanTests` e `TypeCatalogSummaryTests`, 3 de 3.
+- Critério de pronto: os 8 testes da classe verdes, com `total` = 8 no XML; `GasUiSourceScanTests` e `TypeCatalogSummaryTests` verdes (o `Summary` muda).
+- Tamanho medido (`git diff --numstat`): 216 linhas em 4 arquivos. Em `.cs`: `SlotReader.cs` +86 −3, `AbilitySlotSource.cs` +9 −4 e `AbilitySlotSourceTests.cs` +104 −10; a Spec conta só como arquivo. Exceção: nenhuma.
+- Commit: `feat(gas-ui): custo, rótulo da tecla e sem alocar no slot (#338)`
 
 ### SL5 — Cargas, motivo de falha e nível
 - Escopo: `SlotReader.cs`, `AbilitySlotSource.cs` (`failureSeconds`), `Tests/GAS.UI/PlayMode/SlotChargesAndFailureTests.cs` (novo), `slot-de-habilidade.md`, `CHANGELOG.md`.
 - Testes red: `Charges3_Spend_Shows2_NextRadial_NoCharges` (CA4, C4); `ChargeBack_PulsesOnce`; `LowMana_TryActivate_FailureKeyTagText_OneSecond_CountUp` (CA7, C7, sem autocast); `FailureOrder_FollowsAdr0022`; `LevelChange_UpdatesCooldownAndCost`.
 - Critério de pronto: CA4 e CA7 (menos autocast) verdes.
-- Tamanho estimado: ~400 linhas; 5 arquivos. Depende de: SL4, AV7, DE11.
+- Tamanho estimado: ~400 linhas; 5 arquivos. Depende de: SL4c, AV7, DE11.
+
+### Detalhe (2026-11-04)
+- CA: CA4 e CA7 (menos o autocast, que fecha no SL7), com o R7, o R8 (pulso na carga que volta) e o Design 3 (falha e pulso). Dependências conferidas no código: AV7 (`OnChargesChanged`, `GetCharges`, `GetMaxCharges`, `GetChargeRechargeRemaining/Normalized`), DE11 (`ActivationFailureDescriber`, `GasTextKeys`), AV5 (`OnAbilityFailed`) e VN4 (`OnAbilityLevelChanged`).
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/GAS.UI/SlotReader.cs`:
+    - `Attach` ganha `failureSeconds`; assina `OnChargesChanged`, `OnAbilityFailed` e `OnAbilityLevelChanged` com delegates criados uma vez (`:40-50`, `:62-107`);
+    - `Refresh` (`:115-129`): com `Charges.Enabled` e spec concedido, `WithCharges(GetCharges, GetMaxCharges, GetChargeRechargeNormalized)`; `WithFailure` com o último motivo; `WantsTick` também com a recarga da carga correndo ou o motivo visível;
+    - falha: no `OnAbilityFailed` desta habilidade, `ActivationFailureDescriber.Describe` num `DescriptionContext` só do leitor (lista pré-alocada) dá a linha; a chave é `Label.Key`, a tag é `Tag.GetDefinition()`, e o texto sai de `DescriptionWriter.WriteLine` com o provedor do contexto da ligação, num `TextBuffer` só do leitor. `FailureCount++`; `FailureVisible` até `failureSeconds` depois da falha, medidos pelo `TimeSource` do ASC e conferidos no tick (R7: "pelo `ITimeSource`"; o ASC é a mesma fonte da recarga, P2). `failureSeconds` ≤ 0: o contador sobe e o motivo não aparece;
+    - pulso: `ReadyPulseCount++` quando `OnChargesChanged` desta habilidade aumenta as cargas (R8); a concessão não dispara o evento;
+    - nível: `OnAbilityLevelChanged` refaz o modelo (custo e máximo de cargas mudam com o nível sem outro evento).
+  - `Runtime/GAS.UI/AbilitySlotSource.cs`: `[SerializeField, Min(0f)] float failureSeconds = 1f`, com `Tooltip` e a propriedade `FailureSeconds`, passado ao `Attach` (`:296-298`); o `Summary` cita cargas e motivo de falha.
+  - `Runtime/UI/UIModels.cs:150-288`: `SlotModel` ganha `ScriptableObject FailureTag` (a tag do motivo, como a chave de slot da P5: a UI não referencia Tags) e `WithFailure(string key, TextSpan text, bool visible, int count, ScriptableObject tag = null)`; as outras cópias o preservam. O parâmetro opcional no fim mantém as chamadas do SL2.
+  - `Tests/GAS.UI/PlayMode/SlotChargesAndFailureTests.cs` (novo), com o próprio rig (driver, relógio manual, loadout e tema com provedor de teste).
+- Decisão, com base no R3 e no CA7 do PRD ("chave (e a tag)") e na P5: o Design 2 não lista campo para a tag do motivo, e sem ele a tag não chega à view (o `DescriptionWriter` não a escreve). O campo `FailureTag` é aditivo, num tipo ainda não lançado; não muda CA, não quebra API nem formato serializado (o `SlotModel` não é serializado). A levar ao usuário pelo Controlador.
+- Fora deste ticket: a seção da página `slot-de-habilidade.md` fica para o passe de documentação (emenda de 2026-11-03 da ADR 0007); o `CHANGELOG.md` sai porque não há quebra (item 4 da mesma emenda). Os asmdefs não mudam: o runtime `SpellBook.GAS.UI` já referencia GAS, Tags, Core e UI, e o editor já referencia o runtime e as dependências dele (ADR 0012, item 2; ADR 0039, item 9). O `AbilitySlotSource` já é oferecido pelo seletor com `TypeCategory` e `Summary` (ADR 0013, item 4); só o texto do `Summary` muda. A falha de autocast é do SL7.
+- Testes red (PlayMode, `SpellBook.GAS.UI.Tests.PlayMode`, classe `SlotChargesAndFailureTests`):
+  - `Charges3_Spend_Shows2_NextRadial_NoCharges` (CA4, C4);
+  - `ChargeBack_PulsesOnce` (R8; uma carga volta, um pulso; a primeira publicação não pulsa);
+  - `LowMana_TryActivate_FailureKeyTagText_OneSecond_CountUp` (CA7, C7, sem autocast: chave `gas.activation.cannot_afford_cost`, sem tag, texto do provedor, visível por 1 s, contador sobe a cada tentativa; a consulta sozinha não conta falha);
+  - `FailureOrder_FollowsAdr0022` (tag bloqueadora com a tag no modelo, depois recarga, depois custo, depois condição; na condição o estado é `Ready` e só o motivo a mostra, Q3);
+  - `LevelChange_UpdatesCooldownAndCost` (nível 2 com custo maior dá `NoResource` pelo evento, sem tick; a recarga ativada no nível 2 mostra a duração do nível 2).
+- Critério de pronto: os 5 testes verdes, com `total` = 5 no XML; `AbilitySlotSourceTests` (8), `SlotModelTests`, `TypeCatalogSummaryTests` e `GasUiSourceScanTests` verdes.
+- Testes red rodados contra um esqueleto que compila (o `SlotModel` com `FailureTag`, o `failureSeconds` na fonte e o `Attach` com o parâmetro, sem comportamento novo no leitor): 5 de 5 falham (sem cargas no modelo; chave do motivo nula; `Ready` onde se esperava `NoResource` depois do nível 2). Green: 13 de 13 com o `AbilitySlotSourceTests`; `SlotModelTests`, `TypeCatalogSummaryTests` e `GasUiSourceScanTests`, 6 de 6.
+- Tamanho medido (`git diff --numstat` e `wc -l` do novo): 476 linhas em 5 arquivos. Em `.cs`: `SlotReader.cs` +77 −9, `AbilitySlotSource.cs` +11 −4, `UIModels.cs` +20 −16 e `SlotChargesAndFailureTests.cs` 339; a Spec conta só como arquivo. Exceção: nenhuma.
+- Commit: `feat(gas-ui): cargas, motivo de falha e nível no slot (#253)`
 
 ### SL6 — `AbilityLoadoutSource` e `AbilityBarBinder`
 - Escopo: `Runtime/GAS.UI/AbilityLoadoutSource.cs`, `Runtime/UI/AbilityBarBinder.cs` (novos), `UIEditors.cs`, `Tests/GAS.UI/PlayMode/AbilityBarTests.cs` (novo), `barra-de-habilidades.md`, `CHANGELOG.md`.
@@ -121,11 +336,58 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Mesma
 - Critério de pronto: CA1, CA8, CA11 e CA13 verdes.
 - Tamanho estimado: ~420 linhas; 6 arquivos. Depende de: SL5.
 
+### Detalhe (2026-11-04)
+- CA: CA1, CA8, CA11 e CA13, com o R2 (trocar o loadout refaz a barra). Fecha também a parte da barra do CA14 (sem alocar), que o SL1b deixou para cá.
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/GAS.UI/AbilityLoadoutSource.cs` (novo): `[Serializable, TypeCategory("Habilidades", Summary = ..., Line = ...)] sealed class AbilityLoadoutSource : UIListSource<SlotModel>`, como o `AbilitySlotSource` (ADR 0013, item 4: é oferecida pelo seletor do `source` do binder de lista).
+    - campos `loadout` e `failureSeconds` (padrão 1, como no slot); `Loadout`, `FailureSeconds` e `SetLoadout(AbilityLoadout)`, que avisa as ligações vivas por um evento `[NonSerialized]` da fonte e refaz a lista, também com o mesmo asset (reler depois de mudar a ordem); `OwnerType` = ASC;
+    - ligação: um `SlotReader` por entrada, id = índice, criado uma vez e reaproveitado entre religações; ao ligar, `Attach` de cada leitor e `AddItem` na ordem da lista; o aviso de cada leitor vira `UpdateItem` do id dele; tick só dos leitores que pedem, e `RequestTick` enquanto algum pede; `SetLoadout` solta os leitores, `ClearItems` e liga de novo; dono que não é ASC não publica item;
+    - prévia: um `SlotModel` por entrada, na ordem, com a mesma prévia do slot (ícone, 50 % da recarga, 2 de 3 cargas, rótulo do provedor ou "Q"), num `TextBuffer` `[NonSerialized]` limpo a cada chamada.
+  - `Runtime/GAS.UI/AbilitySlotSource.cs:52-65`: a montagem da prévia de uma entrada sai para um `internal static SlotModel Preview(...)` usado pelas duas fontes, sem mudar o resultado (`Preview_HalfCooldownTwoCharges_LabelQ` segue verde).
+  - `Runtime/UI/AbilityBarBinder.cs` (novo): `sealed class AbilityBarBinder : UIListBinder<SlotModel>`, com `[HelpURL(DocUrls.UiAbilityBar + "#abilitybarbinder")]`. Herda os membros de receptor explícitos do `UIListBinder` e não declara nenhum.
+  - `Editor/UI/UIEditors.cs:48-50`: `AbilityBarBinderEditor : UIBinderEditor`, para a guarda `SpellBookEditorCoverageTests`.
+  - `Tests/GAS.UI/PlayMode/AbilityBarTests.cs` (novo), com rig próprio (driver, relógio manual, `RecordingSpawnerAsset`, prefab com view de teste e `UIItemContext`).
+  - Os asmdefs não mudam: o runtime `SpellBook.GAS.UI` já referencia GAS, Tags, Core e UI; o `SpellBook.GAS.UI.Editor` já referencia o runtime e as dependências dele (ADR 0012, item 2; ADR 0039, item 9); o assembly de teste PlayMode já referencia `SpellBook.Testing`.
+- Decisão, com base no R7 e no Design 3: o `failureSeconds` entra também na fonte da barra. O Design 3 só lista o `loadout`, mas o `SlotReader` pede os segundos do motivo, e fixá-los em 1 deixaria a barra, o uso principal, sem a opção que o slot tem. É campo novo num tipo novo: não muda CA, não quebra API nem formato serializado.
+- Fora deste ticket: a página `barra-de-habilidades.md` fica para o passe de documentação (emenda de 2026-11-03 da ADR 0007); até lá a guarda `ManualLinksTests` (categoria `Documentacao`) acusa a âncora `#abilitybarbinder` sem página, como no SL3. O `CHANGELOG.md` sai porque não há quebra (item 4 da mesma emenda). A validação da barra (sem prefab, prefab sem `IView<SlotModel>`) é do SL9. A ordem em edição (R12): a fonte já dá a prévia na ordem; o binder de lista não cria itens fora do Play (SL1b), e mostrá-la fica com o SL8 (views e prefabs). Editar o asset do loadout no Play não refaz a barra sozinho (o `AbilityLoadout` não tem evento); refaz com `SetLoadout` ou ao religar.
+- Testes red (PlayMode, `SpellBook.GAS.UI.Tests.PlayMode`, classe `AbilityBarTests`):
+  - `TwoEntries_TwoSlots_ListOrder_ReorderChangesOrder` (CA1, C1: `Slot.Q → Fireball`, `Slot.W → Heal` dão dois slots nessa ordem sob o container; trocada a ordem no asset e chamado `SetLoadout`, a ordem visual troca);
+  - `GrantRemove_EmptyByEvent_NoUpdate` (CA8, C8: não concedida dá `Empty`; conceder dá `Ready` e remover volta a `Empty`, só por evento, sem tick no driver);
+  - `AnchorRespawn_Rebinds` (CA11, C11: dono pela `AbilitySystemAnchor`; outro ASC na âncora religa os slots a ele, e o ASC antigo não mexe mais na barra);
+  - `Slots_FromSpawner_Released_LiveStable` (CA13, C13: os slots vêm do spawner; trocar entre um loadout de dois e um de um devolve ao spawner, e os vivos não crescem em 50 trocas);
+  - `SetLoadout_Rebuilds` (R2: outro loadout troca os assuntos dos slots e solta os leitores do anterior);
+  - `BarUpdates10000_DoNotAllocate` (CA14, barra: tag que entra e sai e tick com recarga correndo, dois slots);
+  - `Preview_OneSlotPerEntry_InOrder` (R12, parte da fonte: um slot de prévia por entrada, na ordem, com a prévia do slot; o buffer do rótulo é escrito do zero a cada chamada).
+
+  Red contra um esqueleto que compila (fonte com os campos, `SetLoadout` e uma ligação que não publica item; prévia vazia; o binder e o editor já completos): 7 de 7 falham (nenhum slot ativo no container; 0 itens de prévia onde se esperavam 2; 0 vivos onde se esperava 1). Green: 15 de 15, com os 8 do `AbilitySlotSourceTests` (a prévia do slot passou a usar o `Preview` comum); `TypeCatalogSummaryTests`, `GasUiSourceScanTests`, `HelpUrlTests` e `SpellBookEditorCoverageTests`, 10 de 10.
+- Critério de pronto: os 7 testes verdes, com `total` = 7 no XML; `AbilitySlotSourceTests` (8), `TypeCatalogSummaryTests`, `GasUiSourceScanTests`, `HelpUrlTests` e `SpellBookEditorCoverageTests` verdes.
+- Tamanho medido (`git diff --numstat` e `wc -l` dos novos): 543 linhas em 6 arquivos. Em `.cs`: `AbilityLoadoutSource.cs` 169, `AbilityBarBinder.cs` 14, `AbilitySlotSource.cs` +10 −3, `UIEditors.cs` +4 e `AbilityBarTests.cs` 343; a Spec conta só como arquivo. Exceção: 543 passa do teto de 500, dentro de +30% (650). Motivo: o arquivo de teste tem 343 linhas, com sete casos (quatro CA, o CA14 da barra, o R2 e a prévia) e o rig de driver, relógio, spawner, prefab de slot e âncora que o PlayMode precisa. Dividir separaria a fonte da barra dos testes dela.
+- Commit: `feat(gas-ui): barra de habilidades pelo loadout (#254)`
+
 ### SL7 — Estado ativo, toggle e autocast no slot
 - Escopo: `SlotReader.cs`, `Tests/GAS.UI/PlayMode/SlotActiveStateTests.cs` (novo), `slot-de-habilidade.md`, `CHANGELOG.md`.
 - Testes red: `Channel_Toggle_Autocast_SetActiveFlags_StateUnchanged` (CA9, C9); `AutocastFailure_NotShown` (CA7 completo); `ActiveFlags_ByEvent`.
 - Critério de pronto: CA7 e CA9 verdes.
 - Tamanho estimado: ~280 linhas; 4 arquivos. Depende de: SL6, EV14.
+
+### Detalhe (2026-11-04)
+- CA: CA9 (C9) e o resto do CA7 (a falha do autocast não aparece), com o R6 (ativo não substitui o estado de falha) e o R7 (falha de autocast silenciosa). Dependências conferidas no código: EV12 (`AbilitySpec.IsToggledOn`, `OnToggleChanged`), EV13 (`AbilitySpec.IsChanneling`) e EV14 (`SetAutocast`, `OnAutocastChanged`, `IsAutocastEnabled`, `AutocastConfig.Allowed`; a tentativa de autocast chama `TryActivate` com `silent`, que não dispara `OnAbilityFailed`, `AbilitySystemComponent.cs:953-957`).
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/GAS.UI/SlotReader.cs`:
+    - `Refresh` (`:148-168`): com o spec concedido (`FindSpec`, já feito só para cargas em `:155`), `WithActivity(spec.IsActive, spec.IsToggledOn, spec.IsChanneling)` e `WithAutocast(allowed, _asc.IsAutocastEnabled(spec))`; sem spec, tudo falso. `allowed` = `Autocast.Allowed` em `Instant` ou `Channel`, o mesmo que o `SetAutocast` aceita (`:516-530`; o validador da habilidade já dá erro nos outros comportamentos);
+    - assina `OnAutocastChanged` com delegate criado uma vez (`:24-33`, `:92-102`, `:113-128`), o único evento novo que muda o modelo sem outro aviso.
+  - `Runtime/GAS.UI/AbilitySlotSource.cs:19` e `Runtime/GAS.UI/AbilityLoadoutSource.cs:18`: o `Summary` (e o resumo do XML) cita o estado ativo e o autocast, como o SL5 fez com cargas e falha. Só o texto muda (ADR 0013, item 4: as duas já são oferecidas pelo seletor com `TypeCategory` com caminho e `Summary`).
+  - `Tests/GAS.UI/PlayMode/SlotActiveStateTests.cs` (novo), com o próprio rig (driver, relógio manual, loadout, tema e uma view que conta os desenhos).
+- Decisão, com base na P1 e no código do EV12: o leitor **não** assina `OnToggleChanged`. O `IsToggledOn` deriva de `IsActive`, e o ASC dispara `OnAbilityActivated` antes do `OnToggleChanged(true)` e `OnAbilityEnded` logo depois do `OnToggleChanged(false)` (`:1120-1124`, `:1319-1320`), eventos que o leitor já escuta. Assinar daria duas consultas e dois desenhos por troca, contra "uma consulta por evento" da P1. O teste `ActiveFlags_ByEvent` prova que o toggle chega por evento, sem tick. Não muda CA, API nem formato serializado.
+- Fora deste ticket: a seção da página `slot-de-habilidade.md` fica para o passe de documentação (emenda de 2026-11-03 da ADR 0007); o `CHANGELOG.md` sai porque não há quebra (item 4 da mesma emenda). Os asmdefs não mudam: o runtime `SpellBook.GAS.UI` já referencia GAS, Tags, Core e UI, e o editor já referencia o runtime e as dependências dele (ADR 0012, item 2; ADR 0039, item 9). Não há receptor novo nem guarda de regex nova. O `SlotModel` já tem os campos e as cópias (SL2).
+- Testes red (PlayMode, `SpellBook.GAS.UI.Tests.PlayMode`, classe `SlotActiveStateTests`):
+  - `Channel_Toggle_Autocast_SetActiveFlags_StateUnchanged` (CA9, C9: canalizando dá `IsActive` e `IsChanneling` com `Ready`, e a tentativa durante a canalização mostra o motivo sem apagar a marca; o toggle ligado dá `IsActive` e `IsToggledOn`, e desligado volta ao estado de falha `NoResource` sem marcas; autocast ligado com mana baixa dá `AutocastAllowed`, `AutocastEnabled` e segue `NoResource`; habilidade comum, toggle com `Allowed` e slot vazio ficam com tudo falso);
+  - `AutocastFailure_NotShown` (CA7 completo: autocast ligado e mana baixa, várias passadas "quando pronta" sem motivo no slot; a tentativa manual depois mostra o motivo, prova de que a falha chegaria se não fosse silenciosa);
+  - `ActiveFlags_ByEvent` (sem tick do driver: `SetAutocast` liga e desliga com um desenho cada; toggle liga e desliga; a canalização cancelada limpa as marcas; com o slot desligado, `SetAutocast` não desenha).
+  Red contra o código do SL6, sem esqueleto (os testes só usam API que já existe): 3 de 3 falham porque o leitor não preenche as marcas (`IsActive` falso com a canalização; `AutocastEnabled` falso com o autocast ligado). Como o silêncio do autocast é do EV14, a parte "sem motivo" do `AutocastFailure_NotShown` é provada por mutação, revertida em seguida: com o `silent` ignorado no `TryActivate`, ele falha ("a falha do autocast é silenciosa", esperado 0, veio 3); sem a assinatura do `OnAutocastChanged`, o `ActiveFlags_ByEvent` falha ("o autocast chega pelo evento"); sem soltá-la no `Detach`, o `ActiveFlags_ByEvent` falha no slot desligado. Green: 23 de 23 com o `AbilitySlotSourceTests` (8), o `SlotChargesAndFailureTests` (5) e o `AbilityBarTests` (7); `TypeCatalogSummaryTests` e `GasUiSourceScanTests`, 3 de 3.
+- Critério de pronto: os 3 testes verdes, com `total` = 3 no XML; `AbilitySlotSourceTests` (8), `SlotChargesAndFailureTests` (5), `AbilityBarTests` (7), `TypeCatalogSummaryTests` e `GasUiSourceScanTests` verdes.
+- Tamanho medido (`git diff --numstat` e `wc -l` do novo): 355 linhas em 5 arquivos. Em `.cs`: `SlotReader.cs` +21 −6, `AbilitySlotSource.cs` +4 −4, `AbilityLoadoutSource.cs` +4 −3 e `SlotActiveStateTests.cs` 313; a Spec conta só como arquivo. Exceção: nenhuma.
+- Commit: `feat(gas-ui): estado ativo, toggle e autocast no slot (#255)`
 
 ### SL8 — Views e prefabs do slot e da barra
 - Escopo: `Runtime/UI.UGUI/SlotView.cs`, `ListOverflowView.cs` (novos), `UGUIEditors.cs`, `Runtime/UI.UGUI/Prefabs/AbilitySlot.prefab`, `AbilityBar.prefab` (fixtures), `Tests/UI.UGUI/EditMode/SlotViewTests.cs` (novo), `slot-de-habilidade.md`, `CHANGELOG.md`.
@@ -133,11 +395,70 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Mesma
 - Critério de pronto: testes verdes; CA12 (S) no host (ícone, 50 % e "2" sem Play).
 - Tamanho estimado: ~380 linhas; 8 arquivos (2 fixtures). Depende de: SL7.
 
+### Detalhe (2026-11-04)
+- CA: CA12 (S), parte automática (o slot do prefab, em edição, mostra 50 % de recarga, "2" cargas e o rótulo "Q" pela prévia da fonte); a parte de exibição do R10 (ícone, radial e segundos, cargas e radial da próxima, rótulo, escurecer, realce do ativo, pulso de pronto, tremor da falha e o aviso do motivo) e do R11 (a view não ativa: sem clique e sem `raycastTarget`). O CA17 e o CA19 seguem pelas guardas existentes (`GasUiSourceScanTests` já varre `Runtime/UI.UGUI`; `HelpUrlTests`; `SpellBookEditorCoverageTests`).
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/UI.UGUI/SlotView.cs` (novo): `public sealed class SlotView : MonoBehaviour, IView<SlotModel>`, `[HelpURL(DocUrls.UiAbilitySlot + "#slotview")]`. Campos `[SerializeField]` privados, todos opcionais: `content` (`GameObject` filho com o desenho), `icon` (`Image`), `cooldownFill` (`Image` radial), `cooldownText`, `chargesText` (`TMP_Text`), `chargeFill` (`Image` radial), `keyLabel`, `failureText` (`TMP_Text`), `highlight` (`GameObject`), `dimmedTint` (`Color`), `hideWhenEmpty` (`bool`), `itemContext` (`UIItemContext`), `animator` (`Animator`), `pulseTrigger` = "Pulse", `shakeTrigger` = "Shake". O `Render`:
+    - escreve `Subject` no `itemContext` (nulo no `Empty`);
+    - `Empty`: com `hideWhenEmpty`, esconde `content`; sem ele, deixa só a moldura (ícone desligado, radiais em 0, textos vazios, sem realce);
+    - ícone com o `Icon` (desligado sem sprite) e a cor `dimmedTint` em `NoResource`, `NoCharges` e `Blocked`, branca nos outros; `highlight` ligado com `IsActive`, também sobre um estado de falha (R6);
+    - `cooldownFill.fillAmount` = `CooldownFraction`; segundos inteiros arredondados para cima só com `CooldownRemaining > 0`; cargas (`Charges`) e `chargeFill` (`ChargeFraction`) só com `HasCharges`; rótulo pelo `KeyLabel`; motivo pelo `FailureText` só com `FailureVisible`. Números num `TextBuffer` da view, criado uma vez, e texto entregue por `SetCharArray` (o `RoleColors.Write` de `TextView.cs:42-68`), sem `string` por desenho;
+    - pulso e tremor: `animator.SetTrigger` uma vez a cada mudança de `ReadyPulseCount` ou `FailureCount` entre dois desenhos do mesmo `Subject`. O primeiro desenho, a troca de assunto (item reaproveitado do pool) e o `Empty` só guardam a base, sem animar (R8). Sem `animator`, ou sem controller, não anima.
+  - `Runtime/UI.UGUI/ListOverflowView.cs` (novo): `public sealed class ListOverflowView : MonoBehaviour, IView<ListOverflowModel>`, `[HelpURL(DocUrls.Ui + "#listoverflowview")]`; campos `target` (`GameObject`, ligado com `Hidden > 0`) e `text` (`TMP_Text`, "+N" num `TextBuffer` da view, por `SetCharArray`).
+  - `Editor/UI.UGUI/UGUIEditors.cs:20`: `SlotViewEditor` e `ListOverflowViewEditor : SpellBookEditor`, para a guarda `SpellBookEditorCoverageTests`.
+  - `Runtime/UI.UGUI/Prefabs/AbilitySlot.prefab` (novo, fixture): raiz 64×64 com `SlotView`, `UIItemContext` e `Animator` (controller abaixo); filhos `Frame` (sempre visível) e `Content` com `Icon`, `Cooldown` (radial 360, preto a 60 %), `ChargeFill` (radial), `Highlight` (desligado), textos `Seconds`, `Charges`, `Key` e `Failure` (TMP com fonte nula, ADR 0039). Todo `Graphic` com `raycastTarget` desligado (R11). Sem binder: é o item da barra, e um binder no item disputaria a view com o `AbilityBarBinder`. O slot avulso põe um `AbilitySlotBinder` no prefab ou no pai, como o `FloatingText` do UI12.
+  - `Runtime/UI.UGUI/Prefabs/AbilitySlot.controller` (novo, fixture): gatilhos `Pulse` e `Shake`; estado `Idle` sem clipe; do *Any State* para `Pulse` (escala do `Content` 1 → 1,15 → 1 em 0,25 s) e `Shake` (posição x do `Content` 0, −4, 4, −3, 3, 0 em 0,3 s), voltando ao `Idle` no fim. Os dois clipes são subassets do controller.
+  - `Runtime/UI.UGUI/Prefabs/AbilityBar.prefab` (novo, fixture): raiz com `HorizontalLayoutGroup` (espaço 8, sem expandir), `AbilityBarBinder` com fonte `AbilityLoadoutSource` (loadout vazio), `itemPrefab` = `AbilitySlot`, `container` vazio (o próprio objeto), spawner vazio (o padrão), dono `SelfOrParent`, `maxVisible` 0, sem view de "+N".
+  - Os três assets são autorados pela Unity em batchmode por um script descartável em `Assets/__SpellBookTestTemp_SL8/Editor/` (pasta ignorada), apagado no fim com os `.meta`; nenhum YAML à mão (ADR 0028, por analogia, como no UI9 e no UI12; não há `Samples`, então nem renomeação nem `Samples.meta`).
+  - `Tests/UI.UGUI/EditMode/SlotViewTests.cs` (novo). O asmdef de teste já referencia `SpellBook.UI`, `SpellBook.UI.UGUI`, `SpellBook.GAS.UI`, uGUI e TMP; os asmdefs de runtime e de Editor não mudam (o `SpellBook.UI.UGUI.Editor` já referencia o runtime e as dependências dele, ADR 0012, item 2, e ADR 0039, item 9).
+- Decisões, com base no código e nas ADRs:
+  - Pulso e tremor pelo `Animator`, por gatilho. A ADR 0039 proíbe a view de ler o tempo ou ter `Update`, e o CA19 proíbe corrotina; o `Animator` anima sem código por quadro, como a Spec do B-018 já prevê para o `EffectIconView`. O pacote entrega o controller do prefab; o projeto troca pelo seu (o PRD deixa outros efeitos para o kit do projeto).
+  - Segundos inteiros arredondados para cima (0,4 s mostra "1"): sem casa decimal, a view não precisa de cultura nem do provedor.
+  - `ListOverflowView` fora do prefab da barra: o binder põe cada slot no fim do container, então um "+N" filho do mesmo layout ficaria antes dos slots. Quem usa `maxVisible` liga a view num objeto fora do container.
+  - Nenhuma muda CA, API existente ou formato serializado: são tipos e assets novos.
+- R12, ordem da barra em edição (pendência do SL1b e do SL6): **não resolvida aqui; registrada para o Controlador e o usuário.** O binder de lista não cria itens fora do Play (SL1b, `UIListBinder.cs:207-218`), porque um spawn em edição salvaria instâncias na cena. Mostrar a ordem na barra pede mudar o `UIListBinder` (que também serve o B-018) com instâncias `DontSave` e a limpeza delas, fora do escopo deste ticket e acima do teto. Nenhum CA cobre a ordem em edição (o CA12 é do slot). Opções: (a) aceitar que a ordem em edição aparece na lista do loadout no Inspector do SL9 (`LoadoutRow_Summary_SlotAbilityCooldown`, uma linha por entrada na ordem); (b) um ticket próprio para a prévia de itens no `UIListBinder`.
+- Fora deste ticket: a página `slot-de-habilidade.md` (seções `#slotview` e a do `#listoverflowview` na visão geral) fica para o passe de documentação (emenda de 2026-11-03 da ADR 0007); até lá a guarda `ManualLinksTests` (categoria `Documentacao`) acusa as âncoras novas sem página, como no SL3 e no SL6. O `CHANGELOG.md` sai porque não há quebra (item 4 da mesma emenda). A validação da barra (sem prefab, prefab sem `IView<SlotModel>`) é do SL9.
+- Testes red (EditMode, `SpellBook.UI.UGUI.Tests.EditMode`, classe `SlotViewTests`, num Canvas do teste):
+  - `SlotView_RadialSecondsChargesLabel` (R10: ícone; radial 0,4 com 3,2 s mostra "4"; cargas "2" e radial 0,5; rótulo "Q"; motivo só com `FailureVisible`; sem `string` entregue ao TMP; sem cargas e sem recarga, textos vazios e radiais em 0);
+  - `DimOnNoResourceNoChargesBlocked_HighlightOnActive` (R10 e R6: escurece nos três estados e não em `Ready` nem `OnCooldown`; realce com `IsActive`, também sobre `NoResource`);
+  - `PulseAndShake_OncePerCounterChange` (R8 e R7: primeiro desenho e contadores repetidos não animam; cada mudança de contador dispara o gatilho dele uma vez; outro assunto só troca a base);
+  - `Empty_FrameOrHidden` (P2 do PRD: `Empty` deixa a moldura; com `hideWhenEmpty`, esconde o conteúdo e volta no próximo estado);
+  - `WritesSubjectToItemContext` (ADR 0039, item 6: assunto escrito e limpo no `Empty`, com `Changed`);
+  - `Overflow_ShowsPlusN` ("+3" sem `string` e alvo ligado; 0 desliga o alvo);
+  - `Prefabs_SlotAndBar_Wired_SlotPreviewInEditMode` (CA12, parte automática: o `AbilitySlot` liga as partes da view, o `UIItemContext` e o controller com os dois gatilhos, sem `raycastTarget`; o `AbilityBar` tem layout horizontal, `AbilityBarBinder` com `AbilityLoadoutSource` e o `AbilitySlot` como item; um `AbilitySlotBinder` com `AbilitySlotSource` posto na instância do slot, em edição, dá radial 0,5, "2" e "Q").
+
+  Red contra um esqueleto que compila (as duas views com os campos e o `Render` vazio, o editor já completo, sem os assets): 7 de 7 falham pelo motivo esperado (ícone nulo, cor sem escurecer, gatilho não disparado, ícone ligado no vazio, assunto nulo, "+3" nulo, prefab inexistente). Green: 7 de 7. Mutações, desfeitas em seguida, cada uma caindo na asserção que diz provar: assunto ignorado na base ("outro assunto só troca a base"); vazio sem limpar a base ("depois do vazio"); base sem a primeira vez ("o primeiro desenho não anima"); pulso sem guardar a base ("contadores iguais não animam"); sem o gatilho do tremor ("a falha sobe: treme"); `Blocked` sem escurecer; `OnCooldown` escurecido; realce desligado sobre a falha (R6) e sempre desligado; `Round` no lugar de `Ceil` ("4"); motivo sem `FailureVisible`; `string` no TMP nos números, no rótulo, no motivo e no "+N"; `hideWhenEmpty` ignorado e conteúdo que não volta; vazio sem limpar o assunto; vazio sem desligar o ícone; "+N" sem o sinal e sem esconder o alvo; sem radial, sem cargas e sem rótulo (também na prévia do prefab: 50 %, "2" e "Q"). As asserções de estrutura dos prefabs só têm a prova do red (prefab ausente).
+- Critério de pronto: os 7 testes verdes, com `total` = 7 no XML; `WidgetViewsTests`, `WidgetPrefabsTests`, `GasUiSourceScanTests`, `HelpUrlTests` e `SpellBookEditorCoverageTests` verdes (22 de 22 no total, com os 7). Conferência visual dos prefabs no host (CA12: ícone, 50 % e "2" sem Play, com um `AbilitySlotBinder` posto no `AbilitySlot`; pulso e tremor no Play) fica como pendência manual para o usuário.
+- Tamanho medido (`git diff --numstat` e `wc -l` dos novos): 628 linhas em 8 arquivos. Em `.cs`: `SlotView.cs` 167, `ListOverflowView.cs` 46, `UGUIEditors.cs` +8 e `SlotViewTests.cs` 407; os três assets e a Spec contam só como arquivo. Exceção: 628 passa do teto de 500, dentro de +30% (650). Motivo: o arquivo de teste tem 407 linhas, com sete casos e o rig da view (canvas, nove partes, textos que contam `string`, `Animator` iniciado em edição) e a conferência dos dois prefabs com a prévia. Dividir separaria a view dos testes dela ou o prefab da view que ele liga.
+- Commit: `feat(ui-ugui): views e prefabs do slot e da barra (#256)`
+
 ### SL9 — Inspector e validação do loadout e do slot
 - Escopo: `AbilityLoadout.cs`, `AbilitySlotSource.cs`, `AbilityLoadoutSource.cs` (`Validate`), `Editor/GAS.UI/AbilityLoadoutEditor.cs` (novo), `GasUIEditors.cs`, `Tests/GAS.UI/EditMode/SlotValidationTests.cs`, `Tests/GAS.UI/EditMode/AbilityLoadoutEditorTests.cs` (novos), `manual/ferramentas/validador.md`, `CHANGELOG.md`.
 - Testes red: um por regra do Design 7 (menos a barra de cast), com o objeto clicável (CA18); `LoadoutRow_Summary_SlotAbilityCooldown`.
 - Critério de pronto: CA18 verde; CA15 (S) no host.
 - Tamanho estimado: ~420 linhas; 9 arquivos. Depende de: SL8.
+
+### Detalhe (2026-11-04)
+- CA: CA18 (o validador cobre os casos do R14, com o objeto clicável: `Context` e `PropertyPath` em cada mensagem), com o Design 7 (menos a barra de cast, do SL11) e o R13 (lista do loadout com uma linha por entrada). O CA15 (S) fica para a conferência no host. O R12 fecha aqui pela decisão do usuário abaixo.
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/GAS.UI/AbilityLoadout.cs:19`: `AbilityLoadout : ScriptableObject, IValidatable`, com `Validate(ValidationResult)` depois de `TryFindEntry` (`:61-75`). Regras, com o caminho de cada entrada (`entries.Array.data[i].slot` ou `.ability`) e a posição como no `FloatingTextRules.Validate`: loadout vazio (aviso, `entries`); entrada sem tag ou sem habilidade (erro); tag repetida (erro na entrada repetida, citando a primeira); habilidade repetida (aviso, os dois slots mostram o mesmo estado); habilidade sem ícone (aviso); cargas ligadas com `ChargesConfig` inválido (aviso com a primeira mensagem do `ChargesConfig.Validate` do AV8). Ícone e cargas são conferidos só na primeira vez que a habilidade aparece, para não repetir o aviso. Laços simples, sem LINQ.
+  - `Runtime/GAS.UI/AbilitySlotSource.cs:46`: `Validate(ValidationResult, string)`: sem loadout (erro, `source.loadout`); sem tag (erro, `source.slot`); tag fora do loadout (erro, `source.slot`, pelo `TryFindEntry`).
+  - `Runtime/GAS.UI/AbilityLoadoutSource.cs:44`: `Validate`: sem loadout (erro, `source.loadout`).
+  - `Runtime/UI/UIListBinder.cs:160`: `public override void Validate(ValidationResult)`, como o do `UIBinder<TModel>` (`UIBinder.cs:336-360`): sem fonte (erro, `source`) ou a validação da fonte no caminho `source`; o resolvedor (base); sem prefab (erro, `itemPrefab`); prefab sem `IView<TItem>` na raiz, onde o `TrySpawn` o procura (`:334`) (erro, `itemPrefab`). Fica no binder de lista, e não só no `AbilityBarBinder`, porque a regra vale para toda lista (a do B-018 também); o `AbilityBarBinder` não muda. O Design 7 pede a regra da barra, e o `UIListBinder` não tinha `Validate`: é consequência direta do ticket (ADR 0042, item 6). Override de método virtual que já é público: não quebra API.
+  - `Editor/GAS.UI/AbilityLoadoutEditor.cs` (novo): `public sealed class AbilityLoadoutEditor : SpellBookEditor`, `[CustomEditor(typeof(AbilityLoadout))]`, `[CanEditMultipleObjects]`. Depois do Inspector padrão, a seção "Ordem da barra" (`RowsName`) com uma linha por entrada, na ordem da lista (`RowClass`): "1. Slot.Q · Fireball · recarga 8 s". Recarga pela `GetCooldownDuration(null)` (nível 1, sem a redução do atributo), formatada como no `GameplayAbilityEditor` ("0.###"); sem `CooldownEffect`, "sem recarga"; tag ou habilidade vazia, `SummaryFormatter.None`. Refeita a cada mudança do `SerializedObject` e por `RefreshRows()`; em multi-seleção, a seção some. A validação no topo vem da base (`SpellBookEditor`).
+  - `Editor/GAS.UI/GasUIEditors.cs:11-13`: sai o `AbilityLoadoutEditor` vazio do SL3.
+  - `Tests/GAS.UI/EditMode/SpellBook.GAS.UI.Tests.EditMode.asmdef`: + `SpellBook.GAS.UI.Editor` (as constantes e o `RefreshRows` do editor).
+  - `Tests/GAS.UI/EditMode/SlotValidationTests.cs` e `Tests/GAS.UI/EditMode/AbilityLoadoutEditorTests.cs` (novos).
+- Sem arquivo em comum com o TT1 (#260: `TooltipModel.cs`, `TooltipBinder.cs`, `TooltipBinderAnchor.cs`, `UISource.cs`, `UIEditors.cs`, `DocUrls.cs`, `DocUrlsTests.cs`, `TooltipBinderTests.cs`), conferido na entrada.
+- Decisão do usuário (2026-11-04, pendência R12 do SL1b, do SL6 e do SL8): a ordem dos slots em edição é a da lista do `AbilityLoadout` no Inspector. O `UIListBinder` segue sem criar itens fora do Play e não abre ticket novo. Por isso o Inspector do loadout mostra a seção "Ordem da barra", uma linha por entrada na ordem da lista, e o teste `LoadoutRow_Summary_SlotAbilityCooldown` prova que trocar a ordem troca as linhas.
+- Sem tipo novo no seletor: as duas fontes já têm `TypeCategory` com caminho e `Summary` (ADR 0013, item 4), e só ganham `Validate`. Sem receptor novo e sem guarda de regex nova. O asmdef do editor não muda: o `SpellBook.GAS.UI.Editor` já referencia o runtime e as dependências dele (ADR 0012, item 2; ADR 0039, item 9).
+- Fora deste ticket: a seção da página `manual/ferramentas/validador.md` e a da `barra-de-habilidades.md` (Inspector do loadout) ficam para o passe de documentação (emenda de 2026-11-03 da ADR 0007). O `CHANGELOG.md` sai porque não há quebra (item 4 da mesma emenda). A validação do `CastBarBinder` é do SL11.
+- Testes red (EditMode, `SpellBook.GAS.UI.Tests.EditMode`):
+  - classe `SlotValidationTests`, cada um pelo `SpellBookEditor.CollectMessages`, com severidade, texto, `PropertyPath` e `Context` (o objeto clicável): `Loadout_Empty_IsWarning`; `Loadout_EntryWithoutTagOrAbility_IsError`; `Loadout_RepeatedTag_IsError`; `Loadout_RepeatedAbility_IsWarning`; `Loadout_AbilityWithoutIcon_IsWarning`; `Loadout_ChargesInvalid_IsWarning`; `Loadout_Valid_HasNoMessages`; `SlotSource_NoLoadout_IsError`; `SlotSource_TagMissingOrOutsideLoadout_IsError` (pelo `AbilitySlotBinder`, no caminho `source.slot`); `BarSource_NoLoadout_IsError` (pelo `AbilityBarBinder`, `source.loadout`); `Bar_NoPrefabOrPrefabWithoutSlotView_IsError`; `Bar_Valid_HasNoMessages`;
+  - classe `AbilityLoadoutEditorTests`: `LoadoutRow_Summary_SlotAbilityCooldown` (R13 e R12: uma linha por entrada na ordem; recarga 8 s; "sem recarga"; vazio como "(nenhum)"; trocar a ordem e `RefreshRows` troca as linhas).
+- Critério de pronto: os 13 testes verdes, com `total` = 13 no XML; `GasUIValidationTests`, `AbilityLoadoutTests` e `SpellBookEditorCoverageTests` verdes. Cada asserção provada por mutação, desfeita em seguida. CA15 (S) no host: o `AbilityLoadout` e os binders do slot e da barra mostram o resumo e a validação no topo (pendência manual).
+- Tamanho: medido no fim (`git diff --numstat` e `wc -l` dos novos), 591 linhas e 10 arquivos. Os arquivos alterados somam 145 linhas: `AbilityLoadout.cs` 81, `UIListBinder.cs` 28, `AbilitySlotSource.cs` 21, `AbilityLoadoutSource.cs` 10, `GasUIEditors.cs` 4 e o asmdef 1. Os novos somam 446: `SlotValidationTests.cs` 266, `AbilityLoadoutEditorTests.cs` 105 e `AbilityLoadoutEditor.cs` 75. A Spec conta só nos 10 arquivos. Exceção: +18% nas linhas, dentro dos +30% da ADR 0042. Motivo: o CA18 pede um teste por caso do R14, com severidade, texto, caminho e objeto em cada mensagem, e os testes são 371 das 591 linhas. Separar a validação do Inspector deixaria o R13 e o R12 sem ticket.
+- Commit: `feat(gas-ui): Inspector e validação do loadout e do slot (#257)`
 
 ### SL10 — Barra de cast: modelo, binder e `ChannelSource`
 - Escopo: `UIModels.cs` (`CastBarModel`), `Runtime/UI/CastBarBinder.cs`, `Runtime/GAS.UI/ChannelSource.cs` (novos), `UIEditors.cs`, `Tests/GAS.UI/PlayMode/ChannelSourceTests.cs` (novo), `DocUrls.cs` (`UiCastBar`), `DocUrlsTests.cs`, `Documentation~/manual/ui/barra-de-cast.md` (nova), `CHANGELOG.md`.
@@ -145,11 +466,73 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Mesma
 - Critério de pronto: CA21 a CA25 verdes.
 - Tamanho estimado: ~470 linhas; 9 arquivos. Depende de: SL9, EV13.
 
+### Detalhe (2026-11-04)
+- CA: CA21 (C16), CA22 (C17), CA23 (C18), CA24 (C19) e CA25 (C20), com o R17 (modelo), o R18 (fonte só por evento, tick só com duração, sem ativar nem cancelar), o R19 (a mais recente, P7) e a prévia do R21 (60 %, "Fireball", 1,2 s). Dependência conferida no código: EV13 (`AbilitySpec.IsChanneling` e `ChannelDuration`, `AbilitySpec.cs:18-20`; `GetChannelElapsed/Remaining/Normalized`, `AbilitySystemComponent.cs:1219-1239`, pelo `TickedTime` do ASC; a duração é gravada antes do `OnAbilityActivated`, `:1116`, e zerada antes do `OnAbilityEnded`, `:1303`).
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/UI/UIModels.cs` (depois do `SlotModel`, `:309`): `enum CastBarState { Idle, Channeling }`, `enum CastBarResult { None, Completed, Cancelled }` e `readonly struct CastBarModel` com `State`, `Icon` (`Sprite`), `Name` (`string` do provedor), `Fraction` (0 a 1), `Remaining` (nunca negativo), `Indeterminate`, `LastResult` e `ResultCount`, por um construtor com tudo (fração e segundos limitados). O `default` é `Idle` sem resultado. Sem GAS.
+  - `Runtime/GAS.UI/ChannelSource.cs` (novo): `[Serializable, TypeCategory("Habilidades", Summary = ..., Line = ...)] public sealed class ChannelSource : UISource<CastBarModel>`, oferecida pelo seletor do `source` do binder (ADR 0013, item 4, como o `AbilitySlotSource`). Campo `previewAbility` (`GameplayAbility`, só para a prévia); `OwnerType` = ASC.
+    - ligação: assina `OnAbilityActivated` e `OnAbilityEnded` com delegates criados uma vez. Ao ligar, procura em `Abilities` a canalização em curso que começou por último, a de menor `GetChannelElapsed` (laço sem alocar; o `ChannelStart` do spec é interno ao GAS, e o GAS não muda). Início com `IsChanneling`: ela passa a ser a mostrada. Fim da mostrada: `LastResult` = `Cancelled` ou `Completed` e `ResultCount++`, e procura outra que ainda canaliza; sem outra, `Idle`. O fim de uma que não é a mostrada, ou de habilidade que não canaliza, não publica. Nome pelo `DisplayName.Resolve(Context.Text)` (DE5), resolvido no início, não no tick. Fração e segundos lidos do ASC (`GetChannelNormalized`, `GetChannelRemaining`) no tick, pedido só enquanto a mostrada tem `ChannelDuration > 0`. Dono que não é ASC: `Idle`. Não chama nada que ative ou cancele;
+    - prévia: `Channeling`, 60 %, 1,2 s, ícone e nome da `previewAbility` ou "Fireball" sem ela.
+  - `Runtime/UI/CastBarBinder.cs` (novo): `public sealed class CastBarBinder : UIBinder<CastBarModel>`, `[HelpURL(DocUrls.UiCastBar + "#castbarbinder")]`. Herda o receptor explícito do `UIBinder<TModel>` (`UIBinder.cs:365`) e não declara nenhum.
+  - `Runtime/Core/DocUrls.cs:32`: `UiCastBar = Base + "ui/barra-de-cast/"`; `Tests/Core/EditMode/DocUrlsTests.cs:40`: o caso dela.
+  - `Editor/UI/UIEditors.cs:52`: `CastBarBinderEditor : UIBinderEditor`, para a guarda `SpellBookEditorCoverageTests`.
+  - `Tests/GAS.UI/PlayMode/ChannelSourceTests.cs` (novo), com rig próprio (driver com relógio da UI separado do relógio do ASC, binder com dono explícito ou por âncora, view que conta os desenhos).
+  - Os asmdefs não mudam: o runtime `SpellBook.GAS.UI` já referencia GAS, Tags, Core e UI; o `SpellBook.UI.Editor` já referencia o runtime e as dependências dele (ADR 0012, item 2; ADR 0039, item 9); o assembly de teste PlayMode já referencia `SpellBook.Testing` e `SpellBook.Time`.
+- Sem arquivo em comum com o TT1b (#339: `TooltipBinder.cs`, `TooltipBinderTests.cs` e a Spec do tooltip), conferido na entrada.
+- Decisões, com base no PRD e na P7: o `Idle` depois de um fim guarda o ícone e o nome da que acabou, para a view do SL11 mostrar "concluída" ou "cancelada" sobre ela (R20); o `ResultCount` não volta a 0 ao religar, para a view não confundir a troca de dono com um fim. O tempo da barra é o do ASC, como a recarga do slot (P2): com o ASC parado, o tick do driver não move a barra. Nenhuma muda CA, API existente ou formato serializado: são tipos novos.
+- Guardas existentes que cobrem os tipos novos sem mudar: `TypeCatalogSummaryTests` (resumo no seletor), `GasUiSourceScanTests` (sem `Find`, `Instantiate`, `Time.` nem corrotina, também na forma genérica), `HelpUrlTests` e `SpellBookEditorCoverageTests`. Nenhuma guarda de regex nova.
+- Fora deste ticket: a página `manual/ui/barra-de-cast.md` fica para o passe de documentação (emenda de 2026-11-03 da ADR 0007); até lá a guarda `ManualLinksTests` (categoria `Documentacao`) acusa a âncora `#castbarbinder` sem página, como no SL3, no SL6 e no SL8. O `CHANGELOG.md` sai porque não há quebra (item 4 da mesma emenda). View, prefab e validação são do SL11.
+- Testes red (PlayMode, `SpellBook.GAS.UI.Tests.PlayMode`, classe `ChannelSourceTests`):
+  - `Channel3s_FractionUp_SecondsDown_CompletedThenIdle_PauseStops` (CA21, C16: nome e ícone ao ativar; fração sobe e segundos descem a cada segundo; com o relógio do ASC parado e o da UI andando, a barra não anda; aos 3 s, `Idle` com `Completed` e o contador em 1; sem tick depois);
+  - `CancelByCodeAndByTag_Cancelled_CountUp` (CA22, C17: `CancelAbility` e uma tag do `CancelledByTags` da habilidade posta no ASC dão `Cancelled`, com o contador em 1 e 2);
+  - `NoDuration_Indeterminate` (CA23, C18: indeterminada, fração e segundos 0, sem pedir tick);
+  - `InstantTogglePassive_NoBar` (CA24, C19: `Instant`, `Toggle` e `Passive` ativam e terminam sem desenhar `Channeling`; a canalização seguinte, controle positivo, acende sem resultado anterior);
+  - `AnchorRespawn_Rebinds_Ticks10000_NoAlloc_NeverActivatesOrCancels` (CA25, C20: dono pela `AbilitySystemAnchor`; o ASC novo, já canalizando, aparece ao religar, e o antigo não mexe mais na barra; 10 000 ticks de progresso sem alocar depois do aquecimento; o ASC antigo cancela e começa outra canalização sem desenhar; a barra não dispara `OnAbilityActivated` nem `OnAbilityEnded` no ASC novo, que segue canalizando, depois de ligar, tick, religar e desligar o binder);
+  - `TwoChannels_MostRecentShown_ThenTheOther` (R19: a segunda aparece; o fim de uma que não é a mostrada não publica resultado; cancelada a mostrada, volta a outra, com o resto do tempo dela);
+  - `Preview_SixtyPercent_NameOrFireball` (R21, parte da fonte).
+  Red contra um esqueleto que compila (a fonte com o campo e uma ligação que só publica o `default`; prévia `default`; modelo, binder, editor e `DocUrls` já completos): 6 de 7 falham pelo motivo esperado (`Idle` onde se esperava `Channeling`; nome nulo onde se esperava "B"). O `InstantTogglePassive_NoBar` passa no esqueleto por ser negativo; ele é provado pelas mutações abaixo. Green: 7 de 7. Mutações, desfeitas em seguida, cada uma caindo na asserção que diz provar: nome pelo texto padrão sem o provedor ("o nome vem do provedor"); sem ícone; nunca e sempre indeterminada; a última da lista no lugar da mais recente ("volta à mais recente das que sobram"); fim da mostrada sem procurar outra; mostrar qualquer ativação ("só a canalização acende a barra"); contar o fim de qualquer habilidade (o controle positivo vê o contador em 3); resultado trocado; contador parado; sem a busca ao ligar ("ao ligar, acha a canalização em curso"); sem soltar os eventos ao religar ("o ASC antigo não mexe mais na barra"); `Idle` sem o nome da que acabou; relógio próprio pelo tempo do driver ("com o ASC parado, a barra não anda"); tick parado; tick com e sem duração, e depois do fim; alocação no tick; cancelar ao soltar ("a barra não cancela"); cancelar e reativar ao soltar ("a barra não ativa"); prévia em 50 % e sem o nome da habilidade. As asserções do `Idle` inicial e do `Idle` no fim só têm a prova do red.
+- Critério de pronto: os 7 testes verdes, com `total` = 7 no XML (verde: 7 de 7); `DocUrlsTests`, `TypeCatalogSummaryTests`, `GasUiSourceScanTests`, `HelpUrlTests` e `SpellBookEditorCoverageTests` verdes (36 de 36).
+- Tamanho medido (`git diff --numstat` e `wc -l` dos novos): 632 linhas em 8 arquivos. Em `.cs`: `ChannelSource.cs` 156, `CastBarBinder.cs` 11, `UIModels.cs` +69, `UIEditors.cs` +4, `DocUrls.cs` +1, `DocUrlsTests.cs` +1 e `ChannelSourceTests.cs` 390; a Spec conta só como arquivo. Exceção: 632 passa do teto de 500, dentro de +30% (650). Motivo: o arquivo de teste tem 390 linhas, com sete casos (cinco CA, o R19 e a prévia) e o rig de dois relógios, âncora, tema com provedor e view que conta desenhos; os casos negativos precisaram de controle positivo para a prova por mutação. Dividir separaria a fonte dos testes dela.
+- Commit: `feat(gas-ui): barra de cast com ChannelSource (#258)`
+
 ### SL11 — View, prefab e validação da barra de cast
 - Escopo: `Runtime/UI.UGUI/CastBarView.cs` (novo), `Runtime/UI.UGUI/Prefabs/CastBar.prefab` (fixture), `UGUIEditors.cs`, `CastBarBinder.cs`, `ChannelSource.cs` (`Validate`), `Tests/UI.UGUI/EditMode/CastBarViewTests.cs`, `Tests/GAS.UI/EditMode/CastBarValidationTests.cs` (novos), `barra-de-cast.md`, `CHANGELOG.md` (R15 e R21 completos).
 - Testes red: `CastBarView_FillNameIconSeconds_Indeterminate_CompletedVsCancelled`; `CastBar_Validate_NoSourceViewPrefab`.
 - Critério de pronto: testes verdes; CA26 (S/E) conferido; CA17, CA19 e CA20 conferidos pelo Examinador.
 - Tamanho estimado: ~360 linhas; 9 arquivos (1 fixture). Depende de: SL10.
+
+### Detalhe (2026-11-04)
+- CA: CA26 (S/E), parte automática (o prefab, em edição, mostra a prévia da fonte: 60 %, "Fireball" e 1,2 s; a view tem `[HelpURL]`); o R20 (view e prefab: preenchimento, nome, ícone, segundos, modo indeterminado e feedback distinto de concluída e cancelada, sem conhecer o GAS) e a validação do R21 e do Design 7 (`CastBarBinder` sem fonte ou sem view). O CA17, o CA19 e o CA20 seguem pelas guardas existentes e pelo Examinador (`GasUiSourceScanTests` já varre `Runtime/UI.UGUI`; o `SpellBook.UI.UGUI` não referencia o GAS; o PRD do Sample não muda).
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/UI.UGUI/CastBarView.cs` (novo): `public sealed class CastBarView : MonoBehaviour, IView<CastBarModel>`, `[HelpURL(DocUrls.UiCastBar + "#castbarview")]`. Campos `[SerializeField]` privados, todos opcionais: `content` (`GameObject` com o desenho), `fill` (`Image`, tipo Filled), `indeterminate` (`GameObject`), `icon` (`Image`), `nameText` e `secondsText` (`TMP_Text`), `completed` e `cancelled` (`GameObject`), `theme` (`UITheme`, só a cultura dos segundos; vazio, a invariante), `animator` (`Animator`), `channelingParameter` = "Channeling" (bool), `completedTrigger` = "Completed", `cancelledTrigger` = "Cancelled". O `Render`:
+    - `Idle` sem resultado (o `default`): esconde `content`;
+    - `Channeling`: `content` ligado; ícone (desligado sem sprite); nome entregue ao TMP só quando muda (é a `string` do provedor, a view não monta texto); `fill.fillAmount` = `Fraction`; segundos com uma casa ("0.0", pela cultura do `theme`), num `TextBuffer` da view, por `SetCharArray` (`RoleColors.Write`); indeterminada: `indeterminate` ligado, preenchimento em 0 e segundos vazios; `completed` e `cancelled` desligados;
+    - `Idle` com resultado: `content` ligado com o ícone e o nome da que acabou (SL10); `completed` ou `cancelled` ligado pelo `LastResult`; segundos vazios; indeterminada desligada; concluída enche o preenchimento, cancelada o deixa onde parou;
+    - `animator` (opcional, com controller): `SetBool(channelingParameter)` a cada desenho e um gatilho de `completedTrigger` ou `cancelledTrigger` a cada mudança de `ResultCount` entre dois desenhos. O primeiro desenho e o desenho depois do `Idle` sem resultado (troca de dono, `ShowEmpty`) só guardam a base, sem animar, porque o `ResultCount` não volta a 0 ao religar (SL10).
+  - `Editor/UI.UGUI/CastBarViewEditor.cs` (novo): `CastBarViewEditor : SpellBookEditor`, para a guarda `SpellBookEditorCoverageTests`. Fica num arquivo próprio, e não no `UGUIEditors.cs` do Design, para não ter arquivo em comum com o TT2 (#261), que mexe nele em paralelo.
+  - `Runtime/UI.UGUI/Prefabs/CastBar.prefab` (novo, fixture): raiz 240×28 com `CanvasGroup`, `CastBarView`, `Animator` (controller abaixo) e `CastBarBinder` com fonte `ChannelSource` (sem `previewAbility`), `view` = a `CastBarView`, dono `SelfOrParent`. Filhos de `Content`: `Background`, `Fill` (Filled, horizontal), `Indeterminate` (desligado), `Icon`, textos `Name` e `Seconds` (TMP com fonte nula, ADR 0039), `Completed` e `Cancelled` (imagens, desligadas). Todo `Graphic` com `raycastTarget` desligado (só exibição).
+  - `Runtime/UI.UGUI/Prefabs/CastBar.controller` (novo, fixture): parâmetros `Channeling` (bool), `Completed` e `Cancelled` (gatilhos). Estado `Shown` padrão, sem clipe; do *Any State* para `Completed` (alfa do `CanvasGroup` 1 até 0,3 s e 0 em 0,6 s) e `Cancelled` (posição x do `Content` 0, −4, 4, −3, 3, 0 e o mesmo alfa); os dois vão a `Hidden` (alfa 0) no fim, e `Completed`, `Cancelled` e `Hidden` voltam a `Shown` com `Channeling`. Os clipes são subassets do controller.
+  - Os dois assets são autorados pela Unity em batchmode por um script descartável em `Assets/__SpellBookTestTemp_SL11/Editor/` (pasta ignorada), apagado no fim com os `.meta`; nenhum YAML à mão (ADR 0028, por analogia, como no SL8; sem `Samples`, sem `Samples.meta`).
+  - `Tests/UI.UGUI/EditMode/CastBarViewTests.cs` (novo). O asmdef de teste já referencia `SpellBook.UI`, `SpellBook.UI.UGUI`, `SpellBook.GAS.UI`, uGUI e TMP; nenhum asmdef muda (o `SpellBook.UI.UGUI.Editor` já referencia o runtime e as dependências dele, ADR 0012, item 2, e ADR 0039, item 9).
+- Sem arquivo em comum com o TT2 (#261), conferido na entrada no worktree dele (`UGUIEditors.cs`, `TooltipView.cs`, `TooltipLineView.cs`, `TooltipPlacement.cs`, `Tooltip.prefab` e a Spec do tooltip). Este ticket não toca `UGUIEditors.cs`, `DocUrls.cs` (a `UiCastBar` é do SL10), `DocUrlsTests.cs` nem asmdef.
+- Decisões, com base no código e nas ADRs:
+  - Validação sem código novo: o `CastBarBinder` não tem campo de prefab (ele fica no prefab, não o cria), então o "sem prefab" do Design 7 vira "sem view ou view que não desenha `CastBarModel`". O `UIBinder<TModel>.Validate` (`UIBinder.cs:336-360`) já dá esses erros e o de "sem fonte"; o `ChannelSource` não tem campo obrigatório (a `previewAbility` é opcional). Por isso `CastBarBinder.cs` e `ChannelSource.cs` não mudam, e o teste prova as regras na barra de cast. Erro, e não aviso como no R21, segue o Design 7 e a base.
+  - Segundos com uma casa, pela cultura do `UITheme` da view (ADR 0038, item 5: a cultura vem do tema), como o `TextView` lê as cores do tema dele. A prévia mostra "1.2" sem tema e "1,2" com um provedor `pt-BR`.
+  - Feedback do resultado pelo `Animator`, por gatilho, como o pulso do SL8: a view não lê o tempo (ADR 0039; CA19). O controller do prefab apaga a barra no fim e a acende de novo com `Channeling`. Sem `animator`, o último resultado fica à vista até a próxima canalização.
+  - Nenhuma decisão muda CA, API existente ou formato serializado: são tipos e assets novos.
+- Fora deste ticket: a página `manual/ui/barra-de-cast.md` (com a âncora `#castbarview`) fica para o passe de documentação (emenda de 2026-11-03 da ADR 0007); até lá a guarda `ManualLinksTests` (categoria `Documentacao`) acusa a âncora sem página, como no SL8 e no SL10. O `CHANGELOG.md` sai porque não há quebra (item 4 da mesma emenda).
+- Testes red (EditMode, `SpellBook.UI.UGUI.Tests.EditMode`, classe `CastBarViewTests`, num Canvas do teste):
+  - `Channeling_FillNameIconSeconds` (R20: preenchimento 0,6, ícone, nome, "1.2" sem tema e "1,2" com tema `pt-BR`, sem `string` nos segundos; marcas de resultado e de indeterminada desligadas);
+  - `Indeterminate_MarkerWithoutSeconds` (R20 e C18: marca ligada, preenchimento 0, segundos vazios);
+  - `Idle_HiddenWithoutResult_MarkerByResult` (R20: o `default` esconde; concluída liga só `completed` e enche; cancelada liga só `cancelled` e deixa o preenchimento onde parou);
+  - `ResultTrigger_OncePerEnd_NotOnFirstOrAfterEmpty` (R20: primeiro desenho e contador repetido não animam; cada fim dispara o gatilho do resultado dele uma vez; o `bool` acompanha o estado; depois do vazio, o desenho é o primeiro de novo);
+  - `Prefab_Wired_PreviewInEditMode` (CA26, parte automática: partes ligadas, `CastBarBinder` com `ChannelSource` e a view, controller com os três parâmetros, sem `raycastTarget`, TMP sem fonte; a instância, em edição, mostra 0,6, "Fireball" e "1.2");
+  - `CastBar_Validate_NoSourceViewPrefab` (Design 7, pelo `ValidationResult`: sem fonte, erro em `source`; sem view e view que não desenha `CastBarModel`, erro em `view`; o prefab sem mensagens).
+  Red contra um esqueleto que compila (a view com os campos e o `Render` vazio, o editor completo, sem os assets): 6 de 6 falham. Cinco pelo motivo esperado (preenchimento 1 onde se esperava 0,6; barra à vista no vazio; preenchimento 1 na indeterminada; prefab inexistente; `bool` desligado). O `CastBar_Validate_NoSourceViewPrefab` falhou no "sem view" por erro do teste: o dono sem ASC na cena do teste dá um aviso legítimo do resolvedor. O teste passou a comparar só os erros, e o prefab do pacote, fora de cena, continua sem mensagem nenhuma. As regras de validação já passam pela base, por isso são provadas por mutação no `UIBinder<TModel>.Validate`.
+  Green: 6 de 6. Mutações, em seis rodadas, uma por teste em cada rodada, todas desfeitas em seguida. Cada uma caiu na asserção que diz provar: segundos por `string` ("entregou string"); cultura ignorada ("a cultura vem do tema"); nome entregue a cada desenho ("o mesmo nome não é entregue de novo"); ícone sempre ligado ("sem sprite"); preenchimento parado ("0,6" e "a prévia mostra 60 %"); marca indeterminada nunca ligada, que não sai e com segundos ou preenchimento; marcas trocadas; vazio sem esconder; concluída sem encher; cancelada que zera ("onde parou"); marca acesa durante a nova canalização; gatilhos trocados; primeiro desenho que anima; vazio que guarda a base; `bool` não escrito; gatilho sem a mudança do contador ("contador igual não anima"); e, no `UIBinder<TModel>.Validate`, sem a regra de fonte, de view e de tipo da view. As asserções de estrutura do prefab só têm a prova do red (prefab ausente).
+- Critério de pronto: os 6 testes verdes, com `total` = 6 no XML; `WidgetViewsTests`, `WidgetPrefabsTests`, `SlotViewTests`, `GasUiSourceScanTests`, `HelpUrlTests` e `SpellBookEditorCoverageTests` verdes (28 de 28 no total, com os 6). Conferência visual no host (CA26: a prévia no prefab sem Play; concluída e cancelada no Play) fica como pendência manual para o usuário.
+- Tamanho medido (`git diff --numstat` e `wc -l` dos novos): 507 linhas em 6 arquivos. Em `.cs`: `CastBarView.cs` 141, `CastBarViewEditor.cs` 10 e `CastBarViewTests.cs` 356. O prefab, o controller e a Spec contam só como arquivo. Exceção: 507 passa do teto de 500 (+1,4 %), dentro de +30 % (650). Motivo: o arquivo de teste tem 356 linhas, com seis casos, o rig da view (canvas, oito partes, textos que contam `string`, `Animator` iniciado em edição, tema com cultura) e a conferência do prefab com a prévia. Dividir separaria a view dos testes dela ou do prefab que ela liga.
+- Commit: `feat(ui-ugui): view e prefab da barra de cast (#259)`
 
 ### SL12 — HUD do Sample (S4): dados e âncoras
 Complemento do B-032, planejado aqui a pedido do Controlador. Segue a emenda do PRD do Sample (seção 10 de [prd/sample-sandbox.md](../prd/sample-sandbox.md), aprovada no gate de 2026-11-01: R4, R6, R11, R21 e R23 revistos, R24 a R33, CA22 a CA30) e o D7 da [Spec do Sample](sample-sandbox.md). Sem script novo no Sample: a asmdef e as guardas do SB-T1 não mudam (R25). A detecção do HUD para o Console (R21) é do SB-T7 e do SB-T8. Autoria pela ADR 0028.
@@ -158,21 +541,92 @@ Complemento do B-032, planejado aqui a pedido do Controlador. Segue a emenda do 
 - Critério de pronto: com a pasta renomeada, os assets abrem sem "Missing" e a `SpellBook > Validar projeto` não acusa erro neles (CA29, parte). S1 a S3 seguem como antes (os prefabs só ganham o `AnchorRegistrar`).
 - Tamanho estimado: 0 linhas de código; 9 arquivos (fixtures). Depende de: SL11, UI14, DE11, DE6, EV21, SB-T8.
 
+### Detalhe (2026-11-04)
+- CA: CA29 do PRD do Sample (parte: as guardas do SB-T1 seguem verdes, nenhum `.cs` do Sample cita `UnityEngine.UI` ou `TMPro`, e o validador não acusa erro nos assets do HUD); a base de dados do R25, R27, R30 e R31. CA22 a CA28 e CA30 fecham no SL13 (prefab e cena). Nenhum CA muda.
+- Escopo (caminhos em `Packages/com.spellbook/Samples~/Sandbox/`; autoria pela ADR 0028, com a pasta renomeada):
+  - `Data/UI/ANC_Jogador.asset` e `Data/UI/ANC_Boneco.asset` (novos, `AbilitySystemAnchor`).
+  - `Data/UI/HUD_Textos.asset` (novo, `TableTextProvider`): `tables` = `GasTexts.pt-BR` e `GasTexts.en` (`Runtime/GAS/Text/`, as tabelas `GasTexts` do pacote), `cultureName` = `pt-BR` (R31). A `en` não é lida em `pt-BR`; fica para trocar a cultura sem editar o asset.
+  - `Data/UI/HUD_Tema.asset` (novo, `UITheme`): `text` = `HUD_Textos`, `roles` vazio (o tema padrão do pacote, `UITheme.cs:26`).
+  - `Data/Tags/TAG_Slot_1.asset` (novo, `GameplayTagDefinition`, sem pai; o nome do asset é o nome da tag, `GameplayTag.cs:14`).
+  - `Data/UI/HUD_Teclas.asset` (novo, `FixedKeyLabelProvider`): uma linha, `TAG_Slot_1` → `LocalizedText` sem chave e com texto "1" (R27; o nome da tecla não é texto traduzível).
+  - `Data/UI/HUD_Loadout.asset` (novo, `AbilityLoadout`): uma entrada, `TAG_Slot_1` → `GA_BolaDeFogo`; `keyLabels` = `HUD_Teclas`.
+  - `Prefabs/Conjurador.prefab` e `Prefabs/BonecoDeTreino.prefab`: `AnchorRegistrar` na raiz, depois dos componentes atuais, com `anchor` = `ANC_Jogador` e `ANC_Boneco` e `value` vazio (publica o ASC da raiz, `AnchorRegistrar.cs:25-28,71-85`). No `R`, a instância nova publica no `OnEnable` e a antiga só sai se ainda for a da âncora (`RuntimeAnchor.UnsetUntyped`), então o HUD religa ao ator novo (R30). Nada mais muda nos prefabs; se a Unity regravar campos que faltavam no YAML, o valor é o padrão.
+  - Os assets e os prefabs são criados e editados pela Unity em batchmode, por um script de Editor descartável em `Assets/__SpellBookTestTemp_SL12/Editor/` (ignorado pelo `.gitignore`), rodado com `-executeMethod` e apagado no fim com os `.meta`. Com a pasta renomeada, o mesmo script (segunda chamada) recarrega os assets, procura referência perdida (`objectReferenceInstanceIDValue` diferente de 0 com valor nulo) e roda o `ProjectValidator.Validate` sobre os sete assets e os dois prefabs. Depois a pasta volta a `Samples~`, sem `Samples.meta` (ADR 0028, itens 1 a 3). Nenhum YAML nem `.meta` à mão.
+  - Nenhum `.cs`, asmdef, `package.json` ou cena muda (R25; a cena é do SL13). Sem script novo no Sample.
+  - Fora do ticket: o manual (`manual/exemplos/sandbox.md`) e o `Samples~/Sandbox/README.md` ficam para o passe de documentação (emenda de 2026-11-03 da 0007); sem `CHANGELOG.md`, porque nada quebra (a linha do HUD do Sandbox entra com o SL13 ou no passe).
+  - Paralelo com o TT3 (#262): o TT3 só toca `Runtime/UI.UGUI/`, `Editor/UI.UGUI/`, `Tests/UI.UGUI/` e a Spec do tooltip; este ticket só toca `Samples~/Sandbox/` e este Detalhe. Não há arquivo em comum.
+- Decisões, com base no código e nas ADRs:
+  - `GA_BolaDeFogo` não tem `Icon` nem `localizedName` (DE6 o deixou vazio). O validador do loadout dá um **aviso** ("sem ícone", `AbilityLoadout.cs`), não erro, e o critério deste ticket é "sem erro". Dar ícone ou nome à habilidade está fora do escopo do SL12 (o R27 pede "ícone ou nome" no slot); fica como pendência para o SL13.
+  - Nenhuma decisão muda CA, API ou formato serializado: são assets novos e um componente do pacote nos prefabs.
+- Testes red: nenhum teste novo (fixtures; R25). As guardas do SB-T1 em `SampleStructureTests` (EditMode, `SpellBook.Core.Tests.EditMode`) cobrem os arquivos novos: `SampleFiles_EveryAssetHasMetaAndUniqueGuid`, `Package_HasNoUntildedSamplesFolder`, `SampleSources_UseNoInputSystemUiOrEditor`, `SampleAsmdef_ReferencesOnlyAllowedModules`. Red forçado, desfeito em seguida: um `.meta` novo tirado do lugar e outro com o GUID de um `.meta` do pacote fazem o `SampleFiles_EveryAssetHasMetaAndUniqueGuid` falhar nas duas linhas ("sem .meta" e "colide com").
+- Critério de pronto:
+  - com a pasta renomeada: os sete assets e os dois prefabs carregam sem referência perdida, e o `ProjectValidator` não dá erro neles (só o aviso do ícone, acima);
+  - com a pasta de volta como `Samples~` e sem `Samples.meta`: as sete guardas da `SampleStructureTests` verdes (`total` = 7 no XML);
+  - pendente para o usuário: a conferência visual do HUD (CA22 a CA30) no host, depois do SL13;
+  - a suíte completa roda na `/revisao`.
+- Resultado: com a pasta renomeada, a verificação não achou referência perdida nem erro do validador, só o aviso do ícone. Os dois prefabs ganharam só o `AnchorRegistrar`. O `BonecoDeTreino.prefab` também ganhou o `startingEffects: []` do ASC, que a Unity regravou com o valor padrão. Red forçado: 6 de 7, com o `SampleFiles_EveryAssetHasMetaAndUniqueGuid` falhando nas duas linhas esperadas: "ANC_Jogador.asset: sem .meta" e "HUD_Tema.asset.meta: guid … colide com Runtime/GAS/Text/GasTexts.pt-BR.asset.meta". Desfeito o red, deu 7 de 7 (`total` = 7). O `git diff --check` só acusa o `m_Name: ` vazio dos componentes, que a Unity grava assim em todo prefab.
+- Tamanho medido (`git diff --numstat` e arquivos novos): 0 linhas em código e 9 arquivos (7 assets novos; prefabs com +15 e +16 linhas de YAML, que não contam como linha pela ADR 0042), pela ADR 0042. Exceção: nenhuma.
+- Commit: `feat(samples): dados e âncoras do HUD do Sandbox (#275)`
+
 ### SL13 — HUD do Sample (S4): prefab, cena e documentação
 - Escopo: `Samples~/Sandbox/Data/UI/HUD_Regras.asset` (`FloatingTextRules`: Vida negativa → dano, positiva → cura, R28), `Data/Pooling/SP_Numeros.asset` (`PooledSpawnerAsset`), `Prefabs/HUD.prefab` (raiz com `AnchorRegistrar` na `ANC_HUD` do SB-T8, `value` vazio; Canvas em tela sem `GraphicRaycaster`; `UIUpdateDriver` com `TS_Gameplay`; barras de Vida e Mana do jogador por `ANC_Jogador`, barra de Vida do boneco por `ANC_Boneco`; `AbilityBar` com o loadout; `FloatingTextBinder` do boneco com `TS_Gameplay`), `Scenes/Sandbox.unity` (+HUD; sem `EventSystem`, R32), `Documentation~/manual/exemplos/sandbox.md` (seção HUD: passo do TMP Essentials, Q14; o que volta ao Console sem o prefab, R21), `Samples~/Sandbox/README.md`, `CHANGELOG.md`.
 - Testes red: nenhum automático (a cena é conferida à mão, como no SB-T5).
 - Critério de pronto: no host 6000.3.13f1, num projeto vazio, sem a pasta renomeada (import pela aba Samples), CA22 a CA30 do PRD do Sample conferidos à mão: as barras acompanham custo, dano e queimadura; o slot mostra a tecla, a recarga e o "sem mana"; os números sobem e voltam ao pool; `P` e `T` valem para o HUD; o `R` religa o HUD ao jogador e ao boneco novos; com o HUD, o Console segue o CA30; apagado o prefab da cena, CA6 a CA21 continuam valendo, o tique e a falha voltam ao Console e não há "Missing" (CA28). Entrada só pelo Input Manager legado (o `SandboxCaster` existente). Resultado na seção 9 do PRD do Sample.
 - Tamanho estimado: 0 linhas de código; 7 arquivos (4 fixtures, 2 páginas). Depende de: SL12, UI12.
 
+### Detalhe (2026-11-04)
+- CA: CA22 a CA28 e CA30 do PRD do Sample (conferência à mão no host, pendente para o usuário) e CA29 (guardas do SB-T1 e validador sem erro, conferidos aqui); R24 a R33. Nenhum CA muda.
+- Escopo (caminhos em `Packages/com.spellbook/Samples~/Sandbox/`; autoria pela ADR 0028, com a pasta renomeada):
+  - `Data/UI/HUD_Dano.asset` e `Data/UI/HUD_Cura.asset` (novos, `FloatingTextStyle`): papel `Harmful` e `Beneficial`, duração 1 s, subida (0, 60), deslocamento aleatório (20, 10), sem `format` (o texto vem do valor). O escopo da parte fixa não os lista, mas a `FloatingTextRules` exige estilo em cada regra (erro do validador, `FloatingTextRules.cs`): consequência direta (ADR 0042, item 6), e contam.
+  - `Data/UI/HUD_Regras.asset` (novo, `FloatingTextRules`): `ATR_Vida` `Negative` → `HUD_Dano`; `ATR_Vida` `Positive` → `HUD_Cura`; `damageTags` vazio; `blocked` vazio (R28).
+  - `Data/Pooling/SP_Numeros.asset` (novo, `PooledSpawnerAsset`): `initialSize` 8, `canExpand` ligado, como o `SP_Projeteis` (R17, R28). O pool cresce só até o pico de números vivos e os reusa (CA25).
+  - Nome da Bola de Fogo (pedido da revisão do SL12): `Data/UI/TXT_Sandbox.pt-BR.asset` (novo, `TextTable`, cultura `pt-BR`, uma entrada `sandbox.ability.bola_de_fogo` → "Bola de Fogo"); `Data/UI/HUD_Textos.asset` ganha a tabela no fim de `tables` (sem chave em comum com `GasTexts`); `Data/Abilities/GA_BolaDeFogo.asset`: `localizedName` = chave `sandbox.ability.bola_de_fogo`, texto padrão "Bola de Fogo" (R31). A tabela é do Sample, não do pacote: as `GasTexts` só têm chaves `gas.*` do pacote.
+  - Ícone: não há sprite no pacote nem no Sample que sirva (o único `.png` do repositório é o `EmojiOne.png` do TMP Essentials em `Assets/TextMesh Pro/`, que não é do pacote nem vai no Sample). O `Icon` fica vazio, sem arte nova, e o aviso "sem ícone" do validador continua (aviso, não erro; CA29 pede "sem erro").
+  - `Prefabs/HUD.prefab` (novo): raiz "HUD" com `RectTransform`, `Canvas` em `ScreenSpaceOverlay`, `CanvasScaler` (`ScaleWithScreenSize`, 1920×1080, `match` 0,5), **sem** `GraphicRaycaster` (R32), `AnchorRegistrar` (`ANC_HUD`, `value` vazio; publica o `Transform` da raiz, D7 item 1) e `UIUpdateDriver` com `TS_Gameplay` (R29). Filhos, todos com `theme` = `HUD_Tema` e `driver` vazio (o da raiz, pelo pai):
+    - "Jogador" (canto superior esquerdo): duas instâncias do `AttributeBar.prefab` do pacote, "Vida" (`AttributeBarSource.current` = `ATR_Vida`) e "Mana" (`ATR_Mana`), `owner` `FromAnchor` = `ANC_Jogador` (R26);
+    - "Boneco" (canto superior direito): instância do `AttributeBar.prefab`, `ATR_Vida`, `owner` `FromAnchor` = `ANC_Boneco` (R26);
+    - "Habilidades" (centro de baixo): instância do `AbilityBar.prefab` do pacote, `AbilityLoadoutSource.loadout` = `HUD_Loadout`, `owner` `FromAnchor` = `ANC_Jogador` (R27);
+    - "Números" (tela inteira): `FloatingTextBinder` com `FloatingTextSource` (`rules` = `HUD_Regras`, `offset` (0, 2, 0)), `prefab` = `FloatingText.prefab` do pacote, `spawner` = `SP_Numeros`, `container` vazio (o próprio objeto), `owner` `FromAnchor` = `ANC_Boneco` (R28). O `FloatingTextView` projeta pela `Camera.main` da cena no Overlay.
+    O `max` das barras fica vazio (máximo efetivo do atributo). Os prefabs do pacote entram como instâncias aninhadas, com os campos acima como sobrescrita; nada muda nos prefabs do pacote.
+  - `Scenes/Sandbox.unity`: instância do `HUD.prefab` na raiz da cena. Sem `EventSystem` (R32); nada mais muda.
+  - A autoria é da Unity em batchmode, como no SL12: script de Editor descartável em `Assets/__SpellBookTestTemp_SL13/Editor/` (ignorado pelo `.gitignore`), `-executeMethod` em duas chamadas (`Build` e `Verify`), apagado no fim com os `.meta`. O `Verify` recarrega os assets, o prefab e a cena, procura componente com script ausente e referência perdida (`objectReferenceInstanceIDValue` diferente de 0 com valor nulo) e roda o `ProjectValidator.Validate` sobre os assets novos, o `GA_BolaDeFogo`, a hierarquia do `HUD.prefab` e os objetos da cena; sai com código 1 se houver erro. Depois a pasta volta a `Samples~`, sem `Samples.meta` (ADR 0028). Nenhum YAML nem `.meta` à mão.
+  - Nenhum `.cs`, asmdef, `package.json` muda (R25).
+  - Fora do ticket, pela regra do `AGENTS.md` ("Manual, catálogo e referência da API só no passe de documentação") e pela emenda de 2026-11-03 da 0007, embora a parte fixa liste `manual/exemplos/sandbox.md`, `Samples~/Sandbox/README.md` e `CHANGELOG.md`: a regra de processo vale sobre o escopo escrito antes dela. Ficam para o passe: na página do Sample, a seção HUD (o que cada objeto do `HUD.prefab` liga, o passo do TMP Essentials num projeto sem os recursos do TextMeshPro (Q14, risco 4), o que volta ao Console sem o prefab (R21, tabela "O que fica no Console com o HUD" da D7) e o HUD desligado contar como ausente (risco 5)); o mesmo resumo no `README.md`; no `CHANGELOG.md`, a linha "Adicionado" do HUD do Sandbox. Nenhuma entrada de quebra, porque nada quebra.
+- Testes red: nenhum teste novo (fixtures; R25 e a decisão do SB-T5 de conferir a cena à mão). Red do critério: o `Verify` rodado antes do `Build` falha (o `HUD.prefab` e os assets novos não existem). Guardas do SB-T1 em `SampleStructureTests` (EditMode, `SpellBook.Core.Tests.EditMode`) cobrem os arquivos novos; red forçado, desfeito em seguida: um `.meta` novo tirado do lugar e outro com o GUID de um `.meta` do pacote fazem o `SampleFiles_EveryAssetHasMetaAndUniqueGuid` falhar nas duas linhas. Mutação no `Verify`: com a fonte da barra "Vida" do jogador sem atributo, o `Verify` acusa o erro "Fonte sem atributo" e sai com 1.
+- Critério de pronto:
+  - com a pasta renomeada: o `Verify` sai com 0 (sem script ausente, sem referência perdida, sem erro do validador; só o aviso "sem ícone");
+  - com a pasta de volta como `Samples~` e sem `Samples.meta`: as sete guardas da `SampleStructureTests` verdes (`total` = 7 no XML);
+  - pendente para o usuário: CA22 a CA28 e CA30 no host 6000.3.13f1, num projeto vazio com o Sample importado pela aba Samples (critério da parte fixa), e o resultado na seção 9 do PRD do Sample;
+  - a suíte completa roda na `/revisao`.
+- Resultado: o `Verify` antes do `Build` saiu com 1 (seis arquivos ausentes e "cena com 0 instâncias do HUD"). Depois do `Build`, saiu com 0: 55 alvos, nenhuma mensagem do validador, sem script ausente e sem referência perdida. O aviso "sem ícone" não aparece aqui porque o `HUD_Loadout` não estava entre os alvos; ele continua, como registrado no SL12. A mutação (barra "Vida" do jogador sem atributo, em memória) deu o erro "Fonte sem atributo". Na cena entrou só a instância do `HUD.prefab` (+98 linhas de YAML), e os assets mudados ganharam só as linhas do nome e da tabela. Red forçado das guardas: 6 de 7, com o `SampleFiles_EveryAssetHasMetaAndUniqueGuid` falhando nas duas linhas ("HUD_Regras.asset: sem .meta" e "HUD_Dano.asset.meta: guid … colide com Runtime/GAS/Text/GasTexts.pt-BR.asset.meta"). Desfeito o red, deu 7 de 7 (`total` = 7).
+- Tamanho medido (`git diff --numstat` e arquivos novos): 0 linhas de código e 9 arquivos (8 fixtures novos ou mudados em `Data/`, `Prefabs/` e `Scenes/`, mais o `GA_BolaDeFogo`; contados: `HUD_Dano`, `HUD_Cura`, `HUD_Regras`, `SP_Numeros`, `TXT_Sandbox.pt-BR`, `HUD_Textos`, `GA_BolaDeFogo`, `HUD.prefab`, `Sandbox.unity`), pela ADR 0042. Exceção: nenhuma.
+- Commit: `feat(samples): HUD do Sandbox no prefab e na cena (#276)`
+
+### Detalhe (2026-11-04, correção da revisão)
+- CA: os mesmos (CA22 e CA29; R25). Nenhum CA muda.
+- Achado: as três instâncias do `AttributeBar.prefab` no `HUD.prefab` (Boneco/Vida, Jogador/Vida, Jogador/Mana) ganharam sobrescritas de `m_fontAsset` e `m_sharedMaterial` que apontam para o `LiberationSans SDF` de `Assets/TextMesh Pro/` (guid `8f586378…`), fora do pacote e do Sample. A causa é a Unity gravar a fonte padrão do TMP ao instanciar o `TextMeshProUGUI`. Os prefabs do pacote guardam a fonte vazia (fonte padrão do TMP Settings), e a instância do `AbilityBar` não tem a sobrescrita. Nem a cena nem outro arquivo do `Samples~` cita esse guid.
+- Escopo:
+  - `Prefabs/HUD.prefab`: reverter as seis sobrescritas (`PrefabUtility.RevertPropertyOverride` em `m_fontAsset` e `m_sharedMaterial` de cada instância) por script descartável em batchmode, `Assets/__SpellBookTestTemp_SL13/Editor/`, com `Revert` e `Verify`, apagado no fim; a pasta volta a `Samples~`, sem `Samples.meta` (ADR 0028). Nenhum YAML à mão.
+  - `Packages/com.spellbook/Tests/Core/EditMode/Structure/SampleStructureTests.cs`: guarda nova `SampleAssets_ReferenceNoProjectAssets`. Ela lê os guids citados nos YAML do Sample (`.asset`, `.prefab`, `.unity`, `.mat`), ignora os que estão em algum `.meta` do pacote (o Sample incluso) e acusa os que o `AssetDatabase` resolve para `Assets/` ou não resolve. Os de pacotes de dependência (o `CanvasScaler` do `com.unity.ugui`) e os embutidos da Unity passam. O arquivo é de teste, não do Sample, então o R25 continua valendo. O `Verify` faz a mesma checagem sobre o `HUD.prefab` e a cena.
+- Testes red: `SampleStructureTests.SampleAssets_ReferenceNoProjectAssets` (EditMode, `SpellBook.Core.Tests.EditMode`) falha no estado com a sobrescrita, nas seis linhas do `HUD.prefab` com o guid `8f586378…`. Red forçado no `Verify`, depois da reversão: o prefab antigo volta por cópia, o `Verify` acusa e sai com 1, e a cópia é desfeita.
+- Critério de pronto: o `HUD.prefab` sem `8f586378` e sem `m_fontAsset` ou `m_sharedMaterial` nas instâncias; o `Verify` sai com 0; as oito guardas da `SampleStructureTests` verdes (`total` = 8).
+- Tamanho: 42 linhas em 1 `.cs`; 10 arquivos no total do ticket (os 9 do SL13 mais o teste), pela ADR 0042. Exceção: nenhuma.
+- Commit: o mesmo do SL13.
+- Resultado: o red saiu com 7 de 8, e a guarda nova acusou as linhas 489, 493, 615, 619, 741 e 745 do `HUD.prefab` (`Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset`). As outras 7 guardas passaram, inclusive com o `CanvasScaler` do `com.unity.ugui` e os guids embutidos. O primeiro `Revert` reverteu as 6 sobrescritas, mas, ao salvar, o `TextMeshProUGUI` gravou de novo a fonte padrão (`LoadFontAsset`). No segundo, o script zerou `TMP_Settings.defaultFontAsset` só em memória, sem salvar o TMP Settings, e restaurou o valor no fim. A diferença do prefab foram só as 24 linhas das seis sobrescritas. O `Verify` saiu com 0: 75 alvos, sem erro, só o aviso "sem ícone" do `HUD_Loadout` (#340). O red forçado deu 1 no `Verify`, com 8 erros de dependência de `Assets/TextMesh Pro/` no prefab e na cena. Com a pasta de volta a `Samples~`, sem `Samples.meta` e sem o script, as guardas deram 8 de 8 (`total` = 8). No `Samples~` só o `HUD.prefab` mudou, e nada mais cita `8f586378`.
+
 ### Ordem e resumo
 
 | Ticket | Unity | Depende de | Tamanho |
 |---|---|---|---|
-| SL1 | sim | UI14 | ~480 / 8 |
-| SL2 | sim | SL1 | ~300 / 9 |
+| SL1a | sim | UI14 | 276 / 5 |
+| SL1b | sim | SL1a | 623 / 4 |
+| SL1c | sim | SL1b | 135 / 3 |
+| SL2 | sim | SL1c | ~300 / 9 |
 | SL3 | sim | SL2 | ~240 / 7 |
-| SL4 | sim | SL3, AV4, EA5, EA6 | ~490 / 10 |
-| SL5 | sim | SL4, AV7, DE11 | ~400 / 5 |
+| SL4a | sim | SL3, AV4, EA5, EA6 | 124 / 4 |
+| SL4b | sim | SL4a | 524 / 6 |
+| SL4c | sim | SL4b | 209 / 4 |
+| SL5 | sim | SL4c, AV7, DE11 | ~400 / 5 |
 | SL6 | sim | SL5 | ~420 / 6 |
 | SL7 | sim | SL6, EV14 | ~280 / 4 |
 | SL8 | sim | SL7 | ~380 / 8 |
@@ -182,7 +636,7 @@ Complemento do B-032, planejado aqui a pedido do Controlador. Segue a emenda do 
 | SL12 | sim | SL11, UI14, DE11, DE6, EV21, SB-T8 | ~0 / 9 |
 | SL13 | sim | SL12, UI12 | ~0 / 7 |
 
-Fila: SL1 → SL13 em série. A barra de cast (SL10, SL11) só depende do EV13 e pode adiantar logo depois do SL9. O B-017 e o B-018 começam depois do SL8 (precisam da lista genérica, do `UIItemContext` e do slot com assunto). CA14 e CA17 rodam em todos.
+Fila: SL1a → SL1b → SL1c → SL2 → SL3 → SL4a → SL4b → SL4c → SL5 → … → SL13 em série (o SL1 e o SL4 se dividiram em 2026-11-04, ADR 0042). A barra de cast (SL10, SL11) só depende do EV13 e pode adiantar logo depois do SL9. O B-017 e o B-018 começam depois do SL8 (precisam da lista genérica, do `UIItemContext` e do slot com assunto). CA14 e CA17 rodam em todos.
 
 ## Perguntas ao usuário
 

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 
 namespace SpellBook.Core.Tests.Structure
@@ -42,6 +43,11 @@ namespace SpellBook.Core.Tests.Structure
         private static readonly Regex PerFrameMethod = new Regex(@"\bvoid\s+(?<name>Update|LateUpdate|FixedUpdate)\s*\(\s*\)");
 
         private static readonly Regex MetaGuid = new Regex(@"^guid:\s*([0-9a-fA-F]{32})\s*$", RegexOptions.Multiline);
+
+        private static readonly Regex YamlGuid = new Regex(@"\bguid:\s*([0-9a-fA-F]{32})\b");
+
+        // Arquivos serializados do Sample que citam outros assets por guid.
+        private static readonly string[] SerializedExtensions = { ".asset", ".prefab", ".unity", ".mat" };
 
         [Test]
         public void Package_DeclaresSandboxSample()
@@ -142,6 +148,42 @@ namespace SpellBook.Core.Tests.Structure
             }
 
             Assert.That(entries, Is.Not.Empty, $"a varredura não achou nenhum arquivo em {SamplePath}");
+            Assert.That(violations, Is.Empty);
+        }
+
+        [Test]
+        public void SampleAssets_ReferenceNoProjectAssets()
+        {
+            var packageGuids = new HashSet<string>(PackageFiles.Find(string.Empty, ".meta")
+                .Select(meta => ReadGuid(Path.Combine(PackageFiles.Root, meta)))
+                .Concat(SampleEntries().Where(f => f.EndsWith(".meta", StringComparison.OrdinalIgnoreCase)).Select(ReadGuid))
+                .Where(guid => guid != null));
+            var violations = new List<string>();
+
+            foreach (string file in SampleEntries().Where(f => SerializedExtensions.Any(e => f.EndsWith(e, StringComparison.OrdinalIgnoreCase))))
+            {
+                string[] lines = File.ReadAllLines(file);
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    foreach (Match match in YamlGuid.Matches(lines[i]))
+                    {
+                        string guid = match.Groups[1].Value.ToLowerInvariant();
+                        if (packageGuids.Contains(guid))
+                        {
+                            continue;
+                        }
+
+                        // Fora do pacote, só passa o que a Unity resolve fora de Assets/ (pacotes de dependência e recursos embutidos).
+                        string path = AssetDatabase.GUIDToAssetPath(guid);
+                        if (string.IsNullOrEmpty(path) || path.StartsWith("Assets/", StringComparison.Ordinal))
+                        {
+                            string target = string.IsNullOrEmpty(path) ? "asset desconhecido" : path;
+                            violations.Add($"{Relative(file)}:{i + 1}: guid {guid} aponta para {target}, fora do pacote e do Sample");
+                        }
+                    }
+                }
+            }
+
             Assert.That(violations, Is.Empty);
         }
 

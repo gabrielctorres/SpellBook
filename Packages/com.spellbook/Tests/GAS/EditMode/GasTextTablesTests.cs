@@ -61,12 +61,13 @@ namespace SpellBook.GAS.Tests
         {
             string[] keys = AllKeys();
 
-            Assert.That(keys.Length, Is.EqualTo(19));
+            Assert.That(keys.Length, Is.EqualTo(21));
             Assert.That(keys, Is.Unique);
             foreach (string key in keys)
             {
                 Assert.That(TextKey.IsValid(key), Is.True, key);
-                Assert.That(key, Does.StartWith("gas.activation.").Or.StartWith("gas.description."), key);
+                Assert.That(key, Does.StartWith("gas.activation.").Or.StartWith("gas.description.").Or.StartWith("gas.tooltip."),
+                    key);
             }
         }
 
