@@ -9,9 +9,11 @@ namespace SpellBook.UI
     /// <summary>
     /// Binder de lista (ADR 0039, itens 2 e 6): liga a <see cref="UIListSource{TItem}"/> ao dono e mostra cada item num
     /// objeto criado só pelo <see cref="SpawnerAsset"/> (ADR 0015), na ordem de chegada, no fim do container. Remover
-    /// devolve o objeto ao spawner; mudar o conteúdo reaproveita o objeto. Escreve o dono no
-    /// <see cref="UIItemContext"/> do item. Sem prefab, com prefab sem <see cref="IView{TItem}"/> ou com o spawner sem
-    /// instância, o item é pulado com um aviso em desenvolvimento, sem exceção. Em edição, não cria itens.
+    /// devolve o objeto ao spawner; mudar o conteúdo reaproveita o objeto. Acima de <see cref="MaxVisible"/>, o item fica
+    /// só no estado e a view de "+N" recebe a contagem de ocultos; ao liberar lugar, o oculto mais antigo ganha objeto.
+    /// Escreve o dono no <see cref="UIItemContext"/> do item. Sem prefab, com prefab sem <see cref="IView{TItem}"/> ou
+    /// com o spawner sem instância, o item é pulado com um aviso em desenvolvimento, sem exceção. Em edição, não cria
+    /// itens: só entrega à view de "+N" a contagem da prévia.
     /// </summary>
     /// <typeparam name="TItem">Modelo de cada item.</typeparam>
     public abstract class UIListBinder<TItem> : UIBinderBase, IUIListReceiver<TItem> where TItem : struct
@@ -34,13 +36,23 @@ namespace SpellBook.UI
         [Tooltip("Pai dos itens criados. Vazio: o objeto deste binder.")]
         private Transform container;
 
+        [SerializeField, Min(0)]
+        [Tooltip("Quantos itens ganham objeto. 0: todos.")]
+        private int maxVisible;
+
+        [SerializeField]
+        [Tooltip("Opcional: componente que implementa IView de ListOverflowModel e mostra o \"+N\".")]
+        private MonoBehaviour overflowView;
+
         private readonly List<Entry> _entries = new List<Entry>(InitialCapacity);
 
         // Views e contextos já lidos, por instância: o pool devolve as mesmas instâncias
         private readonly List<GameObject> _known = new List<GameObject>(InitialCapacity);
         private readonly List<KnownItem> _knownItems = new List<KnownItem>(InitialCapacity);
+        private readonly List<TItem> _preview = new List<TItem>(InitialCapacity);
         private UIListBinding<TItem> _binding;
         private UIListSource<TItem> _bindingSource;
+        private int _shownHidden = -1;
         private bool _warnedPrefab;
         private bool _warnedSpawn;
         private bool _warnedView;
@@ -56,6 +68,12 @@ namespace SpellBook.UI
 
         /// <summary>O pai do campo; vazio, os itens nascem sob este binder.</summary>
         public Transform Container => container;
+
+        /// <summary>Quantos itens ganham objeto; 0 é sem limite.</summary>
+        public int MaxVisible => maxVisible;
+
+        /// <summary>A view do "+N", ou <c>null</c> sem ela ou se o componente não implementa a interface.</summary>
+        public IView<ListOverflowModel> OverflowView => overflowView as IView<ListOverflowModel>;
 
         /// <summary>Quantos itens estão na lista, com ou sem objeto.</summary>
         public int Count => _entries.Count;
@@ -91,7 +109,13 @@ namespace SpellBook.UI
             }
 
             _entries.Add(new Entry(id, item));
-            Show(_entries.Count - 1);
+            int index = _entries.Count - 1;
+            if (IsVisible(index))
+            {
+                Show(index);
+            }
+
+            RefreshOverflow();
         }
 
         /// <summary>Muda o conteúdo do item, reaproveitando o objeto; um id ausente não faz nada.</summary>
@@ -106,10 +130,13 @@ namespace SpellBook.UI
             Entry entry = _entries[index];
             entry.Model = item;
             _entries[index] = entry;
-            Show(index);
+            if (IsVisible(index))
+            {
+                Show(index);
+            }
         }
 
-        /// <summary>Tira o item e devolve o objeto dele. Um id ausente não faz nada.</summary>
+        /// <summary>Tira o item e devolve o objeto dele; o oculto mais antigo ganha o lugar. Um id ausente não faz nada.</summary>
         private void RemoveItem(int id)
         {
             int index = IndexOf(id);
@@ -120,6 +147,14 @@ namespace SpellBook.UI
 
             Release(index);
             _entries.RemoveAt(index);
+
+            // Os visíveis são os primeiros: o primeiro oculto, sem objeto, chega ao último lugar visível
+            if (maxVisible > 0 && maxVisible <= _entries.Count && _entries[maxVisible - 1].Instance == null)
+            {
+                Show(maxVisible - 1);
+            }
+
+            RefreshOverflow();
         }
 
         /// <summary>Tira todos os itens e devolve os objetos.</summary>
@@ -131,6 +166,7 @@ namespace SpellBook.UI
             }
 
             _entries.Clear();
+            RefreshOverflow();
         }
 
         private protected override Type SourceOwnerType => source?.OwnerType;
@@ -157,10 +193,22 @@ namespace SpellBook.UI
 
         private protected override void ShowEmpty() => ClearItems();
 
-        // Em edição não há itens: um spawn fora do Play salvaria instâncias na cena
+        // Em edição não há itens: um spawn fora do Play salvaria instâncias na cena. Só o "+N" mostra a prévia
         private protected override void DrawPreview()
         {
+            _preview.Clear();
+            if (source != null)
+            {
+                source.CreatePreview(new UIPreviewContext(1), _preview);
+            }
+
+            _shownHidden = -1;
+            RenderOverflow(HiddenCount(_preview.Count));
         }
+
+        private bool IsVisible(int index) => maxVisible <= 0 || index < maxVisible;
+
+        private int HiddenCount(int count) => maxVisible > 0 && count > maxVisible ? count - maxVisible : 0;
 
         private int IndexOf(int id)
         {
@@ -250,6 +298,19 @@ namespace SpellBook.UI
             entry.Instance = null;
             entry.View = null;
             _entries[index] = entry;
+        }
+
+        private void RefreshOverflow() => RenderOverflow(HiddenCount(_entries.Count));
+
+        private void RenderOverflow(int hidden)
+        {
+            if (hidden == _shownHidden)
+            {
+                return;
+            }
+
+            _shownHidden = hidden;
+            OverflowView?.Render(new ListOverflowModel(hidden));
         }
 
         private KnownItem Find(GameObject instance)

@@ -155,18 +155,18 @@ Divisão do SL1 pela ADR 0042, decidida pelo usuário em 2026-11-04. O SL1 imple
 - Depende do SL1b.
 - CA: nenhum CA do PRD fecha aqui. Fecha a parte de `maxVisible` e "+N" do Design 1 e prepara o CA14 (sem alocar com ocultos).
 - Escopo (caminhos relativos a `Packages/com.spellbook/`):
-  - `Runtime/UI/UIListBinder.cs` (+55 −7):
+  - `Runtime/UI/UIListBinder.cs` (+68 −7):
     - campos `[SerializeField, Min(0)] int maxVisible` (0 = sem limite) e `MonoBehaviour overflowView` (`IView<ListOverflowModel>`, opcional), com as propriedades `MaxVisible` e `OverflowView`. São campos novos: o formato do SL1b continua lido;
     - os visíveis são os `maxVisible` primeiros (`IsVisible`, `HiddenCount`); `AddItem` e `UpdateItem` só criam ou desenham objeto para índice visível;
     - `RemoveItem` promove o primeiro oculto ao último lugar visível, no fim do container;
     - `AddItem`, `RemoveItem` e `ClearItems` entregam o `ListOverflowModel` ao "+N" só quando a contagem de ocultos muda;
     - `DrawPreview` chama `CreatePreview` numa lista pré-alocada e entrega ao "+N" a contagem de ocultos da prévia, sem criar itens.
-  - `Tests/UI/PlayMode/UIListBinderTests.cs` (+44 −11): `CreateRig(int maxVisible)` com a view de "+N" de teste; os testes do SL1b passam `maxVisible: 0`.
+  - `Tests/UI/PlayMode/UIListBinderTests.cs` (+49 −11): `CreateRig(int maxVisible)` com a view de "+N" de teste; os testes do SL1b passam `maxVisible: 0`.
 - Testes red (PlayMode, `SpellBook.UI.Tests.PlayMode`, classe `UIListBinderTests`):
   - `MaxVisible_HiddenCount_PromotesOldestHidden` (novo);
   - `AddRemove1000_DoNotAllocate` muda para `maxVisible: 3`, para cobrir oculto e promoção sem alocar: 3 vivos e `Hidden` = 1 no fim.
-- Critério de pronto: os 7 testes da classe verdes, com `total` = 7 no XML; `HelpUrlTests` e `SpellBookEditorCoverageTests` verdes.
-- Tamanho medido no código guardado: 117 linhas em 3 arquivos. Em `.cs`: `UIListBinder.cs` +55 −7 e `UIListBinderTests.cs` +44 −11; a Spec conta só como arquivo. Exceção: nenhuma.
+- Critério de pronto: os 8 testes da classe verdes, com `total` = 8 no XML; `HelpUrlTests` e `SpellBookEditorCoverageTests` verdes.
+- Tamanho medido pelo `git diff --numstat`: 135 linhas em 3 arquivos. Em `.cs`: `UIListBinder.cs` +68 −7 e `UIListBinderTests.cs` +49 −11; a Spec conta só como arquivo. Exceção: nenhuma.
 - Commit: `feat(ui): maxVisible e "+N" no UIListBinder (#336)`
 
 ### SL2 — `SlotModel` e `KeyLabelProvider`

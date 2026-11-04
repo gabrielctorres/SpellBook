@@ -16,8 +16,8 @@ namespace SpellBook.UI.Tests
 {
     /// <summary>
     /// Lista genérica (Spec UI-2, Design 1; ADR 0039, item 6): itens por id em ordem de chegada, criados e devolvidos só
-    /// pelo <c>SpawnerAsset</c>, reaproveitados quando só o conteúdo muda, dono no <see cref="UIItemContext"/>, spawner
-    /// sem instância pulado com aviso e sem alocar.
+    /// pelo <c>SpawnerAsset</c>, reaproveitados quando só o conteúdo muda, <c>maxVisible</c> com "+N" e promoção do
+    /// oculto mais antigo, dono no <see cref="UIItemContext"/>, spawner sem instância pulado com aviso e sem alocar.
     /// </summary>
     public class UIListBinderTests
     {
@@ -40,7 +40,7 @@ namespace SpellBook.UI.Tests
         [Test]
         public void Items_FromSpawner_ArrivalOrder()
         {
-            Rig rig = CreateRig();
+            Rig rig = CreateRig(maxVisible: 0);
 
             rig.Owner.Sink.Add(5, 50);
             rig.Owner.Sink.Add(2, 20);
@@ -53,7 +53,7 @@ namespace SpellBook.UI.Tests
         [Test]
         public void Remove_Releases_LiveCountStable()
         {
-            Rig rig = CreateRig();
+            Rig rig = CreateRig(maxVisible: 0);
             rig.Owner.Sink.Add(1, 10);
             rig.Owner.Sink.Add(2, 20);
             rig.Owner.Sink.Add(3, 30);
@@ -77,7 +77,7 @@ namespace SpellBook.UI.Tests
         [Test]
         public void ContentChange_ReusesItem()
         {
-            Rig rig = CreateRig();
+            Rig rig = CreateRig(maxVisible: 0);
             rig.Owner.Sink.Add(1, 10);
             GameObject first = rig.Spawner.Live[0];
 
@@ -91,9 +91,34 @@ namespace SpellBook.UI.Tests
         }
 
         [Test]
+        public void MaxVisible_HiddenCount_PromotesOldestHidden()
+        {
+            Rig rig = CreateRig(maxVisible: 2);
+            for (int id = 1; id <= 4; id++)
+            {
+                rig.Owner.Sink.Add(id, id * 10);
+            }
+
+            int[] full = VisibleValues(rig);
+            int hiddenFull = rig.Overflow.Last.Hidden;
+            rig.Owner.Sink.Remove(1);
+            int[] promoted = VisibleValues(rig);
+            int hiddenPromoted = rig.Overflow.Last.Hidden;
+            rig.Owner.Sink.Remove(4);
+
+            Assert.That(full, Is.EqualTo(new[] { 10, 20 }));
+            Assert.That(hiddenFull, Is.EqualTo(2));
+            Assert.That(promoted, Is.EqualTo(new[] { 20, 30 }), "o oculto mais antigo deveria ganhar objeto, no fim");
+            Assert.That(hiddenPromoted, Is.EqualTo(1));
+            Assert.That(rig.Overflow.Last.Hidden, Is.Zero);
+            Assert.That(rig.Spawner.SpawnCount, Is.EqualTo(3), "remover um oculto não deveria criar objeto");
+            Assert.That(VisibleValues(rig), Is.EqualTo(new[] { 20, 30 }));
+        }
+
+        [Test]
         public void ItemContext_OwnerFromBinder()
         {
-            Rig rig = CreateRig();
+            Rig rig = CreateRig(maxVisible: 0);
 
             rig.Owner.Sink.Add(1, 10);
             UIItemContext context = rig.Spawner.Live[0].GetComponent<UIItemContext>();
@@ -107,7 +132,7 @@ namespace SpellBook.UI.Tests
         [Test]
         public void NullSpawn_SkipsWithWarning()
         {
-            Rig rig = CreateRig();
+            Rig rig = CreateRig(maxVisible: 0);
             rig.Spawner.ReturnsNull = true;
             LogAssert.Expect(LogType.Warning, new Regex("spawner"));
 
@@ -122,11 +147,12 @@ namespace SpellBook.UI.Tests
         [Test]
         public void AddRemove1000_DoNotAllocate()
         {
-            Rig rig = CreateRig();
+            Rig rig = CreateRig(maxVisible: 3);
             Churn(rig, 0, 100);
 
             Assert.That(() => Churn(rig, 100, 1000), Is.Not.AllocatingGCMemory());
-            Assert.That(rig.Spawner.Live.Count, Is.EqualTo(4));
+            Assert.That(rig.Spawner.Live.Count, Is.EqualTo(3));
+            Assert.That(rig.Overflow.Last.Hidden, Is.EqualTo(1));
         }
 
         // Só a ligação mexe na lista: chamada direta fora do Play criaria itens salvos na cena
@@ -146,7 +172,7 @@ namespace SpellBook.UI.Tests
             Assert.That(exposed, Is.Empty, "o binder deveria receber a lista só pela ligação");
         }
 
-        // Mantém de quatro a cinco itens: passa por acréscimo, mudança e remoção com o pool já cheio
+        // Mantém de quatro a cinco itens com três visíveis: passa por acréscimo, mudança, oculto e promoção
         private static void Churn(Rig rig, int from, int count)
         {
             for (int id = from; id < from + count; id++)
@@ -174,7 +200,7 @@ namespace SpellBook.UI.Tests
             return values.ToArray();
         }
 
-        private Rig CreateRig()
+        private Rig CreateRig(int maxVisible)
         {
             var rig = new Rig();
             rig.Spawner = Track(ScriptableObject.CreateInstance<RecordingSpawnerAsset>());
@@ -188,6 +214,7 @@ namespace SpellBook.UI.Tests
 
             GameObject host = Track(new GameObject("lista"));
             host.SetActive(false);
+            rig.Overflow = host.AddComponent<OverflowView>();
             rig.Binder = host.AddComponent<TestListBinder>();
             rig.Binder.SetOwner(ActorResolver.ForExplicit(rig.Owner));
             rig.Binder.SetSource(new TestListSource());
@@ -196,6 +223,8 @@ namespace SpellBook.UI.Tests
                 so.FindProperty("itemPrefab").objectReferenceValue = prefab;
                 so.FindProperty("spawner").objectReferenceValue = rig.Spawner;
                 so.FindProperty("container").objectReferenceValue = rig.Container;
+                so.FindProperty("maxVisible").intValue = maxVisible;
+                so.FindProperty("overflowView").objectReferenceValue = rig.Overflow;
             });
             host.SetActive(true);
             return rig;
@@ -219,6 +248,7 @@ namespace SpellBook.UI.Tests
             public RecordingSpawnerAsset Spawner;
             public ListOwner Owner;
             public Transform Container;
+            public OverflowView Overflow;
             public TestListBinder Binder;
         }
 
@@ -249,6 +279,14 @@ namespace SpellBook.UI.Tests
                 Last = model;
                 Renders++;
             }
+        }
+
+        /// <summary>View do "+N" de teste.</summary>
+        public sealed class OverflowView : MonoBehaviour, IView<ListOverflowModel>
+        {
+            public ListOverflowModel Last;
+
+            public void Render(in ListOverflowModel model) => Last = model;
         }
 
         public sealed class TestListBinder : UIListBinder<TestItem>
