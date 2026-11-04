@@ -11,4 +11,16 @@ namespace SpellBook.UI.Editor
     [CustomEditor(typeof(UITheme))]
     [CanEditMultipleObjects]
     internal sealed class UIThemeEditor : SpellBookEditor { }
+
+    [CustomEditor(typeof(BarBinder))]
+    [CanEditMultipleObjects]
+    internal sealed class BarBinderEditor : SpellBookEditor { }
+
+    [CustomEditor(typeof(TextBinder))]
+    [CanEditMultipleObjects]
+    internal sealed class TextBinderEditor : SpellBookEditor { }
+
+    [CustomEditor(typeof(TagIndicatorBinder))]
+    [CanEditMultipleObjects]
+    internal sealed class TagIndicatorBinderEditor : SpellBookEditor { }
 }

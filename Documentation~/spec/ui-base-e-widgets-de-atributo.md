@@ -217,6 +217,34 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Teste
 - Critério de pronto: CA3 verde (lado da UI).
 - Tamanho estimado: ~380 linhas; 8 arquivos. Depende de: UI4.
 
+#### Detalhe (2026-11-04) — UI5a (#239)
+- Divisão pela ADR 0042: o UI5 medido deu ~704 linhas (+41%) e foi dividido em UI5a (esta issue, #239) e UI5b (#333). O UI5a entrega os modelos e os três binders; o `BarBinder` não tem rastro, e a fração entra direto (o `TrailFraction` do `BarModel` sai igual à `Fraction`). O rastro e o tick do binder ficam no UI5b.
+- CA: CA3 (lado da UI: duas barras com fontes diferentes atualizam de forma independente; o `BarModel` não tem campo de escudo, P1) e CA13 (parte: 10 000 atualizações de modelo pelos três binders sem alocar). R7. ADR 0039, itens 1 a 4.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/UI/UIModels.cs` (novo; `SpellBook.UI`): `readonly struct BarModel` (`Current`, `Max`, `Fraction` de 0 a 1 com `Max ≤ 0` dando 0, `TrailFraction` igual à `Fraction` ao criar, `Text` (`TextSpan`), `Role` (`TextRole`), `IsEmpty` verdadeiro só no `default`; construtor `(current, max, text, role)` e `WithTrail(float)`, que devolve a cópia com o rastro entre 0 e 1, para o UI5b); `readonly struct TextModel` (`Text`, `Role`, `IsEmpty`); `readonly struct TagIndicatorModel` (`Active`, `IsEmpty`). Sem campo de escudo.
+  - `Runtime/UI/BarBinder.cs`, `TextBinder.cs` e `TagIndicatorBinder.cs` (novos; `UIBinder<BarModel>`, `UIBinder<TextModel>` e `UIBinder<TagIndicatorModel>`, sem lógica; `[HelpURL(DocUrls.UiAttributeBar)]`, `[HelpURL(DocUrls.UiAttributeText)]` e `[HelpURL(DocUrls.UiTagIndicator)]`).
+  - `Runtime/Core/DocUrls.cs:26`: `UiAttributeBar` (`ui/barra-de-atributo/`), `UiAttributeText` (`ui/texto-de-atributo/`) e `UiTagIndicator` (`ui/indicador-de-tag/`). Consequência direta: o `HelpUrlTests` exige `[HelpURL]` nos três binders concretos, e o design doc pede a página do widget. As páginas e os `TestCase` do `DocUrlsTests` continuam no UI7 e no passe de documentação (emenda de 2026-11-03 da 0007), como a `DocUrls.Ui` do UI4.
+  - `Editor/UI/UIEditors.cs:14`: `BarBinderEditor`, `TextBinderEditor` e `TagIndicatorBinderEditor`, uma linha cada (cobertura de Inspector).
+  - `Tests/UI/PlayMode/WidgetBindersTests.cs` (novo): dono com valores por índice, fontes de barra, texto e tag, e views de teste no próprio arquivo; driver com `ManualTimeSource`.
+  - `UIBinder.cs` não muda neste ticket. Fora deste ticket: `visao-geral.md` (manual só no passe) e `CHANGELOG.md` (nada quebra).
+- Testes red: PlayMode (`SpellBook.UI.Tests.PlayMode`, `WidgetBindersTests`): `Bar_Fraction_ZeroMax_Zero`; `TwoBars_Independent_NoShieldField` (CA3); `TextAndTag_Binders_DeliverModel_EmptyByDefault`; `ModelUpdates10000_DoNotAllocate` (CA13, parte).
+- Critério de pronto: os 4 testes verdes pelo filtro `\.WidgetBindersTests\.`; `UIBinderTests`, `UIBinderPreviewTests`, `UIUpdateDriverTests`, `HelpUrlTests` e `SpellBookEditorCoverageTests` verdes.
+- Tamanho: ~447 linhas e 7 arquivos, pela ADR 0042 (medido: `UIModels.cs` 99, `BarBinder.cs` 14, `TextBinder.cs` 11, `TagIndicatorBinder.cs` 11, `DocUrls.cs` 3, `UIEditors.cs` 12, `WidgetBindersTests.cs` 297). Exceção: nenhuma (dentro do teto de ~500).
+- Commit: `feat(ui): modelos e binders de barra, texto e indicador`
+
+#### Detalhe (2026-11-04) — UI5b (#333)
+- Rastro atrasado do `BarBinder` e tick do próprio binder. Depende do UI5a (#239). O UI6 e o UI10 passam a depender também do UI5b (o UI10 usa o tick do binder para os números flutuantes).
+- O código já foi escrito e revisado no UI5 e está guardado fora do repositório, em `C:/Users/gabri/orca/workspaces/SpellBook/_guardado-ui5b/` (`BarBinder.cs`, `UIBinder.cs`, `UIBinder-tick.diff`, `WidgetBindersTests.cs` e `NOTA.md` com o que reaplicar). Inclui a correção da revisão de 2026-11-04 (queda só com fração menor que a anterior; `trailSpeed` 0 durante a queda leva o rastro à fração e solta o tick).
+- CA: CA13 (parte: o binder só pede tick enquanto o rastro está acima da fração). R7. ADR 0039, itens 1 a 4.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/UI/UIBinder.cs:217-397` (`UIBinderBase`): `protected bool RequestBinderTick(bool on)` (pede ou solta; devolve `false` sem driver ativo ou fora de ligação, para o binder cair no comportamento sem animação) e `protected virtual void OnBinderTick(double time)`. Por dentro, uma ligação privada criada uma vez (`BinderTicker : UIBinding`, ligada ao próprio binder, sem fonte), registrada no driver ativo e solta no `Unbind`. Sem `Update`; o tempo continua vindo só do `UIUpdateDriver` (ADR 0039, "não pode").
+  - `Runtime/UI/BarBinder.cs`: `[SerializeField, Min(0)] float trailDelay = 0.5f` (segundos) e `trailSpeed = 1f` (fração por segundo; 0 desliga o rastro), `TrailDelay`, `TrailSpeed` e `SetTrail(delay, speed)`. Na queda da fração, segura o `TrailFraction` no valor antigo, pede tick, conta o atraso a partir do primeiro tick depois da queda (nova queda reinicia o atraso) e baixa o rastro pela velocidade até a fração, quando solta o tick. Subida, estado vazio, prévia, `trailSpeed` 0 ou falta de driver: rastro igual à fração na hora.
+  - `Tests/UI/PlayMode/WidgetBindersTests.cs`: os 5 testes de rastro.
+- Testes red: PlayMode (`WidgetBindersTests`): `Bar_TrailHoldsThenFalls_TickOnlyWhileAbove`; `Bar_NoDriver_TrailFollowsFraction`; `Bar_RiseBelowTrail_TrailSnapsToFraction`; `Bar_RepublishSameFraction_KeepsFalling`; `Bar_SpeedZeroWhileFalling_TrailSnapsAndReleasesTick`.
+- Critério de pronto: os 9 testes verdes pelo filtro `\.WidgetBindersTests\.`; `UIBinderTests` e `UIUpdateDriverTests` verdes.
+- Tamanho: ~290 linhas e 3 arquivos, pela ADR 0042 (estimado da medição do UI5: `UIBinder.cs` 58, `BarBinder.cs` ~95, testes ~110; a Fábrica do UI5b confere ao reaplicar).
+- Commit: `feat(ui): rastro atrasado da barra e tick do binder`
+
 ### UI6 — Módulo `SpellBook.GAS.UI` e fontes de atributo
 - Escopo: `Runtime/GAS.UI/SpellBook.GAS.UI.asmdef` (novo; Core, Tags, Time, GAS, UI), `Runtime/GAS.UI/AttributeSources.cs` (novo), `Tests/GAS.UI/EditMode/SpellBook.GAS.UI.Tests.EditMode.asmdef`, `Tests/GAS.UI/EditMode/AttributeSourcePreviewTests.cs`, `Tests/GAS.UI/PlayMode/SpellBook.GAS.UI.Tests.PlayMode.asmdef`, `Tests/GAS.UI/PlayMode/AttributeSourcesTests.cs` (novos), `AsmdefRulesTests.cs` (`GAS.UI` nas listas; referências exatas; sem Bridges, uGUI e TMP; o GAS não referencia UI), `CHANGELOG.md`.
 - Testes red: `Bar_VidaAndVidaMax_ByEvent_NoUpdate` (CA1, C1); `Bar_MaxFromLimitSource_FollowsAR1`; `Text_FormatAndInjectedCulture_NoMarkup` (CA2, C2); `TwoBars_VidaAndEscudo_Independent` (CA3, C3); `Preview_50Of100`; `GasUiAsmdef_ReferencesExactly_NoBridgesNoUgui` (CA12); `Updates10000_DoNotAllocate` (CA13, parte).
