@@ -92,6 +92,18 @@ namespace SpellBook.Core.Text
             return new TextSpan(this, start, other.Length);
         }
 
+        /// <summary>
+        /// O trecho escrito de <paramref name="start"/> até o fim, para quem escreveu por vários <c>Append</c> (ou por um
+        /// método que escreve no buffer, como o <c>AttributeDisplay.Format</c>) e quer um trecho só. Não aloca.
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="start"/> fora de 0 até <see cref="Length"/>.</exception>
+        public TextSpan SpanFrom(int start)
+        {
+            if (start < 0 || start > _length) throw new ArgumentOutOfRangeException(nameof(start));
+
+            return new TextSpan(this, start, _length - start);
+        }
+
         /// <summary>Cria a <see cref="string"/> do trecho. Aloca; chame só quando a string for necessária.</summary>
         public string ToString(TextSpan span)
         {

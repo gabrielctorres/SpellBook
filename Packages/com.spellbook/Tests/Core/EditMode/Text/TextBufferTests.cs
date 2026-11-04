@@ -130,5 +130,34 @@ namespace SpellBook.Core.Tests.Text
             Assert.That(empty.IsEmpty, Is.True);
             Assert.That(buffer.ToString(), Is.EqualTo("<cde"));
         }
+
+        [Test]
+        public void SpanFrom_CoversWrittenSinceStart()
+        {
+            var buffer = new TextBuffer(4);
+            buffer.Append("Vida: ");
+            int start = buffer.Length;
+            buffer.Append(50f, "F0", EnUs);
+            buffer.Append(" / ");
+            buffer.Append(100f, "F0", EnUs);
+
+            TextSpan written = buffer.SpanFrom(start);
+            TextSpan end = buffer.SpanFrom(buffer.Length);
+
+            Assert.That(buffer.ToString(written), Is.EqualTo("50 / 100"));
+            Assert.That(written.Start, Is.EqualTo(6));
+            Assert.That(written.Buffer, Is.SameAs(buffer));
+            Assert.That(end.IsEmpty, Is.True);
+        }
+
+        [Test]
+        public void SpanFrom_OutOfRange_Throws()
+        {
+            var buffer = new TextBuffer();
+            buffer.Append("abc");
+
+            Assert.That(() => buffer.SpanFrom(-1), Throws.TypeOf<System.ArgumentOutOfRangeException>());
+            Assert.That(() => buffer.SpanFrom(4), Throws.TypeOf<System.ArgumentOutOfRangeException>());
+        }
     }
 }

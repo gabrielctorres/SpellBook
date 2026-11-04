@@ -17,7 +17,7 @@ namespace SpellBook.Core.Tests.Structure
         /// <summary>Módulos de runtime da lista final do CA1 e do CA32.</summary>
         private static readonly string[] RuntimeModules =
         {
-            "Core", "Time", "Events", "Pooling", "Tags", "GAS", "GAS.Bridges", "Teams", "Cues", "Localization", "UI",
+            "Core", "Time", "Events", "Pooling", "Tags", "GAS", "GAS.Bridges", "Teams", "Cues", "Localization", "UI", "GAS.UI",
         };
 
         /// <summary>Módulos opcionais de integração: compilam só com o pacote externo (ADR 0038, itens 6 e 7).</summary>
@@ -34,7 +34,7 @@ namespace SpellBook.Core.Tests.Structure
             "Core", "Events", "Time", "Tags", "Pooling", "GAS", "GAS.Bridges", "Teams", "Cues", "Localization", "UI",
         };
 
-        private static readonly string[] PlayModeModules = { "Core", "Time", "Events", "GAS", "GAS.Bridges", "Cues", "UI" };
+        private static readonly string[] PlayModeModules = { "Core", "Time", "Events", "GAS", "GAS.Bridges", "Cues", "UI", "GAS.UI" };
 
         [Test]
         public void AsmdefRules_Scan_FindsCoreAndThisTestAsmdef()
@@ -421,6 +421,32 @@ namespace SpellBook.Core.Tests.Structure
                     || n == "UnityEngine.UI" || n == "Unity.TextMeshPro"),
                 Is.Empty,
                 "o assembly SpellBook.UI compilou com o GAS, a uGUI ou o TextMeshPro");
+        }
+
+        [Test]
+        public void GasUiAsmdef_ReferencesExactly_NoBridgesNoUgui()
+        {
+            AsmdefFile gasUi = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.GAS.UI");
+
+            Assert.That(gasUi, Is.Not.Null, "não existe asmdef SpellBook.GAS.UI");
+            Assert.That(gasUi.Path, Is.EqualTo("Runtime/GAS.UI/SpellBook.GAS.UI.asmdef"));
+            Assert.That(gasUi.Kind, Is.EqualTo(AsmdefKind.Runtime));
+            Assert.That(gasUi.ReferenceNames, Is.EquivalentTo(new[]
+            {
+                "SpellBook.Core", "SpellBook.Tags", "SpellBook.Time", "SpellBook.GAS", "SpellBook.UI",
+            }));
+            Assembly assembly = LoadedAssembly("SpellBook.GAS.UI");
+            Assert.That(assembly, Is.Not.Null, "o assembly SpellBook.GAS.UI não foi compilado");
+            Assert.That(
+                assembly.GetReferencedAssemblies().Select(a => a.Name)
+                    .Where(n => n == "SpellBook.GAS.Bridges" || n == "UnityEngine.UI" || n == "Unity.TextMeshPro"),
+                Is.Empty,
+                "o assembly SpellBook.GAS.UI compilou com o Bridges, a uGUI ou o TextMeshPro");
+            Assert.That(
+                LoadedAssembly("SpellBook.GAS").GetReferencedAssemblies().Select(a => a.Name)
+                    .Where(n => n.StartsWith("SpellBook.UI", StringComparison.Ordinal) || n == "SpellBook.GAS.UI"),
+                Is.Empty,
+                "o assembly SpellBook.GAS referencia a UI");
         }
 
         [Test]
