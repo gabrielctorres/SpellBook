@@ -15,7 +15,8 @@ namespace SpellBook.UI.Tests
 {
     /// <summary>
     /// Binder do tooltip (Spec UI-3, Design 2): um aberto por vez e sem duplicar (CA7, parte), atraso pelo driver, alvo
-    /// destruído fecha, reabrir sem alocar, view própria recebe o modelo (CA12) e aberto sem alocar (CA13, parte).
+    /// destruído fecha, reabrir sem alocar, view própria recebe o modelo (CA12), aberto sem alocar (CA13, parte) e sem dono
+    /// a fonte liga ao binder (CA10; TT4a muda a recusa do dono nulo do TT1a).
     /// </summary>
     public class TooltipBinderTests
     {
@@ -214,6 +215,20 @@ namespace SpellBook.UI.Tests
         }
 
         [Test]
+        public void NullOwner_AttachesToBinder_NoException()
+        {
+            var source = new TestSource();
+            Subject subject = Create<Subject>();
+
+            Assert.That(() => _binder.Show(new object(), source, null, subject, null, 0f), Throws.Nothing);
+
+            Assert.That(_binder.IsOpen, Is.True, "sem dono, o tooltip abre (CA10)");
+            Assert.That(source.LastBinding.AttachedOwner, Is.SameAs(_binder), "sem dono, a ligação liga ao próprio binder");
+            Assert.That(_view.Last.Lines[0].Subject, Is.SameAs(subject), "o assunto chega mesmo sem dono");
+            Assert.That(ValueOf(_view.Last), Is.EqualTo("0"), "a fonte vê um dono fora do OwnerType e mostra só o que sabe");
+        }
+
+        [Test]
         public void OpenThenUpdates10000_NoAlloc()
         {
             Owner owner = CreateOwner(0);
@@ -313,6 +328,7 @@ namespace SpellBook.UI.Tests
         {
             public int Attaches;
             public int Ticks;
+            public Object AttachedOwner;
 
             private readonly TestSource _source;
             private readonly Action _onChanged;
@@ -331,21 +347,26 @@ namespace SpellBook.UI.Tests
             protected override void OnAttach(Object owner)
             {
                 Attaches++;
-                _owner = (Owner)owner;
-                _owner.Changed += _onChanged;
+                AttachedOwner = owner;
+                _owner = owner as Owner;
+                if (_owner != null) _owner.Changed += _onChanged;
                 RequestTick(_source.TickOnAttach);
                 OnChanged();
             }
 
-            protected override void OnDetach() => _owner.Changed -= _onChanged;
+            protected override void OnDetach()
+            {
+                if (_owner != null) _owner.Changed -= _onChanged;
+            }
 
             private void OnChanged()
             {
                 _buffer.Clear();
                 _lines.Clear();
-                TextSpan value = _buffer.Append(_owner.Value, "0", CultureInfo.InvariantCulture);
+                int current = _owner != null ? _owner.Value : 0;
+                TextSpan value = _buffer.Append(current, "0", CultureInfo.InvariantCulture);
                 _lines.Add(new TooltipLine("Valor", value, TextRole.Value, TooltipLineKind.Value, Context.Subject as ScriptableObject));
-                Publish(new TooltipModel("Teste", _source.Icon, _lines).WithStacks(_owner.Value));
+                Publish(new TooltipModel("Teste", _source.Icon, _lines).WithStacks(current));
             }
         }
 

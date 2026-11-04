@@ -17,7 +17,9 @@ namespace SpellBook.UI
     /// Binder único do tooltip da tela (Spec UI-3, Design 2). Mostra um tooltip por vez: o pedido de outro requester fecha
     /// o atual, e o mesmo requester não reabre. Cada fonte ganha uma ligação, criada na primeira abertura e reaproveitada.
     /// O atraso conta pelo tempo do <see cref="UIUpdateDriver"/>; sem driver, abre na hora. Aberto, fecha se o alvo é
-    /// destruído e reposiciona a view só quando o alvo se move. Não tem <c>Update</c>.
+    /// destruído e reposiciona a view só quando o alvo se move. Sem dono (nulo ou destruído), liga a fonte ao próprio
+    /// binder: a fonte vê um dono fora do <see cref="UISourceBase.OwnerType"/> e mostra só o que o asset sabe (CA10).
+    /// Não tem <c>Update</c>.
     /// </summary>
     [DisallowMultipleComponent]
     [HelpURL(DocUrls.UiTooltip + "#tooltipbinder")]
@@ -91,12 +93,12 @@ namespace SpellBook.UI
 
         /// <summary>
         /// Pede o tooltip de <paramref name="source"/> lido de <paramref name="owner"/>, perto de <paramref name="target"/>,
-        /// depois de <paramref name="delay"/> segundos do driver. Requester, fonte ou dono nulos não fazem nada. O mesmo
-        /// requester, aberto ou esperando, não refaz nada; outro requester fecha o atual.
+        /// depois de <paramref name="delay"/> segundos do driver. Requester ou fonte nulos não fazem nada; dono nulo abre
+        /// sem dono. O mesmo requester, aberto ou esperando, não refaz nada; outro requester fecha o atual.
         /// </summary>
         public void Show(object requester, UISource<TooltipModel> source, Object owner, Object subject, RectTransform target, float delay)
         {
-            if (requester == null || source == null || owner == null || !isActiveAndEnabled)
+            if (requester == null || source == null || !isActiveAndEnabled)
             {
                 return;
             }
@@ -211,15 +213,16 @@ namespace SpellBook.UI
                 _bindings.Add(_source, binding);
             }
 
-            // Alvo destruído durante o atraso fecha sem abrir, como o dono nulo
-            if (binding == null || _owner == null || (_hasTarget && _target == null))
+            // Alvo destruído durante o atraso fecha sem abrir
+            if (binding == null || (_hasTarget && _target == null))
             {
                 HideAll();
                 return;
             }
 
+            // Sem dono, a ligação liga ao binder e a fonte lê só o asset (o Attach recusa o nulo)
             _open = binding;
-            binding.Attach(_owner, new UIBindContext(theme != null ? theme.Text : null, null, theme, _subject));
+            binding.Attach(_owner != null ? _owner : this, new UIBindContext(theme != null ? theme.Text : null, null, theme, _subject));
             if (_activeDriver != null)
             {
                 _activeDriver.Register(binding);
