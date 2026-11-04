@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using SpellBook.Core;
+using SpellBook.Core.Validation;
 using UnityEngine;
 
 namespace SpellBook.UI
@@ -45,6 +46,24 @@ namespace SpellBook.UI
 
         /// <summary>O pai do campo; vazio, os números nascem sob este binder.</summary>
         public Transform Container => container;
+
+        /// <inheritdoc />
+        protected override bool RequiresView => false;
+
+        /// <summary>Acrescenta às regras do binder: sem prefab, ou prefab sem <see cref="IFloatingTextView"/> na raiz.</summary>
+        public override void Validate(ValidationResult result)
+        {
+            base.Validate(result);
+            if (prefab == null)
+            {
+                result.AddError("Sem prefab. Ligue o prefab do número, com um componente IFloatingTextView.", nameof(prefab));
+            }
+            else if (prefab.GetComponent<IFloatingTextView>() == null)
+            {
+                result.AddError($"O prefab {prefab.name} não tem um componente IFloatingTextView. Os números são pulados.",
+                    nameof(prefab));
+            }
+        }
 
         /// <inheritdoc />
         protected override void OnModel(in FloatingTextRequest model)

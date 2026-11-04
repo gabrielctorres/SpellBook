@@ -1,5 +1,6 @@
 using SpellBook.Core.Editor;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 
 namespace SpellBook.UI.Editor
 {
@@ -14,15 +15,15 @@ namespace SpellBook.UI.Editor
 
     [CustomEditor(typeof(BarBinder))]
     [CanEditMultipleObjects]
-    internal sealed class BarBinderEditor : SpellBookEditor { }
+    internal sealed class BarBinderEditor : UIBinderEditor { }
 
     [CustomEditor(typeof(TextBinder))]
     [CanEditMultipleObjects]
-    internal sealed class TextBinderEditor : SpellBookEditor { }
+    internal sealed class TextBinderEditor : UIBinderEditor { }
 
     [CustomEditor(typeof(TagIndicatorBinder))]
     [CanEditMultipleObjects]
-    internal sealed class TagIndicatorBinderEditor : SpellBookEditor { }
+    internal sealed class TagIndicatorBinderEditor : UIBinderEditor { }
 
     [CustomEditor(typeof(FloatingTextStyle))]
     [CanEditMultipleObjects]
@@ -30,5 +31,15 @@ namespace SpellBook.UI.Editor
 
     [CustomEditor(typeof(FloatingTextBinder))]
     [CanEditMultipleObjects]
-    internal sealed class FloatingTextBinderEditor : SpellBookEditor { }
+    internal sealed class FloatingTextBinderEditor : UIBinderEditor { }
+
+    /// <summary>Ensina o resolvedor a reconhecer a cena de prévia do Prefab Mode, que não é a cena do jogo.</summary>
+    [InitializeOnLoad]
+    internal static class ActorResolverPreviewScene
+    {
+        static ActorResolverPreviewScene()
+        {
+            ActorResolver.IsInPreviewScene = go => EditorSceneManager.IsPreviewScene(go.scene);
+        }
+    }
 }

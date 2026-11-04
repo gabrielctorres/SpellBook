@@ -1,5 +1,7 @@
 using System;
 using SpellBook.Core;
+using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -31,10 +33,12 @@ namespace SpellBook.UI
 
         [SerializeField]
         [Tooltip("Âncora que guarda o dono, no modo FromAnchor.")]
+        [ShowIf(nameof(mode), ActorResolveMode.FromAnchor)]
         private RuntimeAnchor anchor;
 
         [SerializeField]
         [Tooltip("O dono, ou um GameObject que o tenha, no modo Explicit.")]
+        [ShowIf(nameof(mode), ActorResolveMode.Explicit)]
         private Object explicitOwner;
 
         /// <summary>Onde procurar o dono.</summary>
@@ -102,6 +106,57 @@ namespace SpellBook.UI
                 return false;
             }
 
+            return true;
+        }
+
+        /// <summary>
+        /// Acrescenta ao <paramref name="result"/> os problemas do resolvedor, nos campos sob <paramref name="propertyPath"/>:
+        /// modo sem âncora ou sem referência, âncora de outro tipo e, só num objeto em cena, nenhum dono do tipo no objeto
+        /// nem nos pais (aviso). Sem <paramref name="ownerType"/> (binder sem fonte), confere só os campos do modo.
+        /// </summary>
+        public void Validate(ValidationResult result, Component from, Type ownerType, string propertyPath)
+        {
+            switch (mode)
+            {
+                case ActorResolveMode.FromAnchor when anchor == null:
+                    result.AddError("Modo FromAnchor sem âncora. Escolha a âncora que guarda o dono.", propertyPath + ".anchor");
+                    break;
+                case ActorResolveMode.FromAnchor when ownerType != null && !ownerType.IsAssignableFrom(anchor.ValueType):
+                    result.AddError($"A âncora guarda {anchor.ValueType.Name}, mas a fonte lê {ownerType.Name}. " +
+                        "Escolha uma âncora do tipo da fonte.", propertyPath + ".anchor");
+                    break;
+                case ActorResolveMode.Explicit when explicitOwner == null:
+                    result.AddError("Modo Explicit sem referência. Ligue o dono.", propertyPath + ".explicitOwner");
+                    break;
+                case ActorResolveMode.SelfOrParent when ownerType != null && from != null && IsPlacedInScene(from.gameObject)
+                    && (typeof(Component).IsAssignableFrom(ownerType) || ownerType.IsInterface)
+                    && from.GetComponentInParent(ownerType, true) == null:
+                    result.AddWarning($"Sem {ownerType.Name} neste objeto nem nos pais. A view mostra o estado vazio.", propertyPath);
+                    break;
+            }
+        }
+
+#if UNITY_EDITOR
+        /// <summary>
+        /// Diz se o objeto está numa cena de prévia do Editor, como a do Prefab Mode. Preenchido pelo código de Editor,
+        /// que o runtime não referencia.
+        /// </summary>
+        internal static Func<GameObject, bool> IsInPreviewScene;
+#endif
+
+        // Prefab em asset não tem cena, e o prefab aberto no Prefab Mode fica numa cena de prévia: os dois ficam fora
+        private static bool IsPlacedInScene(GameObject gameObject)
+        {
+            if (!gameObject.scene.IsValid())
+            {
+                return false;
+            }
+#if UNITY_EDITOR
+            if (IsInPreviewScene != null && IsInPreviewScene(gameObject))
+            {
+                return false;
+            }
+#endif
             return true;
         }
 

@@ -1,6 +1,7 @@
 using System;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -13,7 +14,7 @@ namespace SpellBook.UI
     /// chama só enquanto ela pede tick. Fora do Play, desenha a prévia da fonte e não liga nada. Não tem <c>Update</c>.
     /// </summary>
     [ExecuteAlways]
-    public abstract class UIBinderBase : MonoBehaviour
+    public abstract class UIBinderBase : MonoBehaviour, IValidatable
     {
         [SerializeField]
         [Tooltip("Onde achar o dono que a fonte lê.")]
@@ -77,6 +78,15 @@ namespace SpellBook.UI
 
             Unbind();
             Bind();
+        }
+
+        /// <summary>
+        /// Acrescenta os problemas do resolvedor, conferido contra o tipo do dono pedido pela fonte. Quem sobrescreve chama
+        /// a base.
+        /// </summary>
+        public virtual void Validate(ValidationResult result)
+        {
+            owner.Validate(result, this, SourceOwnerType, nameof(owner));
         }
 
         /// <summary>No Play, liga ao dono; fora dele, desenha a prévia. Quem sobrescreve chama a base.</summary>
@@ -311,6 +321,42 @@ namespace SpellBook.UI
             _viewComponent = view;
             _view = newView;
             Rebind();
+        }
+
+        /// <summary>
+        /// Diz se o campo da view é obrigatório. Binder que desenha por outro caminho, como os números flutuantes, devolve
+        /// <c>false</c>.
+        /// </summary>
+        protected virtual bool RequiresView => true;
+
+        /// <summary>
+        /// Acrescenta os problemas do resolvedor, da fonte (no caminho <c>source</c>) e da view: sem fonte, sem view ou view
+        /// que não desenha <typeparamref name="TModel"/>.
+        /// </summary>
+        public override void Validate(ValidationResult result)
+        {
+            if (source == null)
+            {
+                result.AddError("Sem fonte. Escolha o que o binder lê do dono.", nameof(source));
+            }
+            else
+            {
+                source.Validate(result, nameof(source));
+            }
+
+            base.Validate(result);
+            if (view == null)
+            {
+                if (RequiresView)
+                {
+                    result.AddError("Sem view. Ligue o componente que desenha o modelo.", nameof(view));
+                }
+            }
+            else if (!(view is IView<TModel>))
+            {
+                result.AddError($"A view {view.GetType().Name} não implementa IView<{typeof(TModel).Name}>. " +
+                    "Ligue um componente que desenhe esse modelo.", nameof(view));
+            }
         }
 
         /// <summary>Recebe cada modelo publicado; por padrão, entrega à <see cref="View"/>.</summary>
