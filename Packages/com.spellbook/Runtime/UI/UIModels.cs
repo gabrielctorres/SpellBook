@@ -99,4 +99,51 @@ namespace SpellBook.UI
         /// <summary>Verdadeiro no estado vazio (<c>default</c>).</summary>
         public bool IsEmpty => !_hasValue;
     }
+
+    /// <summary>
+    /// Pedido de um número flutuante (R14): onde nasce, o texto, o papel e o estilo. O texto é escrito no buffer da
+    /// ligação e vale só durante o <see cref="IFloatingTextView.Show"/>. O <c>default</c> é o estado vazio: nada nasce.
+    /// </summary>
+    public readonly struct FloatingTextRequest
+    {
+        private readonly bool _hasValue;
+
+        /// <summary>Cria o pedido; <paramref name="style"/> pode ser nulo (duração <see cref="FloatingTextStyle.DefaultDuration"/>).</summary>
+        public FloatingTextRequest(Vector3 worldPosition, TextSpan text, TextRole role, FloatingTextStyle style)
+        {
+            WorldPosition = worldPosition;
+            Text = text;
+            Role = role;
+            Style = style;
+            _hasValue = true;
+        }
+
+        /// <summary>Ponto do mundo em que o número nasce; a view o converte para o container.</summary>
+        public Vector3 WorldPosition { get; }
+
+        /// <summary>Texto do número, escrito no buffer da ligação.</summary>
+        public TextSpan Text { get; }
+
+        /// <summary>Papel do texto, que o tema traduz em cor.</summary>
+        public TextRole Role { get; }
+
+        /// <summary>Estilo do número, ou nulo.</summary>
+        public FloatingTextStyle Style { get; }
+
+        /// <summary>Verdadeiro no estado vazio (<c>default</c>).</summary>
+        public bool IsEmpty => !_hasValue;
+    }
+
+    /// <summary>
+    /// View de um número flutuante (R14), no prefab que o <see cref="FloatingTextBinder"/> cria pelo spawner. Recebe o
+    /// pedido ao nascer e o progresso a cada tick; não lê o tempo nem volta ao pool sozinha.
+    /// </summary>
+    public interface IFloatingTextView
+    {
+        /// <summary>Mostra o número do <paramref name="request"/>; o texto deve ser copiado aqui.</summary>
+        void Show(in FloatingTextRequest request);
+
+        /// <summary>Progresso da duração, de 0 (nasceu) a 1 (vai voltar ao spawner).</summary>
+        void SetProgress(float normalized);
+    }
 }

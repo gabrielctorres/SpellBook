@@ -23,4 +23,12 @@ namespace SpellBook.UI.Editor
     [CustomEditor(typeof(TagIndicatorBinder))]
     [CanEditMultipleObjects]
     internal sealed class TagIndicatorBinderEditor : SpellBookEditor { }
+
+    [CustomEditor(typeof(FloatingTextStyle))]
+    [CanEditMultipleObjects]
+    internal sealed class FloatingTextStyleEditor : SpellBookEditor { }
+
+    [CustomEditor(typeof(FloatingTextBinder))]
+    [CanEditMultipleObjects]
+    internal sealed class FloatingTextBinderEditor : SpellBookEditor { }
 }
