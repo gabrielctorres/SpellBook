@@ -19,27 +19,44 @@ namespace SpellBook.GAS.Description
         /// <summary>Sem habilidade ou sem efeito de custo, nada. Pula modificador nulo, sem atributo ou de atributo oculto.</summary>
         public override void Describe(DescriptionContext context)
         {
-            GameplayEffect cost = context.Ability != null ? context.Ability.CostEffect : null;
-            List<AttributeEffectModifier> modifiers = cost != null ? cost.Modifiers : null;
+            List<AttributeEffectModifier> modifiers = ModifiersOf(context);
             if (modifiers == null) return;
 
             EffectContext evaluation = context.EvaluationContext;
             for (int i = 0; i < modifiers.Count; i++)
             {
-                AttributeEffectModifier modifier = modifiers[i];
-                AttributeDefinition attribute = modifier?.Attribute;
-                if (attribute == null || attribute.Display.Hidden) continue;
-
-                float value = EffectDescriber.Evaluate(modifier.ValueSource, in evaluation, out bool variable);
-                context.Lines.Add(new DescriptionLine(
-                    DescriptionLineKind.Cost,
-                    attribute.DisplayName,
-                    Mathf.Abs(value),
-                    TextRole.Value,
-                    variable ? DescriptionLineFlags.Variable : DescriptionLineFlags.None,
-                    attribute,
-                    source: this));
+                if (TryLine(modifiers[i], in evaluation, this, out DescriptionLine line)) context.Lines.Add(line);
             }
+        }
+
+        /// <summary>Modificadores do custo da habilidade do contexto; nulo sem habilidade ou sem custo.</summary>
+        internal static List<AttributeEffectModifier> ModifiersOf(DescriptionContext context)
+        {
+            GameplayEffect cost = context.Ability != null ? context.Ability.CostEffect : null;
+            return cost != null ? cost.Modifiers : null;
+        }
+
+        /// <summary>Linha de custo de um modificador; <c>false</c> se ele é nulo, sem atributo ou de atributo oculto.</summary>
+        internal static bool TryLine(
+            AttributeEffectModifier modifier, in EffectContext evaluation, DescriptionElement source, out DescriptionLine line)
+        {
+            AttributeDefinition attribute = modifier?.Attribute;
+            if (attribute == null || attribute.Display.Hidden)
+            {
+                line = default;
+                return false;
+            }
+
+            float value = EffectDescriber.Evaluate(modifier.ValueSource, in evaluation, out bool variable);
+            line = new DescriptionLine(
+                DescriptionLineKind.Cost,
+                attribute.DisplayName,
+                Mathf.Abs(value),
+                TextRole.Value,
+                variable ? DescriptionLineFlags.Variable : DescriptionLineFlags.None,
+                attribute,
+                source: source);
+            return true;
         }
     }
 
@@ -55,13 +72,24 @@ namespace SpellBook.GAS.Description
         /// <summary>Sem habilidade ou sem efeito de recarga, nada.</summary>
         public override void Describe(DescriptionContext context)
         {
+            if (TryLine(context, this, out DescriptionLine line)) context.Lines.Add(line);
+        }
+
+        /// <summary>Linha de recarga; <c>false</c> sem habilidade ou sem efeito de recarga.</summary>
+        internal static bool TryLine(DescriptionContext context, DescriptionElement source, out DescriptionLine line)
+        {
             GameplayAbility ability = context.Ability;
             ScalableFloat duration = ability != null && ability.CooldownEffect != null ? ability.CooldownEffect.Duration : null;
-            if (duration == null) return;
+            if (duration == null)
+            {
+                line = default;
+                return false;
+            }
 
             float seconds = ability.ApplyCooldownReduction(duration.Evaluate(context.Level, ability.Values), context.Source);
-            context.Lines.Add(new DescriptionLine(
-                DescriptionLineKind.Cooldown, Label, seconds, TextRole.Value, RechargeFlags(ability, duration), source: this));
+            line = new DescriptionLine(
+                DescriptionLineKind.Cooldown, Label, seconds, TextRole.Value, RechargeFlags(ability, duration), source: source);
+            return true;
         }
 
         /// <summary>Variável se a recarga escala ou se a redução de recarga de quem lança pode mudá-la, com ou sem ASC.</summary>
@@ -128,8 +156,18 @@ namespace SpellBook.GAS.Description
         /// <summary>Sem habilidade ou com as cargas desligadas, nada.</summary>
         public override void Describe(DescriptionContext context)
         {
+            if (TryLine(context, this, out DescriptionLine line)) context.Lines.Add(line);
+        }
+
+        /// <summary>Linha de cargas; <c>false</c> sem habilidade ou com as cargas desligadas.</summary>
+        internal static bool TryLine(DescriptionContext context, DescriptionElement source, out DescriptionLine line)
+        {
             GameplayAbility ability = context.Ability;
-            if (ability == null || !ability.Charges.Enabled) return;
+            if (ability == null || !ability.Charges.Enabled)
+            {
+                line = default;
+                return false;
+            }
 
             ChargesConfig charges = ability.Charges;
             EffectContext evaluation = context.EvaluationContext;
@@ -137,14 +175,15 @@ namespace SpellBook.GAS.Description
             float recharge = ability.ApplyCooldownReduction(charges.RechargeTime.Evaluate(context.Level, ability.Values), context.Source);
             if (CooldownElement.RechargeFlags(ability, charges.RechargeTime) != DescriptionLineFlags.None) variable = true;
 
-            context.Lines.Add(new DescriptionLine(
+            line = new DescriptionLine(
                 DescriptionLineKind.Charges,
                 Label,
                 max,
                 TextRole.Value,
                 variable ? DescriptionLineFlags.Variable : DescriptionLineFlags.None,
                 secondaryValue: recharge,
-                source: this));
+                source: source);
+            return true;
         }
     }
 }

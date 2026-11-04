@@ -46,7 +46,8 @@ namespace SpellBook.GAS.Description
         /// <summary>
         /// Linha inteira no fim de <paramref name="into"/>: rótulo pelo provedor do contexto, espaço e texto do valor. Quando
         /// o rótulo tem <c>{0}</c> ou <c>{1}</c>, eles viram o texto do valor e o do segundo valor (segundos, nas cargas), e
-        /// o valor não se repete no fim.
+        /// o valor não se repete no fim. A linha de um <see cref="TemplateElement"/> sai com os <c>{nome}</c> e os atalhos
+        /// expandidos no nível do contexto.
         /// </summary>
         public static void WriteLine(in DescriptionLine line, DescriptionContext context, TextBuffer into)
         {
@@ -54,6 +55,12 @@ namespace SpellBook.GAS.Description
             if (into == null) throw new ArgumentNullException(nameof(into));
 
             string label = line.Label.Resolve(context.Text);
+            if (line.Kind == DescriptionLineKind.Text && line.Source is TemplateElement template)
+            {
+                template.Write(label, context, into);
+                return;
+            }
+
             if (HasPlaceholder(label))
             {
                 WriteExpanded(label, line, context, into);
