@@ -15,4 +15,8 @@ namespace SpellBook.UI.UGUI.Editor
     [CustomEditor(typeof(TagIndicatorView))]
     [CanEditMultipleObjects]
     internal sealed class TagIndicatorViewEditor : SpellBookEditor { }
+
+    [CustomEditor(typeof(FloatingTextView))]
+    [CanEditMultipleObjects]
+    internal sealed class FloatingTextViewEditor : SpellBookEditor { }
 }
