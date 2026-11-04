@@ -238,6 +238,59 @@ Divisão do SL1 pela ADR 0042, decidida pelo usuário em 2026-11-04. O SL1 imple
 - Critério de pronto: CA2, CA3, CA5, CA6, CA10 e CA16 verdes.
 - Tamanho estimado: ~490 linhas; 10 arquivos. Depende de: SL3, AV4, EA5, EA6.
 
+### Detalhe (2026-11-04)
+Divisão do SL4 pela ADR 0042, decidida pelo usuário em 2026-11-04. O SL4 escrito inteiro mediu 825 linhas em `.cs` (`git diff --numstat` e `wc -l` dos novos), acima de +30% (650): `ActivationCheckScope.cs` 18, `AbilitySystemComponent.cs` +18 −5, `ActivationScopeTests.cs` 83, `SlotReader.cs` 212, `AbilitySlotSource.cs` 95, `AbilitySlotBinder.cs` 11, `UIEditors.cs` +4 e `AbilitySlotSourceTests.cs` 379. Ele virou três tickets, em série: SL4a (#252), SL4b (#337) e SL4c (#338). O código do SL4b e do SL4c está guardado em `C:/Users/gabri/orca/workspaces/SpellBook/_guardado-sl4b/` e `_guardado-sl4c/`, e o `NOTA.md` de cada pasta diz como reaplicar. Quem dependia do SL4 passa a depender do SL4c (a linha "Depende de" da parte fixa não muda; vale esta nota). Em comum aos três: a página `slot-de-habilidade.md` fica para o passe de documentação (emenda de 2026-11-03 da ADR 0007), e o `CHANGELOG.md` sai porque não há quebra (item 4 da mesma emenda). Os asmdefs não mudam: o runtime `SpellBook.GAS.UI` já referencia GAS, Tags, Core e UI, e o editor já referencia o runtime e as dependências dele (ADR 0012, item 2; ADR 0039, item 9).
+
+#### SL4a — consulta com escopo no GAS (#252)
+- CA: nenhum CA do PRD fecha aqui. Cobre o Design 4 e a P3; prepara o CA5 e o CA16 (o "pronto" igual à tentativa até o custo, Q3), que fecham no SL4b e no SL4c.
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/GAS/Abilities/ActivationCheckScope.cs` (novo): `enum ActivationCheckScope { All, WithoutConditions }`.
+  - `Runtime/GAS/Core/AbilitySystemComponent.cs:904-918` e `:954-1002`:
+    - sobrecarga pública `GetActivationResult(GameplayAbility, in AbilityTarget, ActivationCheckScope, out ActivationFailure)`; a de três parâmetros passa a chamá-la com `All`, sem mudar o resultado;
+    - o `CheckActivation` privado ganha o parâmetro `scope` e, com `WithoutConditions`, pula as regras de ativação (a última checagem da ADR 0022); a tentativa (`TryActivate`) passa `All`. É o mesmo caminho, não um paralelo (N4).
+  - `Tests/GAS/PlayMode/ActivationScopeTests.cs` (novo).
+- API: a sobrecarga é pública e nova, aditiva, prevista no Design 4 e na lista "Adicionado" das quebras de compatibilidade. Nenhuma assinatura existente muda.
+- Testes red (PlayMode, `SpellBook.GAS.Tests.PlayMode`, classe `ActivationScopeTests`):
+  - `Scope_WithoutConditions_StopsBeforeRules_SameOrder`: com uma condição que falha sem alvo, `All` (e a sobrecarga antiga) dá `BlockedByCondition` e `WithoutConditions` dá `Success`; tag bloqueadora, recarga e custo dão o mesmo resultado nos dois escopos, na ordem da ADR 0022; 10 000 consultas com `WithoutConditions` não alocam.
+  Red contra um esqueleto em que a sobrecarga existe e ignora o escopo: 1 de 1 falha (`WithoutConditions` deu `BlockedByCondition`, esperado `Success`). Green: 13 de 13, com o teste do ticket, 3 do `ActivationQueryTests` e 9 do `ActivationOrderTests`.
+- Critério de pronto: o teste verde, com `total` = 1 no XML; `ActivationQueryTests` e `ActivationOrderTests` verdes (o escopo `All` não muda nada).
+- Tamanho medido (`git diff --numstat` e `wc -l` dos novos): 124 linhas em 4 arquivos. Em `.cs`: `ActivationCheckScope.cs` 18, `AbilitySystemComponent.cs` +18 −5 e `ActivationScopeTests.cs` 83; a Spec conta só como arquivo. Exceção: nenhuma.
+- Commit: `feat(gas): consulta de ativação com escopo (#252)`
+
+#### SL4b — fonte do slot com estado e recarga (#337)
+- Depende do SL4a.
+- CA: CA2, CA3, CA6 e CA16. A prévia (R12) fica pronta na fonte; o CA12 (S) é do SL8.
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/GAS.UI/SlotReader.cs` (novo, interno): `Attach(asc, ability)`, `Detach`, `Tick`, `Model` e `WantsTick`. Assina `OnTagChanged`, `OnAbilityGranted`, `OnAbilityRemoved`, `OnAbilityActivated`, `OnAbilityEnded` e `OnCooldownChanged` com delegates criados uma vez. A cada evento e a cada tick, monta o modelo pela consulta com `WithoutConditions` e o mapeamento do Design 3; recarga pelo `GetCooldownNormalized` e `GetCooldownTimeRemaining`; pede tick só com a recarga correndo; `ReadyPulseCount++` só no `OnCooldownChanged(Ended)` da própria habilidade. Sem custo por evento nem rótulo: são do SL4c.
+  - `Runtime/GAS.UI/AbilitySlotSource.cs` (novo): `[Serializable, TypeCategory("Habilidades", Summary = ..., Line = ...)]`, como a `TagSource` (ADR 0013, item 4: é oferecida pelo seletor de tipos do binder); campos `loadout` e `slot`, com propriedades; `OwnerType` = ASC; um `SlotReader` por ligação (N3); dono que não é ASC publica `default`; prévia com a habilidade da entrada, 50 % da recarga, 2 de 3 cargas e o rótulo do provedor ou "Q". O `failureSeconds` entra no SL5 e o `Validate` no SL9.
+  - `Runtime/UI/AbilitySlotBinder.cs` (novo): `sealed class AbilitySlotBinder : UIBinder<SlotModel>`, com `[HelpURL(DocUrls.UiAbilitySlot + "#abilityslotbinder")]`, como o `TagIndicatorBinder`. A âncora nasce no passe de documentação.
+  - `Editor/UI/UIEditors.cs:42`: `AbilitySlotBinderEditor : UIBinderEditor`, para a guarda `SpellBookEditorCoverageTests`.
+  - `Tests/GAS.UI/PlayMode/AbilitySlotSourceTests.cs` (novo).
+- Testes red (PlayMode, `SpellBook.GAS.UI.Tests.PlayMode`, classe `AbilitySlotSourceTests`):
+  - `Cooldown8s_ReadyCooldownReady_FractionSeconds_PulseOnce_PauseStops` (CA2, C2);
+  - `ReducedCooldown_ShowsRealDuration` (CA3, C3);
+  - `BlockingTag_Blocked_BackOnRemove` (CA6, C6);
+  - `SlotState_MatchesTryActivate_UpToCost` (CA16: não concedida, tag bloqueadora, tag exigida, habilidade ativa, recarga, custo e pronta);
+  - `Preview_HalfCooldownTwoCharges_LabelQ`.
+- Critério de pronto: os 5 testes verdes, com `total` = 5 no XML; `HelpUrlTests`, `TypeCatalogSummaryTests`, `GasUiSourceScanTests` e `SpellBookEditorCoverageTests` verdes.
+- Tamanho medido (`wc -l` dos novos e o patch guardado do `UIEditors.cs`): 524 linhas em 6 arquivos. Em `.cs`: `SlotReader.cs` 129, `AbilitySlotSource.cs` 93, `AbilitySlotBinder.cs` 11, `AbilitySlotSourceTests.cs` 287 e `UIEditors.cs` +4; a Spec conta só como arquivo. Exceção: 524 passa do teto de 500, dentro de +30% (650). Motivo: o arquivo de teste tem 287 linhas, com o cenário de sete casos do CA16 e o rig de driver, relógio e loadout que o PlayMode precisa. Dividir de novo separaria a fonte dos testes dela.
+- Commit: `feat(gas-ui): fonte do slot com estado e recarga (#337)`
+
+#### SL4c — custo por evento, rótulo da tecla e sem alocar (#338)
+- Depende do SL4b.
+- CA: CA5, CA10 e CA14 (parte do slot).
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/GAS.UI/SlotReader.cs`: `Attach` ganha `slotKey`, `keyLabels` e `text`; assina o `OnValueChanged` dos atributos que o custo mexe e dos que o valor dele lê (`Attribute`, `TargetAttribute` e `Formula.GetSourceDependencies`), coletados uma vez por ligação (P1); assina o `Changed` do `KeyLabelProvider` e escreve o rótulo num `TextBuffer` só dele, com o provedor do contexto (emenda da P5); o modelo ganha `WithKeyLabel`.
+  - `Runtime/GAS.UI/AbilitySlotSource.cs`: o binding passa `slot.GetDefinition()`, `loadout.KeyLabels` e `Context.Text`.
+  - `Tests/GAS.UI/PlayMode/AbilitySlotSourceTests.cs`: os três testes, o `TestKeyLabels` e o parâmetro `labels` do rig.
+- Testes red (PlayMode, `SpellBook.GAS.UI.Tests.PlayMode`, classe `AbilitySlotSourceTests`):
+  - `LowMana_NoResource_BackWhenManaRises` (CA5, C5);
+  - `KeyLabel_FromProvider_UpdatesOnChanged` (CA10, C10);
+  - `SlotUpdates10000_DoNotAllocate` (CA14, parte: tag que entra e sai e tick com recarga correndo, rótulo ligado).
+- Critério de pronto: os 8 testes da classe verdes, com `total` = 8 no XML; `GasUiSourceScanTests` verde.
+- Tamanho medido (o patch guardado, sobre a forma do SL4b): 209 linhas em 4 arquivos. Em `.cs`: `SlotReader.cs`, `AbilitySlotSource.cs` e `AbilitySlotSourceTests.cs`, +193 −16 no total; a Spec conta só como arquivo. Exceção: nenhuma.
+- Commit: `feat(gas-ui): custo, rótulo da tecla e sem alocar no slot (#338)`
+
 ### SL5 — Cargas, motivo de falha e nível
 - Escopo: `SlotReader.cs`, `AbilitySlotSource.cs` (`failureSeconds`), `Tests/GAS.UI/PlayMode/SlotChargesAndFailureTests.cs` (novo), `slot-de-habilidade.md`, `CHANGELOG.md`.
 - Testes red: `Charges3_Spend_Shows2_NextRadial_NoCharges` (CA4, C4); `ChargeBack_PulsesOnce`; `LowMana_TryActivate_FailureKeyTagText_OneSecond_CountUp` (CA7, C7, sem autocast); `FailureOrder_FollowsAdr0022`; `LevelChange_UpdatesCooldownAndCost`.
