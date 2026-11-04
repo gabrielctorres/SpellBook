@@ -46,18 +46,31 @@ namespace SpellBook.GAS.UI
             return false;
         }
 
-        /// <summary>Converte as linhas do contexto, na ordem, para <see cref="Lines"/>.</summary>
+        /// <summary>
+        /// Converte as linhas do contexto ainda não convertidas, na ordem, para <see cref="Lines"/>, com o tipo pelo tipo da
+        /// linha de descrição.
+        /// </summary>
         public void Convert()
         {
             List<DescriptionLine> lines = Context.Lines;
-            for (int i = 0; i < lines.Count; i++)
+            for (int i = _lines.Count; i < lines.Count; i++)
             {
-                _lines.Add(ToTooltipLine(lines[i]));
+                _lines.Add(ToTooltipLine(lines[i], KindOf(lines[i].Kind)));
+            }
+        }
+
+        /// <summary>Como <see cref="Convert()"/>, com todas as linhas ainda não convertidas no tipo <paramref name="kind"/>.</summary>
+        public void Convert(TooltipLineKind kind)
+        {
+            List<DescriptionLine> lines = Context.Lines;
+            for (int i = _lines.Count; i < lines.Count; i++)
+            {
+                _lines.Add(ToTooltipLine(lines[i], kind));
             }
         }
 
         // Template e rótulo com {0}/{1} (cargas) saem inteiros no valor, com o rótulo vazio
-        private TooltipLine ToTooltipLine(in DescriptionLine line)
+        private TooltipLine ToTooltipLine(in DescriptionLine line, TooltipLineKind kind)
         {
             string label = line.Label.Resolve(Context.Text) ?? string.Empty;
             int start = _values.Length;
@@ -72,7 +85,7 @@ namespace SpellBook.GAS.UI
                 DescriptionWriter.WriteValue(in line, Context, _values);
             }
 
-            return new TooltipLine(label, _values.SpanFrom(start), line.Role, KindOf(line.Kind), line.Attribute);
+            return new TooltipLine(label, _values.SpanFrom(start), line.Role, kind, line.Attribute);
         }
 
         private static TooltipLineKind KindOf(DescriptionLineKind kind)

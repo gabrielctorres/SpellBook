@@ -65,6 +65,12 @@ namespace SpellBook.GAS.Text
         /// <summary>Rótulo da linha de cargas: <c>{0}</c> é o máximo e <c>{1}</c>, o intervalo de recarga.</summary>
         public const string DescriptionCharges = "gas.description.charges";
 
+        /// <summary>Rótulo da linha do valor base na decomposição do tooltip de atributo.</summary>
+        public const string TooltipBase = "gas.tooltip.base";
+
+        /// <summary>Rótulo do modificador que não vem de um efeito com nome, na decomposição do tooltip de atributo.</summary>
+        public const string TooltipOtherSource = "gas.tooltip.other_source";
+
         /// <summary>Chave do motivo de <paramref name="result"/>; <c>null</c> no sucesso ou em valor fora do enum.</summary>
         public static string ForResult(AbilityActivationResult result)
         {

@@ -52,3 +52,7 @@ MonoBehaviour:
     text: Permanente
   - key: gas.description.charges
     text: '{0} cargas, uma a cada {1}'
+  - key: gas.tooltip.base
+    text: Base
+  - key: gas.tooltip.other_source
+    text: Outra fonte
