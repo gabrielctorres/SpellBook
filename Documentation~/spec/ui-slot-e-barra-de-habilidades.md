@@ -92,7 +92,7 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Mesma
 - Tamanho estimado: ~480 linhas; 8 arquivos. Depende de: UI14.
 
 ### Detalhe (2026-11-04)
-Divisão do SL1 pela ADR 0042, decidida pelo usuário em 2026-11-04. O SL1 implementado inteiro mediu 870 linhas em `.cs`, acima de +30% (650): `UISource.cs` +90, `UIModels.cs` +16, `UIEditors.cs` +4, `UIListBinder.cs` 380, `UIItemContext.cs` 50 e `UIListBinderTests.cs` 330. Ele virou o SL1a (#249) e o SL1b (#335). Em comum aos dois: o manual (`visao-geral.md`) fica para o passe de documentação (emenda de 2026-11-03 da ADR 0007), e o `CHANGELOG.md` sai porque não há quebra (item 4 da mesma emenda).
+Divisão do SL1 pela ADR 0042, decidida pelo usuário em 2026-11-04. O SL1 implementado inteiro mediu 870 linhas em `.cs`, acima de +30% (650): `UISource.cs` +90, `UIModels.cs` +16, `UIEditors.cs` +4, `UIListBinder.cs` 380, `UIItemContext.cs` 50 e `UIListBinderTests.cs` 330. Ele virou o SL1a (#249) e o SL1b (#335); o SL1b se dividiu de novo em SL1b e SL1c (#336). Em comum aos dois: o manual (`visao-geral.md`) fica para o passe de documentação (emenda de 2026-11-03 da ADR 0007), e o `CHANGELOG.md` sai porque não há quebra (item 4 da mesma emenda).
 
 #### SL1a — contratos de lista, `UIItemContext` e "+N" (#249)
 - CA: nenhum CA do PRD fecha aqui. É a base do Design 1 e do item 6 da ADR 0039.
@@ -117,36 +117,57 @@ Divisão do SL1 pela ADR 0042, decidida pelo usuário em 2026-11-04. O SL1 imple
 - Tamanho medido: 276 linhas em 6 arquivos. Em `.cs`: `UISource.cs` +85, `UIModels.cs` +16, `UIEditors.cs` +4, `UIItemContext.cs` 50 e `UIListContractsTests.cs` 121; a Spec conta só como arquivo. Exceção: nenhuma.
 - Commit: `feat(ui): contratos de lista, UIItemContext e "+N" (#249)`
 
-#### SL1b — `UIListBinder<TItem>` (#335)
-- Depende do SL1a. O SL2 e os tickets seguintes passam a depender também do SL1b (a linha "Depende de" da parte fixa não muda; vale esta nota).
-- Código: já implementado e verde antes da divisão, guardado fora do repositório em `C:/Users/gabri/orca/workspaces/SpellBook/_guardado-sl1b/`. Os passos para reaplicar estão no `NOTA.md` da pasta.
-- Escopo:
-  - `Runtime/UI/UIListBinder.cs` (novo):
-    - campos do Design 1 e `SetSource`;
+#### SL1b — `UIListBinder<TItem>`: ordem, remoção e troca de conteúdo (#335)
+- Depende do SL1a. O SL2 e os tickets seguintes passam a depender também do SL1b e do SL1c (a linha "Depende de" da parte fixa não muda; vale esta nota).
+- Divisão de novo pela ADR 0042, decidida pelo usuário em 2026-11-04: o binder guardado mediu ~700 linhas. O SL1b é o núcleo, sem limite de visíveis (todos os itens ganham objeto). O SL1c (#336) põe o `maxVisible`, o "+N" e a promoção do oculto. O código do SL1c está guardado em `C:/Users/gabri/orca/workspaces/SpellBook/_guardado-sl1c/`, e o `NOTA.md` da pasta diz como reaplicar.
+- CA: nenhum CA do PRD fecha aqui. Prepara o CA1 (ordem), o CA13 (spawner e vivos) e o CA14 (sem alocar), que fecham na barra (SL6).
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/UI/UIListBinder.cs` (novo, 328 linhas):
+    - campos `source` (`[SerializeReference, TypePicker]`), `itemPrefab`, `spawner` e `container`, e `SetSource`. Os campos `maxVisible` e `overflowView` do Design 1 entram no SL1c; o binder do SL1b não os conhece;
+    - o binder recebe a lista só pela ligação: `IUIListReceiver<TItem>` é implementado de forma explícita, como o `IUIModelReceiver<TModel>` no `UIBinder<TModel>`, e `AddItem`, `UpdateItem`, `RemoveItem` e `ClearItems` não são públicos. Uma chamada direta fora do Play criaria itens salvos na cena;
     - entradas em ordem de chegada, numa lista pré-alocada;
-    - visíveis são as `maxVisible` primeiras (0 = todas), cada uma com um objeto do `SpawnerAsset`, posto sob o `container` (vazio: o próprio binder) com `SetAsLastSibling`;
-    - remover devolve o objeto ao spawner e promove o primeiro oculto; `UpdateItem` reaproveita o objeto;
+    - cada entrada ganha um objeto do `SpawnerAsset`, posto sob o `container` (vazio: o próprio binder) com `SetAsLastSibling`;
+    - remover devolve o objeto ao spawner; `UpdateItem` reaproveita o objeto;
     - `AddItem` com um id que já existe vale como `UpdateItem`; `UpdateItem` e `RemoveItem` com um id ausente não fazem nada;
-    - sem prefab, com prefab sem `IView<TItem>` ou com o spawner sem instância, o item é pulado com um aviso por motivo, só em desenvolvimento;
+    - sem prefab, com prefab sem `IView<TItem>` ou com o spawner sem instância, o item é pulado com um aviso por motivo, só em desenvolvimento. A entrada fica sem objeto, e o próximo `UpdateItem` tenta de novo;
     - views e `UIItemContext` são lidos uma vez por instância e guardados;
     - `DetachBinding` e `ShowEmpty` devolvem todos os itens;
-    - o "+N" recebe o `ListOverflowModel` a cada mudança na contagem de ocultos.
-  - `Runtime/UI/UISource.cs` (`UIBinding`): `internal Object Owner`, escrito no `Attach` antes do `OnAttach` e limpo no `Detach`. O binder o escreve no `UIItemContext`. São 7 linhas que saíram do SL1a para não ficarem sem uso.
-  - `Tests/UI/PlayMode/UIListBinderTests.cs` (novo): fonte, ligação, dono, views e binder de teste aninhados; spawner pelo `RecordingSpawnerAsset`.
-- Prévia em edição: o binder chama `CreatePreview` e só entrega ao "+N" a contagem de ocultos da prévia. Ele não cria itens fora do Play, porque um spawn em edição salvaria instâncias na cena (o `FloatingTextBinder` já evita isso). A ordem dos slots em edição (R12 do PRD) é pendência do SL6 e do SL8.
+    - `DrawPreview` não faz nada: o binder não cria itens fora do Play, porque um spawn em edição salvaria instâncias na cena (o `FloatingTextBinder` já evita isso). A ordem dos slots em edição (R12 do PRD) é pendência do SL6 e do SL8.
+
+    Para o SL1c encaixar, a entrada já aceita ficar sem objeto (o mesmo caminho do spawn nulo), e `Show` e `Release` trabalham por índice.
+  - `Runtime/UI/UISource.cs:150-152`, `:167` e `:182` (`UIBinding`): `internal Object Owner`, escrito no `Attach` antes do `OnAttach` e limpo no `Detach`. O binder o escreve no `UIItemContext`. São as linhas que saíram do SL1a para não ficarem sem uso.
+  - `Tests/UI/PlayMode/UIListBinderTests.cs` (novo): fonte, ligação, dono, view e binder de teste aninhados; spawner pelo `RecordingSpawnerAsset`. Os `.meta` dos dois arquivos novos são os que a Unity gerou antes da divisão.
 - Testes red (PlayMode, `SpellBook.UI.Tests.PlayMode`, classe `UIListBinderTests`):
   - `Items_FromSpawner_ArrivalOrder`;
   - `Remove_Releases_LiveCountStable`;
   - `ContentChange_ReusesItem`;
-  - `MaxVisible_HiddenCount_PromotesOldestHidden`;
   - `ItemContext_OwnerFromBinder`;
   - `NullSpawn_SkipsWithWarning`;
-  - `AddRemove1000_DoNotAllocate`.
+  - `AddRemove1000_DoNotAllocate`, sem limite: de quatro a cinco itens vivos, 4 no fim;
+  - `Receiver_NotPublicOnBinder`: por reflexão, o binder não expõe `AddItem`, `UpdateItem`, `RemoveItem` nem `ClearItems` como membros públicos.
 
-  O red já rodou no SL1 inteiro: as falhas foram `NullReferenceException`, porque o esqueleto do binder não liga a fonte.
-- Critério de pronto: os 7 testes verdes, com `total` = 7 no XML; `HelpUrlTests` e `SpellBookEditorCoverageTests` verdes.
-- Tamanho: ~700 linhas em 3 arquivos, medidas no código guardado: `UIListBinder.cs` 380, `UIListBinderTests.cs` ~311 (316 sem o teste que foi para o SL1a, e ainda sem a classe `SubjectAsset`) e `UISource.cs` +7. A estimativa de ~650 da divisão não contava o arquivo de teste inteiro. **Passa de +30% (650).** Antes de reaplicar, o Controlador decide: dividir de novo (por exemplo, separar `maxVisible` e "+N" num SL1c) ou enxugar o arquivo de teste. Exceção: nenhuma registrada.
-- Commit: `feat(ui): UIListBinder com prévia (#335)`
+  Red contra um esqueleto que liga a fonte e não cria item: 6 de 6 falham (`SpawnCount` 0, índice fora da lista de vivos, aviso esperado que não veio, vivos 0). O `Receiver_NotPublicOnBinder` veio da revisão: red com os quatro métodos públicos (1 de 7 falha, com os quatro nomes na lista), green com a implementação explícita.
+- Critério de pronto: os 7 testes verdes, com `total` = 7 no XML; `UIListContractsTests`, `UIContractsTests`, `UIBinderTests`, `HelpUrlTests` e `SpellBookEditorCoverageTests` verdes.
+- Tamanho medido: 623 linhas em 4 arquivos. Em `.cs`: `UIListBinder.cs` 328, `UIListBinderTests.cs` 290 e `UISource.cs` +5; a Spec conta só como arquivo. Exceção: 623 passa do teto de 500, dentro de +30% (650). Motivo: o arquivo de teste tem 290 linhas, com a fonte, a ligação, a view e o binder de teste que o PlayMode precisa. Dividir de novo separaria o binder dos testes dele.
+- Commit: `feat(ui): UIListBinder com ordem, remoção e troca de conteúdo (#335)`
+
+#### SL1c — `maxVisible` e "+N" no `UIListBinder<TItem>` (#336)
+- Depende do SL1b.
+- CA: nenhum CA do PRD fecha aqui. Fecha a parte de `maxVisible` e "+N" do Design 1 e prepara o CA14 (sem alocar com ocultos).
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/UI/UIListBinder.cs` (+55 −7):
+    - campos `[SerializeField, Min(0)] int maxVisible` (0 = sem limite) e `MonoBehaviour overflowView` (`IView<ListOverflowModel>`, opcional), com as propriedades `MaxVisible` e `OverflowView`. São campos novos: o formato do SL1b continua lido;
+    - os visíveis são os `maxVisible` primeiros (`IsVisible`, `HiddenCount`); `AddItem` e `UpdateItem` só criam ou desenham objeto para índice visível;
+    - `RemoveItem` promove o primeiro oculto ao último lugar visível, no fim do container;
+    - `AddItem`, `RemoveItem` e `ClearItems` entregam o `ListOverflowModel` ao "+N" só quando a contagem de ocultos muda;
+    - `DrawPreview` chama `CreatePreview` numa lista pré-alocada e entrega ao "+N" a contagem de ocultos da prévia, sem criar itens.
+  - `Tests/UI/PlayMode/UIListBinderTests.cs` (+44 −11): `CreateRig(int maxVisible)` com a view de "+N" de teste; os testes do SL1b passam `maxVisible: 0`.
+- Testes red (PlayMode, `SpellBook.UI.Tests.PlayMode`, classe `UIListBinderTests`):
+  - `MaxVisible_HiddenCount_PromotesOldestHidden` (novo);
+  - `AddRemove1000_DoNotAllocate` muda para `maxVisible: 3`, para cobrir oculto e promoção sem alocar: 3 vivos e `Hidden` = 1 no fim.
+- Critério de pronto: os 7 testes da classe verdes, com `total` = 7 no XML; `HelpUrlTests` e `SpellBookEditorCoverageTests` verdes.
+- Tamanho medido no código guardado: 117 linhas em 3 arquivos. Em `.cs`: `UIListBinder.cs` +55 −7 e `UIListBinderTests.cs` +44 −11; a Spec conta só como arquivo. Exceção: nenhuma.
+- Commit: `feat(ui): maxVisible e "+N" no UIListBinder (#336)`
 
 ### SL2 — `SlotModel` e `KeyLabelProvider`
 - Escopo: `UIModels.cs` (`SlotModel`, `SlotState`), `Runtime/UI/KeyLabelProvider.cs`, `Runtime/UI/FixedKeyLabelProvider.cs` (novos), `UIEditors.cs`, `Tests/UI/EditMode/KeyLabelProviderTests.cs` (novo), `DocUrls.cs` (`UiAbilitySlot`), `DocUrlsTests.cs`, `Documentation~/manual/ui/slot-de-habilidade.md` (nova), `CHANGELOG.md`.

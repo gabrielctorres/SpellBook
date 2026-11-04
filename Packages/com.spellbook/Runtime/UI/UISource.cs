@@ -147,6 +147,9 @@ namespace SpellBook.UI
         // Driver em que a ligação está registrada; avisado quando WantsTick muda
         internal UIUpdateDriver Driver { get; set; }
 
+        // Dono do Attach atual; o binder de lista o escreve no UIItemContext de cada item
+        internal UnityEngine.Object Owner { get; private set; }
+
         /// <summary>
         /// Liga a <paramref name="owner"/>. Se já estiver ligada, desliga antes. A subclasse assina os eventos e publica o
         /// estado atual em <see cref="OnAttach"/>.
@@ -161,6 +164,7 @@ namespace SpellBook.UI
 
             Detach();
             Context = context;
+            Owner = owner;
             IsAttached = true;
             OnAttach(owner);
         }
@@ -175,6 +179,7 @@ namespace SpellBook.UI
 
             OnDetach();
             IsAttached = false;
+            Owner = null;
             SetWantsTick(false);
         }
 
