@@ -80,6 +80,10 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Mesma
 - Testes red: `Show_OneAtATime_SecondClosesFirst` (CA7, parte); `SameRequesterTwice_NoDuplicate`; `Delay_CountedByDriver`; `TargetDestroyed_ClosesNoException`; `Reopen_SameSource_NoAllocation`; `CustomView_ReceivesModel` (CA12); `OpenThenUpdates10000_NoAlloc` (CA13, parte).
 - Critério de pronto: CA12 verde; partes do CA7 e do CA13.
 - Tamanho estimado: ~480 linhas; 10 arquivos. Depende de: SL8.
+- Divisão de 2026-11-04 (ADR 0042): o TT1 passou do teto e virou dois tickets, em série. Os testes red e o escopo acima se repartem entre eles, como diz o Detalhe.
+  - TT1a (#260): `TooltipModel`, `TooltipBinder` básico e âncora. Depende de: SL8. Medido: 634 linhas; 9 arquivos (exceção de até +30% registrada no Detalhe).
+  - TT1b (#339): atraso, posição e alvo do tooltip. Depende de: TT1a. Medido: 315 linhas; 2 arquivos.
+  - Quem dependia do TT1 passa a depender do TT1b.
 
 ### Detalhe (2026-11-04)
 O TT1 passou do teto (~839 linhas medidas) e foi dividido por decisão do usuário: TT1a (#260) e TT1b (#339). O código do TT1b está guardado fora do repositório, em `C:/Users/gabri/orca/workspaces/SpellBook/_guardado-tt1b/` (`NOTA.md`, `tt1b.patch` sobre o TT1a, e o binder e o teste nas formas TT1a e completa).
@@ -139,7 +143,7 @@ O TT1 passou do teto (~839 linhas medidas) e foi dividido por decisão do usuár
 - Escopo: `Runtime/UI/TooltipPlacement.cs`, `Tests/UI/EditMode/TooltipPlacementTests.cs`, `Runtime/UI.UGUI/TooltipView.cs` (novos), `Runtime/UI.UGUI/Prefabs/Tooltip.prefab` (fixture), `UGUIEditors.cs`, `Tests/UI.UGUI/EditMode/TooltipViewTests.cs` (novo), `tooltip.md`, `CHANGELOG.md`.
 - Testes red: `Placement_PreferredSide_FlipsAtEdge_ClampsVertical` (CA8, parte automatizável); `View_TitleIconLinesFooter_ColorByRole_NoMarkupFromModel` (CA9, parte da view); `View_StacksAndRemaining_OnlyWhenPresent`.
 - Critério de pronto: testes verdes; CA8 (S) no host.
-- Tamanho estimado: ~430 linhas; 8 arquivos (1 fixture). Depende de: TT1.
+- Tamanho estimado: ~430 linhas; 8 arquivos (1 fixture). Depende de: TT1b (o TT1 se dividiu em TT1a e TT1b em 2026-11-04, ADR 0042).
 
 ### TT3 — `TooltipTrigger`: ponteiro, foco e código
 - Escopo: `Runtime/UI.UGUI/TooltipTrigger.cs` (novo), `UGUIEditors.cs`, `Tests/UI.UGUI/PlayMode/SpellBook.UI.UGUI.Tests.PlayMode.asmdef` (novo), `Tests/UI.UGUI/PlayMode/TooltipTriggerTests.cs` (novo), `AsmdefRulesTests.cs` (`UI.UGUI` em `PlayModeModules`), `tooltip.md`, `CHANGELOG.md`.
@@ -152,6 +156,7 @@ O TT1 passou do teto (~839 linhas medidas) e foi dividido por decisão do usuár
 - Testes red: `Fireball_Level3_TitleIconSubtitle_DescriptionCostCooldownCharges_AscUnchanged` (CA1, C1); `ReductionChangesWhileOpen_CooldownUpdates` (CA2, C2); `LevelChangesWhileOpen_LinesUpdate` (CA3, C3); `EnUs_ProviderKeys_NoMarkup_RoleOnLines` (CA9, C9); `NoOwner_ConfiguredLevel_AssetValues_NoException` (CA10, C10); `Updates10000_NoAlloc_NoTickRequested` (CA13, parte).
 - Critério de pronto: CA1 a CA3, CA9 e CA10 verdes.
 - Tamanho estimado: ~480 linhas; 5 arquivos. Depende de: TT3, DE13.
+- Observação da revisão do TT1a (Examinador, 2026-11-04) sobre o CA10 (tooltip sem dono): pelo contrato do binder, `Show` com dono nulo não abre. Sem ASC, o dono chega nulo, então o tooltip não abre. O TT4 precisa definir o dono nesse caso (por exemplo, passar o assunto ou o asset como dono) ou mudar o binder. Senão, o CA10 passa só na fonte, e não de ponta a ponta.
 
 ### TT5 — `EffectTooltipSource`, `AttributeTooltipSource` e `EffectAggregate`
 - Escopo: `Runtime/GAS.UI/EffectTooltipSource.cs`, `AttributeTooltipSource.cs`, `EffectAggregate.cs` (novos), `Runtime/GAS/Text/GasTextKeys.cs`, `GasTexts.pt-BR.asset`, `GasTexts.en.asset` (chaves `gas.tooltip.*`), `Tests/GAS.UI/PlayMode/EffectAndAttributeTooltipTests.cs` (novo), `tooltip.md`, `CHANGELOG.md`.
@@ -181,8 +186,9 @@ O TT1 passou do teto (~839 linhas medidas) e foi dividido por decisão do usuár
 
 | Ticket | Unity | Depende de | Tamanho |
 |---|---|---|---|
-| TT1 | sim | SL8 | ~480 / 10 |
-| TT2 | sim | TT1 | ~430 / 8 |
+| TT1a | sim | SL8 | 634 / 9 |
+| TT1b | sim | TT1a | 315 / 2 |
+| TT2 | sim | TT1b | ~430 / 8 |
 | TT3 | sim | TT2 | ~420 / 7 |
 | TT4 | sim | TT3, DE13 | ~480 / 5 |
 | TT5 | sim | TT4 | ~470 / 9 |
@@ -190,7 +196,7 @@ O TT1 passou do teto (~839 linhas medidas) e foi dividido por decisão do usuár
 | TT7 | sim | TT6 | ~380 / 9 |
 | TT8 | sim | TT7 | ~40 / 5 |
 
-Fila: TT1 → TT8 em série, depois do SL8 (podem intercalar com SL9 a SL13 a critério do Controlador, porque não tocam os mesmos arquivos até o TT8). O B-018 usa o TT5 (`EffectAggregate`, `EffectTooltipSource`) e o TT3 (`TooltipTrigger`). CA15 roda em todos.
+Fila: TT1a → TT1b → TT2 → … → TT8 em série, depois do SL8 (o TT1 se dividiu em 2026-11-04, ADR 0042; podem intercalar com SL9 a SL13 a critério do Controlador, porque não tocam os mesmos arquivos até o TT8). O B-018 usa o TT5 (`EffectAggregate`, `EffectTooltipSource`) e o TT3 (`TooltipTrigger`). CA15 roda em todos.
 
 ## Perguntas ao usuário
 
