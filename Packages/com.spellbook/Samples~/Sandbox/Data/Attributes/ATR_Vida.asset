@@ -13,8 +13,33 @@ MonoBehaviour:
   m_Name: ATR_Vida
   m_EditorClassIdentifier: SpellBook.GAS::SpellBook.GAS.Attributes.AttributeDefinition
   Icon: {fileID: 0}
-  DisplayName: 
+  localizedName:
+    key: 
+    text: 
+  legacyDisplayName: 
   Type: 0
   Formula: {fileID: 0}
+  MinSource: 0
+  MinAttribute: {fileID: 0}
   MinValue: 0
+  MaxSource: 0
+  MaxAttribute: {fileID: 0}
   MaxValue: 9999
+  OnMaxChange: 0
+  Display:
+    Kind: 0
+    Decimals: 0
+    Prefix: 
+    Suffix: 
+    LowerIsBetter: 0
+    Order: 0
+    Hidden: 0
+    Category: {fileID: 0}
+    Role: 0
+  processors: []
+  isMeta: 0
+  stateTagWhileDepleted:
+    definition: {fileID: 0}
+  references:
+    version: 2
+    RefIds: []

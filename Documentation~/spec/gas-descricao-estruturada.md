@@ -274,6 +274,17 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Cada 
 - Critério de pronto: os três assets abrem sem "Missing" e sem legado no YAML (o Examinador confere).
 - Tamanho estimado: 0 linhas de código; 5 arquivos (3 fixtures). Depende de: DE5, EV21.
 
+### Detalhe (2026-11-04)
+- CA: nenhum CA numerado fecha aqui; o ticket entrega a parte do Sample do Design 3 e do Design 8 (assets do Sandbox no formato do DE5, sem `string` legado no YAML).
+- Escopo (caminhos em `Packages/com.spellbook/Samples~/Sandbox/Data/`, regravados por `GasAssetMigration.MigrateAll` com a pasta renomeada pela ADR 0028, sem YAML à mão):
+  - `Abilities/GA_BolaDeFogo.asset:16`, `Attributes/ATR_Vida.asset:16`, `Attributes/ATR_Mana.asset:16` (`DisplayName:` legado vira `localizedName`).
+  - `Effects/GE_BolaDeFogo_Custo.asset:15`, `GE_BolaDeFogo_Dano.asset:15`, `GE_BolaDeFogo_Recarga.asset:15`, `GE_Queimadura.asset:15` (consequência direta, ADR 0042 item 6: o DE5 também converteu o `displayName` do efeito, e o menu regrava os quatro tipos; sem eles o Sample ficaria com legado).
+  - Fora: `manual/regras/migracao-2-para-3.md` (só no passe de documentação, emenda de 2026-11-03 da 0007) e `CHANGELOG.md` (o ticket não quebra nada; a entrada da quebra com a migração já entrou no DE5).
+- Testes red: nenhum novo. O red é o critério verificável: `grep -rnE "^  (DisplayName|displayName): " Samples~/Sandbox/Data` acha 7 linhas antes da regravação.
+- Critério de pronto: a busca acima não acha nada; os 7 assets têm `localizedName` com `key` e `text` vazios e `legacyDisplayName` vazio (nulo, como o `NewAsset_SavesWithoutLegacy` do DE5); a regravação também escreve nos dois atributos os campos 3.0 que o YAML ainda não tinha (valores padrão); com a pasta renomeada, a Unity importa o Sample sem erro de console; `Samples/` e `Samples.meta` não sobram (ADR 0028); `SampleStructureTests` e suíte EditMode `!Documentacao` verdes com `Samples~`.
+- Tamanho: ~0 linhas e 7 arquivos (fixtures), pela ADR 0042. Exceção: nenhuma.
+- Commit: `chore(sample): Sample com nomes exibidos no formato novo (#227)`
+
 ### DE7 — `DescriptionLine`, `DescriptionContext`, `EffectDescriber` e formatador
 - Escopo: `Runtime/GAS/Description/DescriptionLine.cs`, `DescriptionContext.cs`, `EffectDescriber.cs`, `ModifierTextFormatter.cs` (com o padrão), `DescriptionWriter.cs` (novos), `Runtime/GAS/Attributes/AttributeDisplay.cs` (`Format` em `TextBuffer`), `Runtime/GAS/Effects/EffectContext.cs` (fábrica `ForDescription(instigador, habilidade, nível)`, só se o VN5 não tiver construtor público), `Tests/GAS/EditMode/EffectDescriberTests.cs` (novo), `CHANGELOG.md`.
 - Testes red: `Armor20Percent_LineAttributeValueOpRoleBeneficial_ValueText` (CA1, C1); `Stacks3Level2_ValueComposed_VariableWhenLevelOrCaller` (CA2, C2); `Seconds1_5_PtBr_EnUs` (CA3, C3); `CustomFormatter_ChangesOnlyValueText` (CA4, C4); `HiddenAttribute_Skipped`; `Describe_AppendsWithoutClearing`; `WriterOutput_HasNoMarkup` (CA8, parte); `Describe10000_ReusedContext_DoesNotAllocate` (CA12, parte); `AttributeDisplay_FormatToBuffer_SameAsString`.
