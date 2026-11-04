@@ -267,6 +267,27 @@ Todos usam a Unity e seguem o WIP 1. Tempo por `asc.Tick` com `ManualTimeSource`
 - Critério de pronto: CA19 e CA20 verdes.
 - Tamanho estimado: ~420 linhas; 7 arquivos. Depende de: TK2, EV8 (com a emenda da ADR 0035).
 
+### Detalhe (2026-11-03)
+- CA: CA19 e CA20 (C12, C13, C14). Design 2 e 3: `OnEnded`, `End(reason)` e `ImpactFilter`. Validação do projétil fica no TK7.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/GAS/Actions/ActionEndReason.cs` (novo): `public enum ActionEndReason { None, Hit, Lifetime, Obstacle, Released, Expired, OwnerGone, ExecutionEnded }`.
+  - `Runtime/GAS/Actions/ActionContext.cs`: `public ActionEndReason EndReason { get; internal set; }` (depois de `:81`), zerado no `Reset` (`:149-174`); o `CreateDerived` não o copia.
+  - `Runtime/GAS/Abilities/Projectiles/Projectile.cs`:
+    - campos `[SerializeReference, TypePicker] Condition<ConditionContext> ImpactFilter` e `[SerializeReference, TypePicker, ActionEvent("Ao terminar", DefaultTarget.EventTargets, false)] List<GameplayAction> OnEnded` (perto de `OnImpact`, `:68-70`);
+    - `Setup(spawner, parentContext, …)` (`:135-144`) guarda o modelo de contexto sempre que há `parentContext`, não só com impacto: o término e o filtro também leem habilidade, nível e instigador;
+    - `FixedUpdate` (`:194-199`): fim do `Lifetime` chama `End(Lifetime)`;
+    - `ReturnToPool()` (`:316-329`) vira `End(Released)`; o corpo de hoje passa a `protected virtual void End(ActionEndReason reason)`, que antes de devolver roda `OnEnded` uma vez no ASC de quem lançou (com `Source` ativo), com `EndReason` e `Point` = posição atual, sem alvo e sem dono; sem ações, o caminho de hoje (C16);
+    - `HandleCollision` (`:341-354`): depois do dono e do repetido, o filtro de candidato com `Owner` = `Source`, `Target` = `AtUnit(ASC)`, habilidade e nível do modelo; falha ignora o choque (C14);
+    - `HandleImpact` (`:383-405`): termina com `End(Hit)` por perfuração e `End(Obstacle)` sem ASC. O colisor sem ASC continua rodando "No impacto" sem alvo antes de terminar, como hoje (C16, e o `NoNewFields_BehavesAsToday` do TK2 sem edição).
+  - `Tests/GAS/PlayMode/ProjectileEndTests.cs` e `ProjectileImpactFilterTests.cs` (novos).
+  - Sem `gas.md` nem `CHANGELOG.md`: manual só no passe de documentação (emenda de 2026-11-03 da 0007), e o ticket só acrescenta (a seção "Quebras" já lista o término por `Lifetime` com `OnEnded` como correção).
+- Testes red (PlayMode, `SpellBook.GAS.Tests.PlayMode`):
+  - `ProjectileEndTests`: `End_RunsOnce_WithReason_HitLifetimeObstacleReleased`; `End_WithoutActions_SameAsToday`; `End_RunsOnCasterAsc_AtCurrentPosition`; `EndReason_IsNone_InImpact`.
+  - `ProjectileImpactFilterTests`: `ImpactFilter_Fails_PassesThrough_NoImpactNoPierceSpentNoEnd` (`TagQueryCondition` com sujeito `TargetUnit`); `ImpactFilter_OwnerIsCaster_WithAbilityLevel`; `ImpactFilter_Passing_OwnerStillIgnoredWithoutDamageOwner`.
+- Critério de pronto: os testes acima verdes pelo filtro `\.ProjectileEndTests\.;\.ProjectileImpactFilterTests\.`, e `ProjectilePierceTests`, os `Projectile_*` de `AbilityWaitTests`, `SpawnActionsTests`, `EffectContextTests` e `TargetSelectorTests` verdes sem edição.
+- Tamanho: ~510 linhas e 5 arquivos, pela ADR 0042 (medido no diff: 512 linhas, 403 delas nos dois testes). Exceção: até +30% (+2%), porque cada classe de teste traz os próprios auxiliares (projétil que expõe o choque, ações e condição de registro), como o `ProjectilePierceTests`, sem tocar no `GasFactory`.
+- Commit: `feat(gas): término com motivo e filtro de impacto do projétil`
+
 ### TK4 — `GameplayThinker`: vida, pulsos e término
 - Escopo: `Runtime/GAS/Thinkers/GameplayThinker.cs`, `ThinkerBehaviour.cs`, `ThinkerLifeAction.cs` (novos), `Tests/GAS/PlayMode/ThinkerTests.cs` (novo), `Tests/Testing/GasFactory.cs` (`CreateThinkerPrefab`), `Runtime/Core/DocUrls.cs` (`Thinkers = Base + "modulos/thinkers-e-auras/"`), `Documentation~/manual/modulos/thinkers-e-auras.md` (nova), `CHANGELOG.md`.
 - Testes red:

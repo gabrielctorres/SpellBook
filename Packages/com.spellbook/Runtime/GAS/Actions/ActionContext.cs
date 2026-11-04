@@ -79,6 +79,8 @@ namespace SpellBook.GAS.Actions
         public bool IsCancelled { get; internal set; }
         /// <summary>Soma das pilhas que a última <see cref="RemoveEffectAction"/> da execução removeu. 0 antes da primeira.</summary>
         public int LastRemovedStacks { get; internal set; }
+        /// <summary>Motivo do término na lista "Ao terminar" do projétil ou do thinker. <see cref="ActionEndReason.None"/> fora dela.</summary>
+        public ActionEndReason EndReason { get; internal set; }
 
         /// <summary>
         /// Dados livres da execução, criados no primeiro acesso. As chaves usam o comparador de
@@ -171,6 +173,7 @@ namespace SpellBook.GAS.Actions
             DefaultTarget = DefaultTarget.EventTargets;
             IsCancelled = false;
             LastRemovedStacks = 0;
+            EndReason = ActionEndReason.None;
         }
     }
 }

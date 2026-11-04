@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 using SpellBook.Core;
+using SpellBook.Core.Conditions;
+using SpellBook.Core.Inspector;
 using SpellBook.GAS.Actions;
+using SpellBook.GAS.Conditions;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Abilities;
 using SpellBook.Time;
@@ -68,7 +71,26 @@ namespace SpellBook.GAS.Abilities.Projectiles
         // O que o projétil fará ao colidir
         [HideInInspector, FormerlySerializedAs("OnHitActions")] public List<GameplayAction> OnImpact;
         [HideInInspector] public AbilitySystemComponent Source;
-        
+
+        /// <summary>
+        /// Filtro de candidato (ADR 0035), avaliado em cada choque com um ASC: <c>Owner</c> = quem lançou e <c>Target</c> =
+        /// <see cref="AbilityTarget.AtUnit"/> do ASC atingido. Quem não passa é atravessado sem impacto, sem gastar
+        /// perfuração e sem terminar. Nulo aceita todos.
+        /// </summary>
+        [SerializeReference]
+        [TypePicker]
+        public Condition<ConditionContext> ImpactFilter;
+
+        /// <summary>
+        /// Roda uma vez quando o projétil termina, no ASC de quem lançou, com o motivo em
+        /// <see cref="ActionContext.EndReason"/> e a posição dele em <see cref="ActionContext.Point"/>. Vazia, o projétil só
+        /// volta ao pool.
+        /// </summary>
+        [SerializeReference]
+        [TypePicker]
+        [ActionEvent("Ao terminar", DefaultTarget.EventTargets, false)]
+        public List<GameplayAction> OnEnded = new List<GameplayAction>();
+
         // Spawner que criou o projétil; vazio volta pelo SpawnerAsset.Default
         protected SpawnerAsset _spawner;
 
@@ -114,9 +136,10 @@ namespace SpellBook.GAS.Abilities.Projectiles
             _initialLocalScale = transform.localScale;
         }
 
-        // Modelo do contexto de impacto, derivado no Setup do contexto de quem disparou (habilidade, nível e instigador).
-        // É derivado já no Setup porque o contexto de quem disparou volta ao pool do executor quando a lista dele acaba.
-        // Cada impacto deriva dele; o modelo volta ao pool do ASC dono no término ou num novo Setup.
+        // Modelo do contexto de impacto e de término, derivado no Setup do contexto de quem disparou (habilidade, nível e
+        // instigador). É derivado já no Setup porque o contexto de quem disparou volta ao pool do executor quando a lista
+        // dele acaba. Cada impacto, o término e o filtro leem dele; o modelo volta ao pool do ASC dono no término ou num
+        // novo Setup.
         private ActionContext _impactTemplate;
 
         public void Setup(SpawnerAsset spawner, AbilitySystemComponent source, List<GameplayAction> onImpact)
@@ -130,12 +153,12 @@ namespace SpellBook.GAS.Abilities.Projectiles
         /// <summary>
         /// Como <see cref="Setup(SpawnerAsset, AbilitySystemComponent, List{GameplayAction})"/>, com o instigador de
         /// <paramref name="parentContext"/> como <see cref="Source"/>. O impacto roda num contexto derivado dele
-        /// (<see cref="ActionContext.CreateDerived"/>), com o ponto de impacto.
+        /// (<see cref="ActionContext.CreateDerived"/>), com o ponto de impacto; "Ao terminar" também.
         /// </summary>
         public void Setup(SpawnerAsset spawner, ActionContext parentContext, List<GameplayAction> onImpact)
         {
             Setup(spawner, parentContext?.Instigator, onImpact);
-            if (parentContext != null && onImpact != null && onImpact.Count > 0)
+            if (parentContext != null)
             {
                 _impactTemplate = parentContext.CreateDerived(parentContext.Point);
                 // Contexto sem executor (criado à mão): os impactos alugam do pool de quem lançou
@@ -194,7 +217,7 @@ namespace SpellBook.GAS.Abilities.Projectiles
             _lifetimeRemaining -= _deltaTime;
             if (_lifetimeRemaining <= 0f)
             {
-                ReturnToPool();
+                End(ActionEndReason.Lifetime);
                 return;
             }
 
@@ -313,7 +336,16 @@ namespace SpellBook.GAS.Abilities.Projectiles
             // Nota: Não invertemos ProjectileIsFacingRight aqui para manter compatibilidade com o padrão de chamada única no spawn
         }
 
+        /// <summary>Termina o projétil com o motivo <see cref="ActionEndReason.Released"/>.</summary>
         public virtual void ReturnToPool()
+        {
+            End(ActionEndReason.Released);
+        }
+
+        /// <summary>
+        /// Termina o projétil uma vez: roda <see cref="OnEnded"/> com <paramref name="reason"/> e devolve ao spawner.
+        /// </summary>
+        protected virtual void End(ActionEndReason reason)
         {
             // O spawner pode desativar só no fim do quadro: volta uma vez só até o próximo OnEnable
             if (_released || !gameObject.activeInHierarchy) return;
@@ -324,6 +356,13 @@ namespace SpellBook.GAS.Abilities.Projectiles
             if (_collider2D != null) _collider2D.enabled = false;
 
             StopAllCoroutines();
+            if (OnEnded != null && OnEnded.Count > 0 && Source != null && Source.isActiveAndEnabled)
+            {
+                ActionContext endContext = RentContext(transform.position);
+                endContext.EndReason = reason;
+                // Sem alvo e sem dono, como o impacto: o projétil volta ao pool logo abaixo
+                Source.RunActions(OnEnded, endContext, null);
+            }
             ReleaseImpactTemplate();
             SpawnerAsset.OrDefault(_spawner).Release(gameObject);
         }
@@ -348,12 +387,28 @@ namespace SpellBook.GAS.Abilities.Projectiles
             {
                 if (hitASC == Source && !DamageOwner) return;
                 if (TracksHits && IsRepeatedHit(hitASC)) return;
+                if (ImpactFilter != null && !PassesImpactFilter(hitASC)) return;
             }
 
             HandleImpact(transform.position, hitASC);
         }
 
         private bool TracksHits => HitEachTargetOnce && (UnlimitedPierce || Pierce > 0);
+
+        // Filtro de candidato (ADR 0035): quem lançou avalia o ASC atingido, na habilidade e no nível do lançamento
+        private bool PassesImpactFilter(AbilitySystemComponent candidate)
+        {
+            var context = new ConditionContext(Source, _impactTemplate?.Ability, _impactTemplate?.Level ?? 1, null,
+                AbilityTarget.AtUnit(candidate), null);
+            return ImpactFilter.Evaluate(in context);
+        }
+
+        private ActionContext RentContext(Vector3 point)
+        {
+            ActionContext context = _impactTemplate != null ? _impactTemplate.CreateDerived(point) : Source.Runner.RentContext();
+            context.SetPoint(point);
+            return context;
+        }
 
         private static AbilitySystemComponent FindAsc(Transform node)
         {
@@ -377,17 +432,15 @@ namespace SpellBook.GAS.Abilities.Projectiles
 
         /// <summary>
         /// Roda <see cref="OnImpact"/> no ASC de quem lançou e conta o impacto. Termina quando os impactos passam de
-        /// <see cref="Pierce"/>, salvo com <see cref="UnlimitedPierce"/>. Sem <paramref name="hitTarget"/> (colisor sem
-        /// ASC), termina sempre, mesmo com perfuração (P7).
+        /// <see cref="Pierce"/> (<see cref="ActionEndReason.Hit"/>), salvo com <see cref="UnlimitedPierce"/>. Sem
+        /// <paramref name="hitTarget"/> (colisor sem ASC), termina sempre, mesmo com perfuração
+        /// (<see cref="ActionEndReason.Obstacle"/>, P7).
         /// </summary>
         protected virtual void HandleImpact(Vector3 impactPoint, AbilitySystemComponent hitTarget)
         {
             if (OnImpact != null && OnImpact.Count > 0 && Source != null && Source.isActiveAndEnabled)
             {
-                ActionContext impactContext = _impactTemplate != null
-                    ? _impactTemplate.CreateDerived(impactPoint)
-                    : Source.Runner.RentContext();
-                impactContext.SetPoint(impactPoint);
+                ActionContext impactContext = RentContext(impactPoint);
                 if (hitTarget != null) impactContext.EventTargets.Add(hitTarget);
 
                 // Roda no ASC de quem lançou, sem dono: o projétil pode voltar ao pool logo abaixo
@@ -401,7 +454,7 @@ namespace SpellBook.GAS.Abilities.Projectiles
                 if (UnlimitedPierce || _impactCount <= Pierce) return;
             }
 
-            ReturnToPool();
+            End(hitTarget != null ? ActionEndReason.Hit : ActionEndReason.Obstacle);
         }
     }
 }
