@@ -43,6 +43,29 @@ namespace SpellBook.GAS.Tests
         // Criar ou destruir objeto direto, sem spawner (não casa o nome de um campo como DestroyOnRemoval).
         private static readonly Regex CreateOrDestroy = new Regex(@"\b(Instantiate|Destroy|DestroyImmediate)\s*\(");
 
+        // O contrato antigo da descrição (Spec do B-008, P3).
+        private static readonly Regex OldDescriptionApi =
+            new Regex(@"\bGetFullDescription\b|\bGetDescription\s*\(|GetText\s*\(\s*GameplayAbility\b");
+
+        // Marcação de rich text (CA15 do B-008).
+        private static readonly Regex RichText = new Regex(@"<color|<b>|<i>|<size", RegexOptions.IgnoreCase);
+
+        // Cultura fixa criada no código (CA15 do B-008).
+        private static readonly Regex FixedCulture = new Regex(@"new\s+CultureInfo\s*\(|CultureInfo\.(GetCultureInfo|CreateSpecificCulture)\b");
+
+        private static readonly Regex InvariantCulture = new Regex(@"\bInvariantCulture\b");
+
+        // Onde a cultura invariante não fixa texto exibido: fallback sem cultura (AttributeDisplay, Q3 do B-005; contexto
+        // sem provedor, Design 4 do B-008) e leitura de número e de fórmula.
+        private static readonly string[] InvariantCultureAllowed =
+        {
+            "Attributes/AttributeDisplay.cs",
+            "Description/DescriptionContext.cs",
+            "Values/ScalableFloat.cs",
+            "Attributes/Formulas/ExpressionFormula.cs",
+            "Attributes/Formulas/Utils/ExpressionParser.cs"
+        };
+
         [Test]
         public void GasSources_DoNotReadUnityTimeOrWaitForSeconds()
         {
@@ -147,6 +170,44 @@ namespace SpellBook.GAS.Tests
             violations.AddRange(Scan(CreateOrDestroy, Path.Combine("Runtime", "GAS"), onlyFilesMatching: ActionDeclaration));
 
             Assert.That(violations, Is.Empty);
+        }
+
+        /// <summary>
+        /// O contrato antigo da descrição saiu do pacote: o arquivo, o <c>GetText(habilidade, origem)</c> do elemento, o
+        /// <c>GetFullDescription</c> e o <c>GameplayAbility.GetDescription</c> (Spec do B-008, P3).
+        /// </summary>
+        [Test]
+        public void OldGetTextGone()
+        {
+            var violations = new List<string>();
+            const string old = "Abilities/AbilityDescription.cs";
+            if (File.Exists(Path.Combine(PackageRoot(), "Runtime", "GAS", old))) violations.Add($"Runtime/GAS/{old} existe");
+            violations.AddRange(Scan(OldDescriptionApi, "Runtime"));
+            violations.AddRange(Scan(OldDescriptionApi, "Editor"));
+
+            Assert.That(violations, Is.Empty);
+        }
+
+        /// <summary>
+        /// O runtime do GAS não escreve marcação nem fixa cultura em texto exibido (CA15 do B-008). Exceções: a cor no
+        /// texto do Console do <c>DebugLogAction</c>, que o jogador não vê, e a cultura invariante nos arquivos de
+        /// <see cref="InvariantCultureAllowed"/>.
+        /// </summary>
+        [Test]
+        public void GasRuntime_HasNoRichTextNorFixedCulture()
+        {
+            string gas = Path.Combine("Runtime", "GAS");
+            var violations = new List<string>();
+            violations.AddRange(Scan(RichText, gas).FindAll(line => !line.Contains("Debug.Log")));
+            violations.AddRange(Scan(FixedCulture, gas));
+            violations.AddRange(Scan(InvariantCulture, gas).FindAll(line => !IsInvariantCultureAllowed(line)));
+
+            Assert.That(violations, Is.Empty);
+        }
+
+        private static bool IsInvariantCultureAllowed(string violation)
+        {
+            return Array.Exists(InvariantCultureAllowed, file => violation.StartsWith("Runtime/GAS/" + file + ":", StringComparison.Ordinal));
         }
 
         /// <summary>

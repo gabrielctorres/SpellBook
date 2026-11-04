@@ -50,8 +50,9 @@ namespace SpellBook.GAS.Description
             DescriptionLineFlags flags = DescriptionLineFlags.None,
             AttributeDefinition attribute = null,
             float secondaryValue = 0f,
-            GameplayTag tag = default)
-            : this(kind, label, value, secondaryValue, default, false, role, attribute, tag, flags)
+            GameplayTag tag = default,
+            DescriptionElement source = null)
+            : this(kind, label, value, secondaryValue, default, false, role, attribute, tag, flags, source)
         {
         }
 
@@ -65,7 +66,8 @@ namespace SpellBook.GAS.Description
             TextRole role,
             AttributeDefinition attribute,
             GameplayTag tag,
-            DescriptionLineFlags flags)
+            DescriptionLineFlags flags,
+            DescriptionElement source)
         {
             Kind = kind;
             Label = label;
@@ -77,6 +79,7 @@ namespace SpellBook.GAS.Description
             Attribute = attribute;
             Tag = tag;
             Flags = flags;
+            Source = source;
         }
 
         public DescriptionLineKind Kind { get; }
@@ -106,6 +109,9 @@ namespace SpellBook.GAS.Description
 
         public DescriptionLineFlags Flags { get; }
 
+        /// <summary>Elemento que gerou a linha; nulo nas linhas de modificador e nas montadas fora de um elemento.</summary>
+        public DescriptionElement Source { get; }
+
         /// <summary>Linha de um modificador de <paramref name="attribute"/> com a operação.</summary>
         public static DescriptionLine ForModifier(
             DescriptionLineKind kind,
@@ -116,7 +122,7 @@ namespace SpellBook.GAS.Description
             TextRole role,
             DescriptionLineFlags flags = DescriptionLineFlags.None)
         {
-            return new DescriptionLine(kind, label, value, 0f, operation, true, role, attribute, default, flags);
+            return new DescriptionLine(kind, label, value, 0f, operation, true, role, attribute, default, flags, null);
         }
     }
 }

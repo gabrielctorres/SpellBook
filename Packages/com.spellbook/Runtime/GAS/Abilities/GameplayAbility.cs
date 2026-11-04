@@ -14,6 +14,7 @@ using SpellBook.GAS.Core;
 using SpellBook.Tags;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Conditions;
+using SpellBook.GAS.Description;
 using SpellBook.GAS.Effects;
 using SpellBook.GAS.Values;
 
@@ -605,10 +606,15 @@ namespace SpellBook.GAS.Abilities
             }
         }
 
-        public string GetDescription(AbilitySystemComponent source = null)
+        /// <summary>
+        /// Acrescenta as linhas da <see cref="Description"/> a <c>context.Lines</c>. Monte o contexto com
+        /// <see cref="DescriptionContext.Reset"/> (habilidade, nível e ASC de origem) e escreva o texto com o
+        /// <see cref="DescriptionWriter"/>.
+        /// </summary>
+        public void Describe(DescriptionContext context)
         {
-            if (Description == null) return string.Empty;
-            return Description.GetFullDescription(this, source);
+            if (context == null) throw new ArgumentNullException(nameof(context));
+            Description?.Describe(context);
         }
 
         void ISerializationCallbackReceiver.OnBeforeSerialize() { }
