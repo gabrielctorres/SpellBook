@@ -8,6 +8,7 @@
         "SpellBook.GAS",
         "SpellBook.UI",
         "SpellBook.GAS.UI",
+        "SpellBook.Core.Editor",
         "SpellBook.Testing",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"

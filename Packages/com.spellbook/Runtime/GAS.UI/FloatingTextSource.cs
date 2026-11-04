@@ -20,7 +20,8 @@ namespace SpellBook.GAS.UI
     /// estilo <see cref="FloatingTextRules.Blocked"/>. Lê o ASC pelos eventos dele, sem <c>Update</c> e sem relay. As
     /// regras são lidas a cada evento: mudar o asset muda o número seguinte.
     /// </summary>
-    [Serializable, TypeCategory("Números flutuantes", Summary = "Números de dano, cura e bloqueio do dono, no estilo das regras de um asset.")]
+    [Serializable, TypeCategory("Números flutuantes", Summary = "Números de dano, cura e bloqueio do dono, no estilo das regras de um asset.",
+        Line = "Números · {Rules}")]
     public sealed class FloatingTextSource : UISource<FloatingTextRequest>
     {
         [Tooltip("Regras que escolhem o estilo de cada número. Vazio: nenhum número.")]

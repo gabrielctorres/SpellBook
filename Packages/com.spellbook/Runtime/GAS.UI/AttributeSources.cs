@@ -2,6 +2,7 @@ using System;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
 using SpellBook.Core.Text;
+using SpellBook.Core.Validation;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.UI;
@@ -69,6 +70,20 @@ namespace SpellBook.GAS.UI
 
         /// <inheritdoc />
         public override UIBinding<TModel> CreateBinding() => new Binding(this);
+
+        /// <summary>Sem atributo, erro; máximo igual ao atributo lido, aviso.</summary>
+        public override void Validate(ValidationResult result, string propertyPath)
+        {
+            if (current == null)
+            {
+                result.AddError("Fonte sem atributo. Escolha o atributo lido do dono.", propertyPath + "." + nameof(current));
+            }
+            else if (max == current)
+            {
+                result.AddWarning("O máximo é o próprio atributo, e a barra fica sempre cheia. Escolha outro atributo ou " +
+                    "deixe vazio para usar o máximo efetivo.", propertyPath + "." + nameof(max));
+            }
+        }
 
         /// <summary>50 de 100, no formato de <see cref="Current"/>.</summary>
         public override TModel CreatePreview(in UIPreviewContext context)
@@ -164,7 +179,8 @@ namespace SpellBook.GAS.UI
     }
 
     /// <summary>Barra de um atributo (R8): atual, máximo, fração e texto, por padrão "atual / máximo".</summary>
-    [Serializable, TypeCategory("Atributos", Summary = "Barra com o valor atual e o máximo de um atributo do dono, com o texto \"atual / máximo\".")]
+    [Serializable, TypeCategory("Atributos", Summary = "Barra com o valor atual e o máximo de um atributo do dono, com o texto \"atual / máximo\".",
+        Line = "Barra · {Current} / {Max}")]
     public sealed class AttributeBarSource : AttributeSource<BarModel>
     {
         /// <summary>Cria a fonte com o texto em <see cref="AttributeTextMode.CurrentOfMax"/>.</summary>
@@ -177,7 +193,8 @@ namespace SpellBook.GAS.UI
     }
 
     /// <summary>Texto de um atributo (R8), por padrão só o valor atual.</summary>
-    [Serializable, TypeCategory("Atributos", Summary = "Texto com o valor atual de um atributo do dono, no formato do atributo.")]
+    [Serializable, TypeCategory("Atributos", Summary = "Texto com o valor atual de um atributo do dono, no formato do atributo.",
+        Line = "Texto · {Current}")]
     public sealed class AttributeTextSource : AttributeSource<TextModel>
     {
         /// <summary>Cria a fonte com o texto em <see cref="AttributeTextMode.Current"/>.</summary>

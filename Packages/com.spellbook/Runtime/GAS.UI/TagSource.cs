@@ -1,5 +1,6 @@
 using System;
 using SpellBook.Core.Inspector;
+using SpellBook.Core.Validation;
 using SpellBook.GAS.Core;
 using SpellBook.Tags;
 using SpellBook.UI;
@@ -23,7 +24,8 @@ namespace SpellBook.GAS.UI
     /// <see cref="Query"/>, pelo <c>OnTagChanged</c> do GAS, sem <c>Update</c>. Publica só quando o estado muda. A
     /// configuração vale a partir da próxima ligação.
     /// </summary>
-    [Serializable, TypeCategory("Tags", Summary = "Indicador aceso enquanto o dono tem uma tag ou satisfaz uma consulta de tags.")]
+    [Serializable, TypeCategory("Tags", Summary = "Indicador aceso enquanto o dono tem uma tag ou satisfaz uma consulta de tags.",
+        Line = "Indicador · {Mode}")]
     public sealed class TagSource : UISource<TagIndicatorModel>
     {
         [Tooltip("Confere uma tag ou uma consulta.")]
@@ -49,6 +51,20 @@ namespace SpellBook.GAS.UI
 
         /// <inheritdoc />
         public override UIBinding<TagIndicatorModel> CreateBinding() => new Binding(this);
+
+        /// <summary>Modo Tag sem tag, ou modo Query com a consulta vazia: erro.</summary>
+        public override void Validate(ValidationResult result, string propertyPath)
+        {
+            if (mode == TagSourceMode.Tag && !tag.IsValid)
+            {
+                result.AddError("Modo Tag sem tag. Escolha a tag conferida no dono.", propertyPath + "." + nameof(tag));
+            }
+            else if (mode == TagSourceMode.Query && (query == null || query.IsEmpty))
+            {
+                result.AddError("Modo Query com a consulta vazia. Preencha Todas, Alguma ou Nenhuma.",
+                    propertyPath + "." + nameof(query));
+            }
+        }
 
         /// <summary>Aceso.</summary>
         public override TagIndicatorModel CreatePreview(in UIPreviewContext context) => new TagIndicatorModel(true);

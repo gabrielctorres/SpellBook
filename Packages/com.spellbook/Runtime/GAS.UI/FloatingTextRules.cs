@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SpellBook.Core;
+using SpellBook.Core.Validation;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Effects;
 using SpellBook.Tags;
@@ -70,7 +71,7 @@ namespace SpellBook.GAS.UI
     /// </summary>
     [CreateAssetMenu(menuName = "SpellBook/GAS/UI/Floating Text Rules", fileName = "FloatingTextRules")]
     [HelpURL(DocUrls.UiFloatingText)]
-    public sealed class FloatingTextRules : ScriptableObject
+    public sealed class FloatingTextRules : ScriptableObject, IValidatable
     {
         [Tooltip("Regras na ordem de busca; a primeira que casa vence.")]
         [SerializeField] private List<AttributeRule> rules = new List<AttributeRule>();
@@ -93,6 +94,19 @@ namespace SpellBook.GAS.UI
             }
 
             return null;
+        }
+
+        /// <summary>Regra sem estilo: erro no campo dela.</summary>
+        public void Validate(ValidationResult result)
+        {
+            for (int i = 0; i < rules.Count; i++)
+            {
+                if (rules[i] != null && rules[i].Style == null)
+                {
+                    result.AddError($"Regra sem estilo em rules (posição {i}). Escolha o estilo do número.",
+                        $"{nameof(rules)}.Array.data[{i}].style");
+                }
+            }
         }
     }
 }
