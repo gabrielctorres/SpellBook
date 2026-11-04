@@ -449,6 +449,19 @@ O T8 toca `Conjurador.prefab` e `Sandbox.unity`, que o SL12 e o SL13 tocam de no
 - Critério de pronto: os quatro verdes; a suíte inteira verde; a cobertura do Editor do Core segue verde com o tipo novo.
 - Tamanho estimado: ~100 linhas; 5 arquivos.
 
+#### Detalhe (2026-11-04)
+- CA: sem CA numerado próprio; emenda de 2026-11-01 (H1, D5) e a base do T8 (`ANC_HUD` como "objeto presente").
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/Core/Anchors/TransformAnchor.cs` (novo): `public sealed class TransformAnchor : RuntimeAnchor<Transform>`, `[CreateAssetMenu(menuName = "SpellBook/Core/Transform Anchor", fileName = "ANC_")]`, `[HelpURL(DocUrls.Concepts + "#ancoras")]`, sem membros. O `AnchorRegistrar` (`Runtime/Core/Anchors/AnchorRegistrar.cs:25-28,71-85`) já resolve o valor vazio por `GetComponent(anchor.ValueType)`, que acha o `Transform` do próprio objeto: o registrar não muda.
+  - `Editor/Core/Inspector/CoreEditors.cs:7-9`: `TransformAnchorEditor`, uma linha, logo depois da do `AnchorRegistrar` (cobertura de Inspector).
+  - `Tests/Core/PlayMode/TransformAnchorTests.cs` (novo; campos do registrar pelo `SerializedObject` com o objeto inativo, como `Tests/Core/PlayMode/AnchorRegistrarTests.cs:117-142`).
+  - Sem `Documentation~/manual/inicio/conceitos.md` e sem `CHANGELOG.md`, embora o escopo acima os cite: pelo `AGENTS.md` ("WIP, trava e testes"), o manual só entra no passe de documentação (emenda de 2026-11-03 da 0007), e o CHANGELOG só em ticket que quebra algo. O T7 é MINOR, sem quebra. A seção de âncoras do `conceitos.md` (o `TransformAnchor` como "objeto presente") e a linha "Adicionado" da seção "Quebras de compatibilidade" ficam para o passe de documentação. Nenhum CA muda.
+  - Paralelo com o UI5 (#239): o UI5 toca `UIEditors.cs`, `Runtime/UI/*`, `Tests/UI/PlayMode/WidgetBindersTests.cs`, `visao-geral.md` e `CHANGELOG.md`. O T7 não toca `CHANGELOG.md` nem nenhum desses, e o UI5 não toca `CoreEditors.cs`. Não há arquivo em comum.
+- Testes red (PlayMode, `SpellBook.Core.Tests.PlayMode`, classe `TransformAnchorTests`): `TransformAnchor_ValueTypeIsTransform`; `Registrar_EmptyValue_ProvidesOwnTransform`; `Registrar_Disable_LeavesAnchorEmpty_UntypedValueNull`; `Registrar_DestroyedObject_AnchorReadsEmpty`. Antes do tipo existir, falham na compilação (`TransformAnchor` não existe).
+- Critério de pronto: os quatro verdes no filtro `\.TransformAnchorTests\.`; `SpellBookEditorCoverageTests` e `HelpUrlTests` (EditMode) verdes com o tipo novo; a suíte completa roda na `/revisao`.
+- Tamanho: ~110 linhas e 3 arquivos (mais o Detalhe, que não conta), pela ADR 0042. Exceção: nenhuma.
+- Commit: `feat(core): TransformAnchor para publicar objeto de cena`
+
 ### T8 — Console sem HUD: tique e falha por canal, ligados pela âncora do HUD
 - Usa Unity: **sim** (pasta renomeada pela ADR 0028). Depende de: T7, AV5 (assinatura nova do `OnAbilityFailed` no `SandboxCaster`), EV21 (Sample refeito, `RaiseEventAction` no tique de efeito pelo EV15) e T6.
 - Escopo:

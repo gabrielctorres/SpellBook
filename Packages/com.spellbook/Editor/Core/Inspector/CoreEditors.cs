@@ -8,6 +8,10 @@ namespace SpellBook.Core.Editor
     [CanEditMultipleObjects]
     internal sealed class AnchorRegistrarEditor : SpellBookEditor { }
 
+    [CustomEditor(typeof(TransformAnchor))]
+    [CanEditMultipleObjects]
+    internal sealed class TransformAnchorEditor : SpellBookEditor { }
+
     [CustomEditor(typeof(InstantiateSpawnerAsset))]
     [CanEditMultipleObjects]
     internal sealed class InstantiateSpawnerAssetEditor : SpellBookEditor { }
