@@ -21,6 +21,9 @@ namespace SpellBook.Core.Tests.Documentation
             (typeof(ManualLinksTests), nameof(ManualLinksTests.EveryHelpUrlHasPageAndAnchor)),
             (typeof(ManualLinksTests), nameof(ManualLinksTests.EveryDocUrlHasPage)),
             (typeof(ManualLinksTests), nameof(ManualLinksTests.NoStubPages)),
+            (typeof(ManualLinksTests), nameof(ManualLinksTests.SummaryListsEveryPageOnce)),
+            (typeof(ManualLinksTests), nameof(ManualLinksTests.EveryRelativeLinkHasTarget)),
+            (typeof(ManualLinksTests), nameof(ManualLinksTests.NoMkDocsSyntax)),
         };
 
         [Test]

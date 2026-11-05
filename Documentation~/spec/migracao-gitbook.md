@@ -408,3 +408,57 @@ GB1, 2026-11-05. Branch `spike/gitbook`: `7160b42` (conteúdo), `6d1255a` (`gitb
   - `git diff --check` limpo.
 - Tamanho: 0 linhas (nenhum arquivo que conta linha) em 6 arquivos, as 6 páginas. Os links corrigidos, os hints, as 2 frases da API e os 5 níveis de título ficam nas mesmas páginas. O `ferramentas/validador.md:84` já usa o slug certo (`#snapshot-ou-ao-vivo`, do GB5) e não entra, então o ticket fica em 6 arquivos, abaixo do teto de 10 da ADR 0042. Exceção de tamanho: nenhuma.
 - Commit: `docs(manual): sintaxe do GitBook nas páginas de modulos/`
+
+## GB7a — URLs e guardas de link
+### Detalhe (2026-11-05)
+- Divisão (decisão do usuário de 2026-11-05): o GB7 da tabela vira GB7a e GB7b, porque a correção das âncoras de `[HelpURL]` soma 10 `.cs` e o ticket passaria de 13 arquivos. A tabela de tickets é parte fixa. A troca da linha do GB7 pelas linhas do GB7a e do GB7b fica como pedido ao Controlador, para o Desenhista.
+- CA: CA5 inteiro (sumário, links relativos, link absoluto para o próprio site, sobra do MkDocs) e a parte do CA3 que é código: `DocUrls`, o `documentationUrl` e a guarda de `[HelpURL]` com a âncora do título. As âncoras dos `[HelpURL]` são do GB7b. O que o site abre de fato, o GB9 confere.
+- Escopo do usuário (2026-11-05): o GB7a e o GB7b corrigem só o que o GB1 a GB6 quebraram. Ficam vermelhas, e saem no passe de documentação:
+  - em `EveryDocUrlHasPage`, as 15 constantes cuja página ainda não existe: `Teams`, `Cues`, `Thinkers`, `Text`, `Description`, `Ui` e as 9 `Ui*`;
+  - em `EveryHelpUrlHasPageAndAnchor`, os `[HelpURL]` dessas páginas e as duas âncoras que já não tinham título antes do GB5: `DocUrls.Concepts + "#ancoras"` (`AnchorRegistrar`, `TransformAnchor`) e `DocUrls.Gas + "#abilitysystemanchor"`. Até o GB7b, também ficam vermelhas as 8 âncoras dele.
+- URL, medida pelo Controlador em 2026-11-05 no site de teste publicado: a base é `https://rook-studio.gitbook.io/spellbook`, sem barra no fim. A raiz responde 302 para ela, e `/spellbook/readme` redireciona para ela, então o `README.md` é a própria base. No site de teste (4 spaces e seção padrão), as páginas do space padrão ficam logo abaixo da base (`/spellbook/gas` responde 200), sem `.md` e sem barra no fim. As dos outros spaces ganham o prefixo da seção e do space. Para o layout final, com um space só, a regra é **inferida** e **fica a confirmar no GB9 com o layout final**: página = base + `/` + o caminho do arquivo em `Documentation~/manual/` sem `.md` (`/modulos/gas`, `/inicio/instalacao`), sem barra no fim. A guarda tira o caminho da URL com `Trim('/')`, então ela não depende da barra.
+- Medido no manual em 2026-11-05, depois do GB6, por script descartável na pasta de rascunho: 191 links relativos, nenhum quebrado; nenhum link absoluto para `gitbook.io`, para `github.io/SpellBook` ou começando em `/`; nenhuma sobra do MkDocs; um só `#` por página; nenhum título com `_`. O `SUMMARY.md` tem 16 entradas, com todas as páginas, nenhuma repetida e nenhuma sem arquivo. As guardas novas nascem verdes no manual.
+- Regra do slug: a do Detalhe do GB5, com os níveis do Detalhe do GB6. O primeiro `#` da página é o título dela e não tem âncora. `##`, `###` e `####` têm âncora. `#####` e `######` não têm. Título dentro de bloco de código não conta. Um link dentro de um título entra só com o texto. Hífens no começo e no fim saem.
+- Escopo:
+  - `Packages/com.spellbook/Tests/Repository/EditMode/Documentation/ManualMarkdown.cs` (novo, com o `.meta` gerado pela Unity): funções puras sobre o texto das páginas. `Slug(título)`; `Anchors(página)`; `BrokenLinks(caminho, página, base do site, ler página)`, que acusa link relativo para arquivo ou âncora que não existe, link que sai do manual, link que começa em `/` e link absoluto que começa na base do site; `SummaryProblems(sumário, páginas)`; `MkDocsLeftovers(página)`. Os links e as sobras são procurados fora de bloco de código e de código em linha. A exceção é o `--8<--`, procurado também dentro dos blocos, onde o MkDocs o usava.
+  - `Tests/Repository/EditMode/Documentation/ManualMarkdownTests.cs` (novo): os testes red abaixo, com páginas pequenas escritas no próprio teste.
+  - `Tests/Repository/EditMode/ManualLinksTests.cs:105`: a página inicial passa a ser o `README.md` (decisão 4). `:116-117`: a âncora passa a ser um dos `Anchors` da página, no lugar do `{#id}`. `:14-18`: o resumo da classe. Entram três guardas `Documentacao`: `SummaryListsEveryPageOnce`, `EveryRelativeLinkHasTarget` (inclui o link absoluto para o próprio site) e `NoMkDocsSyntax`.
+  - `Tests/Repository/EditMode/Documentation/DocumentationCategoryTests.cs:21-23` (consequência direta, ADR 0042, item 6): as três guardas novas entram na lista.
+  - `Packages/com.spellbook/Runtime/Core/DocUrls.cs:9-39`, `Tests/Repository/EditMode/DocUrlsTests.cs:10,14,24-47` e `Packages/com.spellbook/package.json:10`: a base e as 28 constantes no formato acima (`Base + "/modulos/gas"`). Os nomes das constantes não mudam, e nenhum `[HelpURL]` do pacote muda por causa disso.
+  - `Tests/Core/EditMode/HelpUrlTests.cs:99` (consequência direta, ADR 0042, item 6): o `[HelpURL(DocUrls.Base + "teste/")]` do asset de teste vira `DocUrls.Base + "/teste"`. Sem a barra no fim da base, ele daria `.../spellbookteste/`.
+  - O `README.md` do pacote, o do Sandbox e o `CHANGELOG.md`, que citam o `github.io`, ficam para o GB8 (decisão do usuário de 2026-11-05).
+- Testes red (EditMode, `SpellBook.Repository.Tests.EditMode`, classe `ManualMarkdownTests`; os casos de uma mesma conferência são `TestCase` com `TestName`):
+  - slug, 12 casos com os exemplos medidos do GB5: `Slug_LowercasesAndJoinsWordsWithHyphen`, `Slug_DropsAccentsAndCedilla`, `Slug_SpellsAmpersand`, `Slug_SpellsAngleBrackets`, `Slug_DropsPunctuationAndCollapsesHyphens`, `Slug_KeepsDotBetweenDigits`, `Slug_DropsDotAfterLetter`, `Slug_KeepsDotAfterDigit`, `Slug_StartingWithDigit_GetsIdPrefix`, `Slug_KeepsOnlyTextOfInlineCode`, `Slug_KeepsOnlyTextOfEmphasis` e `Slug_KeepsOnlyTextOfLink`;
+  - âncoras: `Anchors_SkipsPageTitle`, `Anchors_SkipsFifthAndSixthLevels`, `Anchors_NumbersRepeatedTitles` e `Anchors_IgnoresTitlesInsideCodeBlocks`;
+  - links: `BrokenLinks_AcceptsExistingPageAndAnchor`, `BrokenLinks_MissingFile_Reports`, `BrokenLinks_MissingAnchorInOtherPage_Reports`, `BrokenLinks_MissingAnchorInSamePage_Reports`, `BrokenLinks_OutsideManual_Reports`, `BrokenLinks_RootRelative_Reports`, `BrokenLinks_AbsoluteToOwnSite_Reports`, `BrokenLinks_AbsoluteToOwnSiteAnyCase_Reports`, `BrokenLinks_AutoLinkToOwnSite_Reports`, `BrokenLinks_IgnoresExternalLinks` e `BrokenLinks_IgnoresLinksInCode`;
+  - sumário: `SummaryProblems_AcceptsEveryPageOnce`, `SummaryProblems_PageOutsideSummary_Reports`, `SummaryProblems_RepeatedEntry_Reports` e `SummaryProblems_EntryWithoutFile_Reports`;
+  - sobras: `MkDocsLeftovers_ReportsEachSyntax` (4 casos: `{#`, `!!!`, `???` e `--8<--`), `MkDocsLeftovers_IgnoresGitBookBlocks` e `MkDocsLeftovers_IgnoresSyntaxInsideCodeBlocks`;
+  - `DocUrlsTests.DocUrls_BaseMatchesSite` e `DocUrls_PageConstantPointsToPageUnderBase` (24 casos), com a URL medida.
+- Critério de pronto:
+  - os testes red passam, com o `total` do XML conferido;
+  - `SummaryListsEveryPageOnce`, `EveryRelativeLinkHasTarget`, `NoMkDocsSyntax`, `NoStubPages`, `DocumentationCategoryTests`, `DocUrlsTests`, `HelpUrlTests` e `SampleStructureTests` passam;
+  - `EveryDocUrlHasPage` falha só com as 15 constantes do escopo do usuário;
+  - `EveryHelpUrlHasPageAndAnchor` falha só com os `[HelpURL]` das páginas que faltam, as duas âncoras antigas e as 8 do GB7b. Nenhuma linha vem do `index.md` nem do `{#id}`;
+  - `git grep -n "index.md\|{#" -- Packages/com.spellbook/Tests/Repository/EditMode/ManualLinksTests.cs` não acha nada;
+  - `git diff --check` limpo.
+- Tamanho, medido: 645 linhas (adicionadas mais removidas) em 8 arquivos: `ManualMarkdown.cs` 266, `ManualMarkdownTests.cs` 184, `ManualLinksTests.cs` 72, `DocUrls.cs` 64, `DocUrlsTests.cs` 52, `DocumentationCategoryTests.cs` 3, `package.json` 2 e `HelpUrlTests.cs` 2. Exceção: 645 linhas, +29% sobre o teto de 500 e dentro dos +30% da ADR 0042. Motivo: o CA5 tem quatro guardas, e cada caso de falha tem o seu teste. Além disso, a URL do GitBook não tem barra no fim, então as 28 constantes e os 24 casos do teste mudam juntos. A Spec estimou ~5 arquivos. O helper e os testes dele ficam em arquivos próprios, para não misturar as guardas do manual com os testes da regra, e o `HelpUrlTests.cs` entra por consequência direta.
+- Commit: `feat(docs): URLs e guardas de link no formato do GitBook`
+
+## GB7b — Âncoras de HelpURL pelo título
+### Detalhe (2026-11-05)
+- CA: CA3, na parte das âncoras. Depende do GB7a, cuja guarda aponta as 8 âncoras.
+- Escopo: em cada `[HelpURL]`, a âncora passa a ser o slug do título da seção do tipo. O título não muda (CA8). 8 âncoras em 10 arquivos:
+  - `Runtime/GAS/Core/AbilitySystemComponent.cs:24`: `#abilitysystemcomponent` → `#id-1.5-abilitysystemcomponent-asc`;
+  - `Runtime/GAS/Attributes/AttributeSet.cs:8`: `#attributeset` → `#id-1.2-atributos`;
+  - `Runtime/GAS/Abilities/GameplayAbility.cs:36`: `#gameplayability` → `#id-1.4-gameplay-abilities-ga`;
+  - `Runtime/GAS/Effects/GameplayEffect.cs:47`: `#gameplayeffect` → `#id-1.3-gameplay-effects-ge`;
+  - `Runtime/GAS/Abilities/Projectiles/Projectile.cs:22`: `#projectile` → `#projeteis`;
+  - `Runtime/Pooling/ComponentPooler.cs:11` e `PoolableObject.cs:9`: `#componentpooler` → `#componentpooler-e-ipoolable`;
+  - `Runtime/Pooling/PoolManager.cs:11` e `PoolConfiguration.cs:10`: `#poolmanager` → `#poolmanager-pre-aquecimento`;
+  - `Runtime/Time/PausableTimeSource.cs:11`: `#pausabletimesource` → `#grupo-pausavel`.
+
+  Os slugs são os do Detalhe do GB6. Na implementação, a Fábrica os confere com o `ManualMarkdown.Slug` do GB7a.
+- Testes red: nenhum teste novo. Antes da mudança, o `ManualLinksTests.EveryHelpUrlHasPageAndAnchor` do GB7a falha com as 8 âncoras. Depois dela, ele falha só com o escopo do usuário do GB7a.
+- Critério de pronto: a guarda fica nesse estado; `HelpUrlTests` passa; `git diff --check` limpo.
+- Tamanho: ~20 linhas em 10 arquivos. Exceção: nenhuma.
+- Commit: `fix(docs): âncoras de HelpURL pelo título no GitBook`
