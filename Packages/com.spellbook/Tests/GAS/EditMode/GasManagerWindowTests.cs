@@ -38,5 +38,20 @@ namespace SpellBook.GAS.Tests
             Assert.That(open.enabledSelf, Is.False);
             Assert.That(open.tooltip, Is.EqualTo("Selecione um item na lista."));
         }
+
+        [Test]
+        public void Footer_DuplicateAndRename_DisabledWithReason()
+        {
+            _window = ScriptableObject.CreateInstance<GasManagerWindow>();
+            _window.CreateGUI();
+
+            foreach (string text in new[] { "Duplicar", "Renomear" })
+            {
+                Button button = _window.rootVisualElement.Query<Button>().Where(b => b.text == text).First();
+                Assert.That(button, Is.Not.Null, $"sem o botão {text}");
+                Assert.That(button.enabledSelf, Is.False);
+                Assert.That(button.tooltip, Is.EqualTo("Selecione um item na lista."));
+            }
+        }
     }
 }

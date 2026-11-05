@@ -149,9 +149,12 @@ namespace SpellBook.GAS.Editor
             foreach ((Object asset, string newName) in Changes())
             {
                 if (Problem != null) return;
-                string folder = Path.GetDirectoryName(AssetDatabase.GetAssetPath(asset))?.Replace('\\', '/');
+                string path = AssetDatabase.GetAssetPath(asset);
+                string newPath = $"{Path.GetDirectoryName(path)?.Replace('\\', '/')}/{newName}.asset";
+                // O File.Exists não diferencia maiúscula no Windows: trocar só a caixa acha o próprio arquivo, que não colide.
+                bool collides = File.Exists(newPath) && !string.Equals(newPath, path, StringComparison.OrdinalIgnoreCase);
                 if (asset is GameplayTagDefinition && _tagNames.Contains(newName)) Problem = $"Já existe a tag {newName}. Escolha outro nome.";
-                else if (File.Exists($"{folder}/{newName}.asset")) Problem = $"Já existe um asset {newName} nesta pasta. Escolha outro nome.";
+                else if (collides) Problem = $"Já existe um asset {newName} nesta pasta. Escolha outro nome.";
             }
         }
     }

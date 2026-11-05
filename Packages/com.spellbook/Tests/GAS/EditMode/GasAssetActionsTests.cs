@@ -9,6 +9,7 @@ using SpellBook.GAS.Effects;
 using SpellBook.Tags;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
 
 namespace SpellBook.GAS.Tests
@@ -30,6 +31,7 @@ namespace SpellBook.GAS.Tests
         private GameplayEffect _damage;
         private GameplayEffect _burn;
         private GameplayAbility _ability;
+        private GasActionDialog _dialog;
 
         [SetUp]
         public void SetUp()
@@ -57,6 +59,7 @@ namespace SpellBook.GAS.Tests
         [TearDown]
         public void TearDown()
         {
+            if (_dialog != null) Object.DestroyImmediate(_dialog);
             Selection.activeObject = null;
             if (AssetDatabase.IsValidFolder(Root)) AssetDatabase.DeleteAsset(Root);
         }
@@ -208,6 +211,81 @@ namespace SpellBook.GAS.Tests
             Assert.That(charged.name, Is.EqualTo("ActTestSkill.Fireball.Charged"));
             Assert.That(_abilityTag.Parent, Is.EqualTo(_abilityRoot));
             Assert.That(_ability.AbilityTag.Name, Is.EqualTo("ActTestSkill.Fireball"));
+        }
+
+        [Test]
+        public void Rename_CaseOnly_Accepted()
+        {
+            GasRenamePlan plan = GasRenamePlan.Build(_ability, "FireBall");
+            Assert.That(plan.Problem, Is.Null);
+
+            plan.Apply();
+
+            Assert.That(AssetDatabase.GetAssetPath(_ability), Is.EqualTo(Root + "/GA_FireBall.asset"));
+            Assert.That(AssetDatabase.GetAssetPath(_cost), Is.EqualTo(Root + "/GE_FireBall_Cost.asset"));
+            Assert.That(_ability.AbilityTag.Name, Is.EqualTo("ActTestAbility.FireBall"));
+        }
+
+        [Test]
+        public void Dialog_Rename_TogglesCountAndReason()
+        {
+            _dialog = ScriptableObject.CreateInstance<GasActionDialog>();
+            _dialog.Build(_ability, true);
+            VisualElement root = _dialog.rootVisualElement;
+            Assert.That(root.Q<TextField>().value, Is.EqualTo("Fireball"));
+
+            _dialog.SetName("Firebolt");
+            List<Toggle> toggles = root.Query<Toggle>().ToList();
+            Button main = root.Q<Button>("gas-dialog__confirm");
+            Assert.That(toggles.Select(t => t.label), Has.Member("GE_Fireball_Cost → GE_Firebolt_Cost"));
+            Assert.That(toggles.Select(t => t.value), Is.EqualTo(Enumerable.Repeat(true, 5)));
+            Assert.That(main.text, Is.EqualTo("Renomear 6"));
+            Assert.That(main.enabledSelf, Is.True);
+
+            _dialog.SetChecked(0, false);
+            Assert.That(main.text, Is.EqualTo("Renomear 5"));
+
+            _dialog.SetName("Fireball");
+            Assert.That(main.enabledSelf, Is.False);
+            Assert.That(root.Q<Label>("gas-dialog__reason").text, Is.EqualTo("Digite um nome diferente do atual."));
+            Assert.That(main.tooltip, Is.EqualTo("Digite um nome diferente do atual."));
+        }
+
+        [Test]
+        public void Dialog_Rename_KeepsUncheckedAfterNameEdit()
+        {
+            _dialog = ScriptableObject.CreateInstance<GasActionDialog>();
+            _dialog.Build(_ability, true);
+            VisualElement root = _dialog.rootVisualElement;
+            _dialog.SetName("Firebolt");
+            int damage = root.Query<Toggle>().ToList().FindIndex(t => t.label == "GE_Fireball_Damage → GE_Firebolt_Damage");
+            _dialog.SetChecked(damage, false);
+
+            _dialog.SetName("FireBolt");
+
+            Toggle toggle = root.Query<Toggle>().ToList().Single(t => t.label == "GE_Fireball_Damage → GE_FireBolt_Damage");
+            Assert.That(toggle.value, Is.False);
+            Assert.That(root.Q<Button>("gas-dialog__confirm").text, Is.EqualTo("Renomear 5"));
+        }
+
+        [Test]
+        public void Dialog_Duplicate_CopiedAndSharedGroups()
+        {
+            _dialog = ScriptableObject.CreateInstance<GasActionDialog>();
+            _dialog.Build(_ability, false);
+            VisualElement root = _dialog.rootVisualElement;
+
+            Assert.That(root.Q<TextField>().value, Is.EqualTo("Fireball_2"));
+            List<string> labels = root.Query<Label>().ToList().Select(l => l.text).ToList();
+            Assert.That(labels, Is.SupersetOf(new[]
+            {
+                "Copiado", "GA_Fireball_2", "GE_Fireball_2_Cost", "GE_Fireball_2_Cooldown", "ActTestAbility.Fireball_2",
+                "ActTestCooldown.Fireball_2", "Compartilhado", "GE_Fireball_Damage", "GE_Burn",
+            }));
+            Assert.That(labels.IndexOf("Compartilhado"), Is.GreaterThan(labels.IndexOf("ActTestCooldown.Fireball_2")));
+            Button main = root.Q<Button>("gas-dialog__confirm");
+            Assert.That(main.text, Is.EqualTo("Duplicar"));
+            Assert.That(main.enabledSelf, Is.True);
         }
 
         private static GameplayTagDefinition Tag(string name, GameplayTagDefinition parent)

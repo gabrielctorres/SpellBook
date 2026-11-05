@@ -31,6 +31,8 @@ namespace SpellBook.GAS.Editor
         private ScrollView _detail;
         private Label _reason;
         private Button _open;
+        private Button _duplicate;
+        private Button _rename;
         private Object _selected;
 
         [MenuItem("SpellBook/Gerenciador do GAS")]
@@ -88,12 +90,21 @@ namespace SpellBook.GAS.Editor
             _reason = new Label();
             _reason.AddToClassList("gas-manager__secondary");
             root.Add(_reason);
-            // Duplicar e Renomear (ME9) e Excluir (ME10) entram nesta fileira, à esquerda do botão principal.
+            // Excluir (ME10) entra nesta fileira, à esquerda do botão principal.
             var footer = new VisualElement();
             footer.AddToClassList("gas-manager__footer");
+            _duplicate = new Button(() => Act(false)) { text = "Duplicar" };
+            footer.Add(_duplicate);
+            _rename = new Button(() => Act(true)) { text = "Renomear" };
+            footer.Add(_rename);
             _open = new Button(OpenInInspector) { text = "Abrir no Inspector" };
             footer.Add(_open);
             root.Add(footer);
+            root.RegisterCallback<KeyDownEvent>(e =>
+            {
+                if (e.keyCode == KeyCode.F2 && _rename.enabledSelf) Act(true);
+                else if (e.actionKey && e.keyCode == KeyCode.D && _duplicate.enabledSelf) Act(false);
+            });
 
             Select(null);
             root.schedule.Execute(() =>
@@ -108,13 +119,14 @@ namespace SpellBook.GAS.Editor
             if (_toolbar == null) return;
             _model.SetIndex(_projectIndex.Index);
             _toolbar.SetEnabled(true);
-            RefreshView();
+            RefreshView(true);
         }
 
+        // Filtro novo: o painel só se refaz se o item selecionado saiu da lista.
         private void Change(System.Action change)
         {
             change();
-            RefreshView();
+            RefreshView(false);
         }
 
         private void AddKindToggle(GasIndexKind? kind)
@@ -125,7 +137,7 @@ namespace SpellBook.GAS.Editor
             _toolbar.Add(toggle);
         }
 
-        private void RefreshView()
+        private void RefreshView(bool refreshDetail)
         {
             GasIndexFilter filter = _model.Filter;
             foreach (ToolbarToggle toggle in _kindToggles)
@@ -165,7 +177,24 @@ namespace SpellBook.GAS.Editor
                 _list.Rebuild();
             }
 
-            Select(_selected);
+            SyncSelection(tree, refreshDetail);
+        }
+
+        // Depois do Rebuild, a lista e a árvore voltam a marcar o item selecionado pelo asset, não pelo índice antigo.
+        private void SyncSelection(bool tree, bool refreshDetail)
+        {
+            int index = _selected == null ? -1 : _model.Rows.FindIndex(row => row.Entry?.Asset == _selected);
+            if (index < 0)
+            {
+                _list.SetSelectionWithoutNotify(new int[0]);
+                _tree.SetSelectionByIdWithoutNotify(new int[0]);
+                if (_selected != null || refreshDetail) Select(null);
+                return;
+            }
+
+            if (tree) _tree.SetSelectionByIdWithoutNotify(new[] { _selected.GetInstanceID() });
+            else _list.SetSelectionWithoutNotify(new[] { index });
+            if (refreshDetail) Select(_selected);
         }
 
         private void AddChip(string text, System.Action clear)
@@ -221,6 +250,11 @@ namespace SpellBook.GAS.Editor
             _open.SetEnabled(asset != null);
             _reason.text = asset != null ? string.Empty : "Selecione um item na lista.";
             _open.tooltip = asset != null ? "Seleciona o asset no Inspector (Enter)." : _reason.text;
+            _rename.SetEnabled(asset != null);
+            _rename.tooltip = asset != null ? "Renomeia o item e os derivados (F2)." : _reason.text;
+            bool duplicable = GasDuplicate.CanDuplicate(asset);
+            _duplicate.SetEnabled(duplicable);
+            _duplicate.tooltip = duplicable ? "Duplica o item (Ctrl+D)." : asset != null ? "Só habilidades e efeitos se duplicam." : _reason.text;
             _detail.Clear();
             if (asset == null)
             {
@@ -255,6 +289,16 @@ namespace SpellBook.GAS.Editor
             var noteLabel = new Label(note);
             noteLabel.AddToClassList("gas-manager__secondary");
             _detail.Add(noteLabel);
+        }
+
+        private void Act(bool rename)
+        {
+            if (_selected == null) return;
+            GasActionDialog.Open(_selected, rename, result =>
+            {
+                _selected = result;
+                Reload();
+            });
         }
 
         private void OpenInInspector()

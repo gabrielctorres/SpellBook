@@ -18,3 +18,7 @@
 .gas-manager__reference > Image { width: 16px; height: 16px; margin-right: 4px; }
 .gas-manager__footer { flex-direction: row; justify-content: flex-end; padding: 4px; }
 .gas-manager Button:focus, .gas-manager .unity-collection-view__item:focus { border-width: 2px; }
+
+/* Diálogos Duplicar e Renomear (DS, seção 6). */
+.gas-dialog { padding: 8px; }
+.gas-dialog__list { flex-grow: 1; margin: 4px 0; }
