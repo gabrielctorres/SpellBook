@@ -121,6 +121,93 @@ GB1, 2026-11-05. Branch `spike/gitbook`: `7160b42` (conteúdo), `6d1255a` (`gitb
 | Data | Observação | Ajuste pedido | Status |
 |---|---|---|---|
 
+## GB2 — Layout e sumário
+### Detalhe (2026-11-05)
+- CA: CA1 (o `SUMMARY.md` único na raiz do manual, com os grupos do guia na ordem do guia e cada página uma vez; a configuração do space) e CA7 (a parte do `mkdocs.yml`, do `requirements-docs.txt`, do `docs.yml` e do Python). A publicação e o site de rascunho são do GB9; a guarda do sumário é do GB7.
+- Verificação do `gitbook-docs.yaml`, feita antes do escopo:
+  - O schema (`https://api.gitbook.com/gitbook-docs.yaml`, lido em 2026-11-05) não dispensa o arquivo para um site de um space. Ele se descreve como o contrato do Git Sync para a estrutura do site, fica na raiz do diretório do projeto e aceita tanto um space solto na raiz quanto uma seção com um space. Como o CA1 pede a seção `Manual`, a estrutura tem uma `section` com um `space`. A emenda de 2026-11-05 da 0044 (item 2) registra que o Git Sync do site exige o arquivo, e o spike (`6d1255a`) importou por ele. O Git Sync por space, sem o arquivo e com a seção montada na interface, fica fora do schema e não foi testado. Por isso o GB2 cria o arquivo.
+  - O mesmo arquivo serve aos dois sites. O schema não tem campo de visibilidade nem de publicação: privado e não publicado são ajustes do site na interface (GB9). O `key` precisa ser único só dentro do arquivo, e o `content.directory: ./` é lido a partir do diretório do projeto de cada Git Sync (`Documentation~/manual/` nos dois). O rascunho mostra o mesmo título e a mesma seção `Manual`, com um space só, o que a decisão 8 permite. O que o schema não responde (dois sites ligados ao mesmo arquivo no mesmo repositório, e se o GitBook regrava o arquivo) o GB9 confere no primeiro sync. No spike, o commit `GITBOOK-1` (`934c949`) não mexeu no arquivo.
+- Escopo:
+  - `Documentation~/manual/gitbook-docs.yaml` (novo). O primeiro bloco do spike, sem os outros 3 spaces:
+    ```yaml
+    $schema: https://api.gitbook.com/gitbook-docs.yaml
+    site:
+      title: Manual do SpellBook
+      structure:
+        - type: section
+          key: section-manual
+          title: Manual
+          path: manual
+          default: true
+          children:
+            - type: space
+              key: space-manual
+              title: Manual do SpellBook
+              path: spellbook
+              default: true
+              content:
+                directory: ./
+    ```
+    O GB7 tira dos `path` o formato da URL do `DocUrls`, e o GB9 a confere no site publicado.
+  - `Documentation~/manual/SUMMARY.md` (novo), tirado do `nav` de `Documentation~/mkdocs.yml:20-44`. Os títulos de grupo são os do guia (`guia-do-manual.md:115`), na ordem dele, sem o `Guias`, que não tem página. O rótulo é o título `#` da página sem o `{#id}`. O cabeçalho é o que o GitBook grava (`modulos/SUMMARY.md` em `934c949`). O link da API (`mkdocs.yml:41`) sai, porque o GB3 tira a API:
+    ```markdown
+    # Table of contents
+
+    ## Começar
+
+    * [SpellBook](README.md)
+    * [Instalação](inicio/instalacao.md)
+
+    ## Sistemas de habilidade
+
+    * [GAS](modulos/gas.md)
+    * [Dano, escudo e morte](modulos/dano-escudo-e-morte.md)
+
+    ## Sistemas de apoio
+
+    * [Eventos](modulos/eventos.md)
+    * [Tags](modulos/tags.md)
+    * [Tempo](modulos/tempo.md)
+    * [Pooling](modulos/pooling.md)
+
+    ## Editor e ferramentas
+
+    * [Inspector](inicio/inspector.md)
+    * [Validador](ferramentas/validador.md)
+    * [GAS Debugger](ferramentas/gas-debugger.md)
+    * [Event Debugger](ferramentas/event-debugger.md)
+
+    ## Exemplos
+
+    * [Sample Sandbox](exemplos/sandbox.md)
+
+    ## Referência
+
+    * [Catálogo de tipos](referencia/catalogo.md)
+    * [Conceitos](inicio/conceitos.md)
+    * [Migração 2.x → 3.0](regras/migracao-2-para-3.md)
+    ```
+  - `Documentation~/manual/index.md` → `Documentation~/manual/README.md`: troca de nome sem mudar nenhum byte. O Codex renomeia no disco, e o `/commit` registra como `R100`.
+  - Remoção pura: `Documentation~/mkdocs.yml`, `Documentation~/requirements-docs.txt` e `.github/workflows/docs.yml`.
+  - `.gitignore:41-42` (consequência direta, ADR 0042, item 6): saem o comentário e a linha `/Documentation~/site/`, a saída do `mkdocs build`.
+- O que referencia esses arquivos e o `nav`, e com qual ticket fica:
+  - **GB2:** os três arquivos removidos, o `index.md` e o `.gitignore:41-42`. Nenhum outro arquivo de CI cita o MkDocs (`.github/workflows/` só tem o `docs.yml`). Nenhum script da fila e nenhum `.cs` lê o `mkdocs.yml` ou o `nav`. O `ManualNavTests` não existe.
+  - **GB7:** `ManualLinksTests.cs:105` procura a página inicial em `index.md` e `:115` procura a âncora `{#id}`; os dois passam a usar o `README.md` e a âncora do título. A guarda nova do `SUMMARY.md` (página fora, repetida ou sem arquivo) faz o papel da validação do `nav` (`mkdocs.yml:45-50`). `DocUrls.cs:10`, `DocUrlsTests.cs:14` e `package.json:10` passam para a URL do GitBook. Entre o GB2 e o GB7, só a conferência por busca do critério de pronto abaixo confere o sumário.
+  - **GB8:** `AGENTS.md:114,128` (o `mkdocs build --strict` e o `nav` nas conferências do Controlador); `guia-do-manual.md:113-117` (parte 6: o `nav` vira o `SUMMARY.md`), `:132`, `:141-142` (parte 7: o build), `:158-165` (parte 8: o build e a Action `docs`) e `:202,205` (parte 9: o `dedent_subsections` e o `check_paths`, junto com o marcador do GB4); `Documentation~/README.md:14` ("Site MkDocs (GitHub Pages)"); `README.md:18` (link do manual); `.claude/agents/controlador.md:3,14`, `examinador.md:19`, `.claude/skills/implementar/SKILL.md:17` e `revisao/SKILL.md:9,21`.
+  - **GB11, e depois GB8:** `AGENTS.md:135` e `revisao/SKILL.md:14` ("a entrada do `nav`") seguem a emenda da 0042. As ADRs 0007, 0025, 0040 e 0041 citam o MkDocs e o `nav` e são do GB11. A Spec, o PRD, o backlog e as ADRs antigas ficam como histórico.
+  - Até o GB8, o `AGENTS.md`, o guia e as skills mandam rodar o `mkdocs build --strict`, que não existe mais. Não tem efeito no lote, porque o passe de documentação só volta depois do GB9.
+- Testes red: nenhum, porque o ticket não tem código. Guarda `Documentacao` que fica vermelha, como a Spec prevê: `ManualLinksTests.EveryDocUrlHasPage`. O `DocUrls.Base` é uma constante da classe, e a guarda o procura em `index.md`. Ela já está vermelha hoje pelas páginas que faltam (`modulos/times.md`, `cues.md` e `ui/`), e o GB2 soma a linha da página inicial. O GB7 a corrige. O `NoStubPages` lê o `SUMMARY.md` como página e passa, porque ele tem lista e não só títulos. O `EveryHelpUrlHasPageAndAnchor` não muda: nenhum `[HelpURL]` usa o `Base` puro. O ticket é do Codex e não roda a Unity; o Examinador confere essas guardas na `/revisao`.
+- Critério de pronto (da raiz do repositório, sem Unity):
+  - `Documentation~/mkdocs.yml`, `Documentation~/requirements-docs.txt`, `.github/workflows/docs.yml` e `Documentation~/manual/index.md` não existem;
+  - `git hash-object Documentation~/manual/README.md` é igual a `git rev-parse HEAD:Documentation~/manual/index.md`;
+  - cada página aparece uma vez no sumário, e cada entrada tem arquivo: `cd Documentation~/manual && diff <(find . -name '*.md' ! -name SUMMARY.md | sed 's|^\./||' | sort) <(grep -oE '\]\([^)]+\.md\)' SUMMARY.md | sed -E 's/^\]\(//; s/\)$//' | sort)` não mostra nada;
+  - `grep '^## ' Documentation~/manual/SUMMARY.md` mostra, nesta ordem: Começar, Sistemas de habilidade, Sistemas de apoio, Editor e ferramentas, Exemplos, Referência;
+  - o `gitbook-docs.yaml` é conferido à mão contra o schema: `site.title` e `site.structure` presentes; uma seção com `default: true`; um space com `default: true`, `key`, `title`, `path` e `content.directory`;
+  - `git grep -n -E "mkdocs|requirements-docs|docs\.yml" -- .github .gitignore Documentation~/manual` não acha nada;
+  - `git diff --check` limpo.
+- Tamanho: 1 linha (o `R100`) em 3 arquivos (`gitbook-docs.yaml`, `SUMMARY.md` e `.gitignore`). Nenhum dos três é tipo que conta linha. A remoção pura e o `R100` não contam como arquivo. Exceção: nenhuma.
+- Commit: `chore(docs): SUMMARY.md e gitbook-docs.yaml no lugar do MkDocs`
+
 ## GB3 — Tirar a API
 ### Detalhe (2026-11-04)
 - CA: CA7 (a parte da API: DocFX, `api/`, mapa da Unity, impressão digital, `.config/dotnet-tools.json`; catálogo sem link para a API, com a guarda byte a byte). O `docs.yml`, o `mkdocs.yml` e o Python ficam no GB2.
