@@ -1,15 +1,15 @@
-# Pooling {#pooling}
+# Pooling
 
 Esta página mostra como o SpellBook cria e devolve objetos de jogo, como projéteis e partículas.
 O `SpawnerAsset` fica no Core. O pool de objetos fica no módulo `SpellBook.Pooling` (assembly
 `SpellBook.Pooling`, namespace `SpellBook.Pooling`), que depende só do Core.
 
-## SpawnerAsset {#spawnerasset}
+## SpawnerAsset
 
 O `SpawnerAsset` é um asset que cria uma instância de um prefab e depois a devolve. Ele fica no
 assembly `SpellBook.Core`, no namespace `SpellBook.Core`.
 
-### Por que existe {#por-que-existe}
+### Por que existe
 
 Os sistemas do pacote não escolhem como um objeto é criado. Eles recebem um `SpawnerAsset` num
 campo do Inspector e pedem a ele a instância. Assim, você troca a estratégia (Instantiate, pool,
@@ -17,10 +17,9 @@ Addressables) trocando o asset do campo, sem mexer no sistema. E nenhum sistema 
 `PoolManager` na cena.
 
 O contrato tem dois métodos abstratos. O `Spawn` recebe o prefab, a posição, a rotação e um
-`parent` opcional e devolve a instância criada. O `Release` recebe a instância de volta. As
-assinaturas estão na [página do `SpawnerAsset` na API](https://gabrielctorres.github.io/SpellBook/api/SpellBook.Core.SpawnerAsset.html).
+`parent` opcional e devolve a instância criada. O `Release` recebe a instância de volta.
 
-### Padrão por Instantiate {#instantiate}
+### Padrão por Instantiate
 
 O `InstantiateSpawnerAsset` é a implementação padrão: o `Spawn` usa `Instantiate` e o `Release`
 destrói a instância. Fora do Play, o `Release` usa `DestroyImmediate`, porque o `Destroy` só
@@ -43,7 +42,7 @@ GameObject vfx = SpawnerAsset.OrDefault(spawner).Spawn(prefab, position, rotatio
 ```
 {% endcode %}
 
-### Criar o seu próprio spawner {#proprio-spawner}
+### Criar o seu próprio spawner
 
 Herde de `SpawnerAsset` e implemente os dois métodos. Adicione um `[CreateAssetMenu]` para criar
 o asset pelo menu:
@@ -74,13 +73,13 @@ public class CountingSpawnerAsset : SpawnerAsset
 ```
 {% endcode %}
 
-### Quem devolve {#quem-devolve}
+### Quem devolve
 
 O objeto volta pelo **mesmo** spawner que o criou. Quem chamou o `Spawn` guarda o spawner usado
 e chama o `Release` dele quando o objeto não serve mais. Um objeto que se devolve sozinho, como
 um projétil, recebe o spawner na configuração e chama `spawner.Release(gameObject)`.
 
-### ReleaseWhenParticlesStop {#releasewhenparticlesstop}
+### ReleaseWhenParticlesStop
 
 Para uma partícula sem dono, que só precisa sumir quando acabar, chame
 `ReleaseWhenParticlesStop` logo depois do `Spawn`:
@@ -97,7 +96,7 @@ O método troca o **Stop Action** do `ParticleSystem` da raiz da instância para
 adiciona um componente interno que chama `Release` desse spawner quando a partícula para. Ele
 não conta tempo: a devolução acontece quando o `ParticleSystem` termina.
 
-## PooledSpawnerAsset {#pooledspawnerasset}
+## PooledSpawnerAsset
 
 O `PooledSpawnerAsset` é o `SpawnerAsset` com pool. Use-o no campo **Spawner** de qualquer
 sistema para reaproveitar instâncias em vez de criar e destruir.
@@ -135,7 +134,7 @@ spawner.Release(bullet);
 
 O validador acusa erro se **Initial Size** for negativo.
 
-## PoolManager (pré-aquecimento) {#poolmanager}
+## PoolManager (pré-aquecimento)
 
 O `PoolManager` é um componente de cena que cria pools no `Awake`, antes do primeiro uso. Ele é
 opcional e o `PooledSpawnerAsset` não o procura: os pools dele são separados.
@@ -147,7 +146,7 @@ lista **Starting Pools** do `PoolManager`.
 O `PoolManager` é um singleton com `DontDestroyOnLoad`. Os sistemas do pacote não usam o
 `PoolManager.Instance`; use um `PooledSpawnerAsset` no campo **Spawner** deles.
 
-## ComponentPooler e IPoolable {#componentpooler}
+## ComponentPooler e IPoolable
 
 O `ComponentPooler` é o pool de um prefab: uma fila de instâncias desativadas. O
 `PooledSpawnerAsset` e o `PoolManager` criam um por prefab. Cada instância ganha um
@@ -173,7 +172,7 @@ public class Bullet : MonoBehaviour, IPoolable
 Se o objeto também pode nascer por `Instantiate`, prefira reiniciar no `OnEnable`, que roda nos
 dois casos. É o que o `Projectile` do GAS faz.
 
-## Armadilhas {#armadilhas}
+## Armadilhas
 
 - **Devolva pelo spawner que criou.** Devolver por outro spawner pode destruir um objeto que
   deveria voltar para um pool, ou o contrário.

@@ -319,3 +319,92 @@ GB1, 2026-11-05. Branch `spike/gitbook`: `7160b42` (conteúdo), `6d1255a` (`gitb
   - `git diff --check` limpo.
 - Tamanho: ~12 linhas (só o `.cs` conta) em 10 arquivos (as 9 páginas e o `SampleStructureTests.cs`). A Spec estimou 9; o teste entra como consequência direta e conta. Os links corrigidos ficam nas mesmas 9 páginas e não somam arquivo. Exceção: nenhuma.
 - Commit: `docs(manual): sintaxe do GitBook nas páginas fora de modulos/`
+
+## GB6 — Sintaxe das páginas, parte 2
+### Detalhe (2026-11-05)
+- CA: CA8 nas 6 páginas de `modulos/` (mesmas seções e mesmo texto; muda só a sintaxe e os links, salvo as duas decisões do usuário abaixo) e CA6 no único diagrama do manual, `modulos/dano-escudo-e-morte.md:21-28`. O que o site desenha, o GB9 confere. A parte do CA5 sobre sobra de sintaxe (`{#`, `!!!`, `???`) passa a valer em todo o manual; a guarda é do GB7.
+- Exceção ao CA8 (decisão do usuário de 2026-11-05, resposta à pergunta 1): saem as 2 frases com link absoluto para a API do site antigo, em `pooling.md:20-21` e `tempo.md:14-15`. É a única mudança de texto autorizada no ticket. O resto de cada parágrafo fica igual.
+- Níveis de título (decisão do usuário de 2026-11-05, resposta à pergunta 2): os 5 `#####` de `gas.md` sobem para `####`. As seções continuam as mesmas, com o mesmo texto, e no índice da página aparecem como irmãs do `####` pai. Nenhuma outra mudança de nível.
+- Níveis de título no GitBook, medidos pelo Controlador em 2026-11-05 no space de teste, pelo MCP, lendo o `meta.id`: o primeiro `#` da página vira o título da página, e não um título com âncora; `##`, `###` e `####` viram títulos de nível 1, 2 e 3, com âncora pela regra do slug (`Título 4 com Âncora` → `titulo-4-com-ancora`); `#####` e `######` viram parágrafo em negrito, sem nível e sem âncora, e um link para eles fica sem destino. Os 28 `####` de `modulos/` (`eventos.md` 5, `gas.md` 23) mantêm a âncora. Isso inclui os 8 `[HelpURL]` que vão para `####` (`#attributedefinition`, `#attributecategory`, `#textroletheme`, `#simpleattributeformula`, `#expressionformula`, `#projectile`, `#raiseeventaction`, `#cooldownreductionpolicy`). O manual inteiro tem 5 `#####`, todos em `gas.md`, e nenhum `######`:
+
+  | Título `#####` | Pai `####` | Slug que teria | Quem liga para ele |
+  |---|---|---|---|
+  | `gas.md:142` (Origens do valor) | `:116` (Contexto e spec do efeito) | `origens-do-valor` | `gas.md:103` (GB6) |
+  | `gas.md:159` (Snapshot ou ao vivo) | `:116` | `snapshot-ou-ao-vivo` | `gas.md:156` (GB6, hoje `#magnitude-ao-vivo`, na tabela de links abaixo) e `ferramentas/validador.md:84` (GB5) |
+  | `gas.md:247` (Exemplo: Fireball com `damage` e `cooldown`) | `:232` (Níveis e tabela de valores) | `exemplo-fireball-com-damage-e-cooldown` | ninguém |
+  | `gas.md:257` (No Inspector) | `:232` | `no-inspector` | ninguém |
+  | `gas.md:304` (Condição própria) | `:269` (Condições) | `condicao-propria` | ninguém |
+
+  Nenhum `[HelpURL]` nem página do Sandbox aponta para um `#####` (busca em todo o repositório pelos `id` antigos e pelos slugs). Três links, em `gas.md:103`, `gas.md:156` e `ferramentas/validador.md:84`, ficariam sem destino. Com os 5 títulos em `####` (decisão acima), os três passam a valer. O de `gas.md:103` (`#origens-do-valor`) e o de `validador.md:84` (`#snapshot-ou-ao-vivo`, corrigido no GB5) já usam o slug, e só o de `gas.md:156` muda (está na tabela de links). O `validador.md` não entra no escopo.
+- O que as páginas têm hoje (contado em 2026-11-05, depois do GB5):
+  - 135 títulos com `{#id}`: `dano-escudo-e-morte.md` 21, `eventos.md` 36, `gas.md` 44, `pooling.md` 11, `tags.md` 11, `tempo.md` 12. O `gas.md` tem mais 7 títulos sem `{#id}` (`:339`, `:345`, `:517`, `:522`, `:662`, `:665`, `:670`). Nenhuma página tem dois títulos com o mesmo slug, então nenhum leva `-1`.
+  - 4 admonitions, todas com título e corpo recuado em 4 espaços: `dano-escudo-e-morte.md:268-269` (`!!! warning`, "O sistema de habilidades não destrói nada"), `eventos.md:9-15` (`!!! note`, "Em desenvolvimento", corpo de 6 linhas), `gas.md:402-403` (`!!! warning`, "Armadilha: o VFX do `PlayCueAction` não volta") e `gas.md:706-707` (`!!! warning`, "Armadilha: somar floats na fronteira"). Nenhum `???`.
+  - Um bloco `mermaid`, em `dano-escudo-e-morte.md:21-27`, com a legenda de uma frase em itálico logo abaixo (`:28`). É o mesmo formato do bloco que o GB1 mostrou desenhado (` ```mermaid ` cercado, `flowchart LR`, recuo de 4 espaços dentro do bloco). Não muda.
+  - Nada de `<div>`, `<span>`, `attr_list`, abas (`===`), ícone ou emoji do Material, nota de rodapé, abreviação, `markdown="1"`, `/pages/...` nem link para o `index.md`. O `<T>` dos títulos `eventos.md:32` e `:129` está escapado (`\<T\>`) e fica.
+  - 18 blocos `{% code title %}` expandidos pelo GB4 (`eventos.md` 5, `pooling.md` 5, `tags.md` 5, `tempo.md` 3). Ficam como estão. O `gas.md` e o `dano-escudo-e-morte.md` continuam com os blocos C# escritos à mão, na lista `PendingPages` do `ManualCodeExamplesTests.cs:25-30` (EX3 e EX6).
+  - Linhas recuadas em 4 espaços fora de bloco de código que não são de admonition: `dano-escudo-e-morte.md:66-67` (sublista de `Mode`) e `eventos.md:565` (continuação de um item de sublista). São Markdown comum de lista e ficam.
+  - 2 links absolutos para a API do site antigo: `pooling.md:20-21` ("As assinaturas estão na [página do `SpawnerAsset` na API](https://gabrielctorres.github.io/SpellBook/api/...)") e `tempo.md:14-15` ("A declaração está na [página do `ITimeSource` na API](...)"). A API saiu no GB3. As duas frases saem (exceção ao CA8, acima).
+- Regra: a mesma do Detalhe do GB5 (slug do título medido pelo Controlador em 2026-11-05, hint no formato do GB1, título do hint em negrito na primeira linha). O `!!! warning` vira `{% hint style="warning" %}`, e o `!!! note` vira `{% hint style="info" %}`.
+- Escopo (as 6 páginas de `Documentation~/manual/modulos/`):
+  - Em cada linha de título, sai o ` {#id}` do fim. O texto do título não muda.
+  - `gas.md:142`, `:159`, `:247`, `:257` e `:304`: o `#####` vira `####`.
+  - `pooling.md:20-21`: sai a frase "As assinaturas estão na [página do `SpawnerAsset` na API](...)." A linha 20 termina em "O `Release` recebe a instância de volta.", e a 21 sai. `tempo.md:14-15`: sai a frase "A declaração está na [página do `ITimeSource` na API](...)." A linha 14 termina em "já com a pausa da fonte aplicada.", e a 15 sai. As outras linhas dos dois parágrafos não mudam.
+  - As 4 admonitions viram hint, como no GB5: `{% hint style="..." %}`, o título em negrito, uma linha em branco, o corpo sem o recuo de 4 espaços e `{% endhint %}`. As palavras não mudam.
+  - Links com âncora. Hoje saem 110 links com âncora das 6 páginas. Com os títulos sem `{#id}`, 60 continuam certos (o slug já é o `id` antigo, como `#raiseeventaction`, `#eventemitter`, `#cargas`, `#condicoes`, `#eventos-do-gas`). Os 50 que mudam, em 45 linhas, passam a apontar para o slug do título de destino. O caminho e o texto do link não mudam, só o que vem depois do `#`:
+
+    | Origem | Destino (título) | Antes | Depois |
+    |---|---|---|---|
+    | `eventos.md:7`, `gas.md:7`, `tags.md:8`, `tempo.md:8` | `inicio/conceitos.md:6` (Módulos e assemblies) | `#modulos` | `#modulos-e-assemblies` |
+    | `gas.md:31` | `ferramentas/validador.md:44` (Regras da 3.0) | `#regras` | `#regras-da-3.0` |
+    | `gas.md:103` | `regras/migracao-2-para-3.md:197` (Valores por nível no GAS) | `#valores-por-nivel` | `#valores-por-nivel-no-gas` |
+    | `tags.md:200` | `ferramentas/validador.md:185` (Validar um tipo seu) | `#ivalidatable` | `#validar-um-tipo-seu` |
+    | `dano-escudo-e-morte.md:81` | `dano-escudo-e-morte.md:15` (Redirecionar para outro atributo) | `#redirecionar` | `#redirecionar-para-outro-atributo` |
+    | `eventos.md:24` | `eventos.md:32` (`EventBus\<T\>`) | `#eventbus` | `#eventbus-less-than-t-greater-than` |
+    | `eventos.md:165` | `eventos.md:572` (Segurança do disparo) | `#seguranca` | `#seguranca-do-disparo` |
+    | `eventos.md:370` | `eventos.md:399` (Escolher o canal) | `#escolher-canal` | `#escolher-o-canal` |
+    | `eventos.md:427` | `eventos.md:433` (SetActive) | `#setactivereaction` | `#setactive` |
+    | `eventos.md:428` | `eventos.md:440` (Toggle de componente) | `#togglecomponentreaction` | `#toggle-de-componente` |
+    | `eventos.md:411`, `:429`, `:536` | `eventos.md:448` (RaiseChannel) | `#raisechannelreaction` | `#raisechannel` |
+    | `eventos.md:430` | `eventos.md:462` (Log) | `#logreaction` | `#log` |
+    | `eventos.md:347`, `:411`, `:431`, `:537` | `eventos.md:470` (Invoke com delay) | `#delayedreaction` | `#invoke-com-delay` |
+    | `eventos.md:479`, `gas.md:376`, `gas.md:702` | `tempo.md:44` (Grupo pausável) | `#pausabletimesource` | `#grupo-pausavel` |
+    | `gas.md:109`, `:149` | `gas.md:55` (Fórmulas de modificadores) | `#formulas` | `#formulas-de-modificadores` |
+    | `gas.md:102`, `:103`, `:147`, `:235`, `:382` | `gas.md:85` (Valores por nível (ScalableFloat)) | `#scalablefloat` | `#valores-por-nivel-scalablefloat` |
+    | `gas.md:102`, `:103` | `gas.md:116` (Contexto e spec do efeito) | `#effectcontext` | `#contexto-e-spec-do-efeito` |
+    | `gas.md:156` | `gas.md:159` (Snapshot ou ao vivo) | `#magnitude-ao-vivo` | `#snapshot-ou-ao-vivo` |
+    | `gas.md:91`, `:127`, `:382` | `gas.md:232` (Níveis e tabela de valores) | `#abilityvalues` | `#niveis-e-tabela-de-valores` |
+    | `gas.md:330` | `gas.md:515` (4. Ciclo de vida, cooldown e custo) | `#ciclo-de-vida` | `#id-4.-ciclo-de-vida-cooldown-e-custo` |
+    | `gas.md:356` | `gas.md:442` (3.2 Targeting) | `#targeting` | `#id-3.2-targeting` |
+    | `gas.md:360`, `:398` | `gas.md:386` (Projéteis) | `#projectile` | `#projeteis` |
+    | `gas.md:379`, `:433`, `:666` | `gas.md:461` (3.3 Base nova das ações) | `#gameplayaction` | `#id-3.3-base-nova-das-acoes` |
+    | `gas.md:365`, `:366`, `:438` | `gas.md:493` (3.4 Alvo de cada ação) | `#alvo-da-acao` | `#id-3.4-alvo-de-cada-acao` |
+    | `gas.md:373`, `:600` | `gas.md:684` (4.6 Tempo do ASC) | `#tempo-do-asc` | `#id-4.6-tempo-do-asc` |
+    | `tempo.md:77` | `tempo.md:144` (Estado entre sessões de Play) | `#reset` | `#estado-entre-sessoes-de-play` |
+
+    As 4 primeiras linhas são os 7 links que o Detalhe do GB5 deixou para cá. As outras 43 vão para títulos de `modulos/`. Os números de linha são os de hoje; os hints acrescentam linhas e deslocam o que vem depois deles. Os 27 links que chegam a `modulos/` de fora já usam o slug (GB5) e passam a valer quando os `{#id}` saem.
+  - Nenhum teste `.cs` lê o texto destas páginas. O `SampleStructureTests` lê só o `exemplos/sandbox.md` (`:32`). O `DocUrlsTests` confere só as constantes. O `ManualCodeExamplesTests` lê os blocos `{% code title %}`, que não mudam. Os comentários `<summary>` dos `*ManualExamples.cs` citam o `--8<--`, mas não são teste, e o texto deles é do GB8 ou do passe. Nenhum `.cs` entra como consequência direta.
+- Perguntas respondidas pelo usuário em 2026-11-05:
+  1. **As 2 frases com link para a API:** saem inteiras (opção a). Ver a exceção ao CA8, acima.
+  2. **Os 5 títulos `#####` de `gas.md`:** sobem para `####` (opção a). No GitBook, o `#####` vira parágrafo em negrito, sem âncora, e sai do índice. Com o `####`, as 5 seções continuam no índice e os 3 links que vão para elas têm destino. Os títulos de cima não sobem, porque o GitBook só tem três níveis com âncora.
+- Para o GB7 (não é do GB6): com os títulos sem `{#id}`, 8 `[HelpURL]` para `modulos/` apontam para âncora que não é o slug do título, porque o título não é o nome do tipo: `DocUrls.Gas + "#abilitysystemcomponent"` (→ `id-1.5-abilitysystemcomponent-asc`), `#attributeset` (→ `id-1.2-atributos`), `#gameplayability` (→ `id-1.4-gameplay-abilities-ga`), `#gameplayeffect` (→ `id-1.3-gameplay-effects-ge`), `#projectile` (→ `projeteis`); `DocUrls.Pooling + "#componentpooler"` (→ `componentpooler-e-ipoolable`), `#poolmanager` (→ `poolmanager-pre-aquecimento`); `DocUrls.Time + "#pausabletimesource"` (→ `grupo-pausavel`). O `DocUrls.Gas + "#abilitysystemanchor"` já não tem título hoje. Pelo CA3, o GB7 escolhe entre trocar a âncora no `[HelpURL]` e outro caminho; o GB6 não muda o texto de nenhum título.
+- Testes red: nenhum, porque o ticket não tem código. O Codex não roda a Unity; o Examinador roda as guardas na `/revisao`. Guardas `Documentacao` depois do GB6:
+  - `ManualLinksTests.EveryHelpUrlHasPageAndAnchor`: segue vermelha, com 35 linhas novas, uma por `[HelpURL]` distinto com âncora em `modulos/` (`Events` 11, `Gas` 13, `Pooling` 4, `Tags` 3, `Time` 4), porque ela procura `{#id}`. O GB7 a reescreve;
+  - `ManualLinksTests.EveryDocUrlHasPage`: segue vermelha como hoje. Nenhuma constante do `DocUrls` tem âncora, e as páginas não mudam de nome;
+  - `ManualLinksTests.NoStubPages`: verde;
+  - `ManualCodeExamplesTests` (4 testes), `ReferenceUpToDateTests` e `DocumentationCategoryTests`: verdes, porque os blocos `{% code title %}` e os blocos à mão do `gas.md` e do `dano-escudo-e-morte.md` não mudam.
+
+  Até o GB7, nenhuma guarda confere link com âncora. Quem confere é o critério de pronto abaixo.
+- Critério de pronto (da raiz do repositório, sem Unity; `P` são as 6 páginas de `Documentation~/manual/modulos/`):
+  - `git grep -nE '\{#|^\s*(!!!|\?\?\?)|--8<--' -- Documentation~/manual` não acha nada (o manual inteiro, com o GB5);
+  - para cada página `f`, `diff <(git show HEAD:"$f" | sed -E '/^#/ s/ \{#[^}]+\}\s*$//') "$f"` mostra só os 4 hints, as 45 linhas da tabela de links (nelas, só muda o que vem depois do `#`), as 2 frases da API que saem (`pooling.md:20-21` e `tempo.md:14-15`) e as 5 linhas de título de `gas.md` que passam de `#####` a `####` (nelas, só muda o nível);
+  - `git grep -nE '^#{5,}' -- Documentation~/manual` não acha nada fora de bloco de código (o `awk` que ignora as cercas confirma);
+  - cada link `](<caminho>#<âncora>)` e `](#<âncora>)` do manual leva a um título cujo slug é a âncora, pela regra do GB5. A conferência é feita por script descartável na pasta de rascunho, sem Python (CA7), e mostra 148 links, nenhum quebrado (110 saem de `modulos/`);
+  - `git grep -c '{% hint style="warning" %}' -- $P` dá 1 em `dano-escudo-e-morte.md` e 2 em `gas.md`; `git grep -c '{% hint style="info" %}' -- $P` dá 1 em `eventos.md`; `git grep -c '{% endhint %}' -- $P` dá 1, 1 e 2 nas mesmas páginas, e nada nas outras;
+  - fora de bloco de código, `awk 'FNR==1{b=0} /^\s*```/{b=!b;next} !b && /^    [^ ]/{print FILENAME":"FNR}' $P` mostra só as 3 linhas de sublista (`dano-escudo-e-morte.md:66-67` e a de `eventos.md` que hoje é a `:565`, deslocada pelo hint);
+  - `git grep -c '{% code title=' -- $P` continua 5 em `eventos.md`, 5 em `pooling.md`, 5 em `tags.md` e 3 em `tempo.md`;
+  - `git grep -c '```mermaid' -- Documentation~/manual` continua 1, em `dano-escudo-e-morte.md`, com a linha de legenda logo abaixo do fechamento;
+  - nenhum link absoluto para o site: `git grep -nE 'github\.io/SpellBook|gitbook\.io|\]\(/' -- $P` não acha nada;
+  - as buscas da parte 7 do guia: `grep -nE '!\[|<img' $P` não acha nada, e a de sigla em título acha só o que achava antes;
+  - `git diff --check` limpo.
+- Tamanho: 0 linhas (nenhum arquivo que conta linha) em 6 arquivos, as 6 páginas. Os links corrigidos, os hints, as 2 frases da API e os 5 níveis de título ficam nas mesmas páginas. O `ferramentas/validador.md:84` já usa o slug certo (`#snapshot-ou-ao-vivo`, do GB5) e não entra, então o ticket fica em 6 arquivos, abaixo do teto de 10 da ADR 0042. Exceção de tamanho: nenhuma.
+- Commit: `docs(manual): sintaxe do GitBook nas páginas de modulos/`

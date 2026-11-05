@@ -1,10 +1,10 @@
-# Dano, escudo e morte {#dano-escudo-e-morte}
+# Dano, escudo e morte
 
 Esta página ensina a mudar o dano e a cura antes que cheguem ao atributo. Cada atributo pode ter uma lista de processadores que leem a alteração pedida (o golpe de -30, a cura de +10) e decidem quanto dela vale: reduzir, aumentar ou anular. Use quando o mesmo atributo precisa reagir sempre do mesmo jeito, venha a alteração de qualquer efeito.
 
 Módulo: assembly `SpellBook.GAS`, o mesmo do [sistema de habilidades](gas.md).
 
-## Como funciona {#como-funciona}
+## Como funciona
 
 Toda mudança na base de um atributo passa pela lista de processadores da `AttributeDefinition` desse atributo. Isso vale para o efeito instantâneo, para o tique de um efeito periódico e para a alteração feita pelo código com `ApplyAttributeChange`.
 
@@ -12,7 +12,7 @@ O primeiro processador recebe a variação pedida. Cada um muda a variação e p
 
 Os modificadores de efeitos com duração ou infinitos não passam pelos processadores. Eles não mudam a base: somam ao valor atual enquanto o efeito dura.
 
-### Redirecionar para outro atributo {#redirecionar}
+### Redirecionar para outro atributo
 
 Um processador pode mandar parte da alteração para outro atributo do mesmo dono, como um escudo que absorve o golpe antes da vida. A parte redirecionada passa pelos processadores do atributo de destino e é aplicada antes da alteração original. Assim o escudo chega ao mínimo antes da vida mudar.
 
@@ -27,17 +27,17 @@ flowchart LR
 ```
 *Os processadores do `AttributeDefinition` ficam entre o efeito (ou o código) e a base do atributo, e cada alteração termina num relatório.*
 
-## AttributeChangeProcessor {#attributechangeprocessor}
+## AttributeChangeProcessor
 
 Um passo da lista de processadores de um atributo. Fica no asset do atributo, então todo dono desse atributo usa a mesma lista.
 
-### Campos do Inspector {#attributechangeprocessor-campos}
+### Campos do Inspector
 
 - `Processors` (na seção `Damage` da `AttributeDefinition`): a lista de passos, executada de cima para baixo. Adicione um item e escolha o tipo no seletor. Um item vazio é pulado.
 
 A ordem muda o resultado. Com um processador que soma 10 e outro que corta pela metade, um golpe de -20 vira -5 com a soma antes (`(-20 + 10) × 0,5`) e vira 0 com o corte antes (`-20 × 0,5 + 10`). A mesma lista dá sempre o mesmo resultado.
 
-### Prévia do dano {#previa}
+### Prévia do dano
 
 Depois dos campos, o Inspector da `AttributeDefinition` mostra a seção **Dano**. Ela lista os processadores numerados, com o resumo de cada um (o escudo e a fração de um `AbsorbWithAttribute`, por exemplo), e logo abaixo a prévia:
 
@@ -47,17 +47,17 @@ Depois dos campos, o Inspector da `AttributeDefinition` mostra a seção **Dano*
 
 Com a seleção de vários atributos, a seção não aparece. A prévia roda o mesmo pipeline do jogo num `AbilitySystemComponent` oculto, que nasce quando o Inspector abre e some quando ele fecha. Mude a ordem da lista e confira na prévia se o resultado é o que você quer.
 
-## Tipos de dano {#tipos-de-dano}
+## Tipos de dano
 
 O tipo de dano é uma tag no `GameplayEffect`. No campo `Damage Tags` (seção `Gameplay Tags` do efeito), escolha uma ou mais tags, como `Dano.Fogo` e `Dano.Magico`. Os processadores que filtram por tipo comparam essas tags pela hierarquia: um filtro `Dano` casa com `Dano.Fogo` e com `Dano.Magico`.
 
 Uma linha vazia em `Damage Tags` não casa com nenhum filtro e não lança erro.
 
-## Prontos para usar {#prontos}
+## Prontos para usar
 
 O pacote traz três processadores no grupo **Dano** do seletor da lista `Processors`.
 
-### ReduceByAttribute {#reducebyattribute}
+### ReduceByAttribute
 
 Reduz a alteração pelo valor atual de um atributo do mesmo dono, como uma resistência ou uma armadura. Se o dono não tem esse atributo, a alteração passa inteira.
 
@@ -70,15 +70,15 @@ Reduz a alteração pelo valor atual de um atributo do mesmo dono, como uma resi
 
 Com uma `Resistência ao fogo` de 0,5 e `Damage Tags` em `Dano.Fogo`, um efeito de fogo de 100 tira 50 da vida e um de veneno de 100 tira 100.
 
-### ImmuneToTags {#immunetotags}
+### ImmuneToTags
 
 Anula a alteração deste atributo quando o efeito tem um dos tipos de dano da lista. O resto do efeito vale: um efeito de fogo que também concede `Estado.Queimando` e tira mana continua fazendo isso num alvo imune a fogo.
 
 - `Damage Tags`: os tipos de dano anulados. Vazio não anula nada.
 
-### AbsorbWithAttribute {#absorbwithattribute}
+### AbsorbWithAttribute
 
-Gasta um atributo de escudo do mesmo dono antes do atributo que recebe o dano. O escudo absorve o que puder, até chegar ao mínimo dele, e o resto do golpe segue para o atributo. A parte do escudo é uma [alteração redirecionada](#redirecionar): ela é aplicada antes, então o escudo chega ao mínimo antes da vida. Curas passam inteiras, e um dono sem o escudo recebe o golpe inteiro.
+Gasta um atributo de escudo do mesmo dono antes do atributo que recebe o dano. O escudo absorve o que puder, até chegar ao mínimo dele, e o resto do golpe segue para o atributo. A parte do escudo é uma [alteração redirecionada](#redirecionar-para-outro-atributo): ela é aplicada antes, então o escudo chega ao mínimo antes da vida. Curas passam inteiras, e um dono sem o escudo recebe o golpe inteiro.
 
 - `Shield`: o atributo do dono que absorve o dano.
 - `Damage Tags`: os tipos de dano absorvidos. Vazio absorve qualquer dano, inclusive o feito pelo código.
@@ -94,7 +94,7 @@ Para montar o escudo, crie um atributo `Escudo` com mínimo 0, ponha-o no `Attri
 
 Quando o `Escudo` chega a 0, o `OnDepleted` dele dispara uma vez, antes de qualquer `OnDepleted` da `Vida` no mesmo golpe.
 
-## Meta-atributo {#meta-atributo}
+## Meta-atributo
 
 Um meta-atributo recebe o dano e não guarda valor. Os efeitos aplicam o golpe nele, e os processadores dele repassam o golpe aos atributos de verdade, como o escudo e a vida. Use quando vários efeitos causam dano e você quer as regras de conversão num lugar só. Se o dano vai direto à vida, não precisa de meta-atributo.
 
@@ -111,7 +111,7 @@ Depois dos processadores, a variação que sobrou no meta-atributo é descartada
 
 Use o meta-atributo só em efeitos instantâneos e periódicos. Num efeito com duração, o modificador não passa pelos processadores e somaria ao valor atual do meta-atributo.
 
-## Morte e outros limites {#morte}
+## Morte e outros limites
 
 Quando um atributo chega ao mínimo, o `AbilitySystemComponent` avisa no evento `OnAttributeDepleted`, junto com a causa: o efeito, o instigador e os valores da alteração. Vida em 0, escudo quebrado e mana vazia chegam pelo mesmo evento. O pacote não destrói nem desliga o personagem. O que a morte faz no seu jogo fica com o seu código ou com uma tag de estado.
 
@@ -127,11 +127,11 @@ A cura depois da morte parte do mínimo: com a `Vida` em 0, depois de um golpe d
 
 O evento dispara uma vez ao chegar ao mínimo. Outro golpe com a `Vida` já em 0 não repete o evento. Depois de uma cura, a próxima morte dispara de novo. `OnAttributeReachedMax` faz o mesmo para o máximo.
 
-## Exemplos completos {#exemplos}
+## Exemplos completos
 
 Os três exemplos usam um personagem com `AbilitySystemComponent` e `AttributeSet`. Monte os assets no Inspector e confira o resultado pelo código, num teste ou num script de cena.
 
-### Escudo que absorve antes da vida {#exemplo-escudo}
+### Escudo que absorve antes da vida
 
 1. Crie os atributos `Vida` e `Escudo` em **Create > GAS > Attribute Definition**, os dois com `Min Value` 0 e `Max Value` 100.
 2. Ponha `Vida` com valor inicial 100 e `Escudo` com 50 no `Starting Attributes` do `AttributeSet`.
@@ -147,7 +147,7 @@ Debug.Log(asc.GetAttributeValue(escudo)); // 0
 Debug.Log(asc.GetAttributeValue(vida));   // 90
 ```
 
-### Resistência a fogo {#exemplo-resistencia}
+### Resistência a fogo
 
 1. Crie as tags `Dano.Fogo` e `Dano.Veneno`, e o atributo `ResistenciaFogo`, com `Max Value` 1.
 2. Ponha `ResistenciaFogo` com valor inicial 0,5 no `AttributeSet`.
@@ -161,7 +161,7 @@ asc.TryApplyEffect(veneno, asc, out _);     // a Vida perde 40: vai de 80 a 40
 
 A resistência só reduz o efeito com uma tag que casa com `Dano.Fogo`. Para reduzir todo dano mágico, use o filtro pai (`Dano.Magico`) e marque os efeitos com as tags filhas.
 
-### Personagem morto {#exemplo-morto}
+### Personagem morto
 
 1. Crie a tag `Estado.Morto`.
 2. Na `Vida`, preencha `State Tag While Depleted` com `Estado.Morto`.
@@ -181,7 +181,7 @@ asc.ApplyAttributeChange(vida, 40f);
 Debug.Log(asc.HasTag(morto)); // false
 ```
 
-## Pelo código {#codigo}
+## Pelo código
 
 Para mudar um atributo pelo código e passar pelos processadores, chame `ApplyAttributeChange` no `AbilitySystemComponent`. O retorno é quanto a base mudou de fato, já com os limites:
 
@@ -234,7 +234,7 @@ A causa é o relatório da alteração que levou o atributo ao mínimo. Quando n
 
 O `AttributeState` também diz se o valor está num limite (`IsAtMin`, `IsAtMax`) e avisa quando sai dele (`OnLeftMin`, `OnLeftMax`, depois do `OnDepleted` e do `OnReachedMax` do mesmo recálculo).
 
-## Criar o seu {#criar-o-seu}
+## Criar o seu
 
 Escreva um processador quando a regra vale para todo dano ou cura de um atributo. Herde de `AttributeChangeProcessor`, marque a classe com `[Serializable]` e mude o `Delta`:
 
@@ -263,15 +263,18 @@ change.Delta -= parte;
 
 Confira se `change.Effect` e `context.Instigator` são nulos antes de usá-los, porque uma alteração por código chega sem eles.
 
-## Limitações e armadilhas {#armadilhas}
+## Limitações e armadilhas
 
-!!! warning "O sistema de habilidades não destrói nada"
-    Nenhum processador, evento ou tag do pacote destrói, desliga ou devolve ao pool o personagem que chega a vida 0. O `OnAttributeDepleted` e a tag de estado avisam; o que a morte faz (animação, derrota, respawn, loot) fica com o seu código.
+{% hint style="warning" %}
+**O sistema de habilidades não destrói nada**
+
+Nenhum processador, evento ou tag do pacote destrói, desliga ou devolve ao pool o personagem que chega a vida 0. O `OnAttributeDepleted` e a tag de estado avisam; o que a morte faz (animação, derrota, respawn, loot) fica com o seu código.
+{% endhint %}
 
 - Um modificador de efeito com duração ou infinito não passa pelos processadores. Um veneno feito como efeito com duração e modificador `Add` de -10 na `Vida` ignora a resistência e o escudo. Para o dano passar por eles, faça o veneno periódico, com o -10 em `Periodic Modifiers`.
 - Os processadores moram só no asset do atributo. Para um chefe resistir mais que os outros com o mesmo atributo `Vida`, dê a ele um valor maior de `ResistenciaFogo`, sem outra lista de processadores.
 
-## Veja também {#veja-tambem}
+## Veja também
 
 - [Sistema de habilidades](gas.md): atributos, efeitos e o `AbilitySystemComponent`.
 - [Validador](../ferramentas/validador.md): confere os assets do projeto.
