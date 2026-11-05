@@ -116,7 +116,7 @@ namespace SpellBook.GAS.Editor
             return plan;
         }
 
-        private static string CheckFolder(string folder)
+        internal static string CheckFolder(string folder)
         {
             bool inAssets = folder == "Assets" || (folder != null && folder.StartsWith("Assets/", StringComparison.Ordinal));
             return inAssets && AssetDatabase.IsValidFolder(folder) ? null : "Escolha uma pasta dentro de Assets.";

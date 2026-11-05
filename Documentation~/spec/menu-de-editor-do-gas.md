@@ -196,6 +196,36 @@ O ME8 foi medido em 763 linhas, acima dos +30% da 0042, e se dividiu em ME8a e M
 - Commit: `feat(editor): modelos Área e Buff (#407)`
 - Arquivos do commit (caminhos de código em `Packages/com.spellbook/`): em `Editor/GAS/Templates/`, `Area.asset`, `Buff.asset`, `GA_Template_Area.asset`, `GA_Template_Buff.asset` e `GE_Template_Buff.asset`, cada um com o `.meta`; `Tests/GAS/EditMode/PackageTemplatesTests.cs`; e `Documentation~/spec/menu-de-editor-do-gas.md`.
 
+## ME4a — Estado do assistente de criação e fim do atalho de pastas (#394)
+### Detalhe (2026-11-05)
+- Divisão: o ME4 foi medido em 686 linhas, acima dos +30% da ADR 0042, e se dividiu em ME4a (#394) e ME4b (#411), por decisão do Controlador em 2026-11-05. O ME4a traz o estado do assistente sem UI e a saída do atalho de pastas. O ME4b traz a janela e os dois menus.
+- CA: CA2 (a lista do que será criado, com nome final, "nova", "já existe", "colisão" e "referência", e o motivo que desliga "Avançar" e "Criar"), CA4 (o "Desfazer criação" apaga o conjunto pelo `AbilitySetCreator.Delete`; a Undo da Unity não cobre os arquivos, Q8 e achado do ME2b), CA6 (sai o `FolderStructureCreator`, com a entrada no `CHANGELOG.md`) e CA15 (a lógica fica numa classe sem UI, testada em EditMode). O CA1 (menus e lista na tela) é do ME4b. O CA3 e o resto do CA4 já estão no motor do ME2b.
+- Fora deste ticket: o botão "Criar habilidade ou efeito…" no estado vazio do gerenciador fica no ME10 (pedido do Controlador, 2026-11-05), e não no ME4, como dizia a pendência do ME8b. A `GasManagerWindow` não muda.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Editor/GAS/Creation/AbilityWizardModel.cs` (novo, `internal`, sem UI): os quatro passos do DS 4.1 (`Step`, `StepTitle`, `StepLabel` "Passo N de 4", `Next`, `Back`), os modelos do `AbilityTemplateCatalog` com a frase (`Describe`: a descrição, ou "Modelo do projeto"), a linha dos quebrados ("1 modelo com asset ausente: veja SpellBook/Validar projeto"), `SelectTemplate`, `SetName`, `SetFolder`, o `AbilitySetPlan` remontado a cada mudança e o `Reason` de cada passo ("Escolha um modelo.", o `CheckName`, o `CheckFolder` e, na revisão, o `Problem` do plano). `Rows` dá uma linha por asset, tag e prefab do DS 4.2 (nome, tipo, marcador com ícone e texto, ★ no principal, tooltip da Q6 na referência). `Create` chama o motor e vai ao passo 4 ("Conjunto criado: N assets e M tags"). `UndoConfirm` dá "Apagar os N assets e M tags criados?", e `UndoCreation` apaga o conjunto e volta ao passo 2 com o mesmo nome. `FolderOf(caminho)` dá a pasta do item selecionado no Project window, para o menu Create do ME4b.
+  - `Editor/GAS/Creation/AbilitySetPlan.cs:119`: o `CheckFolder` passa de `private` a `internal`, para o passo 2 dizer o motivo da pasta sem repetir a regra. É consequência direta do ticket.
+  - `Editor/Core/FolderStructureCreator.cs` e o `.meta`: saem, com o menu `Tools/Create Default Project Folders` (CA6).
+  - `CHANGELOG.md`: entrada em "Quebras" e passo 2 em "Migração". O menu e a classe `SpellBook.Editor.FolderStructureCreator` saem sem substituto, e quem os usava cria as pastas à mão. A entrada cita o `SpellBook > Criar habilidade ou efeito…`, que chega com o ME4b no mesmo lote.
+  - `Tests/GAS/EditMode/AbilityWizardModelTests.cs` (novo).
+  - Sem manual (passe de documentação) e sem mudança de formato serializado.
+- Testes red (EditMode, `SpellBook.GAS.Tests.EditMode`, `AbilityWizardModelTests`, com o modelo Projétil do pacote e uma pasta temporária de `Assets/`): `Load_ListsPackageTemplates_BrokenLeftOutWithNote`; `Describe_EmptyDescription_SaysProjectTemplate`; `Steps_AdvanceOnlyWhenValid_WithReason`; `Rows_FinalNamesTagsNewOrExistingAndPrefabReference`; `Collision_DisablesCreate_SaysWhichAsset`; `Create_SelectsMain_ThenUndoDeletesSetAndReturnsToName`; `FolderOf_FolderAssetOrNothing`. O red foi a compilação: `AbilityWizardModel` não existia.
+- Critério de pronto: 20 verdes no filtro `\.AbilityWizardModelTests\.;\.AbilitySetCreationTests\.` (os 7 novos e os 13 do motor), com o `total` do XML igual a 20, o pacote compilando sem a janela e sem warning de compilação. A suíte completa roda na `/revisao`.
+- Tamanho: 375 linhas medidas (+374 −1): `AbilityWizardModel.cs` 191, `AbilityWizardModelTests.cs` 182 e `AbilitySetPlan.cs` +1 −1. São 5 arquivos (os 3 de código, o `CHANGELOG.md` e este design doc), pela ADR 0042. A remoção do `FolderStructureCreator` é remoção pura e não conta. Os `.meta` e este Detalhe não contam. Exceção: nenhuma.
+- Commit: `feat(editor)!: estado do assistente de criação e fim do atalho de pastas (#394)`
+- Arquivos do commit (caminhos de código em `Packages/com.spellbook/`): `Editor/GAS/Creation/AbilityWizardModel.cs` e o `.meta`; `Editor/GAS/Creation/AbilitySetPlan.cs`; a remoção de `Editor/Core/FolderStructureCreator.cs` e do `.meta`; `CHANGELOG.md`; `Tests/GAS/EditMode/AbilityWizardModelTests.cs` e o `.meta`; e `Documentation~/spec/menu-de-editor-do-gas.md`.
+
+## ME4b — Janela do assistente de criação (#411)
+- Depende do ME4a mesclado no lote: a janela só mostra o `AbilityWizardModel`.
+### Detalhe (2026-11-05)
+- CA: CA1 (os dois menus e os modelos com a frase, com a linha dos quebrados), CA2 e CA4 na tela, e CA15 na parte de UI (UI Toolkit, sem IMGUI e sem Odin, 0026).
+- Escopo (caminhos em `Packages/com.spellbook/`, todos novos; escritos e verdes com o ME4a e guardados à parte, com os `.meta`, em `C:/Users/gabri/AppData/Local/Temp/me4b-arquivos/`, que tem um `LEIA-ME.txt`):
+  - `Editor/GAS/Creation/AbilityWizardWindow.cs` (`internal`): a janela nas quatro faixas do DS 3, com `SpellBook/Criar habilidade ou efeito…` e `Assets/Create/SpellBook/GAS/Ability from Template…` (Q1 e Q2; este abre com a pasta selecionada, pelo `FolderOf`). O `CreateGUI` é `internal` para o teste de fumaça, como no ME8b.
+  - `Editor/GAS/Creation/AbilityWizard.uss`: os tokens `--spellbook-text-secondary` e `--spellbook-error` nos dois temas, nos valores do `ActionInspector.uss`, e o contorno de foco de 2 px.
+  - `Tests/GAS/EditMode/AbilityWizardWindowTests.cs`: `Open_StepOne_ListsTemplates_AdvanceDisabledWithReason` e `Menus_WizardEntriesExist_FolderCreatorGone`, que confere também a saída do menu do ME4a.
+- Critério de pronto: os 2 verdes com os 20 do ME4a, no filtro `\.AbilityWizardModelTests\.;\.AbilityWizardWindowTests\.;\.AbilitySetCreationTests\.`, com `total` 22 no XML (já conferido assim em 2026-11-05, antes da divisão).
+- Tamanho: 311 linhas (`AbilityWizardWindow.cs` 257 e `AbilityWizardWindowTests.cs` 54) e 4 arquivos (os 3 novos e este design doc), pela ADR 0042. Exceção: nenhuma.
+- Commit: `feat(editor): janela do assistente de criação (#411)`
+
 ## ME6 — Busca de referências genérica no Core.Editor
 ### Detalhe (2026-11-05)
 - CA: CA9, na parte sem UI: quem usa o item (assets, prefabs e objetos das cenas abertas, sem ler cena fechada), o que ele usa e o destaque no Project window ou na Hierarchy. O painel que mostra isso é do ME8.
