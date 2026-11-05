@@ -160,6 +160,11 @@ Um campo `GameplayTagContainer` aparece no Inspector como uma lista:
 - O **+** acrescenta uma linha vazia no fim (não copia a última, para não criar uma repetida), e o
   **-** remove a linha selecionada. Arraste uma linha pela alça para mudar a ordem.
 
+Nos Inspectors da habilidade e do efeito, uma lista de tags vazia ocupa uma linha só, com o nome e
+o botão **+ adicionar**, e o título do grupo conta as listas com itens. Veja
+[Inspector da habilidade](gas.md#inspector-da-habilidade) e
+[Inspector do efeito](gas.md#inspector-do-efeito).
+
 Um campo `GameplayTagQuery` aparece como um grupo que abre e fecha, com o botão **?** da seção
 [GameplayTagQuery](#gameplaytagquery) e as três listas, **Todas**, **Alguma** e **Nenhuma**, cada
 uma desenhada como o conjunto acima.

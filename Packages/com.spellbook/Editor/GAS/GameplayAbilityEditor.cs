@@ -20,7 +20,8 @@ namespace SpellBook.GAS.Editor
     /// Inspector da <see cref="GameplayAbility"/> (R29; DS do Inspector da habilidade, seção 3). Abaixo dos avisos e da
     /// validação, quatro abas com os campos do Inspector padrão em grupos: Configuração (Identidade, Comportamento,
     /// Custo e recarga e Condições de ativação, com uma linha por regra: resumo da condição e motivo da falha), Ações
-    /// (as abas de ações por evento, com "A cada passo" só em <see cref="AbilityBehavior.Channel"/>), Tags e gatilhos, e
+    /// (as abas de ações por evento, com "A cada passo" só em <see cref="AbilityBehavior.Channel"/>), Tags e gatilhos (as
+    /// listas de tags compactas, <see cref="CompactTagList"/>, com "N de 6 com itens" no título do grupo), e
     /// Níveis e prévia (o "nível de prévia", limitado a [1, MaxLevel], uma tabela com uma linha por nível, com os valores
     /// nomeados, a recarga sem a redução do atributo, o custo e as cargas, a linha desse nível marcada, a prévia em texto
     /// nesse nível e a <see cref="DescriptionPreviewElement"/> no mesmo nível). Um
@@ -44,6 +45,7 @@ namespace SpellBook.GAS.Editor
         private Label _charges;
         private VisualElement _table;
         private DescriptionPreviewElement _description;
+        private VisualElement _tagsGroup;
         private PropertyField _channelDuration;
         private PropertyField _channelTickInterval;
         private PropertyField _reactivatePassive;
@@ -90,10 +92,15 @@ namespace SpellBook.GAS.Editor
                 field => field != nameof(GameplayAbility.OnChannelTick) || IsChannel()));
 
             VisualElement tags = tabs.Content(TagsTab);
-            InspectorTabsView.MoveFields(root, InspectorTabsView.AddGroup(tags, "Tags"),
+            _tagsGroup = InspectorTabsView.AddGroup(tags, "Tags");
+            string[] tagLists =
+            {
                 nameof(GameplayAbility.BlockedTags), nameof(GameplayAbility.RequiredTags),
                 nameof(GameplayAbility.ActivationOwnedTags), nameof(GameplayAbility.CancelAbilitiesWithTag),
-                nameof(GameplayAbility.BlockAbilitiesWithTag), nameof(GameplayAbility.CancelledByTags));
+                nameof(GameplayAbility.BlockAbilitiesWithTag), nameof(GameplayAbility.CancelledByTags)
+            };
+            InspectorTabsView.MoveFields(root, _tagsGroup, tagLists);
+            CompactTagList.WrapGroup(_tagsGroup, serializedObject, tagLists);
             InspectorTabsView.MoveFields(root, InspectorTabsView.AddGroup(tags, "Gatilhos"), "triggers");
 
             VisualElement levels = tabs.Content(LevelsTab);
@@ -122,10 +129,17 @@ namespace SpellBook.GAS.Editor
             root.TrackSerializedObjectValue(serializedObject, _ =>
             {
                 RefreshBehaviorFields();
+                RefreshTagLists();
                 SetPreviewLevel(_level.value);
             });
             RefreshBehaviorFields();
             SetPreviewLevel(1);
+        }
+
+        /// <summary>Atualiza as listas de tags compactas e o contador "N de 6 com itens" do grupo Tags (CA5).</summary>
+        internal void RefreshTagLists()
+        {
+            if (_tagsGroup != null) CompactTagList.RefreshAll(_tagsGroup);
         }
 
         /// <summary>

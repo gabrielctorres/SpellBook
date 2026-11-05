@@ -112,3 +112,65 @@ O IH2, o IH3 e o IH4 mexem no `GameplayAbilityEditor`, então não rodam em para
 - Critério de pronto: os seis verdes, mais `AbilityInspectorTabsTests`, `AbilityBehaviorFieldsTests`, `ActivationInspectorTests`, `DescriptionPreviewTests` e `LevelValuesDrawerTests` verdes no filtro, sem mudar asserção. A suíte completa roda na `/revisao`.
 - Tamanho: 392 linhas medidas (+376 −16) e 2 arquivos (1 novo), pela ADR 0042. Os `.meta` e este Detalhe não contam. Exceção: nenhuma.
 - Commit: `feat(editor): prévia por nível da habilidade`
+
+## IH4 — Listas de tags compactas
+### Detalhe (2026-11-05)
+- CA: CA5 (na habilidade; o efeito é do IH5) e CA8. O texto do título do grupo continua "Tags", e o contador fica numa etiqueta ao lado, na mesma linha. Assim o `AbilityInspectorTabsTests` segue sem mudar asserção.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Editor/GAS/CompactTagList.cs` (novo, `internal`): elemento reutilizável que recebe o `PropertyField` de uma lista e a `SerializedProperty` dela. Com a lista vazia, mostra uma linha com o nome (`displayName`, em texto secundário, com o `[Tooltip]` do campo) e o botão "+ adicionar" à direita, e esconde o `PropertyField`. Com itens, mostra o `PropertyField` de sempre: nome, itens e botão no rodapé (DS, seção 6). O botão cria um item pela `SerializedProperty`, com desfazer. Com vários assets, a lista só fica compacta se estiver vazia em todos. Tem também `WrapGroup`, que embrulha as listas de um grupo e põe ao lado do título a etiqueta "N de M com itens" (`CountName`), e `RefreshAll`, que atualiza as listas e o contador. O IH5 reusa os dois no efeito.
+  - `Editor/GAS/GameplayAbilityEditor.cs:92-97`: o grupo Tags embrulha as seis listas no `CompactTagList` e ganha o contador. `:122-128`: o `TrackSerializedObjectValue` que já existe chama o `RefreshTagLists` (`internal`, novo). Ao montar, o `WrapGroup` já deixa as listas e o contador atualizados. `:19-29`: o resumo da classe cita as listas compactas.
+  - Sem mudança no runtime, sem `CHANGELOG.md` e sem manual.
+- Testes red (EditMode, `SpellBook.GAS.Tests.EditMode`, classe `AbilityCompactTagListsTests`, em `Tests/GAS/EditMode/AbilityCompactTagListsTests.cs`, novo): `EmptyList_OneRow_NameTooltipAndAddButton`; `ListWithItems_ShowsFullField`; `AddButton_AddsItem_ShowsFullField`; `TagsGroup_CountsListsWithItems`; `MultiSelection_ItemsInAnyAsset_ShowsFullField`.
+- Critério de pronto: os cinco verdes, mais `AbilityInspectorTabsTests`, `AbilityBehaviorFieldsTests`, `AbilityLevelPreviewTests`, `ActivationInspectorTests` e `DescriptionPreviewTests` verdes no filtro, sem mudar asserção. A suíte completa roda na `/revisao`.
+- Tamanho: 305 linhas medidas (+302 −3) e 3 arquivos (2 novos), pela ADR 0042. Os `.meta` e este Detalhe não contam. Exceção: nenhuma.
+- Commit: `feat(editor): listas de tags compactas na habilidade`
+
+## IH5 — Quatro abas do Inspector do efeito
+### Detalhe (2026-11-05)
+- CA: CA5 (no efeito), CA6, CA8 e CA9. A visibilidade por duração, período e pilha (CA7) é do IH6. Aqui os campos só mudam de lugar, e a aba "A cada tick" continua como está.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Editor/GAS/GameplayEffectEditor.cs:9-24`: `[CustomEditor(typeof(GameplayEffect), true)]`, para que a subclasse use o mesmo Inspector e o campo dela vá para "Outros". O `BuildAfterDefault` monta as quatro abas com o `InspectorTabsView`, pela tabela do DS (seção 4):
+    - Configuração: Identidade (`localizedName`, `icon`, `isBuff`, `isDebuff`, `isHidden`, `isPurgable`), Duração (`DurationPolicy`, `duration`, `defaultLevel`, `Period`) e Empilhamento (`CanStack`, `MaxStacks`, `RefreshDurationOnStack`, `stacksMultiplyMagnitude`). O campo desconhecido vai para "Outros", no fim desta aba, e a linha "Script" fica acima das abas, como na habilidade.
+    - Modificadores: Persistentes (`Modifiers`) e Do tique (`PeriodicModifiers`).
+    - Ações: o `ActionEventsView` de hoje, com as reações agrupadas e, abaixo dele, o grupo "Reações" com `damageAttributes` e `deathAttribute`.
+    - Tags: o grupo Tags com `damageTags`, `GrantedTags`, `ApplicationRequirements` e `ApplicationImmunityTags`, embrulhadas pelo `CompactTagList.WrapGroup` ("N de 4 com itens"). O `TrackSerializedObjectValue` chama o `RefreshAll` do grupo, como na habilidade.
+    - O resumo da classe cita as abas.
+  - `Editor/GAS/CompactTagList.cs:28-46,81-94`: o `damageTags` é um `GameplayTagContainer`, não uma lista. O `WrapGroup` passa a aceitar o conjunto: conta e acrescenta itens pela lista `tags` de dentro dele, e o nome e o tooltip da linha compacta vêm do campo do efeito. A lista comum não muda.
+  - `Runtime/GAS/Effects/GameplayEffect.cs:50,67,90,94,97,101,119,175,186`: saem os nove `[Header]`, porque os títulos agora vêm dos grupos e o "Actions" e o "Gameplay Tags" ficariam no lugar errado (decisões do épico). O formato serializado não muda.
+  - `Tests/GAS/EditMode/ActionInspectorTests.cs:71`: a busca por `Tab` fica dentro do `ActionEventsView`, porque as abas do topo do efeito também são `Tab`, como o IH1 fez na habilidade. Consequência direta do ticket (0042, item 6); as asserções continuam as mesmas.
+  - Sem `CHANGELOG.md` e sem manual: nada quebra, e o manual fica para o passe de documentação. O efeito fica sem prévia por nível e sem ponto de aviso nas abas (gate de 2026-11-05).
+- Testes red (EditMode, `SpellBook.GAS.Tests.EditMode`, classe `EffectInspectorTabsTests`, em `Tests/GAS/EditMode/EffectInspectorTabsTests.cs`, novo): `Tabs_FourInOrder_BelowValidation`; `Configuration_ThreeGroupsInOrder_WithDsFields`; `Modifiers_PersistentAndTickGroups`; `Actions_EventTabs_ThenReactionAttributes`; `Fields_EachInOneTab_ScriptAboveTabs`; `TagsGroup_FourCompactLists_CountsListsWithItems`; `DamageTags_Empty_OneRowWithFieldName_AddButtonAddsTag`; `UnknownField_InOthersAtEndOfConfiguration`; `ActiveTab_RememberedPerAsset_NewAssetOpensConfiguration`; `MultiSelection_FieldsEditAll_ActionsFollowDs`; `RuntimeHeaders_Removed`.
+- Critério de pronto: os onze verdes, mais `ActionInspectorTests`, `AbilityCompactTagListsTests`, `AbilityInspectorTabsTests`, `LevelValuesDrawerTests` e `ThinkerInspectorTests` verdes no filtro, sem mudar asserção. A suíte completa roda na `/revisao`.
+- Tamanho: 338 linhas medidas (+320 −18) e 5 arquivos (1 novo), pela ADR 0042. Os `.meta` e este Detalhe não contam. Exceção: nenhuma.
+- Commit: `feat(editor): quatro abas do Inspector do efeito`
+
+## IH6 — Campos do efeito por duração, período e pilha
+### Detalhe (2026-11-05)
+- CA: CA7 e CA8. A duração já some fora de `HasDuration` pelo `[ShowIf]` que o campo tem, e ele continua (decisões do épico). O ticket acrescenta os outros campos, a aba "A cada tick" e o aviso.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Editor/GAS/GameplayEffectEditor.cs:45-55`: o editor guarda o grupo "Do tique" e os campos `MaxStacks`, `RefreshDurationOnStack` e `stacksMultiplyMagnitude` depois de movê-los. Um método `internal` novo, `RefreshConfigFields`, mostra ou esconde pelo `style.display`: o grupo "Do tique" inteiro (título e `PeriodicModifiers`) só com `Period` maior que 0, e os três campos de pilha só com `CanStack`. O valor serializado não muda, e o campo escondido continua no grupo. Com vários assets, o campo aparece se algum deles o usa, como no IH2.
+  - `:59-60`: o `ActionEventsView` do efeito recebe a regra da aba (`OnTick` só com `Period` maior que 0) e o motivo "o período atual" para o texto do aviso. O aviso de aba escondida com ações sai da faixa de eventos e vai para o grupo Duração (DS do Inspector da habilidade, seção 7), logo abaixo do `Period`.
+  - `:70`: o `TrackSerializedObjectValue` que já existe chama também o `RefreshConfigFields`, que roda uma vez no fim do `BuildAfterDefault`. `:10-17`: o resumo da classe cita a regra.
+  - `Editor/GAS/Actions/ActionEventsView.cs:45-49,67-68,128-131`: parâmetro opcional `hiddenReason` (padrão "o comportamento atual", o texto de hoje) e a propriedade `internal HiddenWarning`, para o dono pôr o aviso no grupo que causou. Na habilidade nada muda.
+  - `Tests/GAS/EditMode/ActionInspectorTests.cs:67`: o `EffectTabs_ReactionsGrouped` monta o efeito com `Period` 0,5, porque com 0 a aba "A cada tick" agora some (CA7). O teste é sobre o grupo "Reações", e as asserções não mudam. É consequência direta do ticket (0042, item 6).
+  - Sem `[ShowIf]` novo, sem mudança no runtime e sem `CHANGELOG.md` (decisões do épico; nada quebra).
+  - **Pendência para o Controlador (vinda do IH2 e do IH3):** na habilidade, o aviso continua no `ActionEventsView` da aba Ações. Levá-lo ao grupo Comportamento fica em duas linhas com a `HiddenWarning` deste ticket, mas não está no CA7 nem no CA8 (é do CA3) e mudaria o lugar que o `ActionInspectorTests.ChannelTab_OnlyWithChannel_HiddenWithWarning` procura. Não foi feito.
+- Testes red (EditMode, `SpellBook.GAS.Tests.EditMode`, classe `EffectConfigFieldsTests`, em `Tests/GAS/EditMode/EffectConfigFieldsTests.cs`, novo): `Duration_ShownOnlyWithHasDuration` (três casos, pela regra do `[ShowIf]`); `TickGroup_ShownOnlyWithPeriod`; `StackFields_ShownOnlyWithCanStack`; `ConfigChange_UpdatesFields_KeepsStoredValues`; `TickTab_HiddenWithActions_WarningInDurationGroup`; `MultiSelection_ShowsFieldsAnyAssetUses`.
+- Critério de pronto: os testes acima verdes, mais `EffectInspectorTabsTests`, `ActionInspectorTests` e `AbilityBehaviorFieldsTests` verdes no filtro, sem mudar asserção. A suíte completa roda na `/revisao`.
+- Tamanho: 293 linhas medidas (+281 −12) e 4 arquivos (1 novo), pela ADR 0042. Os `.meta` e este Detalhe não contam. Exceção: nenhuma.
+- Commit: `feat(editor): campos do efeito por duração, período e pilha`
+
+## Manual do Inspector
+### Detalhe (2026-11-05)
+- CA: CA1 a CA7, na descrição do manual (issue #408). O ticket não muda código. O rascunho do GitBook (GB9) ainda não existe, então a edição dos `.md` sai direto no repositório (decisão do usuário).
+- Escopo (caminhos em `Documentation~/manual/`):
+  - `modulos/gas.md:99-115` (1.3): seção nova "Inspector do efeito", depois da lista do efeito, com as quatro abas, os grupos, os campos que só aparecem com `HasDuration`, `Period` maior que 0 e `CanStack`, o aviso no grupo Duração, as tags compactas e a aba lembrada. `:107`: os metadados ficam no grupo **Identidade**, e não mais em **Metadados**.
+  - `modulos/gas.md:234-237` (1.4): seção nova "Inspector da habilidade", com as quatro abas, os grupos de Configuração, os campos por comportamento, as tags compactas com o contador, o grupo "Outros" e a aba lembrada. `:277`: a prévia sai de "depois dos campos" e vai para a tabela por nível da aba **Níveis e prévia**.
+  - `modulos/gas.md:351-355` (passo a passo): a lista "Ao ativar" fica na aba **Ações**. `:566`: o resumo das regras fica no grupo **Condições de ativação**. `:605`, `:640` e `:664`: o lugar das cargas, a prévia das cargas na aba **Níveis e prévia** e os gatilhos na aba **Tags e gatilhos**.
+  - `regras/migracao-2-para-3.md:25-29`: o GAS não usa mais o Inspector padrão com `[Header]`; tem abas e grupos próprios.
+  - `modulos/tags.md:153-169`: uma frase sobre a lista compacta na habilidade e no efeito.
+  - Nenhum marcador de exemplo muda, então a geração não roda. Sem `CHANGELOG.md`: nada quebra.
+- Testes red: nenhum, ticket só de texto do passe. As guardas `Documentacao` rodam sob a trava, com as 2 vermelhas herdadas da `main` (`EveryDocUrlHasPage` e `EveryHelpUrlHasPageAndAnchor`).
+- Critério de pronto: a busca por "depois dos campos", "Abaixo dos campos da habilidade", "seção **Ativação**" e "Inspector padrão da Unity com `[Header]`" não acha nada no manual; as conferências da seção 7 do guia passam; as guardas `Documentacao` passam, menos as 2 herdadas.
+- Tamanho: 0 linhas contadas (só `.md`) e 3 arquivos, pela ADR 0042. Este Detalhe não conta. Exceção: nenhuma.
+- Commit: `docs(manual): Inspector da habilidade e do efeito com abas`

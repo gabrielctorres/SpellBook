@@ -65,10 +65,11 @@ namespace SpellBook.GAS.Tests
         public void EffectTabs_ReactionsGrouped()
         {
             GameplayEffect effect = _gas.CreateDurationEffect(1f);
+            effect.Period = 0.5f;
 
             VisualElement root = CreateInspector(effect);
 
-            Tab[] tabs = root.Query<Tab>().ToList().ToArray();
+            Tab[] tabs = root.Q<ActionEventsView>().Query<Tab>().ToList().ToArray();
             Assert.That(tabs.Select(t => t.label), Is.EqualTo(new[]
             {
                 "Ao ser aplicado", "A cada tick", "Ao ser removido", "Ao receber dano", "Ao morrer", "Ao executar habilidade"
