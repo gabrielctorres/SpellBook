@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Effects;
+using SpellBook.Tags;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -9,17 +10,27 @@ using Object = UnityEngine.Object;
 
 namespace SpellBook.GAS.Editor
 {
+    /// <summary>A ação do diálogo do gerenciador.</summary>
+    internal enum GasAction
+    {
+        Duplicate,
+        Rename,
+        Delete,
+        NewTag,
+    }
+
     /// <summary>
-    /// Diálogos Duplicar e Renomear do gerenciador do GAS (DS, seção 6): campo do nome novo, a lista do que muda, a linha
-    /// de motivo e o botão principal à direita, com Esc e Enter. A lógica fica no <see cref="GasDuplicate"/> e no
-    /// <see cref="GasRenamePlan"/>.
+    /// Diálogos Duplicar, Renomear, Excluir e Nova tag filha do gerenciador do GAS (DS, seção 6): o campo do nome (menos
+    /// no Excluir), a lista do que muda ou de quem usa o item, a linha de motivo e o botão principal à direita, com Esc e
+    /// Enter. A lógica fica no <see cref="GasDuplicate"/>, no <see cref="GasRenamePlan"/>, no
+    /// <see cref="GasDeletePlan"/> e no <see cref="GasChildTag"/>.
     /// </summary>
     internal sealed class GasActionDialog : EditorWindow
     {
         private const string StyleSheetPath = "Packages/com.spellbook/Editor/GAS/Manager/GasManager.uss";
 
         private Object _asset;
-        private bool _rename;
+        private GasAction _action;
         private Action<Object> _done;
         private TextField _field;
         private ScrollView _list;
@@ -27,36 +38,55 @@ namespace SpellBook.GAS.Editor
         private Button _confirm;
         private AbilitySetPlan _copy;
         private GasRenamePlan _renamePlan;
+        private GasDeletePlan _deletePlan;
 
-        /// <summary>Abre o diálogo modal; <paramref name="done"/> recebe a cópia ou o asset renomeado.</summary>
-        public static void Open(Object asset, bool rename, Action<Object> done)
+        /// <summary>
+        /// Abre o diálogo modal; <paramref name="done"/> recebe a cópia, o asset renomeado, a tag nova ou, no Excluir,
+        /// <c>null</c>.
+        /// </summary>
+        public static void Open(Object asset, GasAction action, Action<Object> done)
         {
             var dialog = CreateInstance<GasActionDialog>();
-            dialog.titleContent = new GUIContent($"{(rename ? "Renomear" : "Duplicar")} {asset.name}");
+            dialog.titleContent = new GUIContent(Title(asset, action));
             dialog._done = done;
-            dialog.Build(asset, rename);
+            dialog.Build(asset, action);
             dialog.minSize = new Vector2(420, 280);
             dialog.ShowModalUtility();
         }
 
-        internal void Build(Object asset, bool rename)
+        /// <summary>Se o Enter confirma: com o botão ligado e, no Excluir, só quando nada usa o item (DS 6).</summary>
+        internal bool EnterConfirms => _confirm.enabledSelf && !(_action == GasAction.Delete && _deletePlan.Users.Count > 0);
+
+        internal void Build(Object asset, GasAction action)
         {
-            (_asset, _rename) = (asset, rename);
+            (_asset, _action) = (asset, action);
             VisualElement root = rootVisualElement;
             root.styleSheets.Add(AssetDatabase.LoadAssetAtPath<StyleSheet>(StyleSheetPath));
             root.AddToClassList("gas-manager");
             root.AddToClassList("gas-dialog");
             if (!EditorGUIUtility.isProSkin) root.AddToClassList("gas-manager--light");
-            // Na descida, antes do campo, que consome o Enter e o Esc.
+            // Na descida, antes do campo, que consome o Enter e o Esc; a tecla tratada não segue adiante.
             root.RegisterCallback<KeyDownEvent>(e =>
             {
                 if (e.keyCode == KeyCode.Escape) Close();
-                else if ((e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter) && _confirm.enabledSelf) Confirm();
+                else if ((e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter) && EnterConfirms) Confirm();
+                else return;
+                e.StopPropagation();
             }, TrickleDown.TrickleDown);
 
-            _field = new TextField("Nome novo");
-            _field.RegisterValueChangedCallback(e => SetName(e.newValue));
-            root.Add(_field);
+            if (action == GasAction.Delete)
+            {
+                root.Add(new Label(Title(asset, action)) { name = "gas-dialog__title" });
+            }
+            else
+            {
+                _field = new TextField(action == GasAction.NewTag ? "Nome" : "Nome novo");
+                _field.RegisterValueChangedCallback(e => SetName(e.newValue));
+                root.Add(_field);
+                // O foco só cai no campo depois que a janela é mostrada (observação da revisão do ME9b).
+                root.schedule.Execute(() => _field.Focus());
+            }
+
             _list = new ScrollView();
             _list.AddToClassList("gas-dialog__list");
             root.Add(_list);
@@ -70,8 +100,9 @@ namespace SpellBook.GAS.Editor
             footer.Add(_confirm);
             root.Add(footer);
 
-            SetName(rename ? GasSetName.Of(asset) : GasDuplicate.Suggest(asset));
-            _field.Focus();
+            if (action == GasAction.Delete) ShowUsers();
+            else if (action == GasAction.NewTag) SetName(GasChildTag.Prefix((GameplayTagDefinition)asset));
+            else SetName(action == GasAction.Rename ? GasSetName.Of(asset) : GasDuplicate.Suggest(asset));
         }
 
         /// <summary>Remonta o plano com o nome digitado; o campo chama a cada tecla.</summary>
@@ -79,7 +110,7 @@ namespace SpellBook.GAS.Editor
         {
             _field.SetValueWithoutNotify(name);
             _list.Clear();
-            if (_rename)
+            if (_action == GasAction.Rename)
             {
                 GasRenamePlan previous = _renamePlan;
                 _renamePlan = GasRenamePlan.Build(_asset, name);
@@ -94,7 +125,7 @@ namespace SpellBook.GAS.Editor
                     _list.Add(toggle);
                 }
             }
-            else
+            else if (_action == GasAction.Duplicate)
             {
                 _copy = GasDuplicate.Plan(_asset, name);
                 AddGroup("Copiado");
@@ -122,6 +153,32 @@ namespace SpellBook.GAS.Editor
             UpdateConfirm();
         }
 
+        private static string Title(Object asset, GasAction action) => action switch
+        {
+            GasAction.Rename => $"Renomear {asset.name}",
+            GasAction.Delete => $"Excluir {asset.name}?",
+            GasAction.NewTag => $"Nova tag filha de {asset.name}",
+            _ => $"Duplicar {asset.name}",
+        };
+
+        // Excluir: quem usa o item (numa tag, também as filhas), o aviso das referências que ficam vazias e o botão
+        // na cor de erro.
+        private void ShowUsers()
+        {
+            _deletePlan = GasDeletePlan.Build(_asset);
+            int count = _deletePlan.Users.Count;
+            AddGroup($"Usado por ({count})");
+            foreach (GasReferenceRow row in _deletePlan.Users) AddRow($"{row.Name} ({row.Location})");
+            var note = new Label(GasReferenceList.ClosedScenesNote);
+            note.AddToClassList("gas-manager__secondary");
+            _list.Add(note);
+            var message = new Label(count == 0 ? "Nada no projeto usa este item." : "⚠ Estas referências vão ficar vazias, e o validador vai acusá-las.");
+            if (count > 0) message.AddToClassList("gas-manager__warning");
+            rootVisualElement.Insert(rootVisualElement.IndexOf(_reason), message);
+            _confirm.AddToClassList("gas-dialog__danger");
+            UpdateConfirm();
+        }
+
         private void AddGroup(string title)
         {
             var label = new Label(title);
@@ -133,8 +190,20 @@ namespace SpellBook.GAS.Editor
 
         private void UpdateConfirm()
         {
-            string problem = _rename ? _renamePlan.Problem : GasDuplicate.Problem(_copy);
-            _confirm.text = _rename ? $"Renomear {_renamePlan.Count}" : "Duplicar";
+            string problem = _action switch
+            {
+                GasAction.Rename => _renamePlan.Problem,
+                GasAction.Delete => _deletePlan.Problem,
+                GasAction.NewTag => GasChildTag.Problem((GameplayTagDefinition)_asset, _field.value),
+                _ => GasDuplicate.Problem(_copy),
+            };
+            _confirm.text = _action switch
+            {
+                GasAction.Rename => $"Renomear {_renamePlan.Count}",
+                GasAction.Delete => "Excluir",
+                GasAction.NewTag => "Criar tag",
+                _ => "Duplicar",
+            };
             _confirm.SetEnabled(problem == null);
             _confirm.tooltip = problem ?? string.Empty;
             _reason.text = problem ?? string.Empty;
@@ -145,7 +214,9 @@ namespace SpellBook.GAS.Editor
             try
             {
                 Object result = _asset;
-                if (_rename) _renamePlan.Apply();
+                if (_action == GasAction.Rename) _renamePlan.Apply();
+                else if (_action == GasAction.Delete) result = Delete();
+                else if (_action == GasAction.NewTag) result = GasChildTag.Create((GameplayTagDefinition)_asset, _field.value);
                 else result = GasDuplicate.Create(_copy);
                 Close();
                 _done?.Invoke(result);
@@ -154,6 +225,12 @@ namespace SpellBook.GAS.Editor
             {
                 _reason.text = e.Message;
             }
+        }
+
+        private Object Delete()
+        {
+            _deletePlan.Apply();
+            return null;
         }
     }
 }

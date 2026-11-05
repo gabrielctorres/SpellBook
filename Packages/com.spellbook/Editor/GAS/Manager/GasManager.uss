@@ -1,7 +1,7 @@
 /* Gerenciador do GAS (DS ferramentas-do-editor, seção 5). O tema escuro é o padrão; .gas-manager--light troca os valores
    do token, que vem do DS do Inspector de ações. */
-.gas-manager { --spellbook-text-secondary: #9a9a9a; }
-.gas-manager--light { --spellbook-text-secondary: #5a5a5a; }
+.gas-manager { --spellbook-text-secondary: #9a9a9a; --spellbook-warning: #e6b400; --spellbook-error: #ff5c5c; }
+.gas-manager--light { --spellbook-text-secondary: #5a5a5a; --spellbook-warning: #8a6400; --spellbook-error: #c00000; }
 
 .gas-manager .unity-two-pane-split-view { flex-grow: 1; }
 .gas-manager .unity-list-view, .gas-manager .unity-tree-view { flex-grow: 1; }
@@ -19,6 +19,10 @@
 .gas-manager__footer { flex-direction: row; justify-content: flex-end; padding: 4px; }
 .gas-manager Button:focus, .gas-manager .unity-collection-view__item:focus { border-width: 2px; }
 
-/* Diálogos Duplicar e Renomear (DS, seção 6). */
+.gas-manager__warning { color: var(--spellbook-warning); white-space: normal; }
+
+/* Diálogos Duplicar, Renomear, Excluir e Nova tag filha (DS, seção 6). */
 .gas-dialog { padding: 8px; }
 .gas-dialog__list { flex-grow: 1; margin: 4px 0; }
+#gas-dialog__title { -unity-font-style: bold; font-size: 14px; margin-bottom: 4px; }
+.gas-dialog__danger { color: var(--spellbook-error); }

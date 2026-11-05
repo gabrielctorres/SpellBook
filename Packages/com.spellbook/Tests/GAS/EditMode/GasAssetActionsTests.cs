@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using System;
+using SpellBook.Core.Editor;
+using SpellBook.Core.Validation;
 using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Abilities.Actions;
 using SpellBook.GAS.Actions;
@@ -17,7 +20,8 @@ namespace SpellBook.GAS.Tests
     /// <summary>
     /// Duplicar e Renomear do gerenciador do GAS (ME9; CA11, CA12 e CA13): a cópia da habilidade tem custo, recarga e
     /// tags próprios e compartilha o resto; renomear leva junto os derivados marcados sem quebrar referência; renomear
-    /// uma tag leva as filhas. Os assets ficam numa pasta temporária de Assets/.
+    /// uma tag leva as filhas. Excluir e criar tag filha (ME10; CA13 e CA14): a confirmação lista quem usa o item e as
+    /// tags filhas, e a referência que fica vazia aparece no validador. Os assets ficam numa pasta temporária de Assets/.
     /// </summary>
     public class GasAssetActionsTests
     {
@@ -230,7 +234,7 @@ namespace SpellBook.GAS.Tests
         public void Dialog_Rename_TogglesCountAndReason()
         {
             _dialog = ScriptableObject.CreateInstance<GasActionDialog>();
-            _dialog.Build(_ability, true);
+            _dialog.Build(_ability, GasAction.Rename);
             VisualElement root = _dialog.rootVisualElement;
             Assert.That(root.Q<TextField>().value, Is.EqualTo("Fireball"));
 
@@ -255,7 +259,7 @@ namespace SpellBook.GAS.Tests
         public void Dialog_Rename_KeepsUncheckedAfterNameEdit()
         {
             _dialog = ScriptableObject.CreateInstance<GasActionDialog>();
-            _dialog.Build(_ability, true);
+            _dialog.Build(_ability, GasAction.Rename);
             VisualElement root = _dialog.rootVisualElement;
             _dialog.SetName("Firebolt");
             int damage = root.Query<Toggle>().ToList().FindIndex(t => t.label == "GE_Fireball_Damage → GE_Firebolt_Damage");
@@ -272,7 +276,7 @@ namespace SpellBook.GAS.Tests
         public void Dialog_Duplicate_CopiedAndSharedGroups()
         {
             _dialog = ScriptableObject.CreateInstance<GasActionDialog>();
-            _dialog.Build(_ability, false);
+            _dialog.Build(_ability, GasAction.Duplicate);
             VisualElement root = _dialog.rootVisualElement;
 
             Assert.That(root.Q<TextField>().value, Is.EqualTo("Fireball_2"));
@@ -286,6 +290,152 @@ namespace SpellBook.GAS.Tests
             Button main = root.Q<Button>("gas-dialog__confirm");
             Assert.That(main.text, Is.EqualTo("Duplicar"));
             Assert.That(main.enabledSelf, Is.True);
+        }
+
+        [Test]
+        public void Delete_Effect_ListsUsers_ValidatorFlagsEmptyReference()
+        {
+            Assert.That(EmptyReferences(_ability), Is.Empty);
+            GasDeletePlan plan = GasDeletePlan.Build(_damage);
+
+            Assert.That(plan.Users.Select(u => $"{u.Name} ({u.Location})"), Is.EqualTo(new[] { "GA_Fireball (Asset)" }));
+            Assert.That(plan.Problem, Is.Null);
+            plan.Apply();
+
+            Assert.That(AssetDatabase.LoadAssetAtPath<GameplayEffect>(Root + "/GE_Fireball_Damage.asset"), Is.Null);
+            List<ValidationMessage> empty = EmptyReferences(_ability);
+            Assert.That(empty.Select(m => m.PropertyPath), Is.EqualTo(new[] { "OnActivate.Array.data[0].Effects.Array.data[0]" }));
+            Assert.That(empty[0].Severity, Is.EqualTo(ValidationSeverity.Error));
+            Assert.That(empty[0].Message, Is.EqualTo("Referência vazia em OnActivate.Array.data[0].Effects.Array.data[0]: o asset foi apagado. "
+                + "Escolha outro ou limpe o campo."));
+        }
+
+        [Test]
+        public void Delete_TagWithChildren_ListsChildren_ChildParentFlagged()
+        {
+            GameplayTagDefinition charged = Tag("ActTestAbility.Fireball.Charged", _abilityTag);
+            Tag("ActTestAbility.Fireball.Charged.Max", charged);
+
+            GasDeletePlan plan = GasDeletePlan.Build(_abilityTag);
+
+            Assert.That(plan.Users.Select(u => $"{u.Name} ({u.Location})"), Is.EqualTo(new[]
+            {
+                "ActTestAbility.Fireball.Charged (Tag filha)", "ActTestAbility.Fireball.Charged.Max (Tag filha)", "GA_Fireball (Asset)",
+            }));
+            plan.Apply();
+            Assert.That(AssetDatabase.LoadAssetAtPath<GameplayTagDefinition>(Root + "/ActTestAbility.Fireball.asset"), Is.Null);
+            Assert.That(charged != null, Is.True, "a filha foi apagada junto");
+            Assert.That(EmptyReferences(charged).Select(m => m.PropertyPath), Is.EqualTo(new[] { "parent" }));
+        }
+
+        [Test]
+        public void Delete_OutsideAssets_Refused()
+        {
+            const string path = "Packages/com.spellbook/Editor/GAS/Templates/GE_Template_Damage.asset";
+            var effect = AssetDatabase.LoadAssetAtPath<GameplayEffect>(path);
+
+            GasDeletePlan plan = GasDeletePlan.Build(effect);
+
+            Assert.That(plan.Problem, Is.EqualTo("Este asset fica fora de Assets e não pode ser excluído."));
+            Assert.Throws<InvalidOperationException>(plan.Apply);
+            Assert.That(AssetDatabase.LoadAssetAtPath<GameplayEffect>(path), Is.Not.Null);
+        }
+
+        [Test]
+        public void ChildTag_Create_UnderParentInParentFolder()
+        {
+            Assert.That(GasChildTag.Prefix(_abilityTag), Is.EqualTo("ActTestAbility.Fireball."));
+            Assert.That(GasChildTag.Problem(_abilityTag, "ActTestAbility.Fireball.Charged"), Is.Null);
+
+            GameplayTagDefinition charged = GasChildTag.Create(_abilityTag, "ActTestAbility.Fireball.Charged");
+            GameplayTagDefinition max = GasChildTag.Create(charged, "ActTestAbility.Fireball.Charged.Max");
+
+            Assert.That(AssetDatabase.GetAssetPath(charged), Is.EqualTo(Root + "/ActTestAbility.Fireball.Charged.asset"));
+            Assert.That(charged.Parent, Is.EqualTo(_abilityTag));
+            Assert.That(AssetDatabase.GetAssetPath(max), Is.EqualTo(Root + "/ActTestAbility.Fireball.Charged.Max.asset"));
+            Assert.That(max.Parent, Is.EqualTo(charged));
+        }
+
+        [Test]
+        public void ChildTag_Problems()
+        {
+            Tag("ActTestAbility.Fireball.Heavy", _abilityTag);
+            var template = AssetDatabase.LoadAssetAtPath<GameplayTagDefinition>("Packages/com.spellbook/Editor/GAS/Templates/TAG_Template_Ability.asset");
+
+            Assert.That(GasChildTag.Problem(_abilityTag, "ActTestAbility.Fireball."), Is.EqualTo("Digite um nome."));
+            Assert.That(GasChildTag.Problem(_abilityTag, "Other.Charged"),
+                Is.EqualTo("Comece o nome por ActTestAbility.Fireball.: a tag nova é filha de ActTestAbility.Fireball."));
+            Assert.That(GasChildTag.Problem(_abilityTag, "ActTestAbility.Fireball.A.B"), Is.EqualTo("Use só letras, números e _."));
+            Assert.That(GasChildTag.Problem(_abilityTag, "ActTestAbility.Fireball.Heavy"),
+                Is.EqualTo("Já existe a tag ActTestAbility.Fireball.Heavy. Escolha outro nome."));
+            Assert.That(GasChildTag.Problem(template, "TAG_Template_Ability.Child"), Is.EqualTo("Escolha uma pasta dentro de Assets."));
+            Assert.Throws<InvalidOperationException>(() => GasChildTag.Create(_abilityTag, "Other.Charged"));
+        }
+
+        [Test]
+        public void Dialog_Delete_WithUsers_WarnsAndEnterDoesNotConfirm()
+        {
+            _dialog = ScriptableObject.CreateInstance<GasActionDialog>();
+            _dialog.Build(_damage, GasAction.Delete);
+            VisualElement root = _dialog.rootVisualElement;
+
+            Assert.That(root.Q<TextField>(), Is.Null);
+            Assert.That(root.Q<Label>("gas-dialog__title").text, Is.EqualTo("Excluir GE_Fireball_Damage?"));
+            List<string> labels = root.Query<Label>().ToList().Select(l => l.text).ToList();
+            Assert.That(labels, Is.SupersetOf(new[] { "GA_Fireball (Asset)", GasReferenceList.ClosedScenesNote }));
+            Label warning = root.Q<Label>(className: "gas-manager__warning");
+            Assert.That(warning?.text, Is.EqualTo("⚠ Estas referências vão ficar vazias, e o validador vai acusá-las."));
+            Button main = root.Q<Button>("gas-dialog__confirm");
+            Assert.That(main.text, Is.EqualTo("Excluir"));
+            Assert.That(main.enabledSelf, Is.True);
+            Assert.That(main.ClassListContains("gas-dialog__danger"), Is.True);
+            Assert.That(_dialog.EnterConfirms, Is.False);
+        }
+
+        [Test]
+        public void Dialog_Delete_Unused_SaysNothingUses()
+        {
+            GameplayEffect unused = Save(ScriptableObject.CreateInstance<GameplayEffect>(), "GE_Unused");
+            _dialog = ScriptableObject.CreateInstance<GasActionDialog>();
+            _dialog.Build(unused, GasAction.Delete);
+            VisualElement root = _dialog.rootVisualElement;
+
+            Assert.That(root.Query<Label>().ToList().Select(l => l.text), Has.Member("Nada no projeto usa este item."));
+            Assert.That(root.Q<Label>(className: "gas-manager__warning"), Is.Null);
+            Assert.That(_dialog.EnterConfirms, Is.True);
+        }
+
+        [Test]
+        public void Dialog_NewTag_PrefilledPrefix_ReasonForExisting()
+        {
+            Tag("ActTestAbility.Fireball.Heavy", _abilityTag);
+            _dialog = ScriptableObject.CreateInstance<GasActionDialog>();
+            _dialog.Build(_abilityTag, GasAction.NewTag);
+            VisualElement root = _dialog.rootVisualElement;
+            Button main = root.Q<Button>("gas-dialog__confirm");
+            Label reason = root.Q<Label>("gas-dialog__reason");
+
+            Assert.That(root.Q<TextField>().value, Is.EqualTo("ActTestAbility.Fireball."));
+            Assert.That(main.text, Is.EqualTo("Criar tag"));
+            Assert.That(main.enabledSelf, Is.False);
+            Assert.That(reason.text, Is.EqualTo("Digite um nome."));
+
+            _dialog.SetName("ActTestAbility.Fireball.Heavy");
+            Assert.That(main.enabledSelf, Is.False);
+            Assert.That(main.tooltip, Is.EqualTo("Já existe a tag ActTestAbility.Fireball.Heavy. Escolha outro nome."));
+
+            _dialog.SetName("ActTestAbility.Fireball.Charged");
+            Assert.That(main.enabledSelf, Is.True);
+            Assert.That(reason.text, Is.Empty);
+            Assert.That(_dialog.EnterConfirms, Is.True);
+        }
+
+        // As mensagens da regra da referência vazia do validador sobre o asset.
+        private static List<ValidationMessage> EmptyReferences(Object asset)
+        {
+            var messages = new List<ValidationMessage>();
+            ProjectValidator.Validate(new[] { asset }, messages);
+            return messages.Where(m => m.Context == asset && m.Message.StartsWith("Referência vazia", StringComparison.Ordinal)).ToList();
         }
 
         private static GameplayTagDefinition Tag(string name, GameplayTagDefinition parent)

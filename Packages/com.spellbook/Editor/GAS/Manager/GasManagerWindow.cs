@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using SpellBook.Core.Editor;
+using SpellBook.Tags;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -9,7 +10,7 @@ using Object = UnityEngine.Object;
 namespace SpellBook.GAS.Editor
 {
     /// <summary>
-    /// <c>SpellBook &gt; Gerenciador do GAS</c> (ME8, CA7 a CA10): lista as habilidades, os efeitos, os atributos e as
+    /// <c>SpellBook &gt; Gerenciador do GAS</c> (ME8 a ME10, CA7 a CA14): lista as habilidades, os efeitos, os atributos e as
     /// tags com filtros, e mostra o que o item selecionado usa e quem o usa. Não edita campos. O estado fica no
     /// <see cref="GasManagerModel"/>; esta classe só monta a UI (DS, seção 5).
     /// </summary>
@@ -26,6 +27,7 @@ namespace SpellBook.GAS.Editor
         private ToolbarMenu _tagMenu;
         private VisualElement _chips;
         private Label _empty;
+        private Button _create;
         private ListView _list;
         private TreeView _tree;
         private ScrollView _detail;
@@ -33,6 +35,8 @@ namespace SpellBook.GAS.Editor
         private Button _open;
         private Button _duplicate;
         private Button _rename;
+        private Button _delete;
+        private Button _newTag;
         private Object _selected;
 
         [MenuItem("SpellBook/Gerenciador do GAS")]
@@ -73,11 +77,14 @@ namespace SpellBook.GAS.Editor
             _empty = new Label("Lendo o projeto…");
             _empty.AddToClassList("gas-manager__secondary");
             left.Add(_empty);
+            _create = new Button(AbilityWizardWindow.Open) { text = "Criar habilidade ou efeito…", tooltip = "Abre o assistente de criação." };
+            _create.style.display = DisplayStyle.None;
+            left.Add(_create);
             _list = new ListView { makeItem = MakeRow, bindItem = BindListRow, selectionType = SelectionType.Single };
             _list.selectionChanged += _ => Select(_list.selectedIndex >= 0 ? _model.Rows[_list.selectedIndex].Entry?.Asset : null);
             _list.itemsChosen += _ => OpenInInspector();
             left.Add(_list);
-            _tree = new TreeView { makeItem = MakeRow, bindItem = BindTreeRow, selectionType = SelectionType.Single };
+            _tree = new TreeView { makeItem = MakeTreeRow, bindItem = BindTreeRow, selectionType = SelectionType.Single };
             _tree.selectionChanged += _ => Select(_tree.selectedIndex >= 0 ? _tree.GetItemDataForIndex<GasIndexEntry>(_tree.selectedIndex).Asset : null);
             _tree.itemsChosen += _ => OpenInInspector();
             left.Add(_tree);
@@ -90,20 +97,28 @@ namespace SpellBook.GAS.Editor
             _reason = new Label();
             _reason.AddToClassList("gas-manager__secondary");
             root.Add(_reason);
-            // Excluir (ME10) entra nesta fileira, à esquerda do botão principal.
             var footer = new VisualElement();
             footer.AddToClassList("gas-manager__footer");
-            _duplicate = new Button(() => Act(false)) { text = "Duplicar" };
+            _newTag = new Button(() => Act(GasAction.NewTag, _selected)) { text = "Nova tag filha" };
+            _newTag.style.display = DisplayStyle.None;
+            footer.Add(_newTag);
+            _duplicate = new Button(() => Act(GasAction.Duplicate, _selected)) { text = "Duplicar" };
             footer.Add(_duplicate);
-            _rename = new Button(() => Act(true)) { text = "Renomear" };
+            _rename = new Button(() => Act(GasAction.Rename, _selected)) { text = "Renomear" };
             footer.Add(_rename);
+            _delete = new Button(() => Act(GasAction.Delete, _selected)) { text = "Excluir" };
+            footer.Add(_delete);
             _open = new Button(OpenInInspector) { text = "Abrir no Inspector" };
             footer.Add(_open);
             root.Add(footer);
             root.RegisterCallback<KeyDownEvent>(e =>
             {
-                if (e.keyCode == KeyCode.F2 && _rename.enabledSelf) Act(true);
-                else if (e.actionKey && e.keyCode == KeyCode.D && _duplicate.enabledSelf) Act(false);
+                if (e.keyCode == KeyCode.F2 && _rename.enabledSelf) Act(GasAction.Rename, _selected);
+                else if (e.actionKey && e.keyCode == KeyCode.D && _duplicate.enabledSelf) Act(GasAction.Duplicate, _selected);
+                // O Delete dentro da busca apaga texto, não o item.
+                else if (e.keyCode == KeyCode.Delete && _delete.enabledSelf && !InText(e.target)) Act(GasAction.Delete, _selected);
+                else return;
+                e.StopPropagation();
             });
 
             Select(null);
@@ -122,8 +137,11 @@ namespace SpellBook.GAS.Editor
             RefreshView(true);
         }
 
+        /// <summary>O estado que a janela mostra; os testes o mudam pelo <see cref="Change"/>.</summary>
+        internal GasManagerModel Model => _model;
+
         // Filtro novo: o painel só se refaz se o item selecionado saiu da lista.
-        private void Change(System.Action change)
+        internal void Change(System.Action change)
         {
             change();
             RefreshView(false);
@@ -163,6 +181,9 @@ namespace SpellBook.GAS.Editor
             bool tree = filter.Kind == GasIndexKind.Tag;
             _empty.text = _model.EmptyMessage ?? string.Empty;
             _empty.style.display = _model.EmptyMessage != null ? DisplayStyle.Flex : DisplayStyle.None;
+            // Sem filtro, a lista só fica vazia num projeto sem nenhum asset do GAS (DS 7).
+            _create.style.display = _model.EmptyMessage != null && !_model.HasFilters ? DisplayStyle.Flex : DisplayStyle.None;
+            _newTag.style.display = tree ? DisplayStyle.Flex : DisplayStyle.None;
             _list.style.display = tree ? DisplayStyle.None : DisplayStyle.Flex;
             _tree.style.display = tree ? DisplayStyle.Flex : DisplayStyle.None;
             if (tree)
@@ -228,8 +249,23 @@ namespace SpellBook.GAS.Editor
 
         private void BindListRow(VisualElement row, int index) => BindRow(row, _model.Rows[index]);
 
-        private void BindTreeRow(VisualElement row, int index) =>
-            BindRow(row, new GasManagerRow(GasIndexKind.Tag, _tree.GetItemDataForIndex<GasIndexEntry>(index)));
+        // A linha da árvore de tags tem o "+" da tag filha (DS 5.3).
+        private VisualElement MakeTreeRow()
+        {
+            VisualElement row = MakeRow();
+            row.Add(new Button(() => Act(GasAction.NewTag, row.userData as Object)) { text = "+", tooltip = "Cria uma tag filha desta tag." });
+            return row;
+        }
+
+        private void BindTreeRow(VisualElement row, int index)
+        {
+            GasIndexEntry entry = _tree.GetItemDataForIndex<GasIndexEntry>(index);
+            row.userData = entry.Asset;
+            BindRow(row, new GasManagerRow(GasIndexKind.Tag, entry));
+        }
+
+        private static bool InText(IEventHandler target) =>
+            target is TextField || (target is VisualElement element && element.GetFirstAncestorOfType<TextField>() != null);
 
         private void BindRow(VisualElement row, GasManagerRow data)
         {
@@ -255,6 +291,11 @@ namespace SpellBook.GAS.Editor
             bool duplicable = GasDuplicate.CanDuplicate(asset);
             _duplicate.SetEnabled(duplicable);
             _duplicate.tooltip = duplicable ? "Duplica o item (Ctrl+D)." : asset != null ? "Só habilidades e efeitos se duplicam." : _reason.text;
+            _delete.SetEnabled(asset != null);
+            _delete.tooltip = asset != null ? "Exclui o item depois de mostrar quem o usa (Delete)." : _reason.text;
+            bool tag = asset is GameplayTagDefinition;
+            _newTag.SetEnabled(tag);
+            _newTag.tooltip = tag ? "Cria uma tag filha da selecionada." : _reason.text;
             _detail.Clear();
             if (asset == null)
             {
@@ -291,10 +332,11 @@ namespace SpellBook.GAS.Editor
             _detail.Add(noteLabel);
         }
 
-        private void Act(bool rename)
+        // Ao terminar, seleciona a cópia, o asset renomeado ou a tag nova; depois de excluir, nada fica selecionado.
+        private void Act(GasAction action, Object asset)
         {
-            if (_selected == null) return;
-            GasActionDialog.Open(_selected, rename, result =>
+            if (asset == null) return;
+            GasActionDialog.Open(asset, action, result =>
             {
                 _selected = result;
                 Reload();
