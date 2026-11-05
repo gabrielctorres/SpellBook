@@ -45,7 +45,7 @@ namespace SpellBook.Core.Tests.Structure
             List<string> names = PackageFiles.Asmdefs().Select(a => a.Data.name).ToList();
 
             Assert.That(names, Does.Contain("SpellBook.Core"));
-            Assert.That(names, Does.Contain("SpellBook.Core.Tests.EditMode"));
+            Assert.That(names, Does.Contain("SpellBook.Repository.Tests.EditMode"));
         }
 
         [Test]
@@ -309,6 +309,16 @@ namespace SpellBook.Core.Tests.Structure
             Assert.That(PackageFiles.Asmdefs().Any(a => a.Data.name == "SpellBook.GAS"), Is.True, "não existe asmdef SpellBook.GAS");
             Assert.That(gasTypesInCore, Is.Empty, "tipos do GAS compilados no SpellBook.Core");
             Assert.That(gasReferences, Is.Empty, "o SpellBook.Core referencia o GAS");
+        }
+
+        [Test]
+        public void Core_HasNoTagsReference()
+        {
+            AsmdefFile core = PackageFiles.Asmdefs().Single(a => a.Data.name == "SpellBook.Core");
+            Assembly assembly = AppDomain.CurrentDomain.GetAssemblies().Single(a => a.GetName().Name == "SpellBook.Core");
+
+            Assert.That(core.ReferenceNames, Has.None.EqualTo("SpellBook.Tags"));
+            Assert.That(assembly.GetReferencedAssemblies().Select(a => a.Name), Has.None.EqualTo("SpellBook.Tags"));
         }
 
         [Test]
@@ -700,12 +710,24 @@ namespace SpellBook.Core.Tests.Structure
             expected.AddRange(RuntimeModules.Select(m => $"SpellBook.{m}.Tests.EditMode"));
             expected.AddRange(PlayModeModules.Select(m => $"SpellBook.{m}.Tests.PlayMode"));
             expected.Add("SpellBook.Testing");
+            expected.Add("SpellBook.Repository.Tests.EditMode");
 
             List<string> names = PackageFiles.Asmdefs().Select(a => a.Data.name).ToList();
 
             Assert.That(names, Is.EquivalentTo(expected));
             Assert.That(names, Has.None.EqualTo("SpellBook.Setup.Editor"));
             Assert.That(expected.Where(n => LoadedAssembly(n) == null), Is.Empty, "assemblies não compilados");
+        }
+
+        [TestCase("Runtime/Core/NovoTipo.cs", "SpellBook.Core")]
+        [TestCase("Editor/Core/NovoTipo.cs", "SpellBook.Core.Editor")]
+        public void AsmdefRules_NewFileInCore_GetsAssemblyNamespace(string relativePath, string expected)
+        {
+            string path = "Packages/com.spellbook/" + relativePath;
+
+            string rootNamespace = UnityEditor.Compilation.CompilationPipeline.GetAssemblyRootNamespaceFromScriptPath(path);
+
+            Assert.That(rootNamespace, Is.EqualTo(expected));
         }
 
         [Test]

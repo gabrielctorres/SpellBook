@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using NUnit.Framework;
 using SpellBook.Core.Conditions;
-using SpellBook.Core.Tests.Structure;
 using SpellBook.Core.Validation;
 using UnityEngine.TestTools.Constraints;
 using Is = UnityEngine.TestTools.Constraints.Is;
@@ -98,16 +96,6 @@ namespace SpellBook.Core.Tests.Conditions
         {
             Assert.That(Positive().DefaultFailureKey, Is.Null);
             Assert.That(new KeyedCondition().DefaultFailureKey, Is.EqualTo("test.keyed"));
-        }
-
-        [Test]
-        public void Core_HasNoTagsReference()
-        {
-            AsmdefFile core = PackageFiles.Asmdefs().Single(a => a.Data.name == "SpellBook.Core");
-            Assembly assembly = AppDomain.CurrentDomain.GetAssemblies().Single(a => a.GetName().Name == "SpellBook.Core");
-
-            Assert.That(core.ReferenceNames, Has.None.EqualTo("SpellBook.Tags"));
-            Assert.That(assembly.GetReferencedAssemblies().Select(a => a.Name), Has.None.EqualTo("SpellBook.Tags"));
         }
 
         private static Condition<TestContext> Positive() => new IsPositive();

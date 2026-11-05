@@ -2,9 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using SpellBook.Core.Editor;
-using SpellBook.Core.Editor.Inspector;
-using SpellBook.Core.Tests.Inspector;
-using SpellBook.Core.Tests.Validation;
 using SpellBook.Core.Validation;
 using SpellBook.Events;
 using SpellBook.GAS.Abilities;
@@ -18,8 +15,8 @@ using Object = UnityEngine.Object;
 namespace SpellBook.Core.Tests
 {
     /// <summary>
-    /// Validador do projeto (Spec, seção 4.9): cada regra do R35 sobre assets vira erro (CA35), corrigidas não há
-    /// erro, uma exceção não para a varredura, o tipo ausente é erro sem apagar dados (CA64) e o host está limpo (R34).
+    /// Validador do projeto com os outros módulos (Spec, seção 4.9): cada regra do R35 sobre assets vira erro (CA35),
+    /// corrigidas não há erro e o host está limpo (R34). Os casos só do Core ficam no <c>ProjectValidatorTests</c>.
     /// </summary>
     public class ProjectValidationTests
     {
@@ -45,7 +42,6 @@ namespace SpellBook.Core.Tests
             _created.Clear();
             _gas.Dispose();
             _events.Dispose();
-            MissingTypeAsset.Delete();
         }
 
         [Test]
@@ -84,35 +80,6 @@ namespace SpellBook.Core.Tests
         }
 
         [Test]
-        public void Validator_ExceptionInValidate_BecomesErrorAndContinues()
-        {
-            ValidatableHolder throwing = Track(ScriptableObject.CreateInstance<ValidatableHolder>());
-            throwing.throws = true;
-            ValidatableHolder invalid = Track(ScriptableObject.CreateInstance<ValidatableHolder>());
-            invalid.valid = false;
-
-            List<ValidationMessage> messages = Validate(throwing, invalid);
-
-            Assert.That(ErrorsOf(messages, throwing), Is.EqualTo(new[] { "A validação lançou InvalidOperationException: falhou" }));
-            Assert.That(ErrorsOf(messages, invalid), Is.EqualTo(new[] { ValidatableHolder.InvalidMessage }));
-        }
-
-        [Test]
-        public void Validator_MissingSerializeReferenceType_IsError_DataKept()
-        {
-            PickHolder holder = MissingTypeAsset.Create();
-            string expected = MissingReferenceTypes.FormatMessage(MissingReferenceTypes.Get(holder)[0]);
-
-            List<ValidationMessage> messages = Validate(holder);
-
-            Assert.That(ErrorsOf(messages, holder), Is.EqualTo(new[] { expected }));
-            Assert.That(expected, Does.Contain(MissingTypeAsset.Assembly).And.Contain(MissingTypeAsset.GhostClass));
-            Assert.That(MissingTypeAsset.ReadFile(), Does.Contain("class: " + MissingTypeAsset.GhostClass + ",")
-                .And.Contain("Value: " + MissingTypeAsset.GhostValue));
-            Assert.That(MissingReferenceTypes.Get(holder).Count, Is.EqualTo(1), "o validador limpou a referência");
-        }
-
-        [Test]
         public void Project_HasNoValidationErrors()
         {
             var messages = new List<ValidationMessage>();
@@ -123,35 +90,6 @@ namespace SpellBook.Core.Tests
                 .Select(m => $"{(m.Context != null ? m.Context.name : "?")}: {m.Message}")
                 .ToArray();
             Assert.That(errors, Is.Empty);
-        }
-
-        [Test]
-        public void ValidateTypes_TypeWithoutHelpUrl_IsErrorOnItsScript()
-        {
-            var messages = new List<ValidationMessage>();
-
-            ProjectValidator.ValidateTypes(new[] { typeof(NoHelpUrlScriptAsset).Assembly }, messages);
-
-            ValidationMessage[] errors = messages
-                .Where(m => m.Severity == ValidationSeverity.Error && m.Message.Contains(typeof(NoHelpUrlScriptAsset).FullName))
-                .ToArray();
-            Assert.That(errors, Has.Length.EqualTo(1));
-            Assert.That(errors[0].Message, Does.Contain(HelpUrlRule.MissingReason));
-            var script = errors[0].Context as MonoScript;
-            Assert.That(script, Is.Not.Null, "o alvo do erro não é o MonoScript do tipo");
-            Assert.That(script.GetClass(), Is.EqualTo(typeof(NoHelpUrlScriptAsset)));
-        }
-
-        [Test]
-        public void ValidateTypes_TypeWithoutScript_IsErrorWithoutTarget()
-        {
-            var messages = new List<ValidationMessage>();
-
-            ProjectValidator.ValidateTypes(new[] { typeof(NoHelpUrlTestAsset).Assembly }, messages);
-
-            ValidationMessage error = messages.Single(m => m.Message.Contains(typeof(NoHelpUrlTestAsset).FullName));
-            Assert.That(error.Severity, Is.EqualTo(ValidationSeverity.Error));
-            Assert.That(error.Context, Is.Null);
         }
 
         [Test]

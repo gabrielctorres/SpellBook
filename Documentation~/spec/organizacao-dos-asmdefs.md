@@ -53,3 +53,38 @@ O épico não muda comportamento em jogo. O Sandbox prova que nada quebrou:
 ## Validação de uso
 | Data | Observação | Ajuste pedido | Status |
 |---|---|---|---|
+
+## AS1 — Asmdef das guardas do repositório e rootNamespace do Core
+### Detalhe (2026-11-04)
+- **A Spec subestimou o CA2.** Mover `Structure/`, `Documentation/` e o `ManualCodeExamplesTests` não basta para o CA2. Quatro testes do Core que não são guardas também usam GAS, Events, Pooling ou GAS.Bridges: `ProjectValidationTests` (Events, GAS, GAS.Bridges e Pooling), `Inspector/ShowIfRuleTests` (1 caso com `ModifierValueSource`), `Inspector/SummaryFormatterTests` (campos `ScalableFloat` na fixture) e `Inspector/TypePickerCatalogTests` (1 caso com `GameplayAction`). O `Structure/PackageFiles` sai do asmdef, mas `ConditionCompositionTests.Core_HasNoTagsReference`, `DocUrlsTests` e `ManualLinksTests` o usam. Decisão do Controlador, 2026-11-04, opção A: `ProjectValidation` (só a parte entre módulos), `DocUrls` e `ManualLinks` vão para o Repository; os casos de GAS do ShowIf e do SummaryFormatter vão para o `SpellBook.GAS.Tests.EditMode`; o TypePicker passa a usar uma base de runtime do Core; o `Core_HasNoTagsReference` vai para o `AsmdefRulesTests`.
+- **Divisão (ADR 0042, item 5; aprovada pelo Controlador em 2026-11-04).** Se os movidos trocassem de namespace, cada um contaria como 1 arquivo, e o AS1 inteiro passaria de ~35 arquivos, bem acima de +30%. O ticket se divide em **AS1a** (esta issue, #349; CA3 e CA4) e **AS1b** (issue nova; CA2; depende do AS1a).
+- **Namespace dos movidos, de propósito.** Opção (b) do Controlador, em 2026-11-04: os arquivos movidos continuam em `SpellBook.Core.Tests.*`, com movimento puro (`R100`). O `rootNamespace` `SpellBook.Repository.Tests` do asmdef novo vale só para arquivo novo. Trocar o namespace dos movidos é uma melhoria opcional futura, fora do AS1a e do AS1b. Ela não cabe em dois tickets que compilam sozinhos: `Structure/` com os 5 `using` dos consumidores dá 14 arquivos.
+
+#### AS1a
+- CA: CA3, CA4 (parte de M1 e M3)
+- Escopo:
+  - `Packages/com.spellbook/Tests/Repository/EditMode/SpellBook.Repository.Tests.EditMode.asmdef` (novo): `rootNamespace` `SpellBook.Repository.Tests`; refs Core, Core.Editor, Tags, Time, Events, Pooling, GAS, GAS.Bridges, Testing e os TestRunner; `autoReferenced` false, `UNITY_INCLUDE_TESTS`, só Editor.
+  - Movimento puro (`R100`), sem alterar o conteúdo, de `Tests/Core/EditMode/` para `Tests/Repository/EditMode/`: `Structure/` (menos o `AsmdefRulesTests`, que muda; o `PackageFiles` também vai sem mudança), `Documentation/` (6), `ManualCodeExamplesTests.cs`, `ManualLinksTests.cs` e `DocUrlsTests.cs`. Os namespaces continuam `SpellBook.Core.Tests.*` (ver acima).
+  - `Structure/AsmdefRulesTests.cs` (movido com alteração): `AllExpectedAssembliesExist` (:695) espera também o `SpellBook.Repository.Tests.EditMode`; `AsmdefRules_Scan_FindsCoreAndThisTestAsmdef` (:43) procura o asmdef novo; entram o `Core_HasNoTagsReference`, vindo de `ConditionCompositionTests.cs:103`, e o teste novo do CA4. O teste do CA4 pergunta à Unity o namespace de um arquivo novo pela `CompilationPipeline.GetAssemblyRootNamespaceFromScriptPath`, a mesma API que dá o namespace a um script criado no Editor.
+  - `ConditionCompositionTests.cs:103-111`: sai o `Core_HasNoTagsReference`, com os `using` de `Structure` e `Reflection`.
+  - `ProjectValidationTests.cs` → `Tests/Repository/EditMode/ProjectValidationTests.cs` (movido com alteração, namespace `SpellBook.Core.Tests` mantido): ficam `Validator_ReportsEachR35Error`, `Validator_FixedObjects_NoErrors`, `Project_HasNoValidationErrors` e `ValidateTypes_RuntimeAssemblies_NoErrors`, com os ajudantes de Events, GAS e Pooling.
+  - `Tests/Core/EditMode/ProjectValidatorTests.cs` (novo): os 4 casos que usam só o Core, com as fixtures do Core: `Validator_ExceptionInValidate_BecomesErrorAndContinues`, `Validator_MissingSerializeReferenceType_IsError_DataKept`, `ValidateTypes_TypeWithoutHelpUrl_IsErrorOnItsScript` e `ValidateTypes_TypeWithoutScript_IsErrorWithoutTarget`.
+  - `Editor/Core/AssemblyInfo.cs:3`: `InternalsVisibleTo("SpellBook.Repository.Tests.EditMode")`, porque o `TypeCatalogTests` usa o `TypeCatalog.Build(IEnumerable<Assembly>)`, que é `internal`.
+  - `Runtime/Core/SpellBook.Core.asmdef:3` → `SpellBook.Core`; `Editor/Core/SpellBook.Core.Editor.asmdef:3` → `SpellBook.Core.Editor`.
+- Testes red (EditMode): `AsmdefRulesTests.AllExpectedAssembliesExist` (falta o asmdef novo) e `AsmdefRulesTests.AsmdefRules_NewFileInCore_GetsAssemblyNamespace`, com 2 casos, `Runtime/Core` e `Editor/Core` (a Unity devolve `SpellBook`). Os dois são escritos antes da mudança, ainda no asmdef do Core.
+- Critério de pronto: os dois red passam; `AsmdefRulesTests`, `DocumentationCategoryTests`, `ProjectValidationTests`, `ProjectValidatorTests` e `ConditionCompositionTests` passam com filtro; o total de testes dessas classes, somando o Core e o Repository, é o mesmo de antes, mais os 2 casos novos do CA4.
+- Tamanho: ~270 linhas e 8 arquivos, medidos na implementação: asmdef novo 32, os 2 asmdefs do Core 4, `AssemblyInfo` 1, `AsmdefRulesTests` 24, `ConditionCompositionTests` 12, `ProjectValidationTests` 66, `ProjectValidatorTests` 114 e os 17 movimentos puros 17. Exceção: nenhuma
+- Commit: `refactor(tests): asmdef das guardas do repositório e rootNamespace do Core`
+
+#### AS1b
+- CA: CA2
+- Escopo:
+  - `Inspector/ShowIfRuleTests.cs:84-120`: sai o `ShowIf_ValueVisibleOnlyForValueType` com os ajudantes `GasShowIf` e `ValueSourceField`. Ele vai para `Tests/GAS/EditMode/ModifierValueSourceShowIfTests.cs` (novo).
+  - `Inspector/SummaryFormatterTests.cs`: saem os campos e os marcadores `ScalableFloat` da fixture e o valor esperado é ajustado. O formato do `ScalableFloat` (constante, tabela e por nível) vai para `Tests/GAS/EditMode/ScalableFloatSummaryTests.cs` (novo), que espera `"2,5 %Dano por nível"`.
+  - `Inspector/TypePickerCatalogTests.cs:46-52,172`: `Candidates_IncludeDerivedFromAnotherAssembly` usa `IRandomSource` (runtime do Core) no lugar de `GameplayAction`. A fixture passa a ser `PickRandomSource`.
+  - `Tests/Core/EditMode/SpellBook.Core.Tests.EditMode.asmdef`: refs só Core, Core.Editor, Time, Testing e os TestRunner.
+  - `AsmdefRulesTests.cs`: teste novo `AsmdefRules_CoreEditModeTests_ReferenceOnlyCoreCoreEditorTimeAndTesting`.
+- Testes red (EditMode): `AsmdefRules_CoreEditModeTests_ReferenceOnlyCoreCoreEditorTimeAndTesting` (o asmdef de hoje tem 9 referências do SpellBook).
+- Critério de pronto: o red passa; `ShowIfRuleTests`, `SummaryFormatterTests`, `TypePickerCatalogTests`, `ModifierValueSourceShowIfTests` e `ScalableFloatSummaryTests` passam com filtro, com o mesmo número de casos de antes, mais o novo do formato.
+- Tamanho: ~200 linhas e 7 arquivos. Exceção: nenhuma
+- Commit: `refactor(tests): testes do Core só com Core, Core.Editor, Time e Testing`

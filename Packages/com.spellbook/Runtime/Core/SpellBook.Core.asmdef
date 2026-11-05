@@ -1,6 +1,6 @@
 {
     "name": "SpellBook.Core",
-    "rootNamespace": "SpellBook",
+    "rootNamespace": "SpellBook.Core",
     "references": [
         "UnityEngine"
     ],
