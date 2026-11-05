@@ -244,6 +244,7 @@ namespace SpellBook.GAS.Tests
         {
             GameplayEffect effect = _gas.CreateEffect(policy, 0f);
             effect.name = name;
+            GasFactory.SetObjectField(effect, "icon", _gas.CreateSprite());
             return effect;
         }
 

@@ -8,8 +8,8 @@ namespace SpellBook.UI.Editor
 {
     /// <summary>
     /// Base dos Inspectors de binder (R16; ADR 0026, item 3a). Acima do Inspector padrão (resolvedor, fonte pelo seletor
-    /// de tipos e view), mostra o resumo de uma linha da fonte e do dono; a cada mudança, refaz o resumo e redesenha a
-    /// prévia do binder.
+    /// de tipos e view), mostra o resumo de uma linha da fonte, do limite visível (binder de lista) e do dono; a cada
+    /// mudança, refaz o resumo e redesenha a prévia do binder.
     /// </summary>
     public abstract class UIBinderEditor : SpellBookEditor
     {
@@ -53,8 +53,15 @@ namespace SpellBook.UI.Editor
             if (single)
             {
                 serializedObject.Update();
-                _summary.text = $"{SummaryFormatter.Format(serializedObject.FindProperty("source"))} · dono: {OwnerText()}";
+                _summary.text = $"{SummaryFormatter.Format(serializedObject.FindProperty("source"))}{LimitText()} · dono: {OwnerText()}";
             }
+        }
+
+        // Binder de lista com limite visível: "· até N"; sem limite (0) ou sem o campo, nada
+        private string LimitText()
+        {
+            SerializedProperty maxVisible = serializedObject.FindProperty("maxVisible");
+            return maxVisible != null && maxVisible.intValue > 0 ? $" · até {maxVisible.intValue}" : string.Empty;
         }
 
         private string OwnerText()

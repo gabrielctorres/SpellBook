@@ -206,6 +206,7 @@ namespace SpellBook.GAS.Effects
         /// válido (erro) ou sem padrão (aviso), modo Live onde não tem efeito (aviso), ciclo ao vivo entre atributos (erro),
         /// tag de dano vazia ou repetida e meta-atributo em <c>Modifiers</c> de efeito com duração ou infinito (erro).
         /// Valida as seis listas de ações e as filhas, reação em efeito Instant (aviso) e "Ao morrer" sem atributo de morte (erro).
+        /// Efeito com duração ou infinito, visível e sem ícone ganha um aviso: na lista de efeitos, cai no ícone padrão.
         /// Os nomes do modo Table são conferidos pela habilidade que usa o efeito.
         /// </summary>
         public void Validate(ValidationResult result)
@@ -234,6 +235,12 @@ namespace SpellBook.GAS.Effects
             }
 
             ValidateActionLists(result);
+
+            if (DurationPolicy != EffectDurationPolicy.Instant && !isHidden && icon == null)
+            {
+                result.AddWarning("Efeito visível com duração e sem ícone: na lista de efeitos, cai no ícone padrão. " +
+                    "Escolha um ícone ou marque Is Hidden.", nameof(icon));
+            }
         }
 
         private void ValidateActionLists(ValidationResult result)

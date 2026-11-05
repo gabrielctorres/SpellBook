@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Core.Inspector;
 using SpellBook.Core.Text;
+using SpellBook.Core.Validation;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
@@ -22,7 +23,8 @@ namespace SpellBook.GAS.UI
     /// duração; o ícone sinaliza o fim nos últimos <see cref="EndingSoonSeconds"/> da maior restante. Guarda só o asset e
     /// o id de cada ícone; o resto vem do ASC. Não altera o ASC.
     /// </summary>
-    [Serializable, TypeCategory("Efeitos", Summary = "Lista de buffs e debuffs do dono: um ícone por efeito, na ordem em que apareceu, com as pilhas somadas e a maior duração restante.")]
+    [Serializable, TypeCategory("Efeitos", Summary = "Lista de buffs e debuffs do dono: um ícone por efeito, na ordem em que apareceu, com as pilhas somadas e a maior duração restante.",
+        Line = "Lista de efeitos · {filter.role}{filter.purgableOnly? · só purgáveis}")]
     public sealed class ActiveEffectsSource : UIListSource<EffectIconModel>
     {
         // Segundos inteiros, arredondados para cima, como o tempo do tooltip do efeito
@@ -59,6 +61,20 @@ namespace SpellBook.GAS.UI
         {
             filter = value ?? new EffectListFilter();
             _filterChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Acrescenta os problemas do filtro e do fim: tag vazia ou repetida na consulta não vazia (a vazia aceita
+        /// todos) e <c>endingSoonSeconds</c> negativo.
+        /// </summary>
+        public override void Validate(ValidationResult result, string propertyPath)
+        {
+            Filter.Validate(result, $"{propertyPath}.{nameof(filter)}");
+            if (endingSoonSeconds < 0f)
+            {
+                result.AddError("Ending Soon Seconds é negativo: use 0 para sinalizar só no fim ou os segundos finais do efeito.",
+                    $"{propertyPath}.{nameof(endingSoonSeconds)}");
+            }
         }
 
         /// <inheritdoc />
@@ -322,12 +338,15 @@ namespace SpellBook.GAS.UI
     public enum EffectRoleFilter
     {
         /// <summary>Todos os papéis.</summary>
+        [InspectorName("Buffs e debuffs")]
         Both,
 
         /// <summary>Só os benéficos: <see cref="GameplayEffect.IsBuff"/> sem <see cref="GameplayEffect.IsDebuff"/>.</summary>
+        [InspectorName("Só buffs")]
         Buffs,
 
         /// <summary>Só os nocivos: <see cref="GameplayEffect.IsDebuff"/> sem <see cref="GameplayEffect.IsBuff"/>.</summary>
+        [InspectorName("Só debuffs")]
         Debuffs,
     }
 
@@ -340,7 +359,7 @@ namespace SpellBook.GAS.UI
     [Serializable]
     public sealed class EffectListFilter
     {
-        [Tooltip("Papel dos efeitos mostrados. Efeito sem papel, ou com os dois, só aparece em Both.")]
+        [Tooltip("Papel dos efeitos mostrados. Efeito sem papel, ou com os dois, só aparece em Buffs e debuffs.")]
         [SerializeField] private EffectRoleFilter role;
 
         [Tooltip("Consulta sobre as tags concedidas pelo efeito. Vazia: aceita todos.")]
@@ -383,6 +402,12 @@ namespace SpellBook.GAS.UI
             if (role == EffectRoleFilter.Buffs && ActiveEffectsSource.RoleOf(effect) != TextRole.Beneficial) return false;
             if (role == EffectRoleFilter.Debuffs && ActiveEffectsSource.RoleOf(effect) != TextRole.Harmful) return false;
             return query == null || query.Matches(effect.GrantedTags);
+        }
+
+        // A consulta vazia aceita todos os efeitos: só a preenchida é conferida, sem o aviso de consulta vazia
+        internal void Validate(ValidationResult result, string propertyPath)
+        {
+            if (query != null && !query.IsEmpty) query.Validate(result, $"{propertyPath}.{nameof(query)}");
         }
 
         private static void Copy(GameplayTagContainer from, GameplayTagContainer into)
