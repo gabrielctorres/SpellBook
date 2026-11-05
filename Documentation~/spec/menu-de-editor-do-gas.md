@@ -76,23 +76,28 @@ Do rascunho, sem mudança:
 - **Busca de referências no Core.Editor.** A parte genérica do `ChannelReferenceFinder` (`Editor/Events/ChannelReferenceFinder.cs`) vai para o `SpellBook.Core.Editor`, porque o `GAS.Editor` não pode referenciar o `Events.Editor` (0026, item 5). O Find References dos canais passa a usar a versão do Core sem mudar o comportamento. O Excluir usa a mesma busca.
 - **Prefixos.** O pacote não impõe prefixo (0043, item 3). Os prefixos `GA_` e `GE_` são regras de nome dos modelos do pacote, e o projeto pode trocá-los no modelo dele.
 
+Depois do gate:
+- **2026-11-05, tags do modelo (opção B).** Cada tag do `AbilityTemplate` vira uma entrada explícita `{source: tag-modelo opcional, rule}`. Isso muda o formato serializado do ME1, que ainda não saiu em versão, e a mudança entra no próprio ME2 (~+40 linhas).
+- **2026-11-05, lotes.** O trabalho corre em dois lotes, e este épico fica no Lote J (branch `feat/lote-j`).
+
 ## Tickets
 Tamanho estimado pela 0042; a Fábrica confirma no Detalhe. Os `.asset` e os prefabs contam só como arquivo. Para caber no teto, os modelos podem compartilhar os assets modelo de custo, de recarga e de dano; a cópia sai separada de qualquer jeito.
 
 | Ticket | Objetivo | CA | Depende de | Unity |
 |---|---|---|---|---|
 | ME1 | `AbilityTemplate` (modelos, regras de nome, tags), Inspector de uma linha e regra do validador para modelo ausente. ~200 linhas, ~6 arquivos | CA1, CA5 | gate; OA1 (0043 aceita) | sim |
-| ME2 | Motor de criação sem UI: plano de nomes, colisão, cópia com troca de referências (também em `[SerializeReference]`), referência a prefab mantida sem cópia, tags com nome inteiro e pai, criadas ou reutilizadas, desfazer tudo se um passo falha e apagar o conjunto criado. ~450 linhas, ~5 arquivos | CA2, CA3, CA4 | ME1 | sim |
+| ME2 | Motor de criação sem UI: plano de nomes, colisão, cópia com troca de referências (também em `[SerializeReference]`), referência a prefab mantida sem cópia, tags com nome inteiro e pai, criadas ou reutilizadas, desfazer tudo se um passo falha e apagar o conjunto criado. Cada tag do `AbilityTemplate` vira uma entrada explícita `{source: tag-modelo opcional, rule}`, o que muda o formato serializado do ME1 (ver "Decisões do épico"). ~490 linhas, ~5 arquivos | CA2, CA3, CA4 | ME1 | sim |
 | ME3 | Modelos Projétil, Área e Buff, o prefab de projétil do pacote e o teste de que cada modelo cria um conjunto sem erro no validador. ~80 linhas, ~11 arquivos | CA1, CA3 | ME2 | sim |
 | ME4 | Janela do assistente (modelos, nome, pasta, lista do que será criado, Criar, Desfazer criação), `SpellBook/Criar habilidade ou efeito…` e `Create > SpellBook > GAS > Ability from Template…`; saída do `FolderStructureCreator` com o `CHANGELOG.md`. ~400 linhas, ~7 arquivos | CA1, CA2, CA4, CA6, CA15 | ME3; DS | sim |
 | ME5 | Modelos Aura (com o prefab de thinker do pacote), Em branco e Só efeito. ~60 linhas, ~9 arquivos | CA1, CA3 | ME3 | sim |
 | ME6 | Busca de referências genérica no `Core.Editor`; o Find References dos canais passa a usá-la. ~250 linhas, ~5 arquivos | CA9 | gate | sim |
 | ME7 | Índice do GAS sem UI: habilidades, efeitos, atributos e tags; filtros por tipo, tag e texto; atualização quando assets mudam. ~350 linhas, ~4 arquivos | CA7, CA8 | gate | sim |
-| ME8 | Janela do gerenciador (`SpellBook/Gerenciador do GAS`): lista, filtros, painel com uso e referências, Abrir no Inspector, árvore de tags. ~450 linhas, ~6 arquivos | CA7 a CA10, CA15 | ME6, ME7; DS | sim |
-| ME9 | Duplicar (habilidade e efeito) e Renomear (asset, conjunto com a lista de derivados, e tag com a lista das filhas), pelo motor do ME2. ~450 linhas, ~6 arquivos | CA11, CA12, CA13 | ME2, ME8 | sim |
-| ME10 | Excluir asset e tag com a lista de usos e a confirmação, e criar tag filha. ~300 linhas, ~5 arquivos | CA13, CA14 | ME2, ME6, ME8 | sim |
+| ME8a | Lógica do gerenciador sem UI: `GasManagerModel` (lista e filtros) e `GasReferenceList` (linhas do painel de referências). 499 linhas, 4 arquivos (issue #398) | CA7 a CA10 e CA15, na parte de lógica | ME6, ME7 | sim |
+| ME8b | Janela do gerenciador (`SpellBook/Gerenciador do GAS`) em UI Toolkit e o USS dela. ~264 linhas, 2 arquivos (issue #405) | CA7 a CA10 e CA15, na parte de UI | ME8a; DS | sim |
+| ME9 | Duplicar (habilidade e efeito) e Renomear (asset, conjunto com a lista de derivados, e tag com a lista das filhas), pelo motor do ME2. ~450 linhas, ~6 arquivos | CA11, CA12, CA13 | ME2, ME8b | sim |
+| ME10 | Excluir asset e tag com a lista de usos e a confirmação, e criar tag filha. ~300 linhas, ~5 arquivos | CA13, CA14 | ME2, ME6, ME8b | sim |
 
-O ME6 e o ME7 não dependem do assistente e podem correr em paralelo com o ME1 a ME3, se os Detalhes não tiverem arquivo em comum. O ME9 e o ME10 tocam a mesma janela do ME8; rodam em sequência, a não ser que os Detalhes separem os arquivos. O `Editor/GAS/GasEditors.cs` também é tocado pelo IH1 do Inspector; quem detalhar depois confere a ordem.
+O ME8 foi medido em 763 linhas, acima dos +30% da 0042, e se dividiu em ME8a e ME8b. O ME6 e o ME7 não dependem do assistente e podem correr em paralelo com o ME1 a ME3, se os Detalhes não tiverem arquivo em comum. O ME9 e o ME10 tocam a mesma janela do ME8b; rodam em sequência, a não ser que os Detalhes separem os arquivos. O `Editor/GAS/GasEditors.cs` também é tocado pelo IH1 do Inspector; quem detalhar depois confere a ordem.
 
 ## Validação de uso
 | Data | Observação | Ajuste pedido | Status |
