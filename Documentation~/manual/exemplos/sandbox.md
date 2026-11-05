@@ -1,11 +1,11 @@
-# Sample Sandbox {#sandbox}
+# Sample Sandbox
 
 O Sandbox é uma cena 3D de teste manual que liga os módulos do SpellBook num caso pequeno:
 um conjurador lança uma Bola de Fogo num boneco de treino que não morre. Ele serve para ver
 os módulos funcionando juntos antes de usá-los num projeto, e como ponto de partida para copiar
 a configuração dos assets.
 
-## O que o Sample mostra {#o-que-mostra}
+## O que o Sample mostra
 
 - **GAS:** uma habilidade com custo de mana e recarga, um efeito de dano instantâneo e uma
   queimadura com duração, tique periódico e tag `Status.Queimando`.
@@ -20,7 +20,7 @@ a configuração dos assets.
 A cena não tem HUD nem Canvas. Os valores de vida e mana aparecem no Inspector durante o Play,
 e as mensagens saem no Console.
 
-## Importar {#importar}
+## Importar
 
 1. Abra **Window > Package Manager** e selecione o pacote **Spell Book**.
 2. Na aba **Samples**, clique em **Import** ao lado de **Sandbox**.
@@ -31,7 +31,7 @@ A entrada usa o Input Manager legado: em **Project Settings > Player**, o **Acti
 Handling** precisa ser **Input Manager (Old)** ou **Both**. Os materiais usam o shader
 `Unlit/Color` e desenham no Built-in e no URP; o HDRP não é coberto.
 
-## Controles {#controles}
+## Controles
 
 A placa 3D da cena e o `README.md` do Sample trazem este mesmo texto:
 
@@ -56,7 +56,7 @@ O boneco começa com 2000 de vida e o conjurador com 400 de mana, o que cabe em 
 por reinício. A vida do boneco não passa de 0 e nada acontece quando chega lá: use `R` para
 voltar ao início.
 
-## Passo a passo {#passo-a-passo}
+## Passo a passo
 
 ### S1. Conjurar e ver o dano
 
@@ -80,7 +80,7 @@ voltar ao início.
 2. Aperte `T`: a escala vai a 0,25 e tudo o que segue o tempo escalado fica mais lento. `T` de novo volta a 1.
 3. `R` reinicia a cena e devolve a escala a 1, também com o jogo pausado ou em câmera lenta.
 
-## Dados do Sample {#dados}
+## Dados do Sample
 
 Os valores abaixo são os dos assets do Sample e podem ser ajustados no playtest.
 
@@ -99,7 +99,7 @@ Os valores abaixo são os dos assets do Sample e podem ser ajustados no playtest
 | `BolaDeFogo.prefab` | `Projectile` com `Speed` 12 e `Lifetime` 3 s, na fonte de tempo `TS_Gameplay` |
 | Câmera lenta | `Time.timeScale` 0,25 |
 
-## O relay de dano é do Sample {#relay}
+## O relay de dano é do Sample
 
 A Bola de Fogo dispara "Bola de Fogo Acertou" pela ponte GAS → Events do pacote (`RaiseEventAction`), mas essa
 ação tem payload fixo e não alcança a queimadura, que é um efeito. Por isso o `DamageTakenRelay` ouve a Vida
@@ -109,45 +109,45 @@ eventos do ASC. O pacote já tem esse relay: o par **Attribute Decreased** do
 cada tique da queimadura. O Sample pode trocar o `DamageTakenRelay` por ele; a diferença é o sinal, porque o
 par entrega a variação negativa e o `DamageTakenRelay`, o valor perdido.
 
-## O boneco não morre {#sem-morte}
+## O boneco não morre
 
-O boneco de treino não morre, porque o Sample não usa a morte. Ele pode ganhar a morte depois, num ticket próprio: um alvo que chega a Vida 0, mostra o estado e reinicia. As peças para isso já estão no pacote: o `State Tag While Depleted` da Vida e o evento `OnAttributeDepleted`, em [Dano, escudo e morte](../modulos/dano-escudo-e-morte.md#morte).
+O boneco de treino não morre, porque o Sample não usa a morte. Ele pode ganhar a morte depois, num ticket próprio: um alvo que chega a Vida 0, mostra o estado e reinicia. As peças para isso já estão no pacote: o `State Tag While Depleted` da Vida e o evento `OnAttributeDepleted`, em [Dano, escudo e morte](../modulos/dano-escudo-e-morte.md#morte-e-outros-limites).
 
-## Renovação da queimadura {#renovacao-da-queimadura}
+## Renovação da queimadura
 
 Reaplicar a queimadura **renova** a duração para 4 s, sem somar pilhas e sem criar segunda instância.
 Isso vem de `CanStack` ligado, `MaxStacks` 1 e `RefreshDurationOnStack` ligado. Com `CanStack` desligado, um
 efeito com duração reaplicado cria uma segunda instância paralela, que não renova nem empilha.
 
-## Scripts do Sample {#scripts}
+## Scripts do Sample
 
 Os scripts ficam no assembly `SpellBook.Samples.Sandbox`, que referencia só Core, Time, Events,
 Tags e GAS. Eles são exemplos para ler e copiar, não API do pacote.
 
-### SandboxCaster {#sandboxcaster}
+### SandboxCaster
 
 Fica no conjurador. Projeta o mouse num plano na altura da mira, gira o conjurador para o ponto
 e, com a tecla de conjuração, chama `TryActivateAbility` com o ponto como alvo. Escreve no
 Console a conjuração e o motivo de cada falha: recarga, com o tempo restante, ou falta de mana.
 
-### SandboxDirector {#sandboxdirector}
+### SandboxDirector
 
 Fica num objeto da cena. Cria o conjurador e o boneco nos pontos de spawn e lê as teclas `P`,
 `T` e `R`. A leitura não depende do grupo de tempo, então `P` funciona com o jogo pausado. Ao
 reiniciar e ao sair da cena, devolve o `Time.timeScale` a 1.
 
-### DamageTakenRelay {#damagetakenrelay}
+### DamageTakenRelay
 
 Fica no boneco. Ouve a mudança da própria Vida e, a cada queda, dispara o canal "Dano Recebido"
 com o valor perdido. Cobre o dano imediato e cada tique da queimadura.
 
-### TrainingDummyFeedback {#trainingdummyfeedback}
+### TrainingDummyFeedback
 
 Fica no boneco. Pisca a cor de acerto a cada dano recebido, medida pela fonte de tempo do
 gameplay, e usa a cor de queimadura enquanto a tag de queimadura estiver ativa. A cor vai por
 `MaterialPropertyBlock`, sem instanciar material.
 
-### AttributeReadout {#attributereadout}
+### AttributeReadout
 
 Fica nos dois personagens. Copia o valor atual de cada atributo da lista para um campo visível no
 Inspector a cada mudança, para acompanhar vida e mana durante o Play.

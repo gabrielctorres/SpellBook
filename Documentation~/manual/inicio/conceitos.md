@@ -1,15 +1,15 @@
-# Conceitos {#conceitos}
+# Conceitos
 
 Esta página explica como o SpellBook está dividido em módulos e quais dependências entre eles
 são permitidas.
 
-## Módulos e assemblies {#modulos}
+## Módulos e assemblies
 
 Cada módulo do SpellBook é um assembly (`.asmdef`) próprio. Um asmdef do seu projeto que usa
 um módulo precisa referenciar o assembly dele. Os assemblies de runtime têm
 `autoReferenced` ligado, então scripts fora de asmdef (no `Assembly-CSharp`) já enxergam todos.
 
-### Mapa de assemblies {#mapa}
+### Mapa de assemblies
 
 O pacote tem estes assemblies. A coluna "Referencia" lista os assemblies do SpellBook que cada
 um pode referenciar; nenhum outro é permitido.
@@ -33,12 +33,12 @@ um pode referenciar; nenhum outro é permitido.
 Um projeto que usa só o pooling, por exemplo, tem um asmdef que referencia o `SpellBook.Core` e o
 `SpellBook.Pooling` e nada mais. Ele compila sem o GAS, o Events, o Time e o Tags.
 
-## Core {#core}
+## Core
 
 Além do Inspector e da validação, o `SpellBook.Core` tem a base das condições e três utilidades
 que os outros módulos e o seu projeto podem usar.
 
-### Condições {#condicoes}
+### Condições
 
 Uma condição é uma pergunta de sim ou não feita sobre um contexto, como "o personagem tem a tag
 Atordoado?". A base é `Condition<TContext>`, do namespace `SpellBook.Core.Conditions`. Cada módulo
@@ -96,12 +96,12 @@ public sealed class LowHealthCondition : Condition<MyContext>
 ```
 {% endcode %}
 
-### `Void` {#void}
+### `Void`
 
 `Void` é uma struct vazia e serializável. Serve de payload para um evento que não carrega dado,
 no lugar de um tipo inventado só para isso.
 
-### `RuntimeSet<T>` {#runtime-set}
+### `RuntimeSet<T>`
 
 `RuntimeSet<T>` é um `ScriptableObject` abstrato que guarda uma lista de itens em runtime, como
 os inimigos vivos na cena. Para usar, crie uma classe concreta que herda dele com o tipo do
@@ -114,7 +114,7 @@ public class EnemySet : RuntimeSet<Enemy> { }
 ```
 {% endcode %}
 
-### `MathTools` {#math-tools}
+### `MathTools`
 
 `MathTools` é uma classe estática do namespace `SpellBook.Core`. Não precisa de componente na
 cena: chame os métodos direto.
@@ -141,7 +141,7 @@ float volume = MathTools.Map(distance, 0f, 20f, 1f, 0f);
 Na 2.x, `MathTools` ficava aninhada no componente `Math` (`SpellBook.MathTools.Math.MathTools`).
 Esse componente não existe mais na 3.0.
 
-## Regra de dependência {#regra-de-dependencia}
+## Regra de dependência
 
 A regra vale entre assemblies:
 

@@ -252,3 +252,70 @@ GB1, 2026-11-05. Branch `spike/gitbook`: `7160b42` (conteúdo), `6d1255a` (`gitb
 - Critério de pronto: os testes red passam; `ReferenceUpToDateTests`, `DocumentationCategoryTests`, `TypeCatalogPageTests` e `ManualCodeExamplesTests` passam, com o `total` do XML conferido; `git grep -n -e "--8<-- \"" -- Documentation~/manual` não acha nada; o `catalogo.md` não tem `<!--`; rodar a geração de novo não muda nenhum arquivo.
 - Tamanho: 576 linhas medidas (adicionadas mais removidas nos 6 `.cs`) em 13 arquivos (6 de código e as 7 páginas; o código expandido e o catálogo são saída de gerador com guarda e não contam). Exceção: 13 arquivos (+30% sobre o teto de 10) e 576 linhas (+15% sobre o teto de 500), dentro da faixa da ADR 0042. As linhas passam do teto porque os testes do expansor cobrem os quatro casos de falha do CA4 e a junção, o recuo e a estabilidade das seções. Motivo: a Spec estimou 11 (4 de código e as 7 páginas), mas a decisão do catálogo soma o `TypeCatalogPage` e o teste dele, e a troca do menu soma a instrução do `ReferenceUpToDateTests`. Para não passar de 13, o expansor fica no `ReferenceGenerator.cs`, e os testes dele no `ReferenceGeneratorTests.cs`, sem arquivo novo.
 - Commit: `feat(docs): exemplos expandidos por marcador e Gerar catálogo e exemplos`
+
+## GB5 — Sintaxe das páginas, parte 1
+### Detalhe (2026-11-05)
+- CA: CA8 nas 9 páginas do ticket (mesmas seções e mesmo texto; muda só a sintaxe). O CA6 não tem objeto aqui: nenhuma das 9 páginas tem bloco `mermaid`. O único do manual está em `modulos/dano-escudo-e-morte.md`, no GB6. A parte do CA5 sobre sobra de sintaxe (`{#`, `!!!`, `???`) passa a valer nestas páginas; a guarda que a confere é do GB7.
+- O que as páginas têm hoje (contado em 2026-11-05, depois do GB4):
+  - 81 títulos com `{#id}`: `README.md` 3, `inicio/conceitos.md` 9, `inicio/inspector.md` 10, `inicio/instalacao.md` 6, `ferramentas/event-debugger.md` 8, `ferramentas/gas-debugger.md` 7, `ferramentas/validador.md` 9, `exemplos/sandbox.md` 15, `regras/migracao-2-para-3.md` 14. Nenhuma página tem dois títulos iguais.
+  - 2 admonitions, as duas `!!! note` com título e corpo recuado em 4 espaços: `README.md:34-36` ("Versão 3.0 em desenvolvimento") e `inicio/instalacao.md:34-36` ("Versões 2.x"). Nenhum `???`.
+  - Nada de `<div>`, `<span>`, `attr_list` (`{: ...}`, `{ .classe }`), abas (`===`), ícone ou emoji do Material, nota de rodapé, abreviação ou `markdown="1"`.
+  - Os links entre páginas já são relativos para o `.md`, o formato que o GB1 mostrou. Nenhum link absoluto para o site (`github.io/SpellBook` ou `gitbook.io`), nenhum `/pages/...` e nenhum link para o `index.md`. As URLs `https://github.com/...` de `inicio/instalacao.md:12,19,29,35` e `regras/migracao-2-para-3.md:13` são a URL de instalação do pacote, em código, e ficam.
+  - 15 blocos `{% code title %}` expandidos pelo GB4 (`conceitos.md` 4, `inspector.md` 9, `validador.md` 2) e os blocos ` ```json ` e ` ```text `. Ficam como estão.
+- Regra que vale agora: o guia do manual ainda manda pôr `{#id}` em todo título (`guia-do-manual.md:89`, parte 4, item 1; o molde da parte 1, `:10-43`) e usar `!!! note` e `!!! warning` (`:41`). Essas partes são do GB8. Até lá, valem os itens 9 e 11 da 0044: o título não tem `{#id}`, a âncora é a que o GitBook gera do título, e a admonition vira `{% hint %}`. A regra do slug foi medida pelo Controlador em 2026-11-05, pelo MCP, num space de teste, lendo o `meta.id` gerado para cada título. Uma segunda medição, no mesmo dia, corrigiu a primeira nos casos de `<`, `>` e título que começa com dígito. O GB7 usa a mesma regra:
+  - letras minúsculas; acento e cedilha viram a letra base (`ç` → `c`, `ã` → `a`, `é` → `e`, `ñ` → `n`);
+  - a formatação dentro do título (código, ênfase, escape com `\`) entra só com o texto;
+  - espaço vira hífen, e hífens seguidos viram um só;
+  - `&` vira `and`, `<` vira `less-than` e `>` vira `greater-than`, cada um como palavra separada;
+  - dois-pontos, parênteses, setas e as outras pontuações somem, mas o ponto entre dígitos ou logo depois de um dígito fica (`1.0`, `4.`);
+  - título cujo slug começa com dígito ganha o prefixo `id-`;
+  - um título repetido na mesma página ganha `-1`, `-2`.
+
+  Exemplos medidos: `Mapa dos módulos` → `mapa-dos-modulos`; `Cast Range: alcance & custo` → `cast-range-alcance-and-custo`; `Regras de migração (2 → 3)` → `regras-de-migracao-2-3`; `ÁRVORE Ç ñ` → `arvore-c-n`; `EventBus\<T\>` → `eventbus-less-than-t-greater-than`; `4. Ciclo de vida, cooldown e custo` → `id-4.-ciclo-de-vida-cooldown-e-custo`; `1.5 AbilitySystemComponent (ASC)` → `id-1.5-abilitysystemcomponent-asc`. O item 2 da parte 4 continua: a seção de um tipo tem o nome do tipo como título, então a âncora segue sendo o nome em minúsculas (as 5 seções dos scripts em `exemplos/sandbox.md:127-150`, de `### SandboxCaster` a `### AttributeReadout`, já são assim). Valem também a parte 5 (página antiga: não reestruturar) e as buscas da parte 7, menos a linha do build.
+- Escopo:
+  - As 9 páginas, em cada linha de título: sai o ` {#id}` do fim. O texto do título não muda.
+  - `README.md:34-36` e `inicio/instalacao.md:34-36`: `!!! note "<título>"` vira `{% hint style="info" %}`, o formato do GB1 (`934c949`, `modulos/README.md:5-7`). O título da admonition vira a primeira linha do hint, em negrito, seguida de uma linha em branco. O corpo perde o recuo de 4 espaços, que no GitBook faria dele um bloco de código, e o hint fecha com `{% endhint %}`. As palavras não mudam. O negrito, e não um título `##` dentro do hint, evita uma âncora e uma entrada nova no índice da página.
+  - Links com âncora que saem das 9 páginas (decisão do usuário de 2026-11-05, opção c): cada um passa a apontar para o slug que a regra acima dá ao título atual da página de destino. Para destino em `modulos/`, vale o título que já está lá, porque o GB6 só tira o `{#id}` e não muda o texto. O caminho do arquivo e o texto do link não mudam, só o que vem depois do `#`. São 38 links com âncora nas 9 páginas. Em 22, o slug já é o `id` antigo (por exemplo `#validacao-no-inspector`, `#tipo-nao-encontrado`, `#condicoes`, `#raiseeventaction`, `#cargas`), e eles ficam. Os 16 que mudam:
+
+    | Origem | Destino (título) | Antes | Depois |
+    |---|---|---|---|
+    | `README.md:32` | `inicio/conceitos.md:12` (Mapa de assemblies) | `#mapa` | `#mapa-de-assemblies` |
+    | `inicio/inspector.md:122` | `inicio/inspector.md:85` (Renomear tipos sem perder dados) | `#movedfrom` | `#renomear-tipos-sem-perder-dados` |
+    | `ferramentas/event-debugger.md:59` | `modulos/eventos.md:32` (`EventBus\<T\>`) | `#eventbus` | `#eventbus-less-than-t-greater-than` |
+    | `ferramentas/gas-debugger.md:4` | `modulos/gas.md:328` (1.5 AbilitySystemComponent (ASC)) | `#abilitysystemcomponent` | `#id-1.5-abilitysystemcomponent-asc` |
+    | `ferramentas/gas-debugger.md:66` | `modulos/gas.md:515` (4. Ciclo de vida, cooldown e custo) | `#ciclo-de-vida` | `#id-4.-ciclo-de-vida-cooldown-e-custo` |
+    | `ferramentas/validador.md:54` | `modulos/eventos.md:298` (Inspector e validação do relay) | `#relay-inspector` | `#inspector-e-validacao-do-relay` |
+    | `ferramentas/validador.md:63` | `modulos/gas.md:332` (Efeitos de partida) | `#starting-effects` | `#efeitos-de-partida` |
+    | `ferramentas/validador.md:73` | `modulos/gas.md:232` (Níveis e tabela de valores) | `#abilityvalues` | `#niveis-e-tabela-de-valores` |
+    | `ferramentas/validador.md:83` | `modulos/gas.md:85` (Valores por nível (ScalableFloat)) | `#scalablefloat` | `#valores-por-nivel-scalablefloat` |
+    | `ferramentas/validador.md:84` | `modulos/gas.md:159` (Snapshot ou ao vivo) | `#magnitude-ao-vivo` | `#snapshot-ou-ao-vivo` |
+    | `ferramentas/validador.md:107` | `modulos/gas.md:99` (1.3 Gameplay Effects (GE)) | `#gameplayeffect` | `#id-1.3-gameplay-effects-ge` |
+    | `exemplos/sandbox.md:114` | `modulos/dano-escudo-e-morte.md:114` (Morte e outros limites) | `#morte` | `#morte-e-outros-limites` |
+    | `regras/migracao-2-para-3.md:35` | `inicio/conceitos.md:6` (Módulos e assemblies) | `#modulos` | `#modulos-e-assemblies` |
+    | `regras/migracao-2-para-3.md:108` | `inicio/conceitos.md:117` (`` `MathTools` ``) | `#math-tools` | `#mathtools` |
+    | `regras/migracao-2-para-3.md:149` | `modulos/gas.md:684` (4.6 Tempo do ASC) | `#tempo-do-asc` | `#id-4.6-tempo-do-asc` |
+    | `regras/migracao-2-para-3.md:200` | `modulos/gas.md:85` (Valores por nível (ScalableFloat)) | `#scalablefloat` | `#valores-por-nivel-scalablefloat` |
+
+    Quatro destinos começam com dígito (`modulos/gas.md:99`, `:328`, `:515` e `:684`) e levam o `id-`. Um tem `<` e `>` (`modulos/eventos.md:32`). Nenhum dos 22 links que ficam vai para título que começa com dígito ou tem `<` ou `>`, então a correção da regra não muda a contagem: continuam 16. Nenhum destino tem título repetido antes dele na página, então nenhum slug leva `-1`. Quando o GB6 tirar os `{#id}` de `modulos/`, os 12 links da tabela que vão para lá passam a valer. Até lá, eles apontam para âncoras que ainda não existem.
+  - Para o GB6 (links de `modulos/` para as páginas deste ticket, que o GB6 corrige pela mesma regra): `modulos/eventos.md:7`, `gas.md:7`, `tags.md:8` e `tempo.md:8` (`#modulos` → `#modulos-e-assemblies`); `modulos/gas.md:31` (`#regras` → `#regras-da-3.0`); `modulos/gas.md:103` (`#valores-por-nivel` → `#valores-por-nivel-no-gas`); `modulos/tags.md:200` (`#ivalidatable` → `#validar-um-tipo-seu`). Os de `modulos/gas.md:270` (`#condicoes`) e `:680` (`#eventos-do-gas`) já batem. Entre o GB5 e o GB6, esses 7 links ficam quebrados.
+  - `Packages/com.spellbook/Tests/Repository/EditMode/Structure/SampleStructureTests.cs:359-387` (consequência direta, ADR 0042, item 6): o `SampleBehaviours_HaveHelpUrlToSamplesPage` procura `{#<âncora>}` no `sandbox.md` (`:378`) e não está na categoria `Documentacao`. Sem o ajuste, ele fica vermelho na suíte `!Documentacao` de todos os tickets do lote depois deste. Passa a conferir que o `sandbox.md` tem um título (`#` a `######`) cujo texto, em minúsculas, é a âncora do `[HelpURL]` (`SandboxCaster` → `sandboxcaster`), pelo item 2 da parte 4 do guia e pelo item 9 da 0044. Para um nome de tipo sem acento nem pontuação, isso é o slug da regra acima. A mensagem passa a dizer "nenhum título" no lugar de "âncora {#...}". O GB7 pode juntar essa conferência à do `ManualLinksTests`.
+- Testes red: nenhum teste novo. O teste que prova a mudança é o `SampleStructureTests.SampleBehaviours_HaveHelpUrlToSamplesPage` (EditMode, `SpellBook.Repository.Tests.EditMode`): com o `sandbox.md` sem `{#id}` e o código antigo, ele falha com as 5 âncoras dos scripts do Sample; com o ajuste, passa. O ticket é do Codex, que não roda a Unity, então o Examinador mostra o red e o green na `/revisao`. Guardas `Documentacao` depois do GB5:
+  - `ManualLinksTests.EveryHelpUrlHasPageAndAnchor`: segue vermelha, com 5 linhas novas (`DocUrls.Samples + "#sandboxcaster"`, `#sandboxdirector`, `#damagetakenrelay`, `#trainingdummyfeedback`, `#attributereadout`). Ela já está vermelha hoje, pelas páginas de `ui/` que faltam e pelo `DocUrls.Concepts + "#ancoras"`, que não tem título em `conceitos.md`. O GB7 a reescreve;
+  - `ManualLinksTests.EveryDocUrlHasPage`: segue vermelha como hoje (o `index.md` do GB2 e as páginas que faltam). Nenhuma constante do `DocUrls` tem âncora, então o GB5 não muda o resultado;
+  - `ManualLinksTests.NoStubPages`: verde;
+  - `ManualCodeExamplesTests` (4 testes), `ReferenceUpToDateTests` e `DocumentationCategoryTests`: verdes, porque os blocos `{% code title %}` não mudam.
+
+  As âncoras mudam: nas 9 páginas, passam a ser o slug do título. Até o GB7, nenhuma guarda confere link com âncora. Quem confere é o critério de pronto abaixo. Entre o GB5 e o GB6, ficam quebrados os 12 links da tabela que vão para `modulos/` e os 7 de `modulos/` que vêm para cá.
+- Critério de pronto (da raiz do repositório, sem Unity; `P` são as 9 páginas):
+  - `git grep -nE '\{#|^\s*(!!!|\?\?\?)|--8<--' -- $P` não acha nada;
+  - para cada página `f`, `diff <(git show HEAD:"$f" | sed -E '/^#/ s/ \{#[^}]+\}\s*$//') "$f"` não mostra nada, salvo os dois hints em `README.md` e `inicio/instalacao.md` e as 16 linhas da tabela de links. Nessas linhas, só muda o que vem depois do `#`. Isso prova que os títulos, o texto dos links, os blocos de código e o resto do texto não mudaram (CA8);
+  - cada link `](<caminho>#<âncora>)` e `](#<âncora>)` das 9 páginas leva a um título cujo slug é a âncora: o da página de destino depois de tirar o `{#id}`, pela regra acima. Para destino em `modulos/`, vale o título de hoje. A conferência é feita por script descartável na pasta de rascunho, sem Python (CA7), e mostra 38 links, nenhum quebrado;
+  - `git grep -c '{% hint style="info" %}' -- $P` e `git grep -c '{% endhint %}' -- $P` dão 1 em `README.md` e 1 em `inicio/instalacao.md`, e nada nas outras;
+  - nenhuma linha recuada em 4 espaços fora de bloco de código: `awk 'FNR==1{b=0} /^\s*```/{b=!b;next} !b && /^    [^ ]/{print FILENAME":"FNR}' $P` não mostra nada;
+  - `git grep -c '{% code title=' -- $P` continua 4 em `conceitos.md`, 9 em `inspector.md` e 2 em `validador.md`;
+  - nenhum link absoluto para o site: `git grep -nE 'github\.io/SpellBook|gitbook\.io|\]\(/' -- $P` não acha nada;
+  - as buscas da parte 7 do guia: `grep -nE '!\[|<img' $P` não acha nada, e a de sigla em título acha só o que achava antes;
+  - o `SampleBehaviours_HaveHelpUrlToSamplesPage` passa e o `git grep -n '{#' -- Packages/com.spellbook/Tests/Repository/EditMode/Structure/SampleStructureTests.cs` não acha nada (o Examinador roda o teste);
+  - `git diff --check` limpo.
+- Tamanho: ~12 linhas (só o `.cs` conta) em 10 arquivos (as 9 páginas e o `SampleStructureTests.cs`). A Spec estimou 9; o teste entra como consequência direta e conta. Os links corrigidos ficam nas mesmas 9 páginas e não somam arquivo. Exceção: nenhuma.
+- Commit: `docs(manual): sintaxe do GitBook nas páginas fora de modulos/`

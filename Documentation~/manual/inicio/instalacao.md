@@ -1,11 +1,11 @@
-# Instalação {#instalacao}
+# Instalação
 
-## Requisitos {#requisitos}
+## Requisitos
 
 - **Unity 6000.0 ou mais nova.** Versões anteriores (2021.3, 2022 e 2023) não instalam a 3.0.
 - **Nenhuma dependência de terceiros.** O pacote usa só a Unity.
 
-## Instalar pela URL do git {#instalar-pela-url-do-git}
+## Instalar pela URL do git
 
 1. Na Unity, abra **Window > Package Manager**.
 2. Clique em **+** e escolha **Install package from git URL...**.
@@ -31,13 +31,16 @@ Para fixar uma versão, acrescente `#<tag>` ao final da URL. Por exemplo, para a
 }
 ```
 
-!!! note "Versões 2.x"
-    As versões 2.x usam a **URL antiga**, sem `?path=`: `https://github.com/gabrielctorres/SpellBook.git`.
-    A URL com `?path=` vale só a partir da 3.0.
+{% hint style="info" %}
+**Versões 2.x**
+
+As versões 2.x usam a **URL antiga**, sem `?path=`: `https://github.com/gabrielctorres/SpellBook.git`.
+A URL com `?path=` vale só a partir da 3.0.
+{% endhint %}
 
 Depois da instalação, o projeto deve compilar sem erros vindos do SpellBook.
 
-## Importar o Sample {#importar-o-sample}
+## Importar o Sample
 
 O pacote traz o Sample **Sandbox**, uma cena de teste manual dos módulos.
 
@@ -48,13 +51,13 @@ O pacote traz o Sample **Sandbox**, uma cena de teste manual dos módulos.
 O Sample usa o Input Manager legado (**Active Input Handling** em **Input Manager (Old)** ou **Both**). Os controles
 e o passo a passo estão em [Sample Sandbox](../exemplos/sandbox.md).
 
-## Inspector {#inspector}
+## Inspector
 
 O Inspector do pacote é feito em UI Toolkit, que já vem com a Unity. Não é preciso instalar
 nenhum plugin de Inspector. Na 3.0, os campos que aceitam vários tipos (por exemplo, as ações
 de uma habilidade) ganham um seletor com busca e categorias.
 
-## Compatibilidade {#compatibilidade}
+## Compatibilidade
 
 A versão mínima declarada é a **Unity 6000.0** (campo `unity` do `package.json`).
 

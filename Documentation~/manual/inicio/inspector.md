@@ -1,11 +1,11 @@
-# Inspector {#inspector}
+# Inspector
 
 O Inspector do SpellBook é feito em UI Toolkit, que já vem com a Unity. Esta página explica o
 seletor de tipo, como renomear tipos sem perder dados, o aviso de tipo não encontrado, a
 validação no topo do Inspector, como esconder campos com `[ShowIf]` e o
 que acontece em Inspectors que não são UI Toolkit.
 
-## Seletor de tipo {#seletor-de-tipo}
+## Seletor de tipo
 
 Alguns campos aceitam vários tipos concretos, por exemplo a lista de ações de uma habilidade.
 No código, esses campos são `[SerializeReference]` com o atributo `[TypePicker]`:
@@ -32,7 +32,7 @@ Os tipos que aparecem na lista são os concretos, não genéricos, marcados com 
 com construtor sem parâmetros e que não herdam de `UnityEngine.Object`. Tipos de outros
 assemblies também entram.
 
-## Popup, busca e categorias {#popup-busca-categorias}
+## Popup, busca e categorias
 
 Clicar no botão abre o popup do seletor, ancorado nele:
 
@@ -82,7 +82,7 @@ Em listas, duplicar um elemento no Inspector não deixa dois elementos apontando
 instância: o seletor troca a cópia por uma instância própria, e editar um elemento não muda o
 outro.
 
-## Renomear tipos sem perder dados {#movedfrom}
+## Renomear tipos sem perder dados
 
 A Unity grava o nome do tipo (assembly, namespace e classe) nos assets de campos
 `[SerializeReference]`. Se você renomear a classe, mudar o namespace ou movê-la de assembly, o
@@ -108,7 +108,7 @@ Preencha só o que mudou: `sourceNamespace` para mudança de namespace, `sourceA
 mudança de assembly e `sourceClassName` para mudança de nome. Os dados são atualizados na
 próxima vez que o asset for salvo. Mantenha o atributo enquanto existirem assets antigos.
 
-## Tipo não encontrado {#tipo-nao-encontrado}
+## Tipo não encontrado
 
 Se o tipo de um campo `[SerializeReference]` some (a classe foi apagada, renomeada sem
 `[MovedFrom]` ou mudou de assembly), a Unity guarda os dados da referência no asset, mas o campo
@@ -119,7 +119,7 @@ no campo: fica no **topo do Inspector** do objeto, um erro por tipo ausente:
 > dados, ou limpe a referência.
 
 - **Restaurar o tipo** (voltar a classe com o mesmo nome, namespace e assembly, ou marcar a
-  classe nova com [`[MovedFrom]`](#movedfrom)) recupera os dados.
+  classe nova com [`[MovedFrom]`](#renomear-tipos-sem-perder-dados)) recupera os dados.
 - **Limpar referência**, o botão do aviso, apaga os dados guardados. Ele pede confirmação, e o
   SpellBook nunca limpa sozinho. Trate a limpeza como definitiva.
 - Antes de escolher outro tipo num campo que aparece como **(Nenhum)** por causa desse aviso,
@@ -129,7 +129,7 @@ O aviso aparece nos Inspectors que herdam de `SpellBookEditor` (veja
 [Validação no Inspector](#validacao-no-inspector)). Um tipo seu com um Inspector que não herda
 dele não mostra o aviso.
 
-## Mostrar campos por condição {#showif}
+## Mostrar campos por condição
 
 `[ShowIf]` mostra um campo só quando um campo **irmão** tem um valor. O irmão é outro campo
 serializado do mesmo objeto ou da mesma struct, do tipo `bool` ou `enum`, e a comparação é por
@@ -188,7 +188,7 @@ public class MinhaConfigComAlias : UnityEngine.ScriptableObject
 ```
 {% endcode %}
 
-## Limite de um drawer por campo {#um-drawer-por-campo}
+## Limite de um drawer por campo
 
 A Unity usa um único drawer de atributo por campo. Um campo com `[TypePicker]` já tem o drawer
 do seletor, então não combine esse atributo com outro atributo de drawer no mesmo campo, como
@@ -199,7 +199,7 @@ O limite vale para atributos. O drawer do tipo escolhido continua valendo abaixo
 
 `[TypePicker]` vale só para campos `[SerializeReference]`, simples ou em lista.
 
-## Validação no Inspector {#validacao-no-inspector}
+## Validação no Inspector
 
 Um tipo que implementa `IValidatable` (`SpellBook.Core.Validation`) mostra as mensagens de
 validação no **topo do Inspector**, um aviso ou erro por mensagem, logo abaixo dos avisos de
@@ -226,7 +226,7 @@ public sealed class MinhaConfigEditor : SpellBookEditor { }
 Para pôr botões ou outros elementos, sobrescreva `BuildBeforeDefault` (antes dos campos) ou
 `BuildAfterDefault` (depois dos campos), que recebem o elemento raiz do Inspector.
 
-## Inspectors dos seus tipos {#inspectors-dos-seus-tipos}
+## Inspectors dos seus tipos
 
 Todo `MonoBehaviour` e `ScriptableObject` público do SpellBook já tem um Inspector que herda de
 `SpellBookEditor`. Nos seus tipos, faça o mesmo: crie o editor de uma linha mostrado acima. Se o
@@ -283,7 +283,7 @@ O mesmo vale para Inspectors de outros pacotes. Para não perder os avisos:
 - se não puder herdar, use o validador do projeto, que continua mostrando as mesmas mensagens
   (veja [Validador](../ferramentas/validador.md)).
 
-## Inspectors IMGUI e de terceiros {#imgui-e-terceiros}
+## Inspectors IMGUI e de terceiros
 
 Os drawers do SpellBook só existem em UI Toolkit. Se um Inspector IMGUI seu, ou um Inspector
 de outro pacote, desenhar um campo do SpellBook pelo caminho IMGUI, o campo não mostra o

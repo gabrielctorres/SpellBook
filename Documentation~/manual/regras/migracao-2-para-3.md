@@ -1,9 +1,9 @@
-# Migração 2.x → 3.0 {#migracao}
+# Migração 2.x → 3.0
 
 A 3.0 tem quebras de compatibilidade. Esta página lista o que muda e o que fazer em cada caso.
 A 3.0 ainda está em desenvolvimento, e a lista cresce junto com ela.
 
-## URL de instalação {#url-de-instalacao}
+## URL de instalação
 
 O pacote agora fica na pasta `Packages/com.spellbook` do repositório, e a URL do git passa a
 apontar para ela com `?path=`. A chave `com.spellbook` no `manifest.json` não muda.
@@ -16,7 +16,7 @@ apontar para ela com `?path=`. A chave `com.spellbook` no `manifest.json` não m
 - As tags 2.x continuam com a URL antiga, sem `?path=`.
 - Veja [Instalação](../inicio/instalacao.md).
 
-## Sem Odin Inspector {#sem-odin}
+## Sem Odin Inspector
 
 O pacote não depende mais do Odin Inspector. Ele compila e funciona num projeto sem o Odin.
 
@@ -28,13 +28,13 @@ O pacote não depende mais do Odin Inspector. Ele compila e funciona num projeto
   Unity com `[Header]` e `[Tooltip]`, o `[ShowIf]` e o seletor de tipo do próprio SpellBook. Veja
   [Inspector](../inicio/inspector.md).
 
-## Assembly do GAS {#assembly-do-gas}
+## Assembly do GAS
 
 O GAS saiu do `SpellBook.Core` e agora é o assembly `SpellBook.GAS`. Um asmdef seu que usa
 tipos do GAS precisa referenciar o `SpellBook.GAS`. Scripts fora de asmdef não precisam mudar.
-Veja [Conceitos](../inicio/conceitos.md#modulos).
+Veja [Conceitos](../inicio/conceitos.md#modulos-e-assemblies).
 
-## Tags {#tags}
+## Tags
 
 As tags agora são o módulo [Tags](../modulos/tags.md), no assembly `SpellBook.Tags`. O
 namespace saiu do GAS (`SpellBook.GAS.Tags` virou `SpellBook.Tags`) e o assembly saiu do
@@ -49,7 +49,7 @@ namespace saiu do GAS (`SpellBook.GAS.Tags` virou `SpellBook.Tags`) e o assembly
 - Um asmdef seu que usa tags precisa referenciar o `SpellBook.Tags`.
 - Os assets de tag e os campos de tag continuam válidos; nada muda no Inspector.
 
-## Recarga da habilidade {#recarga-da-habilidade}
+## Recarga da habilidade
 
 O campo **Cooldown Reduction Attribute** da `GameplayAbility` não aceita mais o nome antigo
 `_cooldownReductionAttribute`. Na 2.x, um `[FormerlySerializedAs]` lia esse nome antigo e
@@ -61,7 +61,7 @@ migrava o valor; na 3.0 esse atributo saiu.
   `AssetDatabase.ForceReserializeAssets()` num script de Editor. Se já atualizou, preencha o
   campo de novo no Inspector.
 
-## Sistemas de eventos antigos {#eventos-antigos}
+## Sistemas de eventos antigos
 
 A 2.x tinha três sistemas de eventos: os `GameEvent` de `Core/Events`, os canais de
 `Core/NewEventSystem` e o `EventManager` de `Systems/Events`. Os três foram removidos, sem
@@ -90,7 +90,7 @@ pré-release.
 | `SpellBook.Events.GameEvent` e `GameEventListener` (por string) | sem equivalente; canal ou tipo de evento próprio |
 | `SpellBook.Core.NewEventSystem.Void` | `SpellBook.Core.Void` (veja abaixo) |
 
-## `Void` e `RuntimeSet<T>` {#void-runtime-set}
+## `Void` e `RuntimeSet<T>`
 
 Os dois mudaram de namespace e continuam no `SpellBook.Core`. Troque o `using` no seu código. O
 nome da classe não mudou, então os assets de um `RuntimeSet<T>` seu continuam válidos. Veja
@@ -101,17 +101,17 @@ nome da classe não mudou, então os assets de um `RuntimeSet<T>` seu continuam 
 | `SpellBook.Core.NewEventSystem.Void` | `SpellBook.Core.Void` |
 | `SpellBook.Core.RuntimeSets.RuntimeSet<T>` | `SpellBook.Core.RuntimeSet<T>` |
 
-## `MathTools` {#math-tools}
+## `MathTools`
 
 O componente `Math` não existe mais. A `MathTools` saiu de dentro dele e é uma classe estática do
 `SpellBook.Core`. Remova o componente `Math` das cenas e chame os métodos direto. Veja
-[Conceitos](../inicio/conceitos.md#math-tools).
+[Conceitos](../inicio/conceitos.md#mathtools).
 
 | Antes (2.x) | Depois (3.0) |
 |---|---|
 | `SpellBook.MathTools.Math.MathTools` (aninhada no `MonoBehaviour` `Math`) | `SpellBook.Core.MathTools` |
 
-## Pooling {#pooling}
+## Pooling
 
 O pooling saiu de `Systems/Pooling` e agora é o módulo [Pooling](../modulos/pooling.md), no
 assembly `SpellBook.Pooling`. O namespace e o menu de criação mudaram.
@@ -125,7 +125,7 @@ assembly `SpellBook.Pooling`. O namespace e o menu de criação mudaram.
 - Um asmdef seu que usa o pooling precisa referenciar o `SpellBook.Pooling`.
 - Os assets de `PoolConfiguration` continuam válidos, porque o nome da classe não mudou.
 
-## Eventos do GAS {#eventos-do-gas}
+## Eventos do GAS
 
 Os eventos globais `AbilityActivatedEvent` e `AbilitySlotUpdateEvent` foram removidos, e o ASC
 não dispara mais evento no `EventManager`.
@@ -143,10 +143,10 @@ não dispara mais evento no `EventManager`.
 Até uma versão futura, o pacote não tem canal global de "habilidade ativada" nem de "slot
 atualizado". Quem precisa desses fatos usa os eventos C# do ASC.
 
-## Tempo do ASC {#tempo-do-asc}
+## Tempo do ASC
 
 O ASC não lê mais o `Time` da Unity. Durações de efeitos e recargas contam o tempo que o ASC
-recebe da fonte de tempo. Veja [Tempo do ASC](../modulos/gas.md#tempo-do-asc).
+recebe da fonte de tempo. Veja [Tempo do ASC](../modulos/gas.md#id-4.6-tempo-do-asc).
 
 - **Nada muda para quem não mexe nos campos novos.** O `autoTick` vem ligado e o `timeSource`
   vazio usa o tempo escalado da Unity, como na 2.x.
@@ -163,7 +163,7 @@ recebe da fonte de tempo. Veja [Tempo do ASC](../modulos/gas.md#tempo-do-asc).
 | `ActiveEffectInstance.StartTime` | removido |
 | `WaitAction`, `RepeatAction.Interval` e `SpawnProjectileAction.DelayBetweenShots` esperavam o tempo escalado da Unity (`WaitForSeconds`) | esperam o `TickedTime` do ASC de origem; com `autoTick` desligado sem `Tick`, ou com o grupo pausado, a espera para. Com os padrões (`autoTick` ligado, fonte vazia), nada muda. `WaitAction` com `Duration <= 0` continua cedendo um quadro |
 
-## Spawn e projéteis {#spawn-e-projeteis}
+## Spawn e projéteis
 
 As ações de spawn não usam mais o `PoolManager` da cena. Elas criam objetos pelo campo
 `Spawner`, um `SpawnerAsset`. Vazio usa o spawner padrão, por `Instantiate`. Veja
@@ -194,10 +194,10 @@ As ações de spawn não usam mais o `PoolManager` da cena. Elas criam objetos p
 | `SpawnVFXEffectAction` usava `Instantiate` e `Destroy` | campo `Spawner`; o VFX volta pelo mesmo spawner. **Mudou o fim de vida sem `DestroyOnRemoval`:** na 2.x, `Destroy(vfx, duration + startLifetime)` destruía o VFX mesmo com `Looping` ligado; na 3.0 ele só volta pelo spawner quando a partícula para (`ReleaseWhenParticlesStop`), então uma partícula em loop nunca volta. Desligue o `Looping` ou marque `DestroyOnRemoval`. Veja [Armadilhas do pooling](../modulos/pooling.md#armadilhas). |
 | `Projectile`: vida e invulnerabilidade por corrotina no tempo escalado; `protected virtual IEnumerator InitialInvulnerability()` | contadores no `FixedUpdate` pela fonte de tempo do projétil (vazio → escalado, como na 2.x); o método saiu, e subclasses que o sobrescrevem deixam de compilar: ajuste `InitialInvulnerabilityDuration` ou sobrescreva `HandleCollision` |
 
-## Valores por nível no GAS {#valores-por-nivel}
+## Valores por nível no GAS
 
 A `Duration` do `GameplayEffect`, o valor constante do modificador e o `Duration` da `WaitAction`
-deixam de ser `float` e passam a ser um [`ScalableFloat`](../modulos/gas.md#scalablefloat), que
+deixam de ser `float` e passam a ser um [`ScalableFloat`](../modulos/gas.md#valores-por-nivel-scalablefloat), que
 pode variar com o nível.
 
 - **Os assets continuam válidos.** Um efeito 2.x abre com a mesma duração e o mesmo valor, como

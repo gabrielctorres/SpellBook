@@ -375,9 +375,10 @@ namespace SpellBook.Core.Tests.Structure
                     {
                         violations.Add($"{Relative(file)}: {name} sem [HelpURL(DocUrls.Samples + \"#...\")]");
                     }
-                    else if (!page.Contains("{#" + help.Groups["anchor"].Value + "}"))
+                    else if (!Regex.Matches(page, @"^#{1,6} (?<title>.+?)\r?$", RegexOptions.Multiline)
+                        .Cast<Match>().Any(title => title.Groups["title"].Value.ToLowerInvariant() == help.Groups["anchor"].Value))
                     {
-                        violations.Add($"{Relative(file)}: âncora {{#{help.Groups["anchor"].Value}}} não existe em {SamplesPage}");
+                        violations.Add($"{Relative(file)}: nenhum título {help.Groups["anchor"].Value} em {SamplesPage}");
                     }
                 }
             }
