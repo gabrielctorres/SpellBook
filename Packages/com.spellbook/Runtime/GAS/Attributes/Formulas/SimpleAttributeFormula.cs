@@ -6,7 +6,7 @@ using SpellBook.GAS.Core;
 
 namespace SpellBook.GAS.Attributes
 {
-    [CreateAssetMenu(fileName = "Formula_Simple", menuName = "GAS/Formulas/Simple Attribute Formula")]
+    [CreateAssetMenu(fileName = "Formula_Simple", menuName = "SpellBook/GAS/Formulas/Simple Attribute Formula")]
     [HelpURL(DocUrls.Gas + "#simpleattributeformula")]
     public class SimpleAttributeFormula : Formula
     {

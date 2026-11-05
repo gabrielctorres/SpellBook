@@ -4,7 +4,7 @@ using UnityEngine;
 namespace SpellBook.Tags
 {
     [HelpURL(DocUrls.Tags + "#gameplaytagdefinition")]
-    [CreateAssetMenu(fileName = "NewTag", menuName = "GAS/Tag Definition")]
+    [CreateAssetMenu(fileName = "NewTag", menuName = "SpellBook/Tags/Tag Definition")]
     public class GameplayTagDefinition : ScriptableObject
     {
         [SerializeField] private GameplayTagDefinition parent;

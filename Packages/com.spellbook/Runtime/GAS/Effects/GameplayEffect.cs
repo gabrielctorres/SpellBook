@@ -43,7 +43,7 @@ namespace SpellBook.GAS.Effects
         public MagnitudeMode Mode;
     }
 
-    [CreateAssetMenu(fileName = "GE_NewEffect", menuName = "GAS/Gameplay Effect")]
+    [CreateAssetMenu(fileName = "GE_NewEffect", menuName = "SpellBook/GAS/Gameplay Effect")]
     [HelpURL(DocUrls.Gas + "#gameplayeffect")]
     public class GameplayEffect : ScriptableObject, ISerializationCallbackReceiver, IValidatable
     {
