@@ -44,6 +44,7 @@ Os novos tipos de cada épico (o `AbilityTemplate` do B-019a, por exemplo) preci
    | Família | Tipos |
    |---|---|
    | Habilidade | `GameplayAbility` |
+   | Modelo de habilidade | `AbilityTemplate` |
    | Efeito | `GameplayEffect` |
    | Atributo | `AttributeDefinition` |
    | Categoria de atributo | `AttributeCategory` |
