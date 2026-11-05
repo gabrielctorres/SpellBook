@@ -65,3 +65,22 @@ O IH2, o IH3 e o IH4 mexem no `GameplayAbilityEditor`, então não rodam em para
 ## Validação de uso
 | Data | Observação | Ajuste pedido | Status |
 |---|---|---|---|
+
+## IH1 — Quatro abas do Inspector da habilidade
+### Detalhe (2026-11-05)
+- CA: CA1, CA2, CA8, CA9. O CA3 (campos por comportamento) é do IH2, a prévia por nível do CA4 é do IH3 e as tags compactas do CA5 são do IH4. Aqui os campos só mudam de lugar.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Editor/GAS/InspectorTabsView.cs` (novo, `internal`): elemento de abas reutilizável, um `TabView` com as abas dadas pelo dono. A aba ativa fica no `SessionState` por asset, com o prefixo `SpellBook.InspectorTabs.Tab.`, separado do prefixo das abas de eventos. Um asset sem aba lembrada abre na primeira. Tem também os grupos com título em negrito, `MoveFields`, que move os `PropertyField:<campo>` do Inspector padrão para um grupo, e `MoveRemaining`, que leva o campo que sobrou para o grupo "Outros" no fim de uma aba (o grupo só existe se sobrar campo).
+  - `Editor/GAS/GameplayAbilityEditor.cs:22`: `[CustomEditor(typeof(GameplayAbility), true)]`, para que a subclasse use o mesmo Inspector e o campo dela vá para "Outros". `:39-68` (`BuildAfterDefault`): as quatro abas, pela tabela do DS (seção 3):
+    - Configuração: Identidade (`Icon`, `localizedName`, `AbilityTag`, `Description`), Comportamento (`behavior`, `commitMode`, `channelDuration`, `channelTickInterval`, `reactivatePassive`, `autocast`), Custo e recarga (`CostEffect`, `CooldownEffect`, `CooldownReductionAttribute`, `cooldownReductionPolicy`, `charges`) e Condições de ativação (`castRange`, `activationConditions` e, abaixo, as linhas das regras). O grupo Condições de ativação passa a se chamar `ActivationName`.
+    - Ações: o `ActionEventsView`, sem mudança.
+    - Tags e gatilhos: Tags (as seis listas, sem compactar) e Gatilhos (`triggers`).
+    - Níveis e prévia: Níveis (`maxLevel`, `values`) e Prévia (nível de prévia, `PreviewName`, `ChargesPreviewName` e a seção `DescriptionSectionName`). A prévia das cargas sai de "Ativação", porque mostra valor por nível (CA4). As constantes públicas continuam as mesmas (CA8).
+  - A linha "Script" (`m_Script`) do Inspector padrão fica acima das abas, como nos outros Inspectors da Unity, e não conta como campo desconhecido. **Decisão a confirmar com o Controlador:** a pergunta não chegou porque o terminal dele mostrava um pedido de permissão. A alternativa é pôr a linha em "Outros".
+  - `Runtime/GAS/Abilities/GameplayAbility.cs:39,60,67,102,121,158`: saem os seis `[Header]`, porque os títulos agora vêm dos grupos e o "Ativação" e o "Gatilhos" ficariam no grupo errado (decisões do épico). O formato serializado não muda.
+  - `Tests/GAS/EditMode/ActionInspectorTests.cs:51,166`: a busca por `Tab` fica dentro do `ActionEventsView`, porque as abas do topo também são `Tab`. Isso é consequência direta do ticket (0042, item 6), e as asserções continuam as mesmas.
+  - Sem `CHANGELOG.md` e sem manual: o ticket não quebra nada, e o manual fica para o passe de documentação.
+- Testes red (EditMode, `SpellBook.GAS.Tests.EditMode`, classe `AbilityInspectorTabsTests`, em `Tests/GAS/EditMode/AbilityInspectorTabsTests.cs`, novo): `Tabs_FourInOrder_BelowValidation`; `Configuration_FourGroupsInOrder_WithDsFields`; `Fields_EachInOneTab_ScriptAboveTabs`; `RuleSummary_InActivationConditions_BelowRules`; `PreviewElements_InLevelsTab`; `UnknownField_InOthersAtEndOfConfiguration`; `ActiveTab_RememberedPerAsset_NewAssetOpensConfiguration`; `MultiSelection_ShowsTabs_ActionsFollowDs`; `RuntimeHeaders_Removed`.
+- Critério de pronto: os nove verdes, mais `ActivationInspectorTests`, `DescriptionPreviewTests`, `LevelValuesDrawerTests`, `ActionInspectorTests` e `ThinkerInspectorTests` verdes no filtro, sem mudar asserção. A suíte completa roda na `/revisao`.
+- Tamanho: 424 linhas medidas (+394 −30) e 5 arquivos, 2 deles novos, pela ADR 0042. Os `.meta` e este Detalhe não contam. Exceção: nenhuma.
+- Commit: `feat(editor): quatro abas do Inspector da habilidade`

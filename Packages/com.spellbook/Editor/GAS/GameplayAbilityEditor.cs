@@ -14,12 +14,15 @@ using UnityEngine.UIElements;
 namespace SpellBook.GAS.Editor
 {
     /// <summary>
-    /// Inspector da <see cref="GameplayAbility"/> (R29). Depois do Inspector padrão: o "nível de prévia", limitado a
-    /// [1, MaxLevel], e a prévia nesse nível de cada valor da tabela e da recarga (sem a redução do atributo); a seção
-    /// "Descrição", com a <see cref="DescriptionPreviewElement"/> no mesmo nível; a seção "Ativação", com uma linha por regra (resumo da condição e motivo da falha); a prévia das cargas no mesmo nível; e as
-    /// abas de ações por evento, com "A cada passo" só em <see cref="AbilityBehavior.Channel"/>.
+    /// Inspector da <see cref="GameplayAbility"/> (R29; DS do Inspector da habilidade, seção 3). Abaixo dos avisos e da
+    /// validação, quatro abas com os campos do Inspector padrão em grupos: Configuração (Identidade, Comportamento,
+    /// Custo e recarga e Condições de ativação, com uma linha por regra: resumo da condição e motivo da falha), Ações
+    /// (as abas de ações por evento, com "A cada passo" só em <see cref="AbilityBehavior.Channel"/>), Tags e gatilhos, e
+    /// Níveis e prévia (o "nível de prévia", limitado a [1, MaxLevel], a prévia nesse nível de cada valor da tabela, da
+    /// recarga sem a redução do atributo e das cargas, e a <see cref="DescriptionPreviewElement"/> no mesmo nível). Um
+    /// campo que o editor não conhece vai para "Outros", no fim de Configuração.
     /// </summary>
-    [CustomEditor(typeof(GameplayAbility))]
+    [CustomEditor(typeof(GameplayAbility), true)]
     [CanEditMultipleObjects]
     public sealed class GameplayAbilityEditor : SpellBookEditor
     {
@@ -36,31 +39,58 @@ namespace SpellBook.GAS.Editor
         private Label _charges;
         private DescriptionPreviewElement _description;
 
+        internal const string ConfigurationTab = "Configuração";
+        internal const string ActionsTab = "Ações";
+        internal const string TagsTab = "Tags e gatilhos";
+        internal const string LevelsTab = "Níveis e prévia";
+
         protected override void BuildAfterDefault(VisualElement root)
         {
-            _level = new IntegerField("Nível de prévia") { name = PreviewLevelName, value = 1 };
-            _preview = new Label { name = PreviewName };
-            root.Add(_level);
-            root.Add(_preview);
+            var tabs = new InspectorTabsView(serializedObject.targetObject, ConfigurationTab, ActionsTab, TagsTab, LevelsTab);
 
-            var description = new VisualElement { name = DescriptionSectionName };
-            description.Add(new Label("Descrição") { style = { unityFontStyleAndWeight = UnityEngine.FontStyle.Bold } });
-            _description = new DescriptionPreviewElement(serializedObject);
-            description.Add(_description);
-            root.Add(description);
-
-            var activation = new VisualElement { name = ActivationName };
-            activation.Add(new Label("Ativação") { style = { unityFontStyleAndWeight = UnityEngine.FontStyle.Bold } });
+            VisualElement configuration = tabs.Content(ConfigurationTab);
+            InspectorTabsView.MoveFields(root, InspectorTabsView.AddGroup(configuration, "Identidade"),
+                nameof(GameplayAbility.Icon), "localizedName", nameof(GameplayAbility.AbilityTag), nameof(GameplayAbility.Description));
+            InspectorTabsView.MoveFields(root, InspectorTabsView.AddGroup(configuration, "Comportamento"),
+                "behavior", "commitMode", "channelDuration", "channelTickInterval", "reactivatePassive", "autocast");
+            InspectorTabsView.MoveFields(root, InspectorTabsView.AddGroup(configuration, "Custo e recarga"),
+                nameof(GameplayAbility.CostEffect), nameof(GameplayAbility.CooldownEffect),
+                nameof(GameplayAbility.CooldownReductionAttribute), "cooldownReductionPolicy", "charges");
+            VisualElement activation = InspectorTabsView.AddGroup(configuration, "Condições de ativação");
+            activation.name = ActivationName;
+            InspectorTabsView.MoveFields(root, activation, "castRange", "activationConditions");
             _rules = new VisualElement();
             activation.Add(_rules);
-            _charges = new Label { name = ChargesPreviewName };
-            activation.Add(_charges);
-            root.Add(activation);
 
             ActionEventsView.HideDefaultFields(root, typeof(GameplayAbility));
-            root.Add(new ActionEventsView(serializedObject,
+            tabs.Content(ActionsTab).Add(new ActionEventsView(serializedObject,
                 "Esta habilidade ainda não faz nada. Adicione uma ação em \"Ao ativar\".",
                 field => field != nameof(GameplayAbility.OnChannelTick) || IsChannel()));
+
+            VisualElement tags = tabs.Content(TagsTab);
+            InspectorTabsView.MoveFields(root, InspectorTabsView.AddGroup(tags, "Tags"),
+                nameof(GameplayAbility.BlockedTags), nameof(GameplayAbility.RequiredTags),
+                nameof(GameplayAbility.ActivationOwnedTags), nameof(GameplayAbility.CancelAbilitiesWithTag),
+                nameof(GameplayAbility.BlockAbilitiesWithTag), nameof(GameplayAbility.CancelledByTags));
+            InspectorTabsView.MoveFields(root, InspectorTabsView.AddGroup(tags, "Gatilhos"), "triggers");
+
+            VisualElement levels = tabs.Content(LevelsTab);
+            InspectorTabsView.MoveFields(root, InspectorTabsView.AddGroup(levels, "Níveis"), "maxLevel", "values");
+            VisualElement preview = InspectorTabsView.AddGroup(levels, "Prévia");
+            _level = new IntegerField("Nível de prévia") { name = PreviewLevelName, value = 1 };
+            _preview = new Label { name = PreviewName };
+            _charges = new Label { name = ChargesPreviewName };
+            preview.Add(_level);
+            preview.Add(_preview);
+            preview.Add(_charges);
+            var description = new VisualElement { name = DescriptionSectionName };
+            description.Add(new Label("Descrição"));
+            _description = new DescriptionPreviewElement(serializedObject);
+            description.Add(_description);
+            preview.Add(description);
+
+            InspectorTabsView.MoveRemaining(root, configuration, "m_Script");
+            root.Add(tabs);
 
             _level.RegisterValueChangedCallback(evt => SetPreviewLevel(evt.newValue));
             root.TrackSerializedObjectValue(serializedObject, _ => SetPreviewLevel(_level.value));
