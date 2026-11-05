@@ -22,9 +22,9 @@ namespace SpellBook.Core.Tests.Structure
         private const string ChannelSuffix = "Channel";
         private static readonly string[] TechnicalSuffixes = { "Asset", "Definition" };
 
-        // Módulos já conferidos pela ADR 0043 (OA1 a OA4a): assembly → pastas de menu permitidas (item 2).
-        // Cada ticket do épico acrescenta os módulos dele; o OA4b passa a regra para o pacote inteiro.
-        private static readonly Dictionary<string, string[]> CheckedModuleMenus = new Dictionary<string, string[]>
+        // Grupos do menu por assembly (ADR 0043, item 2): assembly → pastas de menu permitidas.
+        // Um assembly do pacote fora desta tabela quebra a guarda.
+        private static readonly Dictionary<string, string[]> ModuleMenus = new Dictionary<string, string[]>
         {
             ["SpellBook.GAS"] = new[] { "SpellBook/GAS/", "SpellBook/GAS/Attributes/", "SpellBook/GAS/Attributes/Formulas/" },
             ["SpellBook.Tags"] = new[] { "SpellBook/Tags/" },
@@ -36,6 +36,9 @@ namespace SpellBook.Core.Tests.Structure
             ["SpellBook.Localization"] = new[] { "SpellBook/Text/" },
             ["SpellBook.GAS.Bridges"] = new[] { "SpellBook/GAS/Events/" },
             ["SpellBook.GAS.UI"] = new[] { "SpellBook/GAS/UI/" },
+            ["SpellBook.Cues"] = new[] { "SpellBook/Cues/" },
+            ["SpellBook.UI"] = new[] { "SpellBook/UI/" },
+            ["SpellBook.UI.UGUI"] = new[] { "SpellBook/UI/" },
         };
 
         [Test]
@@ -65,27 +68,29 @@ namespace SpellBook.Core.Tests.Structure
         }
 
         [Test]
-        public void CheckedModuleMenu_UsesFolderAllowedForItsAssembly()
+        public void PackageMenu_UsesFolderAllowedForItsAssembly()
         {
-            List<(Type Type, string Menu, string FileName)> entries = CheckedModuleEntries();
+            List<(Type Type, string Menu, string FileName)> entries = PackageMenus();
 
             Assert.That(entries.Select(entry => entry.Type.Name), Does.Contain("GameplayAbility")
                 .And.Contain("SimpleAttributeFormula").And.Contain("GameplayTagDefinition")
                 .And.Contain("TransformAnchor").And.Contain("PausableTimeSource").And.Contain("PoolConfiguration")
                 .And.Contain("IntEventChannel").And.Contain("TeamRelationMatrix").And.Contain("LocalizationTextProvider")
-                .And.Contain("AbilityEventChannel").And.Contain("AbilityLoadout"),
+                .And.Contain("AbilityEventChannel").And.Contain("AbilityLoadout")
+                .And.Contain("CueDefinition").And.Contain("UITheme"),
                 "a varredura não achou os tipos esperados");
 
             IEnumerable<string> violations = entries
-                .Where(entry => !CheckedModuleMenus[AssemblyOf(entry.Type)].Contains(MenuFolder(entry.Menu)))
+                .Where(entry => !ModuleMenus.TryGetValue(AssemblyOf(entry.Type), out string[] folders)
+                    || !folders.Contains(MenuFolder(entry.Menu)))
                 .Select(entry => $"{entry.Type.FullName}: \"{entry.Menu}\"");
             Assert.That(violations, Is.Empty, "o menu fica numa pasta do grupo do assembly (ADR 0043, item 2)");
         }
 
         [Test]
-        public void CheckedModuleMenuItem_DropsGameplayPrefix()
+        public void PackageMenuItem_DropsGameplayPrefix()
         {
-            IEnumerable<string> violations = CheckedModuleEntries()
+            IEnumerable<string> violations = PackageMenus()
                 .Where(entry => MenuItemName(entry.Menu).StartsWith(GameplayPrefix, StringComparison.Ordinal))
                 .Select(entry => $"{entry.Type.FullName}: \"{entry.Menu}\"");
 
@@ -93,9 +98,9 @@ namespace SpellBook.Core.Tests.Structure
         }
 
         [Test]
-        public void CheckedModuleMenuItem_IsTypeNameWithoutTechnicalParts()
+        public void PackageMenuItem_IsTypeNameWithoutTechnicalParts()
         {
-            IEnumerable<string> violations = CheckedModuleEntries()
+            IEnumerable<string> violations = PackageMenus()
                 .Where(entry => !AllowedItemNames(entry.Type.Name).Contains(MenuItemName(entry.Menu).Replace(" ", string.Empty)))
                 .Select(entry => $"{entry.Type.FullName}: \"{entry.Menu}\"");
 
@@ -103,18 +108,13 @@ namespace SpellBook.Core.Tests.Structure
         }
 
         [Test]
-        public void CheckedModuleFileName_IsNewPlusMenuItemName()
+        public void PackageFileName_IsNewPlusMenuItemName()
         {
-            IEnumerable<string> violations = CheckedModuleEntries()
+            IEnumerable<string> violations = PackageMenus()
                 .Where(entry => entry.FileName != FileNamePrefix + MenuItemName(entry.Menu))
                 .Select(entry => $"{entry.Type.FullName}: menu \"{entry.Menu}\", fileName \"{entry.FileName}\"");
 
             Assert.That(violations, Is.Empty, "o fileName é \"New <Nome>\", com o nome do item do menu (ADR 0043, item 3)");
-        }
-
-        private static List<(Type Type, string Menu, string FileName)> CheckedModuleEntries()
-        {
-            return PackageMenus().Where(entry => CheckedModuleMenus.ContainsKey(AssemblyOf(entry.Type))).ToList();
         }
 
         private static List<(Type Type, string Menu, string FileName)> PackageMenus()

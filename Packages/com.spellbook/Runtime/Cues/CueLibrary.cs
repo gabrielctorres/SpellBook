@@ -8,7 +8,7 @@ namespace SpellBook.Cues
 {
     /// <summary>Lista de <see cref="CueDefinition"/> que um <c>CueRouter</c> usa para achar o cue de cada tag.</summary>
     [HelpURL(DocUrls.Cues + "#cuelibrary")]
-    [CreateAssetMenu(menuName = "SpellBook/Cues/Cue Library", fileName = "CueLibrary")]
+    [CreateAssetMenu(menuName = "SpellBook/Cues/Cue Library", fileName = "New Cue Library")]
     public class CueLibrary : ScriptableObject, IValidatable
     {
         [SerializeField, Tooltip("Uma definição por tag.")]

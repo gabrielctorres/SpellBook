@@ -9,7 +9,7 @@ namespace SpellBook.UI
     /// opcional (por exemplo "Imune"). A view aplica a subida e o deslocamento; o <see cref="FloatingTextBinder"/> usa a
     /// duração para devolver o número ao spawner.
     /// </summary>
-    [CreateAssetMenu(menuName = "SpellBook/UI/Floating Text Style", fileName = "FloatingTextStyle")]
+    [CreateAssetMenu(menuName = "SpellBook/UI/Floating Text Style", fileName = "New Floating Text Style")]
     [HelpURL(DocUrls.UiFloatingText)]
     public sealed class FloatingTextStyle : ScriptableObject
     {

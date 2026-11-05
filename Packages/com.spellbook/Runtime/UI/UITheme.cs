@@ -10,7 +10,7 @@ namespace SpellBook.UI
     /// Tema da UI (ADR 0039): as cores por <see cref="TextRole"/> e o provedor dos textos que os binders entregam às
     /// ligações. Fontes e tamanhos ficam nas views; o tema não conhece o TextMeshPro.
     /// </summary>
-    [CreateAssetMenu(menuName = "SpellBook/UI/Theme", fileName = "UITheme")]
+    [CreateAssetMenu(menuName = "SpellBook/UI/UI Theme", fileName = "New UI Theme")]
     [HelpURL(DocUrls.Ui + "#uitheme")]
     public sealed class UITheme : ScriptableObject
     {

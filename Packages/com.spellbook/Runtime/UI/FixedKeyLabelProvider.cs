@@ -10,7 +10,7 @@ namespace SpellBook.UI
     /// Rótulos fixos por chave de slot (Spec do B-016, P5): uma linha por tag de slot, com o texto do rótulo. Editar no
     /// Inspector dispara <see cref="KeyLabelProvider.Changed"/>.
     /// </summary>
-    [CreateAssetMenu(menuName = "SpellBook/UI/Fixed Key Labels", fileName = "FixedKeyLabels")]
+    [CreateAssetMenu(menuName = "SpellBook/UI/Fixed Key Label Provider", fileName = "New Fixed Key Label Provider")]
     [HelpURL(DocUrls.UiAbilitySlot + "#fixedkeylabelprovider")]
     public sealed class FixedKeyLabelProvider : KeyLabelProvider
     {

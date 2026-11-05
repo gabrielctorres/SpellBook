@@ -140,3 +140,21 @@ Antes do OA5, e fora dos tickets, vem o protótipo dos estilos: as famílias hab
 - Critério de pronto: os 6 testes de `\.CreateAssetMenuRulesTests\.` e os de `\.GasChannelsTests\.` verdes, com o `total` conferido no XML.
 - Tamanho: ~36 linhas (16 nos 8 tipos, ~6 na guarda e ~14 no `GasChannelsTests`) e 10 arquivos, pela ADR 0042. Exceção: nenhuma.
 - Commit: `chore(menu): menus e fileName de GAS.Bridges e GAS.UI pela ADR 0043`
+
+## OA4b — Cues e UI pela 0043; a guarda vale para o pacote inteiro
+### Detalhe (2026-11-04)
+- CA: CA1 e CA2 para os módulos `SpellBook.Cues` e `SpellBook.UI`; CA3 para o pacote inteiro (a lista dos módulos conferidos sai).
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/Cues/CueDefinition.cs:45`: o menu fica igual, e o `fileName` passa a `New Cue`.
+  - `Runtime/Cues/CueLibrary.cs:11`: o menu fica igual, e o `fileName` passa a `New Cue Library`.
+  - `Runtime/Cues/CueRouterAnchor.cs:11`: o menu fica igual, e o `fileName` passa a `New Cue Router Anchor`.
+  - `Runtime/UI/UITheme.cs:13`: `SpellBook/UI/UI Theme` (item 1, nome aprovado), `New UI Theme`.
+  - `Runtime/UI/FixedKeyLabelProvider.cs:13`: `SpellBook/UI/Fixed Key Label Provider` (item 1, nome aprovado), `New Fixed Key Label Provider`.
+  - `Runtime/UI/FloatingTextStyle.cs:12`: o menu fica igual, e o `fileName` passa a `New Floating Text Style`.
+  - `Runtime/UI/TooltipBinderAnchor.cs:11`: o menu fica igual, e o `fileName` passa a `New Tooltip Binder Anchor`.
+  - `Tests/Core/EditMode/Structure/CreateAssetMenuRulesTests.cs:25-39`: a tabela vira `ModuleMenus`, completa pelo item 2 (ganha `SpellBook.Cues` → `SpellBook/Cues/`, `SpellBook.UI` e `SpellBook.UI.UGUI` → `SpellBook/UI/`). `:67-139`: os quatro testes `CheckedModule*` passam a ler todos os tipos do pacote e viram `PackageMenu_UsesFolderAllowedForItsAssembly`, `PackageMenuItem_DropsGameplayPrefix`, `PackageMenuItem_IsTypeNameWithoutTechnicalParts` e `PackageFileName_IsNewPlusMenuItemName`; um assembly do pacote fora da tabela é violação do primeiro, e a varredura passa a exigir também `CueDefinition` e `UITheme`.
+  - Sem `CHANGELOG.md` e sem manual (mesmo motivo do OA1). As Specs antigas que citam `SpellBook/UI/Theme` e `Fixed Key Labels` são histórico e não mudam.
+- Testes red (EditMode, `SpellBook.Core.Tests.EditMode`, `CreateAssetMenuRulesTests`): com a guarda no pacote inteiro, `PackageMenuItem_IsTypeNameWithoutTechnicalParts` falha no `UITheme` e no `FixedKeyLabelProvider`, e `PackageFileName_IsNewPlusMenuItemName` falha nos 7 tipos.
+- Critério de pronto: os 6 testes de `\.CreateAssetMenuRulesTests\.` verdes, com `total` 6 no XML.
+- Tamanho: ~50 linhas (14 nos 7 tipos e ~36 na guarda) e 8 arquivos, pela ADR 0042. Exceção: nenhuma.
+- Commit: `chore(menu): menus e fileName de Cues e UI; guarda para o pacote inteiro`

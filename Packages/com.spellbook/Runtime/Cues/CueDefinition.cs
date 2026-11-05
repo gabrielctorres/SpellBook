@@ -42,7 +42,7 @@ namespace SpellBook.Cues
     /// <see cref="CueLibrary"/> que ele usa.
     /// </summary>
     [HelpURL(DocUrls.Cues + "#cuedefinition")]
-    [CreateAssetMenu(menuName = "SpellBook/Cues/Cue", fileName = "Cue")]
+    [CreateAssetMenu(menuName = "SpellBook/Cues/Cue", fileName = "New Cue")]
     public class CueDefinition : ScriptableObject, IValidatable
     {
         [SerializeField, Tooltip("Tag que toca este cue. Uma tag filha sem definição própria usa esta.")]

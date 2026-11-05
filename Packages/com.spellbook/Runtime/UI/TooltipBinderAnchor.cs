@@ -8,7 +8,7 @@ namespace SpellBook.UI
     /// apontam a âncora para abrir o tooltip sem procurar o binder (Spec UI-3, Design 2).
     /// </summary>
     [HelpURL(DocUrls.UiTooltip + "#tooltipbinderanchor")]
-    [CreateAssetMenu(menuName = "SpellBook/UI/Tooltip Binder Anchor", fileName = "TooltipBinderAnchor")]
+    [CreateAssetMenu(menuName = "SpellBook/UI/Tooltip Binder Anchor", fileName = "New Tooltip Binder Anchor")]
     public sealed class TooltipBinderAnchor : RuntimeAnchor<TooltipBinder>
     {
     }
