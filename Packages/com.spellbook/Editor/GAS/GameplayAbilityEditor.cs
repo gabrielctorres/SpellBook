@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using SpellBook.Core.Editor;
@@ -9,6 +10,7 @@ using SpellBook.GAS.Effects;
 using SpellBook.GAS.Values;
 using UnityEditor;
 using UnityEditor.UIElements;
+using UnityEngine;
 using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
 
@@ -19,8 +21,9 @@ namespace SpellBook.GAS.Editor
     /// validação, quatro abas com os campos do Inspector padrão em grupos: Configuração (Identidade, Comportamento,
     /// Custo e recarga e Condições de ativação, com uma linha por regra: resumo da condição e motivo da falha), Ações
     /// (as abas de ações por evento, com "A cada passo" só em <see cref="AbilityBehavior.Channel"/>), Tags e gatilhos, e
-    /// Níveis e prévia (o "nível de prévia", limitado a [1, MaxLevel], a prévia nesse nível de cada valor da tabela, da
-    /// recarga sem a redução do atributo e das cargas, e a <see cref="DescriptionPreviewElement"/> no mesmo nível). Um
+    /// Níveis e prévia (o "nível de prévia", limitado a [1, MaxLevel], uma tabela com uma linha por nível, com os valores
+    /// nomeados, a recarga sem a redução do atributo, o custo e as cargas, a linha desse nível marcada, a prévia em texto
+    /// nesse nível e a <see cref="DescriptionPreviewElement"/> no mesmo nível). Um
     /// campo que o editor não conhece vai para "Outros", no fim de Configuração. Em Comportamento, os campos da
     /// canalização, o <c>reactivatePassive</c> e o autocast só aparecem nos comportamentos que os usam.
     /// </summary>
@@ -39,11 +42,19 @@ namespace SpellBook.GAS.Editor
         private Label _preview;
         private VisualElement _rules;
         private Label _charges;
+        private VisualElement _table;
         private DescriptionPreviewElement _description;
         private PropertyField _channelDuration;
         private PropertyField _channelTickInterval;
         private PropertyField _reactivatePassive;
         private PropertyField _autocast;
+
+        internal const string LevelTableName = "spellbook-ability-level-table";
+        internal const string LevelHeaderClass = "spellbook-ability-level-header";
+        internal const string LevelRowClass = "spellbook-ability-level-row";
+        internal const string LevelRowSelectedClass = "spellbook-ability-level-row--selected";
+        private const string LevelMarker = " ◂";
+        private static readonly Color SelectionColor = new Color(0.24f, 0.37f, 0.59f, 0.45f);
 
         internal const string ConfigurationTab = "Configuração";
         internal const string ActionsTab = "Ações";
@@ -91,7 +102,11 @@ namespace SpellBook.GAS.Editor
             _level = new IntegerField("Nível de prévia") { name = PreviewLevelName, value = 1 };
             _preview = new Label { name = PreviewName };
             _charges = new Label { name = ChargesPreviewName };
+            _table = new VisualElement { name = LevelTableName };
+            _table.style.marginTop = 2;
+            _table.style.marginBottom = 4;
             preview.Add(_level);
+            preview.Add(_table);
             preview.Add(_preview);
             preview.Add(_charges);
             var description = new VisualElement { name = DescriptionSectionName };
@@ -157,6 +172,7 @@ namespace SpellBook.GAS.Editor
             _level.SetValueWithoutNotify(level);
             _preview.text = Preview(ability, level);
             _description.SetLevel(level);
+            RefreshTable(ability, level);
             RefreshRules(ability);
             string charges = ChargesPreview(ability, level);
             _charges.text = charges ?? string.Empty;
@@ -200,34 +216,147 @@ namespace SpellBook.GAS.Editor
             if (!charges.Enabled) return null;
 
             float seconds = Evaluate(charges.RechargeTime, level, ability.Values);
-            ModifierValueSource source = charges.MaxCharges;
-            string max = source.Type == ModifierValueSource.SourceType.Value
+            return $"1 carga a cada {Format(seconds)} s, máximo {MaxCharges(ability, level)} no nível {level}";
+        }
+
+        /// <summary>Máximo de cargas no nível; de atributo ou fórmula, o nome da fonte.</summary>
+        private static string MaxCharges(GameplayAbility ability, int level)
+        {
+            ModifierValueSource source = ability.Charges.MaxCharges;
+            return source.Type == ModifierValueSource.SourceType.Value
                 ? System.Math.Max(0, (int)System.Math.Floor(Evaluate(source.Value, level, ability.Values))).ToString(CultureInfo.CurrentCulture)
-                : ObjectNames.NicifyVariableName(source.Type.ToString()).ToLowerInvariant();
-            return $"1 carga a cada {Format(seconds)} s, máximo {max} no nível {level}";
+                : SourceName(source);
+        }
+
+        private static string SourceName(ModifierValueSource source)
+        {
+            return ObjectNames.NicifyVariableName(source.Type.ToString()).ToLowerInvariant();
+        }
+
+        /// <summary>
+        /// Tabela da prévia por nível (CA4; DS, seção 5): cabeçalho e uma linha por nível, de 1 ao máximo, com os valores
+        /// nomeados e, quando existem, a recarga, o custo e as cargas. A linha de <paramref name="selected"/> tem o fundo de
+        /// seleção e o marcador no número, para não depender só de cor.
+        /// </summary>
+        private void RefreshTable(GameplayAbility ability, int selected)
+        {
+            _table.Clear();
+            List<string> names = ValueNames(ability);
+            ScalableFloat cooldown = CooldownDuration(ability);
+            GameplayEffect cost = ability.CostEffect;
+            bool hasCost = cost != null && cost.Modifiers != null && cost.Modifiers.Exists(m => m?.Attribute != null);
+            bool hasCharges = ability.Charges.Enabled;
+
+            var header = new List<string> { "Nível" };
+            header.AddRange(names);
+            if (cooldown != null) header.Add("Recarga");
+            if (hasCost) header.Add("Custo");
+            if (hasCharges) header.Add("Cargas");
+            VisualElement headerRow = AddRow(header);
+            headerRow.AddToClassList(LevelHeaderClass);
+            headerRow.style.unityFontStyleAndWeight = FontStyle.Bold;
+
+            for (int level = 1; level <= ability.MaxLevel; level++)
+            {
+                string number = level.ToString(CultureInfo.CurrentCulture);
+                var cells = new List<string> { level == selected ? number + LevelMarker : number };
+                foreach (string name in names)
+                {
+                    cells.Add(ability.Values.TryGetValue(name, level, out float value) ? Format(value) : SummaryFormatter.None);
+                }
+
+                if (cooldown != null) cells.Add(Format(Evaluate(cooldown, level, ability.Values)) + " s");
+                if (hasCost) cells.Add(Cost(ability, cost, level));
+                if (hasCharges)
+                {
+                    float recharge = Evaluate(ability.Charges.RechargeTime, level, ability.Values);
+                    cells.Add($"{MaxCharges(ability, level)} ({Format(recharge)} s)");
+                }
+
+                VisualElement row = AddRow(cells);
+                row.AddToClassList(LevelRowClass);
+                if (level != selected) continue;
+                row.AddToClassList(LevelRowSelectedClass);
+                row.style.backgroundColor = SelectionColor;
+            }
+        }
+
+        /// <summary>Nomes da tabela de valores, na ordem do asset.</summary>
+        private static List<string> ValueNames(GameplayAbility ability)
+        {
+            var names = new List<string>();
+            using (var serialized = new SerializedObject(ability))
+            {
+                SerializedProperty entries = serialized.FindProperty("values.entries");
+                for (int i = 0; i < entries.arraySize; i++)
+                {
+                    names.Add(entries.GetArrayElementAtIndex(i).FindPropertyRelative("name").stringValue);
+                }
+            }
+
+            return names;
+        }
+
+        private VisualElement AddRow(List<string> cells)
+        {
+            var row = new VisualElement();
+            row.style.flexDirection = FlexDirection.Row;
+            foreach (string text in cells)
+            {
+                var cell = new Label(text);
+                cell.style.flexGrow = 1;
+                cell.style.flexBasis = 0;
+                cell.style.overflow = Overflow.Hidden;
+                row.Add(cell);
+            }
+
+            _table.Add(row);
+            return row;
+        }
+
+        /// <summary>Um item por modificador com atributo: "Mana 20", em valor absoluto, ou o nome da fonte.</summary>
+        private static string Cost(GameplayAbility ability, GameplayEffect cost, int level)
+        {
+            var items = new List<string>();
+            foreach (AttributeEffectModifier modifier in cost.Modifiers)
+            {
+                AttributeDefinition attribute = modifier?.Attribute;
+                if (attribute == null) continue;
+                string name = string.IsNullOrEmpty(attribute.DisplayName.Text) ? attribute.name : attribute.DisplayName.Text;
+                ModifierValueSource source = modifier.ValueSource;
+                string amount = source == null ? SummaryFormatter.None
+                    : source.Type == ModifierValueSource.SourceType.Value
+                        ? Format(System.Math.Abs(Evaluate(source.Value, level, ability.Values)))
+                        : SourceName(source);
+                items.Add($"{name} {amount}");
+            }
+
+            return string.Join(", ", items);
+        }
+
+        /// <summary>Duração do efeito de recarga; nula sem efeito de recarga com duração.</summary>
+        private static ScalableFloat CooldownDuration(GameplayAbility ability)
+        {
+            GameplayEffect cooldown = ability.CooldownEffect;
+            return cooldown != null && cooldown.DurationPolicy == EffectDurationPolicy.HasDuration ? cooldown.Duration : null;
         }
 
         private static string Preview(GameplayAbility ability, int level)
         {
             var text = new StringBuilder();
             AbilityValues values = ability.Values;
-            using (var serialized = new SerializedObject(ability))
+            foreach (string name in ValueNames(ability))
             {
-                SerializedProperty entries = serialized.FindProperty("values.entries");
-                for (int i = 0; i < entries.arraySize; i++)
+                if (values.TryGetValue(name, level, out float value))
                 {
-                    string name = entries.GetArrayElementAtIndex(i).FindPropertyRelative("name").stringValue;
-                    if (values.TryGetValue(name, level, out float value))
-                    {
-                        text.Append(name).Append(" = ").Append(Format(value)).Append('\n');
-                    }
+                    text.Append(name).Append(" = ").Append(Format(value)).Append('\n');
                 }
             }
 
-            GameplayEffect cooldown = ability.CooldownEffect;
-            if (cooldown != null && cooldown.DurationPolicy == EffectDurationPolicy.HasDuration && cooldown.Duration != null)
+            ScalableFloat cooldown = CooldownDuration(ability);
+            if (cooldown != null)
             {
-                float seconds = Evaluate(cooldown.Duration, level, values);
+                float seconds = Evaluate(cooldown, level, values);
                 text.Append("Recarga = ").Append(Format(seconds)).Append(" s");
             }
 

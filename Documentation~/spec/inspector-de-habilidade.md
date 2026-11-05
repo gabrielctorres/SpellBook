@@ -97,3 +97,18 @@ O IH2, o IH3 e o IH4 mexem no `GameplayAbilityEditor`, então não rodam em para
 - Critério de pronto: os testes acima verdes, mais `AbilityInspectorTabsTests`, `ActionInspectorTests`, `ActivationInspectorTests`, `DescriptionPreviewTests` e `LevelValuesDrawerTests` verdes no filtro, sem mudar asserção. A suíte completa roda na `/revisao`.
 - Tamanho: 181 linhas medidas (+178 −3) e 2 arquivos (1 novo), pela ADR 0042. Os `.meta` e este Detalhe não contam. Exceção: nenhuma.
 - Commit: `feat(editor): campos da habilidade por comportamento`
+
+## IH3 — Aba Níveis e prévia
+### Detalhe (2026-11-05)
+- CA: CA4 e CA8. O aviso de aba de eventos escondida com ações continua no `ActionEventsView` da aba Ações. Levá-lo ao grupo Comportamento (DS, seção 7) não está no CA4 nem no CA8 e segue como pendência para o Controlador, como no IH2.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Editor/GAS/GameplayAbilityEditor.cs:90-101` (grupo Prévia): entre o "Nível de prévia" e os rótulos de hoje, entra a tabela por nível (`LevelTableName`, `internal`). Ela tem uma linha de cabeçalho e uma linha por nível, de 1 ao `MaxLevel`, com uma coluna por valor nomeado e, quando existem, Recarga (efeito de recarga com duração, sem a redução do atributo), Custo (um item por modificador com atributo do efeito de custo, em valor absoluto, ou o nome da fonte quando não é valor) e Cargas (máximo e tempo de recarga, só com as cargas ligadas). A linha do nível de prévia ganha a classe `LevelRowSelectedClass`, com o fundo de seleção, e o marcador `◂` no número do nível. Valores com até três casas, na cultura atual.
+  - `:151-164` (`SetPreviewLevel`): refaz a tabela com a linha marcada. Como o `TrackSerializedObjectValue` que já existe chama esse método, a tabela acompanha a edição sem Play. A prévia da descrição já usa o mesmo nível.
+  - `:193-208` (`ChargesPreview`, `Preview`): o texto da fonte do máximo vai para um método que a coluna de cargas e a de custo também usam, e a duração da recarga e os nomes da tabela vão para métodos que a tabela e o `Preview` dividem. O texto dos rótulos não muda.
+  - Os rótulos `PreviewName` e `ChargesPreviewName` continuam abaixo da tabela, com o texto do nível de prévia de hoje (CA8: os testes do editor seguem sem mudar asserção). Com vários assets, a tabela usa o primeiro (DS, seção 7).
+  - `:17-26`: o resumo da classe cita a tabela.
+  - Sem mudança no runtime, sem `CHANGELOG.md` e sem manual: nada quebra, e o manual fica para o passe de documentação.
+- Testes red (EditMode, `SpellBook.GAS.Tests.EditMode`, classe `AbilityLevelPreviewTests`, em `Tests/GAS/EditMode/AbilityLevelPreviewTests.cs`, novo): `LevelTable_OneRowPerLevel_NamedValuesAndCooldown`; `LevelTable_CostAndCharges_WhenPresent`; `PreviewLevel_MarksRow_DescriptionUsesSameLevel`; `Edit_RebuildsTable_WithoutPlay`; `LevelValues_OnlyInLevelsTab`; `MultiSelection_TableUsesFirstAsset`.
+- Critério de pronto: os seis verdes, mais `AbilityInspectorTabsTests`, `AbilityBehaviorFieldsTests`, `ActivationInspectorTests`, `DescriptionPreviewTests` e `LevelValuesDrawerTests` verdes no filtro, sem mudar asserção. A suíte completa roda na `/revisao`.
+- Tamanho: 392 linhas medidas (+376 −16) e 2 arquivos (1 novo), pela ADR 0042. Os `.meta` e este Detalhe não contam. Exceção: nenhuma.
+- Commit: `feat(editor): prévia por nível da habilidade`
