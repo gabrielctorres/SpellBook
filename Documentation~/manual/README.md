@@ -1,7 +1,39 @@
-# Manual do SpellBook
+# SpellBook
 
-Bem-vindo ao espaço de teste do manual.
+O SpellBook é um pacote de ferramentas reutilizáveis para a Unity. Ele junta, num só lugar,
+sistemas que aparecem em quase todo jogo: habilidades e efeitos, eventos, tempo de jogo,
+tags e reaproveitamento de objetos.
 
-* [Conceitos](conceitos.md)
-* [AttributeDefinition](gas.md)
-* [Sample Sandbox](sandbox.md)
+Para instalar, veja a página [Instalação](inicio/instalacao.md).
+
+## Para quem é
+
+- **Programadores** que querem sistemas prontos, testados e separados em assemblies,
+  para usar só o que o projeto precisa.
+- **Designers** que montam habilidades, reações e eventos pelo Inspector, sem escrever código.
+  Os campos com vários tipos possíveis têm um seletor com busca e categorias.
+
+## Módulos
+
+Cada módulo é um assembly próprio. Um módulo só depende do Core e dos módulos de que
+realmente precisa.
+
+| Módulo | Para que serve |
+|---|---|
+| **Core** | Base comum: o seletor de tipo do Inspector, a validação de assets e as utilidades usadas pelos outros módulos. |
+| **Tempo** | Fontes de tempo trocáveis (escalada, não escalada, manual e grupos pausáveis), para pausar só parte do jogo. |
+| **Eventos** | Eventos por código, canais em asset que o designer liga sem código, e ouvintes com reações prontas. |
+| **Tags** | Tags hierárquicas de gameplay, como `Estado.Atordoado`. |
+| **Pooling** | Reaproveitamento de objetos instanciados com frequência, como projéteis e partículas. |
+| **GAS** | Sistema de habilidades: atributos, efeitos, habilidades, alvos e projéteis. |
+| **GAS.Bridges** | Ligações do GAS com outros módulos, como disparar um evento a partir de uma habilidade. |
+
+Os assemblies de cada módulo e as dependências permitidas entre eles estão em
+[Conceitos](inicio/conceitos.md#mapa-de-assemblies).
+
+{% hint style="info" %}
+**Versão 3.0 em desenvolvimento**
+
+A 3.0 reorganiza o pacote nos módulos acima e ainda está em desenvolvimento.
+Quem vem da 2.x deve ler a [Migração 2.x → 3.0](regras/migracao-2-para-3.md).
+{% endhint %}
