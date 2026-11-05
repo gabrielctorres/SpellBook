@@ -143,3 +143,19 @@ O IH2, o IH3 e o IH4 mexem no `GameplayAbilityEditor`, então não rodam em para
 - Critério de pronto: os onze verdes, mais `ActionInspectorTests`, `AbilityCompactTagListsTests`, `AbilityInspectorTabsTests`, `LevelValuesDrawerTests` e `ThinkerInspectorTests` verdes no filtro, sem mudar asserção. A suíte completa roda na `/revisao`.
 - Tamanho: 338 linhas medidas (+320 −18) e 5 arquivos (1 novo), pela ADR 0042. Os `.meta` e este Detalhe não contam. Exceção: nenhuma.
 - Commit: `feat(editor): quatro abas do Inspector do efeito`
+
+## IH6 — Campos do efeito por duração, período e pilha
+### Detalhe (2026-11-05)
+- CA: CA7 e CA8. A duração já some fora de `HasDuration` pelo `[ShowIf]` que o campo tem, e ele continua (decisões do épico). O ticket acrescenta os outros campos, a aba "A cada tick" e o aviso.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Editor/GAS/GameplayEffectEditor.cs:45-55`: o editor guarda o grupo "Do tique" e os campos `MaxStacks`, `RefreshDurationOnStack` e `stacksMultiplyMagnitude` depois de movê-los. Um método `internal` novo, `RefreshConfigFields`, mostra ou esconde pelo `style.display`: o grupo "Do tique" inteiro (título e `PeriodicModifiers`) só com `Period` maior que 0, e os três campos de pilha só com `CanStack`. O valor serializado não muda, e o campo escondido continua no grupo. Com vários assets, o campo aparece se algum deles o usa, como no IH2.
+  - `:59-60`: o `ActionEventsView` do efeito recebe a regra da aba (`OnTick` só com `Period` maior que 0) e o motivo "o período atual" para o texto do aviso. O aviso de aba escondida com ações sai da faixa de eventos e vai para o grupo Duração (DS do Inspector da habilidade, seção 7), logo abaixo do `Period`.
+  - `:70`: o `TrackSerializedObjectValue` que já existe chama também o `RefreshConfigFields`, que roda uma vez no fim do `BuildAfterDefault`. `:10-17`: o resumo da classe cita a regra.
+  - `Editor/GAS/Actions/ActionEventsView.cs:45-49,67-68,128-131`: parâmetro opcional `hiddenReason` (padrão "o comportamento atual", o texto de hoje) e a propriedade `internal HiddenWarning`, para o dono pôr o aviso no grupo que causou. Na habilidade nada muda.
+  - `Tests/GAS/EditMode/ActionInspectorTests.cs:67`: o `EffectTabs_ReactionsGrouped` monta o efeito com `Period` 0,5, porque com 0 a aba "A cada tick" agora some (CA7). O teste é sobre o grupo "Reações", e as asserções não mudam. É consequência direta do ticket (0042, item 6).
+  - Sem `[ShowIf]` novo, sem mudança no runtime e sem `CHANGELOG.md` (decisões do épico; nada quebra).
+  - **Pendência para o Controlador (vinda do IH2 e do IH3):** na habilidade, o aviso continua no `ActionEventsView` da aba Ações. Levá-lo ao grupo Comportamento fica em duas linhas com a `HiddenWarning` deste ticket, mas não está no CA7 nem no CA8 (é do CA3) e mudaria o lugar que o `ActionInspectorTests.ChannelTab_OnlyWithChannel_HiddenWithWarning` procura. Não foi feito.
+- Testes red (EditMode, `SpellBook.GAS.Tests.EditMode`, classe `EffectConfigFieldsTests`, em `Tests/GAS/EditMode/EffectConfigFieldsTests.cs`, novo): `Duration_ShownOnlyWithHasDuration` (três casos, pela regra do `[ShowIf]`); `TickGroup_ShownOnlyWithPeriod`; `StackFields_ShownOnlyWithCanStack`; `ConfigChange_UpdatesFields_KeepsStoredValues`; `TickTab_HiddenWithActions_WarningInDurationGroup`; `MultiSelection_ShowsFieldsAnyAssetUses`.
+- Critério de pronto: os testes acima verdes, mais `EffectInspectorTabsTests`, `ActionInspectorTests` e `AbilityBehaviorFieldsTests` verdes no filtro, sem mudar asserção. A suíte completa roda na `/revisao`.
+- Tamanho: 293 linhas medidas (+281 −12) e 4 arquivos (1 novo), pela ADR 0042. Os `.meta` e este Detalhe não contam. Exceção: nenhuma.
+- Commit: `feat(editor): campos do efeito por duração, período e pilha`

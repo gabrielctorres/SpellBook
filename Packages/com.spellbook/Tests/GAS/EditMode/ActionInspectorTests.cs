@@ -65,6 +65,7 @@ namespace SpellBook.GAS.Tests
         public void EffectTabs_ReactionsGrouped()
         {
             GameplayEffect effect = _gas.CreateDurationEffect(1f);
+            effect.Period = 0.5f;
 
             VisualElement root = CreateInspector(effect);
 

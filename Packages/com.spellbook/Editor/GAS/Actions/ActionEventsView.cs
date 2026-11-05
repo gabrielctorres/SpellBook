@@ -38,6 +38,7 @@ namespace SpellBook.GAS.Editor.Actions
         private readonly List<(FieldInfo Field, ActionEventAttribute Event)> _events;
         private readonly List<EventTab> _tabs = new List<EventTab>();
         private readonly HelpBox _hiddenWarning;
+        private readonly string _hiddenReason;
         private readonly Label _emptyOwner;
         private readonly TabView _tabView;
         private string _shownKey;
@@ -45,10 +46,12 @@ namespace SpellBook.GAS.Editor.Actions
         /// <param name="emptyText">Texto acima das abas quando o dono não tem nenhuma ação.</param>
         /// <param name="isShown">Se a aba do campo aparece; nula, aparecem todas.</param>
         /// <param name="reactions">Campos agrupados sob "Reações", depois das outras abas.</param>
+        /// <param name="hiddenReason">O que esconde a aba, no texto do aviso ("... não vão rodar com o comportamento atual").</param>
         internal ActionEventsView(SerializedObject serializedObject, string emptyText, Func<string, bool> isShown = null,
-            ICollection<string> reactions = null)
+            ICollection<string> reactions = null, string hiddenReason = "o comportamento atual")
         {
             _serializedObject = serializedObject;
+            _hiddenReason = hiddenReason;
             _isShown = isShown ?? (_ => true);
             _reactions = reactions ?? Array.Empty<string>();
             AddToClassList(ClassName);
@@ -79,6 +82,12 @@ namespace SpellBook.GAS.Editor.Actions
 
         /// <summary>Indicador de "rodando" das linhas em Play (Design 10a); nulo em multi-seleção.</summary>
         internal RunningActionsTracker RunningTracker { get; }
+
+        /// <summary>
+        /// Aviso de aba escondida com ações (DS do Inspector de ações, 3.1); nulo em multi-seleção. O dono pode movê-lo
+        /// para o grupo que esconde a aba.
+        /// </summary>
+        internal HelpBox HiddenWarning => _hiddenWarning;
 
         /// <summary>Campo da aba ativa, ou <c>null</c> sem abas.</summary>
         internal string ActiveEvent => _tabs.FirstOrDefault(t => t.Tab == _tabView?.activeTab)?.Field;
@@ -127,7 +136,7 @@ namespace SpellBook.GAS.Editor.Actions
 
             var hidden = _events.Where(e => !_isShown(e.Field.Name) && Count(e.Field.Name) > 0).ToList();
             _hiddenWarning.text = string.Join("\n", hidden.Select(e =>
-                $"{Count(e.Field.Name)} ações em \"{e.Event.Label}\" não vão rodar com o comportamento atual."));
+                $"{Count(e.Field.Name)} ações em \"{e.Event.Label}\" não vão rodar com {_hiddenReason}."));
             Show(_hiddenWarning, hidden.Count > 0);
             Show(_emptyOwner, _events.All(e => Count(e.Field.Name) == 0));
         }
