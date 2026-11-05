@@ -112,3 +112,15 @@ O IH2, o IH3 e o IH4 mexem no `GameplayAbilityEditor`, então não rodam em para
 - Critério de pronto: os seis verdes, mais `AbilityInspectorTabsTests`, `AbilityBehaviorFieldsTests`, `ActivationInspectorTests`, `DescriptionPreviewTests` e `LevelValuesDrawerTests` verdes no filtro, sem mudar asserção. A suíte completa roda na `/revisao`.
 - Tamanho: 392 linhas medidas (+376 −16) e 2 arquivos (1 novo), pela ADR 0042. Os `.meta` e este Detalhe não contam. Exceção: nenhuma.
 - Commit: `feat(editor): prévia por nível da habilidade`
+
+## IH4 — Listas de tags compactas
+### Detalhe (2026-11-05)
+- CA: CA5 (na habilidade; o efeito é do IH5) e CA8. O texto do título do grupo continua "Tags", e o contador fica numa etiqueta ao lado, na mesma linha. Assim o `AbilityInspectorTabsTests` segue sem mudar asserção.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Editor/GAS/CompactTagList.cs` (novo, `internal`): elemento reutilizável que recebe o `PropertyField` de uma lista e a `SerializedProperty` dela. Com a lista vazia, mostra uma linha com o nome (`displayName`, em texto secundário, com o `[Tooltip]` do campo) e o botão "+ adicionar" à direita, e esconde o `PropertyField`. Com itens, mostra o `PropertyField` de sempre: nome, itens e botão no rodapé (DS, seção 6). O botão cria um item pela `SerializedProperty`, com desfazer. Com vários assets, a lista só fica compacta se estiver vazia em todos. Tem também `WrapGroup`, que embrulha as listas de um grupo e põe ao lado do título a etiqueta "N de M com itens" (`CountName`), e `RefreshAll`, que atualiza as listas e o contador. O IH5 reusa os dois no efeito.
+  - `Editor/GAS/GameplayAbilityEditor.cs:92-97`: o grupo Tags embrulha as seis listas no `CompactTagList` e ganha o contador. `:122-128`: o `TrackSerializedObjectValue` que já existe chama o `RefreshTagLists` (`internal`, novo). Ao montar, o `WrapGroup` já deixa as listas e o contador atualizados. `:19-29`: o resumo da classe cita as listas compactas.
+  - Sem mudança no runtime, sem `CHANGELOG.md` e sem manual.
+- Testes red (EditMode, `SpellBook.GAS.Tests.EditMode`, classe `AbilityCompactTagListsTests`, em `Tests/GAS/EditMode/AbilityCompactTagListsTests.cs`, novo): `EmptyList_OneRow_NameTooltipAndAddButton`; `ListWithItems_ShowsFullField`; `AddButton_AddsItem_ShowsFullField`; `TagsGroup_CountsListsWithItems`; `MultiSelection_ItemsInAnyAsset_ShowsFullField`.
+- Critério de pronto: os cinco verdes, mais `AbilityInspectorTabsTests`, `AbilityBehaviorFieldsTests`, `AbilityLevelPreviewTests`, `ActivationInspectorTests` e `DescriptionPreviewTests` verdes no filtro, sem mudar asserção. A suíte completa roda na `/revisao`.
+- Tamanho: 305 linhas medidas (+302 −3) e 3 arquivos (2 novos), pela ADR 0042. Os `.meta` e este Detalhe não contam. Exceção: nenhuma.
+- Commit: `feat(editor): listas de tags compactas na habilidade`
