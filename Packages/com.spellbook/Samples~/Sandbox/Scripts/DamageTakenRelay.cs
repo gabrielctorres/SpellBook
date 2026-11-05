@@ -13,10 +13,10 @@ namespace SpellBook.Samples.Sandbox
     [HelpURL(DocUrls.Samples + "#damagetakenrelay")]
     public sealed class DamageTakenRelay : MonoBehaviour
     {
-        [SerializeField, Tooltip("Atributo de vida observado.")]
+        [SerializeField, Tooltip("Observed health attribute.")]
         private AttributeDefinition health;
 
-        [SerializeField, Tooltip("Canal disparado com o dano de cada queda.")]
+        [SerializeField, Tooltip("Channel raised with the damage of each drop.")]
         private FloatEventChannel damageTaken;
 
         private AttributeSet _attributeSet;
@@ -36,7 +36,7 @@ namespace SpellBook.Samples.Sandbox
             }
             else
             {
-                Debug.LogWarning("DamageTakenRelay: o atributo de vida não está no AttributeSet.", this);
+                Debug.LogWarning("DamageTakenRelay: the health attribute is not in the AttributeSet.", this);
             }
         }
 

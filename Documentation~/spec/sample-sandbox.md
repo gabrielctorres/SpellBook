@@ -665,3 +665,21 @@ O SB-T12 e o SB-T13 eram um ticket só na resposta da EN1. Juntos dariam ~12 arq
 - Critério de pronto: os cinco testes falham antes da mudança e passam depois, com a pasta como `Samples~`; o resto do `SampleStructureTests` segue verde; sem `Samples/` nem `Samples.meta` na raiz do pacote. Com a pasta renomeada, a Unity importa sem erro, cada GUID aponta para o caminho novo, e a cena e o `GA_Fireball` não têm referência `Missing` nem componente sem script (conferido pelo `AssetDatabase` no mesmo passo da renomeação).
 - Tamanho: 184 linhas medidas (só o `.cs` conta; 172 adicionadas e 12 removidas) e 7 arquivos: 3 prefabs, a cena, o `README.md`, o `CREDITS.md` e o teste. Exceção: nenhuma.
 - Commit: `chore(samples): prefabs, cena e README do Sandbox em inglês`
+
+### SB-T13 — Detalhe (2026-11-05)
+- CA: CA-EN6 (as mensagens de Console, os `Tooltip` e a cultura de formatação dos seis scripts do Sample).
+- Escopo (caminhos em `Packages/com.spellbook/Samples~/Sandbox/Scripts/`). Só os literais de texto e a cultura mudam; nome de campo, valor serializado e comportamento ficam. Os comentários (`///` e `//`) ficam em português (CA-EN6):
+  - `AttributeReadout.cs:17`, `47` e `50`: os três `Tooltip`;
+  - `DamageTakenRelay.cs:16` e `19`: os `Tooltip`; `:39`: o aviso `DamageTakenRelay: the health attribute is not in the AttributeSet.`;
+  - `LogPayloadReaction.cs:13`: o `Summary` do `TypeCategory` vira `Writes a message with the payload.`. A categoria `"Depuração"` fica, porque é a chave que agrupa a reação com a `LogReaction` e a `DebugLogEffectAction` do pacote no seletor de tipos; traduzi-la separaria o grupo. `:16` e `:19`: os `Tooltip`; `:17`: o padrão do `format` vira `Damage taken: {0:0.#}`, igual ao valor já gravado na cena (SB-T12), então nenhum asset muda; `:24`: o `string.Format` passa a `CultureInfo.InvariantCulture` (hoje usa a cultura da máquina e escreveria `5,5` num Windows em pt-BR); `:29`: o erro de validação `Log has no format: fill in Format.`;
+  - `SandboxCaster.cs:19`: o campo `PtBr` sai, e o `string.Format` da linha 114 usa `CultureInfo.InvariantCulture`; `:21-30`: os quatro `Tooltip`; `:93`: `Fireball cast`; `:114`, `117` e `120`: `Fireball on cooldown: {0:0.0} s`, `Not enough mana for Fireball` e `Fireball failed: {motivo}`, com as duas primeiras iguais às que o `README.md` do SB-T12 já mostra;
+  - `SandboxDirector.cs:17`: o campo `PtBr` sai, e o `string.Format` da linha 96 usa `CultureInfo.InvariantCulture`; `:19-49`: os onze `Tooltip`; `:88`, `96`, `97` e `108`: `Game paused` / `Game resumed`, `Slow motion: scale {0:0.##}`, `Normal speed: scale 1` e `Scene restarted`;
+  - `TrainingDummyFeedback.cs:19-37`: os sete `Tooltip`;
+  - `Tests/Repository/EditMode/Structure/SampleStructureTests.cs`: as duas guardas abaixo e um leitor de literais que pula comentários.
+  - A `InvariantCulture` dá o `0.25` pedido pelo CA-EN6 sem depender de a cultura `en` existir na plataforma. O `manual/exemplos/sandbox.md` fica para o passe (CA-EN5).
+- Testes red (EditMode, `SpellBook.Repository.Tests.EditMode`, classe `SampleStructureTests`). Os scripts do Sample não compilam na suíte, então as guardas leem o código-fonte:
+  - `SampleSources_StringLiteralsAreInEnglish`: os literais de texto fora de comentário dos seis scripts, sem repetição e em ordem ordinal, são exatamente a lista em inglês do escopo (mais `_Color`, as âncoras do `HelpURL` e a categoria `Depuração`). Cai se um texto em português voltar ou se um texto novo entrar sem a guarda;
+  - `SampleSources_FormatNumbersWithInvariantCulture`: todo `string.Format` dos scripts recebe `CultureInfo.InvariantCulture` como primeiro argumento, e nenhum script cita `pt-BR`.
+- Critério de pronto: as duas guardas falham antes da mudança e passam depois; o resto do `SampleStructureTests` segue verde; com a pasta renomeada como `Samples` (0028), o assembly `SpellBook.Samples.Sandbox` compila sem erro nem aviso, e a pasta volta a `Samples~` sem `Samples.meta`.
+- Tamanho: 219 linhas medidas (só o `.cs` conta; 173 adicionadas e 46 removidas: 89 nos seis scripts e 130 no teste) e 7 arquivos: os seis scripts e o teste. O teste não estava na estimativa de 6 arquivos da tabela e entra como consequência direta (0042, item 6). Exceção: nenhuma.
+- Commit: `chore(samples): textos dos scripts do Sample em inglês`

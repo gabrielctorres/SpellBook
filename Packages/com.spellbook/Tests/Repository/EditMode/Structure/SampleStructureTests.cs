@@ -161,6 +161,59 @@ namespace SpellBook.Core.Tests.Structure
 
         private static readonly string[] OldReadmeNames = { "BolaDeFogo", "BonecoDeTreino", "Conjurador", "Bola de Fogo" };
 
+        // Literais de texto dos scripts do Sample, fora de comentário (CA-EN6). A categoria "Depuração" é a chave
+        // que agrupa a reação com as do pacote no seletor de tipos e fica.
+        private static readonly string[] SampleSourceLiterals =
+        {
+            "#attributereadout", "#damagetakenrelay", "#sandboxcaster", "#sandboxdirector", "#trainingdummyfeedback",
+            "_Color",
+            "Ability cast by the key.",
+            "Anchor the HUD publishes itself to. If empty or unset, the HUD counts as absent.",
+            "Attribute shown.",
+            "Attributes shown and the current value of each.",
+            "Caster prefab.",
+            "Channel raised with the damage of each drop.",
+            "Channel that receives the text of each failure. If empty, failures are not written.",
+            "Color while the burn tag is active.",
+            "Color without hit or burn.",
+            "Console entry type.",
+            "Current value, updated during Play.",
+            "Damage taken: {0:0.#}",
+            "DamageTakenRelay: the health attribute is not in the AttributeSet.",
+            "Depuração",
+            "Fireball cast",
+            "Fireball failed: {Reason(in failure)}",
+            "Fireball on cooldown: {0:0.0} s",
+            "Flash color when taking damage.",
+            "Flash duration, in seconds of the time source.",
+            "Game paused",
+            "Game resumed",
+            "Gameplay time group, paused by the pause key.",
+            "Height of the aim plane, in meters.",
+            "Key that casts the ability.",
+            "Listener that writes to the Console what the HUD would show. Enabled only without the HUD.",
+            "Log has no format: fill in Format.",
+            "Message format. {0} is the payload.",
+            "Normal speed: scale 1",
+            "Not enough mana for Fireball",
+            "Observed health attribute.",
+            "Pauses or resumes the gameplay group.",
+            "Renderer painted by the feedback.",
+            "Restarts the scene.",
+            "Scene restarted",
+            "Slow motion: scale {0:0.##}",
+            "Tag that marks the burn.",
+            "Time scale of the slow motion.",
+            "Time source of the flash. If empty, uses scaled time.",
+            "Training dummy prefab.",
+            "Turns slow motion on or off.",
+            "Where the caster spawns.",
+            "Where the dummy spawns.",
+            "Writes a message with the payload.",
+        };
+
+        private static readonly Regex StringFormatCall = new Regex(@"\bstring\.Format\(\s*(?<first>[^,]*),");
+
         private static readonly Regex ConsoleMessage =
             new Regex(@"^        (?:message|format): ?(?<value>.*)$", RegexOptions.Multiline);
 
@@ -464,6 +517,39 @@ namespace SpellBook.Core.Tests.Structure
             Assert.That(provider, Does.Contain("guid: " + ptBrGuid + ","), "o provedor não lista mais a TXT_Sandbox.pt-BR");
         }
 
+        [Test]
+        public void SampleSources_StringLiteralsAreInEnglish()
+        {
+            string[] literals = SampleSources()
+                .SelectMany(file => StringLiterals(File.ReadAllText(file)))
+                .Distinct()
+                .OrderBy(l => l, StringComparer.Ordinal)
+                .ToArray();
+
+            Assert.That(literals, Is.EqualTo(SampleSourceLiterals.OrderBy(l => l, StringComparer.Ordinal).ToArray()),
+                "textos dos scripts do Sample (CA-EN6)");
+        }
+
+        [Test]
+        public void SampleSources_FormatNumbersWithInvariantCulture()
+        {
+            var violations = new List<string>();
+
+            foreach (string file in SampleSources())
+            {
+                string text = File.ReadAllText(file);
+                violations.AddRange(StringFormatCall.Matches(text).Cast<Match>()
+                    .Where(m => m.Groups["first"].Value.Trim() != "CultureInfo.InvariantCulture")
+                    .Select(m => $"{Relative(file)}: string.Format sem InvariantCulture ({m.Groups["first"].Value.Trim()})"));
+                if (text.Contains("pt-BR"))
+                {
+                    violations.Add($"{Relative(file)}: cita pt-BR");
+                }
+            }
+
+            Assert.That(violations, Is.Empty, "cultura dos números formatados pelos scripts (CA-EN6)");
+        }
+
         /// <summary>
         /// Os arquivos (sem <c>.meta</c>) das pastas são exatamente os nomes dados, cada <c>m_Name</c> é o nome do
         /// arquivo (se <paramref name="checkAssetName"/>) e o <c>.meta</c> guarda o GUID de antes da renomeação (nulo
@@ -638,6 +724,50 @@ namespace SpellBook.Core.Tests.Structure
             }
 
             return text.Substring(open + 1);
+        }
+
+        /// <summary>
+        /// Conteúdo dos literais de texto do código C#, em ordem, pulando comentários e literais de caractere. Lê o
+        /// texto entre as aspas como está, sem resolver escapes; o de uma string interpolada vem com as chaves.
+        /// </summary>
+        private static IEnumerable<string> StringLiterals(string source)
+        {
+            int i = 0;
+            while (i < source.Length)
+            {
+                char c = source[i];
+                char next = i + 1 < source.Length ? source[i + 1] : '\0';
+                if (c == '/' && next == '/')
+                {
+                    int end = source.IndexOf('\n', i);
+                    i = end < 0 ? source.Length : end;
+                }
+                else if (c == '/' && next == '*')
+                {
+                    int end = source.IndexOf("*/", i + 2, StringComparison.Ordinal);
+                    i = end < 0 ? source.Length : end + 2;
+                }
+                else if (c == '"' || c == '\'')
+                {
+                    int start = i + 1;
+                    int j = start;
+                    while (j < source.Length && source[j] != c)
+                    {
+                        j += source[j] == '\\' ? 2 : 1;
+                    }
+
+                    if (c == '"')
+                    {
+                        yield return source.Substring(start, Math.Min(j, source.Length) - start);
+                    }
+
+                    i = j + 1;
+                }
+                else
+                {
+                    i++;
+                }
+            }
         }
 
         private static IEnumerable<string> SampleSources()
