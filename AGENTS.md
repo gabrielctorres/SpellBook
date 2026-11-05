@@ -149,3 +149,25 @@ Esta seção é a fonte única das regras de processo. As ADRs guardam a decisã
 - Fora do modo autônomo, dúvida ou decisão volta ao Controlador, que a leva ao usuário. Nada vai para o `Documentation~/decisoes.md`.
 - No modo autônomo (usuário ausente), toda decisão tomada sem o usuário entra numa linha temporária de `Documentation~/decisoes.md`: `data | ticket | decisão | base | ADR afetada`. O usuário a revisa ao voltar.
 - A exceção de tamanho de até +30% fica registrada no Detalhe do ticket (ADR 0042, emenda de 2026-11-03), e no modo autônomo também no `decisoes.md`.
+
+<!-- gitbook-agent-instructions:start -->
+
+## GitBook Documentation Editing
+
+This repository contains documentation synced with GitBook via Git Sync.
+
+Before editing GitBook-synced Markdown, YAML, or asset files, make sure the GitBook skill is available and up to date in your local agent environment. Prefer installing or updating it with:
+
+```bash
+npx skills add gitbookio/gitbook-skills
+```
+
+This command may add or update local agent skill files. Use them only as local agent instructions; do not commit those installed skill files or any tool-generated agent configuration unless the user explicitly asks for it.
+
+If `npx` is unavailable, load the skill from:
+
+https://gitbook.com/docs/skill.md
+
+When making changes, preserve GitBook sync metadata such as frontmatter, `SUMMARY.md`, `gitbook-docs.yaml`, `.gitbook/`, and asset links unless the requested edit explicitly requires changing them.
+
+<!-- gitbook-agent-instructions:end -->
