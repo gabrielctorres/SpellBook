@@ -48,7 +48,7 @@ namespace SpellBook.GAS.Tests
 
             VisualElement root = CreateInspector(ability);
 
-            Tab[] tabs = root.Query<Tab>().ToList().ToArray();
+            Tab[] tabs = root.Q<ActionEventsView>().Query<Tab>().ToList().ToArray();
             Assert.That(tabs.Select(t => t.label), Is.EqualTo(new[]
             {
                 "Ao ativar · 2", "Ao terminar · 1", "Ao ser cancelada", "Ao ser concedida", "Ao ser retirada"
@@ -163,7 +163,7 @@ namespace SpellBook.GAS.Tests
 
             VisualElement root = editor.CreateInspectorGUI();
 
-            Assert.That(root.Query<Tab>().ToList(), Is.Empty);
+            Assert.That(root.Q<ActionEventsView>().Query<Tab>().ToList(), Is.Empty);
             Assert.That(root.Query<Label>().ToList().Select(l => l.text), Has.Some.EqualTo(ActionEventsView.MultiSelectionText));
         }
 

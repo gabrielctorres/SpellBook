@@ -36,7 +36,6 @@ namespace SpellBook.GAS.Abilities
     [HelpURL(DocUrls.Gas + "#id-1.4-gameplay-abilities-ga")]
     public class GameplayAbility : ScriptableObject, ISerializationCallbackReceiver, IValidatable
     {
-        [Header("Identidade")]
         public Sprite Icon;
 
         [Tooltip("Nome exibido da habilidade, com chave opcional para o provedor de texto.")]
@@ -57,14 +56,12 @@ namespace SpellBook.GAS.Abilities
 
         public AbilityDescription Description;
 
-        [Header("Níveis")]
         [Tooltip("Nível máximo. O ASC limita o nível concedido a [1, MaxLevel].")]
         [SerializeField, Min(1)] private int maxLevel = 1;
 
         [Tooltip("Valores nomeados por nível, lidos pelos ScalableFloat em modo Table dos efeitos desta habilidade.")]
         [SerializeField] private AbilityValues values = new AbilityValues();
 
-        [Header("Ativação")]
         public GameplayEffect CooldownEffect;
 
         public AttributeDefinition CooldownReductionAttribute;
@@ -99,7 +96,6 @@ namespace SpellBook.GAS.Abilities
         [Tooltip("Regras avaliadas na ordem, depois das tags, da recarga e do custo. A primeira que falha decide o motivo.")]
         [SerializeField] private List<ActivationRule> activationConditions = new List<ActivationRule>();
 
-        [Header("Tags")]
         [Tooltip("Não ativa se o dono tiver alguma destas tags.")]
         public List<GameplayTag> BlockedTags;
 
@@ -118,7 +114,6 @@ namespace SpellBook.GAS.Abilities
         [Tooltip("Cancela esta habilidade se o dono receber uma destas tags durante a execução (ex: State.Stunned).")]
         public List<GameplayTag> CancelledByTags;
 
-        [Header("Execução")]
         [SerializeReference]
         [TypePicker]
         [FormerlySerializedAs("Actions")]
@@ -155,7 +150,6 @@ namespace SpellBook.GAS.Abilities
         [ActionEvent("Ao ser retirada", DefaultTarget.Owner, false)]
         public List<GameplayAction> OnRemoved = new List<GameplayAction>();
 
-        [Header("Gatilhos")]
         [Tooltip("Interruptor que liga os gatilhos \"só com autocast\". Só em Instant e Channel.")]
         [SerializeField] private AutocastConfig autocast = new AutocastConfig();
 
