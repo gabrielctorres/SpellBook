@@ -7,7 +7,7 @@ namespace SpellBook.Pooling
     /// Define as configurações de pool para um prefab específico.
     /// </summary>
     [CreateAssetMenu(fileName = "New Pool Configuration", menuName = "SpellBook/Pooling/Pool Configuration")]
-    [HelpURL(DocUrls.Pooling + "#poolmanager")]
+    [HelpURL(DocUrls.Pooling + "#poolmanager-pre-aquecimento")]
     public class PoolConfiguration : ScriptableObject
     {
         public GameObject Prefab;

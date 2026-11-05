@@ -458,6 +458,7 @@ GB1, 2026-11-05. Branch `spike/gitbook`: `7160b42` (conteúdo), `6d1255a` (`gitb
   - `Runtime/Time/PausableTimeSource.cs:11`: `#pausabletimesource` → `#grupo-pausavel`.
 
   Os slugs são os do Detalhe do GB6. Na implementação, a Fábrica os confere com o `ManualMarkdown.Slug` do GB7a.
+- Conferido em 2026-11-05, depois do GB7a (8aa3afa): as linhas, os títulos e os slugs continuam os de cima. Nada mudou no Detalhe.
 - Testes red: nenhum teste novo. Antes da mudança, o `ManualLinksTests.EveryHelpUrlHasPageAndAnchor` do GB7a falha com as 8 âncoras. Depois dela, ele falha só com o escopo do usuário do GB7a.
 - Critério de pronto: a guarda fica nesse estado; `HelpUrlTests` passa; `git diff --check` limpo.
 - Tamanho: ~20 linhas em 10 arquivos. Exceção: nenhuma.

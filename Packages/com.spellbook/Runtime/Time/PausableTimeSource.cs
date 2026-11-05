@@ -8,7 +8,7 @@ namespace SpellBook.Time
     /// consumidores que leem o mesmo asset param e voltam juntos. Não tem escala própria (Spec, I-b).
     /// </summary>
     [CreateAssetMenu(menuName = "SpellBook/Time/Pausable Time Source", fileName = "New Pausable Time Source")]
-    [HelpURL(DocUrls.Time + "#pausabletimesource")]
+    [HelpURL(DocUrls.Time + "#grupo-pausavel")]
     public sealed class PausableTimeSource : TimeSourceAsset
     {
         private bool _isPaused;

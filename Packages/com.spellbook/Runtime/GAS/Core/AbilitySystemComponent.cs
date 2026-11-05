@@ -21,7 +21,7 @@ namespace SpellBook.GAS.Core
     public delegate void AttributeLimitHandler(AttributeState state, in AttributeChangeReport cause);
 
     [RequireComponent(typeof(AttributeSet))]
-    [HelpURL(DocUrls.Gas + "#abilitysystemcomponent")]
+    [HelpURL(DocUrls.Gas + "#id-1.5-abilitysystemcomponent-asc")]
     public class AbilitySystemComponent : MonoBehaviour, IValidatable
     {
         [SerializeField] private AttributeSet attributeSet;
