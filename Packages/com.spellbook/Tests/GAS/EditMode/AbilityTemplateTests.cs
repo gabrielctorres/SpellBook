@@ -4,6 +4,7 @@ using NUnit.Framework;
 using SpellBook.Core.Editor;
 using SpellBook.Core.Validation;
 using SpellBook.GAS.Abilities;
+using SpellBook.Tags;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -85,7 +86,23 @@ namespace SpellBook.GAS.Tests
 
             ValidationMessage message = result.Messages.Single();
             Assert.That(message.Severity, Is.EqualTo(ValidationSeverity.Error));
-            Assert.That(message.PropertyPath, Is.EqualTo("tags.Array.data[1]"));
+            Assert.That(message.PropertyPath, Is.EqualTo("tags.Array.data[1].rule"));
+        }
+
+        [Test]
+        public void Validate_SameTagSourceTwice_ErrorOnField()
+        {
+            AbilityTemplate template = CreateTemplate(Ability(), "GA_{Name}");
+            var tag = ScriptableObject.CreateInstance<GameplayTagDefinition>();
+            _created.Add(tag);
+            AddTag(template, tag, "Ability.{Name}");
+            AddTag(template, tag, "Cooldown.{Name}");
+
+            ValidationResult result = Validate(template);
+
+            ValidationMessage message = result.Messages.Single();
+            Assert.That(message.Severity, Is.EqualTo(ValidationSeverity.Error));
+            Assert.That(message.PropertyPath, Is.EqualTo("tags.Array.data[1].source"));
         }
 
         [Test]
@@ -143,7 +160,7 @@ namespace SpellBook.GAS.Tests
             return ability;
         }
 
-        // Monta o modelo pelos campos serializados, como o designer faz no Inspector. Sem regra de nome, sem entrada.
+        // Monta o modelo pelos campos serializados, como o designer faz no Inspector. Sem regra de nome, sem entrada; tags sem tag-modelo.
         private AbilityTemplate CreateTemplate(ScriptableObject source, string nameRule, params string[] tags)
         {
             var template = ScriptableObject.CreateInstance<AbilityTemplate>();
@@ -153,16 +170,23 @@ namespace SpellBook.GAS.Tests
                 AddEntry(template, source, nameRule);
             }
 
-            var serialized = new SerializedObject(template);
-            SerializedProperty tagList = serialized.FindProperty("tags");
             foreach (string tag in tags)
             {
-                tagList.InsertArrayElementAtIndex(tagList.arraySize);
-                tagList.GetArrayElementAtIndex(tagList.arraySize - 1).stringValue = tag;
+                AddTag(template, null, tag);
             }
 
-            serialized.ApplyModifiedPropertiesWithoutUndo();
             return template;
+        }
+
+        private static void AddTag(AbilityTemplate template, GameplayTagDefinition source, string rule)
+        {
+            var serialized = new SerializedObject(template);
+            SerializedProperty tags = serialized.FindProperty("tags");
+            tags.InsertArrayElementAtIndex(tags.arraySize);
+            SerializedProperty entry = tags.GetArrayElementAtIndex(tags.arraySize - 1);
+            entry.FindPropertyRelative("source").objectReferenceValue = source;
+            entry.FindPropertyRelative("rule").stringValue = rule;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static void AddEntry(AbilityTemplate template, ScriptableObject source, string nameRule)
