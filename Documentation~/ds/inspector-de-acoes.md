@@ -172,6 +172,8 @@ As categorias são as do `[TypeCategory]` (ADR 0026), com a **raiz** do caminho 
 
 ## 8. Onde as abas entram no Inspector
 
+**Emenda de 2026-11-05 (B-041, aceita, aprovada em 2026-11-05):** no `GameplayAbility` e no `GameplayEffect`, a faixa de abas de eventos fica dentro da aba "Ações" do topo, e o resto do Inspector segue o [DS dos Inspectors da habilidade e do efeito](inspector-de-habilidade.md). A ordem abaixo vale até a implementação do B-041.
+
 O `GameplayAbility` e o `GameplayEffect` ganham a ordem de seções abaixo. O DS só fixa a posição das abas: o conteúdo de cada seção anterior é do desenho do respectivo Inspector.
 
 **`GameplayAbility`:**
@@ -216,3 +218,4 @@ O `GameplayAbility` e o `GameplayEffect` ganham a ordem de seções abaixo. O DS
 |---|---|
 | 2026-10-31 | Primeira versão, a pedido do usuário (PRD B-012, P5), antes da Spec, para entrar no gate único |
 | 2026-10-31 | Gate do Lote D: PlayCue e SpawnVFXEffect saem das categorias; entram ExecuteCue e AddCue (Apresentação); cues só por ações |
+| 2026-11-05 | Seção 8: as abas de eventos ficam dentro da aba "Ações" do topo (B-041, `ds/inspector-de-habilidade.md`), aceita, aprovada em 2026-11-05 |
