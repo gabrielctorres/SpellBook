@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
+using SpellBook.Core.Editor;
 using UnityEditor;
-using UnityEngine;
-using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 namespace SpellBook.Events.Editor
@@ -36,8 +34,8 @@ namespace SpellBook.Events.Editor
     }
 
     /// <summary>
-    /// Find references de canal (CA24): varre os prefabs e os assets (<c>.prefab</c> e <c>.asset</c>) que dependem do
-    /// canal e os objetos das cenas abertas. Cenas fechadas não são abertas nem lidas (I36).
+    /// Find references de canal (CA24): a busca do <see cref="ReferenceFinder"/> nos prefabs, nos assets e nas cenas
+    /// abertas, com o papel de cada referência. Cenas fechadas não são abertas nem lidas (I36).
     /// </summary>
     internal static class ChannelReferenceFinder
     {
@@ -47,72 +45,17 @@ namespace SpellBook.Events.Editor
             var result = new List<ChannelReference>();
             if (channel == null) return result;
 
-            string channelPath = AssetDatabase.GetAssetPath(channel);
-            if (channelPath.Length > 0)
+            foreach (ReferenceUser user in ReferenceFinder.FindUsers(channel))
             {
-                foreach (string path in AssetDatabase.GetAllAssetPaths())
-                {
-                    if (path != channelPath && IsScannedAsset(path) && DependsOn(path, channelPath))
-                    {
-                        foreach (Object asset in AssetDatabase.LoadAllAssetsAtPath(path))
-                        {
-                            Scan(asset, channel, path, result);
-                        }
-                    }
-                }
-            }
-
-            for (int i = 0; i < SceneManager.sceneCount; i++)
-            {
-                Scene scene = SceneManager.GetSceneAt(i);
-                if (!scene.isLoaded) continue;
-
-                string location = scene.path.Length > 0 ? scene.path : scene.name;
-                foreach (GameObject root in scene.GetRootGameObjects())
-                {
-                    foreach (Component component in root.GetComponentsInChildren<Component>(true))
-                    {
-                        Scan(component, channel, location, result);
-                    }
-                }
-            }
-
-            return result;
-        }
-
-        private static bool IsScannedAsset(string path)
-        {
-            return path.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase)
-                || path.EndsWith(".asset", StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static bool DependsOn(string path, string dependency)
-        {
-            return Array.IndexOf(AssetDatabase.GetDependencies(path, false), dependency) >= 0;
-        }
-
-        // Percorre os campos serializados do objeto, inclusive os [SerializeReference], atrás do canal.
-        private static void Scan(Object target, EventChannel channel, string location, List<ChannelReference> result)
-        {
-            if (target == null || target is GameObject) return;
-
-            using var serialized = new SerializedObject(target);
-            SerializedProperty property = serialized.GetIterator();
-            bool enterChildren = true;
-            while (property.Next(enterChildren))
-            {
-                enterChildren = property.propertyType != SerializedPropertyType.String;
-                if (property.propertyType != SerializedPropertyType.ObjectReference || property.objectReferenceValue != channel)
-                {
-                    continue;
-                }
-
-                var reference = new ChannelReference(target, RoleOf(property), location);
+                using var serialized = new SerializedObject(user.Owner);
+                var reference = new ChannelReference(user.Owner, RoleOf(serialized.FindProperty(user.PropertyPath)), user.Location);
                 if (!Contains(result, reference))
                 {
                     result.Add(reference);
                 }
             }
+
+            return result;
         }
 
         // Papel pela referência gerenciada mais próxima que contém o campo, subindo pelo caminho.
