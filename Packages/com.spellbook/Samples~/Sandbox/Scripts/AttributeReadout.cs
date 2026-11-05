@@ -14,7 +14,7 @@ namespace SpellBook.Samples.Sandbox
     [HelpURL(DocUrls.Samples + "#attributereadout")]
     public sealed class AttributeReadout : MonoBehaviour
     {
-        [SerializeField, Tooltip("Atributos mostrados e o valor atual de cada um.")]
+        [SerializeField, Tooltip("Attributes shown and the current value of each.")]
         private List<Entry> entries = new List<Entry>();
 
         private AttributeSet _attributeSet;
@@ -44,10 +44,10 @@ namespace SpellBook.Samples.Sandbox
         [Serializable]
         private sealed class Entry
         {
-            [SerializeField, Tooltip("Atributo mostrado.")]
+            [SerializeField, Tooltip("Attribute shown.")]
             private AttributeDefinition attribute;
 
-            [SerializeField, Tooltip("Valor atual, atualizado durante o Play.")]
+            [SerializeField, Tooltip("Current value, updated during Play.")]
             private float current;
 
             [NonSerialized]

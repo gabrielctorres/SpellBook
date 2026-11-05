@@ -1,39 +1,30 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 namespace SpellBook.Core.Editor.Documentation
 {
-    /// <summary>Roda o <c>docfx metadata</c> com a configuração dada e lança exceção se o processo falhar.</summary>
-    internal interface IDocfxMetadataRunner
-    {
-        void Run(string documentationRoot, string metadataConfigPath);
-    }
-
     /// <summary>
-    /// Gera a referência do pacote: a página do catálogo, a configuração do DocFX em <c>api/obj/</c>, os YAML da API em
-    /// <c>api/reference/</c>, o mapa da Unity em <c>api/unity.xrefmap.yml</c> e a impressão digital em
-    /// <c>api/reference.sha256</c> (ADR 0040, item 2; ADR 0041, item 1).
+    /// Gera a página do catálogo de tipos em <c>manual/referencia/catalogo.md</c> (ADR 0040, itens 1 e 4; ADR 0044,
+    /// item 7). Não há referência da API gerada (ADR 0044, item 6).
     /// </summary>
     public static class ReferenceGenerator
     {
-        /// <summary>Caminho do item de menu que gera a referência.</summary>
+        /// <summary>Caminho do item de menu que gera o catálogo.</summary>
         public const string MenuPath = "SpellBook/Documentação/Gerar referência";
 
-        /// <summary>Gera a referência na pasta <c>Documentation~/</c> do projeto aberto e registra o resultado no log.</summary>
+        /// <summary>Gera o catálogo na pasta <c>Documentation~/</c> do projeto aberto e registra o resultado no log.</summary>
         [MenuItem(MenuPath)]
         public static void GenerateFromMenu()
         {
             try
             {
                 Generate(DefaultDocumentationRoot());
-                Debug.Log("Referência gerada. Commite o catálogo, a pasta api/reference/, o api/unity.xrefmap.yml e o api/reference.sha256.");
+                Debug.Log("Catálogo gerado. Commite o manual/referencia/catalogo.md.");
             }
             catch (Exception exception)
             {
@@ -58,39 +49,13 @@ namespace SpellBook.Core.Editor.Documentation
             EditorApplication.Exit(code);
         }
 
-        /// <summary>Gera a referência em <paramref name="documentationRoot"/>, a pasta <c>Documentation~/</c> na raiz do repositório.</summary>
+        /// <summary>Gera o catálogo em <paramref name="documentationRoot"/>, a pasta <c>Documentation~/</c> na raiz do repositório.</summary>
         public static void Generate(string documentationRoot)
         {
-            Generate(documentationRoot, new DotnetDocfxRunner());
-        }
-
-        internal static void Generate(string documentationRoot, IDocfxMetadataRunner runner)
-        {
             string root = Path.GetFullPath(documentationRoot);
-            string repositoryRoot = Path.GetDirectoryName(root.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-
             IReadOnlyList<TypeCatalogSection> sections = TypeCatalog.Build();
             WarnMissingSummaries(sections);
             Write(Path.Combine(root, "manual", "referencia", "catalogo.md"), TypeCatalogPage.Render(sections));
-
-            string configDir = Path.Combine(root, "api", "obj");
-            string configPath = Path.Combine(configDir, "docfx.metadata.json");
-            Write(configPath, DocfxConfig.Render(DocfxConfig.Read(), DocfxConfig.ReadSystemAssemblyDirectories(), configDir));
-
-            // Nada da geração anterior fica: tipo removido não deixa YAML, e uma falha não deixa impressão digital nem mapa velhos.
-            string fingerprintPath = Path.Combine(root, "api", "reference.sha256");
-            File.Delete(fingerprintPath);
-            string xrefMapPath = Path.Combine(root, "api", "unity.xrefmap.yml");
-            File.Delete(xrefMapPath);
-            string referenceDir = Path.Combine(root, "api", "reference");
-            if (Directory.Exists(referenceDir))
-            {
-                Directory.Delete(referenceDir, true);
-            }
-
-            runner.Run(root, configPath);
-            Write(xrefMapPath, UnityXrefMap.Render(referenceDir));
-            Write(fingerprintPath, ReferenceFingerprint.Compute(repositoryRoot) + "\n");
         }
 
         private static string DefaultDocumentationRoot()
@@ -116,59 +81,6 @@ namespace SpellBook.Core.Editor.Documentation
         {
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             File.WriteAllText(path, text, new UTF8Encoding(false));
-        }
-    }
-
-    /// <summary>
-    /// Roda <c>dotnet tool restore</c> e <c>dotnet docfx metadata --warningsAsErrors</c> em <c>Documentation~/</c>, sem shell
-    /// e com argumentos fixos.
-    /// </summary>
-    internal sealed class DotnetDocfxRunner : IDocfxMetadataRunner
-    {
-        public void Run(string documentationRoot, string metadataConfigPath)
-        {
-            string config = Path.GetRelativePath(documentationRoot, metadataConfigPath).Replace('\\', '/');
-            Execute(documentationRoot, "tool restore");
-            Execute(documentationRoot, $"docfx metadata \"{config}\" --warningsAsErrors");
-        }
-
-        private static void Execute(string workingDirectory, string arguments)
-        {
-            var start = new ProcessStartInfo("dotnet", arguments)
-            {
-                WorkingDirectory = workingDirectory,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-            };
-            var output = new StringBuilder();
-            using (var process = new Process { StartInfo = start })
-            {
-                process.OutputDataReceived += (_, e) => Append(output, e.Data);
-                process.ErrorDataReceived += (_, e) => Append(output, e.Data);
-                process.Start();
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-                process.WaitForExit();
-                if (process.ExitCode != 0)
-                {
-                    throw new InvalidOperationException($"dotnet {arguments} saiu com o código {process.ExitCode}:\n{output}");
-                }
-            }
-        }
-
-        private static void Append(StringBuilder output, string line)
-        {
-            if (line == null)
-            {
-                return;
-            }
-
-            lock (output)
-            {
-                output.Append(line).Append('\n');
-            }
         }
     }
 }

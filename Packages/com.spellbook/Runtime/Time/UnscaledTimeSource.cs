@@ -4,7 +4,7 @@ using UnityEngine;
 namespace SpellBook.Time
 {
     /// <summary>Tempo não escalado da Unity: ignora o <c>Time.timeScale</c>. Serve para UI e menus.</summary>
-    [CreateAssetMenu(menuName = "SpellBook/Time/Unscaled Time Source")]
+    [CreateAssetMenu(menuName = "SpellBook/Time/Unscaled Time Source", fileName = "New Unscaled Time Source")]
     [HelpURL(DocUrls.Time + "#unscaledtimesource")]
     public sealed class UnscaledTimeSource : TimeSourceAsset
     {

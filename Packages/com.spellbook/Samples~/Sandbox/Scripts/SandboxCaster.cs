@@ -16,18 +16,16 @@ namespace SpellBook.Samples.Sandbox
     [HelpURL(DocUrls.Samples + "#sandboxcaster")]
     public sealed class SandboxCaster : MonoBehaviour
     {
-        private static readonly CultureInfo PtBr = CultureInfo.GetCultureInfo("pt-BR");
-
-        [SerializeField, Tooltip("Habilidade conjurada pela tecla.")]
+        [SerializeField, Tooltip("Ability cast by the key.")]
         private GameplayAbility ability;
 
-        [SerializeField, Tooltip("Tecla que conjura a habilidade.")]
+        [SerializeField, Tooltip("Key that casts the ability.")]
         private KeyCode castKey = KeyCode.Alpha1;
 
-        [SerializeField, Tooltip("Altura do plano de mira, em metros.")]
+        [SerializeField, Tooltip("Height of the aim plane, in meters.")]
         private float aimHeight = 1.2f;
 
-        [SerializeField, Tooltip("Canal que recebe o texto de cada falha. Vazio, a falha não é escrita.")]
+        [SerializeField, Tooltip("Channel that receives the text of each failure. If empty, failures are not written.")]
         private StringEventChannel failureChannel;
 
         private AbilitySystemComponent _asc;
@@ -90,7 +88,7 @@ namespace SpellBook.Samples.Sandbox
         {
             if (spec.Ability == ability)
             {
-                Debug.Log("Bola de Fogo conjurada", this);
+                Debug.Log("Fireball cast", this);
             }
         }
 
@@ -111,13 +109,13 @@ namespace SpellBook.Samples.Sandbox
             {
                 case AbilityActivationResult.OnCooldown:
                     float remaining = _asc.GetCooldownTimeRemaining(ability.CooldownEffect);
-                    message = string.Format(PtBr, "Bola de Fogo em recarga: {0:0.0} s", remaining);
+                    message = string.Format(CultureInfo.InvariantCulture, "Fireball on cooldown: {0:0.0} s", remaining);
                     break;
                 case AbilityActivationResult.CannotAffordCost:
-                    message = "Sem mana para a Bola de Fogo";
+                    message = "Not enough mana for Fireball";
                     break;
                 default:
-                    message = $"Bola de Fogo não disparou: {Reason(in failure)}";
+                    message = $"Fireball failed: {Reason(in failure)}";
                     break;
             }
 

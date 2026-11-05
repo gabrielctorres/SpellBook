@@ -16,25 +16,25 @@ namespace SpellBook.Samples.Sandbox
     {
         private static readonly int ColorId = Shader.PropertyToID("_Color");
 
-        [SerializeField, Tooltip("Renderer pintado pelo feedback.")]
+        [SerializeField, Tooltip("Renderer painted by the feedback.")]
         private Renderer target;
 
-        [SerializeField, Tooltip("Tag que indica queimadura.")]
+        [SerializeField, Tooltip("Tag that marks the burn.")]
         private GameplayTag burningTag;
 
-        [SerializeField, Tooltip("Cor sem acerto nem queimadura.")]
+        [SerializeField, Tooltip("Color without hit or burn.")]
         private Color normal = Color.white;
 
-        [SerializeField, Tooltip("Cor do piscar ao receber dano.")]
+        [SerializeField, Tooltip("Flash color when taking damage.")]
         private Color hit = Color.red;
 
-        [SerializeField, Tooltip("Cor enquanto a tag de queimadura estiver ativa.")]
+        [SerializeField, Tooltip("Color while the burn tag is active.")]
         private Color burning = new Color(1f, 0.5f, 0f);
 
-        [SerializeField, Tooltip("Duração do piscar, em segundos da fonte de tempo.")]
+        [SerializeField, Tooltip("Flash duration, in seconds of the time source.")]
         private float hitFlash = 0.15f;
 
-        [SerializeField, Tooltip("Fonte de tempo do piscar. Vazio usa o tempo escalado.")]
+        [SerializeField, Tooltip("Time source of the flash. If empty, uses scaled time.")]
         private TimeSourceAsset timeSource;
 
         private AbilitySystemComponent _asc;

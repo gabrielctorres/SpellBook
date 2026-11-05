@@ -14,39 +14,37 @@ namespace SpellBook.Samples.Sandbox
     [HelpURL(DocUrls.Samples + "#sandboxdirector")]
     public sealed class SandboxDirector : MonoBehaviour
     {
-        private static readonly CultureInfo PtBr = CultureInfo.GetCultureInfo("pt-BR");
-
-        [SerializeField, Tooltip("Prefab do conjurador.")]
+        [SerializeField, Tooltip("Caster prefab.")]
         private GameObject casterPrefab;
 
-        [SerializeField, Tooltip("Prefab do boneco de treino.")]
+        [SerializeField, Tooltip("Training dummy prefab.")]
         private GameObject dummyPrefab;
 
-        [SerializeField, Tooltip("Onde o conjurador aparece.")]
+        [SerializeField, Tooltip("Where the caster spawns.")]
         private Transform casterSpawn;
 
-        [SerializeField, Tooltip("Onde o boneco aparece.")]
+        [SerializeField, Tooltip("Where the dummy spawns.")]
         private Transform dummySpawn;
 
-        [SerializeField, Tooltip("Grupo de tempo do gameplay, pausado pela tecla de pausa.")]
+        [SerializeField, Tooltip("Gameplay time group, paused by the pause key.")]
         private PausableTimeSource gameplayTime;
 
-        [SerializeField, Tooltip("Escala de tempo da câmera lenta.")]
+        [SerializeField, Tooltip("Time scale of the slow motion.")]
         private float slowScale = 0.25f;
 
-        [SerializeField, Tooltip("Pausa ou retoma o grupo de gameplay.")]
+        [SerializeField, Tooltip("Pauses or resumes the gameplay group.")]
         private KeyCode pauseKey = KeyCode.P;
 
-        [SerializeField, Tooltip("Liga ou desliga a câmera lenta.")]
+        [SerializeField, Tooltip("Turns slow motion on or off.")]
         private KeyCode slowKey = KeyCode.T;
 
-        [SerializeField, Tooltip("Reinicia a cena.")]
+        [SerializeField, Tooltip("Restarts the scene.")]
         private KeyCode restartKey = KeyCode.R;
 
-        [SerializeField, Tooltip("Âncora em que o HUD se publica. Vazia ou sem âncora, o HUD conta como ausente.")]
+        [SerializeField, Tooltip("Anchor the HUD publishes itself to. If empty or unset, the HUD counts as absent.")]
         private RuntimeAnchor hudAnchor;
 
-        [SerializeField, Tooltip("Ouvinte que escreve no Console o que o HUD mostraria. Ligado só sem o HUD.")]
+        [SerializeField, Tooltip("Listener that writes to the Console what the HUD would show. Enabled only without the HUD.")]
         private EventListener consoleWithoutHud;
 
         private GameObject _caster;
@@ -85,7 +83,7 @@ namespace SpellBook.Samples.Sandbox
         {
             bool paused = !gameplayTime.IsPaused;
             gameplayTime.SetPaused(paused);
-            Debug.Log(paused ? "Jogo pausado" : "Jogo retomado", this);
+            Debug.Log(paused ? "Game paused" : "Game resumed", this);
         }
 
         private void ToggleSlowMotion()
@@ -93,8 +91,8 @@ namespace SpellBook.Samples.Sandbox
             bool slow = Mathf.Approximately(UnityEngine.Time.timeScale, 1f);
             UnityEngine.Time.timeScale = slow ? slowScale : 1f;
             Debug.Log(slow
-                ? string.Format(PtBr, "Câmera lenta: escala {0:0.##}", slowScale)
-                : "Velocidade normal: escala 1", this);
+                ? string.Format(CultureInfo.InvariantCulture, "Slow motion: scale {0:0.##}", slowScale)
+                : "Normal speed: scale 1", this);
         }
 
         private void Restart()
@@ -105,7 +103,7 @@ namespace SpellBook.Samples.Sandbox
             Destroy(_dummy);
             UpdateConsoleWithoutHud();
             Spawn();
-            Debug.Log("Cena reiniciada", this);
+            Debug.Log("Scene restarted", this);
         }
 
         // Lido só no Start e no reinício: os OnEnable da cena, onde o HUD se publica, rodam antes de qualquer Start.

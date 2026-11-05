@@ -103,6 +103,7 @@ namespace SpellBook.GAS.Tests
         public void Defaults_NoMessages()
         {
             GameplayEffect effect = _gas.CreateDurationEffect(5f);
+            GasFactory.SetObjectField(effect, "icon", CreateSprite());
 
             Assert.That(SpellBookEditor.CollectMessages(new Object[] { effect }), Is.Empty);
         }
@@ -111,6 +112,7 @@ namespace SpellBook.GAS.Tests
         public void BuffAndDebuff_Warning()
         {
             GameplayEffect effect = _gas.CreateDurationEffect(5f);
+            GasFactory.SetObjectField(effect, "icon", CreateSprite());
             SetBools(effect, ("isBuff", true), ("isDebuff", true));
 
             ValidationMessage message = SpellBookEditor.CollectMessages(new Object[] { effect }).Single();

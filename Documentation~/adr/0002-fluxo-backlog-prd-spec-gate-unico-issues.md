@@ -167,10 +167,19 @@ Hoje o fluxo está descrito em `Documentation~/README.md`, `TIME.md` e `backlog.
 - Um erro num ticket só de texto que o Controlador não pegar só aparece no PR, depois do commit.
 - O `AGENTS.md` (seção "Time de desenvolvimento": o papel do Examinador, o do Codex e o item 5 do Fluxo), a skill `/revisao` e o agente `examinador` seguem esta regra (CA1 da issue #323).
 
+## Emenda (2026-11-04): commit do change request no passe de documentação, pela 0044
+
+**Status da emenda: Aceita** (gate de 2026-11-04 da [0044](0044-manual-no-gitbook-por-git-sync-sem-referencia-da-api.md), Q3 e Q6; ticket GB11 de `spec/migracao-gitbook.md`). Revê o item 6 da emenda "design doc por épico e papéis enxutos". Vale depois do GB9 do mesmo design doc.
+
+1. **Fábrica do passe.** No passe de documentação, a Fábrica escreve o texto no espaço de rascunho do GitBook, pelo MCP, num change request do ticket. Quando ela o junta, o GitBook cria um commit na branch do lote (0044, item 13). É o único commit criado por um papel fora do `/commit`, e ele nunca acontece no espaço público nem na `main`.
+2. **`/commit`.** Continua o único passo que commita no checkout do ticket. No passe, ele commita a geração, o Detalhe e o código, depois que o commit do change request chega ao checkout por avanço rápido.
+3. **Merge na `main`.** Continua do usuário, pelo PR da branch do lote.
+4. **Quem usa o MCP.** Só a Fábrica do passe escreve pelo MCP. O Controlador só lê, para conferir o texto antes do merge do change request. O Examinador, o Desenhista, o Codex e o Antigravity não o usam (0044, item 13).
+
 ## Em aberto
 
 Nada.
 
 ## Relacionadas
 
-- 0001 (pastas), 0003 (ticket, issue e PR, substituída pela 0042), 0005 (trava e WIP), 0007 (gate de doc), 0042 (tamanho do ticket).
+- 0001 (pastas), 0003 (ticket, issue e PR, substituída pela 0042), 0005 (trava e WIP), 0007 (gate de doc), 0042 (tamanho do ticket), 0044 (manual no GitBook).

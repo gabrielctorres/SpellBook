@@ -8,7 +8,7 @@ namespace SpellBook.GAS.Core
     /// <see cref="AnchorRegistrar"/>, e a UI e outros assets acham o ator sem procurar na cena (ADR 0039, item 5).
     /// </summary>
     [HelpURL(DocUrls.Gas + "#abilitysystemanchor")]
-    [CreateAssetMenu(menuName = "SpellBook/GAS/Ability System Anchor", fileName = "AbilitySystemAnchor")]
+    [CreateAssetMenu(menuName = "SpellBook/GAS/Ability System Anchor", fileName = "New Ability System Anchor")]
     public sealed class AbilitySystemAnchor : RuntimeAnchor<AbilitySystemComponent>
     {
     }

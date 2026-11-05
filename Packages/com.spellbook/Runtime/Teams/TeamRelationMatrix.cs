@@ -11,7 +11,7 @@ namespace SpellBook.Teams
     /// runtime.
     /// </summary>
     [HelpURL(DocUrls.Teams + "#teamrelationmatrix")]
-    [CreateAssetMenu(fileName = "NewTeamRelationMatrix", menuName = "SpellBook/Teams/Relation Matrix")]
+    [CreateAssetMenu(fileName = "New Team Relation Matrix", menuName = "SpellBook/Teams/Team Relation Matrix")]
     public sealed class TeamRelationMatrix : ScriptableObject, IValidatable
     {
         [SerializeField] private List<TeamDefinition> teams = new List<TeamDefinition>();

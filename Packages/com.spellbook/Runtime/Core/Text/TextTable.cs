@@ -10,7 +10,7 @@ namespace SpellBook.Core.Text
     /// pela cultura; cultura vazia é a tabela neutra, lida depois das culturas.
     /// </summary>
     [HelpURL(DocUrls.Text + "#texttable")]
-    [CreateAssetMenu(menuName = "SpellBook/Text/Text Table", fileName = "TextTable")]
+    [CreateAssetMenu(menuName = "SpellBook/Text/Text Table", fileName = "New Text Table")]
     public class TextTable : ScriptableObject, IValidatable
     {
         /// <summary>Uma chave e o texto dela.</summary>

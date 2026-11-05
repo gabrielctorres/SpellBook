@@ -169,10 +169,22 @@ Vale para todo ticket que começar depois da aceitação. Um ticket que já est�
 - O Controlador lê páginas do manual. Elas são texto, e os exemplos de código nelas são incluídos de testes e conferidos pelas guardas, então ele continua sem ler código.
 - Com esta emenda aceita, um ticket da via rápida alinha ao texto dela: o `AGENTS.md` (seção "Time de desenvolvimento": os papéis do Controlador e do Examinador, o item 5 do Fluxo e "WIP, trava e testes", que hoje tira `Documentacao` da revisão), a skill `/revisao`, o agente `examinador` e o agente `controlador`. A seção 7 do `guia-do-manual.md` já fala de "quem revisa" e não muda.
 
+## Emenda (2026-11-04): manual no GitBook, pela 0044
+
+**Status da emenda: Aceita** (gate de 2026-11-04 da [0044](0044-manual-no-gitbook-por-git-sync-sem-referencia-da-api.md), Q1 a Q6; ticket GB11 de `spec/migracao-gitbook.md`). Vale depois do GB9 do mesmo design doc. Até lá, as emendas acima continuam como estão.
+
+1. **Emenda de 2026-11-01, item 2.** "Cria página sem a entrada dela no `nav` do `mkdocs.yml`" passa a ler "sem a entrada dela no `SUMMARY.md`".
+2. **Emenda de 2026-11-01, item 4.** A navegação é o `SUMMARY.md` na raiz do manual, nos sete grupos do guia, com cada página uma vez (0044, item 5). No lugar do build `--strict`, falham as guardas `Documentacao` do item 10 da 0044: página fora do sumário ou repetida nele, entrada sem arquivo, link para arquivo ou âncora que não existe, link absoluto para o próprio site e sobra de sintaxe do MkDocs.
+3. **Emenda de 2026-11-01, item 5.** Perde a referência da API, que sai do repositório (0044, item 6). Fica a página gerada do catálogo, no `SUMMARY.md`, sem `[HelpURL]` apontando para ela.
+4. **Emenda de 2026-11-01, item 6.** Os títulos não têm `{#id}`. A âncora é a que o GitBook gera a partir do título, e a seção de um componente ou asset tem como título o nome do tipo (0044, item 9). O resto do item continua.
+5. **Emenda de 2026-11-01, Consequências.** O Mermaid é desenhado pelo GitBook, e o desenho é conferido na prévia do change request.
+6. **Emenda "manual e referência só no passe de documentação", item 6.** O texto do passe é escrito no espaço de rascunho pelo MCP, por change request (0044, item 13). A geração passa a ser **SpellBook > Documentação > Gerar catálogo e exemplos**, rodada no checkout depois do merge do change request. No lugar do `mkdocs build --strict`, valem as guardas `Documentacao`.
+7. **Emenda "quem revisa o passe de documentação".** O Controlador faz as conferências de texto (molde, siglas, sumário, legendas e humanizer) lendo o change request pelo MCP, antes do merge dele. Na branch do lote, antes do `/commit`, faz o `git diff --check` e as conferências por busca. Ele não roda mais build. O item 3 termina com as guardas verdes, sem o build. O Examinador roda as guardas depois do merge do change request e da geração; o resto do item 2 não muda.
+
 ## Em aberto
 
 Nada.
 
 ## Relacionadas
 
-- 0001 (pastas), 0002 (fluxo e papéis), 0003 (tamanho de ticket), 0005 (trava), 0004 (teste de validadores), 0011 (`ISelfValidator`), 0013 (`[SerializeReference]`), 0025 (ferramenta do site).
+- 0001 (pastas), 0002 (fluxo e papéis), 0003 (tamanho de ticket), 0005 (trava), 0004 (teste de validadores), 0011 (`ISelfValidator`), 0013 (`[SerializeReference]`), 0025 (ferramenta do site, substituída pela 0044), 0044 (manual no GitBook).

@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: SpellBook.Core::SpellBook.Core.Text.TextTable
   cultureName: pt-BR
   entries:
-  - key: sandbox.ability.bola_de_fogo
+  - key: sandbox.ability.fireball
     text: Bola de Fogo

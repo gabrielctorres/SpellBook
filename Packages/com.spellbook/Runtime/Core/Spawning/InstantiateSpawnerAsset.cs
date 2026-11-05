@@ -3,7 +3,7 @@ using UnityEngine;
 namespace SpellBook.Core
 {
     /// <summary>Spawner padrão: cria com <c>Instantiate</c> e devolve destruindo a instância (ADR 0015).</summary>
-    [CreateAssetMenu(menuName = "SpellBook/Spawn/Instantiate Spawner", fileName = "InstantiateSpawner")]
+    [CreateAssetMenu(menuName = "SpellBook/Spawn/Instantiate Spawner", fileName = "New Instantiate Spawner")]
     [HelpURL(DocUrls.Pooling + "#spawnerasset")]
     public class InstantiateSpawnerAsset : SpawnerAsset
     {

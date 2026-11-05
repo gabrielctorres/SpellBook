@@ -32,6 +32,7 @@ namespace SpellBook.Core
         public const string UiAbilityBar = Base + "ui/barra-de-habilidades/";
         public const string UiCastBar = Base + "ui/barra-de-cast/";
         public const string UiTooltip = Base + "ui/tooltip/";
+        public const string UiEffectList = Base + "ui/lista-de-efeitos/";
         public const string Validator = Base + "ferramentas/validador/";
         public const string EventDebugger = Base + "ferramentas/event-debugger/";
         public const string GasDebugger = Base + "ferramentas/gas-debugger/";

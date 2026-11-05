@@ -69,7 +69,7 @@ namespace SpellBook.GAS.UI
     /// <see cref="Blocked"/> é o estilo do efeito bloqueado. A <see cref="FloatingTextSource"/> lê as regras a cada
     /// evento, então mudar o asset muda o número seguinte.
     /// </summary>
-    [CreateAssetMenu(menuName = "SpellBook/GAS/UI/Floating Text Rules", fileName = "FloatingTextRules")]
+    [CreateAssetMenu(menuName = "SpellBook/GAS/UI/Floating Text Rules", fileName = "New Floating Text Rules")]
     [HelpURL(DocUrls.UiFloatingText)]
     public sealed class FloatingTextRules : ScriptableObject, IValidatable
     {

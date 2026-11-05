@@ -4,7 +4,7 @@ using UnityEngine;
 namespace SpellBook.Events
 {
     /// <summary>Canal com payload <c>int</c>.</summary>
-    [CreateAssetMenu(menuName = "SpellBook/Events/Int Channel")]
+    [CreateAssetMenu(menuName = "SpellBook/Events/Int Channel", fileName = "New Int Channel")]
     [HelpURL(DocUrls.Events + "#inteventchannel")]
     public sealed class IntEventChannel : EventChannel<int>
     {

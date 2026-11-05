@@ -8,7 +8,7 @@ namespace SpellBook.Cues
     /// para tocar cues sem procurar o roteador.
     /// </summary>
     [HelpURL(DocUrls.Cues + "#cuerouteranchor")]
-    [CreateAssetMenu(menuName = "SpellBook/Cues/Cue Router Anchor", fileName = "CueRouterAnchor")]
+    [CreateAssetMenu(menuName = "SpellBook/Cues/Cue Router Anchor", fileName = "New Cue Router Anchor")]
     public sealed class CueRouterAnchor : RuntimeAnchor<CueRouter>
     {
     }

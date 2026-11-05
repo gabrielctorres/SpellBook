@@ -30,7 +30,7 @@ namespace SpellBook.GAS.Attributes
         AddDelta   // A base soma a diferença do máximo
     }
 
-    [CreateAssetMenu(fileName = "NewAttribute", menuName = "GAS/Attribute Definition")]
+    [CreateAssetMenu(fileName = "New Attribute", menuName = "SpellBook/GAS/Attributes/Attribute")]
     [HelpURL(DocUrls.Gas + "#attributedefinition")]
     public class AttributeDefinition : ScriptableObject, ISerializationCallbackReceiver, IValidatable
     {

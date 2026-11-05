@@ -10,7 +10,7 @@ namespace SpellBook.Pooling
     /// Spawner com pool (ADR 0015): cria um <see cref="ComponentPooler"/> por prefab sob demanda, embaixo da raiz
     /// <c>[SpellBook Pools]</c>. Não procura o <see cref="PoolManager"/> da cena. O cache de pools é limpo ao entrar em Play.
     /// </summary>
-    [CreateAssetMenu(menuName = "SpellBook/Pooling/Pooled Spawner", fileName = "PooledSpawner")]
+    [CreateAssetMenu(menuName = "SpellBook/Spawn/Pooled Spawner", fileName = "New Pooled Spawner")]
     [HelpURL(DocUrls.Pooling + "#pooledspawnerasset")]
     public class PooledSpawnerAsset : SpawnerAsset, IValidatable
     {

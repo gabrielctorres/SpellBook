@@ -191,6 +191,7 @@ namespace SpellBook.GAS.Tests
         public void OnDeath_WithoutDeathAttribute_Error()
         {
             GameplayEffect effect = _gas.CreateDurationEffect(5f);
+            GasFactory.SetObjectField(effect, "icon", _gas.CreateSprite());
             effect.OnDeath.Add(new WaitAction());
 
             AssertSingle(effect, ValidationSeverity.Error, "deathAttribute");
@@ -276,6 +277,7 @@ namespace SpellBook.GAS.Tests
             ability.Triggers.Add(new GameplayEventTrigger { Tag = hit });
             ability.Triggers.Add(new WhenReadyTrigger { Selector = new CasterSelector() });
             GameplayEffect effect = _gas.CreateDurationEffect(5f);
+            GasFactory.SetObjectField(effect, "icon", _gas.CreateSprite());
             effect.OnTakeDamage.Add(new RemoveEffectAction { Tag = hit });
 
             Assert.That(Messages(ability), Is.Empty);

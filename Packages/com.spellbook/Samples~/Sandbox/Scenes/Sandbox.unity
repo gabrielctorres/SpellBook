@@ -129,7 +129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 175675969}
   m_Layer: 0
-  m_Name: Spawn Conjurador
+  m_Name: Caster Spawn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -253,7 +253,7 @@ GameObject:
   - component: {fileID: 448427603}
   - component: {fileID: 448427602}
   m_Layer: 0
-  m_Name: Console sem HUD
+  m_Name: Console Without HUD
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -300,7 +300,7 @@ MonoBehaviour:
     - rid: 2960844178658164740
       type: {class: LogReaction, ns: SpellBook.Events, asm: SpellBook.Events}
       data:
-        message: 'Queimadura: tique'
+        message: 'Burn: tick'
         type: 3
     - rid: 2960844178658164741
       type: {class: LogPayloadReaction, ns: SpellBook.Samples.Sandbox, asm: SpellBook.Samples.Sandbox}
@@ -431,7 +431,7 @@ GameObject:
   - component: {fileID: 692335791}
   - component: {fileID: 692335790}
   m_Layer: 0
-  m_Name: "Ch\xE3o"
+  m_Name: Ground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -521,7 +521,7 @@ GameObject:
   - component: {fileID: 1004050355}
   - component: {fileID: 1004050354}
   m_Layer: 0
-  m_Name: Placa de Controles
+  m_Name: Controls Sign
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -535,10 +535,20 @@ TextMesh:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1004050353}
-  m_Text: "SpellBook Sandbox\nMouse: mira no ch\xE3o (o conjurador gira)\n1: Bola
-    de Fogo (custo, recarga, pool, dano, queimadura)\nP: pausa e retoma o jogo (grupo
-    de tempo do gameplay)\nT: c\xE2mera lenta, escala 0,25 (tempo escalado)\nR: reinicia
-    (vida, mana, recarga, pausa e escala)"
+  m_Text: 'SpellBook Sandbox
+
+    Mouse: aim at the ground (the caster turns)
+
+    1:
+    Fireball (cost, cooldown, pool, damage, burn)
+
+    P: pause and resume the game
+    (gameplay time group)
+
+    T: slow motion, scale 0.25 (scaled time)
+
+    R: restart
+    (health, mana, cooldown, pause and scale)'
   m_OffsetZ: 0
   m_CharacterSize: 0.065
   m_LineSpacing: 1
@@ -627,7 +637,7 @@ GameObject:
   - component: {fileID: 1587523588}
   - component: {fileID: 1587523587}
   m_Layer: 0
-  m_Name: Ouvinte de Log
+  m_Name: Log Listener
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -674,12 +684,12 @@ MonoBehaviour:
     - rid: 3572287607093329922
       type: {class: LogPayloadReaction, ns: SpellBook.Samples.Sandbox, asm: SpellBook.Samples.Sandbox}
       data:
-        format: 'Dano recebido: {0:0.#}'
+        format: 'Damage taken: {0:0.#}'
         type: 3
     - rid: 3572287607093329923
       type: {class: LogReaction, ns: SpellBook.Events, asm: SpellBook.Events}
       data:
-        message: Bola de Fogo acertou
+        message: Fireball hit
         type: 3
 --- !u!4 &1587523588
 Transform:
@@ -761,7 +771,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1977806419}
   m_Layer: 0
-  m_Name: Spawn Boneco
+  m_Name: Dummy Spawn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

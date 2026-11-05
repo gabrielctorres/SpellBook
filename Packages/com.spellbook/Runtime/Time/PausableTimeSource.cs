@@ -7,7 +7,7 @@ namespace SpellBook.Time
     /// Grupo pausável: segue o tempo escalado da Unity e pode ser pausado e retomado. Todos os
     /// consumidores que leem o mesmo asset param e voltam juntos. Não tem escala própria (Spec, I-b).
     /// </summary>
-    [CreateAssetMenu(menuName = "SpellBook/Time/Pausable Time Group")]
+    [CreateAssetMenu(menuName = "SpellBook/Time/Pausable Time Source", fileName = "New Pausable Time Source")]
     [HelpURL(DocUrls.Time + "#pausabletimesource")]
     public sealed class PausableTimeSource : TimeSourceAsset
     {

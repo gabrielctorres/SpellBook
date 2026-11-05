@@ -18,7 +18,7 @@ namespace SpellBook.GAS.Abilities
     /// Regra que transforma a redução de recarga em duração: piso em segundos, teto da redução e modo.
     /// A habilidade sem política usa <see cref="ApplyDefault"/>, o comportamento de antes da política.
     /// </summary>
-    [CreateAssetMenu(fileName = "CRP_NewPolicy", menuName = "GAS/Cooldown Reduction Policy")]
+    [CreateAssetMenu(fileName = "New Cooldown Reduction Policy", menuName = "SpellBook/GAS/Cooldown Reduction Policy")]
     [HelpURL(DocUrls.Gas + "#cooldownreductionpolicy")]
     public sealed class CooldownReductionPolicy : ScriptableObject, IValidatable
     {

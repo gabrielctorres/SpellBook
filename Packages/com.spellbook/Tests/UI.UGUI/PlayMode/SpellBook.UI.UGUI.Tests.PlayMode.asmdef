@@ -6,8 +6,12 @@
         "SpellBook.Time",
         "SpellBook.UI",
         "SpellBook.UI.UGUI",
+        "SpellBook.Tags",
+        "SpellBook.GAS",
+        "SpellBook.GAS.UI",
         "SpellBook.Testing",
         "UnityEngine.UI",
+        "Unity.TextMeshPro",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

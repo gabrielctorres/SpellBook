@@ -4,7 +4,7 @@ using UnityEngine;
 namespace SpellBook.Events
 {
     /// <summary>Canal sem dado: só avisa que algo aconteceu. O payload é <see cref="Void"/> do SpellBook, não <c>System.Void</c>.</summary>
-    [CreateAssetMenu(menuName = "SpellBook/Events/Void Channel")]
+    [CreateAssetMenu(menuName = "SpellBook/Events/Void Channel", fileName = "New Void Channel")]
     [HelpURL(DocUrls.Events + "#voideventchannel")]
     public sealed class VoidEventChannel : EventChannel<Void>
     {

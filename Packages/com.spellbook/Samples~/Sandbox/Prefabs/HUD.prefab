@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8007266795289628732}
   m_Layer: 0
-  m_Name: Boneco
+  m_Name: Dummy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -47,7 +47,7 @@ GameObject:
   - component: {fileID: 8007179659301244622}
   - component: {fileID: 8399572728883755471}
   m_Layer: 0
-  m_Name: "N\xFAmeros"
+  m_Name: Numbers
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -230,7 +230,7 @@ GameObject:
   m_Component:
   - component: {fileID: 588149446130583105}
   m_Layer: 0
-  m_Name: Jogador
+  m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -363,7 +363,7 @@ PrefabInstance:
       objectReference: {fileID: 11400000, guid: 20828822e73971d438d2727ddd785496, type: 2}
     - target: {fileID: 7871475432120593753, guid: 4a295bc475e862f43a3c010a3fef0b51, type: 3}
       propertyPath: m_Name
-      value: Habilidades
+      value: Abilities
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -481,7 +481,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4449051541367641598, guid: 2966ab324bf396044bdb9d4a9122729f, type: 3}
       propertyPath: m_Name
-      value: Vida
+      value: Health
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -599,7 +599,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4449051541367641598, guid: 2966ab324bf396044bdb9d4a9122729f, type: 3}
       propertyPath: m_Name
-      value: Vida
+      value: Health
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

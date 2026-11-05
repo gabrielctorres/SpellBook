@@ -16,7 +16,7 @@ namespace SpellBook.Localization
     /// Ler uma chave já resolvida não aloca.
     /// </summary>
     [HelpURL(DocUrls.Text + "#localizationtextprovider")]
-    [CreateAssetMenu(menuName = "SpellBook/Text/Localization Text Provider", fileName = "LocalizationTextProvider")]
+    [CreateAssetMenu(menuName = "SpellBook/Text/Localization Text Provider", fileName = "New Localization Text Provider")]
     public class LocalizationTextProvider : TextProviderAsset
     {
         [SerializeField, Tooltip("String Table Collection do Unity Localization com os textos das chaves.")]

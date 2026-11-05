@@ -147,6 +147,13 @@ namespace SpellBook.Testing
             return CreateEffect(EffectDurationPolicy.HasDuration, seconds, grantedTags);
         }
 
+        /// <summary>Sprite de 1×1, com a textura, para o ícone de um efeito ou de uma habilidade.</summary>
+        public Sprite CreateSprite(string name = "Icon")
+        {
+            Texture2D texture = Track(new Texture2D(1, 1), name);
+            return Track(Sprite.Create(texture, new Rect(0f, 0f, 1f, 1f), Vector2.zero), name);
+        }
+
         /// <summary>Atributo primário com os limites padrão do <see cref="AttributeDefinition"/>.</summary>
         public AttributeDefinition CreateAttribute(string name)
         {

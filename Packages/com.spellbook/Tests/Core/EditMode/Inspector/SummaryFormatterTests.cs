@@ -4,7 +4,6 @@ using System.Globalization;
 using NUnit.Framework;
 using SpellBook.Core.Editor.Inspector;
 using SpellBook.Core.Inspector;
-using SpellBook.GAS.Values;
 using UnityEditor;
 using UnityEngine;
 
@@ -53,17 +52,14 @@ namespace SpellBook.Core.Tests.Inspector
                 target = target,
                 items = new List<int> { 4, 5 },
                 mode = SummaryMode.SecondOption,
-                scale = ScalableFloat.Constant(2.5f),
-                tableScale = ScalableFloat.FromTable("Dano"),
-                arrayScale = ScalableFloat.FromArray(1f, 2f),
                 label = "texto",
             };
-            var empty = new SummaryFields { target = null, items = new List<int>(), scale = ScalableFloat.Constant(10f) };
+            var empty = new SummaryFields { target = null, items = new List<int>() };
 
             Assert.That(
                 SummaryFormatter.Format(Property(fields)),
-                Is.EqualTo("1,23 3 sempre Alvo 2 Second Option 2,5 %Dano por nível texto {Missing}"));
-            Assert.That(SummaryFormatter.Format(Property(empty)), Does.StartWith("0 0 (nenhum) 0 First Option 10 "));
+                Is.EqualTo("1,23 3 sempre Alvo 2 Second Option texto {Missing}"));
+            Assert.That(SummaryFormatter.Format(Property(empty)), Does.StartWith("0 0 (nenhum) 0 First Option "));
             Assert.That(SummaryFormatter.Format(Property(new SummaryPlain())), Is.EqualTo("Summary Plain"));
             Assert.That(SummaryFormatter.Format(Property(null)), Is.EqualTo("(nenhum)"));
         }
@@ -109,7 +105,7 @@ namespace SpellBook.Core.Tests.Inspector
     }
 
     [Serializable]
-    [TypeCategory("Teste", Line = "{Amount} {Count} {Flag?sempre} {Other?nunca} {Target} {Items} {Mode} {Scale} {TableScale} {ArrayScale} {Label} {Missing}")]
+    [TypeCategory("Teste", Line = "{Amount} {Count} {Flag?sempre} {Other?nunca} {Target} {Items} {Mode} {Label} {Missing}")]
     internal sealed class SummaryFields : SummaryNode
     {
         [SerializeField] internal float amount;
@@ -119,9 +115,6 @@ namespace SpellBook.Core.Tests.Inspector
         [SerializeField] internal UnityEngine.Object target;
         [SerializeField] internal List<int> items = new List<int>();
         [SerializeField] internal SummaryMode mode;
-        [SerializeField] internal ScalableFloat scale = ScalableFloat.Constant(0f);
-        [SerializeField] internal ScalableFloat tableScale = ScalableFloat.Constant(0f);
-        [SerializeField] internal ScalableFloat arrayScale = ScalableFloat.Constant(0f);
         [SerializeField] internal string label;
     }
 

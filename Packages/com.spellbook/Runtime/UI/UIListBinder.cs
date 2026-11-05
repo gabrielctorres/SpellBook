@@ -172,7 +172,7 @@ namespace SpellBook.UI
 
         /// <summary>
         /// Acrescenta os problemas da fonte (no caminho <c>source</c>), do resolvedor e do prefab: sem fonte, sem prefab ou
-        /// prefab sem um componente na raiz que implemente <see cref="IView{TItem}"/>.
+        /// prefab sem um componente na raiz que implemente <see cref="IView{TItem}"/>; <see cref="MaxVisible"/> negativo.
         /// </summary>
         public override void Validate(ValidationResult result)
         {
@@ -194,6 +194,11 @@ namespace SpellBook.UI
             {
                 result.AddError($"O prefab {itemPrefab.name} não tem na raiz um componente que implemente " +
                     $"IView<{typeof(TItem).Name}>. Ligue um prefab que desenhe esse modelo.", nameof(itemPrefab));
+            }
+
+            if (maxVisible < 0)
+            {
+                result.AddError($"Max Visible é {maxVisible}: use 0 para mostrar todos ou um limite maior que 0.", nameof(maxVisible));
             }
         }
 

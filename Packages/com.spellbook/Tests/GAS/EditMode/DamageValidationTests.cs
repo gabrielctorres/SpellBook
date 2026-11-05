@@ -196,6 +196,7 @@ namespace SpellBook.GAS.Tests
         private GameplayEffect CreateEffectModifying(AttributeDefinition attribute, EffectDurationPolicy policy)
         {
             GameplayEffect effect = _gas.CreateEffect(policy, 1f);
+            GasFactory.SetObjectField(effect, "icon", _gas.CreateSprite());
             effect.Modifiers = new List<AttributeEffectModifier>
             {
                 new AttributeEffectModifier { Attribute = attribute, Operation = ModifierOperation.Add }

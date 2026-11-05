@@ -94,6 +94,15 @@ No XR1, a Fábrica viu que `https://docs.unity3d.com/Packages/<pacote>@latest/ap
 - Consequências: o mapa passa a depender também das versões dos pacotes `com.unity.*` do projeto. Atualizar um deles pede regenerar a referência, e a guarda do mapa falha até isso acontecer. O link de pacote não acompanha uma versão nova do pacote até essa atualização.
 - O que os agentes não podem fazer: o item "Pôr versão fixa da Unity nas URLs do mapa" continua valendo para o ScriptReference. Fica proibido também escrever à mão a versão de um pacote instalado no código do mapa ou no teste que usa um pacote real; ela vem sempre do `PackageInfo`. Os testes da função que monta a URL usam versões de exemplo como entrada.
 
+## Emenda (2026-11-04): exemplos expandidos na máquina, pela 0044
+
+**Status da emenda: Aceita** (gate de 2026-11-04 da [0044](0044-manual-no-gitbook-por-git-sync-sem-referencia-da-api.md), Q3 e Q5; ticket GB11 de `spec/migracao-gitbook.md`). O mecanismo novo entra no GB4 do mesmo design doc.
+
+- **Item 1 (mapa da Unity) e as emendas de 2026-11-02.** Deixam de valer, com a referência da API (0044, item 6).
+- **Item 2.** A regra continua: todo bloco C# do manual sai de uma seção marcada num teste de `Tests/<Módulo>/EditMode/Examples/`, ou do Sandbox só na página dele. Muda o mecanismo: no lugar do `pymdownx.snippets`, um marcador antes do bloco diz o arquivo e a seção, e a geração local (**Gerar catálogo e exemplos**) reescreve o bloco (0044, item 8). A guarda falha com bloco diferente da seção, marcador para arquivo ou seção que não existe, bloco C# sem marcador e inclusão do Sandbox fora da página dele. No passe, ela roda depois do merge do change request, na branch do lote.
+- **Item 3.** Já tinha caído (emenda de 2026-11-03 da 0040).
+- **"O que os agentes NÃO podem fazer".** "Escrever bloco C# no manual sem inclusão de um arquivo de teste" passa a ler "sem marcador de exemplo". Fica proibido também editar à mão um bloco C# expandido, pelo MCP ou no checkout. Os itens sobre o mapa, o `docfx.json` e as versões nas URLs perdem o objeto.
+
 ## Relacionadas
 
-- 0003 (saída gerada), 0025 (site e Action), 0028 (Sandbox), 0040 (catálogo e API).
+- 0003 (saída gerada), 0025 (site e Action, substituída pela 0044), 0028 (Sandbox), 0040 (catálogo e API), 0044 (manual no GitBook).

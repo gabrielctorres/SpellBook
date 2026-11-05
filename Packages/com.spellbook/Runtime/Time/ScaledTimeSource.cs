@@ -4,7 +4,7 @@ using UnityEngine;
 namespace SpellBook.Time
 {
     /// <summary>Tempo escalado da Unity: segue o <c>Time.timeScale</c>.</summary>
-    [CreateAssetMenu(menuName = "SpellBook/Time/Scaled Time Source")]
+    [CreateAssetMenu(menuName = "SpellBook/Time/Scaled Time Source", fileName = "New Scaled Time Source")]
     [HelpURL(DocUrls.Time + "#scaledtimesource")]
     public sealed class ScaledTimeSource : TimeSourceAsset
     {

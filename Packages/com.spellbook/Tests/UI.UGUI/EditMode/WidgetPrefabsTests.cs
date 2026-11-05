@@ -7,7 +7,9 @@ using SpellBook.Core.Validation;
 using SpellBook.GAS.UI;
 using TMPro;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
@@ -95,6 +97,87 @@ namespace SpellBook.UI.UGUI.Tests
             Assert.That(messages.Select(m => (m.Severity, m.PropertyPath)),
                 Is.EqualTo(new[] { (ValidationSeverity.Error, "binder") }),
                 "só falta a âncora: o ponteiro tem onde bater e a fonte usa o assunto do item");
+        }
+
+        [Test]
+        public void EffectIconPrefab_HasTooltipWithEffectSourceFromItem()
+        {
+            GameObject icon = LoadPrefab("EffectIcon");
+
+            var trigger = icon.GetComponent<TooltipTrigger>();
+            var view = icon.GetComponent<EffectIconView>();
+
+            Assert.That(trigger, Is.Not.Null, "EffectIcon sem TooltipTrigger na raiz");
+            Assert.That(view, Is.Not.Null, "EffectIcon sem EffectIconView na raiz");
+            Assert.That(icon.GetComponent<UIBinderBase>(), Is.Null, "o item da lista não tem binder próprio");
+            Assert.That(Field<UIItemContext>(view, "itemContext"), Is.SameAs(icon.GetComponent<UIItemContext>()).And.Not.Null,
+                "a view escreve no UIItemContext do próprio item, que o gatilho lê");
+            var source = trigger.Source as EffectTooltipSource;
+            Assert.That(source, Is.Not.Null, "EffectIcon: a fonte do tooltip não é a de efeito");
+            Assert.That(source.Effect, Is.Null, "sem efeito, a fonte mostra o do item (o assunto que a view escreve)");
+            Assert.That(trigger.Mode, Is.EqualTo(TooltipOpenMode.PointerAndFocus));
+            Assert.That(trigger.Target, Is.Null, "o tooltip abre ao lado do próprio ícone");
+            Assert.That(trigger.Binder, Is.Null, "a âncora do binder é do projeto, como a do prefab Tooltip");
+            IReadOnlyList<ValidationMessage> messages = SpellBookEditor.CollectMessages(new Object[] { trigger });
+            Assert.That(messages.Select(m => (m.Severity, m.PropertyPath)),
+                Is.EqualTo(new[] { (ValidationSeverity.Error, "binder") }),
+                "só falta a âncora: o ponteiro tem onde bater e a fonte usa o assunto do item");
+            Assert.That(icon.GetComponentsInChildren<Graphic>(true).Where(g => g.raycastTarget).Select(g => g.name),
+                Is.EqualTo(new[] { "Frame" }), "só a moldura recebe o ponteiro, para o tooltip");
+            Assert.That(icon.GetComponentsInChildren<Selectable>(true), Is.Empty, "o ícone é só exibição");
+            Assert.That(icon.GetComponentsInChildren<IPointerClickHandler>(true), Is.Empty, "nada trata o clique");
+
+            foreach (string part in new[] { "frame", "icon", "durationFill", "secondsText", "stacksText", "defaultIcon" })
+            {
+                Assert.That(Field<Object>(view, part), Is.Not.Null, $"EffectIcon sem {part}");
+            }
+
+            Assert.That(Field<Image>(view, "frame").name, Is.EqualTo("Frame"), "a moldura que recebe o ponteiro é a do papel");
+            Image fill = Field<Image>(view, "durationFill");
+            Assert.That(fill.type, Is.EqualTo(Image.Type.Filled), "a duração não é do tipo Filled");
+            Assert.That(fill.fillMethod, Is.EqualTo(Image.FillMethod.Radial360), "a duração não é radial");
+            Assert.That(fill.sprite, Is.Not.Null, "Filled sem sprite não recorta a imagem");
+            AssertNoFont(Field<TMP_Text>(view, "secondsText"), "EffectIcon");
+            AssertNoFont(Field<TMP_Text>(view, "stacksText"), "EffectIcon");
+            var animator = Field<Animator>(view, "animator");
+            var controller = animator != null ? animator.runtimeAnimatorController as AnimatorController : null;
+            Assert.That(animator, Is.SameAs(icon.GetComponent<Animator>()), "EffectIcon sem Animator ligado na raiz");
+            Assert.That(controller, Is.Not.Null, "EffectIcon sem controller do piscar");
+            Assert.That(controller.parameters.Select(p => (p.name, p.type)),
+                Is.EqualTo(new[] { ("EndingSoon", AnimatorControllerParameterType.Bool) }));
+            Assert.That(controller.animationClips.SelectMany(AnimationUtility.GetCurveBindings)
+                    .Any(b => b.type == typeof(CanvasGroup) && b.propertyName == "m_Alpha"), Is.True,
+                "o piscar anima o alfa do CanvasGroup");
+            Assert.That(icon.GetComponent<CanvasGroup>(), Is.Not.Null, "EffectIcon sem o CanvasGroup que pisca");
+        }
+
+        [Test]
+        public void EffectListPrefab_BinderLayoutOverflow_Wired()
+        {
+            GameObject list = LoadPrefab("EffectList");
+            GameObject icon = LoadPrefab("EffectIcon");
+
+            var binder = list.GetComponent<EffectListBinder>();
+
+            Assert.That(binder, Is.Not.Null, "EffectList sem EffectListBinder na raiz");
+            Assert.That(binder.Source, Is.InstanceOf<ActiveEffectsSource>(), "EffectList: fonte errada");
+            Assert.That(binder.ItemPrefab, Is.SameAs(icon), "a lista cria o EffectIcon");
+            Assert.That(binder.Owner.Mode, Is.EqualTo(ActorResolveMode.SelfOrParent));
+            Assert.That(list.GetComponent<HorizontalLayoutGroup>(), Is.Not.Null, "EffectList sem layout horizontal");
+            var container = Field<Transform>(binder, "container");
+            Assert.That(container, Is.Not.Null.And.Not.SameAs(list.transform), "os ícones ficam num filho próprio");
+            Assert.That(container.GetComponent<HorizontalLayoutGroup>(), Is.Not.Null, "o container sem layout horizontal");
+            Assert.That(new SerializedObject(binder).FindProperty("maxVisible").intValue, Is.EqualTo(8));
+            var overflow = Field<ListOverflowView>(binder, "overflowView");
+            Assert.That(overflow, Is.Not.Null, "EffectList sem a view do \"+N\"");
+            Assert.That(overflow.transform.IsChildOf(container), Is.False, "o \"+N\" fica fora do container, depois dos ícones");
+            Assert.That(overflow.transform.GetSiblingIndex(), Is.GreaterThan(container.GetSiblingIndex()));
+            GameObject badge = Field<GameObject>(overflow, "target");
+            Assert.That(badge, Is.Not.Null.And.Not.SameAs(overflow.gameObject), "o \"+N\" sem alvo filho");
+            Assert.That(badge.activeSelf, Is.False, "sem ocultos, o \"+N\" começa escondido");
+            AssertNoFont(Field<TMP_Text>(overflow, "text"), "EffectList");
+            Assert.That(list.GetComponentsInChildren<Graphic>(true).Where(g => g.raycastTarget), Is.Empty,
+                "a lista não recebe o ponteiro; só os ícones");
         }
 
         private static TView AssertWired<TModel, TBinder, TView, TSource>(GameObject prefab)
