@@ -101,6 +101,23 @@ O ME6 e o ME7 não dependem do assistente e podem correr em paralelo com o ME1 a
 <!-- Parte JIT: uma seção por ticket, escrita pela Fábrica quando o ticket entra na fila, lendo o código na hora.
      Limites e contagem: ADR 0042. -->
 
+## ME1 — Modelo de habilidade, Inspector e regra do validador
+### Detalhe (2026-11-05)
+- CA: CA1 (o modelo quebrado fica fora da lista e o validador o acusa) e CA5 (um modelo do projeto aparece sem código). Os menus e a janela do CA1 são do ME4; os nomes finais e a cópia, do ME2.
+- Confirmação do design doc: o `AbilityTemplate` fica no runtime do GAS (`SpellBook.GAS`). É um `ScriptableObject` de dados, sem `UnityEditor`. Assim a guarda `CreateAssetMenuRulesTests` já o aceita em `SpellBook/GAS/`, e o asset do projeto é validado pelo `ProjectValidator`, que lê os `ScriptableObject` de `Assets/`. No Editor, ele ficaria fora da guarda da 0043 e pediria uma linha nova nela.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/GAS/Abilities/AbilityTemplate.cs` (novo): `[CreateAssetMenu(fileName = "New Ability Template", menuName = "SpellBook/GAS/Ability Template")]`, `[HelpURL(DocUrls.Gas)]`, `IValidatable`. Campos: `displayName` (nome no assistente; vazio usa o nome do asset), `description` (a frase do DS 4.3), `assets` (lista de `AbilityTemplate.Entry`, com `source`, o `ScriptableObject` modelo, e `nameRule`, como `GA_{Name}`; a primeira entrada é o asset principal) e `tags` (regras como `Ability.{Name}`; o pai é o trecho antes do último ponto, Q7). API: `DisplayName`, `Description`, `Assets`, `Tags`, `NameToken = "{Name}"` e `IsAvailable` (tem entrada e nenhum modelo ausente). O `Validate` dá erro para lista de assets vazia, modelo ausente (o asset foi apagado ou o tipo dele não existe mais, e a referência volta nula), regra de nome ou de tag sem `{Name}`. Cada erro aponta o campo.
+  - `Editor/GAS/AbilityTemplateCatalog.cs` (novo, `public static`): `Find(List<AbilityTemplate> available, List<AbilityTemplate> broken)` lê todos os `t:AbilityTemplate` do projeto e dos pacotes pelo `AssetDatabase` e separa por `IsAvailable`, em ordem de `DisplayName`. É o que o ME4 mostra no passo 1 e na linha "N modelos com asset ausente".
+  - `Editor/GAS/GasEditors.cs:29`: `[CustomEditor(typeof(AbilityTemplate))] AbilityTemplateEditor : SpellBookEditor`, de uma linha (0026).
+  - `Documentation~/adr/0043-menu-create-nome-padrao-e-icone-dos-scriptableobjects.md:46`: linha `| Modelo de habilidade | AbilityTemplate |` na tabela do item 3, pelo item 6 e pelas decisões do épico. O ícone da família nova não entra: o item 4 segue em aberto (Q3 e Q4), e nenhum tipo tem ícone ainda.
+  - Sem `CHANGELOG.md` (nada quebra) e sem manual (passe de documentação).
+- Testes red (EditMode, `SpellBook.GAS.Tests.EditMode`):
+  - `AbilityTemplateTests` (`Tests/GAS/EditMode/AbilityTemplateTests.cs`, novo): `Validate_Complete_NoMessages`; `Validate_NoAssets_Error`; `Validate_MissingSource_ErrorOnField`; `Validate_NameRuleWithoutToken_ErrorOnField`; `Validate_TagRuleWithoutToken_ErrorOnField`; `IsAvailable_FalseWhenSourceMissing`; `DisplayName_EmptyUsesAssetName`; `ProjectValidator_MissingSource_ReportsTemplate`; `Inspector_IsSpellBookEditor`.
+  - `AbilityTemplateCatalogTests` (`Tests/GAS/EditMode/AbilityTemplateCatalogTests.cs`, novo, com assets numa pasta temporária de `Assets/`): `Find_ProjectTemplate_IsAvailable`; `Find_TemplateWithDeletedSource_IsBroken`.
+- Critério de pronto: os 11 verdes no filtro (`\.AbilityTemplateTests\.;\.AbilityTemplateCatalogTests\.`), mais `CreateAssetMenuRulesTests` verde com o tipo novo. A suíte completa roda na `/revisao`.
+- Tamanho: 420 linhas medidas (+420 −0) e 6 arquivos (os 5 `.cs`, 4 deles novos, e a ADR 0043), pela ADR 0042. Os `.meta` e este Detalhe não contam, e a linha da ADR conta só como arquivo. Exceção: nenhuma.
+- Commit: `feat(gas): modelo de habilidade com Inspector e validação`
+
 ## ME6 — Busca de referências genérica no Core.Editor
 ### Detalhe (2026-11-05)
 - CA: CA9, na parte sem UI: quem usa o item (assets, prefabs e objetos das cenas abertas, sem ler cena fechada), o que ele usa e o destaque no Project window ou na Hierarchy. O painel que mostra isso é do ME8.
