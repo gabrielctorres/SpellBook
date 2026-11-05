@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using SpellBook.Core;
 using SpellBook.Core.Validation;
+using SpellBook.Tags;
 using UnityEngine;
 
 namespace SpellBook.GAS.Abilities
@@ -32,6 +33,21 @@ namespace SpellBook.GAS.Abilities
             public string NameRule => nameRule;
         }
 
+        /// <summary>Uma tag do conjunto: a regra do nome e a tag-modelo que, nas cópias, vira a tag criada ou reutilizada.</summary>
+        [Serializable]
+        public sealed class TagEntry
+        {
+            [Tooltip("Tag que os assets modelo usam no lugar desta. Nas cópias, toda referência a ela aponta para a tag criada ou reutilizada. Vazio: a tag é criada sem ligação.")]
+            [SerializeField] private GameplayTagDefinition source;
+
+            [Tooltip("Nome da tag, com {Name}. O pai é o trecho antes do último ponto: Ability.{Name} tem o pai Ability.")]
+            [SerializeField] private string rule;
+
+            public GameplayTagDefinition Source => source;
+
+            public string Rule => rule;
+        }
+
         [Tooltip("Nome do modelo no assistente. Vazio: o nome do asset.")]
         [SerializeField] private string displayName;
 
@@ -41,8 +57,8 @@ namespace SpellBook.GAS.Abilities
         [Tooltip("Assets copiados. O primeiro é o principal, selecionado depois de criar.")]
         [SerializeField] private List<Entry> assets = new List<Entry>();
 
-        [Tooltip("Tags a criar ou reutilizar, com {Name}. O pai é o trecho antes do último ponto: Ability.{Name} tem o pai Ability.")]
-        [SerializeField] private List<string> tags = new List<string>();
+        [Tooltip("Tags a criar ou reutilizar, cada uma com a regra do nome e a tag-modelo que ela substitui nas cópias.")]
+        [SerializeField] private List<TagEntry> tags = new List<TagEntry>();
 
         public string DisplayName => string.IsNullOrEmpty(displayName) ? name : displayName;
 
@@ -50,7 +66,7 @@ namespace SpellBook.GAS.Abilities
 
         public IReadOnlyList<Entry> Assets => assets;
 
-        public IReadOnlyList<string> Tags => tags;
+        public IReadOnlyList<TagEntry> Tags => tags;
 
         /// <summary>Verdadeiro se o modelo tem asset e nenhum modelo ausente. Só os disponíveis aparecem no assistente.</summary>
         public bool IsAvailable
@@ -99,12 +115,22 @@ namespace SpellBook.GAS.Abilities
                 }
             }
 
+            var sources = new HashSet<GameplayTagDefinition>();
             for (int i = 0; i < tags.Count; i++)
             {
-                if (string.IsNullOrEmpty(tags[i]) || !tags[i].Contains(NameToken))
+                string path = $"{nameof(tags)}.Array.data[{i}]";
+                string rule = tags[i]?.Rule;
+                if (string.IsNullOrEmpty(rule) || !rule.Contains(NameToken))
                 {
                     result.AddError($"Tag sem {NameToken}: todas as habilidades teriam a mesma tag. Exemplo: Ability.{NameToken}.",
-                        $"{nameof(tags)}.Array.data[{i}]");
+                        path + ".rule");
+                }
+
+                GameplayTagDefinition source = tags[i]?.Source;
+                if (source != null && !sources.Add(source))
+                {
+                    result.AddError($"A tag-modelo {source.name} já está em outra tag do modelo. Escolha uma tag-modelo por regra.",
+                        path + ".source");
                 }
             }
         }

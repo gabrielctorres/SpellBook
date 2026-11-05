@@ -1,0 +1,141 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5365bee9afc0c7419466cd6d10ea317, type: 3}
+  m_Name: GA_Template_Projectile
+  m_EditorClassIdentifier: SpellBook.GAS::SpellBook.GAS.Abilities.GameplayAbility
+  Icon: {fileID: 0}
+  localizedName:
+    key: 
+    text: 
+  legacyDisplayName: 
+  AbilityTag:
+    definition: {fileID: 11400000, guid: 6b893f08dd662ca409d1f85d67b4894d, type: 2}
+  Description:
+    Elements: []
+  maxLevel: 1
+  values:
+    entries: []
+  CooldownEffect: {fileID: 11400000, guid: 1f4b5cb92ee412849bb3f375d689b0d5, type: 2}
+  CooldownReductionAttribute: {fileID: 0}
+  cooldownReductionPolicy: {fileID: 0}
+  CostEffect: {fileID: 11400000, guid: 0507fa820dc6273418e779af597e07bd, type: 2}
+  charges:
+    enabled: 0
+    maxCharges:
+      Type: 0
+      Value:
+        mode: 0
+        constant: 1
+        values: []
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        tableName: 
+        fallback: 0
+      legacyConstant: NaN
+      Attribute: {fileID: 0}
+      Formula: {fileID: 0}
+      CallerName: 
+      CallerHasDefault: 0
+      CallerDefault: 0
+      TargetAttributeDefinition: {fileID: 0}
+    rechargeTime:
+      mode: 0
+      constant: 1
+      values: []
+      curve:
+        serializedVersion: 2
+        m_Curve: []
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      tableName: 
+      fallback: 0
+    mode: 0
+  commitMode: 0
+  behavior: 0
+  reactivatePassive: 0
+  channelDuration:
+    mode: 0
+    constant: 0
+    values: []
+    curve:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    tableName: 
+    fallback: 0
+  channelTickInterval: 0
+  castRange:
+    mode: 0
+    constant: 0
+    values: []
+    curve:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    tableName: 
+    fallback: 0
+  activationConditions: []
+  BlockedTags: []
+  RequiredTags: []
+  ActivationOwnedTags: []
+  CancelAbilitiesWithTag: []
+  BlockAbilitiesWithTag: []
+  CancelledByTags: []
+  OnActivate:
+  - rid: 2960844208384245760
+  OnEnd: []
+  OnCancel: []
+  OnChannelTick: []
+  OnGranted: []
+  OnRemoved: []
+  autocast:
+    allowed: 0
+    startsOn: 0
+  triggers: []
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 2960844208384245760
+      type: {class: SpawnProjectileAction, ns: SpellBook.GAS.Abilities.Actions, asm: SpellBook.GAS}
+      data:
+        target:
+          rid: -2
+        ProjectilePrefab: {fileID: 5059037689677109949, guid: dcb54be7c67077141b2733fbfe944382, type: 3}
+        Spawner: {fileID: 0}
+        OnHitActions:
+        - rid: 2960844208384245761
+        SpawnMode: 0
+        ProjectileCount: 1
+        SpreadAngle: 0
+        DelayBetweenShots: 0
+        SpawnOffset: {x: 0, y: 1.2, z: 1}
+        HomeInOnTargets: 0
+        HomingTurnSpeed: 10
+    - rid: 2960844208384245761
+      type: {class: ApplyEffectAction, ns: SpellBook.GAS.Abilities.Actions, asm: SpellBook.GAS}
+      data:
+        target:
+          rid: -2
+        Effects:
+        - {fileID: 11400000, guid: cac50db9e170af541883ed980a2f5c0b, type: 2}
+        ApplyToSource: 0

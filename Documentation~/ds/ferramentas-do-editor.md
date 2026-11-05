@@ -60,7 +60,7 @@ Uma linha por asset e uma por tag:
 | Projétil | Habilidade que lança um projétil e aplica dano no impacto, com custo e recarga. |
 | Área | Habilidade que aplica dano em quem está numa área, com custo e recarga. |
 | Buff | Habilidade que aplica um efeito com duração no próprio personagem, com custo e recarga. |
-| Aura | Habilidade que cria uma área que pulsa um efeito em quem estiver dentro. |
+| Aura | Habilidade que cria uma área que pulsa um efeito em quem estiver dentro. Sem thinker: crie ou escolha um, ligue o efeito nele e ponha-o na habilidade. |
 | Em branco | Habilidade sem ações, com custo, recarga e as duas tags. |
 | Só efeito | Um efeito sozinho, sem habilidade. |
 
@@ -124,3 +124,4 @@ Rótulos, mensagens e frases ficam em português, nas tabelas e exemplos acima. 
 | Data | Mudança |
 |---|---|
 | 2026-11-05 | Primeira versão, depois do gate do design doc, com Excluir, Desfazer criação e a referência ao prefab do pacote |
+| 2026-11-05 | A frase da Aura avisa que o designer liga o thinker (gate do ME5) |

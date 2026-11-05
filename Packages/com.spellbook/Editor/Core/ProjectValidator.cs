@@ -13,7 +13,8 @@ namespace SpellBook.Core.Editor
     /// <summary>
     /// Validador do projeto (ADR 0026, item 6; Spec, seção 4.9). Roda o mesmo <see cref="IValidatable"/> que o topo do
     /// Inspector (<see cref="SpellBookEditor.CollectMessages"/>) e acusa cada tipo <c>[SerializeReference]</c> ausente
-    /// com o mesmo texto do Inspector. Não muda nenhum objeto: nunca limpa referência.
+    /// com o mesmo texto do Inspector. Acusa também a referência vazia: o campo que aponta para um asset apagado (CA14 do
+    /// menu de Editor do GAS). Não muda nenhum objeto: nunca limpa referência.
     /// </summary>
     public static class ProjectValidator
     {
@@ -125,6 +126,28 @@ namespace SpellBook.Core.Editor
             {
                 messages.Add(new ValidationMessage(ValidationSeverity.Error, MissingReferenceTypes.FormatMessage(entry),
                     target, null));
+            }
+
+            AddEmptyReferences(target, messages);
+        }
+
+        // O campo visível com a referência gravada e o objeto ausente aponta para um asset apagado. O campo deixado vazio
+        // de propósito não tem referência gravada e não é acusado.
+        private static void AddEmptyReferences(Object target, List<ValidationMessage> messages)
+        {
+            using var serialized = new SerializedObject(target);
+            SerializedProperty property = serialized.GetIterator();
+            bool enterChildren = true;
+            while (property.NextVisible(enterChildren))
+            {
+                enterChildren = property.propertyType != SerializedPropertyType.String;
+                if (property.propertyType == SerializedPropertyType.ObjectReference && property.objectReferenceValue == null
+                    && property.objectReferenceInstanceIDValue != 0)
+                {
+                    messages.Add(new ValidationMessage(ValidationSeverity.Error,
+                        $"Referência vazia em {property.propertyPath}: o asset foi apagado. Escolha outro ou limpe o campo.",
+                        target, property.propertyPath));
+                }
             }
         }
 
