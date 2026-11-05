@@ -159,3 +159,18 @@ O IH2, o IH3 e o IH4 mexem no `GameplayAbilityEditor`, então não rodam em para
 - Critério de pronto: os testes acima verdes, mais `EffectInspectorTabsTests`, `ActionInspectorTests` e `AbilityBehaviorFieldsTests` verdes no filtro, sem mudar asserção. A suíte completa roda na `/revisao`.
 - Tamanho: 293 linhas medidas (+281 −12) e 4 arquivos (1 novo), pela ADR 0042. Os `.meta` e este Detalhe não contam. Exceção: nenhuma.
 - Commit: `feat(editor): campos do efeito por duração, período e pilha`
+
+## Manual do Inspector
+### Detalhe (2026-11-05)
+- CA: CA1 a CA7, na descrição do manual (issue #408). O ticket não muda código. O rascunho do GitBook (GB9) ainda não existe, então a edição dos `.md` sai direto no repositório (decisão do usuário).
+- Escopo (caminhos em `Documentation~/manual/`):
+  - `modulos/gas.md:99-115` (1.3): seção nova "Inspector do efeito", depois da lista do efeito, com as quatro abas, os grupos, os campos que só aparecem com `HasDuration`, `Period` maior que 0 e `CanStack`, o aviso no grupo Duração, as tags compactas e a aba lembrada. `:107`: os metadados ficam no grupo **Identidade**, e não mais em **Metadados**.
+  - `modulos/gas.md:234-237` (1.4): seção nova "Inspector da habilidade", com as quatro abas, os grupos de Configuração, os campos por comportamento, as tags compactas com o contador, o grupo "Outros" e a aba lembrada. `:277`: a prévia sai de "depois dos campos" e vai para a tabela por nível da aba **Níveis e prévia**.
+  - `modulos/gas.md:351-355` (passo a passo): a lista "Ao ativar" fica na aba **Ações**. `:566`: o resumo das regras fica no grupo **Condições de ativação**. `:605`, `:640` e `:664`: o lugar das cargas, a prévia das cargas na aba **Níveis e prévia** e os gatilhos na aba **Tags e gatilhos**.
+  - `regras/migracao-2-para-3.md:25-29`: o GAS não usa mais o Inspector padrão com `[Header]`; tem abas e grupos próprios.
+  - `modulos/tags.md:153-169`: uma frase sobre a lista compacta na habilidade e no efeito.
+  - Nenhum marcador de exemplo muda, então a geração não roda. Sem `CHANGELOG.md`: nada quebra.
+- Testes red: nenhum, ticket só de texto do passe. As guardas `Documentacao` rodam sob a trava, com as 2 vermelhas herdadas da `main` (`EveryDocUrlHasPage` e `EveryHelpUrlHasPageAndAnchor`).
+- Critério de pronto: a busca por "depois dos campos", "Abaixo dos campos da habilidade", "seção **Ativação**" e "Inspector padrão da Unity com `[Header]`" não acha nada no manual; as conferências da seção 7 do guia passam; as guardas `Documentacao` passam, menos as 2 herdadas.
+- Tamanho: 0 linhas contadas (só `.md`) e 3 arquivos, pela ADR 0042. Este Detalhe não conta. Exceção: nenhuma.
+- Commit: `docs(manual): Inspector da habilidade e do efeito com abas`
