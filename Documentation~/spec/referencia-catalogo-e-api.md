@@ -671,6 +671,20 @@ A tabela acima é de 2026-11-01. Os escopos, os testes e os tamanhos que valem s
 - Testes red: com as duas páginas fora da lista, o `NoHandWrittenCSharpBlocks` falha em `modulos/pooling.md` e em `modulos/tempo.md`.
 - Critério de pronto: o mesmo dos EX2 a EX5; os testes de `PoolingManualExamples`, de `TimeManualExamples` e o `ManualCodeExamplesTests` passam; o relatório lista os três blocos que viraram texto ou link e mostra que o texto em volta diz o mesmo.
 - Par com Unity: EV2 (emenda do lote 8).
+
+##### EX3 — `docs(manual): exemplos do GAS tirados de testes`
+
+### Detalhe (2026-11-05)
+- CA: E1 e E2 do PRD (extras), pela forma comum do EX2 ao EX6; recontado na entrada, com o estado do GitBook (ADR 0044; GB4 e AS2 na `main`): marcador `{% code title="<caminho>:<seção>,..." %}` e `{% endcode %}`, e geração pelo `ReferenceGenerator`. Não há `mkdocs build`; no lugar dele valem as guardas `Documentacao`.
+- Escopo:
+  - `Documentation~/manual/modulos/gas.md`: os 9 blocos de hoje (linhas 133, 196, 221, 237, 250, 307, 630, 698 e 719) recebem o marcador e são preenchidos pela geração. O texto em volta não muda. Pelo pedido do usuário, a página sai por PR no repositório, sem change request, porque ainda não há rascunho do GitBook (GB9).
+  - `Packages/com.spellbook/Tests/GAS/EditMode/Examples/GasManualExamples.cs` (novo), classe `SpellBook.GAS.Tests.Examples.GasManualExamples`. Os 9 blocos viram código: o `EffectSpec` com `SetByCallerValues`; o `TryApplyEffect` com `BlockedByImmunity`; o `FindEffectsWithTag` (o campo `_found` e a chamada, duas seções); o `Values.Add` com o `TryGetValue`; a Fireball com `damage` e `cooldown`; as cargas do Dash; a `MinLevelCondition`; o `Tick` com a `ManualTimeSource`; o `PlayerCombat`. Os ASCs são criados sem `Awake` (EditMode), como no `GasDebuggerModelTests`, e usam só habilidades, tags, recargas e efeitos sem modificador. O `PlayerCombat` só precisa compilar, pela regra do ciclo de vida; o `[Test]` chama `GiveAbility` e `TryActivateAbility` como o `Start` e o `Update` chamariam.
+  - `Assets/Tests/Documentation/ManualCodeExamplesTests.cs:28`: `modulos/gas.md` sai da lista `PendingPages`.
+- Correções contra a API do dia (para o relatório): `DisplayName` da habilidade é `LocalizedText`, sem `ToString`; o bloco passa a ler `DisplayName.Text`. O `GetMouseWorldPosition()` não existia; o bloco ganha o método, com raio da câmera num plano, como o `SandboxCaster`. Os campos públicos do `PlayerCombat` viram `[SerializeField] private`, pela convenção do `AGENTS.md`, e o bloco mostra também o `using UnityEngine;`, que faltava.
+- Testes red: EditMode, `ManualCodeExamplesTests.NoHandWrittenCSharpBlocks` falha nos 9 blocos de `modulos/gas.md` com a página fora da lista. Os 9 testes de `GasManualExamples` passam desde o primeiro run, porque a API já existe.
+- Critério de pronto: `\.GasManualExamples\.` e `\.ManualCodeExamplesTests\.` passam (total no XML igual ao número de testes); a geração sai com 0; o `NoHandWrittenCSharpBlocks`, o `SnippetsPointToExistingSections` e o `ExpandedBlocksMatchSections` passam; o texto em volta de cada bloco diz o mesmo.
+- Tamanho: ~305 linhas (302 do `GasManualExamples.cs`, 1 da guarda) e 3 arquivos (a página conta só no número de arquivos; o bloco expandido é saída de gerador com guarda). Exceção: nenhuma.
+- Commit: `docs(manual): exemplos do GAS tirados de testes`
 - Tamanho estimado: ~210 linhas (~120 dos 5 exemplos do Pooling, ~80 dos 3 do Tempo, ~10 da guarda); 5 arquivos. Dos 11 blocos, 8 viram código.
 
 ### Respostas do gate da emenda (2026-11-01)
