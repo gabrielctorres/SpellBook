@@ -114,6 +114,18 @@ A ADR foi aceita no mesmo gate, com a revisão da G1.
 - **Consequências.** A saída gerada sai dos diffs de ticket. Assim, a regra "dois tickets com Unity colidem na impressão digital" deixa de valer. O WIP continua pela 0003.
 - **Até o PD1 entrar**, vale a regra provisória da emenda de 2026-11-03 da 0007.
 
+## Emenda (2026-11-04): só o catálogo, pela 0044
+
+**Status da emenda: Aceita** (gate de 2026-11-04 da [0044](0044-manual-no-gitbook-por-git-sync-sem-referencia-da-api.md), Q1 e Q5; ticket GB11 de `spec/migracao-gitbook.md`). A remoção do código e dos arquivos é feita nos tickets GB2 e GB3 do mesmo design doc.
+
+- **Itens 1 e 4.** Continuam só para o catálogo. A linha do catálogo perde o link para a página do tipo na API. A guarda byte a byte da página continua; a da impressão digital sai.
+- **Item 2.** A entrada única do Editor escreve só a página do catálogo. Saem a configuração de metadados, o `docfx metadata` e a impressão digital (GB3). A partir do GB4, ela também expande os blocos C# do manual (0044, item 8), e o menu passa a ser **SpellBook > Documentação > Gerar catálogo e exemplos**.
+- **Itens 3, 5, 6 e 7.** Deixam de valer: não há YAML da API, DocFX, SDK do .NET, build estrito do MkDocs nem Action de documentação (0044, itens 6, 10 e 12).
+- **Emendas de 2026-11-01 e de 2026-11-02.** Deixam de valer, com o mapa da Unity e o link do .NET.
+- **Emenda de 2026-11-03.** A geração continua só no passe de documentação. O `ReferenceUpToDateTests` continua na categoria `Documentacao`, só com o catálogo.
+- **Saída de gerador com guarda (0042).** Passa a ser a página do catálogo e os blocos C# expandidos do manual.
+- **"O que os agentes NÃO podem fazer".** Continuam: editar à mão a página do catálogo, criar uma segunda regra de tipo oferecido fora de `TypePickerCatalog` e mudar a guarda para aceitar saída desatualizada. Os itens sobre `api/`, DocFX, .NET e Action perdem o objeto. Trazer de volta o DocFX ou uma Action de documentação pede ADR nova (0044).
+
 ## Relacionadas
 
-- 0003 (tamanho do ticket, emenda de 2026-11-01 da saída gerada), 0007 (gate de doc, catálogo, emenda de 2026-11-01), 0012 (mapa de módulos), 0013 (`[SerializeReference]`), 0025 (site e Action), 0026 (item 4: `[TypeCategory]` e seletor), 0027 (projeto na raiz), 0041 (links para a Unity e exemplos incluídos do código).
+- 0003 (tamanho do ticket, emenda de 2026-11-01 da saída gerada), 0007 (gate de doc, catálogo, emenda de 2026-11-01), 0012 (mapa de módulos), 0013 (`[SerializeReference]`), 0025 (site e Action), 0026 (item 4: `[TypeCategory]` e seletor), 0027 (projeto na raiz), 0041 (links para a Unity e exemplos incluídos do código), 0044 (manual no GitBook, sem API).

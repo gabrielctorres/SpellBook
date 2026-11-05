@@ -55,6 +55,15 @@ A 0003 juntou mais de 30 emendas em cinco dias. Mais da metade eram exceções �
 - Fora do modo autônomo, uma exceção de tamanho não gera linha no `decisoes.md`.
 - As linhas de exceção já gravadas no `decisoes.md` ficam como histórico.
 
+## Emenda (2026-11-04): manual no GitBook, pela 0044
+
+**Status da emenda: Aceita** (gate de 2026-11-04 da [0044](0044-manual-no-gitbook-por-git-sync-sem-referencia-da-api.md), Q3 e Q6; ticket GB11 de `spec/migracao-gitbook.md`). Vale depois do GB9 do mesmo design doc. Até lá, a regra acima continua.
+
+1. **Item 1 da Decisão.** "Um ticket, um commit" continua, salvo no passe de documentação. Lá, o ticket tem o commit do change request no rascunho (e o de cada correção, que é um change request novo do mesmo ticket) e o do `/commit` (0044, item 13).
+2. **Item 2 da Decisão.** No passe de documentação, o teto soma os commits do ticket: os dos change requests e o do `/commit`.
+3. **Item 3 da Decisão.** "A entrada do `nav`" passa a ler "a entrada do `SUMMARY.md`". A saída de gerador do repositório com guarda passa a ser a da 0044 (itens 7 e 8): a página do catálogo e os blocos C# expandidos do manual. A lista da 0040 deixa de valer.
+4. **"O que os agentes NÃO podem fazer".** "Juntar dois tickets num commit" continua. Os commits de change request de um ticket do passe não contam como juntar tickets, desde que cada change request tenha o número de um ticket só no título.
+
 ## Relacionadas
 
-- 0002 (fluxo e Detalhe), 0003 (substituída, histórico), 0004 (testes primeiro), 0005 (trava e WIP), 0007 e 0040 (passe de documentação), 0008 (commits).
+- 0002 (fluxo e Detalhe), 0003 (substituída, histórico), 0004 (testes primeiro), 0005 (trava e WIP), 0007 e 0040 (passe de documentação), 0008 (commits), 0044 (manual no GitBook).

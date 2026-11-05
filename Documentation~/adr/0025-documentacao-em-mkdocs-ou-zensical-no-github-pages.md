@@ -1,7 +1,9 @@
 # 0025 — Documentação em MkDocs Material ou Zensical, publicada no GitHub Pages
 
-Status: Aceita (gate 2026-10-29)
+Status: Substituída por [0044](0044-manual-no-gitbook-por-git-sync-sem-referencia-da-api.md) (gate de 2026-11-04)
 Data: 2026-10-29
+
+> **Histórico.** Desde 2026-11-04, a regra que vale é a da 0044: manual no GitBook, por Git Sync, sem referência da API gerada. O item 1 (manual em Markdown, numa pasta própria) e a proibição de publicar documento interno continuam na 0044, e a proibição de segunda verdade continua no item 2 dela. Este texto fica só como registro.
 
 ## Contexto
 
@@ -87,4 +89,4 @@ O usuário pediu que o GitBook fosse reavaliado, com o [Gasify](https://felipero
 
 ## Relacionadas
 
-- 0001 (pastas), 0007 (gate de doc e `[HelpURL]`), 0008 (release).
+- 0001 (pastas), 0007 (gate de doc e `[HelpURL]`), 0008 (release), 0044 (substitui esta ADR).
