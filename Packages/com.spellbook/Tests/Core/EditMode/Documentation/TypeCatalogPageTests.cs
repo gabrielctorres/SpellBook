@@ -41,22 +41,28 @@ namespace SpellBook.Core.Tests.Documentation
         }
 
         [Test]
-        public void Render_SectionAnchorFromBaseFullName()
+        public void Render_PageTitleWithoutAnchor()
         {
-            string text = TypeCatalogPage.Render(new[] { NestedSection() });
+            string text = TypeCatalogPage.Render(new[] { Section() });
 
-            Assert.That(text, Does.Contain(
-                "\n## `NestedBase` {#spellbook-core-tests-documentation-typecatalogpagetests-nestedbase}\n"));
+            Assert.That(text, Does.Contain("\n# Catálogo de tipos\n"));
         }
 
         [Test]
-        public void Render_ApiLinkFromDocUrlsBase()
+        public void Render_SectionTitleWithoutAnchor()
         {
             string text = TypeCatalogPage.Render(new[] { NestedSection() });
 
-            Assert.That(text, Does.Contain(
-                "| [Nested Entry](" + DocUrls.Base
-                + "api/SpellBook.Core.Tests.Documentation.TypeCatalogPageTests.NestedEntry.html) |"));
+            Assert.That(text, Does.Contain("\n## `NestedBase`\n"));
+        }
+
+        [Test]
+        public void Render_TypeNameWithoutLink()
+        {
+            string text = TypeCatalogPage.Render(new[] { NestedSection() });
+
+            Assert.That(text, Does.Contain("\n| Nested Entry | Raiz |  |\n"));
+            Assert.That(text, Does.Not.Contain("](").And.Not.Contain("(API)"));
         }
 
         [Test]
@@ -64,7 +70,7 @@ namespace SpellBook.Core.Tests.Documentation
         {
             string text = TypeCatalogPage.Render(new[] { Section(Entry(category: "", summary: "Resumo.")) });
 
-            Assert.That(text, Does.Contain(".html) | Raiz | Resumo. |\n"));
+            Assert.That(text, Does.Contain("\n| Page Entry | Raiz | Resumo. |\n"));
         }
 
         [Test]
@@ -72,7 +78,7 @@ namespace SpellBook.Core.Tests.Documentation
         {
             string text = TypeCatalogPage.Render(new[] { Section(Entry(category: "Fluxo", summary: "")) });
 
-            Assert.That(text, Does.Contain(".html) | Fluxo |  |\n"));
+            Assert.That(text, Does.Contain("\n| Page Entry | Fluxo |  |\n"));
         }
 
         [Test]
@@ -80,7 +86,7 @@ namespace SpellBook.Core.Tests.Documentation
         {
             string text = TypeCatalogPage.Render(new[] { Section(Entry(category: "A|B", summary: "um | dois\ntrês")) });
 
-            Assert.That(text, Does.Contain(".html) | A\\|B | um \\| dois três |\n"));
+            Assert.That(text, Does.Contain("\n| Page Entry | A\\|B | um \\| dois três |\n"));
         }
 
         [Test]
@@ -92,7 +98,7 @@ namespace SpellBook.Core.Tests.Documentation
             string text = TypeCatalogPage.Render(new[] { section });
 
             Assert.That(text, Does.Contain(
-                "\n## `PageBase` {#spellbook-core-tests-documentation-pagebase}\n\n"
+                "\n## `PageBase`\n\n"
                 + "Aparece em: `Holder A > Items`, `Holder B > Item`.\n\n"
                 + "| Tipo | Categoria | Resumo |\n|---|---|---|\n"));
         }
@@ -102,21 +108,7 @@ namespace SpellBook.Core.Tests.Documentation
         {
             string text = TypeCatalogPage.Render(new[] { GenericSection() });
 
-            Assert.That(text, Does.Contain("\n## `PageGenericBase<PageBase>` {#"));
-        }
-
-        [Test]
-        public void Render_ClosedGenericBase_AnchorWithoutAssembly()
-        {
-            string text = TypeCatalogPage.Render(new[] { GenericSection() });
-
-            string heading = text.Substring(text.IndexOf("\n## ", StringComparison.Ordinal) + 1);
-            heading = heading.Substring(0, heading.IndexOf('\n'));
-            string anchor = heading.Substring(heading.IndexOf("{#", StringComparison.Ordinal));
-            Assert.That(anchor, Is.EqualTo(
-                "{#spellbook-core-tests-documentation-pagegenericbase-spellbook-core-tests-documentation-pagebase}"));
-            Assert.That(anchor, Does.Not.Contain("`").And.Not.Contain("[").And.Not.Contain(",")
-                .And.Not.Contain("=").And.Not.Contain("version"));
+            Assert.That(text, Does.Contain("\n## `PageGenericBase<PageBase>`\n"));
         }
 
         private static TypePickerEntry Entry(string category = "Fluxo", string summary = "Faz algo.")

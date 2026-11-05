@@ -15,10 +15,6 @@ namespace SpellBook.Core.Tests.Documentation
         private static readonly (Type Type, string Method)[] Guards =
         {
             (typeof(ReferenceUpToDateTests), nameof(ReferenceUpToDateTests.CommittedCatalog_MatchesGenerated)),
-            (typeof(ReferenceUpToDateTests), nameof(ReferenceUpToDateTests.CommittedFingerprint_MatchesSources)),
-            (typeof(ReferenceUpToDateTests), nameof(ReferenceUpToDateTests.CommittedReference_HasNoMachinePathOrForeignBranch)),
-            (typeof(ReferenceUpToDateTests), nameof(ReferenceUpToDateTests.CommittedXrefMap_MatchesCommittedReference)),
-            (typeof(ReferenceUpToDateTests), nameof(ReferenceUpToDateTests.EveryUnityReference_HasXrefEntry)),
             (typeof(ManualCodeExamplesTests), nameof(ManualCodeExamplesTests.NoHandWrittenCSharpBlocks)),
             (typeof(ManualCodeExamplesTests), nameof(ManualCodeExamplesTests.SnippetsPointToExistingSections)),
             (typeof(ManualCodeExamplesTests), nameof(ManualCodeExamplesTests.SnippetSourcesAreCompiledCode)),

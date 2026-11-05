@@ -18,8 +18,7 @@ namespace SpellBook.Core.Editor.Documentation
 
         private const string Intro =
             "Esta página lista os tipos que o seletor do Inspector oferece nos campos de ações, reações, respostas e"
-            + " elementos do pacote. Clique no nome de um tipo para abrir a página dele na referência da interface de"
-            + " programação (API).";
+            + " elementos do pacote.";
 
         private const string RootCategory = "Raiz";
 
@@ -33,7 +32,7 @@ namespace SpellBook.Core.Editor.Documentation
 
             var text = new StringBuilder();
             Line(text, Notice);
-            Line(text, "# Catálogo de tipos {#catalogo}");
+            Line(text, "# Catálogo de tipos");
             Line(text, string.Empty);
             Line(text, Intro);
             foreach (TypeCatalogSection section in sections)
@@ -47,7 +46,7 @@ namespace SpellBook.Core.Editor.Documentation
         private static void RenderSection(StringBuilder text, TypeCatalogSection section)
         {
             Line(text, string.Empty);
-            Line(text, $"## `{Title(section.BaseType)}` {{#{Anchor(section.BaseType)}}}");
+            Line(text, $"## `{Title(section.BaseType)}`");
             Line(text, string.Empty);
             Line(text, $"Aparece em: `{string.Join("`, `", section.Fields)}`.");
             Line(text, string.Empty);
@@ -56,7 +55,7 @@ namespace SpellBook.Core.Editor.Documentation
             foreach (TypePickerEntry entry in section.Entries)
             {
                 string category = string.IsNullOrEmpty(entry.CategoryPath) ? RootCategory : entry.CategoryPath;
-                Line(text, $"| [{Cell(entry.DisplayName)}]({ApiUrl(entry.Type)}) | {Cell(category)} | {Cell(entry.Summary)} |");
+                Line(text, $"| {Cell(entry.DisplayName)} | {Cell(category)} | {Cell(entry.Summary)} |");
             }
         }
 
@@ -77,35 +76,9 @@ namespace SpellBook.Core.Editor.Documentation
             return title.Append('>').ToString();
         }
 
-        private static string Anchor(Type type)
-        {
-            if (!type.IsConstructedGenericType)
-            {
-                return AnchorOfName(type.FullName);
-            }
-
-            var anchor = new StringBuilder(AnchorOfName(WithoutArity(type.GetGenericTypeDefinition().FullName)));
-            foreach (Type argument in type.GetGenericArguments())
-            {
-                anchor.Append('-').Append(Anchor(argument));
-            }
-
-            return anchor.ToString();
-        }
-
-        private static string AnchorOfName(string fullName)
-        {
-            return fullName.ToLowerInvariant().Replace('.', '-').Replace('+', '-');
-        }
-
         private static string WithoutArity(string name)
         {
             return Regex.Replace(name, "`[0-9]+", string.Empty);
-        }
-
-        private static string ApiUrl(Type type)
-        {
-            return DocUrls.Base + "api/" + type.FullName.Replace('+', '.') + ".html";
         }
 
         private static string Cell(string value)

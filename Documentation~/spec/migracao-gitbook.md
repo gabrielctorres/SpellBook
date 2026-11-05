@@ -82,3 +82,24 @@ Nenhuma em aberto. Q1 a Q6 respondidas no gate de 2026-11-04 (ver "Decisões do 
 ## Validação de uso
 | Data | Observação | Ajuste pedido | Status |
 |---|---|---|---|
+
+## GB3 — Tirar a API
+### Detalhe (2026-11-04)
+- CA: CA7 (a parte da API: DocFX, `api/`, mapa da Unity, impressão digital, `.config/dotnet-tools.json`; catálogo sem link para a API, com a guarda byte a byte). O `docs.yml`, o `mkdocs.yml` e o Python ficam no GB2.
+- Escopo:
+  - Remoção pura: `Documentation~/api/` inteira (`docfx.json`, `index.md`, `toc.yml`, `unity.xrefmap.yml`, `reference.sha256`, `reference/`), `Documentation~/.config/dotnet-tools.json`, `Packages/com.spellbook/Editor/Core/Documentation/DocfxConfig.cs`, `ReferenceFingerprint.cs`, `UnityXrefMap.cs` e os testes `Tests/Core/EditMode/Documentation/DocfxConfigTests.cs` e `UnityXrefMapTests.cs`, com os `.meta`.
+  - `Editor/Core/Documentation/ReferenceGenerator.cs:13-17,20-22,36,61-94,122-173`: sai o `IDocfxMetadataRunner`, o `DotnetDocfxRunner`, a sobrecarga interna com o runner e as etapas de `api/`. O `Generate` escreve só `manual/referencia/catalogo.md`. O `MenuPath` continua **Gerar referência**; a entrada única **Gerar catálogo e exemplos** nasce no GB4.
+  - `Editor/Core/Documentation/TypeCatalogPage.cs:19-22,36,50,59,80-109`: a introdução perde a frase do link da API, o título da página e os das seções perdem o `{#id}`, e a coluna **Tipo** mostra o nome sem link (saem `Anchor`, `AnchorOfName` e `ApiUrl`).
+  - `Documentation~/manual/referencia/catalogo.md`: regenerado pelo menu (saída de gerador com guarda).
+  - `Tests/Core/EditMode/Documentation/ReferenceGeneratorTests.cs`: reescrito para o catálogo só.
+  - `Tests/Core/EditMode/Documentation/TypeCatalogPageTests.cs:43-60,67,75,83,95,105,108-120`: títulos sem âncora e tipo sem link.
+  - `Tests/Core/EditMode/Documentation/ReferenceUpToDateTests.cs:12-15,38-125`: fica só `CommittedCatalog_MatchesGenerated`.
+  - `Tests/Core/EditMode/Documentation/DocumentationCategoryTests.cs:17-20`: saem as quatro guardas da API.
+  - `Packages/com.spellbook/CHANGELOG.md`, em **Quebras**: entrada da remoção dos tipos públicos `DocfxConfig`, `DocfxAssembly`, `ReferenceFingerprint` e `UnityXrefMap`, com a migração. A remoção já estava prevista no design doc (Q5), então não volta ao gate.
+- Testes red (EditMode, `SpellBook.Core.Tests.EditMode`):
+  - `ReferenceGeneratorTests.Generate_WritesCatalogFromTypePicker` e `ReferenceGeneratorTests.Generate_WritesOnlyTheCatalog` (hoje o `Generate` chama o `dotnet docfx` e escreve em `api/`);
+  - `TypeCatalogPageTests.Render_PageTitleWithoutAnchor`, `Render_SectionTitleWithoutAnchor`, `Render_ClosedGenericBase_TitleInCSharpForm` e `Render_TypeNameWithoutLink`, mais os três testes de célula (`Render_EmptyCategory_ShowsRaiz`, `Render_EmptySummary_LeavesCellEmpty`, `Render_EscapesPipeAndNewline`) sem o `.html)` na linha esperada.
+- Critério de pronto: os testes red passam; `ReferenceUpToDateTests`, `DocumentationCategoryTests`, `TypeCatalogTests` e `TypeCatalogSummaryTests` passam, com o `total` do XML conferido; nenhum `.cs` do pacote cita `DocfxConfig`, `ReferenceFingerprint`, `UnityXrefMap` ou `IDocfxMetadataRunner`; `Documentation~/api/` e `Documentation~/.config/` não existem; o `catalogo.md` não tem `{#` nem `](`.
+  - `.gitignore:44-46` (consequência direta, ADR 0042, item 6): saem as linhas de `api/obj/` e `api/_site/`.
+- Tamanho: 438 linhas medidas (adicionadas mais removidas, sem a remoção pura) em 8 arquivos (os 2 do Editor, os 4 testes, o `CHANGELOG.md` e o `.gitignore`; o catálogo é saída de gerador com guarda e não conta). Exceção: nenhuma.
+- Commit: `chore(docs)!: tira o DocFX, a API gerada e o mapa da Unity`
