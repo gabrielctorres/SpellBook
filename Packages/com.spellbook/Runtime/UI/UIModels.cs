@@ -118,6 +118,67 @@ namespace SpellBook.UI
     }
 
     /// <summary>
+    /// Modelo do ícone de um efeito na lista de buffs e debuffs (R2; Spec do B-018, Design 1): as instâncias do mesmo
+    /// efeito vistas como uma, com a soma das pilhas e a maior duração restante. Sem GAS e sem <see cref="string"/>
+    /// montada no tick: o tempo é um trecho do buffer da ligação. O <c>default</c> é o ícone vazio.
+    /// </summary>
+    public readonly struct EffectIconModel
+    {
+        /// <summary>
+        /// Cria o modelo; a fração fica entre 0 e 1, e pilhas e segundos negativos valem 0. <paramref name="icon"/> e
+        /// <paramref name="subject"/> podem ser nulos.
+        /// </summary>
+        public EffectIconModel(Sprite icon, string name, TextRole role, int stacks, bool showStacks, float fraction,
+            float remaining, TextSpan remainingText, bool isInfinite, bool endingSoon, ScriptableObject subject)
+        {
+            Icon = icon;
+            Name = name;
+            Role = role;
+            Stacks = Math.Max(0, stacks);
+            ShowStacks = showStacks;
+            Fraction = Mathf.Clamp01(fraction);
+            Remaining = Mathf.Max(0f, remaining);
+            RemainingText = remainingText;
+            IsInfinite = isInfinite;
+            EndingSoon = endingSoon;
+            Subject = subject;
+        }
+
+        /// <summary>Ícone do efeito, ou nulo; a view usa o ícone padrão dela.</summary>
+        public Sprite Icon { get; }
+
+        /// <summary>Nome do efeito, pelo provedor de texto; vazio ou nulo sem nome.</summary>
+        public string Name { get; }
+
+        /// <summary>Papel do efeito (<see cref="TextRole.Beneficial"/>, <see cref="TextRole.Harmful"/> ou <see cref="TextRole.Neutral"/>), que o tema traduz em cor.</summary>
+        public TextRole Role { get; }
+
+        /// <summary>Soma das pilhas das instâncias; nunca negativo.</summary>
+        public int Stacks { get; }
+
+        /// <summary>Verdadeiro quando o número de pilhas deve aparecer.</summary>
+        public bool ShowStacks { get; }
+
+        /// <summary>Fração restante da duração, de 0 a 1; 0 no infinito.</summary>
+        public float Fraction { get; }
+
+        /// <summary>A maior duração restante, em segundos; nunca negativo.</summary>
+        public float Remaining { get; }
+
+        /// <summary>Segundos restantes como texto, escrito no buffer da ligação; vazio no infinito.</summary>
+        public TextSpan RemainingText { get; }
+
+        /// <summary>Verdadeiro se alguma instância é infinita: sem relógio.</summary>
+        public bool IsInfinite { get; }
+
+        /// <summary>Verdadeiro nos últimos segundos da duração mostrada; nunca no infinito.</summary>
+        public bool EndingSoon { get; }
+
+        /// <summary>O efeito, visto como <see cref="ScriptableObject"/>; a view o escreve no <see cref="UIItemContext"/>.</summary>
+        public ScriptableObject Subject { get; }
+    }
+
+    /// <summary>
     /// Estado do slot (Spec do B-016, Design 2), pelas checagens de ativação até o custo. O estado ativo não está aqui:
     /// é marca à parte no <see cref="SlotModel"/>, para não esconder uma falha.
     /// </summary>

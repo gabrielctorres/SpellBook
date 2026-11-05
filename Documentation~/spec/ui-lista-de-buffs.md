@@ -70,6 +70,36 @@ Todos usam a Unity e seguem o WIP 1. **Não há par paralelo sem Editor.** Mesma
 - Critério de pronto: CA1 a CA4, CA6, CA8, CA11, CA17 e CA18 verdes.
 - Tamanho estimado: ~490 linhas; 7 arquivos. Depende de: TT5, SL1c (o SL1 se dividiu em SL1a, SL1b e SL1c em 2026-11-04, ADR 0042).
 
+### Detalhe (2026-11-04)
+O BF1 passou do teto (796 linhas medidas depois do green, ~59 % acima) e foi dividido por decisão do Controlador: BF1a (#268) e BF1b (issue nova). A implementação completa, com o Detalhe de antes da divisão, está guardada fora do repositório, em `C:/Users/gabri/orca/workspaces/SpellBook/_guardado-bf1b/` (`completo/` com os arquivos inteiros e `bf1-completo-rastreados.patch` com o diff dos arquivos rastreados).
+
+Comum aos dois:
+- Fora do escopo da Spec original: `Documentation~/manual/ui/lista-de-efeitos.md` (só no passe de documentação, emenda de 2026-11-03 da ADR 0007) e `CHANGELOG.md` (nada quebra).
+- Nota do C8: o ASC mantém uma instância por asset (`FindActiveInstance`): reaplicar de outra fonte empilha (`CanStack`) ou renova (sem `CanStack`). O teste do BF1b cobre a fusão observável pelo ASC (duas fontes, com e sem `CanStack`, um ícone; assets diferentes com o mesmo nome não se fundem). A regra entre várias instâncias (soma, maior restante, infinito se alguma) é do `EffectAggregate`, testada no TT5a, e a fonte a usa sem regra própria.
+- A devolução ao pool do CA1 aqui é o `RemoveItem` do id; o pool em si é do binder (BF3, CA14).
+
+#### BF1a — `EffectIconModel` e `ActiveEffectsSource` por evento (#268)
+- CA: CA1, CA3, CA4, CA6, CA11 e CA17 (C1, C3, C4, C6, C11), na fonte.
+- Escopo (caminhos relativos a `Packages/com.spellbook/`):
+  - `Runtime/UI/UIModels.cs` (depois do `ListOverflowModel`, ~linha 117): `readonly struct EffectIconModel` com construtor `(Sprite icon, string name, TextRole role, int stacks, bool showStacks, float fraction, float remaining, TextSpan remainingText, bool isInfinite, bool endingSoon, ScriptableObject subject)`; fração entre 0 e 1, restante e pilhas negativos valem 0.
+  - `Runtime/GAS.UI/ActiveEffectsSource.cs` (novo): `sealed class ActiveEffectsSource : UIListSource<EffectIconModel>`, `[Serializable, TypeCategory("Efeitos", Summary = ...)]` (o `Line` é do BF5), campo `minStacksToShow` (2, `Min(1)`). `OwnerType` = ASC. A ligação guarda os grupos (`struct Group { GameplayEffect Effect; int Id; string Name; }`, na ordem em que o efeito apareceu), a lista de instâncias de rascunho (sai vazia de cada agregado) e o contador de ids; nada mais do ASC (N3). Cada evento (`OnEffectApplied`, `OnEffectRemoved`, `OnEffectStacksChanged`) refaz só o grupo do efeito pelo `EffectAggregate.Of(asc, efeito, lista)`: sem instância, `RemoveItem`; grupo existente, `UpdateItem`; senão, se o efeito não é `IsHidden`, nasce no fim com `AddItem`. `Attach` monta os grupos pela ordem de `ActiveEffects` (C11). Papel: só `IsBuff` → `Beneficial`; só `IsDebuff` → `Harmful`; senão `Neutral`. Nome por `DisplayName.Resolve(Context.Text)` ao nascer, ícone por `Icon`, `Subject` = o asset, `IsInfinite` pelo agregado. Sem tick: fração, restante e texto do tempo ficam em 0 e vazio até o BF1b; `EndingSoon` falso (BF2). Prévia vazia (BF1b).
+  - `Runtime/Core/DocUrls.cs:35`: `UiEffectList = Base + "ui/lista-de-efeitos/"`; `Tests/Core/EditMode/DocUrlsTests.cs:43`: o caso dele. A página fica para o passe de documentação, como a do `UiTooltip`.
+  - `Tests/GAS.UI/PlayMode/ActiveEffectsSourceTests.cs` (novo): ligação direta com um receptor de teste, `GasFactory` e `ManualTimeSource`.
+- Testes red (PlayMode, `ActiveEffectsSourceTests`): `Apply_AddsIcon_Expire_RemovedAndReleased_RemoveByCodeTagStacks_OnlyWhenLast` (CA1); `Stacks_ByEvent_HiddenAtOneByDefault` (CA3); `Role_FromBuffDebuff_NeutralDefault` (CA4); `ApplicationOrder_NewAtEnd_PositionFixed` (CA6); `OpenWithActiveEffects_ShowsAll` (CA11); `IconAndName_FromEffectFields` (CA17). EditMode: o caso `UiEffectList` em `DocUrlsTests`.
+- Critério de pronto: os testes acima verdes, com as guardas `GasUiSourceScanTests`, `AsmdefRulesTests`, `SourceRulesTests` e `HelpUrlTests` (N2, CA20).
+- Tamanho: 536 linhas medidas (`UIModels.cs` +61, `ActiveEffectsSource.cs` 169, `ActiveEffectsSourceTests.cs` 304, `DocUrls.cs` +1, `DocUrlsTests.cs` +1) e 5 arquivos. Exceção: até +30% (~7 % acima do teto); motivo: o modelo inteiro do Design 1 entra junto da primeira fonte que o publica, e os seis testes dividem um receptor e uma fábrica de efeitos de ~100 linhas.
+- Commit: `feat(gas-ui): ActiveEffectsSource por evento (#268)`
+
+#### BF1b — Relógio, fusão e prévia da `ActiveEffectsSource` (issue nova)
+- CA: CA2, CA8 e CA18 (C2, C8), mais a prévia do C13 na fonte. Depende de: BF1a.
+- Escopo (caminhos relativos a `Packages/com.spellbook/`; o código está em `_guardado-bf1b/completo/`):
+  - `Runtime/GAS.UI/ActiveEffectsSource.cs`: o `Group` ganha `TextBuffer Text`, `ShownSeconds` e `Timed`, com os buffers reaproveitados numa lista livre. `Tick` (pedido só com grupo de duração finita, P6, por `RequestTick` a cada evento e no `Attach`) atualiza restante, fração (restante ÷ `Duration` do agregado) e texto ("N s", segundos inteiros para cima, como o tooltip, reescrito só quando o segundo muda) dos grupos com duração; os eventos publicam o mesmo. Prévia (C13): buff com 3 pilhas, debuff em 60 % com 3 s e um permanente, sem ícone e sem nome.
+  - `Tests/GAS.UI/PlayMode/ActiveEffectsSourceTests.cs`: o `UIUpdateDriver` com `ManualTimeSource` no `SetUp`, o registro da ligação no driver e os testes abaixo.
+- Testes red (PlayMode, `ActiveEffectsSourceTests`): `Fraction_Seconds_ManualTime_PauseStops_InfiniteNoClock` (CA2); `SameEffect_TwoSources_WithAndWithoutCanStack_OneIcon_SumStacks_MaxRemaining_InfiniteIfAny_DifferentAssetsNeverMerge` (CA8); `List_MatchesAscAfterRandomOps_NoOwnRegistry` (CA18); `Preview_BuffStacks_DebuffClock_Permanent`. O `OpenWithActiveEffects_ShowsAll` volta a conferir que abrir com duração pede tick.
+- Critério de pronto: os testes do BF1b verdes, com as guardas do BF1a.
+- Tamanho: ~260 linhas (fonte +100, testes +160, pela diferença entre a versão guardada e o BF1a) e 2 arquivos.
+- Commit: `feat(gas-ui): relógio, fusão e prévia da lista de efeitos (#<issue nova>)`
+
 ### BF2 — Filtros, fim próximo e respawn
 - Escopo: `ActiveEffectsSource.cs` (`EffectListFilter`, `SetFilter`, `EndingSoon`), `Tests/GAS.UI/PlayMode/ActiveEffectsFilterTests.cs` (novo), `lista-de-efeitos.md`, `CHANGELOG.md`.
 - Testes red: `Filter_Debuffs_Query_Purgable_HiddenNever_FilterChangeRemoves` (CA5, C5); `EndingSoon_LastNSeconds_OfLongestInstance` (CA9, C9); `AnchorRespawn_RebuildsForNewAsc_ReleasesOldIcons` (CA12, C12).
