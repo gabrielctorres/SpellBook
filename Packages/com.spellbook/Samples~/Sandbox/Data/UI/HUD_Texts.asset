@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e7c3254fd159ed54195455d6e7e25088, type: 3}
-  m_Name: HUD_Textos
+  m_Name: HUD_Texts
   m_EditorClassIdentifier: SpellBook.Core::SpellBook.Core.Text.TableTextProvider
   tables:
   - {fileID: 11400000, guid: 3d6d038a45a530b4c969d2ce94ed7292, type: 2}

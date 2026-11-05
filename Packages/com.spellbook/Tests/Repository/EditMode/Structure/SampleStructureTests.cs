@@ -82,9 +82,43 @@ namespace SpellBook.Core.Tests.Structure
             ("Materials/M_Ground.mat", "d1f983affef7eb646a9ad3b9381a05e4"),
         };
 
+        // SB-T11: arquivos de Data/UI.
+        private static readonly string[] UiFolders = { "Data/UI" };
+
+        private static readonly (string Path, string Guid)[] UiNames =
+        {
+            ("Data/UI/ANC_Dummy.asset", "0471630398ccfdd449757eda6094bea1"),
+            ("Data/UI/ANC_HUD.asset", null),
+            ("Data/UI/ANC_Player.asset", "2e6c5468436271643b1832b95d9b062f"),
+            ("Data/UI/HUD_Damage.asset", "9baef9d8b04cd6e4cbc02cbfa4b330b1"),
+            ("Data/UI/HUD_Heal.asset", "fa624a36b76e8e24db221b12e8fa09a9"),
+            ("Data/UI/HUD_Keys.asset", "d78bfc631c6abcc44a0955ba7fbca1c7"),
+            ("Data/UI/HUD_Loadout.asset", null),
+            ("Data/UI/HUD_Rules.asset", "68dd9aada83891341888632fd11a879d"),
+            ("Data/UI/HUD_Texts.asset", "c259d8252affd184da1fb1410c77c626"),
+            ("Data/UI/HUD_Theme.asset", "09cbb528a963303408c552031896562b"),
+            ("Data/UI/TXT_Sandbox.en.asset", null),
+            ("Data/UI/TXT_Sandbox.pt-BR.asset", null),
+        };
+
+        // SB-T11: nomes de GameObject do HUD.prefab (CA-EN1), com os das instâncias aninhadas.
+        private const string HudPrefabPath = "Prefabs/HUD.prefab";
+
+        private static readonly string[] HudGameObjectNames =
+        {
+            "Abilities", "Dummy", "HUD", "Health", "Health", "Mana", "Numbers", "Player",
+        };
+
+        // Leem o YAML com quebras normalizadas para \n.
+        private static readonly Regex GameObjectName =
+            new Regex(@"^--- !u!1 &\d+\nGameObject:\n(?:  .*\n)*?  m_Name: ?(?<name>.*)$", RegexOptions.Multiline);
+
+        private static readonly Regex NameOverride =
+            new Regex(@"^      propertyPath: m_Name\n      value: ?(?<name>.*)$", RegexOptions.Multiline);
+
         private const string FireballKey = "sandbox.ability.fireball";
 
-        // GUID do provedor de texto do HUD (HUD_Textos; o nome muda no SB-T11, o GUID não).
+        // GUID do provedor de texto do HUD (HUD_Texts, antes HUD_Textos; o GUID não mudou no SB-T11).
         private const string TextProviderGuid = "c259d8252affd184da1fb1410c77c626";
 
         [Test]
@@ -296,6 +330,28 @@ namespace SpellBook.Core.Tests.Structure
                 EventsPoolingAndMaterialsFolders,
                 EventsPoolingAndMaterialsNames,
                 "arquivos de Data/Events, Data/Pooling e Materials (CA-EN2)");
+        }
+
+        [Test]
+        public void SampleData_UI_HasEnglishNamesAndOriginalGuids()
+        {
+            AssertEnglishNames(UiFolders, UiNames, "arquivos de Data/UI (CA-EN2)");
+        }
+
+        [Test]
+        public void HudPrefab_GameObjects_HaveEnglishNames()
+        {
+            string file = Path.Combine(SampleFolder(), HudPrefabPath);
+            Assert.That(File.Exists(file), Is.True, $"{SamplePath}/{HudPrefabPath} não existe");
+            string yaml = File.ReadAllText(file).Replace("\r\n", "\n");
+
+            string[] names = GameObjectName.Matches(yaml).Cast<Match>()
+                .Concat(NameOverride.Matches(yaml).Cast<Match>())
+                .Select(m => m.Groups["name"].Value)
+                .OrderBy(n => n, StringComparer.Ordinal)
+                .ToArray();
+
+            Assert.That(names, Is.EqualTo(HudGameObjectNames), "GameObjects do HUD.prefab (CA-EN1)");
         }
 
         [Test]

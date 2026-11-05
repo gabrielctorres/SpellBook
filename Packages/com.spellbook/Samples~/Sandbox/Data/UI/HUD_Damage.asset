@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6baa158271622764eb0e2c28a5d11e9a, type: 3}
-  m_Name: HUD_Dano
+  m_Name: HUD_Damage
   m_EditorClassIdentifier: SpellBook.UI::SpellBook.UI.FloatingTextStyle
   role: 2
   duration: 1
