@@ -180,8 +180,21 @@ O ME8 foi medido em 763 linhas, acima dos +30% da 0042, e se dividiu em ME8a e M
 
 ## ME3b — Modelos Área e Buff (#407)
 - Depende do ME3a: usa os `GE_Template_Cost`, `GE_Template_Cooldown` e `GE_Template_Damage`, as tags-modelo e o `PackageTemplatesTests` dele.
-- Escopo previsto (em `Packages/com.spellbook/Editor/GAS/Templates/`): `Area.asset` e `Buff.asset` (`AbilityTemplate`), `GA_Template_Area.asset` (um `ApplyEffectAction` do dano com um `AreaSelector` em volta de quem lança), `GA_Template_Buff.asset` e `GE_Template_Buff.asset` (efeito com duração e `Is Buff`, aplicado em quem lança). O `PackageTemplatesTests.cs` ganha os casos `Area` e `Buff` nos dois `TestCase`.
-- Tamanho estimado: ~20 linhas e 6 arquivos. A Fábrica do ME3b escreve o Detalhe completo.
+### Detalhe (2026-11-05)
+- CA: CA1 (a Área e o Buff aparecem no catálogo, com nome e frase) e CA3 (cada um cria um conjunto sem erro no validador, ligado às cópias, sem mudar o modelo). A lista na janela é do ME4. A Passiva saiu (Q3), e a Aura, o Em branco e o Só efeito são do ME5.
+- Escopo (caminhos em `Packages/com.spellbook/`; os `.asset` foram criados pela Unity, por um script de Editor temporário rodado uma vez e apagado):
+  - `Editor/GAS/Templates/Area.asset` (`AbilityTemplate`): nome "Área", a frase do DS 4.3, os assets `GA_{Name}`, `GE_{Name}_Cost`, `GE_{Name}_Cooldown` e `GE_{Name}_Damage` (os efeitos do ME3a) e as tags `Ability.{Name}` e `Cooldown.{Name}`, ligadas às tags-modelo do ME3a.
+  - `Editor/GAS/Templates/GA_Template_Area.asset`: a tag-modelo de habilidade, o custo, a recarga e, em `OnActivate`, um `ApplyEffectAction` do dano com um `AreaSelector` (origem em quem lança, raio 5, 3D). Sem prefab.
+  - `Editor/GAS/Templates/Buff.asset` (`AbilityTemplate`): nome "Buff", a frase do DS 4.3, os assets `GA_{Name}`, `GE_{Name}_Cost`, `GE_{Name}_Cooldown` e `GE_{Name}_Buff` e as mesmas duas tags.
+  - `Editor/GAS/Templates/GA_Template_Buff.asset`: como a Área, mas o `ApplyEffectAction` aplica o buff com um `CasterSelector`.
+  - `Editor/GAS/Templates/GE_Template_Buff.asset`: `HasDuration` de 5 s, `Is Buff` e um modificador `Add +10` sem atributo, pelo mesmo motivo do custo e do dano do ME3a: o pacote não tem atributo, e o designer escolhe o dele.
+  - `Tests/GAS/EditMode/PackageTemplatesTests.cs:38-39,65-66,99-124`: os casos `Area` e `Buff` nos dois `TestCase` e dois testes da ligação.
+  - Sem `CHANGELOG.md`, sem manual e sem mudança de código, de API ou de formato serializado.
+- Testes red (EditMode, `SpellBook.GAS.Tests.EditMode`, `PackageTemplatesTests`): `Catalog_ListsTemplateAsAvailable("Area", "Área")` e `("Buff", "Buff")`; `Template_CreatesSetWithoutErrors_TemplateUnchanged("Area")` e `("Buff")`; `Area_DamagesAroundCaster`; `Buff_AppliesTimedBuffToCaster`. O `PackageAssets_ValidateWithoutErrors` do ME3a passa a ler os assets novos da pasta.
+- Critério de pronto: 25 verdes no filtro `\.PackageTemplatesTests\.;\.AbilityTemplateCatalogTests\.;\.AbilitySetCreationTests\.` (os 10 do `PackageTemplatesTests`, 6 deles novos, os 2 do catálogo e os 13 do motor), com o `total` do XML igual a 25. A suíte completa roda na `/revisao`.
+- Tamanho: 32 linhas (+32 −0, só o teste) e 6 arquivos (o teste e 5 `.asset`), pela ADR 0042. Os `.meta` e este Detalhe não contam. Exceção: nenhuma.
+- Commit: `feat(editor): modelos Área e Buff (#407)`
+- Arquivos do commit (caminhos de código em `Packages/com.spellbook/`): em `Editor/GAS/Templates/`, `Area.asset`, `Buff.asset`, `GA_Template_Area.asset`, `GA_Template_Buff.asset` e `GE_Template_Buff.asset`, cada um com o `.meta`; `Tests/GAS/EditMode/PackageTemplatesTests.cs`; e `Documentation~/spec/menu-de-editor-do-gas.md`.
 
 ## ME6 — Busca de referências genérica no Core.Editor
 ### Detalhe (2026-11-05)

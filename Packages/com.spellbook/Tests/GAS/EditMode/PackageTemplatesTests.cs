@@ -7,6 +7,7 @@ using SpellBook.GAS.Abilities;
 using SpellBook.GAS.Abilities.Actions;
 using SpellBook.GAS.Editor;
 using SpellBook.GAS.Effects;
+using SpellBook.GAS.Targeting;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -34,6 +35,8 @@ namespace SpellBook.GAS.Tests
         }
 
         [TestCase("Projectile", "Projétil")]
+        [TestCase("Area", "Área")]
+        [TestCase("Buff", "Buff")]
         public void Catalog_ListsTemplateAsAvailable(string file, string displayName)
         {
             var available = new List<AbilityTemplate>();
@@ -59,6 +62,8 @@ namespace SpellBook.GAS.Tests
         }
 
         [TestCase("Projectile")]
+        [TestCase("Area")]
+        [TestCase("Buff")]
         public void Template_CreatesSetWithoutErrors_TemplateUnchanged(string file)
         {
             AbilityTemplate template = Load(file);
@@ -89,6 +94,33 @@ namespace SpellBook.GAS.Tests
             Assert.That(ability.AbilityTag.Name, Is.EqualTo("Ability.IceBolt"));
             Assert.That(ability.AbilityTag.GetDefinition().Parent.name, Is.EqualTo("Ability"));
             Assert.That(ability.CooldownEffect.GrantedTags.Single().Name, Is.EqualTo("Cooldown.IceBolt"));
+        }
+
+        [Test]
+        public void Area_DamagesAroundCaster()
+        {
+            CreatedSet set = AbilitySetCreator.Create(AbilitySetPlan.Build(Load("Area"), "Nova", Out));
+
+            var ability = (GameplayAbility)set.Main;
+            var apply = (ApplyEffectAction)ability.OnActivate.Single();
+            Assert.That(apply.Effects.Single().name, Is.EqualTo("GE_Nova_Damage"));
+            Assert.That(((AreaSelector)apply.Target).Origin, Is.EqualTo(AreaOrigin.Caster));
+            Assert.That(ability.CooldownEffect.GrantedTags.Single().Name, Is.EqualTo("Cooldown.Nova"));
+        }
+
+        [Test]
+        public void Buff_AppliesTimedBuffToCaster()
+        {
+            CreatedSet set = AbilitySetCreator.Create(AbilitySetPlan.Build(Load("Buff"), "Haste", Out));
+
+            var ability = (GameplayAbility)set.Main;
+            var apply = (ApplyEffectAction)ability.OnActivate.Single();
+            GameplayEffect buff = apply.Effects.Single();
+            Assert.That(buff.name, Is.EqualTo("GE_Haste_Buff"));
+            Assert.That(buff.IsBuff, Is.True);
+            Assert.That(buff.DurationPolicy, Is.EqualTo(EffectDurationPolicy.HasDuration));
+            Assert.That(apply.Target, Is.TypeOf<CasterSelector>());
+            Assert.That(ability.CostEffect.name, Is.EqualTo("GE_Haste_Cost"));
         }
 
         private static AbilityTemplate Load(string file) =>

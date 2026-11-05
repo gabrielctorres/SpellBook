@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 879fdf846bf5dee43835455f168b8af4, type: 3}
+  m_Name: Buff
+  m_EditorClassIdentifier: SpellBook.GAS::SpellBook.GAS.Abilities.AbilityTemplate
+  displayName: Buff
+  description: "Habilidade que aplica um efeito com dura\xE7\xE3o no pr\xF3prio personagem,
+    com custo e recarga."
+  assets:
+  - source: {fileID: 11400000, guid: 9630c26bbb4004f42b368616ac3a2d53, type: 2}
+    nameRule: GA_{Name}
+  - source: {fileID: 11400000, guid: 0507fa820dc6273418e779af597e07bd, type: 2}
+    nameRule: GE_{Name}_Cost
+  - source: {fileID: 11400000, guid: 1f4b5cb92ee412849bb3f375d689b0d5, type: 2}
+    nameRule: GE_{Name}_Cooldown
+  - source: {fileID: 11400000, guid: 73a081a6d038d464ba551a0a3cfa0704, type: 2}
+    nameRule: GE_{Name}_Buff
+  tags:
+  - source: {fileID: 11400000, guid: 6b893f08dd662ca409d1f85d67b4894d, type: 2}
+    rule: Ability.{Name}
+  - source: {fileID: 11400000, guid: 59434431601332e4e83c31c3142139eb, type: 2}
+    rule: Cooldown.{Name}
