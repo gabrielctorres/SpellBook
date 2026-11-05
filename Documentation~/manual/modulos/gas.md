@@ -104,7 +104,7 @@ Uma expressão em texto, como `([ATK] * 2) / [DEF]`. Cada token entre colchetes 
 - **Tipos de dano:** `Damage Tags` marca o tipo do dano do efeito, como `Dano.Fogo`, e os processadores do atributo o usam para reduzir, anular ou absorver. Veja [Tipos de dano](dano-escudo-e-morte.md#tipos-de-dano).
 - **Modificadores:** `AttributeEffectModifier` é uma classe. Uma entrada nula em `Modifiers` ou `PeriodicModifiers` é ignorada na aplicação, no tique, na remoção e no custo, e os outros modificadores valem.
 - **Nome e ícone:** em **Identidade**, `DisplayName` (texto, vazio por padrão e nunca nulo) e `Icon` (`Sprite`, nulo por padrão) identificam o efeito na UI. A instância ativa não repete os campos: leia `instancia.Effect.DisplayName` e `instancia.Effect.Icon`. Assets antigos abrem com nome vazio e sem ícone.
-- **Metadados:** em **Metadados**, `IsBuff`, `IsDebuff`, `IsHidden` e `IsPurgable` (somente leitura, também na instância ativa: `instancia.IsBuff`) são só dados para a UI e para quem purga efeitos; o ASC não os usa. O padrão, todos desligados, é "neutro, visível e não purgável". `IsBuff` e `IsDebuff` podem coexistir, mas o validador avisa.
+- **Metadados:** os campos `IsBuff`, `IsDebuff`, `IsHidden` e `IsPurgable` ficam também no grupo **Identidade**, logo abaixo do nome e do ícone, e são somente leitura pelo código, também na instância ativa (`instancia.IsBuff`). Eles são só dados para a UI e para quem purga efeitos, e o ASC não os usa: o padrão, todos desligados, é "neutro, visível e não purgável", e `IsBuff` e `IsDebuff` podem coexistir, mas o validador avisa.
 - **Stacking:** suporta acúmulo de instâncias (ex: Veneno que acumula até 5 vezes).
 - **Pilhas multiplicam a magnitude:** com `StacksMultiplyMagnitude` ligado (padrão), cada modificador do efeito, persistente ou do tique, vale o valor de uma pilha vezes `CurrentStacks`: `+5` de ataque com 3 pilhas vale `+15`. A multiplicação vem antes da [ordem de composição](#formulas-de-modificadores), então três pilhas de `Multiply` 0,1 somam 0,3 no grupo `Multiply`: base 100 com `Add` 5 e `Multiply` 0,1 em 3 pilhas dá `(100 + 15) × 1,3 = 149,5`. Mudar as pilhas (reaplicação, `SetEffectStacks`, `RemoveEffectStacks`) recalcula o atributo e dispara o `OnValueChanged` dele antes do `OnEffectStacksChanged`. Desligue a opção quando a pilha só conta (para renovar a duração ou alimentar outra regra): o modificador vale uma pilha só.
   > **Migração (3.0):** efeitos empilháveis existentes abrem com a opção ligada e passam a multiplicar. Para manter o valor da 2.x, desligue **Stacks Multiply Magnitude** nesses efeitos.
@@ -112,6 +112,26 @@ Uma expressão em texto, como `([ATK] * 2) / [DEF]`. Cada token entre colchetes 
 - **Efeitos periódicos:** com `Period` maior que zero, o efeito dá um tique a cada `Period` segundos: aplica os `PeriodicModifiers` no valor base e roda as `OnTickActions`, sempre o mesmo número de vezes. Um efeito com duração dá `Duration / Period` tiques, arredondado para baixo (4 s com período de 0,5 s: 8 tiques; 4 s com período de 1,5 s: 2 tiques, em 1,5 s e 3 s). O tique que cai no fim da duração acontece antes da expiração, e nenhum tique roda depois da remoção, nem quando uma ação do tique remove a própria instância. Cada `Tick` do ASC dá no máximo um tique por efeito; o tempo de um `Tick` que passa do fim da duração não gera tique a mais.
 - **Remoção:** `RemoveEffect(instancia)` roda as ações de limpeza e de `OnRemoval` e devolve as tags e os modificadores do efeito, uma vez só. Chamar de novo com a mesma instância, com `null` ou com uma instância de outro ASC não faz nada. Vale também quando a remoção explícita cai no mesmo quadro da expiração, ou quando uma ação de `OnRemoval` remove a própria instância.
 - **Remoção em grupo:** `RemoveEffectsWithTag(tag)` remove os efeitos que concedem a tag ou uma filha dela, e `RemoveEffects(asset)` remove as instâncias de um `GameplayEffect`. As duas devolvem a soma das pilhas removidas (3 pilhas de veneno: 3) e 0 quando não há nada a remover; tag inválida ou asset `null` também dão 0.
+
+#### Inspector do efeito
+Os avisos e a validação ficam no topo, visíveis em qualquer aba. Logo abaixo vêm quatro abas, e cada campo do efeito aparece em uma delas:
+
+- **Configuração**, com três grupos. **Identidade** tem o nome, o ícone e os metadados (`Is Buff`, `Is Debuff`, `Is Hidden` e `Is Purgable`). **Duração** tem `Duration Policy`, `Duration`, `Default Level` e `Period`. **Empilhamento** tem `Can Stack`, `Max Stacks`, `Refresh Duration On Stack` e `Stacks Multiply Magnitude`.
+- **Modificadores**, com os grupos **Persistentes** (`Modifiers`) e **Do tique** (`Periodic Modifiers`).
+- **Ações**, com uma aba por evento: "Ao ser aplicado", "A cada tick", "Ao ser removido" e, agrupadas em **Reações**, "Ao receber dano", "Ao morrer" e "Ao executar habilidade". Abaixo das abas de eventos, o grupo **Reações** tem `Damage Attributes` e `Death Attribute`.
+- **Tags**, com `Damage Tags`, `Granted Tags`, `Application Requirements` e `Application Immunity Tags`.
+
+Um campo só aparece quando vale na configuração atual:
+
+- `Duration` só com `Duration Policy` em `HasDuration`;
+- o grupo **Do tique** e a aba "A cada tick" só com `Period` maior que 0;
+- `Max Stacks`, `Refresh Duration On Stack` e `Stacks Multiply Magnitude` só com `Can Stack` ligado.
+
+Esconder um campo não apaga o valor dele. Ponha `Period` em 0 e volte para 0,5: os modificadores do tique continuam lá. Se a aba "A cada tick" sumir com ações dentro, um aviso no grupo **Duração**, logo abaixo de `Period`, diz quantas ações não vão rodar.
+
+Na aba **Tags**, uma lista vazia ocupa uma linha, com o nome à esquerda e o botão **+ adicionar** à direita. O nome mostra o tooltip do campo. Com itens, a lista aparece inteira, com o botão de adicionar no rodapé. Ao lado do título do grupo, um contador diz quantas listas têm itens, como "1 de 4 com itens".
+
+O Inspector lembra a última aba aberta de cada asset enquanto o Editor estiver aberto. Um efeito aberto pela primeira vez começa em **Configuração**. Com vários efeitos selecionados, os campos editam todos, e a aba **Ações** mostra "Edição múltipla não mostra ações". Uma subclasse de `GameplayEffect` usa o mesmo Inspector, e os campos que ela acrescenta aparecem no grupo **Outros**, no fim de **Configuração**.
 
 #### Contexto e spec do efeito
 Toda aplicação carrega um `EffectContext` (`SpellBook.GAS.Effects`), guardado em `ActiveEffectInstance.Context`:
@@ -235,6 +255,30 @@ for (int i = 0; i < burns; i++) Debug.Log($"{_found[i].Effect.name}: {_found[i].
 As habilidades são compostas **dentro do próprio arquivo da habilidade**, como uma lista de ações.
 Não é preciso criar ScriptableObjects separados para cada ação.
 
+#### Inspector da habilidade
+Os avisos e a validação ficam no topo, visíveis em qualquer aba. Logo abaixo vêm quatro abas, e cada campo da habilidade aparece em uma delas:
+
+- **Configuração**, com quatro grupos, nesta ordem:
+  - **Identidade**: `Icon`, `Localized Name`, `Ability Tag` e `Description`.
+  - **Comportamento**: `Behavior`, `Commit Mode`, `Channel Duration`, `Channel Tick Interval`, `Reactivate Passive` e `Autocast`.
+  - **Custo e recarga**: `Cost Effect`, `Cooldown Effect`, `Cooldown Reduction Attribute`, `Cooldown Reduction Policy` e `Charges`.
+  - **Condições de ativação**: `Cast Range`, `Activation Conditions` e, abaixo da lista, o [resumo das regras](#id-4.2-ativacao), uma linha por regra.
+- **Ações**, com uma aba por evento: "Ao ativar", "Ao terminar", "Ao ser cancelada", "A cada passo", "Ao ser concedida" e "Ao ser retirada".
+- **Tags e gatilhos**, com os grupos **Tags** (as seis listas de tags, de `Blocked Tags` a `Cancelled By Tags`) e **Gatilhos** (`Triggers`).
+- **Níveis e prévia**, com os grupos **Níveis** (`Max Level` e `Values`) e **Prévia**, descrito em [No Inspector](#no-inspector).
+
+No grupo **Comportamento**, um campo só aparece no comportamento em que vale:
+
+- `Channel Duration` e `Channel Tick Interval` só em `Channel`;
+- `Reactivate Passive` só em `Passive`;
+- `Autocast` só em `Instant` e `Channel`.
+
+A aba de eventos "A cada passo" também só existe em `Channel`. Se ela sumir com ações dentro, a aba **Ações** mostra um aviso com quantas ações não vão rodar. Trocar o comportamento não apaga o valor de um campo escondido: troque de `Channel` para `Instant` e volte, e a duração da canalização continua a mesma. Com várias habilidades selecionadas, o campo aparece se alguma delas usa o comportamento.
+
+No grupo **Tags**, uma lista vazia ocupa uma linha, com o nome à esquerda e o botão **+ adicionar** à direita. O nome mostra o tooltip do campo. Com itens, a lista aparece inteira, com o botão de adicionar no rodapé. Ao lado do título do grupo, um contador diz quantas listas têm itens, como "2 de 6 com itens".
+
+O Inspector lembra a última aba aberta de cada asset enquanto o Editor estiver aberto. Uma habilidade aberta pela primeira vez começa em **Configuração**. Com várias habilidades selecionadas, os campos editam todas, e a aba **Ações** mostra "Edição múltipla não mostra ações". Uma subclasse de `GameplayAbility` usa o mesmo Inspector, e os campos que ela acrescenta aparecem no grupo **Outros**, no fim de **Configuração**.
+
 #### Níveis e tabela de valores
 `MaxLevel` (padrão 1) é o nível máximo da habilidade. O ASC limita o nível a `[1, MaxLevel]` em `GiveAbility(habilidade, nivel)` e em `SetAbilityLevel(habilidade, nivel)`; acima do máximo, mostra um aviso no Console, uma vez por habilidade. `GetAbilityLevel(habilidade)` devolve o nível, ou 0 se a habilidade não foi concedida. `AbilitySpec.Level` é só de leitura fora do pacote. `OnAbilityLevelChanged(spec, antes, depois)` dispara só quando o nível muda de fato.
 
@@ -274,7 +318,9 @@ Todo campo `ScalableFloat` aparece como um grupo com o seletor **Modo** e, abaix
 
 No fim do grupo, a **Prévia** mostra uma linha "nível → valor" do nível 1 até o maior `MaxLevel` das habilidades que usam o efeito. Sem habilidade, ela vai até o tamanho do array. No modo `Table`, a prévia lê a tabela da primeira dessas habilidades.
 
-No Inspector da habilidade, depois dos campos, o **Nível de prévia** (limitado a `[1, MaxLevel]`) mostra cada valor da tabela e a recarga nesse nível, sem a redução do atributo. Na Fireball, em nível 3, a prévia mostra `damage = 100`, `cooldown = 6` e `Recarga = 6 s`.
+No Inspector da habilidade, o grupo **Prévia** da aba **Níveis e prévia** tem o **Nível de prévia** (limitado a `[1, MaxLevel]`) e uma tabela com uma linha por nível, do 1 ao `MaxLevel`. Cada valor da tabela de valores ganha uma coluna. A tabela também mostra a **Recarga**, quando o efeito de recarga tem duração, o **Custo**, quando o efeito de custo tem modificador com atributo, e as **Cargas**, quando estão ligadas. A recarga não aplica a redução do atributo. Um custo ou um máximo de cargas que vem de atributo ou de fórmula aparece pelo nome da fonte, porque o valor depende do ASC. Os números têm até três casas decimais.
+
+A linha do nível de prévia tem o fundo de seleção e o marcador `◂` no número do nível. Abaixo da tabela, a mesma prévia aparece em texto, e a prévia da descrição usa esse nível. A tabela muda junto com os campos, sem Play. Na Fireball, com o nível de prévia em 3, a linha do nível 3 fica marcada e o texto mostra `damage = 100`, `cooldown = 6` e `Recarga = 6 s`. Com várias habilidades selecionadas, a tabela mostra a primeira.
 
 #### Condições
 As condições do GAS herdam `Condition<ConditionContext>` (veja [Condições](../inicio/conceitos.md#condicoes) no Core) e ficam no namespace `SpellBook.GAS.Conditions`. São perguntas de sim ou não: não mudam o ASC, não guardam motivo de falha e não alocam ao avaliar.
@@ -350,7 +396,7 @@ A lista **Starting Effects** do ASC aplica cada efeito no `Awake`, na ordem da l
 
 ### Passo a passo
 1. Clique com o botão direito no Project → **Create → GAS → Gameplay Ability**.
-2. No Inspector, localize a lista **On Activate** (era **Actions** na 2.x).
+2. No Inspector, abra a aba **Ações** e, dentro dela, a aba de eventos "Ao ativar" (a lista `OnActivate`, que era **Actions** na 2.x).
 3. Clique no botão **+** e selecione a ação desejada (ex: `WaitAction`, `TargetingAction`).
 4. Configure os parâmetros da ação diretamente ali.
 
@@ -563,7 +609,7 @@ Com a regra "Mana `GreaterOrEqual` 20" e a tag `Fail.LowMana`, a Mana em 10 devo
 
 **Motivo na UI.** Para mostrar por que a habilidade não ativa, leia o `ActivationFailure` da consulta ou do `OnAbilityFailed`. Com `ReasonKey`, procure o texto pela chave; sem chave, escolha o texto pelo `Result` (`NoCharges`, `OnCooldown`, `CannotAffordCost` e os outros). Use a `ReasonTag` quando a lógica de jogo precisa reagir a um motivo, como tocar um som diferente para "sem mana".
 
-**No Inspector.** Abaixo dos campos da habilidade, a seção **Ativação** mostra uma linha por regra, na ordem da lista: o número, o resumo da condição e o motivo, como `1. Mana Greater Or Equal 20 → motivo: Fail.LowMana`. O motivo é a **Failure Tag**; sem ela, a chave efetiva (a **Failure Key** ou a chave padrão da condição). A condição de cada regra é escolhida no seletor de tipo da lista **Activation Conditions**, e as composições abrem as filhas no mesmo lugar.
+**No Inspector.** Na aba **Configuração**, o grupo **Condições de ativação** mostra, logo abaixo da lista **Activation Conditions**, uma linha por regra, na ordem da lista: o número, o resumo da condição e o motivo, como `1. Mana Greater Or Equal 20 → motivo: Fail.LowMana`. O motivo é a **Failure Tag**; sem ela, a chave efetiva (a **Failure Key** ou a chave padrão da condição). A condição de cada regra é escolhida no seletor de tipo da lista **Activation Conditions**, e as composições abrem as filhas no mesmo lugar.
 
 Em caso de sucesso, o ASC:
 
@@ -602,7 +648,7 @@ Os três devolvem se algo mudou. Habilidade nula, sem `CooldownEffect` ou pronta
 Recarga aplicada à mão, com `ApplyEffect`, não dispara o evento: ela aparece no tempo restante e em `OnEffectApplied`/`OnEffectRemoved`.
 
 #### Cargas
-Com cargas, a habilidade pode ser usada várias vezes seguidas, e as cargas voltam com o tempo. Ligue **Enabled** no bloco **Charges** da habilidade (`GameplayAbility.Charges`) e preencha:
+Com cargas, a habilidade pode ser usada várias vezes seguidas, e as cargas voltam com o tempo. Ligue **Enabled** no bloco **Charges** da habilidade (`GameplayAbility.Charges`), no grupo **Custo e recarga** da aba **Configuração**, e preencha:
 
 - **Max Charges:** o máximo de cargas, com as mesmas origens de um modificador: valor por nível, `%nome` da tabela, atributo ou fórmula. O valor é arredondado para baixo, e abaixo de 0 vale 0.
 - **Recharge Time:** os segundos para voltar uma carga, por nível ou por `%nome`.
@@ -637,7 +683,7 @@ Os controles de recarga da habilidade também agem sobre a recarga da carga em c
 
 Com a recarga da carga parada e sem `CooldownEffect` correndo, os três devolvem `false`.
 
-Com **Enabled** ligado, a seção **Ativação** do Inspector mostra a prévia das cargas no **Nível de prévia**, como `1 carga a cada 6 s, máximo 4 no nível 3`. A prévia não aplica a redução do atributo. Com **Max Charges** por atributo ou por fórmula, ela mostra o tipo da fonte no lugar do número, porque o valor depende do ASC.
+Com **Enabled** ligado, a aba **Níveis e prévia** do Inspector ganha a coluna **Cargas** na tabela por nível, com o máximo e o tempo de recarga, e mostra abaixo dela a prévia das cargas no **Nível de prévia**, como `1 carga a cada 6 s, máximo 4 no nível 3`. A prévia não aplica a redução do atributo. Com **Max Charges** por atributo ou por fórmula, ela mostra o tipo da fonte no lugar do número, porque o valor depende do ASC.
 
 {% code title="Packages/com.spellbook/Tests/GAS/EditMode/Examples/GasManualExamples.cs:dash-charges" %}
 ```csharp
@@ -660,7 +706,7 @@ A duração é `max(Min Duration, duração × (1 - redução))`. Exemplo: com *
 Sem política, a habilidade usa `CooldownReductionPolicy.ApplyDefault`: piso de 0,1 s, redução limitada a [0, 1] e modo `Percent`, a mesma regra de antes da política. O validador acusa erro em **Min Duration** negativo e em **Max Reduction** fora de 0 a 1.
 
 #### Gatilhos
-Um gatilho ativa a habilidade sozinho quando algo acontece no ASC. Adicione-os na lista **Triggers** da habilidade:
+Um gatilho ativa a habilidade sozinho quando algo acontece no ASC. Adicione-os na lista **Triggers** da habilidade, no grupo **Gatilhos** da aba **Tags e gatilhos**:
 
 - `GameplayEventTrigger`: o ASC recebe o evento de gameplay `Tag` ou de uma tag filha dela.
 - `TagAddedTrigger`: o ASC passa a ter `Tag` ou uma filha dela.

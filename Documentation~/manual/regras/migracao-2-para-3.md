@@ -22,11 +22,12 @@ O pacote não depende mais do Odin Inspector. Ele compila e funciona num projeto
 
 - **Os assets continuam válidos.** Nenhum campo serializado mudou de nome nem de tipo, então
   habilidades, efeitos e atributos abrem sem perda de dados.
-- **Há perdas no Inspector do GAS.** As abas, os grupos, os editores embutidos (custo, recarga,
-  fórmula), a pré-visualização da `ExpressionFormula`, o destaque de campos obrigatórios e as
-  tabelas e a busca de ações vinham do Odin e não existem mais. O GAS usa o Inspector padrão da
-  Unity com `[Header]` e `[Tooltip]`, o `[ShowIf]` e o seletor de tipo do próprio SpellBook. Veja
-  [Inspector](../inicio/inspector.md).
+- **Há perdas no Inspector do GAS.** Os editores embutidos (custo, recarga, fórmula), a
+  pré-visualização da `ExpressionFormula`, o destaque de campos obrigatórios e as tabelas e a
+  busca de ações vinham do Odin e não existem mais. As abas e os grupos voltaram nos Inspectors
+  próprios da habilidade e do efeito, em UI Toolkit, e os campos que não valem na configuração
+  atual somem sem perder o valor. Veja [Inspector da habilidade](../modulos/gas.md#inspector-da-habilidade),
+  [Inspector do efeito](../modulos/gas.md#inspector-do-efeito) e [Inspector](../inicio/inspector.md).
 
 ## Assembly do GAS
 
