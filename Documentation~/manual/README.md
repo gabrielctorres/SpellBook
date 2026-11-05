@@ -32,8 +32,8 @@ Os assemblies de cada módulo e as dependências permitidas entre eles estão em
 [Conceitos](inicio/conceitos.md#mapa-de-assemblies).
 
 {% hint style="info" %}
-**Versão 3.0 em desenvolvimento**
+**Versão 1.0**
 
-A 3.0 reorganiza o pacote nos módulos acima e ainda está em desenvolvimento.
-Quem vem da 2.x deve ler a [Migração 2.x → 3.0](regras/migracao-2-para-3.md).
+A 1.0 reorganiza o pacote nos módulos acima.
+Quem vem das versões antigas deve ler a [Migração das versões antigas para a 1.0](regras/migracao-2-para-3.md).
 {% endhint %}

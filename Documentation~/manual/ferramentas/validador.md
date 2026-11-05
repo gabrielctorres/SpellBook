@@ -41,7 +41,7 @@ Um erro no `Validate` de um tipo não para a varredura. Ele aparece como um erro
 exceção, por exemplo `A validação lançou NullReferenceException: ...`, e os outros objetos
 continuam sendo validados.
 
-## Regras da 3.0
+## Regras da 1.0
 
 O validador acusa erro em:
 

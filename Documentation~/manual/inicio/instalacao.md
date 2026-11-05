@@ -2,7 +2,7 @@
 
 ## Requisitos
 
-- **Unity 6000.0 ou mais nova.** Versões anteriores (2021.3, 2022 e 2023) não instalam a 3.0.
+- **Unity 6000.0 ou mais nova.** Versões anteriores (2021.3, 2022 e 2023) não instalam a 1.0.
 - **Nenhuma dependência de terceiros.** O pacote usa só a Unity.
 
 ## Instalar pela URL do git
@@ -21,21 +21,21 @@ Também dá para adicionar o pacote direto no `Packages/manifest.json` do projet
 }
 ```
 
-Para fixar uma versão, acrescente `#<tag>` ao final da URL. Por exemplo, para a pré-release:
+Para fixar uma versão, acrescente `#<tag>` ao final da URL. Por exemplo:
 
 ```json
 {
   "dependencies": {
-    "com.spellbook": "https://github.com/gabrielctorres/SpellBook.git?path=/Packages/com.spellbook#v3.0.0-pre.1"
+    "com.spellbook": "https://github.com/gabrielctorres/SpellBook.git?path=/Packages/com.spellbook#v1.0.0"
   }
 }
 ```
 
 {% hint style="info" %}
-**Versões 2.x**
+**Versões antigas**
 
-As versões 2.x usam a **URL antiga**, sem `?path=`: `https://github.com/gabrielctorres/SpellBook.git`.
-A URL com `?path=` vale só a partir da 3.0.
+As versões antigas usam a URL sem `?path=`: `https://github.com/gabrielctorres/SpellBook.git`.
+A URL com `?path=` vale a partir da 1.0.
 {% endhint %}
 
 Depois da instalação, o projeto deve compilar sem erros vindos do SpellBook.
@@ -54,7 +54,7 @@ e o passo a passo estão em [Sample Sandbox](../exemplos/sandbox.md).
 ## Inspector
 
 O Inspector do pacote é feito em UI Toolkit, que já vem com a Unity. Não é preciso instalar
-nenhum plugin de Inspector. Na 3.0, os campos que aceitam vários tipos (por exemplo, as ações
+nenhum plugin de Inspector. Na 1.0, os campos que aceitam vários tipos (por exemplo, as ações
 de uma habilidade) ganham um seletor com busca e categorias.
 
 ## Compatibilidade

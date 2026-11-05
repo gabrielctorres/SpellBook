@@ -32,4 +32,4 @@
 
 * [Catálogo de tipos](referencia/catalogo.md)
 * [Conceitos](inicio/conceitos.md)
-* [Migração 2.x → 3.0](regras/migracao-2-para-3.md)
+* [Migração das versões antigas para a 1.0](regras/migracao-2-para-3.md)

@@ -6,16 +6,12 @@ outro. Quem dispara não sabe quem ouve, e quem ouve não guarda referência par
 O módulo fica no assembly `SpellBook.Events` (namespace `SpellBook.Events`). Um asmdef seu que usa
 os eventos precisa referenciar o `SpellBook.Events`. Veja [Conceitos](../inicio/conceitos.md#modulos-e-assemblies).
 
-{% hint style="info" %}
-**Em desenvolvimento**
-
-Nesta versão de desenvolvimento da 3.0, o módulo tem o barramento de código (`EventBus<T>`),
+O módulo tem o barramento de código (`EventBus<T>`),
 os canais Void, Int, Float, Bool, String, Vector3 e GameObject e o componente ouvinte
 (`EventListener`) com as reações prontas SetActive, Toggle de componente, Log, RaiseChannel e
 Invoke com delay, e o emissor (`EventEmitter`), com o botão Raise no Inspector do canal e do
-emissor, e o seletor de canal filtrado por payload. O depurador de eventos chega numa próxima
-etapa.
-{% endhint %}
+emissor, e o seletor de canal filtrado por payload. Em Play, use o [Event Debugger](../ferramentas/event-debugger.md)
+para ver os canais, seus ouvintes e o histórico de disparos.
 
 ## Três usos e uma regra
 
