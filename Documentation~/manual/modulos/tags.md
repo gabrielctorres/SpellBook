@@ -41,10 +41,13 @@ asset `GameplayTagDefinition` da tag. Um `GameplayTag` sem definição é uma ta
 
 Em código, crie um `GameplayTag` a partir da definição:
 
+{% code title="Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-tags,create-tag" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-tags"
---8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:create-tag"
+using SpellBook.Tags;
+
+var stunned = new GameplayTag(stunnedDefinition);
 ```
+{% endcode %}
 
 ## Matches {#matches}
 
@@ -70,10 +73,18 @@ Um `GameplayTagContainer` é um conjunto de tags sem repetição, que guarda as 
 foram adicionadas. Use-o quando um campo ou uma variável precisa de várias tags e de perguntas como
 "tem alguma destas?".
 
+{% code title="Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-tags,container" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-tags"
---8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:container"
+using SpellBook.Tags;
+
+var tags = new GameplayTagContainer(fireFlame, stunned);   // repetidas e inválidas são ignoradas
+bool entrou = tags.Add(slowed);        // true: entrou no fim
+bool entrouDeNovo = tags.Add(slowed);  // false: já estava
+bool saiu = tags.Remove(stunned);      // true: saiu (só a tag exata; filhas dela ficam)
+
+bool burning = tags.HasTag(fire);   // true se o conjunto tem Elemento.Fogo ou uma filha dele
 ```
+{% endcode %}
 
 Todas as perguntas usam a mesma regra do [Matches](#matches): uma tag do conjunto casa com a tag
 perguntada se é ela ou descende dela. A exceção é `HasTagExact`, que compara sem hierarquia.
@@ -115,10 +126,21 @@ satisfaz **Todas** e **Alguma** pelo pai, e é barrada por **Nenhuma** pelo pai.
 
 Exemplo: atacar só um alvo atordoado, com fogo ou gelo, e que não seja imune.
 
+{% code title="Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-tags,query" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-tags"
---8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:query"
+using SpellBook.Tags;
+
+var query = new GameplayTagQuery();
+query.All.Add(stunned);
+query.Any.Add(fire);
+query.Any.Add(ice);
+query.None.Add(immune);
+
+bool atordoadoComGelo = query.Matches(new GameplayTagContainer(stunned, ice));        // true
+bool imune = query.Matches(new GameplayTagContainer(stunned, ice, immune));           // false: tem Imune
+bool semElemento = query.Matches(new GameplayTagContainer(stunned));                  // false: falta fogo ou gelo
 ```
+{% endcode %}
 
 - `Matches` aceita um `GameplayTagContainer`, uma `List<GameplayTag>` ou um array (`null` conta
   como vazio). `Matches(tag)` pergunta por uma tag só, sem montar um conjunto.
@@ -164,9 +186,15 @@ O conjunto e a consulta não são assets nem componentes, então quem valida é 
 os seus campos entrarem no validador, implemente `IValidatable` no componente ou asset e repasse a
 chamada com o nome do campo:
 
+{% code title="Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:validate" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:validate"
+public void Validate(ValidationResult result)
+{
+    alvos.Validate(result, nameof(alvos));        // GameplayTagContainer
+    condicao.Validate(result, nameof(condicao));  // GameplayTagQuery
+}
 ```
+{% endcode %}
 
 As mensagens saem com o seu objeto (clicável na janela) e o caminho do campo. Veja
 [Validar um tipo seu](../ferramentas/validador.md#ivalidatable).
@@ -181,12 +209,27 @@ Uma ferramenta sua, como um painel de debug, pode ler a hierarquia usando só a 
 
 Exemplo: escrever no Console o nome de uma tag e a cadeia de pais dela.
 
+{% code title="Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-system-text,using-tags,using-unityengine,tag-debug" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-system-text"
---8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-tags"
---8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-unityengine"
---8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:tag-debug"
+using System.Text;
+using SpellBook.Tags;
+using UnityEngine;
+
+public static class TagDebug
+{
+    public static void LogChain(GameplayTag tag)
+    {
+        var text = new StringBuilder(tag.Name);
+        for (GameplayTagDefinition parent = tag.GetDefinition()?.Parent; parent != null; parent = parent.Parent)
+        {
+            text.Append(" → ").Append(parent.name);
+        }
+
+        Debug.Log(text.ToString());   // State.Debuff.Slowed → State.Debuff → State
+    }
+}
 ```
+{% endcode %}
 
 ## Armadilhas {#armadilhas}
 

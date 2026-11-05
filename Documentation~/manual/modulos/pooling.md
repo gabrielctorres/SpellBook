@@ -33,22 +33,46 @@ Um campo de spawner vazio usa o `SpawnerAsset.Default`, um `InstantiateSpawnerAs
 sob demanda e que não é salvo em disco. Em código, use `SpawnerAsset.OrDefault(campo)` para
 ter o spawner do campo ou o padrão:
 
+{% code title="Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:using-core,campo-spawner,or-default" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:using-core"
---8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:campo-spawner"
---8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:or-default"
+using SpellBook.Core;
+
+[SerializeField] private SpawnerAsset spawner;
+
+GameObject vfx = SpawnerAsset.OrDefault(spawner).Spawn(prefab, position, rotation);
 ```
+{% endcode %}
 
 ### Criar o seu próprio spawner {#proprio-spawner}
 
 Herde de `SpawnerAsset` e implemente os dois métodos. Adicione um `[CreateAssetMenu]` para criar
 o asset pelo menu:
 
+{% code title="Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:using-core,using-unityengine,counting-spawner" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:using-core"
---8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:using-unityengine"
---8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:counting-spawner"
+using SpellBook.Core;
+using UnityEngine;
+
+[CreateAssetMenu(menuName = "MeuJogo/Spawner com contagem")]
+public class CountingSpawnerAsset : SpawnerAsset
+{
+    public int Alive { get; private set; }
+
+    public override GameObject Spawn(GameObject prefab, Vector3 position, Quaternion rotation, Transform parent = null)
+    {
+        Alive++;
+        return Instantiate(prefab, position, rotation, parent);
+    }
+
+    public override void Release(GameObject instance)
+    {
+        if (instance == null) return;
+        Alive--;
+        Destroy(instance);
+    }
+}
 ```
+{% endcode %}
 
 ### Quem devolve {#quem-devolve}
 
@@ -61,9 +85,13 @@ um projétil, recebe o spawner na configuração e chama `spawner.Release(gameOb
 Para uma partícula sem dono, que só precisa sumir quando acabar, chame
 `ReleaseWhenParticlesStop` logo depois do `Spawn`:
 
+{% code title="Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:release-when-particles-stop" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:release-when-particles-stop"
+SpawnerAsset vfxSpawner = SpawnerAsset.OrDefault(spawner);
+GameObject vfx = vfxSpawner.Spawn(prefab, position, rotation);
+vfxSpawner.ReleaseWhenParticlesStop(vfx);
 ```
+{% endcode %}
 
 O método troca o **Stop Action** do `ParticleSystem` da raiz da instância para **Callback** e
 adiciona um componente interno que chama `Release` desse spawner quando a partícula para. Ele
@@ -92,12 +120,18 @@ Como funciona:
   é destruída.
 - Ao entrar em Play, o asset esquece os pools da sessão anterior, mesmo sem domain reload.
 
+{% code title="Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:using-core,using-unityengine,campo-pooled-spawner,pooled-spawn-release" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:using-core"
---8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:using-unityengine"
---8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:campo-pooled-spawner"
---8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:pooled-spawn-release"
+using SpellBook.Core;
+using UnityEngine;
+
+[SerializeField] private SpawnerAsset spawner; // arraste um PooledSpawnerAsset aqui
+
+GameObject bullet = spawner.Spawn(prefab, position, rotation);
+// ...quando o objeto não serve mais:
+spawner.Release(bullet);
 ```
+{% endcode %}
 
 O validador acusa erro se **Initial Size** for negativo.
 
@@ -123,11 +157,18 @@ instância a esse pool, ou a destrói se ela não veio de um.
 Para reiniciar o estado de um objeto ao sair e ao voltar do pool, implemente `IPoolable` num
 componente da raiz do prefab:
 
+{% code title="Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:using-pooling,using-unityengine,bullet" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:using-pooling"
---8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:using-unityengine"
---8<-- "Packages/com.spellbook/Tests/Pooling/EditMode/Examples/PoolingManualExamples.cs:bullet"
+using SpellBook.Pooling;
+using UnityEngine;
+
+public class Bullet : MonoBehaviour, IPoolable
+{
+    public void OnSpawnFromPool() { /* reinicia vida, velocidade... */ }
+    public void OnReturnToPool() { /* para efeitos, limpa alvos... */ }
+}
 ```
+{% endcode %}
 
 Se o objeto também pode nascer por `Instantiate`, prefira reiniciar no `OnEnable`, que roda nos
 dois casos. É o que o `Projectile` do GAS faz.

@@ -10,14 +10,13 @@ namespace SpellBook.Core.Tests.Documentation
     public class TypeCatalogPageTests
     {
         [Test]
-        public void Render_StartsWithGeneratedNotice()
+        public void Render_StartsWithPageTitle()
         {
             string text = TypeCatalogPage.Render(new[] { Section() });
 
-            string firstLine = text.Substring(0, text.IndexOf('\n'));
-            Assert.That(firstLine, Does.StartWith("<!--").And.EndWith("-->"));
-            Assert.That(firstLine, Does.Contain("Não edite"));
-            Assert.That(firstLine, Does.Contain("SpellBook > Documentação > Gerar referência"));
+            // O GitBook apaga comentário HTML, então a página não tem cabeçalho escondido (Spec migracao-gitbook, GB4).
+            Assert.That(text, Does.StartWith("# Catálogo de tipos\n"));
+            Assert.That(text, Does.Not.Contain("<!--"));
         }
 
         [Test]
@@ -45,7 +44,7 @@ namespace SpellBook.Core.Tests.Documentation
         {
             string text = TypeCatalogPage.Render(new[] { Section() });
 
-            Assert.That(text, Does.Contain("\n# Catálogo de tipos\n"));
+            Assert.That(text, Does.StartWith("# Catálogo de tipos\n"));
         }
 
         [Test]

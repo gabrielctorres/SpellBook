@@ -10,12 +10,19 @@ que acontece em Inspectors que não são UI Toolkit.
 Alguns campos aceitam vários tipos concretos, por exemplo a lista de ações de uma habilidade.
 No código, esses campos são `[SerializeReference]` com o atributo `[TypePicker]`:
 
+{% code title="Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-collections,using-inspector,using-unityengine,typepicker-list" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-collections"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-inspector"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-unityengine"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:typepicker-list"
+using System.Collections.Generic;
+using SpellBook.Core.Inspector;
+using UnityEngine;
+
+public class Exemplo : ScriptableObject
+{
+    [SerializeReference, TypePicker]
+    private List<MinhaAcao> acoes = new();
+}
 ```
+{% endcode %}
 
 No Inspector, cada campo mostra o rótulo e um botão com o nome do tipo atual, ou **(Nenhum)**
 quando está vazio. Abaixo do botão aparecem os campos do tipo escolhido. Ao trocar o tipo,
@@ -42,20 +49,34 @@ Clicar no botão abre o popup do seletor, ancorado nele:
 Para dar categoria e resumo a um tipo seu, use `[TypeCategory]`. Os níveis são separados por `/`.
 Tipo sem o atributo aparece na raiz da lista.
 
+{% code title="Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-system,using-inspector,type-category" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-system"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-inspector"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:type-category"
+using System;
+using SpellBook.Core.Inspector;
+
+[Serializable]
+[TypeCategory("Fluxo/Espera", Summary = "Espera um tempo antes de seguir.")]
+public class MinhaEspera : MinhaAcao
+{
+}
 ```
+{% endcode %}
 
 Se o nome `TypeCategory` colidir com os de outro pacote, não escreva
 `using SpellBook.Core.Inspector;`. Use um alias:
 
+{% code title="Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-system,using-sb-alias,type-category-alias" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-system"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-sb-alias"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:type-category-alias"
+using System;
+using SB = SpellBook.Core.Inspector;
+
+[Serializable]
+[SB.TypeCategory("Fluxo")]
+public class MinhaAcaoComAlias : MinhaAcao
+{
+}
 ```
+{% endcode %}
 
 Em listas, duplicar um elemento no Inspector não deixa dois elementos apontando para a mesma
 instância: o seletor troca a cópia por uma instância própria, e editar um elemento não muda o
@@ -70,11 +91,18 @@ asset não encontra mais o tipo e o campo aparece como **(Nenhum)**.
 Para renomear sem perder dados, marque o tipo com `[MovedFrom]`, que fica em
 `UnityEngine.Scripting.APIUpdating`, informando o nome antigo:
 
+{% code title="Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-system,using-apiupdating,moved-from" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-system"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-apiupdating"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:moved-from"
+using System;
+using UnityEngine.Scripting.APIUpdating;
+
+[Serializable]
+[MovedFrom(autoUpdateAPI: false, sourceNamespace: "Jogo.Acoes", sourceAssembly: "Jogo", sourceClassName: "EsperaAntiga")]
+public class MinhaEsperaRenomeada : MinhaAcao
+{
+}
 ```
+{% endcode %}
 
 Preencha só o que mudou: `sourceNamespace` para mudança de namespace, `sourceAssembly` para
 mudança de assembly e `sourceClassName` para mudança de nome. Os dados são atualizados na
@@ -107,11 +135,27 @@ dele não mostra o aviso.
 serializado do mesmo objeto ou da mesma struct, do tipo `bool` ou `enum`, e a comparação é por
 igualdade:
 
+{% code title="Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-inspector,using-unityengine,show-if" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-inspector"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-unityengine"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:show-if"
+using SpellBook.Core.Inspector;
+using UnityEngine;
+
+public class MinhaConfig : ScriptableObject
+{
+    public enum Modo { Fixo, Aleatorio }
+
+    public Modo modo;
+
+    [ShowIf(nameof(modo), Modo.Fixo)]
+    public float valor;
+
+    public bool usarCor;
+
+    [ShowIf(nameof(usarCor), true)]
+    public Color cor;
+}
 ```
+{% endcode %}
 
 Quando o irmão muda, o campo aparece ou some na hora. Dentro de uma lista de structs, cada
 elemento usa o irmão do próprio elemento.
@@ -130,10 +174,19 @@ O valor guardado no asset não muda: um campo escondido mantém o valor que tinh
 
 Se o nome `ShowIf` colidir com o de outro pacote, use um alias, como em `[TypeCategory]`:
 
+{% code title="Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-sb-alias,show-if-alias" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-sb-alias"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:show-if-alias"
+using SB = SpellBook.Core.Inspector;
+
+public class MinhaConfigComAlias : UnityEngine.ScriptableObject
+{
+    public bool usarCor;
+
+    [SB.ShowIf(nameof(usarCor), true)]
+    public UnityEngine.Color cor;
+}
 ```
+{% endcode %}
 
 ## Limite de um drawer por campo {#um-drawer-por-campo}
 
@@ -160,11 +213,15 @@ aparece como um erro com o tipo da exceção.
 Isso vale para os Inspectors que herdam de `SpellBookEditor` (`SpellBook.Core.Editor`). Para usar
 no seu tipo, crie um editor de uma linha numa pasta `Editor`:
 
+{% code title="Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-core-editor,using-unityeditor,one-line-editor" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-core-editor"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-unityeditor"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:one-line-editor"
+using SpellBook.Core.Editor;
+using UnityEditor;
+
+[CustomEditor(typeof(MinhaConfig))]
+public sealed class MinhaConfigEditor : SpellBookEditor { }
 ```
+{% endcode %}
 
 Para pôr botões ou outros elementos, sobrescreva `BuildBeforeDefault` (antes dos campos) ou
 `BuildAfterDefault` (depois dos campos), que recebem o elemento raiz do Inspector.
@@ -178,11 +235,15 @@ as subclasses de `Formula`, `TimeSourceAsset` e `EventChannel`.
 
 Para cobrir um tipo base e todas as subclasses dele, passe `true` no segundo argumento:
 
+{% code title="Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-core-editor,using-unityeditor,one-line-editor-children" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-core-editor"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-unityeditor"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:one-line-editor-children"
+using SpellBook.Core.Editor;
+using UnityEditor;
+
+[CustomEditor(typeof(MinhaBase), true)]
+public sealed class MinhaBaseEditor : SpellBookEditor { }
 ```
+{% endcode %}
 
 **Drawer do seu tipo sob o seletor.** Um `[CustomPropertyDrawer(typeof(MinhaAcao))]` também
 vale dentro de um campo `[TypePicker]`: abaixo do botão do tipo, o seletor mostra o que o
@@ -192,12 +253,24 @@ tipo, o seletor procura de novo. O drawer recebe a propriedade do campo, mas sob
 `fieldInfo` e `attribute` ficam nulos, então não dependa deles. Um drawer só IMGUI, que não
 sobrescreve `CreatePropertyGUI`, é ignorado, e os campos aparecem um a um.
 
+{% code title="Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-unityeditor,using-unityeditor-uielements,using-uielements,action-drawer" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-unityeditor"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-unityeditor-uielements"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-uielements"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:action-drawer"
+using UnityEditor;
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
+
+[CustomPropertyDrawer(typeof(MinhaAcao), true)]
+public sealed class MinhaAcaoDrawer : PropertyDrawer
+{
+    public override VisualElement CreatePropertyGUI(SerializedProperty property)
+    {
+        var root = new VisualElement();
+        root.Add(new PropertyField(property.FindPropertyRelative("alvo")));
+        return root;
+    }
+}
 ```
+{% endcode %}
 
 **Conflito com um Inspector seu.** Se você escrever um `[CustomEditor]` para um tipo do
 SpellBook, ou um com `editorForChildClasses` para uma base da qual um tipo do SpellBook herda,

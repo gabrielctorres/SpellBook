@@ -159,14 +159,28 @@ Os testes de um pacote só aparecem no Test Runner se o pacote estiver em `testa
 Para não rodar os testes do pacote inteiro, escreva um teste seu, num asmdef de testes de Editor
 que referencie o `SpellBook.Core` e o `SpellBook.Core.Editor`:
 
+{% code title="Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-collections,using-linq,using-nunit,using-core-editor,using-validation,project-validation-test" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-collections"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-linq"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-nunit"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-core-editor"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-validation"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:project-validation-test"
+using System.Collections.Generic;
+using System.Linq;
+using NUnit.Framework;
+using SpellBook.Core.Editor;
+using SpellBook.Core.Validation;
+
+public class ValidacaoDoProjetoTests
+{
+    [Test]
+    public void Projeto_SemErrosDeValidacao()
+    {
+        var mensagens = new List<ValidationMessage>();
+
+        ProjectValidator.Validate(ProjectValidator.CollectProjectTargets(), mensagens);
+
+        Assert.That(mensagens.Where(m => m.Severity == ValidationSeverity.Error).Select(m => m.Message), Is.Empty);
+    }
+}
 ```
+{% endcode %}
 
 ## Validar um tipo seu {#ivalidatable}
 
@@ -174,11 +188,24 @@ Implemente `IValidatable` (`SpellBook.Core.Validation`) num `MonoBehaviour`, num
 `ScriptableObject` ou numa classe `[Serializable]` usada por eles. O `Validate` só adiciona
 mensagens: não muda o objeto, não escreve no console e não usa `UnityEditor`.
 
+{% code title="Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-validation,using-unityengine,porta" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-validation"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:using-unityengine"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:porta"
+using SpellBook.Core.Validation;
+using UnityEngine;
+
+public class Porta : MonoBehaviour, IValidatable
+{
+    [SerializeField] private GameObject chave;
+    [SerializeField] private float tempoAberta = 2f;
+
+    public void Validate(ValidationResult result)
+    {
+        if (chave == null) result.AddError("Porta sem chave: escolha a Chave.", nameof(chave));
+        if (tempoAberta <= 0f) result.AddWarning("Tempo aberta zero: a porta fecha na hora.", nameof(tempoAberta));
+    }
+}
 ```
+{% endcode %}
 
 - `AddError` e `AddWarning` recebem uma mensagem curta, que diz o que corrigir, e o nome do campo
   (opcional). Mensagem vazia lança `ArgumentException`.

@@ -66,18 +66,35 @@ O Core traz três bases de composição, que avaliam as filhas em ordem e sem al
 O seletor de tipo do Inspector só oferece tipos concretos e não genéricos. Por isso cada módulo fecha
 as três bases sobre o próprio contexto, com classes como esta:
 
+{% code title="Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:and-condition" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:and-condition"
+[Serializable]
+public sealed class MyAndCondition : AndConditionBase<MyContext> { }
 ```
+{% endcode %}
 
 Um campo `[SerializeReference] Condition<MyContext>` oferece só as condições desse contexto.
 
 Para o Inspector mostrar a condição numa linha, use o `Line` do `[TypeCategory]`. `{Campo}` mostra o
 valor do campo serializado e `{Campo?texto}` mostra o texto quando o `bool` é verdadeiro:
 
+{% code title="Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:low-health-condition" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:low-health-condition"
+[Serializable]
+[TypeCategory("Exemplo", Line = "Vida abaixo de {Threshold}{Percent?%}")]
+public sealed class LowHealthCondition : Condition<MyContext>
+{
+    [SerializeField] private float threshold = 30f;
+    [SerializeField] private bool percent = true;
+
+    public override bool Evaluate(in MyContext context)
+    {
+        float health = percent ? context.Health / context.MaxHealth * 100f : context.Health;
+        return health < threshold;
+    }
+}
 ```
+{% endcode %}
 
 ### `Void` {#void}
 
@@ -90,9 +107,12 @@ no lugar de um tipo inventado só para isso.
 os inimigos vivos na cena. Para usar, crie uma classe concreta que herda dele com o tipo do
 item. `Add` ignora um item que já está na lista, e `Remove` ignora um item que não está.
 
+{% code title="Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:enemy-set" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:enemy-set"
+[CreateAssetMenu(menuName = "Game/Enemy Set")]
+public class EnemySet : RuntimeSet<Enemy> { }
 ```
+{% endcode %}
 
 ### `MathTools` {#math-tools}
 
@@ -110,10 +130,13 @@ cena: chame os métodos direto.
 | `IsInRange(value, min, max)` | `true` se `value` está entre `min` e `max`, com os dois limites incluídos. |
 | `CenterOfMass(points)` | Média dos pontos de um array. |
 
+{% code title="Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:mathtools-using,mathtools-map" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:mathtools-using"
---8<-- "Packages/com.spellbook/Tests/Core/EditMode/Examples/CoreManualExamples.cs:mathtools-map"
+using SpellBook.Core;
+
+float volume = MathTools.Map(distance, 0f, 20f, 1f, 0f);
 ```
+{% endcode %}
 
 Na 2.x, `MathTools` ficava aninhada no componente `Math` (`SpellBook.MathTools.Math.MathTools`).
 Esse componente não existe mais na 3.0.

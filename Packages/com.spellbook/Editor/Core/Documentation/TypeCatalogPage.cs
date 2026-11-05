@@ -12,10 +12,6 @@ namespace SpellBook.Core.Editor.Documentation
     /// </summary>
     public static class TypeCatalogPage
     {
-        private const string Notice =
-            "<!-- Página gerada do código por SpellBook.Core.Editor.Documentation. Não edite: mude o [TypeCategory] do tipo"
-            + " e rode SpellBook > Documentação > Gerar referência. -->";
-
         private const string Intro =
             "Esta página lista os tipos que o seletor do Inspector oferece nos campos de ações, reações, respostas e"
             + " elementos do pacote.";
@@ -31,7 +27,6 @@ namespace SpellBook.Core.Editor.Documentation
             }
 
             var text = new StringBuilder();
-            Line(text, Notice);
             Line(text, "# Catálogo de tipos");
             Line(text, string.Empty);
             Line(text, Intro);

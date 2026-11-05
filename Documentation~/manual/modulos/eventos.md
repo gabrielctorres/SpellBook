@@ -40,19 +40,39 @@ começou" ou "o jogador subiu de nível".
 O tipo do evento é um `struct` que implementa `IEvent`. A interface é vazia: ela só marca o struct
 como evento.
 
+{% code title="Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-events,partida-comecou" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-events"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:partida-comecou"
+using SpellBook.Events;
+
+public struct PartidaComecou : IEvent
+{
+    public int Fase;
+}
 ```
+{% endcode %}
 
 ### Inscrever, desinscrever e disparar {#eventbus-uso}
 
+{% code title="Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-events,using-unityengine,placar,placar-raise" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-events"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-unityengine"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:placar"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:placar-raise"
+using SpellBook.Events;
+using UnityEngine;
+
+public sealed class Placar : MonoBehaviour
+{
+    private void OnEnable()  { EventBus<PartidaComecou>.Subscribe(AoComecar); }
+    private void OnDisable() { EventBus<PartidaComecou>.Unsubscribe(AoComecar); }
+
+    private void AoComecar(PartidaComecou evento)
+    {
+        Debug.Log($"Fase {evento.Fase}");
+    }
+}
+
+// Em qualquer outro sistema:
+EventBus<PartidaComecou>.Raise(new PartidaComecou { Fase = 2 });
 ```
+{% endcode %}
 
 - `Subscribe(Action<T>)` inscreve o ouvinte. Inscrever duas vezes o mesmo método não faz ele ser
   chamado duas vezes.
@@ -110,12 +130,28 @@ Abaixo dos campos, o Inspector do canal mostra:
 
 Todo canal herda de `EventChannel<T>`, em que `T` é o tipo do dado que o disparo leva.
 
+{% code title="Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-events,using-unityengine,barra-de-vida,barra-de-vida-raise" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-events"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-unityengine"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:barra-de-vida"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:barra-de-vida-raise"
+using SpellBook.Events;
+using UnityEngine;
+
+public sealed class BarraDeVida : MonoBehaviour
+{
+    [SerializeField] private IntEventChannel vidaMudou;
+
+    private void OnEnable()  { vidaMudou.Raised += AoMudar; }
+    private void OnDisable() { vidaMudou.Raised -= AoMudar; }
+
+    private void AoMudar(int vida)
+    {
+        Debug.Log($"Vida: {vida}");
+    }
+}
+
+// Em quem dispara, com o mesmo asset no campo:
+vidaMudou.Raise(80);
 ```
+{% endcode %}
 
 - `Raised` é um `event` C#: `+=` inscreve e `-=` desinscreve. Inscrever duas vezes o mesmo método
   não faz ele ser chamado duas vezes.
@@ -341,12 +377,24 @@ No Inspector de uma resposta:
 Uma reação sua herda de `Reaction` e sobrescreve `Execute(EventListener)`, ou
 `Execute<T>(EventListener, in T)` quando precisa do payload:
 
+{% code title="Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-system,using-events,using-unityengine,tocar-som" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-system"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-events"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-unityengine"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:tocar-som"
+using System;
+using SpellBook.Events;
+using UnityEngine;
+
+[Serializable]
+public sealed class TocarSom : Reaction
+{
+    [SerializeField] private AudioSource fonte;
+
+    public override void Execute(EventListener listener)
+    {
+        fonte.Play();
+    }
+}
 ```
+{% endcode %}
 
 ### Escolher o canal {#escolher-canal}
 
@@ -445,12 +493,30 @@ Um disparo recebido depois de reabilitar agenda uma espera nova normalmente.
 Para um canal com um dado seu, crie o struct, o canal e a resposta. As classes do canal e da
 resposta não precisam de corpo.
 
+{% code title="Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-system,using-events,using-unityengine,dano" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-system"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-events"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-unityengine"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:dano"
+using System;
+using SpellBook.Events;
+using UnityEngine;
+
+[Serializable]
+public struct Dano
+{
+    public int Valor;
+    public Vector3 Ponto;
+}
+
+[CreateAssetMenu(menuName = "Jogo/Events/Dano Channel")]
+public sealed class DanoEventChannel : EventChannel<Dano>
+{
+}
+
+[Serializable]
+public sealed class DanoEventResponse : EventResponse<Dano>
+{
+}
 ```
+{% endcode %}
 
 - O canal (`DanoEventChannel.cs`) fica num arquivo com o nome da classe, porque é um asset.
 - A `DanoEventResponse` aparece no seletor da lista **Responses**; o **Escape** dela é um
