@@ -17,6 +17,9 @@ namespace SpellBook.GAS.Editor
             "t:GameplayAbility", "t:GameplayEffect", "t:AttributeDefinition", "t:GameplayTagDefinition"
         };
 
+        /// <summary>Os modelos do assistente e as tags-modelo do pacote ficam fora do índice (decisão do ME8b).</summary>
+        private const string PackageTemplatesFolder = "Packages/com.spellbook/Editor/GAS/Templates/";
+
         private readonly string[] _folders;
         private GasIndex _index;
 
@@ -54,8 +57,9 @@ namespace SpellBook.GAS.Editor
                     : AssetDatabase.FindAssets(filter, _folders);
                 foreach (string guid in guids)
                 {
-                    if (!seen.Add(guid)) continue;
-                    yield return AssetDatabase.LoadMainAssetAtPath(AssetDatabase.GUIDToAssetPath(guid));
+                    string path = AssetDatabase.GUIDToAssetPath(guid);
+                    if (!seen.Add(guid) || path.StartsWith(PackageTemplatesFolder, StringComparison.Ordinal)) continue;
+                    yield return AssetDatabase.LoadMainAssetAtPath(path);
                 }
             }
         }

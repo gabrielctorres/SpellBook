@@ -83,5 +83,25 @@ namespace SpellBook.GAS.Tests
             Assert.That(error, Is.Empty);
             Assert.That(Names(), Is.EqualTo(new[] { "GA_Firebolt", "Ability" }));
         }
+
+        [Test]
+        public void PackageTemplates_AreLeftOut()
+        {
+            const string parent = "Packages/com.spellbook/Editor/GAS";
+            const string templates = parent + "/Templates";
+            bool created = !AssetDatabase.IsValidFolder(templates);
+            if (created) AssetDatabase.CreateFolder(parent, "Templates");
+            string path = $"{templates}/__TAG_Template_Test.asset";
+            AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<GameplayTagDefinition>(), path);
+            using var index = new GasProjectIndex(Folder, templates);
+            try
+            {
+                Assert.That(index.Index.Entries.Select(e => e.Name), Is.EqualTo(new[] { "GA_Fireball", "Ability" }));
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(created ? templates : path);
+            }
+        }
     }
 }
