@@ -6,6 +6,7 @@ using SpellBook.Core.Text;
 using SpellBook.GAS.Attributes;
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Effects;
+using SpellBook.Tags;
 using SpellBook.UI;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -16,8 +17,10 @@ namespace SpellBook.GAS.UI
     /// Fonte da lista de buffs e debuffs (Spec do B-018, Design 2; R3 e R7 do PRD): um ícone por <see cref="GameplayEffect"/>
     /// ativo no ASC dono, na ordem em que o efeito apareceu, com as instâncias vistas como uma pelo
     /// <see cref="EffectAggregate"/> (pilhas somadas, a maior duração restante, infinito se alguma é). Efeito
-    /// <see cref="GameplayEffect.IsHidden"/> nunca aparece. Atualiza pelos eventos de efeito e pede tick só enquanto há
-    /// efeito com duração. Guarda só o asset e o id de cada ícone; o resto vem do ASC. Não altera o ASC.
+    /// <see cref="GameplayEffect.IsHidden"/> nunca aparece; o <see cref="EffectListFilter"/> escolhe os outros, e
+    /// <see cref="SetFilter"/> refaz a lista. Atualiza pelos eventos de efeito e pede tick só enquanto há efeito com
+    /// duração; o ícone sinaliza o fim nos últimos <see cref="EndingSoonSeconds"/> da maior restante. Guarda só o asset e
+    /// o id de cada ícone; o resto vem do ASC. Não altera o ASC.
     /// </summary>
     [Serializable, TypeCategory("Efeitos", Summary = "Lista de buffs e debuffs do dono: um ícone por efeito, na ordem em que apareceu, com as pilhas somadas e a maior duração restante.")]
     public sealed class ActiveEffectsSource : UIListSource<EffectIconModel>
@@ -28,10 +31,35 @@ namespace SpellBook.GAS.UI
         [Tooltip("Pilhas a partir das quais o número aparece no ícone.")]
         [SerializeField, Min(1)] private int minStacksToShow = 2;
 
+        [Tooltip("Segundos finais em que o ícone sinaliza que o efeito está acabando. 0: só no fim.")]
+        [SerializeField, Min(0f)] private float endingSoonSeconds = 3f;
+
+        [Tooltip("Quais efeitos aparecem: papel, consulta sobre as tags concedidas e só purgáveis. Efeito oculto nunca aparece.")]
+        [SerializeField] private EffectListFilter filter = new EffectListFilter();
+
         [NonSerialized] private TextBuffer _preview;
+
+        // Avisa as ligações vivas de que o filtro foi trocado
+        [NonSerialized] private Action _filterChanged;
 
         /// <summary>Pilhas a partir das quais o número aparece; menor que 1 vale 1.</summary>
         public int MinStacksToShow { get => minStacksToShow; set => minStacksToShow = Math.Max(1, value); }
+
+        /// <summary>Segundos finais em que <see cref="EffectIconModel.EndingSoon"/> liga; negativo vale 0.</summary>
+        public float EndingSoonSeconds { get => endingSoonSeconds; set => endingSoonSeconds = Mathf.Max(0f, value); }
+
+        /// <summary>O filtro aplicado; nunca nulo. É imutável: troque-o com <see cref="SetFilter"/>.</summary>
+        public EffectListFilter Filter => filter ??= new EffectListFilter();
+
+        /// <summary>
+        /// Troca o filtro e refaz a lista de cada ligação viva, na ordem de aplicação (C5). Nulo vale o filtro vazio, que
+        /// aceita todos os visíveis.
+        /// </summary>
+        public void SetFilter(EffectListFilter value)
+        {
+            filter = value ?? new EffectListFilter();
+            _filterChanged?.Invoke();
+        }
 
         /// <inheritdoc />
         public override Type OwnerType => typeof(AbilitySystemComponent);
@@ -52,7 +80,7 @@ namespace SpellBook.GAS.UI
         }
 
         // Só IsBuff: benéfico; só IsDebuff: nocivo; nenhum ou os dois: neutro (C4)
-        private static TextRole RoleOf(GameplayEffect effect)
+        internal static TextRole RoleOf(GameplayEffect effect)
         {
             if (effect.IsBuff == effect.IsDebuff) return TextRole.Neutral;
             return effect.IsBuff ? TextRole.Beneficial : TextRole.Harmful;
@@ -77,6 +105,7 @@ namespace SpellBook.GAS.UI
             private readonly Action<ActiveEffectInstance> _onApplied;
             private readonly Action<ActiveEffectInstance, EffectRemovalReason> _onRemoved;
             private readonly Action<ActiveEffectInstance, int, int> _onStacksChanged;
+            private readonly Action _onFilterChanged;
             private AbilitySystemComponent _asc;
             private int _nextId;
 
@@ -86,6 +115,7 @@ namespace SpellBook.GAS.UI
                 _onApplied = OnEffectChanged;
                 _onRemoved = (instance, _) => OnEffectChanged(instance);
                 _onStacksChanged = (instance, _, _) => OnEffectChanged(instance);
+                _onFilterChanged = Rebuild;
             }
 
             // Renovação e mudança de duração não têm evento: o tick relê os grupos com duração
@@ -106,9 +136,31 @@ namespace SpellBook.GAS.UI
                 _asc = owner as AbilitySystemComponent;
                 if (_asc == null) return;
 
+                _source._filterChanged += _onFilterChanged;
                 _asc.OnEffectApplied += _onApplied;
                 _asc.OnEffectRemoved += _onRemoved;
                 _asc.OnEffectStacksChanged += _onStacksChanged;
+                Build();
+            }
+
+            // Solta pelo ReferenceEquals: um ASC destruído ainda guarda os delegates
+            protected override void OnDetach()
+            {
+                _source._filterChanged -= _onFilterChanged;
+                if (!ReferenceEquals(_asc, null))
+                {
+                    _asc.OnEffectApplied -= _onApplied;
+                    _asc.OnEffectRemoved -= _onRemoved;
+                    _asc.OnEffectStacksChanged -= _onStacksChanged;
+                }
+
+                ReleaseGroups();
+                _asc = null;
+            }
+
+            // Os grupos na ordem de ActiveEffects, só os que passam no filtro (C11)
+            private void Build()
+            {
                 IReadOnlyList<ActiveEffectInstance> active = _asc.ActiveEffects;
                 for (int i = 0; i < active.Count; i++)
                 {
@@ -118,23 +170,22 @@ namespace SpellBook.GAS.UI
                 RefreshTick();
             }
 
-            // Solta pelo ReferenceEquals: um ASC destruído ainda guarda os delegates
-            protected override void OnDetach()
+            // Filtro trocado: a lista é montada de novo do ASC, na ordem de aplicação (C5)
+            private void Rebuild()
             {
-                if (!ReferenceEquals(_asc, null))
-                {
-                    _asc.OnEffectApplied -= _onApplied;
-                    _asc.OnEffectRemoved -= _onRemoved;
-                    _asc.OnEffectStacksChanged -= _onStacksChanged;
-                }
+                ReleaseGroups();
+                ClearItems();
+                Build();
+            }
 
+            private void ReleaseGroups()
+            {
                 for (int i = 0; i < _groups.Count; i++)
                 {
                     _freeTexts.Add(_groups[i].Text);
                 }
 
                 _groups.Clear();
-                _asc = null;
             }
 
             private void OnEffectChanged(ActiveEffectInstance instance)
@@ -163,7 +214,7 @@ namespace SpellBook.GAS.UI
                     return;
                 }
 
-                if (effect.IsHidden) return;
+                if (!_source.Filter.Accepts(effect)) return;
 
                 _groups.Add(new Group
                 {
@@ -209,7 +260,7 @@ namespace SpellBook.GAS.UI
                 GameplayEffect effect = group.Effect;
                 var model = new EffectIconModel(effect.Icon, group.Name, RoleOf(effect), aggregate.Stacks,
                     aggregate.Stacks >= _source.minStacksToShow, fraction, timed ? aggregate.Remaining : 0f, text,
-                    aggregate.IsInfinite, false, effect);
+                    aggregate.IsInfinite, timed && aggregate.Remaining <= _source.endingSoonSeconds, effect);
                 if (add) AddItem(group.Id, in model);
                 else UpdateItem(group.Id, in model);
             }
@@ -263,6 +314,82 @@ namespace SpellBook.GAS.UI
                 public TextBuffer Text;
                 public int ShownSeconds;
                 public bool Timed;
+            }
+        }
+    }
+
+    /// <summary>Papel dos efeitos que uma lista mostra.</summary>
+    public enum EffectRoleFilter
+    {
+        /// <summary>Todos os papéis.</summary>
+        Both,
+
+        /// <summary>Só os benéficos: <see cref="GameplayEffect.IsBuff"/> sem <see cref="GameplayEffect.IsDebuff"/>.</summary>
+        Buffs,
+
+        /// <summary>Só os nocivos: <see cref="GameplayEffect.IsDebuff"/> sem <see cref="GameplayEffect.IsBuff"/>.</summary>
+        Debuffs,
+    }
+
+    /// <summary>
+    /// Filtro de uma lista de efeitos (Spec do B-018, Design 2; R4): papel, <see cref="GameplayTagQuery"/> sobre as
+    /// <see cref="GameplayEffect.GrantedTags"/> (a "categoria", como <c>Status.Veneno</c>) e só purgáveis. Efeito
+    /// <see cref="GameplayEffect.IsHidden"/> nunca passa. É imutável pelo código, para que a lista só mude por
+    /// <see cref="ActiveEffectsSource.SetFilter"/>, que a refaz; o padrão aceita todos os visíveis.
+    /// </summary>
+    [Serializable]
+    public sealed class EffectListFilter
+    {
+        [Tooltip("Papel dos efeitos mostrados. Efeito sem papel, ou com os dois, só aparece em Both.")]
+        [SerializeField] private EffectRoleFilter role;
+
+        [Tooltip("Consulta sobre as tags concedidas pelo efeito. Vazia: aceita todos.")]
+        [SerializeField] private GameplayTagQuery query = new GameplayTagQuery();
+
+        [Tooltip("Mostra só os efeitos purgáveis.")]
+        [SerializeField] private bool purgableOnly;
+
+        /// <summary>O filtro vazio: aceita todos os efeitos visíveis.</summary>
+        public EffectListFilter()
+        {
+        }
+
+        /// <summary>
+        /// Filtro com o papel, uma cópia da consulta (nula vale vazia, que aceita todos) e só purgáveis. Mudar a
+        /// consulta depois não muda o filtro.
+        /// </summary>
+        public EffectListFilter(EffectRoleFilter role, GameplayTagQuery query = null, bool purgableOnly = false)
+        {
+            this.role = role;
+            this.purgableOnly = purgableOnly;
+            if (query == null) return;
+
+            Copy(query.All, this.query.All);
+            Copy(query.Any, this.query.Any);
+            Copy(query.None, this.query.None);
+        }
+
+        /// <summary>Papel dos efeitos mostrados.</summary>
+        public EffectRoleFilter Role => role;
+
+        /// <summary>Mostra só os efeitos <see cref="GameplayEffect.IsPurgable"/>.</summary>
+        public bool PurgableOnly => purgableOnly;
+
+        /// <summary>O efeito aparece na lista. Nulo e <see cref="GameplayEffect.IsHidden"/> nunca aparecem.</summary>
+        public bool Accepts(GameplayEffect effect)
+        {
+            if (effect == null || effect.IsHidden) return false;
+            if (purgableOnly && !effect.IsPurgable) return false;
+            if (role == EffectRoleFilter.Buffs && ActiveEffectsSource.RoleOf(effect) != TextRole.Beneficial) return false;
+            if (role == EffectRoleFilter.Debuffs && ActiveEffectsSource.RoleOf(effect) != TextRole.Harmful) return false;
+            return query == null || query.Matches(effect.GrantedTags);
+        }
+
+        private static void Copy(GameplayTagContainer from, GameplayTagContainer into)
+        {
+            for (int i = 0; i < from.Count; i++)
+            {
+                into.Add(from[i]);
             }
         }
     }
