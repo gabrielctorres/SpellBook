@@ -159,6 +159,30 @@ O ME8 foi medido em 763 linhas, acima dos +30% da 0042, e se dividiu em ME8a e M
   1. `feat(editor): formato TagEntry do AbilityTemplate (#406)`: `Runtime/GAS/Abilities/AbilityTemplate.cs`, `Tests/GAS/EditMode/AbilityTemplateTests.cs` e `Documentation~/spec/menu-de-editor-do-gas.md` inteiro, com os dois Detalhes.
   2. `feat(editor): motor de criação do conjunto de habilidade (#392)`: `Editor/GAS/Creation.meta`, `Editor/GAS/Creation/AbilitySetPlan.cs` e o `.meta`, `Editor/GAS/Creation/AbilitySetCreator.cs` e o `.meta`, `Tests/GAS/EditMode/AbilitySetCreationTests.cs` e o `.meta`. O `ProjectSettings/ProjectSettings.asset` que aparece modificado no checkout não é deste ticket e fica fora dos dois commits.
 
+## ME3a — Modelo Projétil e prefab de projétil do pacote (#393)
+### Detalhe (2026-11-05)
+- Divisão: o ME3 foi medido em 14 arquivos, acima dos +30% da ADR 0042, e se dividiu em ME3a (#393) e ME3b (#407), por decisão do Controlador em 2026-11-05. O ME3a traz o Projétil e os assets que os três modelos compartilham. O ME3b traz a Área e o Buff.
+- CA: CA1 (o modelo do pacote aparece no catálogo, com nome e frase) e CA3 (o conjunto criado não tem erro no validador, aponta para o prefab do pacote sem copiá-lo e não muda o modelo). A lista na janela é do ME4.
+- Local (aprovado pelo Controlador, 2026-11-05; o design doc e o PRD não diziam): os modelos e os assets modelo ficam em `Editor/GAS/Templates/`, fora do build, porque só o assistente os lê. O prefab fica em `Runtime/GAS/Prefabs/Projectile.prefab`, porque as cópias em `Assets/` apontam para ele e ele precisa ir para o build. O pacote não tem atributo, então o custo e o dano vêm com o modificador sem atributo (`Add -10` e `Add -20`); o validador não acusa, e o designer escolhe a Mana e a Vida. As tags-modelo não têm pai e têm nomes que um projeto não usa (`TAG_Template_Ability` e `TAG_Template_Cooldown`). Assim, o pai `Ability` das cópias nunca é uma tag de dentro do pacote.
+- Escopo (caminhos em `Packages/com.spellbook/`, todos novos; os `.asset` e o prefab foram criados pela Unity, por um script de Editor rodado uma vez e apagado):
+  - `Editor/GAS/Templates/Projectile.asset` (`AbilityTemplate`): nome "Projétil", a frase do que cria, os assets `GA_{Name}`, `GE_{Name}_Cost`, `GE_{Name}_Cooldown` e `GE_{Name}_Damage` e as tags `Ability.{Name}` e `Cooldown.{Name}`, ligadas às tags-modelo.
+  - `Editor/GAS/Templates/GA_Template_Projectile.asset`: `AbilityTag` com a tag-modelo de habilidade, custo, recarga e, em `OnActivate`, um `SpawnProjectileAction` com o prefab do pacote e um `ApplyEffectAction` do dano em `OnHitActions`.
+  - `Editor/GAS/Templates/GE_Template_Cost.asset`, `GE_Template_Cooldown.asset` (1,5 s, concede a tag-modelo de recarga) e `GE_Template_Damage.asset`: compartilhados com o ME3b.
+  - `Editor/GAS/Templates/TAG_Template_Ability.asset` e `TAG_Template_Cooldown.asset`.
+  - `Runtime/GAS/Prefabs/Projectile.prefab`: esfera de 0,3 com colisor trigger, `Rigidbody` cinemático sem gravidade e `Projectile` (velocidade 12, duração 3 s, relógio padrão).
+  - `Tests/GAS/EditMode/PackageTemplatesTests.cs`: os testes abaixo, com as cópias numa pasta temporária de `Assets/`.
+  - Sem `CHANGELOG.md`, sem manual e sem mudança de código, de API ou de formato serializado.
+- Testes red (EditMode, `SpellBook.GAS.Tests.EditMode`, `PackageTemplatesTests`): `Catalog_ListsTemplateAsAvailable("Projectile", "Projétil")`; `PackageAssets_ValidateWithoutErrors` (os modelos e o prefab, que o `ProjectValidator` não lê fora de `Assets/`); `Template_CreatesSetWithoutErrors_TemplateUnchanged("Projectile")`; `Projectile_CopiesLinked_PrefabFromPackage`. Os dois `TestCase` recebem os modelos do ME3b.
+- Critério de pronto: 19 verdes no filtro `\.PackageTemplatesTests\.;\.AbilityTemplateCatalogTests\.;\.AbilitySetCreationTests\.` (os 4 novos, os 2 do catálogo e os 13 do motor), com o `total` do XML igual a 19. A suíte completa roda na `/revisao`.
+- Tamanho: 104 linhas (+104 −0, só o teste) e 9 arquivos (o teste, 7 `.asset` e o prefab), pela ADR 0042. Os `.meta` e este Detalhe não contam. Exceção: nenhuma.
+- Commit: `feat(editor): modelo Projétil e prefab de projétil do pacote (#393)`
+- Arquivos do commit (caminhos de código em `Packages/com.spellbook/`): `Editor/GAS/Templates.meta`; em `Editor/GAS/Templates/`, `Projectile.asset`, `GA_Template_Projectile.asset`, `GE_Template_Cost.asset`, `GE_Template_Cooldown.asset`, `GE_Template_Damage.asset`, `TAG_Template_Ability.asset` e `TAG_Template_Cooldown.asset`, cada um com o `.meta`; `Runtime/GAS/Prefabs.meta`, `Runtime/GAS/Prefabs/Projectile.prefab` e o `.meta`; `Tests/GAS/EditMode/PackageTemplatesTests.cs` e o `.meta`; e `Documentation~/spec/menu-de-editor-do-gas.md`.
+
+## ME3b — Modelos Área e Buff (#407)
+- Depende do ME3a: usa os `GE_Template_Cost`, `GE_Template_Cooldown` e `GE_Template_Damage`, as tags-modelo e o `PackageTemplatesTests` dele.
+- Escopo previsto (em `Packages/com.spellbook/Editor/GAS/Templates/`): `Area.asset` e `Buff.asset` (`AbilityTemplate`), `GA_Template_Area.asset` (um `ApplyEffectAction` do dano com um `AreaSelector` em volta de quem lança), `GA_Template_Buff.asset` e `GE_Template_Buff.asset` (efeito com duração e `Is Buff`, aplicado em quem lança). O `PackageTemplatesTests.cs` ganha os casos `Area` e `Buff` nos dois `TestCase`.
+- Tamanho estimado: ~20 linhas e 6 arquivos. A Fábrica do ME3b escreve o Detalhe completo.
+
 ## ME6 — Busca de referências genérica no Core.Editor
 ### Detalhe (2026-11-05)
 - CA: CA9, na parte sem UI: quem usa o item (assets, prefabs e objetos das cenas abertas, sem ler cena fechada), o que ele usa e o destaque no Project window ou na Hierarchy. O painel que mostra isso é do ME8.
