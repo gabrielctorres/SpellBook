@@ -13,7 +13,7 @@ namespace SpellBook.Core.Tests.Structure
     /// Lê arquivos do pacote pelo caminho real, obtido de <c>PackageInfo.FindForAssembly</c> (risco 22).
     /// Pastas terminadas em <c>~</c> ou começadas por <c>.</c> ficam de fora, como na importação da Unity.
     /// </summary>
-    internal static class PackageFiles
+    public static class PackageFiles
     {
         public static string Root
         {
@@ -89,14 +89,14 @@ namespace SpellBook.Core.Tests.Structure
         }
     }
 
-    internal enum AsmdefKind
+    public enum AsmdefKind
     {
         Runtime,
         Editor,
         Test,
     }
 
-    internal sealed class AsmdefFile
+    public sealed class AsmdefFile
     {
         public AsmdefFile(string path, AsmdefData data)
         {
@@ -131,7 +131,7 @@ namespace SpellBook.Core.Tests.Structure
 
     /// <summary>Campos do <c>.asmdef</c> lidos pelos testes de estrutura (nomes iguais aos do JSON).</summary>
     [Serializable]
-    internal sealed class AsmdefData
+    public sealed class AsmdefData
     {
         public string name = string.Empty;
         public string[] references = Array.Empty<string>();
@@ -144,7 +144,7 @@ namespace SpellBook.Core.Tests.Structure
     }
 
     [Serializable]
-    internal sealed class VersionDefineData
+    public sealed class VersionDefineData
     {
         public string name = string.Empty;
         public string expression = string.Empty;
