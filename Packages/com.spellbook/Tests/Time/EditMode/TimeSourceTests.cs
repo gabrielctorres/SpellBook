@@ -13,7 +13,7 @@ namespace SpellBook.Time.Tests
     {
         private const string ScaledMenu = "SpellBook/Time/Scaled Time Source";
         private const string UnscaledMenu = "SpellBook/Time/Unscaled Time Source";
-        private const string PausableMenu = "SpellBook/Time/Pausable Time Group";
+        private const string PausableMenu = "SpellBook/Time/Pausable Time Source";
 
         private readonly List<Object> _created = new List<Object>();
 

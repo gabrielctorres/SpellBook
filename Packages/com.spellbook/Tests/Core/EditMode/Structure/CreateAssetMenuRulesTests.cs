@@ -19,12 +19,15 @@ namespace SpellBook.Core.Tests.Structure
         private const string FileNamePrefix = "New ";
         private const string GameplayPrefix = "Gameplay";
 
-        // Módulos já conferidos pela ADR 0043 (OA1): assembly → pastas de menu permitidas (item 2).
+        // Módulos já conferidos pela ADR 0043 (OA1 e OA2): assembly → pastas de menu permitidas (item 2).
         // Cada ticket do épico acrescenta os módulos dele; o OA4 passa a regra para o pacote inteiro.
         private static readonly Dictionary<string, string[]> CheckedModuleMenus = new Dictionary<string, string[]>
         {
             ["SpellBook.GAS"] = new[] { "SpellBook/GAS/", "SpellBook/GAS/Attributes/", "SpellBook/GAS/Attributes/Formulas/" },
             ["SpellBook.Tags"] = new[] { "SpellBook/Tags/" },
+            ["SpellBook.Core"] = new[] { "SpellBook/Core/", "SpellBook/Text/", "SpellBook/Spawn/" },
+            ["SpellBook.Time"] = new[] { "SpellBook/Time/" },
+            ["SpellBook.Pooling"] = new[] { "SpellBook/Pooling/", "SpellBook/Spawn/" },
         };
 
         [Test]
@@ -59,7 +62,8 @@ namespace SpellBook.Core.Tests.Structure
             List<(Type Type, string Menu, string FileName)> entries = CheckedModuleEntries();
 
             Assert.That(entries.Select(entry => entry.Type.Name), Does.Contain("GameplayAbility")
-                .And.Contain("SimpleAttributeFormula").And.Contain("GameplayTagDefinition"),
+                .And.Contain("SimpleAttributeFormula").And.Contain("GameplayTagDefinition")
+                .And.Contain("TransformAnchor").And.Contain("PausableTimeSource").And.Contain("PoolConfiguration"),
                 "a varredura não achou os tipos esperados");
 
             IEnumerable<string> violations = entries

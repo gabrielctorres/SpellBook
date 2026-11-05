@@ -8,7 +8,7 @@ namespace SpellBook.Core
     /// âncora sabe se o objeto está presente sem procurar na cena (ADR 0039, item 5).
     /// </summary>
     [HelpURL(DocUrls.Concepts + "#ancoras")]
-    [CreateAssetMenu(menuName = "SpellBook/Core/Transform Anchor", fileName = "ANC_")]
+    [CreateAssetMenu(menuName = "SpellBook/Core/Transform Anchor", fileName = "New Transform Anchor")]
     public sealed class TransformAnchor : RuntimeAnchor<Transform>
     {
     }

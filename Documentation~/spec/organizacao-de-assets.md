@@ -82,3 +82,25 @@ Antes do OA5, e fora dos tickets, vem o protótipo dos estilos: as famílias hab
 - Critério de pronto: os 5 testes de `\.CreateAssetMenuRulesTests\.` verdes (os 2 da #344 e os 3 novos), com `total` 5 no XML.
 - Tamanho: ~91 linhas (18 nos 9 tipos e 73 na guarda) e 10 arquivos, pela ADR 0042. Exceção: nenhuma.
 - Commit: `chore(menu): guarda de menu e fileName; GAS e Tags pela ADR 0043`
+
+## OA2 — Core, Time e Pooling pela 0043
+### Detalhe (2026-11-04)
+- CA: CA1 e CA2 para os módulos `SpellBook.Core`, `SpellBook.Time` e `SpellBook.Pooling`. O `LocalizationTextProvider` (grupo `Text`, módulo Localization) fica para o OA3.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/Core/Anchors/TransformAnchor.cs:11`: menu igual, `New Transform Anchor`.
+  - `Runtime/Core/Spawning/InstantiateSpawnerAsset.cs:6`: menu igual, `New Instantiate Spawner`.
+  - `Runtime/Core/Text/TableTextProvider.cs:15`: menu igual, `New Table Text Provider`.
+  - `Runtime/Core/Text/TextTable.cs:13`: menu igual, `New Text Table`.
+  - `Runtime/Core/Text/TextRoleTheme.cs:20`: `SpellBook/Text/Text Role Theme`, `New Text Role Theme`.
+  - `Runtime/Pooling/PoolConfiguration.cs:9`: menu igual, `New Pool Configuration`.
+  - `Runtime/Pooling/PooledSpawnerAsset.cs:13`: `SpellBook/Spawn/Pooled Spawner`, `New Pooled Spawner`.
+  - `Runtime/Time/ScaledTimeSource.cs:7`: menu igual, `New Scaled Time Source`.
+  - `Runtime/Time/UnscaledTimeSource.cs:7`: menu igual, `New Unscaled Time Source`.
+  - `Runtime/Time/PausableTimeSource.cs:10`: `SpellBook/Time/Pausable Time Source`, `New Pausable Time Source` (item 1: nome do tipo sem sufixo técnico; o antigo `Pausable Time Group` fugia dele).
+  - `Tests/Time/EditMode/TimeSourceTests.cs:16`: `PausableMenu` passa a `SpellBook/Time/Pausable Time Source` (a ADR 0043 manda ajustar esse teste).
+  - `Tests/Core/EditMode/Structure/CreateAssetMenuRulesTests.cs:24-28`: `CheckedModuleMenus` ganha `SpellBook.Core` (`SpellBook/Core/`, `SpellBook/Text/`, `SpellBook/Spawn/`), `SpellBook.Time` (`SpellBook/Time/`) e `SpellBook.Pooling` (`SpellBook/Pooling/`, `SpellBook/Spawn/`); `:61-62`: a varredura passa a exigir também `TransformAnchor`, `PausableTimeSource` e `PoolConfiguration`.
+  - Sem `CHANGELOG.md` e sem manual (mesmo motivo do OA1).
+- Testes red (EditMode, `SpellBook.Core.Tests.EditMode`, classe `CreateAssetMenuRulesTests`): com a tabela ampliada, `CheckedModuleMenu_UsesFolderAllowedForItsAssembly` (`TextRoleTheme`, `PooledSpawnerAsset`) e `CheckedModuleFileName_IsNewPlusMenuItemName` (os 10 tipos) falham. A guarda não confere o nome contra o tipo; o red do `Pausable Time Source` é `TimeSourceTests.Menu_HasThreeVariants` (EditMode, `SpellBook.Time.Tests`).
+- Critério de pronto: os 5 testes de `\.CreateAssetMenuRulesTests\.` e os de `\.TimeSourceTests\.` verdes, com o `total` conferido no XML.
+- Tamanho: ~30 linhas (20 nos 10 tipos, ~8 na guarda e 2 no `TimeSourceTests`) e 12 arquivos, pela ADR 0042. Exceção: 12 arquivos, +20% sobre o teto de 10; o ticket toca um atributo por tipo, o `TimeSourceTests` fixa o menu do `PausableTimeSource` e muda junto, e dividir deixaria um módulo fora da guarda.
+- Commit: `chore(menu): menus e fileName de Core, Time e Pooling pela ADR 0043`

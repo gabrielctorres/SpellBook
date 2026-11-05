@@ -17,7 +17,7 @@ namespace SpellBook.Core
     /// Tema de cores por <see cref="TextRole"/>, compartilhado pelos textos do jogo em vez de cores por atributo (R19, R20).
     /// Não conhece o GAS (ADR 0012). Sem tema próprio, use <see cref="Default"/>.
     /// </summary>
-    [CreateAssetMenu(menuName = "SpellBook/Text Role Theme", fileName = "TextRoleTheme")]
+    [CreateAssetMenu(menuName = "SpellBook/Text/Text Role Theme", fileName = "New Text Role Theme")]
     [HelpURL(DocUrls.Gas + "#textroletheme")]
     public class TextRoleTheme : ScriptableObject
     {

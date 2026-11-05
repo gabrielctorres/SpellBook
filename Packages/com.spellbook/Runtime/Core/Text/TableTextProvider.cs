@@ -12,7 +12,7 @@ namespace SpellBook.Core.Text
     /// dicionário é montado na primeira leitura depois de cada troca; ler uma chave já resolvida não aloca.
     /// </summary>
     [HelpURL(DocUrls.Text + "#tabletextprovider")]
-    [CreateAssetMenu(menuName = "SpellBook/Text/Table Text Provider", fileName = "TableTextProvider")]
+    [CreateAssetMenu(menuName = "SpellBook/Text/Table Text Provider", fileName = "New Table Text Provider")]
     public class TableTextProvider : TextProviderAsset, IValidatable
     {
         [SerializeField, Tooltip("Tabelas lidas pelo provedor. Na mesma cultura, a primeira tabela com a chave vence.")]
