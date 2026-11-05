@@ -1,0 +1,22 @@
+/* Assistente de criação (DS ferramentas-do-editor, seções 3 e 4). O tema escuro é o padrão; .ability-wizard--light
+   troca os valores dos tokens, que vêm do DS do Inspector de ações. */
+.ability-wizard { --spellbook-text-secondary: #9a9a9a; --spellbook-error: #ff5c5c; }
+.ability-wizard--light { --spellbook-text-secondary: #5a5a5a; --spellbook-error: #c00000; }
+
+.ability-wizard .unity-two-pane-split-view { flex-grow: 1; }
+.ability-wizard .unity-list-view { flex-grow: 1; }
+#ability-wizard__title { -unity-font-style: bold; flex-grow: 1; -unity-text-align: middle-left; }
+#ability-wizard__step { -unity-text-align: middle-right; }
+#ability-wizard__heading { -unity-font-style: bold; font-size: 14px; margin-bottom: 4px; }
+.ability-wizard__secondary { color: var(--spellbook-text-secondary); margin: 0 4px; white-space: normal; }
+.ability-wizard__error { color: var(--spellbook-error); }
+.ability-wizard__detail { padding: 4px; }
+.ability-wizard__template { flex-direction: row; align-items: center; padding: 2px; border-width: 1px; border-color: rgba(0, 0, 0, 0); }
+.ability-wizard__template > VisualElement { flex-grow: 1; flex-shrink: 1; }
+.ability-wizard__template--selected { border-color: var(--spellbook-text-secondary); }
+.ability-wizard__template > Image, .ability-wizard__row > Image { width: 16px; height: 16px; margin: 0 4px; }
+.ability-wizard__row { flex-direction: row; align-items: center; }
+.ability-wizard__folder { flex-direction: row; }
+.ability-wizard__folder > TextField { flex-grow: 1; }
+.ability-wizard__footer { flex-direction: row; justify-content: flex-end; padding: 4px; }
+.ability-wizard Button:focus, .ability-wizard .unity-collection-view__item:focus, .ability-wizard TextField:focus { border-width: 2px; }

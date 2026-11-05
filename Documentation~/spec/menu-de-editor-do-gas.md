@@ -222,8 +222,10 @@ O ME8 foi medido em 763 linhas, acima dos +30% da 0042, e se dividiu em ME8a e M
   - `Editor/GAS/Creation/AbilityWizardWindow.cs` (`internal`): a janela nas quatro faixas do DS 3, com `SpellBook/Criar habilidade ou efeito…` e `Assets/Create/SpellBook/GAS/Ability from Template…` (Q1 e Q2; este abre com a pasta selecionada, pelo `FolderOf`). O `CreateGUI` é `internal` para o teste de fumaça, como no ME8b.
   - `Editor/GAS/Creation/AbilityWizard.uss`: os tokens `--spellbook-text-secondary` e `--spellbook-error` nos dois temas, nos valores do `ActionInspector.uss`, e o contorno de foco de 2 px.
   - `Tests/GAS/EditMode/AbilityWizardWindowTests.cs`: `Open_StepOne_ListsTemplates_AdvanceDisabledWithReason` e `Menus_WizardEntriesExist_FolderCreatorGone`, que confere também a saída do menu do ME4a.
-- Critério de pronto: os 2 verdes com os 20 do ME4a, no filtro `\.AbilityWizardModelTests\.;\.AbilityWizardWindowTests\.;\.AbilitySetCreationTests\.`, com `total` 22 no XML (já conferido assim em 2026-11-05, antes da divisão).
-- Tamanho: 311 linhas (`AbilityWizardWindow.cs` 257 e `AbilityWizardWindowTests.cs` 54) e 4 arquivos (os 3 novos e este design doc), pela ADR 0042. Exceção: nenhuma.
+  - Correção do REPROVADO (2026-11-05): o painel de detalhe é remontado a cada mudança nos passos 1, 3 e 4, e só no passo 2, onde os campos têm o foco, a janela atualiza apenas o estado. A lista de modelos fica desligada fora do passo 1 (DS 4.1: o modelo se escolhe no passo 1; para trocar, "Voltar"), o que também evita o plano sem modelo na revisão. O `Open(pasta)` passa pelo mesmo caminho (`UseFolder`), e o campo "Pasta" acompanha o modelo. A lista usa `DynamicHeight`, como as vizinhas, e o Enter no botão ou na lista não dispara a ação duas vezes. `Change` e `Model` ficam `internal` para os testes, porque sem janela mostrada não há painel para despachar eventos.
+- Testes red da correção (EditMode, `AbilityWizardWindowTests`): `StepOne_SelectTemplate_HeadingShowsNameAndDescription`, `StepThree_TemplateChanges_ReviewRowsFollowPlan_ListLocked` e `StepThree_FolderChanges_ReviewMarksCollision`.
+- Critério de pronto: os 5 da janela verdes com os 20 do ME4a, no filtro `\.AbilityWizardModelTests\.;\.AbilityWizardWindowTests\.;\.AbilitySetCreationTests\.`, com `total` 25 no XML.
+- Tamanho: 398 linhas (`AbilityWizardWindow.cs` 271 e `AbilityWizardWindowTests.cs` 127) e 4 arquivos (os 3 novos e este design doc), pela ADR 0042. Exceção: nenhuma.
 - Commit: `feat(editor): janela do assistente de criação (#411)`
 
 ## ME6 — Busca de referências genérica no Core.Editor
