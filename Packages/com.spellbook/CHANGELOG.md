@@ -7,6 +7,8 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); 
 
 ## [Não lançado]
 
+## [1.0.0] - 2026-11-05
+
 ### Quebras
 - **Habilidade e projétil na base nova das ações (ADR 0034):** `AbilityAction`, `AbilityContext` e `EffectAction` saem do pacote, e toda ação deriva de `GameplayAction`. `GameplayAbility.Actions` passa a se chamar `OnActivate` e `Projectile.OnHitActions` passa a `OnImpact`, as duas com `List<GameplayAction>`; os assets abrem com as listas no campo novo. A ativação roda o `OnActivate` no executor do ASC, com o spec como dono, e não usa mais corrotina: a habilidade termina quando a execução acaba, e `CancelAbility` cancela as execuções dela. `AbilitySpec.ActiveContext` é um `ActionContext`. O impacto do projétil roda no ASC de quem lançou, por `RunActions` e sem dono, e o alvo atingido entra em `EventTargets`. `Projectile.Setup` recebe `ActionContext` e `List<GameplayAction>`, e `EffectSpec.FromAbility` recebe `ActionContext`. Saem `WaitSeconds`, `StartChildRoutine`, `GetValidTargets` e `AbilityAction.RunSequence`: use `ActionStatus.Wait`, `Run` e `RunParallel`. No contexto, `Source` vira `Instigator`, `TargetPosition` vira `Point`, e os alvos da `TargetingAction` ficam em `EventTargets`. A regra de tempo muda: ação sem espera não custa quadro, então `WaitAction` com `Duration` zero ou negativo e `RepeatAction` com `Interval` 0 terminam na mesma chamada, e uma espera conta do fim do passo anterior, inclusive com um `Tick` no mesmo quadro. Uma habilidade sem ações, ou só com ações sem espera, termina dentro do `TryActivateAbility`: o `OnAbilityEnded` dispara e `AbilitySpec.IsActive` volta a `false` antes de a chamada retornar, e uma consulta logo depois vê a recarga (`OnCooldown`) em vez de `AlreadyActive`. Antes, a corrotina a deixava ativa por um quadro. Ações próprias são reescritas sobre `GameplayAction`, com `protected override ActionStatus Execute(ActionContext, ref ActionFrame)` em qualquer assembly.
 - **Listas de ações do efeito na base nova (ADR 0034):** `GameplayEffect.OnApplication`, `OnTickActions` e `OnRemoval` passam a se chamar `OnApplied`, `OnTick` e `OnRemoved` e guardam `GameplayAction`. Os assets abrem com as listas no campo novo. As listas rodam no executor do ASC que tem o efeito, com a instância como dono, então uma ação de efeito pode esperar. Remover o efeito cancela as execuções em curso dele (`OnCancel`) antes de rodar `OnRemoved`. O `ActionContext` traz `EffectDefinition` (o asset, também no efeito instantâneo), `EffectEvent` (`Applied`, `Tick` ou `Removed`), `EffectInstance` (nulo no instantâneo) e `Effect`, a cópia do `EffectContext`. `DebugLogEffectAction` e `SpawnVFXEffectAction` passam a se chamar `DebugLogAction` e `SpawnVFXAction`, com `[MovedFrom]` para as referências antigas. `ActiveEffectInstance.AddActionData` e `TryGetActionData` recebem uma `GameplayAction`. Ações próprias que derivam de `EffectAction` precisam ser reescritas sobre `GameplayAction`: leia o ASC em `context.Owner`, quem aplicou em `context.Instigator` e a instância em `context.EffectInstance`. O `ActionEventAttribute` marca cada lista com o nome do evento e o alvo padrão.
@@ -111,49 +113,3 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); 
 ### Migração
 1. Rodar **SpellBook > Migrar assets do GAS (3.0)** para regravar os `GameplayEffect` no formato 3.0 (`Duration` e `ConstantValue` viram `ScalableFloat`). Veja `manual/regras/migracao-2-para-3.md#valores-por-nivel`.
 2. Quem usava **Tools > Create Default Project Folders** cria as pastas à mão. O menu e a classe `FolderStructureCreator` não têm substituto, e o código que chamava `FolderStructureCreator.CreateProjectFolders()` deve ser apagado.
-
-## [2.0.0] - 2026-10-14
-
-### Quebras
-- **Habilidades precisam ser concedidas ao ASC.** `TryActivateAbility` agora retorna `AbilityActivationResult.NotGranted` para habilidades que não passaram por `GiveAbility` (ou pela lista `startingAbilities` do `AbilitySystemComponent`). Não há erro de compilação; a habilidade simplesmente não ativa.
-- `GameplayAbility.Activate()` foi removido; a execução é feita pelo `AbilitySystemComponent`.
-- `TryActivateAbility` retorna `AbilityActivationResult` em vez de `void`.
-- `TargetingStrategy.GetTargets(Transform, Vector3)` → `GetTargets(AbilitySystemComponent source, Vector3 origin)`. Estratégias customizadas precisam ser atualizadas.
-- `ICooldownModifier` removido. `CooldownReductionAttribute` virou campo público (assets antigos migram via `[FormerlySerializedAs]`).
-- `MouseTargetingStrategy` passou a respeitar `physicsMode` (antes usava sempre física 3D) e retorna o alvo válido mais próximo.
-- Estratégias de targeting não incluem mais o próprio conjurador por padrão (`includeSelf = false`).
-
-### Adicionado
-- `AbilitySpec`: estado da habilidade por personagem (nível, se está ativa, contexto atual). API no ASC: `GiveAbility`, `RemoveAbility`, `FindSpec`, `IsAbilityActive`, `Abilities`.
-- Ciclo de vida: `CancelAbility`, `CancelAbilitiesWithTags`, `CancelAllAbilities`; desativar o ASC cancela as habilidades ativas.
-- `AbilityAction.OnCancel(context)` para restaurar estado quando a habilidade é cancelada no meio de uma ação.
-- Novos campos em `GameplayAbility`: `CostEffect`, `ActivationOwnedTags`, `CancelAbilitiesWithTag`, `BlockAbilitiesWithTag`, `CancelledByTags`.
-- `AbilityActivationResult` com o motivo da falha; `GameplayAbility.CanActivate(asc, out reason)`.
-- Checagem de custo (`ASC.CanAffordCost`) e de cooldown por instância ativa do efeito (`ASC.IsOnCooldown`), não só por tag.
-- Eventos no ASC: `OnAbilityActivated`, `OnAbilityEnded`, `OnAbilityFailed`.
-- `AbilityContext`: `Ability`, `Spec`, `Level`, `IsCancelled`, `GetValidTargets()`, `StartChildRoutine()`, `CreateDerived()`.
-- `AbilityAction.Run` / `RunSequence` para executar sub-ações respeitando cancelamento.
-- Ações de fluxo: `RepeatAction`, `ParallelAction`, `ConditionalAction`.
-- Filtros de targeting: `includeSelf`, `requiredTargetTags`, `ignoredTargetTags`; `CircleTargeting.maxTargets`.
-- `TargetingAction.Mode` (Replace/Append).
-- `Projectile.Setup(pool, AbilityContext, onHitActions)`: o impacto herda habilidade e nível.
-- `ASC.AddTags` / `RemoveTags`.
-
-### Corrigido
-- Efeitos Instant e ticks periódicos ignoravam `Multiply` e `Override` (PlaygroundRumble #13).
-- Tags do ASC sem contagem de referência: remover um de dois efeitos com a mesma tag removia a tag (PlaygroundRumble #14).
-- `NullReferenceException` com listas nulas em `GameplayEffect`/`GameplayAbility` e modifiers sem atributo (PlaygroundRumble #15).
-- `CooldownEffect` sem `GrantedTags` não bloqueava a reativação.
-- Targeting contava várias vezes a mesma unidade com vários colliders.
-- NRE em `ApplyEffectAction`/`PlayCueAction` quando um alvo era destruído durante a habilidade.
-- `SpawnProjectileAction` continuava a rajada após o cancelamento da habilidade.
-
-### Migração
-1. Conceder as habilidades ao ASC: `asc.GiveAbility(ability)` ao montar o loadout (e `RemoveAbility` ao trocar), ou preencher `startingAbilities`.
-2. Usar o retorno de `TryActivateAbility` e só disparar feedback/UI de ativação quando for `AbilityActivationResult.Success`.
-3. Em ações customizadas que alteram estado do personagem (movimento, invencibilidade etc.), sobrescrever `OnCancel` para restaurá-lo. Guardar estado de execução em `context.CustomData`, nunca em campos da ação (a instância é compartilhada).
-4. Atualizar `TargetingStrategy` customizadas para a nova assinatura de `GetTargets`.
-5. Revisar assets de targeting: marcar `includeSelf` onde o conjurador deve ser alvo.
-
-## [1.3.5] - 2026-05-06
-- Última versão antes deste changelog: sistema modular de habilidades (GAS), targeting, projéteis 2D/3D, cooldown, sistema de descrição, EventManager e pooling.
