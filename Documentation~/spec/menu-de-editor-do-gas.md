@@ -100,3 +100,17 @@ O ME6 e o ME7 não dependem do assistente e podem correr em paralelo com o ME1 a
 
 <!-- Parte JIT: uma seção por ticket, escrita pela Fábrica quando o ticket entra na fila, lendo o código na hora.
      Limites e contagem: ADR 0042. -->
+
+## ME6 — Busca de referências genérica no Core.Editor
+### Detalhe (2026-11-05)
+- CA: CA9, na parte sem UI: quem usa o item (assets, prefabs e objetos das cenas abertas, sem ler cena fechada), o que ele usa e o destaque no Project window ou na Hierarchy. O painel que mostra isso é do ME8.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Editor/Core/ReferenceFinder.cs` (novo, `public`, porque o `GAS.Editor` e o `Events.Editor` o usam, 0026 item 5): `FindUsers(Object)` devolve um `ReferenceUser` (dono do campo, caminho do campo, local) por campo que aponta para o alvo, primeiro nos `.prefab` e `.asset` que dependem dele e depois nas cenas abertas, inclusive dentro de `[SerializeReference]`. `FindUses(Object)` devolve os objetos que o alvo referencia, uma vez cada, sem ele mesmo e sem o `m_Script`. `Reveal(Object)` seleciona e destaca. É a varredura do `ChannelReferenceFinder` de hoje, sem o papel.
+  - `Editor/Events/ChannelReferenceFinder.cs:45-116`: `Find` passa a chamar o `ReferenceFinder.FindUsers` e só calcula o papel (`RoleOf`) e junta por objeto e papel (`Contains`), na mesma ordem; os dois não mudam. A varredura própria (`IsScannedAsset`, `DependsOn`, `Scan`) sai. A API `internal` dos canais não muda.
+  - `Editor/Events/EventDebuggerWindow.cs:281-288`: `Reveal` chama o `ReferenceFinder.Reveal`.
+  - `Tests/Core/EditMode/References/ReferenceHolderAsset.cs` (novo): ScriptableObject com um campo de objeto e um `[SerializeReference]`. `Tests/Testing/ReferenceHolderComponent.cs` (novo): componente com um campo de objeto, no `SpellBook.Testing`, porque um assembly só de Editor não pode ter componente adicionado a um GameObject. Cada um fica em arquivo próprio para a Unity associar o script.
+  - Sem `CHANGELOG.md` (nada quebra) e sem manual (passe de documentação).
+- Testes red (EditMode, `SpellBook.Core.Tests.EditMode`, classe `ReferenceFinderTests`, em `Tests/Core/EditMode/References/ReferenceFinderTests.cs`, novo): `FindUsers_AssetAndPrefab_OnePerField_WithLocation`; `FindUsers_InsideSerializeReference_ReportsPath`; `FindUsers_OpenScene_LocationIsScene`; `FindUsers_ClosedScene_NotIncluded`; `FindUsers_Null_Empty`; `FindUses_ReferencedObjects_OnceEach_WithoutScriptOrSelf`; `Reveal_SelectsTarget`.
+- Critério de pronto: os sete verdes, mais o `FindReferencesTests` dos canais verde no filtro sem mudar asserção. A suíte completa roda na `/revisao`.
+- Tamanho: 436 linhas medidas (+380 −56) e 7 arquivos (4 novos e este design doc), pela ADR 0042. Os `.meta` e este Detalhe não contam. Exceção: nenhuma.
+- Commit: `feat(editor): busca de referências genérica no Core.Editor`

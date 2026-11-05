@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using SpellBook.Core;
+using SpellBook.Core.Editor;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -278,11 +279,7 @@ namespace SpellBook.Events.Editor
         /// <summary>Seleciona o objeto e o destaca no Project ou na Hierarchy (clique numa referência, R21).</summary>
         internal static void Reveal(Object target)
         {
-            if (target != null)
-            {
-                Selection.activeObject = target;
-                EditorGUIUtility.PingObject(target);
-            }
+            ReferenceFinder.Reveal(target);
         }
     }
 }
