@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace SpellBook.GAS.Attributes
 {
-    [CreateAssetMenu(fileName = "Formula_Expression", menuName = "SpellBook/GAS/Formulas/Expression Formula")]
+    [CreateAssetMenu(fileName = "New Expression Formula", menuName = "SpellBook/GAS/Attributes/Formulas/Expression Formula")]
     [HelpURL(DocUrls.Gas + "#expressionformula")]
     public class ExpressionFormula : Formula
     {

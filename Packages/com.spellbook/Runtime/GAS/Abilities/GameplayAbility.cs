@@ -32,7 +32,7 @@ namespace SpellBook.GAS.Abilities
     /// <summary>
     /// Dados de uma habilidade. A execução é feita pelo AbilitySystemComponent (TryActivateAbility).
     /// </summary>
-    [CreateAssetMenu(fileName = "GA_NewAbility", menuName = "SpellBook/GAS/Gameplay Ability")]
+    [CreateAssetMenu(fileName = "New Ability", menuName = "SpellBook/GAS/Ability")]
     [HelpURL(DocUrls.Gas + "#gameplayability")]
     public class GameplayAbility : ScriptableObject, ISerializationCallbackReceiver, IValidatable
     {

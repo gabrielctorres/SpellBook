@@ -59,3 +59,26 @@ Antes do OA5, e fora dos tickets, vem o protótipo dos estilos: as famílias hab
 ## Validação de uso
 | Data | Observação | Ajuste pedido | Status |
 |---|---|---|---|
+
+<!-- Parte JIT: uma seção por ticket, escrita pela Fábrica quando o ticket entra na fila, lendo o código na hora.
+     Limites e contagem: ADR 0042. -->
+
+## OA1 — Guarda de menu e `fileName`; GAS e Tags pela 0043
+### Detalhe (2026-11-04)
+- CA: CA1 e CA2 (módulos `SpellBook.GAS` e `SpellBook.Tags`), CA3 (guarda com a lista dos módulos conferidos; a guarda de raiz e de menu repetido da #344 continua valendo para o pacote inteiro).
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/GAS/Abilities/GameplayAbility.cs:35`: `SpellBook/GAS/Ability`, `New Ability`.
+  - `Runtime/GAS/Effects/GameplayEffect.cs:46`: `SpellBook/GAS/Effect`, `New Effect`.
+  - `Runtime/GAS/Abilities/CooldownReductionPolicy.cs:21`: `SpellBook/GAS/Cooldown Reduction Policy`, `New Cooldown Reduction Policy`.
+  - `Runtime/GAS/Core/AbilitySystemAnchor.cs:11`: `SpellBook/GAS/Ability System Anchor`, `New Ability System Anchor`.
+  - `Runtime/GAS/Attributes/AttributeDefinition.cs:33`: `SpellBook/GAS/Attributes/Attribute`, `New Attribute`.
+  - `Runtime/GAS/Attributes/AttributeCategory.cs:9`: `SpellBook/GAS/Attributes/Attribute Category`, `New Attribute Category`.
+  - `Runtime/GAS/Attributes/Formulas/SimpleAttributeFormula.cs:9`: `SpellBook/GAS/Attributes/Formulas/Simple Attribute Formula`, `New Simple Attribute Formula`.
+  - `Runtime/GAS/Attributes/Formulas/ExpressionFormula.cs:10`: `SpellBook/GAS/Attributes/Formulas/Expression Formula`, `New Expression Formula`.
+  - `Runtime/Tags/GameplayTagDefinition.cs:7`: `SpellBook/Tags/Tag`, `New Tag`.
+  - `Tests/Core/EditMode/Structure/CreateAssetMenuRulesTests.cs:46-61`: a varredura passa a ler também o `fileName`; tabela `CheckedModuleMenus` (assembly → pastas de menu permitidas, pelo item 2 da 0043) só com `SpellBook.GAS` (`SpellBook/GAS/`, `SpellBook/GAS/Attributes/`, `SpellBook/GAS/Attributes/Formulas/`) e `SpellBook.Tags` (`SpellBook/Tags/`); três testes novos.
+  - Sem `CHANGELOG.md` e sem manual: menu e `fileName` não são API nem formato serializado, e os assets existentes não mudam (0043, "Consequências"). Os caminhos citados no manual e no catálogo ficam para o passe de documentação.
+- Testes red (EditMode, `SpellBook.Core.Tests.EditMode`, classe `CreateAssetMenuRulesTests`): `CheckedModuleMenu_UsesFolderAllowedForItsAssembly`; `CheckedModuleMenuItem_DropsGameplayPrefix`; `CheckedModuleFileName_IsNewPlusMenuItemName`.
+- Critério de pronto: os 5 testes de `\.CreateAssetMenuRulesTests\.` verdes (os 2 da #344 e os 3 novos), com `total` 5 no XML.
+- Tamanho: ~91 linhas (18 nos 9 tipos e 73 na guarda) e 10 arquivos, pela ADR 0042. Exceção: nenhuma.
+- Commit: `chore(menu): guarda de menu e fileName; GAS e Tags pela ADR 0043`
