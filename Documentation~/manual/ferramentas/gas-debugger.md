@@ -1,7 +1,7 @@
-# GAS Debugger {#gas-debugger}
+# GAS Debugger
 
 O GAS Debugger é uma janela do Editor que mostra, em Play, o estado de um
-[AbilitySystemComponent](../modulos/gas.md#abilitysystemcomponent) (ASC): atributos com os
+[AbilitySystemComponent](../modulos/gas.md#id-1.5-abilitysystemcomponent-asc) (ASC): atributos com os
 modificadores, tags, efeitos ativos, habilidades com a recarga e o log dos eventos. Ela também tem
 ações para testar o ASC sem escrever código: aplicar e remover efeito, conceder e retirar habilidade
 e zerar a recarga.
@@ -10,12 +10,12 @@ A janela fica no assembly `SpellBook.GAS.Editor` e só existe no Editor. As linh
 `GasDebuggerModel` (namespace `SpellBook.GAS.Diagnostics`), que fica no runtime e lê o ASC só pela
 API pública.
 
-## Abrir {#abrir}
+## Abrir
 
 Menu **Window > SpellBook > GAS Debugger**. Fora do Play a janela mostra "Entre em Play para
 inspecionar um ASC.".
 
-## Escolher o ASC {#escolher-o-asc}
+## Escolher o ASC
 
 Há dois jeitos:
 
@@ -25,7 +25,7 @@ Há dois jeitos:
 
 Ao trocar de ASC, o log recomeça. Sair do Play ou fechar a janela para a gravação.
 
-## Blocos {#blocos}
+## Blocos
 
 A janela tem um bloco recolhível para cada parte do ASC, atualizado a cada 250 ms:
 
@@ -37,7 +37,7 @@ A janela tem um bloco recolhível para cada parte do ASC, atualizado a cada 250 
 | Habilidades | as habilidades concedidas, com o nível, se estão ativas e a recarga restante em segundos e em porcentagem, ou "pronta" |
 | Log de eventos | os últimos 50 eventos do ASC, o mais recente primeiro |
 
-## Ações {#acoes}
+## Ações
 
 As ações só funcionam em Play, com um ASC escolhido:
 
@@ -51,7 +51,7 @@ As ações só funcionam em Play, com um ASC escolhido:
 - **Zerar recarga** (bloco Habilidades): zera a recarga da habilidade selecionada na lista, como
   `ResetCooldown`. Uma habilidade pronta não muda.
 
-## Log de eventos {#log}
+## Log de eventos
 
 O log grava os eventos do ASC escolhido, com o tempo do ASC (`TickedTime`) em segundos:
 
@@ -63,11 +63,11 @@ O log grava os eventos do ASC escolhido, com o tempo do ASC (`TickedTime`) em se
 | `AbilityGranted`, `AbilityRemoved` | a habilidade |
 | `CooldownChanged` | a habilidade e a mudança (`Started`, `Changed`, `Ended`) |
 
-São os eventos de [Eventos do ASC](../modulos/gas.md#ciclo-de-vida). O log guarda os **últimos 50**:
+São os eventos de [Eventos do ASC](../modulos/gas.md#id-4.-ciclo-de-vida-cooldown-e-custo). O log guarda os **últimos 50**:
 quando chega o 51º, o mais antigo sai. O botão **Limpar log** apaga o log, e o botão **?** abre esta
 página.
 
-## Exemplo: conferir um veneno {#exemplo}
+## Exemplo: conferir um veneno
 
 1. Na cena, selecione o objeto do jogador, com `AbilitySystemComponent` e `AttributeSet`.
 2. Abra o GAS Debugger e entre em Play.

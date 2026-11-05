@@ -96,7 +96,7 @@ namespace SpellBook.Core.Tests
     {
     }
 
-    [HelpURL(DocUrls.Base + "teste/")]
+    [HelpURL(DocUrls.Base + "/teste")]
     public class DocumentedTestAsset : ScriptableObject
     {
     }

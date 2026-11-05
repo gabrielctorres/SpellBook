@@ -8,7 +8,7 @@ namespace SpellBook.Pooling
     /// Gerenciador Central de Pooling Modular. 
     /// Recebe uma lista de PoolConfigurations para realizar o pre-warm no Awake.
     /// </summary>
-    [HelpURL(DocUrls.Pooling + "#poolmanager")]
+    [HelpURL(DocUrls.Pooling + "#poolmanager-pre-aquecimento")]
     public class PoolManager : MonoBehaviour
     {
         public static PoolManager Instance { get; private set; }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using NUnit.Framework;
 using SpellBook.Core.Tests.Documentation;
 using SpellBook.Core.Tests.Structure;
@@ -12,12 +11,18 @@ using UnityEngine;
 namespace SpellBook.Core.Tests
 {
     /// <summary>
-    /// Cada <c>[HelpURL]</c> e cada constante de <see cref="DocUrls"/> tem página e âncora <c>{#id}</c> no manual, e nenhuma
-    /// página é só título ou "em breve" (CA54; ADR 0007, I26). O manual fica em <c>Documentation~/manual/</c>, na raiz do
-    /// repositório, fora do pacote (ADR 0027).
+    /// Cada <c>[HelpURL]</c> e cada constante de <see cref="DocUrls"/> tem página e âncora de título no manual, e nenhuma
+    /// página é só título ou "em breve" (CA54; ADR 0007, I26). No lugar do <c>mkdocs build --strict</c>, o sumário, os links
+    /// e a sintaxe seguem o GitBook (ADR 0044, item 10; Spec <c>migracao-gitbook.md</c>, CA5). O manual fica em
+    /// <c>Documentation~/manual/</c>, na raiz do repositório, fora do pacote (ADR 0027).
     /// </summary>
     public class ManualLinksTests
     {
+        /// <summary>A página inicial do space, que o GitBook chama de <c>README.md</c> (ADR 0044, emenda de 2026-11-05, decisão 4).</summary>
+        private const string HomePage = "README.md";
+
+        private const string Summary = "SUMMARY.md";
+
         [Test]
         public void PackageFiles_RepositoryRoot_HasManual()
         {
@@ -82,6 +87,41 @@ namespace SpellBook.Core.Tests
             Assert.That(stubs, Is.Empty, "páginas só com título ou \"em breve\":\n" + string.Join("\n", stubs));
         }
 
+        [Test]
+        [Category(TestCategories.Documentation)]
+        public void SummaryListsEveryPageOnce()
+        {
+            string summary = ReadManualFile(Summary);
+
+            Assert.That(summary, Is.Not.Null, $"o manual não tem o {Summary} na raiz");
+            List<string> problems = ManualMarkdown.SummaryProblems(summary, PagePaths());
+            Assert.That(problems, Is.Empty, $"{Summary} fora de dia com as páginas:\n" + string.Join("\n", problems));
+        }
+
+        [Test]
+        [Category(TestCategories.Documentation)]
+        public void EveryRelativeLinkHasTarget()
+        {
+            List<string> broken = PagePaths()
+                .SelectMany(p => ManualMarkdown.BrokenLinks(p, ReadManualFile(p), DocUrls.Base, ReadManualFile))
+                .ToList();
+
+            Assert.That(broken, Is.Empty, "link do manual sem destino:\n" + string.Join("\n", broken));
+        }
+
+        [Test]
+        [Category(TestCategories.Documentation)]
+        public void NoMkDocsSyntax()
+        {
+            List<string> leftovers = PagePaths()
+                .SelectMany(p => ManualMarkdown.MkDocsLeftovers(ReadManualFile(p)).Select(l => $"{p}:{l}"))
+                .ToList();
+
+            Assert.That(leftovers, Is.Empty,
+                "sintaxe do MkDocs no manual ({#, !!!, ???, --8<--); use a do GitBook (ADR 0044, item 11):\n"
+                + string.Join("\n", leftovers));
+        }
+
         private static IEnumerable<Assembly> PackageAssemblies()
         {
             return AppDomain.CurrentDomain.GetAssemblies().Where(a =>
@@ -102,7 +142,7 @@ namespace SpellBook.Core.Tests
 
             string[] parts = url.Substring(DocUrls.Base.Length).Split('#');
             string path = parts[0].Trim('/');
-            string page = Path.Combine(ManualRoot(), path.Length == 0 ? "index.md" : path + ".md");
+            string page = Path.Combine(ManualRoot(), path.Length == 0 ? HomePage : path + ".md");
             if (!File.Exists(page))
             {
                 return $"{url}: página não existe ({page})";
@@ -113,8 +153,26 @@ namespace SpellBook.Core.Tests
                 return null;
             }
 
-            var anchor = new Regex(@"\{\s*#" + Regex.Escape(parts[1]) + @"(\s[^}]*)?\}");
-            return anchor.IsMatch(File.ReadAllText(page)) ? null : $"{url}: âncora {{#{parts[1]}}} não existe";
+            return ManualMarkdown.Anchors(File.ReadAllText(page)).Contains(parts[1])
+                ? null
+                : $"{url}: nenhum título da página tem a âncora #{parts[1]}";
+        }
+
+        /// <summary>As páginas do manual, com o caminho a partir da raiz dele, sem o próprio sumário.</summary>
+        private static List<string> PagePaths()
+        {
+            string root = ManualRoot();
+            return Directory.GetFiles(root, "*.md", SearchOption.AllDirectories)
+                .Select(f => f.Substring(root.Length + 1).Replace('\\', '/'))
+                .Where(p => p != Summary)
+                .OrderBy(p => p, StringComparer.Ordinal)
+                .ToList();
+        }
+
+        private static string ReadManualFile(string path)
+        {
+            string file = Path.Combine(ManualRoot(), path);
+            return File.Exists(file) ? File.ReadAllText(file) : null;
         }
 
         private static string ManualRoot()

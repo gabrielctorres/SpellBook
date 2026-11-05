@@ -12,7 +12,7 @@ namespace SpellBook.Core.Tests.Documentation
     [Category(TestCategories.Documentation)]
     public class ReferenceUpToDateTests
     {
-        private const string Instruction = "rode SpellBook > Documentação > Gerar referência e commite o resultado";
+        private const string Instruction = "rode SpellBook > Documentação > Gerar catálogo e exemplos e commite o resultado";
 
         [Test]
         public void CommittedCatalog_MatchesGenerated()

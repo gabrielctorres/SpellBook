@@ -1,22 +1,21 @@
-# Tempo {#tempo}
+# Tempo
 
 O módulo Tempo dá ao SpellBook um relógio que você pode trocar. Em vez de ler `Time.deltaTime`
 direto, um componente lê uma **fonte de tempo**. Assim dá para pausar só a gameplay, deixar a UI
 andando no tempo não escalado e testar durações sem esperar tempo real.
 
 O módulo fica no assembly `SpellBook.Time` (namespace `SpellBook.Time`). Um asmdef seu que usa as
-fontes precisa referenciar o `SpellBook.Time`. Veja [Conceitos](../inicio/conceitos.md#modulos).
+fontes precisa referenciar o `SpellBook.Time`. Veja [Conceitos](../inicio/conceitos.md#modulos-e-assemblies).
 
-## ITimeSource {#itimesource}
+## ITimeSource
 
 Toda fonte implementa a mesma interface, só de consulta, com duas propriedades. O `ElapsedTime`
 (`double`) é o tempo acumulado da fonte, em segundos. O `DeltaTime` (`float`) é o delta do quadro
-atual, já com a pausa da fonte aplicada. A declaração está na
-[página do `ITimeSource` na API](https://gabrielctorres.github.io/SpellBook/api/SpellBook.Time.ITimeSource.html).
+atual, já com a pausa da fonte aplicada.
 
 A interface não tem evento de tick nem `Update`. Quem consome a fonte é que a lê quando precisa.
 
-## Fontes prontas {#fontes}
+## Fontes prontas
 
 | Fonte | `ElapsedTime` | `DeltaTime` | Menu |
 |---|---|---|---|
@@ -28,7 +27,7 @@ A interface não tem evento de tick nem `Update`. Quem consome a fonte é que a 
 Todas herdam de `TimeSourceAsset`, um `ScriptableObject`. Por isso uma fonte é um asset que você
 arrasta para qualquer campo do tipo `TimeSourceAsset`.
 
-### ScaledTimeSource {#scaledtimesource}
+### ScaledTimeSource
 
 Segue o `Time.timeScale` da Unity: com `timeScale = 0`, o tempo para. É a fonte padrão. Um campo de
 fonte vazio usa `TimeSourceAsset.Scaled`, uma instância criada em memória e nunca salva em disco.
@@ -37,11 +36,11 @@ Você só precisa criar um asset escalado se quiser deixar a escolha explícita 
 Lida dentro de `FixedUpdate`, ela devolve o passo fixo, porque a própria Unity devolve o
 `Time.fixedDeltaTime` em `Time.deltaTime` nesse contexto.
 
-### UnscaledTimeSource {#unscaledtimesource}
+### UnscaledTimeSource
 
 Ignora o `Time.timeScale`. Use em UI, menus e tudo o que precisa andar com o jogo pausado.
 
-### Grupo pausável {#pausabletimesource}
+### Grupo pausável
 
 O `PausableTimeSource` serve para pausar parte do jogo sem mexer no `Time.timeScale`. O caso
 típico é pausar a gameplay e deixar a UI andando:
@@ -60,46 +59,80 @@ código. Arraste o asset para o evento `OnClick` de um botão e escolha
 `PausableTimeSource.Pause` ou `PausableTimeSource.Resume`. Num `Toggle`, use `SetPaused(bool)`
 como função dinâmica (o valor do toggle vira o estado de pausa). Por código:
 
+{% code title="Packages/com.spellbook/Tests/Time/EditMode/Examples/TimeManualExamples.cs:menu-de-pausa" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Time/EditMode/Examples/TimeManualExamples.cs:menu-de-pausa"
+[SerializeField] private PausableTimeSource gameplay;
+
+public void AbrirMenu()  { gameplay.Pause(); }
+public void FecharMenu() { gameplay.Resume(); }
 ```
+{% endcode %}
 
 O grupo **segue o tempo escalado** da Unity e **só pausa**: não tem escala própria. Por isso:
 
 - com `Time.timeScale = 0`, o grupo também para, mesmo sem estar pausado;
 - com `Time.timeScale = 0.5`, o grupo anda na metade da velocidade, como o tempo escalado;
 - para câmera lenta só na gameplay, ainda não há fonte pronta. Crie a sua herdando de
-  `TimeSourceAsset` (veja [Estado entre sessões de Play](#reset)).
+  `TimeSourceAsset` (veja [Estado entre sessões de Play](#estado-entre-sessoes-de-play)).
 
 `IsPaused` diz se o grupo está pausado. `Pause()` com o grupo já pausado e `Resume()` com ele
 andando não fazem nada.
 
-### ManualTimeSource {#manualtimesource}
+### ManualTimeSource
 
 Só anda quando você chama `Advance(seconds)`. Cada chamada soma `seconds` ao `ElapsedTime` e
 define o `DeltaTime` como `seconds`. Um valor negativo ou NaN lança `ArgumentOutOfRangeException`.
 
 Ela não tem item de menu. Crie por código, em testes ou simulações:
 
+{% code title="Packages/com.spellbook/Tests/Time/EditMode/Examples/TimeManualExamples.cs:manual-criar,manual-avancar,manual-destruir" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Time/EditMode/Examples/TimeManualExamples.cs:manual-criar"
---8<-- "Packages/com.spellbook/Tests/Time/EditMode/Examples/TimeManualExamples.cs:manual-avancar"
---8<-- "Packages/com.spellbook/Tests/Time/EditMode/Examples/TimeManualExamples.cs:manual-destruir"
+var tempo = ScriptableObject.CreateInstance<ManualTimeSource>();
+tempo.Advance(1.5f);   // ElapsedTime 1.5, DeltaTime 1.5
+tempo.Advance(0.5f);   // ElapsedTime 2.0, DeltaTime 0.5
+// ...
+Object.DestroyImmediate(tempo);   // no TearDown do teste
 ```
+{% endcode %}
 
 Como é um `TimeSourceAsset`, ela entra em qualquer campo de fonte. O teste fica determinístico e
 rápido, sem `WaitForSeconds` nem relógio real.
 
-## Consumo por diferença {#consumo-por-diferenca}
+## Consumo por diferença
 
 O jeito certo de consumir uma fonte é guardar o último `ElapsedTime` lido (o **cursor**) e avançar
 pela diferença:
 
+{% code title="Packages/com.spellbook/Tests/Time/EditMode/Examples/TimeManualExamples.cs:using-time,using-unityengine,cronometro" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Time/EditMode/Examples/TimeManualExamples.cs:using-time"
---8<-- "Packages/com.spellbook/Tests/Time/EditMode/Examples/TimeManualExamples.cs:using-unityengine"
---8<-- "Packages/com.spellbook/Tests/Time/EditMode/Examples/TimeManualExamples.cs:cronometro"
+using SpellBook.Time;
+using UnityEngine;
+
+public sealed class Cronometro : MonoBehaviour
+{
+    [SerializeField] private TimeSourceAsset timeSource;   // vazio: fonte escalada padrão
+    [SerializeField] private float duracao = 3f;
+
+    private ITimeSource _fonte;
+    private double _cursor;
+    private float _restante;
+
+    private void OnEnable()
+    {
+        _fonte = timeSource != null ? timeSource : TimeSourceAsset.Scaled;
+        _cursor = _fonte.ElapsedTime;   // sem salto no primeiro quadro
+        _restante = duracao;
+    }
+
+    private void Update()
+    {
+        double agora = _fonte.ElapsedTime;
+        _restante -= (float)(agora - _cursor);
+        _cursor = agora;
+    }
+}
 ```
+{% endcode %}
 
 - O cursor recebe o valor atual ao ligar o componente e ao trocar de fonte. Sem isso, o primeiro
   quadro recebe de uma vez todo o tempo que a fonte já acumulou.
@@ -107,7 +140,7 @@ pela diferença:
 - Funciona com várias fontes e vários consumidores, com a `ManualTimeSource` avançada entre
   quadros e com uma fonte parada (a diferença é 0).
 
-## Estado entre sessões de Play {#reset}
+## Estado entre sessões de Play
 
 Ao entrar em Play, toda fonte com estado volta ao inicial. A `ManualTimeSource` volta a 0. O
 `PausableTimeSource` volta despausado e o `ElapsedTime` dele recomeça do 0, mesmo que você tenha
@@ -121,9 +154,9 @@ Se você criar sua própria fonte herdando de `TimeSourceAsset`:
 - se sobrescrever `OnEnable` ou `OnDisable`, chame a base: é ela que registra a instância para o
   reset.
 
-## Armadilhas {#armadilhas}
+## Armadilhas
 
-### O nome `Time` em `namespace SpellBook.*` {#armadilha-nome-time}
+### O nome `Time` em `namespace SpellBook.*`
 
 Dentro de um `namespace SpellBook.Alguma.Coisa`, o nome `Time` passa a ser o namespace
 `SpellBook.Time`, e não mais a classe `UnityEngine.Time`. Quando o assembly referencia o
@@ -133,7 +166,7 @@ Dentro de um `namespace SpellBook.Alguma.Coisa`, o nome `Time` passa a ser o nam
 Para corrigir, leia uma fonte de tempo (o recomendado) ou escreva `UnityEngine.Time.deltaTime`
 por extenso.
 
-### Testes com tempo real {#armadilha-tempo-real}
+### Testes com tempo real
 
 Teste que espera segundos de verdade é lento e instável. Use a `ManualTimeSource` e avance o tempo
 à mão.

@@ -109,8 +109,8 @@ namespace SpellBook.GAS.Tests
 
         /// <summary>
         /// Nenhum membro do GAS e do Bridges é <c>protected internal</c>. O override de um membro assim é
-        /// <c>protected internal</c> no mesmo assembly e <c>protected</c> fora dele, e o docfx, que compila o pacote como
-        /// um assembly só, recusa a forma que a Unity pede no Bridges. O ponto de extensão das ações é <c>protected</c>.
+        /// <c>protected internal</c> no mesmo assembly e <c>protected</c> fora dele, então a assinatura do
+        /// override muda conforme o assembly. O ponto de extensão das ações é <c>protected</c>.
         /// </summary>
         [Test]
         public void NoProtectedInternal_InActions()

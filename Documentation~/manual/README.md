@@ -1,4 +1,4 @@
-# SpellBook {#spellbook}
+# SpellBook
 
 O SpellBook é um pacote de ferramentas reutilizáveis para a Unity. Ele junta, num só lugar,
 sistemas que aparecem em quase todo jogo: habilidades e efeitos, eventos, tempo de jogo,
@@ -6,14 +6,14 @@ tags e reaproveitamento de objetos.
 
 Para instalar, veja a página [Instalação](inicio/instalacao.md).
 
-## Para quem é {#para-quem-e}
+## Para quem é
 
 - **Programadores** que querem sistemas prontos, testados e separados em assemblies,
   para usar só o que o projeto precisa.
 - **Designers** que montam habilidades, reações e eventos pelo Inspector, sem escrever código.
   Os campos com vários tipos possíveis têm um seletor com busca e categorias.
 
-## Módulos {#modulos}
+## Módulos
 
 Cada módulo é um assembly próprio. Um módulo só depende do Core e dos módulos de que
 realmente precisa.
@@ -29,8 +29,11 @@ realmente precisa.
 | **GAS.Bridges** | Ligações do GAS com outros módulos, como disparar um evento a partir de uma habilidade. |
 
 Os assemblies de cada módulo e as dependências permitidas entre eles estão em
-[Conceitos](inicio/conceitos.md#mapa).
+[Conceitos](inicio/conceitos.md#mapa-de-assemblies).
 
-!!! note "Versão 3.0 em desenvolvimento"
-    A 3.0 reorganiza o pacote nos módulos acima e ainda está em desenvolvimento.
-    Quem vem da 2.x deve ler a [Migração 2.x → 3.0](regras/migracao-2-para-3.md).
+{% hint style="info" %}
+**Versão 3.0 em desenvolvimento**
+
+A 3.0 reorganiza o pacote nos módulos acima e ainda está em desenvolvimento.
+Quem vem da 2.x deve ler a [Migração 2.x → 3.0](regras/migracao-2-para-3.md).
+{% endhint %}

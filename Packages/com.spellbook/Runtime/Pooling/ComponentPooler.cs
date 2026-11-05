@@ -8,7 +8,7 @@ namespace SpellBook.Pooling
     /// Pooler de objetos baseado em componente.
     /// Gerencia uma fila (Queue) para acesso O(1) e utiliza uma Safe Zone para instanciar objetos.
     /// </summary>
-    [HelpURL(DocUrls.Pooling + "#componentpooler")]
+    [HelpURL(DocUrls.Pooling + "#componentpooler-e-ipoolable")]
     public class ComponentPooler : MonoBehaviour
     {
         private PoolConfiguration _config;

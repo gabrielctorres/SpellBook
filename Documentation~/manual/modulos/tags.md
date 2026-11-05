@@ -1,13 +1,13 @@
-# Tags {#tags}
+# Tags
 
 As tags de gameplay são rótulos hierárquicos, como `State.Stunned` ou `Ability.Fireball.Cooldown`.
 O GAS usa as tags para bloquear, exigir e cancelar habilidades, e efeitos podem conceder tags
 enquanto estão ativos. Esta página mostra como criar tags e como elas são comparadas.
 
 As tags ficam no assembly `SpellBook.Tags`, no namespace `SpellBook.Tags`. Um asmdef seu que usa
-tags precisa referenciar o `SpellBook.Tags`. Veja [Conceitos](../inicio/conceitos.md#modulos).
+tags precisa referenciar o `SpellBook.Tags`. Veja [Conceitos](../inicio/conceitos.md#modulos-e-assemblies).
 
-## GameplayTagDefinition {#gameplaytagdefinition}
+## GameplayTagDefinition
 
 Cada tag é um asset do tipo `GameplayTagDefinition`. O nome do asset é o nome da tag.
 
@@ -17,7 +17,7 @@ Para criar uma tag:
 2. Dê ao asset o nome da tag, por exemplo `State.Stunned`.
 3. Se a tag tem uma tag pai, arraste o asset do pai para o campo **Parent**.
 
-### Hierarquia {#hierarquia}
+### Hierarquia
 
 A hierarquia vem só do campo **Parent**, não do nome. O ponto em `State.Stunned` é uma convenção
 para quem lê; o que liga `State.Stunned` a `State` é o asset `State` estar no **Parent** de
@@ -32,7 +32,7 @@ Exemplo de hierarquia:
 | `State.Debuff` | `State` |
 | `State.Debuff.Slowed` | `State.Debuff` |
 
-## GameplayTag no Inspector {#gameplaytag}
+## GameplayTag no Inspector
 
 Os campos de tag do GAS, como **Ability Tag**, **Blocked Tags** e **Granted Tags**, são do tipo
 `GameplayTag`. No Inspector, um `GameplayTag` mostra o campo **Definition**: arraste para ele o
@@ -41,12 +41,15 @@ asset `GameplayTagDefinition` da tag. Um `GameplayTag` sem definição é uma ta
 
 Em código, crie um `GameplayTag` a partir da definição:
 
+{% code title="Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-tags,create-tag" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-tags"
---8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:create-tag"
-```
+using SpellBook.Tags;
 
-## Matches {#matches}
+var stunned = new GameplayTag(stunnedDefinition);
+```
+{% endcode %}
+
+## Matches
 
 `a.Matches(b)` responde se a tag `a` é a tag `b` ou descende dela:
 
@@ -64,16 +67,24 @@ O `AbilitySystemComponent` usa a mesma regra: `HasTag(State)` é `true` quando o
 `State.Stunned`. Assim, uma habilidade com `State` em **Blocked Tags** fica bloqueada por
 qualquer estado filho.
 
-## GameplayTagContainer {#gameplaytagcontainer}
+## GameplayTagContainer
 
 Um `GameplayTagContainer` é um conjunto de tags sem repetição, que guarda as tags na ordem em que
 foram adicionadas. Use-o quando um campo ou uma variável precisa de várias tags e de perguntas como
 "tem alguma destas?".
 
+{% code title="Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-tags,container" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-tags"
---8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:container"
+using SpellBook.Tags;
+
+var tags = new GameplayTagContainer(fireFlame, stunned);   // repetidas e inválidas são ignoradas
+bool entrou = tags.Add(slowed);        // true: entrou no fim
+bool entrouDeNovo = tags.Add(slowed);  // false: já estava
+bool saiu = tags.Remove(stunned);      // true: saiu (só a tag exata; filhas dela ficam)
+
+bool burning = tags.HasTag(fire);   // true se o conjunto tem Elemento.Fogo ou uma filha dele
 ```
+{% endcode %}
 
 Todas as perguntas usam a mesma regra do [Matches](#matches): uma tag do conjunto casa com a tag
 perguntada se é ela ou descende dela. A exceção é `HasTagExact`, que compara sem hierarquia.
@@ -100,7 +111,7 @@ A lista pode ser outro conjunto, uma `List<GameplayTag>` ou um array, como os ca
 - Dados editados à mão podem ter linhas vazias ou repetidas. O conjunto não as corrige sozinho:
   a linha vazia nunca casa, e `Count` conta o que está guardado.
 
-## GameplayTagQuery {#gameplaytagquery}
+## GameplayTagQuery
 
 Um `GameplayTagQuery` é uma consulta sobre um conjunto de tags, montada com três listas:
 
@@ -115,10 +126,21 @@ satisfaz **Todas** e **Alguma** pelo pai, e é barrada por **Nenhuma** pelo pai.
 
 Exemplo: atacar só um alvo atordoado, com fogo ou gelo, e que não seja imune.
 
+{% code title="Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-tags,query" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-tags"
---8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:query"
+using SpellBook.Tags;
+
+var query = new GameplayTagQuery();
+query.All.Add(stunned);
+query.Any.Add(fire);
+query.Any.Add(ice);
+query.None.Add(immune);
+
+bool atordoadoComGelo = query.Matches(new GameplayTagContainer(stunned, ice));        // true
+bool imune = query.Matches(new GameplayTagContainer(stunned, ice, immune));           // false: tem Imune
+bool semElemento = query.Matches(new GameplayTagContainer(stunned));                  // false: falta fogo ou gelo
 ```
+{% endcode %}
 
 - `Matches` aceita um `GameplayTagContainer`, uma `List<GameplayTag>` ou um array (`null` conta
   como vazio). `Matches(tag)` pergunta por uma tag só, sem montar um conjunto.
@@ -128,7 +150,7 @@ Exemplo: atacar só um alvo atordoado, com fogo ou gelo, e que não seja imune.
 - **Sem alocação**: `Matches` e `IsEmpty` não geram lixo; pode chamar a cada quadro.
 - A consulta é só dados (três listas), sem texto nem expressão.
 
-## No Inspector {#no-inspector}
+## No Inspector
 
 Um campo `GameplayTagContainer` aparece no Inspector como uma lista:
 
@@ -146,7 +168,7 @@ O Inspector não aponta linhas vazias nem repetidas; quem aponta é o [validador
 Inspector antigo em IMGUI (de outro pacote) mostra no lugar do campo o aviso "Este campo precisa do
 Inspector em UI Toolkit".
 
-## Validação {#validacao}
+## Validação
 
 O [validador](../ferramentas/validador.md) aponta os problemas de um `GameplayTagContainer` ou de um
 `GameplayTagQuery`:
@@ -164,14 +186,20 @@ O conjunto e a consulta não são assets nem componentes, então quem valida é 
 os seus campos entrarem no validador, implemente `IValidatable` no componente ou asset e repasse a
 chamada com o nome do campo:
 
+{% code title="Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:validate" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:validate"
+public void Validate(ValidationResult result)
+{
+    alvos.Validate(result, nameof(alvos));        // GameplayTagContainer
+    condicao.Validate(result, nameof(condicao));  // GameplayTagQuery
+}
 ```
+{% endcode %}
 
 As mensagens saem com o seu objeto (clicável na janela) e o caminho do campo. Veja
-[Validar um tipo seu](../ferramentas/validador.md#ivalidatable).
+[Validar um tipo seu](../ferramentas/validador.md#validar-um-tipo-seu).
 
-## Ferramentas próprias {#ferramentas-proprias}
+## Ferramentas próprias
 
 Uma ferramenta sua, como um painel de debug, pode ler a hierarquia usando só a API pública:
 
@@ -181,14 +209,29 @@ Uma ferramenta sua, como um painel de debug, pode ler a hierarquia usando só a 
 
 Exemplo: escrever no Console o nome de uma tag e a cadeia de pais dela.
 
+{% code title="Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-system-text,using-tags,using-unityengine,tag-debug" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-system-text"
---8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-tags"
---8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:using-unityengine"
---8<-- "Packages/com.spellbook/Tests/Tags/EditMode/Examples/TagsManualExamples.cs:tag-debug"
-```
+using System.Text;
+using SpellBook.Tags;
+using UnityEngine;
 
-## Armadilhas {#armadilhas}
+public static class TagDebug
+{
+    public static void LogChain(GameplayTag tag)
+    {
+        var text = new StringBuilder(tag.Name);
+        for (GameplayTagDefinition parent = tag.GetDefinition()?.Parent; parent != null; parent = parent.Parent)
+        {
+            text.Append(" → ").Append(parent.name);
+        }
+
+        Debug.Log(text.ToString());   // State.Debuff.Slowed → State.Debuff → State
+    }
+}
+```
+{% endcode %}
+
+## Armadilhas
 
 - **Uma tag é um asset.** Duas definições com o mesmo nome são duas tags diferentes. Crie cada tag
   uma vez e reuse o mesmo asset em todos os campos.

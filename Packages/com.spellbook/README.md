@@ -17,7 +17,7 @@ Siga os passos abaixo para adicionar o SpellBook - Unity Tools ao seu projeto:
  -  Clique em Adicionar e aguarde o Unity instalar o pacote.
 
 ## 📖 Como usar?
-Veja o manual em https://gabrielctorres.github.io/SpellBook/
+Veja o manual em https://rook-studio.gitbook.io/spellbook
 
 ## 📬 Feedback e Contribuição
 Tem sugestões, encontrou um bug, ou quer contribuir com novos feitiços?  

@@ -1,27 +1,30 @@
-# Eventos {#eventos}
+# Eventos
 
 O módulo Eventos serve para um sistema avisar outros de que algo aconteceu sem que um conheça o
 outro. Quem dispara não sabe quem ouve, e quem ouve não guarda referência para quem dispara.
 
 O módulo fica no assembly `SpellBook.Events` (namespace `SpellBook.Events`). Um asmdef seu que usa
-os eventos precisa referenciar o `SpellBook.Events`. Veja [Conceitos](../inicio/conceitos.md#modulos).
+os eventos precisa referenciar o `SpellBook.Events`. Veja [Conceitos](../inicio/conceitos.md#modulos-e-assemblies).
 
-!!! note "Em desenvolvimento"
-    Nesta versão de desenvolvimento da 3.0, o módulo tem o barramento de código (`EventBus<T>`),
-    os canais Void, Int, Float, Bool, String, Vector3 e GameObject e o componente ouvinte
-    (`EventListener`) com as reações prontas SetActive, Toggle de componente, Log, RaiseChannel e
-    Invoke com delay, e o emissor (`EventEmitter`), com o botão Raise no Inspector do canal e do
-    emissor, e o seletor de canal filtrado por payload. O depurador de eventos chega numa próxima
-    etapa.
+{% hint style="info" %}
+**Em desenvolvimento**
 
-## Três usos e uma regra {#tres-usos}
+Nesta versão de desenvolvimento da 3.0, o módulo tem o barramento de código (`EventBus<T>`),
+os canais Void, Int, Float, Bool, String, Vector3 e GameObject e o componente ouvinte
+(`EventListener`) com as reações prontas SetActive, Toggle de componente, Log, RaiseChannel e
+Invoke com delay, e o emissor (`EventEmitter`), com o botão Raise no Inspector do canal e do
+emissor, e o seletor de canal filtrado por payload. O depurador de eventos chega numa próxima
+etapa.
+{% endhint %}
+
+## Três usos e uma regra
 
 Existem três jeitos de avisar que algo aconteceu. Cada um tem o seu caso:
 
 | Uso | Quando usar | Forma |
 |---|---|---|
 | Canal em asset | Fato global que o designer liga no Inspector, sem código | [Canal](#canais) (`ScriptableObject`) |
-| Barramento de código | Fato global só entre sistemas de código | [`EventBus<T>`](#eventbus) com um struct |
+| Barramento de código | Fato global só entre sistemas de código | [`EventBus<T>`](#eventbus-less-than-t-greater-than) com um struct |
 | Evento C# por instância | Estado de **uma** entidade | `event` C# no próprio componente, fora deste módulo |
 
 **Regra: estado de uma entidade nunca passa por canal nem por barramento.** A vida de um
@@ -29,30 +32,50 @@ personagem ou a recarga de uma habilidade são lidas do próprio componente, por
 Canal e barramento são globais: qualquer um ouve qualquer disparo, e um dado de uma entidade
 misturado com os das outras vira acoplamento escondido.
 
-## EventBus\<T\> {#eventbus}
+## EventBus\<T\>
 
 O `EventBus<T>` é um barramento estático por tipo. Cada struct de evento tem o seu barramento,
 sem asset e sem objeto para criar. Serve para avisos entre sistemas de código, como "a partida
 começou" ou "o jogador subiu de nível".
 
-### IEvent {#ievent}
+### IEvent
 
 O tipo do evento é um `struct` que implementa `IEvent`. A interface é vazia: ela só marca o struct
 como evento.
 
+{% code title="Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-events,partida-comecou" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-events"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:partida-comecou"
+using SpellBook.Events;
+
+public struct PartidaComecou : IEvent
+{
+    public int Fase;
+}
 ```
+{% endcode %}
 
-### Inscrever, desinscrever e disparar {#eventbus-uso}
+### Inscrever, desinscrever e disparar
 
+{% code title="Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-events,using-unityengine,placar,placar-raise" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-events"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-unityengine"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:placar"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:placar-raise"
+using SpellBook.Events;
+using UnityEngine;
+
+public sealed class Placar : MonoBehaviour
+{
+    private void OnEnable()  { EventBus<PartidaComecou>.Subscribe(AoComecar); }
+    private void OnDisable() { EventBus<PartidaComecou>.Unsubscribe(AoComecar); }
+
+    private void AoComecar(PartidaComecou evento)
+    {
+        Debug.Log($"Fase {evento.Fase}");
+    }
+}
+
+// Em qualquer outro sistema:
+EventBus<PartidaComecou>.Raise(new PartidaComecou { Fase = 2 });
 ```
+{% endcode %}
 
 - `Subscribe(Action<T>)` inscreve o ouvinte. Inscrever duas vezes o mesmo método não faz ele ser
   chamado duas vezes.
@@ -66,13 +89,13 @@ como evento.
 O `Raise` não aloca memória depois que os ouvintes estão inscritos, então pode ser chamado todo
 quadro. A **ordem** de chamada dos ouvintes não é garantida: não escreva código que dependa dela.
 
-## Canais {#canais}
+## Canais
 
 Um canal é um asset (`ScriptableObject`) que representa um fato global, como "o jogador morreu"
 ou "a porta abriu". Quem dispara e quem ouve recebem o **mesmo asset** num campo do Inspector e
 não se conhecem. É o jeito de ligar eventos sem escrever código de ligação.
 
-### Criar um canal {#criar-canal}
+### Criar um canal
 
 No Project, **Create > SpellBook > Events** e escolha o tipo:
 
@@ -106,16 +129,32 @@ Abaixo dos campos, o Inspector do canal mostra:
 - **Ouvintes**: quantos estão inscritos agora e quem são (o nome e o tipo do objeto de cada
   ouvinte). A lista se atualiza sozinha enquanto o Inspector está aberto.
 
-### EventChannel\<T\> {#eventchannel}
+### EventChannel\<T\>
 
 Todo canal herda de `EventChannel<T>`, em que `T` é o tipo do dado que o disparo leva.
 
+{% code title="Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-events,using-unityengine,barra-de-vida,barra-de-vida-raise" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-events"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-unityengine"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:barra-de-vida"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:barra-de-vida-raise"
+using SpellBook.Events;
+using UnityEngine;
+
+public sealed class BarraDeVida : MonoBehaviour
+{
+    [SerializeField] private IntEventChannel vidaMudou;
+
+    private void OnEnable()  { vidaMudou.Raised += AoMudar; }
+    private void OnDisable() { vidaMudou.Raised -= AoMudar; }
+
+    private void AoMudar(int vida)
+    {
+        Debug.Log($"Vida: {vida}");
+    }
+}
+
+// Em quem dispara, com o mesmo asset no campo:
+vidaMudou.Raise(80);
 ```
+{% endcode %}
 
 - `Raised` é um `event` C#: `+=` inscreve e `-=` desinscreve. Inscrever duas vezes o mesmo método
   não faz ele ser chamado duas vezes.
@@ -126,44 +165,44 @@ Todo canal herda de `EventChannel<T>`, em que `T` é o tipo do dado que o dispar
   lista com o objeto de cada ouvinte (ou o próprio delegate, num método estático).
 - As regras do barramento valem aqui: inscreva no `OnEnable` e desinscreva no `OnDisable`, o
   `Raise` não aloca memória com os ouvintes inscritos e o Log Raises desligado, e a
-  [segurança do disparo](#seguranca) é a mesma.
+  [segurança do disparo](#seguranca-do-disparo) é a mesma.
 
 Para um payload seu, crie uma classe `XEventChannel : EventChannel<X>` com
 `[CreateAssetMenu]`.
 
-### VoidEventChannel {#voideventchannel}
+### VoidEventChannel
 
 Canal sem dado: só avisa que algo aconteceu. Dispare com `Raise()`. O ouvinte recebe um
 `SpellBook.Core.Void`, que não carrega nada.
 
-### IntEventChannel {#inteventchannel}
+### IntEventChannel
 
 Canal com payload `int`, como uma quantidade ou um índice.
 
-### FloatEventChannel {#floateventchannel}
+### FloatEventChannel
 
 Canal com payload `float`, como uma porcentagem ou uma duração.
 
-### BoolEventChannel {#booleventchannel}
+### BoolEventChannel
 
 Canal com payload `bool`, como ligado e desligado ou pausado e em jogo.
 
-### StringEventChannel {#stringeventchannel}
+### StringEventChannel
 
 Canal com payload `string`, como um identificador ou uma mensagem. Montar a string a cada disparo
 aloca memória; prefira strings fixas num disparo que acontece todo quadro.
 
-### Vector3EventChannel {#vector3eventchannel}
+### Vector3EventChannel
 
 Canal com payload `Vector3`, como uma posição ou uma direção.
 
-### GameObjectEventChannel {#gameobjecteventchannel}
+### GameObjectEventChannel
 
 Canal com payload `GameObject`, como o objeto que morreu ou que foi coletado. O ouvinte lê o
 componente de que precisa no objeto recebido. Um objeto destruído antes do disparo chega como
 `null` para o Unity: confira antes de usar.
 
-### Armadilhas {#canais-armadilhas}
+### Armadilhas
 
 - **Asset duplicado pelo Addressables.** Se o canal estiver num grupo do Addressables e também for
   referenciado por uma cena ou asset fora dele, o build pode ter duas cópias do canal. Quem
@@ -174,7 +213,7 @@ componente de que precisa no objeto recebido. Um objeto destruído antes do disp
   `SpellBook.Core`. Num arquivo com `using System;`, escreva `SpellBook.Core.Void` no método do
   ouvinte.
 
-## Canais do GAS {#canais-do-gas}
+## Canais do GAS
 
 O assembly `SpellBook.GAS.Bridges` traz canais com os dados dos eventos do GAS. Crie-os em
 **Create > SpellBook > GAS > Events**. Eles ficam no GAS, e não no módulo Events: o Events não
@@ -207,7 +246,7 @@ conhece o GAS. Cada canal tem a sua resposta no seletor da lista **Responses** d
   momento, e `Instigator` e `Effect` vêm da alteração que levou ao limite, com as mesmas regras.
 - Os payloads são structs: disparar não aloca.
 
-## Relay do GAS {#relay-do-gas}
+## Relay do GAS
 
 O `AbilitySystemEventRelay` (assembly `SpellBook.GAS.Bridges`) repassa os eventos C# de um ASC
 para [canais do GAS](#canais-do-gas) e para `UnityEvent`s locais. Ponha um por ator, no mesmo
@@ -259,7 +298,7 @@ Cada evento é um **par** com três campos, todos opcionais. Ligue só o que pre
   qualquer ordem com o ASC. Ele não guarda estado de gameplay.
 - Os payloads não alocam; o canal de texto aloca, porque lê o `name` do asset.
 
-### Inspector e validação do relay {#relay-inspector}
+### Inspector e validação do relay
 
 O Inspector mostra o campo **Ability System** e, abaixo, os pares em cinco grupos recolhidos:
 **Efeitos**, **Habilidades**, **Atributos** (com o **Decreased Attribute** e os pares de mínimo e
@@ -273,13 +312,13 @@ O validador acusa erro, no topo do Inspector e na janela do
   exemplo um `IntEventChannel`;
 - uma chamada do **Response** sem objeto, ou com objeto e sem função (**No Function**).
 
-## Ligar o GAS ao Events {#ligar-gas-events}
+## Ligar o GAS ao Events
 
 Para que um evento do GAS chegue a outro objeto sem código, ponha um
 [relay](#relay-do-gas) no ator e ligue o par do evento a um canal. Qualquer objeto ouve o canal
 com um [`EventListener`](#eventlistener).
 
-### Exemplo: som ao ser imune {#exemplo-som-imune}
+### Exemplo: som ao ser imune
 
 O efeito de veneno tem a tag `Imune.Veneno` em **Application Immunity Tags**, e o personagem tem
 essa tag. Quando alguém aplica o veneno nele, a aplicação é bloqueada (`BlockedByImmunity`) e um
@@ -300,7 +339,7 @@ O par **Effect Blocked** dispara também quando faltam as tags exigidas pelo efe
 (`MissingRequirements`). Para separar os dois casos, use o `EffectEventChannel` no **Channel**:
 o campo `Result` diz `BlockedByImmunity` ou `MissingRequirements`.
 
-## EventListener {#eventlistener}
+## EventListener
 
 O `EventListener` é o componente que ouve canais sem código. Adicione-o a um objeto
 (**Add Component > EventListener**) e, na lista **Responses**, escolha uma resposta para cada
@@ -308,12 +347,12 @@ canal que o objeto deve ouvir.
 
 - O componente se inscreve nos canais no `OnEnable` e se desinscreve no `OnDisable`. Desabilitado
   (o componente ou o objeto), ele não recebe disparos; habilitado de novo, volta a receber.
-  Desabilitar também cancela as esperas de um [Invoke com delay](#delayedreaction).
+  Desabilitar também cancela as esperas de um [Invoke com delay](#invoke-com-delay).
 - Um disparo do canal roda as **reações** da resposta na ordem da lista e, depois delas, o
   **Escape**.
 - Uma resposta sem canal não faz nada e é erro de [validação](#validacao).
 
-### Respostas {#respostas}
+### Respostas
 
 Cada resposta liga **um** canal ao que acontece quando ele dispara. Há uma resposta pronta para
 cada canal, na categoria **Respostas** do seletor:
@@ -331,7 +370,7 @@ cada canal, na categoria **Respostas** do seletor:
 No Inspector de uma resposta:
 
 - **Channel**: o canal ouvido. Só aceita canais do mesmo payload da resposta (veja
-  [Escolher o canal](#escolher-canal)).
+  [Escolher o canal](#escolher-o-canal)).
 - **Reactions**: lista de reações, escolhidas pelo seletor de tipo. Cada uma recebe o payload do
   disparo e o `EventListener` que a executa.
 - **Escape**: um `UnityEvent` com o payload, num foldout fechado. Chamado depois das reações. Use
@@ -341,14 +380,26 @@ No Inspector de uma resposta:
 Uma reação sua herda de `Reaction` e sobrescreve `Execute(EventListener)`, ou
 `Execute<T>(EventListener, in T)` quando precisa do payload:
 
+{% code title="Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-system,using-events,using-unityengine,tocar-som" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-system"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-events"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-unityengine"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:tocar-som"
-```
+using System;
+using SpellBook.Events;
+using UnityEngine;
 
-### Escolher o canal {#escolher-canal}
+[Serializable]
+public sealed class TocarSom : Reaction
+{
+    [SerializeField] private AudioSource fonte;
+
+    public override void Execute(EventListener listener)
+    {
+        fonte.Play();
+    }
+}
+```
+{% endcode %}
+
+### Escolher o canal
 
 Todo campo de canal no Inspector, nas respostas, nas reações e nos seus scripts, tem ao lado o
 botão **Escolher**. Ele abre a lista dos canais do projeto que o campo aceita, por nome, com
@@ -360,7 +411,7 @@ A lista segue o tipo de payload do campo:
 | Campo | Canais listados |
 |---|---|
 | **Channel** de uma resposta (`EventChannel<T>`) | só os de payload `T`; numa `FloatEventResponse`, só canais Float |
-| **Target** de um [RaiseChannel](#raisechannelreaction) em `ForwardPayload` | só os do payload da resposta que contém a reação, inclusive dentro de um [Invoke com delay](#delayedreaction) |
+| **Target** de um [RaiseChannel](#raisechannel) em `ForwardPayload` | só os do payload da resposta que contém a reação, inclusive dentro de um [Invoke com delay](#invoke-com-delay) |
 | **Target** de um RaiseChannel em `RaiseVoid` | só canais Void |
 | campo seu do tipo base `EventChannel` | todos os canais |
 
@@ -369,27 +420,27 @@ canal anterior. Trocar o **Mode** de um RaiseChannel não limpa o **Target**; se
 servir, a [validação](#validacao) acusa erro. O canal de um [`EventEmitter`](#eventemitter) não usa
 este seletor, porque escolher um canal de outro tipo ali troca o tipo do payload.
 
-### Reações prontas {#reacoes-prontas}
+### Reações prontas
 
 O pacote traz reações para os casos comuns. No seletor da lista **Reactions**, elas ficam
 agrupadas por categoria. Cada uma tem validação: um campo obrigatório vazio é erro de validação.
 
 | Reação | Categoria | Faz |
 |---|---|---|
-| [`SetActiveReaction`](#setactivereaction) | Objeto | Ativa ou desativa um GameObject |
-| [`ToggleComponentReaction`](#togglecomponentreaction) | Objeto | Liga, desliga ou inverte um componente |
-| [`RaiseChannelReaction`](#raisechannelreaction) | Eventos | Dispara outro canal |
-| [`LogReaction`](#logreaction) | Depuração | Escreve uma mensagem no console |
-| [`DelayedReaction`](#delayedreaction) | Fluxo | Roda uma lista de reações depois de um atraso |
+| [`SetActiveReaction`](#setactive) | Objeto | Ativa ou desativa um GameObject |
+| [`ToggleComponentReaction`](#toggle-de-componente) | Objeto | Liga, desliga ou inverte um componente |
+| [`RaiseChannelReaction`](#raisechannel) | Eventos | Dispara outro canal |
+| [`LogReaction`](#log) | Depuração | Escreve uma mensagem no console |
+| [`DelayedReaction`](#invoke-com-delay) | Fluxo | Roda uma lista de reações depois de um atraso |
 
-#### SetActive {#setactivereaction}
+#### SetActive
 
 Chama `SetActive` no GameObject escolhido.
 
 - **Target**: o GameObject. Obrigatório.
 - **Active**: marcado, ativa o objeto; desmarcado, desativa. Começa desmarcado.
 
-#### Toggle de componente {#togglecomponentreaction}
+#### Toggle de componente
 
 Muda o `enabled` de um componente que é `Behaviour`, como um script seu, uma `Light` ou um
 `Animator`. Um `Collider` 3D ou um `Renderer` não entram no campo, porque não são `Behaviour`.
@@ -397,7 +448,7 @@ Muda o `enabled` de um componente que é `Behaviour`, como um script seu, uma `L
 - **Target**: o componente. Obrigatório.
 - **Mode**: `Enable` liga, `Disable` desliga e `Toggle` inverte o estado atual.
 
-#### RaiseChannel {#raisechannelreaction}
+#### RaiseChannel
 
 Dispara outro canal quando a resposta recebe um disparo. O `EventListener` aparece como quem
 disparou no log do canal. Há duas formas, escolhidas em **Mode**:
@@ -411,7 +462,7 @@ disparou no log do canal. Há duas formas, escolhidas em **Mode**:
 
 **Target** é obrigatório nas duas formas.
 
-#### Log {#logreaction}
+#### Log
 
 Escreve no console exatamente o texto de **Message**, sem prefixo. Clicar na entrada do console
 seleciona o `EventListener`.
@@ -419,7 +470,7 @@ seleciona o `EventListener`.
 - **Message**: o texto. Obrigatório.
 - **Type**: tipo da entrada (`Log`, `Warning`, `Error`...). Começa em `Log`.
 
-#### Invoke com delay {#delayedreaction}
+#### Invoke com delay
 
 Espera um atraso e então roda a sua própria lista de reações, na ordem, com o payload do disparo
 que a agendou.
@@ -428,7 +479,7 @@ que a agendou.
 - **Time Source**: a [fonte de tempo](tempo.md) que conta o atraso. Vazio usa o tempo escalado:
   com `Time.timeScale = 0`, a espera não anda, e volta a andar quando o jogo retoma. Escolha uma
   [fonte não escalada](tempo.md#unscaledtimesource) para contar o atraso no menu de pausa, ou
-  um [grupo pausável](tempo.md#pausabletimesource) para pausar só uma parte do jogo.
+  um [grupo pausável](tempo.md#grupo-pausavel) para pausar só uma parte do jogo.
 - **Reactions**: as reações rodadas depois do atraso, escolhidas pelo seletor. Obrigatória: uma
   lista vazia é erro de validação.
 
@@ -440,17 +491,35 @@ com delay num canal que dispara todo quadro.
 espera, a lista não roda, nem quando o atraso acaba nem quando o ouvinte é habilitado de novo.
 Um disparo recebido depois de reabilitar agenda uma espera nova normalmente.
 
-### Payload próprio {#payload-proprio}
+### Payload próprio
 
 Para um canal com um dado seu, crie o struct, o canal e a resposta. As classes do canal e da
 resposta não precisam de corpo.
 
+{% code title="Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-system,using-events,using-unityengine,dano" %}
 ```csharp
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-system"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-events"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:using-unityengine"
---8<-- "Packages/com.spellbook/Tests/Events/EditMode/Examples/EventsManualExamples.cs:dano"
+using System;
+using SpellBook.Events;
+using UnityEngine;
+
+[Serializable]
+public struct Dano
+{
+    public int Valor;
+    public Vector3 Ponto;
+}
+
+[CreateAssetMenu(menuName = "Jogo/Events/Dano Channel")]
+public sealed class DanoEventChannel : EventChannel<Dano>
+{
+}
+
+[Serializable]
+public sealed class DanoEventResponse : EventResponse<Dano>
+{
+}
 ```
+{% endcode %}
 
 - O canal (`DanoEventChannel.cs`) fica num arquivo com o nome da classe, porque é um asset.
 - A `DanoEventResponse` aparece no seletor da lista **Responses**; o **Escape** dela é um
@@ -459,7 +528,7 @@ resposta não precisam de corpo.
 - Um [`EventEmitter`](#eventemitter) com um `DanoEventChannel` dispara o `Dano` sem código.
 - Marque o struct com `[Serializable]` para o payload aparecer no Inspector do canal e do Escape.
 
-### Validação {#validacao}
+### Validação
 
 O `EventListener` valida cada resposta da lista **Responses**. O validador acusa erro em:
 
@@ -467,14 +536,14 @@ O `EventListener` valida cada resposta da lista **Responses**. O validador acusa
 - uma chamada do **Escape** sem objeto (o campo do alvo vazio ou com um objeto que foi apagado);
 - uma chamada do **Escape** com objeto, mas sem função escolhida (**No Function**);
 - uma reação com campo obrigatório vazio (veja cada [reação pronta](#reacoes-prontas));
-- um [RaiseChannel](#raisechannelreaction) em `ForwardPayload` com um canal de outro tipo de
-  payload, inclusive dentro de um [Invoke com delay](#delayedreaction).
+- um [RaiseChannel](#raisechannel) em `ForwardPayload` com um canal de outro tipo de
+  payload, inclusive dentro de um [Invoke com delay](#invoke-com-delay).
 
 Uma chamada do Escape sem objeto e sem função gera um erro só, o do objeto. Escolhido o objeto,
 o erro da função aparece se ela ainda faltar. Uma resposta vazia na lista (sem tipo escolhido)
 não é validada.
 
-## EventEmitter {#eventemitter}
+## EventEmitter
 
 O `EventEmitter` é o componente que dispara um canal sem código. Ele guarda uma **emissão**: o
 canal e o payload fixo enviado a cada disparo. O tipo do payload vem do canal: um canal Float
@@ -503,7 +572,7 @@ No Inspector do `EventEmitter`:
 
 Por código de Editor, a emissão de um canal é criada com `EventEmission.CreateFor(canal)`.
 
-## Segurança do disparo {#seguranca}
+## Segurança do disparo
 
 Um ouvinte pode inscrever ou desinscrever ouvintes durante um disparo sem quebrar o disparo:
 
@@ -511,7 +580,7 @@ Um ouvinte pode inscrever ou desinscrever ouvintes durante um disparo sem quebra
 - quem é **inscrito** durante o disparo só recebe a partir do próximo disparo;
 - nenhum ouvinte é pulado nem chamado duas vezes no mesmo disparo.
 
-### Exceção num ouvinte {#excecao}
+### Exceção num ouvinte
 
 No Editor e em development build (`DEVELOPMENT_BUILD`), se um ouvinte lança exceção, ela vai para o
 console e os outros ouvintes recebem o evento normalmente.
@@ -520,7 +589,7 @@ Em **release build** não há essa proteção. A exceção sobe pelo `Raise` com
 ouvintes que viriam depois não são chamados. Isso evita o custo de um `try/catch` por ouvinte no
 jogo publicado. Trate a exceção dentro do próprio ouvinte se ele puder falhar em release.
 
-## Estado entre sessões de Play {#reset}
+## Estado entre sessões de Play
 
 Ao entrar em Play, todo `EventBus<T>` e todo canal ficam sem ouvintes. Isso acontece com e sem domain reload
 (opção **Enter Play Mode Options**), pelo

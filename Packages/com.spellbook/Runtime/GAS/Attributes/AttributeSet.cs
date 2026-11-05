@@ -5,7 +5,7 @@ using SpellBook.GAS.Core;
 
 namespace SpellBook.GAS.Attributes
 {
-    [HelpURL(DocUrls.Gas + "#attributeset")]
+    [HelpURL(DocUrls.Gas + "#id-1.2-atributos")]
     public class AttributeSet : MonoBehaviour
     {
         [System.Serializable]

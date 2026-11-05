@@ -6,7 +6,7 @@ namespace SpellBook.Pooling
     /// <summary>
     /// Componente que permite que um objeto seja reutilizado pelo PoolManager/ComponentPooler.
     /// </summary>
-    [HelpURL(DocUrls.Pooling + "#componentpooler")]
+    [HelpURL(DocUrls.Pooling + "#componentpooler-e-ipoolable")]
     public class PoolableObject : MonoBehaviour
     {
         public string PrefabKey { get; set; }

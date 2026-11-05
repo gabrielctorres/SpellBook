@@ -6,36 +6,40 @@ namespace SpellBook.Core
     /// </summary>
     public static class DocUrls
     {
-        /// <summary>Raiz do site do manual; igual ao <c>documentationUrl</c> do <c>package.json</c>.</summary>
-        public const string Base = "https://gabrielctorres.github.io/SpellBook/";
+        /// <summary>
+        /// Raiz do site do manual no GitBook, sem barra no fim, e endereço do <c>README.md</c> do manual; igual ao
+        /// <c>documentationUrl</c> do <c>package.json</c>. Cada página é <c>Base + "/" +</c> o caminho do arquivo em
+        /// <c>Documentation~/manual/</c>, sem o <c>.md</c> (ADR 0044, item 9).
+        /// </summary>
+        public const string Base = "https://rook-studio.gitbook.io/spellbook";
 
-        public const string Install = Base + "inicio/instalacao/";
-        public const string Concepts = Base + "inicio/conceitos/";
-        public const string Migration = Base + "regras/migracao-2-para-3/";
-        public const string Time = Base + "modulos/tempo/";
-        public const string Events = Base + "modulos/eventos/";
-        public const string Pooling = Base + "modulos/pooling/";
-        public const string Tags = Base + "modulos/tags/";
-        public const string Gas = Base + "modulos/gas/";
-        public const string Damage = Base + "modulos/dano-escudo-e-morte/";
-        public const string Teams = Base + "modulos/times/";
-        public const string Cues = Base + "modulos/cues/";
-        public const string Thinkers = Base + "modulos/thinkers-e-auras/";
-        public const string Text = Base + "modulos/texto/";
-        public const string Description = Base + "modulos/descricao/";
-        public const string Ui = Base + "ui/visao-geral/";
-        public const string UiAttributeBar = Base + "ui/barra-de-atributo/";
-        public const string UiAttributeText = Base + "ui/texto-de-atributo/";
-        public const string UiTagIndicator = Base + "ui/indicador-de-tag/";
-        public const string UiFloatingText = Base + "ui/numeros-flutuantes/";
-        public const string UiAbilitySlot = Base + "ui/slot-de-habilidade/";
-        public const string UiAbilityBar = Base + "ui/barra-de-habilidades/";
-        public const string UiCastBar = Base + "ui/barra-de-cast/";
-        public const string UiTooltip = Base + "ui/tooltip/";
-        public const string UiEffectList = Base + "ui/lista-de-efeitos/";
-        public const string Validator = Base + "ferramentas/validador/";
-        public const string EventDebugger = Base + "ferramentas/event-debugger/";
-        public const string GasDebugger = Base + "ferramentas/gas-debugger/";
-        public const string Samples = Base + "exemplos/sandbox/";
+        public const string Install = Base + "/inicio/instalacao";
+        public const string Concepts = Base + "/inicio/conceitos";
+        public const string Migration = Base + "/regras/migracao-2-para-3";
+        public const string Time = Base + "/modulos/tempo";
+        public const string Events = Base + "/modulos/eventos";
+        public const string Pooling = Base + "/modulos/pooling";
+        public const string Tags = Base + "/modulos/tags";
+        public const string Gas = Base + "/modulos/gas";
+        public const string Damage = Base + "/modulos/dano-escudo-e-morte";
+        public const string Teams = Base + "/modulos/times";
+        public const string Cues = Base + "/modulos/cues";
+        public const string Thinkers = Base + "/modulos/thinkers-e-auras";
+        public const string Text = Base + "/modulos/texto";
+        public const string Description = Base + "/modulos/descricao";
+        public const string Ui = Base + "/ui/visao-geral";
+        public const string UiAttributeBar = Base + "/ui/barra-de-atributo";
+        public const string UiAttributeText = Base + "/ui/texto-de-atributo";
+        public const string UiTagIndicator = Base + "/ui/indicador-de-tag";
+        public const string UiFloatingText = Base + "/ui/numeros-flutuantes";
+        public const string UiAbilitySlot = Base + "/ui/slot-de-habilidade";
+        public const string UiAbilityBar = Base + "/ui/barra-de-habilidades";
+        public const string UiCastBar = Base + "/ui/barra-de-cast";
+        public const string UiTooltip = Base + "/ui/tooltip";
+        public const string UiEffectList = Base + "/ui/lista-de-efeitos";
+        public const string Validator = Base + "/ferramentas/validador";
+        public const string EventDebugger = Base + "/ferramentas/event-debugger";
+        public const string GasDebugger = Base + "/ferramentas/gas-debugger";
+        public const string Samples = Base + "/exemplos/sandbox";
     }
 }

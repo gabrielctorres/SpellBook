@@ -1,0 +1,11 @@
+$schema: https://api.gitbook.com/gitbook-docs.yaml
+site:
+  title: Manual do SpellBook
+  structure:
+    - type: space
+      key: space-manual
+      title: Manual do SpellBook
+      path: spellbook
+      default: true
+      content:
+        directory: ./

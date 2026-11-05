@@ -44,7 +44,7 @@ namespace SpellBook.GAS.Effects
     }
 
     [CreateAssetMenu(fileName = "New Effect", menuName = "SpellBook/GAS/Effect")]
-    [HelpURL(DocUrls.Gas + "#gameplayeffect")]
+    [HelpURL(DocUrls.Gas + "#id-1.3-gameplay-effects-ge")]
     public class GameplayEffect : ScriptableObject, ISerializationCallbackReceiver, IValidatable
     {
         [Header("Identidade")]

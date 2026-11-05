@@ -19,7 +19,7 @@ namespace SpellBook.GAS.Abilities.Projectiles
     /// Projétil universal (2D/3D) inspirado no TopDown Engine.
     /// Volta pelo <see cref="SpawnerAsset"/> recebido no <c>Setup</c> e reinicia o estado no <c>OnEnable</c> (ADR 0015).
     /// </summary>
-    [HelpURL(DocUrls.Gas + "#projectile")]
+    [HelpURL(DocUrls.Gas + "#projeteis")]
     public class Projectile : MonoBehaviour, IValidatable
     {
         public enum MovementVectors { Forward, Right, Up }

@@ -1,4 +1,4 @@
-# Event Debugger {#event-debugger}
+# Event Debugger
 
 O Event Debugger é uma janela do Editor que mostra os [canais](../modulos/eventos.md#canais) do
 projeto, quem está ouvindo cada um e o histórico dos disparos. Serve para responder, em Play, "o
@@ -6,7 +6,7 @@ evento foi disparado?", "quando?", "com qual payload?", "quem disparou?" e "quem
 
 A janela fica no assembly `SpellBook.Events.Editor` e só existe no Editor.
 
-## Abrir {#abrir}
+## Abrir
 
 Menu **Window > SpellBook > Event Debugger**. A janela pode ficar encaixada ao lado do Inspector,
 como qualquer outra.
@@ -15,7 +15,7 @@ O histórico só é gravado **com a janela aberta**. Abra a janela antes de entr
 do disparo que você quer ver. Fechar a janela para a gravação, e com ela fechada os canais não
 têm custo extra.
 
-## Canais {#canais}
+## Canais
 
 A parte de cima lista todos os assets de canal do projeto, em ordem de nome, e também os canais
 criados em memória durante o Play. Cada linha mostra:
@@ -32,7 +32,7 @@ A lista se atualiza sozinha. Fora do Play os canais normalmente não têm ouvint
 
 Clique numa linha para destacar o asset do canal na janela Project.
 
-## Histórico de disparos {#historico}
+## Histórico de disparos
 
 A parte de baixo mostra os disparos dos canais, **o mais recente primeiro**. Cada linha tem:
 
@@ -56,20 +56,20 @@ recomeça a cada entrada no Play, e continua visível depois de sair do Play, at
 ou até você limpar.
 
 O histórico mostra só disparos de canais. Eventos de código pelo
-[`EventBus<T>`](../modulos/eventos.md#eventbus) não aparecem.
+[`EventBus<T>`](../modulos/eventos.md#eventbus-less-than-t-greater-than) não aparecem.
 
-## Busca {#busca}
+## Busca
 
 O campo de busca da barra de cima filtra pelo **nome do canal**, sem diferenciar maiúsculas de
 minúsculas. Ele filtra as duas listas ao mesmo tempo: digitar `player` deixa só os canais com
 "player" no nome e os disparos desses canais. Com o campo vazio, tudo aparece.
 
-## Limpar {#limpar}
+## Limpar
 
 O botão **Limpar** apaga o histórico de disparos. A lista de canais não muda. O botão **?** abre
 esta página.
 
-## Find references {#find-references}
+## Find references
 
 O **Find references** responde "quem emite e quem ouve este canal?" fora do Play, lendo o que está
 configurado nos objetos. Há três jeitos de usar:
@@ -97,7 +97,7 @@ não são abertas nem lidas: abra a cena (inclusive de forma aditiva) antes de p
 vê-la no resultado. Um canal criado em memória durante o Play não tem asset, e por isso só mostra as
 referências das cenas abertas. A lista não se atualiza sozinha: clique de novo depois de mudar algo.
 
-## Exemplo: o jogador morreu {#exemplo}
+## Exemplo: o jogador morreu
 
 1. Crie um canal em **Create > SpellBook > Events > Void Channel** com o nome `PlayerDied`.
 2. Num botão de UI, adicione um `EventEmitter` com o canal `PlayerDied` e ligue o `OnClick` do
