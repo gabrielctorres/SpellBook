@@ -145,3 +145,24 @@ O ME6 e o ME7 não dependem do assistente e podem correr em paralelo com o ME1 a
 - Critério de pronto: os 13 testes verdes no filtro `\.GasIndexTests\.;\.GasProjectIndexTests\.` (total 13 no XML). A suíte completa roda na `/revisao`.
 - Tamanho: 530 linhas medidas (+530) e 4 arquivos, todos novos, pela ADR 0042. Os `.meta` e este Detalhe não contam. Exceção: 30 linhas acima do teto (6%), dentro dos +30%. Os testes de criação, remoção e renomeação precisam de assets reais numa pasta temporária, e o resto do ticket não tem o que cortar.
 - Commit: `feat(editor): índice do GAS com filtros`
+
+## ME8a — Estado do gerenciador e painel de referências, sem UI
+### Detalhe (2026-11-05)
+- Divisão: o ME8 passou dos +30% da ADR 0042 (763 linhas medidas) e se dividiu em ME8a (issue #398) e ME8b (issue #405), por decisão do Controlador em 2026-11-05.
+- CA: CA7 a CA9 e CA15, na parte sem UI. O ME8a monta o estado da lista e dos filtros sobre o `GasIndex` do ME7 e as linhas do painel sobre o `ReferenceFinder` do ME6. A janela que os mostra é o ME8b.
+- Escopo (caminhos em `Packages/com.spellbook/`, todos novos):
+  - `Editor/GAS/Manager/GasManagerModel.cs` (`internal`): o estado da janela sem UI. Guarda o `GasIndex` e o `GasIndexFilter`; `SetIndex`, `SetKind`, `SetTag`, `SetText` e `ClearFilters` remontam as `Rows`. Sem filtro de tipo, as `Rows` trazem um cabeçalho por grupo (Habilidades, Efeitos, Atributos, Tags; DS 5.1). Dá os rótulos da barra e dos chips (`KindLabel` "Habilidades 12", `KindName`, `TagChip` "Ability e filhas"), a mensagem de estado vazio (DS 7), o resumo de tags da linha (`TagSummary`: até duas e "+N"), a árvore de tags pelo pai (`TagTree`; a tag cujo pai saiu do filtro vira raiz) e os caminhos do seletor de tag em árvore (`TagMenu`: a tag com filhas aparece dentro do próprio submenu). `UsedByCount` guarda a contagem "usado por N" até o índice mudar.
+  - `Editor/GAS/Manager/GasReferenceList.cs` (`internal static`): as linhas do painel. `UsedBy` e `Uses` passam o resultado do `ReferenceFinder` para uma linha por objeto, com o nome, a localização ("Asset", "Prefab" ou "Cena aberta: Sandbox") e o objeto que o clique destaca (o prefab inteiro, ou o GameObject da cena). `ClosedScenesNote` é a linha fixa do grupo "Usado por".
+  - Sem `CHANGELOG.md`, sem manual e sem mudança de runtime, de API pública ou de formato serializado.
+- Testes red (EditMode, `SpellBook.GAS.Tests.EditMode`):
+  - `Tests/GAS/EditMode/GasManagerModelTests.cs`, com objetos em memória: `Rows_AllKinds_HeaderBeforeEachGroup`; `Rows_KindFilter_NoHeaders`; `Labels_KindCountAndChips`; `ClearFilters_ShowsAll`; `EmptyMessage_NoAssetsNoResultsOrNone`; `TagSummary_TwoTagsAndRest`; `TagTree_NestsByParent_OrphanIsRoot`; `TagMenu_TagWithChildren_InsideOwnSubmenu`.
+  - `Tests/GAS/EditMode/GasReferenceListTests.cs`, com assets numa pasta temporária e um objeto na cena aberta: `UsedBy_AssetAndPrefab_LocationAndRevealTarget`; `UsedBy_OpenScene_LocationNamesScene`; `Uses_ListsReferencedAsset`.
+- Critério de pronto: os 11 testes verdes no filtro `\.GasManagerModelTests\.;\.GasReferenceListTests\.` (total 11 no XML), com o pacote compilando sem a janela. A suíte completa roda na `/revisao`.
+- Tamanho: 499 linhas medidas (+499 −0) e 5 arquivos (os 4 `.cs` novos e este design doc), pela ADR 0042. Os `.meta` e este Detalhe não contam. Exceção: nenhuma.
+- Commit: `feat(editor): estado do gerenciador do GAS e painel de referências`
+
+## ME8b — Janela do gerenciador do GAS
+### Detalhe (2026-11-05)
+- CA: CA7 a CA10 e CA15, na parte da UI. A janela `SpellBook/Gerenciador do GAS` mostra o estado do `GasManagerModel` e as linhas do `GasReferenceList` (ME8a), com "Abrir no Inspector". Duplicar e Renomear ficam para o ME9, e Excluir e a tag filha, para o ME10.
+- Escopo: `Editor/GAS/Manager/GasManagerWindow.cs` e `Editor/GAS/Manager/GasManager.uss`, com os `.meta`. Os arquivos já foram escritos e compilados junto do ME8a e estão guardados em `C:/Users/gabri/AppData/Local/Temp/me8b-arquivos/` (ver o `LEIA-ME.txt`). Medida da época: 264 linhas e 2 arquivos.
+- Depende do ME8a mesclado. A Fábrica do ME8b confere os arquivos guardados contra o código da hora e completa este Detalhe (testes, critério de pronto, tamanho e commit).
