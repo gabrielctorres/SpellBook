@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 667907857233684534}
   - component: {fileID: 864813292829979895}
   m_Layer: 0
-  m_Name: BolaDeFogo
+  m_Name: Fireball
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

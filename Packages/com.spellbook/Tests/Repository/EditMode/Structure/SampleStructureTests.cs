@@ -121,6 +121,49 @@ namespace SpellBook.Core.Tests.Structure
         // GUID do provedor de texto do HUD (HUD_Texts, antes HUD_Textos; o GUID não mudou no SB-T11).
         private const string TextProviderGuid = "c259d8252affd184da1fb1410c77c626";
 
+        // SB-T12: arquivos de Prefabs (CA-EN2) e GameObjects dos prefabs e da cena (CA-EN1).
+        private static readonly string[] PrefabFolders = { "Prefabs" };
+
+        private static readonly (string Path, string Guid)[] PrefabNames =
+        {
+            ("Prefabs/Caster.prefab", "2839213b5c9c01442846d899efd44e01"),
+            ("Prefabs/Fireball.prefab", "0828333217fdef24092acd45ae76889e"),
+            ("Prefabs/HUD.prefab", null),
+            ("Prefabs/TrainingDummy.prefab", "f1d610bd2f0400c4e97953c054c9e722"),
+        };
+
+        private static readonly (string Path, string[] Names)[] PrefabGameObjectNames =
+        {
+            ("Prefabs/Caster.prefab", new[] { "Caster", "Visual" }),
+            ("Prefabs/Fireball.prefab", new[] { "Fireball" }),
+            ("Prefabs/TrainingDummy.prefab", new[] { "TrainingDummy", "Visual" }),
+        };
+
+        private const string ScenePath = "Scenes/Sandbox.unity";
+
+        private static readonly string[] SceneGameObjectNames =
+        {
+            "Caster Spawn", "Console Without HUD", "Controls Sign", "Dummy Spawn", "Ground", "HUD", "Log Listener",
+            "Main Camera", "Sandbox Director",
+        };
+
+        // Texto da placa de controles, repetido no README.md do Sample (CA-EN6, EN2).
+        private const string ControlsSignText =
+            "SpellBook Sandbox\n" +
+            "Mouse: aim at the ground (the caster turns)\n" +
+            "1: Fireball (cost, cooldown, pool, damage, burn)\n" +
+            "P: pause and resume the game (gameplay time group)\n" +
+            "T: slow motion, scale 0.25 (scaled time)\n" +
+            "R: restart (health, mana, cooldown, pause and scale)";
+
+        // Mensagens de LogReaction e LogPayloadReaction gravadas na cena, em ordem ordinal.
+        private static readonly string[] SceneConsoleMessages = { "Burn: tick", "Damage taken: {0:0.#}", "Fireball hit", "{0}" };
+
+        private static readonly string[] OldReadmeNames = { "BolaDeFogo", "BonecoDeTreino", "Conjurador", "Bola de Fogo" };
+
+        private static readonly Regex ConsoleMessage =
+            new Regex(@"^        (?:message|format): ?(?<value>.*)$", RegexOptions.Multiline);
+
         [Test]
         public void Package_DeclaresSandboxSample()
         {
@@ -341,17 +384,56 @@ namespace SpellBook.Core.Tests.Structure
         [Test]
         public void HudPrefab_GameObjects_HaveEnglishNames()
         {
-            string file = Path.Combine(SampleFolder(), HudPrefabPath);
-            Assert.That(File.Exists(file), Is.True, $"{SamplePath}/{HudPrefabPath} não existe");
-            string yaml = File.ReadAllText(file).Replace("\r\n", "\n");
+            Assert.That(GameObjectNames(HudPrefabPath), Is.EqualTo(HudGameObjectNames), "GameObjects do HUD.prefab (CA-EN1)");
+        }
 
-            string[] names = GameObjectName.Matches(yaml).Cast<Match>()
-                .Concat(NameOverride.Matches(yaml).Cast<Match>())
-                .Select(m => m.Groups["name"].Value)
-                .OrderBy(n => n, StringComparer.Ordinal)
+        [Test]
+        public void SamplePrefabs_HaveEnglishNamesAndOriginalGuids()
+        {
+            // O primeiro m_Name de um prefab pode ser de um filho; o nome da raiz é conferido pelos GameObjects.
+            AssertEnglishNames(PrefabFolders, PrefabNames, "arquivos de Prefabs (CA-EN2)", checkAssetName: false);
+        }
+
+        [Test]
+        public void SamplePrefabs_GameObjects_HaveEnglishNames()
+        {
+            foreach ((string path, string[] names) in PrefabGameObjectNames)
+            {
+                Assert.That(GameObjectNames(path), Is.EqualTo(names), $"GameObjects do {path} (CA-EN1)");
+            }
+        }
+
+        [Test]
+        public void SandboxScene_GameObjects_HaveEnglishNames()
+        {
+            Assert.That(GameObjectNames(ScenePath), Is.EqualTo(SceneGameObjectNames), "GameObjects do Sandbox.unity (CA-EN1)");
+        }
+
+        [Test]
+        public void SandboxScene_ControlsSignAndConsoleMessages_AreInEnglish()
+        {
+            string yaml = ReadSample(ScenePath);
+
+            string[] messages = ConsoleMessage.Matches(yaml).Cast<Match>()
+                .Select(m => YamlScalar(m.Groups["value"].Value))
+                .OrderBy(m => m, StringComparer.Ordinal)
                 .ToArray();
 
-            Assert.That(names, Is.EqualTo(HudGameObjectNames), "GameObjects do HUD.prefab (CA-EN1)");
+            Assert.That(ControlsSign(yaml), Is.EqualTo(ControlsSignText), "texto da placa de controles (CA-EN6)");
+            Assert.That(messages, Is.EqualTo(SceneConsoleMessages), "mensagens de Console gravadas na cena (CA-EN6)");
+        }
+
+        [Test]
+        public void SampleReadmeAndCredits_UseEnglishNames()
+        {
+            string readme = ReadSample("README.md");
+            string credits = ReadSample("CREDITS.md");
+
+            Assert.That(readme, Does.Contain("```text\n" + ControlsSignText + "\n```"), "o README.md não repete a placa (EN2)");
+            Assert.That(readme.Where(c => c > '\u007f').Distinct(), Is.Empty, "o README.md tem texto fora do inglês (EN2)");
+            Assert.That(OldReadmeNames.Where(readme.Contains), Is.Empty, "o README.md cita nomes antigos (CA-EN4)");
+            Assert.That(credits, Does.Contain("`GA_Fireball`"), "o CREDITS.md não cita o GA_Fireball (CA-EN4)");
+            Assert.That(credits, Does.Not.Contain("GA_BolaDeFogo"), "o CREDITS.md cita o nome antigo (CA-EN4)");
         }
 
         [Test]
@@ -384,11 +466,12 @@ namespace SpellBook.Core.Tests.Structure
 
         /// <summary>
         /// Os arquivos (sem <c>.meta</c>) das pastas são exatamente os nomes dados, cada <c>m_Name</c> é o nome do
-        /// arquivo e o <c>.meta</c> guarda o GUID de antes da renomeação (nulo onde o nome não mudou). Caminhos a partir
-        /// da pasta do Sample.
+        /// arquivo (se <paramref name="checkAssetName"/>) e o <c>.meta</c> guarda o GUID de antes da renomeação (nulo
+        /// onde o nome não mudou). Caminhos a partir da pasta do Sample.
         /// </summary>
         private static void AssertEnglishNames(
-            IEnumerable<string> folders, IEnumerable<(string Path, string Guid)> names, string message)
+            IEnumerable<string> folders, IEnumerable<(string Path, string Guid)> names, string message,
+            bool checkAssetName = true)
         {
             (string Path, string Guid)[] entries = names.ToArray();
             string[] expected = entries.Select(n => n.Path).OrderBy(p => p, StringComparer.Ordinal).ToArray();
@@ -409,7 +492,7 @@ namespace SpellBook.Core.Tests.Structure
                 }
 
                 string name = Path.GetFileNameWithoutExtension(path);
-                if (YamlValue(File.ReadAllText(file), "m_Name") != name)
+                if (checkAssetName && YamlValue(File.ReadAllText(file), "m_Name") != name)
                 {
                     violations.Add($"{path}: m_Name diferente de {name}");
                 }
@@ -430,6 +513,83 @@ namespace SpellBook.Core.Tests.Structure
             string file = Path.Combine(SampleFolder(), "Data", relativePath);
             Assert.That(File.Exists(file), Is.True, $"{SamplePath}/Data/{relativePath} não existe");
             return File.ReadAllText(file).Replace("\r\n", "\n");
+        }
+
+        /// <summary>Texto de um arquivo do Sample, com quebras normalizadas para \n; falha com o caminho se ele não existe.</summary>
+        private static string ReadSample(string relativePath)
+        {
+            string file = Path.Combine(SampleFolder(), relativePath);
+            Assert.That(File.Exists(file), Is.True, $"{SamplePath}/{relativePath} não existe");
+            return File.ReadAllText(file).Replace("\r\n", "\n");
+        }
+
+        /// <summary>
+        /// Os nomes de GameObject de um prefab ou cena do Sample, em ordem ordinal: o <c>m_Name</c> de cada
+        /// <c>GameObject</c> e o override <c>m_Name</c> de cada instância de prefab.
+        /// </summary>
+        private static string[] GameObjectNames(string relativePath)
+        {
+            string yaml = ReadSample(relativePath);
+            return GameObjectName.Matches(yaml).Cast<Match>()
+                .Concat(NameOverride.Matches(yaml).Cast<Match>())
+                .Select(m => YamlScalar(m.Groups["name"].Value))
+                .OrderBy(n => n, StringComparer.Ordinal)
+                .ToArray();
+        }
+
+        /// <summary>
+        /// O <c>m_Text</c> do <c>TextMesh</c> da cena (a placa de controles). Desfaz a dobra do YAML: a quebra simples
+        /// vira espaço, e cada linha em branco vira uma quebra de linha.
+        /// </summary>
+        private static string ControlsSign(string yaml)
+        {
+            Match match = Regex.Match(yaml, @"^TextMesh:\n(?:  [^\n]*\n)*?  m_Text: (?<value>[\s\S]*?)\n(?=  \S)",
+                RegexOptions.Multiline);
+            Assert.That(match.Success, Is.True, "a cena não tem o TextMesh da placa de controles");
+
+            string[] lines = match.Groups["value"].Value.Split('\n');
+            string unfolded = lines[0];
+            int breaks = 0;
+            foreach (string line in lines.Skip(1).Select(l => l.Trim()))
+            {
+                if (line.Length == 0)
+                {
+                    breaks++;
+                    continue;
+                }
+
+                unfolded += (breaks > 0 ? new string('\n', breaks) : " ") + line;
+                breaks = 0;
+            }
+
+            return YamlScalar(unfolded);
+        }
+
+        /// <summary>O valor de um escalar YAML de uma linha: sem aspas, entre aspas simples ou entre aspas duplas.</summary>
+        private static string YamlScalar(string raw)
+        {
+            if (raw.Length >= 2 && raw[0] == '\'' && raw[raw.Length - 1] == '\'')
+            {
+                return raw.Substring(1, raw.Length - 2).Replace("''", "'");
+            }
+
+            if (raw.Length >= 2 && raw[0] == '"' && raw[raw.Length - 1] == '"')
+            {
+                return Regex.Replace(raw.Substring(1, raw.Length - 2), @"\\(x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|.)", m =>
+                {
+                    string escape = m.Groups[1].Value;
+                    switch (escape[0])
+                    {
+                        case 'n': return "\n";
+                        case 't': return "\t";
+                        case 'x':
+                        case 'u': return ((char)Convert.ToInt32(escape.Substring(1), 16)).ToString();
+                        default: return escape;
+                    }
+                });
+            }
+
+            return raw;
         }
 
         /// <summary>O arquivo do Sample cujo <c>.meta</c> tem o GUID dado.</summary>

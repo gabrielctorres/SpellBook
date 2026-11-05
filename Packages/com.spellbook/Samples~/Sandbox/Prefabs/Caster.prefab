@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 3376212011050092599}
   - component: {fileID: 2773257777673872566}
   m_Layer: 0
-  m_Name: Conjurador
+  m_Name: Caster
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

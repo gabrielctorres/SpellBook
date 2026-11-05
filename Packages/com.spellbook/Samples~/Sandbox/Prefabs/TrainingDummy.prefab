@@ -108,7 +108,7 @@ GameObject:
   - component: {fileID: 2379561564034608382}
   - component: {fileID: 2358290342380636715}
   m_Layer: 0
-  m_Name: BonecoDeTreino
+  m_Name: TrainingDummy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

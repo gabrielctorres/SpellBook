@@ -1,61 +1,61 @@
 # Sandbox
 
-Cena 3D de teste manual que liga os módulos do SpellBook: um conjurador lança uma Bola de Fogo
-num boneco de treino que não morre. A cena mostra o GAS (habilidade, custo, recarga, dano e
-queimadura com tag), o Events (canal de dano recebido e canal de acerto), o Pooling (projéteis
-reaproveitados) e o Time (pausa do grupo de gameplay e câmera lenta).
+A 3D scene for manual testing that wires the SpellBook modules together: a caster throws a Fireball
+at a training dummy that never dies. The scene shows GAS (ability, cost, cooldown, damage and a burn
+with a tag), Events (a damage-taken channel and a hit channel), Pooling (reused projectiles) and Time
+(pausing the gameplay group and slow motion).
 
-Abra `Scenes/Sandbox.unity` e entre em Play. A entrada usa o Input Manager legado, e os
-materiais desenham no Built-in e no URP.
+Open `Scenes/Sandbox.unity` and enter Play mode. Input uses the legacy Input Manager, and the
+materials render in both Built-in and URP.
 
-## Controles
+## Controls
 
-A placa 3D da cena traz este mesmo texto:
+The 3D sign in the scene shows this same text:
 
 ```text
 SpellBook Sandbox
-Mouse: mira no chão (o conjurador gira)
-1: Bola de Fogo (custo, recarga, pool, dano, queimadura)
-P: pausa e retoma o jogo (grupo de tempo do gameplay)
-T: câmera lenta, escala 0,25 (tempo escalado)
-R: reinicia (vida, mana, recarga, pausa e escala)
+Mouse: aim at the ground (the caster turns)
+1: Fireball (cost, cooldown, pool, damage, burn)
+P: pause and resume the game (gameplay time group)
+T: slow motion, scale 0.25 (scaled time)
+R: restart (health, mana, cooldown, pause and scale)
 ```
 
-| Tecla | Ação | O que mostra |
+| Key | Action | What it shows |
 |---|---|---|
-| Mouse | Mira no chão | O conjurador gira para o ponto mirado |
-| `1` | Conjura a Bola de Fogo | Custo de mana, recarga, projétil do pool, dano e queimadura |
-| `P` | Pausa e retoma o jogo | O grupo de tempo do gameplay para: efeitos, recarga e projéteis |
-| `T` | Alterna a câmera lenta (escala 0,25) | Tudo o que segue o tempo escalado fica mais lento |
-| `R` | Reinicia a cena | Vida, mana, recarga, pausa e escala voltam ao início |
+| Mouse | Aims at the ground | The caster turns toward the aimed point |
+| `1` | Casts the Fireball | Mana cost, cooldown, pooled projectile, damage and burn |
+| `P` | Pauses and resumes the game | The gameplay time group stops: effects, cooldown and projectiles |
+| `T` | Toggles slow motion (scale 0.25) | Everything that follows scaled time slows down |
+| `R` | Restarts the scene | Health, mana, cooldown, pause and scale go back to the start |
 
-## Passo a passo
+## Walkthrough
 
-### S1. Conjurar e ver o dano
+### S1. Cast and see the damage
 
-1. Entre em Play e mire com o mouse no boneco, a cerca de 8 m.
-2. Aperte `1`. O Console mostra "Bola de Fogo conjurada", e a bola sai do pool (na Hierarchy, o objeto
-   é ativado em `[SpellBook Pools]`).
-3. No impacto, o boneco pisca e o Console mostra "Bola de Fogo acertou" e "Dano recebido: 20".
-4. A cor de queimadura fica por 4 s. A cada 0,5 s o Console mostra "Queimadura: tique" e
-   "Dano recebido: 5".
-5. Selecione o boneco e o conjurador para ver Vida e Mana no Inspector (`AttributeReadout`).
+1. Enter Play mode and aim the mouse at the dummy, about 8 m away.
+2. Press `1`. The Console shows "Fireball cast", and the fireball comes out of the pool (in the
+   Hierarchy, the object is activated under `[SpellBook Pools]`).
+3. On impact, the dummy flashes and the Console shows "Fireball hit" and "Damage taken: 20".
+4. The burn color stays for 4 s. Every 0.5 s the Console shows "Burn: tick" and
+   "Damage taken: 5".
+5. Select the dummy and the caster to see Health and Mana in the Inspector (`AttributeReadout`).
 
-### S2. Recarga, mana e renovação
+### S2. Cooldown, mana and refresh
 
-1. Aperte `1` duas vezes em menos de 1,5 s. A segunda mostra "Bola de Fogo em recarga: N,N s".
-2. Conjure de novo durante a queimadura: a duração volta a 4 s, sem segunda queimadura paralela.
-3. Gaste a mana (20 conjurações). A próxima mostra "Sem mana para a Bola de Fogo". Use `R` para voltar ao início.
+1. Press `1` twice within 1.5 s. The second press shows "Fireball on cooldown: N.N s".
+2. Cast again during the burn: the duration goes back to 4 s, with no second burn running alongside.
+3. Spend the mana (20 casts). The next one shows "Not enough mana for Fireball". Press `R` to start over.
 
-### S3. Pausa e câmera lenta
+### S3. Pause and slow motion
 
-1. Conjure e aperte `P` com a bola em voo: projétil, queimadura e recarga param. `P` de novo retoma.
-2. Aperte `T`: a escala vai a 0,25 e tudo o que segue o tempo escalado fica mais lento. `T` de novo volta a 1.
-3. `R` reinicia a cena e devolve a escala a 1, também com o jogo pausado ou em câmera lenta.
+1. Cast and press `P` while the fireball is in flight: projectile, burn and cooldown stop. `P` again resumes.
+2. Press `T`: the scale goes to 0.25 and everything that follows scaled time slows down. `T` again returns it to 1.
+3. `R` restarts the scene and sets the scale back to 1, also while the game is paused or in slow motion.
 
-Valores dos assets (vida do boneco 2000, mana 400, custo 20, dano 20, queimadura 5 a cada 0,5 s por 4 s, recarga 1,5 s) e
-o motivo do relay de dano estão no manual.
+The asset values (dummy health 2000, mana 400, cost 20, damage 20, burn 5 every 0.5 s for 4 s, cooldown 1.5 s)
+and the reason for the damage relay are in the manual.
 
-O Console mostra cada conjuração, cada falha (recarga ou falta de mana), cada dano recebido com o
-valor real e cada tique da queimadura. O manual do Sample está em
+The Console shows each cast, each failure (cooldown or lack of mana), each damage taken with the
+actual value and each burn tick. The Sample's manual page is at
 <https://gabrielctorres.github.io/SpellBook/exemplos/sandbox/>.

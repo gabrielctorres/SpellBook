@@ -635,3 +635,33 @@ O SB-T12 e o SB-T13 eram um ticket só na resposta da EN1. Juntos dariam ~12 arq
 - Critério de pronto: os dois testes falham antes da renomeação e passam depois, com a pasta como `Samples~`; o resto do `SampleStructureTests` segue verde; sem `Samples/` nem `Samples.meta` na raiz do pacote. Com a pasta renomeada, a Unity importa sem erro, cada GUID aponta para o caminho novo e o `HUD.prefab` não tem referência `Missing` nem componente sem script (conferido pelo `AssetDatabase` no mesmo passo da renomeação).
 - Tamanho: 58 linhas medidas (só o `.cs` conta; 57 adicionadas e 1 removida) e 10 arquivos: 8 assets renomeados, o `HUD.prefab` e o teste. Exceção: nenhuma.
 - Commit: `chore(samples): textos, âncoras e HUD do Sandbox em inglês`
+
+### SB-T12 — Detalhe (2026-11-05)
+- CA: CA-EN1 (os GameObjects do `Sandbox.unity` e dos prefabs `Fireball`, `TrainingDummy` e `Caster`), CA-EN2 (os três arquivos de `Prefabs/` com nome em português), CA-EN4 (`README.md` todo em inglês e `CREDITS.md` com `GA_Fireball`) e CA-EN6 (a placa de controles e as três mensagens de Console gravadas na cena).
+- Escopo (caminhos em `Packages/com.spellbook/Samples~/Sandbox/`). A renomeação é feita pela Unity com a pasta como `Samples` (0028): os prefabs por `AssetDatabase.RenameAsset` (o `.meta` vai junto com o mesmo GUID) e o `m_Name` da raiz pelo asset carregado (`PrefabUtility.SavePrefabAsset`, como no SB-T11); a cena aberta por `EditorSceneManager.OpenScene`, editada e salva:
+  - `Prefabs/BolaDeFogo.prefab` → `Fireball.prefab` (raiz `BolaDeFogo`, linha 18 → `Fireball`); `BonecoDeTreino.prefab` → `TrainingDummy.prefab` (raiz, linha 111 → `TrainingDummy`; o filho `Visual` fica); `Conjurador.prefab` → `Caster.prefab` (raiz, linha 18 → `Caster`; o filho `Visual` fica). O `HUD.prefab` não muda;
+  - `Scenes/Sandbox.unity`: GameObjects `Spawn Conjurador` (linha 132) → `Caster Spawn`, `Console sem HUD` (256) → `Console Without HUD`, `Chão` (434) → `Ground`, `Placa de Controles` (524) → `Controls Sign`, `Ouvinte de Log` (630) → `Log Listener`, `Spawn Boneco` (764) → `Dummy Spawn`. `Main Camera`, `Sandbox Director` e o override `HUD` ficam;
+  - `Scenes/Sandbox.unity:538-542`: o `m_Text` da placa vira o texto em inglês abaixo, com `0.25` (CA-EN6);
+  - `Scenes/Sandbox.unity:303`, `677` e `682`: as mensagens de Console gravadas na cena viram `Burn: tick` (`LogReaction`), `Damage taken: {0:0.#}` (`LogPayloadReaction`) e `Fireball hit` (`LogReaction`). O `format: '{0}'` (linha 308) fica. **Fora da tabela da emenda:** essas três mensagens são texto que o designer lê na cena e não estão nos scripts, então o SB-T13 (só scripts) não as alcança; entram aqui pelo CA-EN6. Nenhum GameObject fora da tabela muda de nome;
+  - `README.md`: todo em inglês (EN2), com o bloco da placa igual ao `m_Text` e as mensagens de Console em inglês;
+  - `CREDITS.md:5`: `GA_BolaDeFogo` → `GA_Fireball`; o resto do texto fica;
+  - `Tests/Repository/EditMode/Structure/SampleStructureTests.cs`: as guardas abaixo; a leitura de nomes de GameObject do `HudPrefab_GameObjects_HaveEnglishNames` (linhas 343-354) vira um auxiliar comum.
+  - Quem cita os prefabs o faz só por GUID: a cena (`SandboxDirector`: `Conjurador`, `BonecoDeTreino`) e o `GA_Fireball` (`BolaDeFogo`). Nenhum desses assets muda por isso. O `Tooltip` "Ouvinte que escreve..." do `SandboxDirector.cs:49` e as mensagens dos scripts são do SB-T13; o `manual/exemplos/sandbox.md` e o `dano-escudo-e-morte.md` ficam para o passe (CA-EN5).
+- Texto da placa (e do bloco do `README.md`):
+  ```text
+  SpellBook Sandbox
+  Mouse: aim at the ground (the caster turns)
+  1: Fireball (cost, cooldown, pool, damage, burn)
+  P: pause and resume the game (gameplay time group)
+  T: slow motion, scale 0.25 (scaled time)
+  R: restart (health, mana, cooldown, pause and scale)
+  ```
+- Testes red (EditMode, `SpellBook.Repository.Tests.EditMode`, classe `SampleStructureTests`):
+  - `SamplePrefabs_HaveEnglishNamesAndOriginalGuids`: os arquivos (sem `.meta`) de `Prefabs` são exatamente `Caster`, `Fireball`, `HUD` e `TrainingDummy`, e o `.meta` dos renomeados guarda o GUID de antes. O nome da raiz é conferido pelo teste seguinte, porque o primeiro `m_Name` de um prefab pode ser de um filho. Cai se um nome em português voltar ou se o GUID mudar;
+  - `SamplePrefabs_GameObjects_HaveEnglishNames`: os GameObjects de cada prefab são exatamente `Caster` e `Visual`; `Fireball`; `TrainingDummy` e `Visual`;
+  - `SandboxScene_GameObjects_HaveEnglishNames`: os GameObjects da cena (com o override de nome da instância do HUD) são exatamente `Caster Spawn`, `Console Without HUD`, `Controls Sign`, `Dummy Spawn`, `Ground`, `HUD`, `Log Listener`, `Main Camera` e `Sandbox Director`;
+  - `SandboxScene_ControlsSignAndConsoleMessages_AreInEnglish`: o `m_Text` da placa é o texto acima e as mensagens de `LogReaction` e `LogPayloadReaction` da cena são exatamente `Burn: tick`, `Damage taken: {0:0.#}`, `Fireball hit` e `{0}`;
+  - `SampleReadmeAndCredits_UseEnglishNames`: o `README.md` traz o bloco da placa acima, não tem caractere fora do ASCII (acentos do português) nem os nomes antigos (`BolaDeFogo`, `BonecoDeTreino`, `Conjurador`, `Bola de Fogo`); o `CREDITS.md` cita `GA_Fireball` e não cita `GA_BolaDeFogo`.
+- Critério de pronto: os cinco testes falham antes da mudança e passam depois, com a pasta como `Samples~`; o resto do `SampleStructureTests` segue verde; sem `Samples/` nem `Samples.meta` na raiz do pacote. Com a pasta renomeada, a Unity importa sem erro, cada GUID aponta para o caminho novo, e a cena e o `GA_Fireball` não têm referência `Missing` nem componente sem script (conferido pelo `AssetDatabase` no mesmo passo da renomeação).
+- Tamanho: 184 linhas medidas (só o `.cs` conta; 172 adicionadas e 12 removidas) e 7 arquivos: 3 prefabs, a cena, o `README.md`, o `CREDITS.md` e o teste. Exceção: nenhuma.
+- Commit: `chore(samples): prefabs, cena e README do Sandbox em inglês`
