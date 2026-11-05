@@ -68,7 +68,7 @@ namespace SpellBook.GAS.Tests
 
             VisualElement root = CreateInspector(effect);
 
-            Tab[] tabs = root.Query<Tab>().ToList().ToArray();
+            Tab[] tabs = root.Q<ActionEventsView>().Query<Tab>().ToList().ToArray();
             Assert.That(tabs.Select(t => t.label), Is.EqualTo(new[]
             {
                 "Ao ser aplicado", "A cada tick", "Ao ser removido", "Ao receber dano", "Ao morrer", "Ao executar habilidade"

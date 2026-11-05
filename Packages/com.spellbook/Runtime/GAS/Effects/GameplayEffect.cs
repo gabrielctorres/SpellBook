@@ -47,7 +47,6 @@ namespace SpellBook.GAS.Effects
     [HelpURL(DocUrls.Gas + "#id-1.3-gameplay-effects-ge")]
     public class GameplayEffect : ScriptableObject, ISerializationCallbackReceiver, IValidatable
     {
-        [Header("Identidade")]
         [Tooltip("Nome exibido do efeito (lista de buffs, tooltip), com chave opcional para o provedor de texto. Vazio por padrão.")]
         [SerializeField] private LocalizedText localizedName;
 
@@ -64,7 +63,6 @@ namespace SpellBook.GAS.Effects
         /// <summary>Ícone do efeito; nulo por padrão.</summary>
         public Sprite Icon => icon;
 
-        [Header("Duration")]
         public EffectDurationPolicy DurationPolicy;
         
         [ShowIf(nameof(DurationPolicy), EffectDurationPolicy.HasDuration)]
@@ -87,18 +85,14 @@ namespace SpellBook.GAS.Effects
         /// <summary>Nível da aplicação sem habilidade (pelo menos 1). Sem habilidade não há tabela: o modo Table vale o Fallback.</summary>
         public int DefaultLevel => defaultLevel < 1 ? 1 : defaultLevel;
 
-        [Header("Periodic")]
         [Tooltip("If Period > 0, effect triggers every Period seconds")]
         public float Period = 0f;
 
-        [Header("Instant & Persistent Modifiers")]
         public List<AttributeEffectModifier> Modifiers;
 
-        [Header("Periodic Modifiers (Tick)")]
         [Tooltip("Usado só quando Period > 0")]
         public List<AttributeEffectModifier> PeriodicModifiers;
 
-        [Header("Metadados")]
         [Tooltip("Efeito benéfico para o alvo. Pode coexistir com Is Debuff, com aviso do validador.")]
         [SerializeField] private bool isBuff;
 
@@ -116,7 +110,6 @@ namespace SpellBook.GAS.Effects
         public bool IsHidden => isHidden;
         public bool IsPurgable => isPurgable;
 
-        [Header("Actions")]
         [SerializeReference]
         [TypePicker]
         [FormerlySerializedAs("OnApplication")]
@@ -172,7 +165,6 @@ namespace SpellBook.GAS.Effects
             || (OnDeath != null && OnDeath.Count > 0)
             || (OnAbilityExecuted != null && OnAbilityExecuted.Count > 0);
 
-        [Header("Gameplay Tags")]
         [Tooltip("Tipos de dano do efeito. Os processadores dos atributos (resistência, imunidade) casam pela hierarquia: Dano casa com Dano.Fogo.")]
         [SerializeField] private GameplayTagContainer damageTags = new GameplayTagContainer();
 
@@ -183,7 +175,6 @@ namespace SpellBook.GAS.Effects
         public List<GameplayTag> ApplicationRequirements;
         public List<GameplayTag> ApplicationImmunityTags;
 
-        [Header("Stacking Logic")]
         public bool CanStack;
         public int MaxStacks = 1;
         public bool RefreshDurationOnStack = true;

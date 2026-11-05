@@ -124,3 +124,22 @@ O IH2, o IH3 e o IH4 mexem no `GameplayAbilityEditor`, então não rodam em para
 - Critério de pronto: os cinco verdes, mais `AbilityInspectorTabsTests`, `AbilityBehaviorFieldsTests`, `AbilityLevelPreviewTests`, `ActivationInspectorTests` e `DescriptionPreviewTests` verdes no filtro, sem mudar asserção. A suíte completa roda na `/revisao`.
 - Tamanho: 305 linhas medidas (+302 −3) e 3 arquivos (2 novos), pela ADR 0042. Os `.meta` e este Detalhe não contam. Exceção: nenhuma.
 - Commit: `feat(editor): listas de tags compactas na habilidade`
+
+## IH5 — Quatro abas do Inspector do efeito
+### Detalhe (2026-11-05)
+- CA: CA5 (no efeito), CA6, CA8 e CA9. A visibilidade por duração, período e pilha (CA7) é do IH6. Aqui os campos só mudam de lugar, e a aba "A cada tick" continua como está.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Editor/GAS/GameplayEffectEditor.cs:9-24`: `[CustomEditor(typeof(GameplayEffect), true)]`, para que a subclasse use o mesmo Inspector e o campo dela vá para "Outros". O `BuildAfterDefault` monta as quatro abas com o `InspectorTabsView`, pela tabela do DS (seção 4):
+    - Configuração: Identidade (`localizedName`, `icon`, `isBuff`, `isDebuff`, `isHidden`, `isPurgable`), Duração (`DurationPolicy`, `duration`, `defaultLevel`, `Period`) e Empilhamento (`CanStack`, `MaxStacks`, `RefreshDurationOnStack`, `stacksMultiplyMagnitude`). O campo desconhecido vai para "Outros", no fim desta aba, e a linha "Script" fica acima das abas, como na habilidade.
+    - Modificadores: Persistentes (`Modifiers`) e Do tique (`PeriodicModifiers`).
+    - Ações: o `ActionEventsView` de hoje, com as reações agrupadas e, abaixo dele, o grupo "Reações" com `damageAttributes` e `deathAttribute`.
+    - Tags: o grupo Tags com `damageTags`, `GrantedTags`, `ApplicationRequirements` e `ApplicationImmunityTags`, embrulhadas pelo `CompactTagList.WrapGroup` ("N de 4 com itens"). O `TrackSerializedObjectValue` chama o `RefreshAll` do grupo, como na habilidade.
+    - O resumo da classe cita as abas.
+  - `Editor/GAS/CompactTagList.cs:28-46,81-94`: o `damageTags` é um `GameplayTagContainer`, não uma lista. O `WrapGroup` passa a aceitar o conjunto: conta e acrescenta itens pela lista `tags` de dentro dele, e o nome e o tooltip da linha compacta vêm do campo do efeito. A lista comum não muda.
+  - `Runtime/GAS/Effects/GameplayEffect.cs:50,67,90,94,97,101,119,175,186`: saem os nove `[Header]`, porque os títulos agora vêm dos grupos e o "Actions" e o "Gameplay Tags" ficariam no lugar errado (decisões do épico). O formato serializado não muda.
+  - `Tests/GAS/EditMode/ActionInspectorTests.cs:71`: a busca por `Tab` fica dentro do `ActionEventsView`, porque as abas do topo do efeito também são `Tab`, como o IH1 fez na habilidade. Consequência direta do ticket (0042, item 6); as asserções continuam as mesmas.
+  - Sem `CHANGELOG.md` e sem manual: nada quebra, e o manual fica para o passe de documentação. O efeito fica sem prévia por nível e sem ponto de aviso nas abas (gate de 2026-11-05).
+- Testes red (EditMode, `SpellBook.GAS.Tests.EditMode`, classe `EffectInspectorTabsTests`, em `Tests/GAS/EditMode/EffectInspectorTabsTests.cs`, novo): `Tabs_FourInOrder_BelowValidation`; `Configuration_ThreeGroupsInOrder_WithDsFields`; `Modifiers_PersistentAndTickGroups`; `Actions_EventTabs_ThenReactionAttributes`; `Fields_EachInOneTab_ScriptAboveTabs`; `TagsGroup_FourCompactLists_CountsListsWithItems`; `DamageTags_Empty_OneRowWithFieldName_AddButtonAddsTag`; `UnknownField_InOthersAtEndOfConfiguration`; `ActiveTab_RememberedPerAsset_NewAssetOpensConfiguration`; `MultiSelection_FieldsEditAll_ActionsFollowDs`; `RuntimeHeaders_Removed`.
+- Critério de pronto: os onze verdes, mais `ActionInspectorTests`, `AbilityCompactTagListsTests`, `AbilityInspectorTabsTests`, `LevelValuesDrawerTests` e `ThinkerInspectorTests` verdes no filtro, sem mudar asserção. A suíte completa roda na `/revisao`.
+- Tamanho: 338 linhas medidas (+320 −18) e 5 arquivos (1 novo), pela ADR 0042. Os `.meta` e este Detalhe não contam. Exceção: nenhuma.
+- Commit: `feat(editor): quatro abas do Inspector do efeito`

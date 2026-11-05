@@ -10,7 +10,8 @@ namespace SpellBook.GAS.Editor
     /// Lista de tags compacta (DS do Inspector da habilidade, seção 6). Vazia, ocupa uma linha com o nome da lista em
     /// texto secundário, com o <c>[Tooltip]</c> do campo, e o botão "+ adicionar" à direita. Com itens, mostra o
     /// <see cref="PropertyField"/> da lista, com os itens e o botão no rodapé. Com vários assets, só fica compacta se a
-    /// lista estiver vazia em todos. Serve à habilidade e ao efeito.
+    /// lista estiver vazia em todos. Serve à habilidade e ao efeito; no <see cref="SpellBook.Tags.GameplayTagContainer"/>,
+    /// conta a lista de tags de dentro dele.
     /// </summary>
     internal sealed class CompactTagList : VisualElement
     {
@@ -19,14 +20,17 @@ namespace SpellBook.GAS.Editor
         internal const string CountName = "spellbook-compact-tag-list-count";
         internal const string AddText = "+ adicionar";
         private const float SecondaryOpacity = 0.7f;
+        private const string ContainerList = "tags";
 
         private readonly SerializedProperty _list;
         private readonly VisualElement _empty;
 
         /// <param name="field">Campo da lista no Inspector padrão; passa a ser filho deste elemento.</param>
         /// <param name="list">Propriedade da lista (array) do mesmo campo.</param>
-        internal CompactTagList(PropertyField field, SerializedProperty list)
+        /// <param name="label">Propriedade que dá o nome e o tooltip; nula, a própria lista.</param>
+        internal CompactTagList(PropertyField field, SerializedProperty list, SerializedProperty label = null)
         {
+            label ??= list;
             Field = field;
             _list = list;
             AddToClassList(ClassName);
@@ -36,7 +40,7 @@ namespace SpellBook.GAS.Editor
             _empty.style.flexDirection = FlexDirection.Row;
             _empty.style.alignItems = Align.Center;
             _empty.style.minHeight = EditorGUIUtility.singleLineHeight;
-            var name = new Label(list.displayName) { tooltip = list.tooltip };
+            var name = new Label(label.displayName) { tooltip = label.tooltip };
             name.style.flexGrow = 1;
             name.style.opacity = SecondaryOpacity;
             name.style.marginLeft = 3;
@@ -83,11 +87,12 @@ namespace SpellBook.GAS.Editor
             foreach (string property in properties)
             {
                 PropertyField field = group.Q<PropertyField>("PropertyField:" + property);
-                SerializedProperty list = serializedObject.FindProperty(property);
+                SerializedProperty label = serializedObject.FindProperty(property);
+                SerializedProperty list = label != null && !label.isArray ? label.FindPropertyRelative(ContainerList) : label;
                 if (field == null || list == null || !list.isArray) continue;
 
                 int index = group.IndexOf(field);
-                var compact = new CompactTagList(field, list);
+                var compact = new CompactTagList(field, list, label);
                 group.Insert(index, compact);
             }
 
