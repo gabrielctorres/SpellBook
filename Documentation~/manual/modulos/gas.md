@@ -130,12 +130,14 @@ Duração, modificadores, tiques e custo são avaliados com o nível e a tabela 
 
 Para aplicar com contexto, monte um `EffectSpec` e passe por `in`:
 
+{% code title="Packages/com.spellbook/Tests/GAS/EditMode/Examples/GasManualExamples.cs:effect-spec" %}
 ```csharp
 var valores = new SetByCallerValues();   // guarde e reutilize; Clear() não libera a memória
 valores.Set("Dano", 120f);
 EffectSpec spec = EffectSpec.Create(efeito, caster).WithCallerValues(valores);
 target.TryApplyEffect(in spec, out ActiveEffectInstance instancia);
 ```
+{% endcode %}
 
 `EffectSpec.Create(efeito, instigador)` monta o spec sem habilidade; `EffectSpec.FromAbility(efeito, contextoDaAcao)` usa o instigador, a habilidade, o nível e o ponto do `ActionContext` (é o que a `ApplyEffectAction` faz, inclusive no impacto de projétil). `WithCallerValues`, `WithImpactPoint` e `WithDurationOverride` devolvem uma cópia alterada. `ApplyEffect(efeito, origem)` e as outras formas antigas continuam valendo, com o mesmo resultado. Aplicar um spec instantâneo não aloca.
 
@@ -193,10 +195,12 @@ Um buff "+100 % do ataque de quem lançou" (fonte `Attribute`) em `Snapshot` fic
 
 Nos dois bloqueios, o ASC dispara `OnEffectBlocked(efeito, origem, resultado)`, uma vez, com a origem já resolvida (origem `null` vira o próprio ASC). Efeito `null` não dispara. Para bloqueios de regras suas (silêncio, alvo fora de alcance), chame `asc.ReportBlocked(tagDoMotivo, origem)`: dispara `OnBlocked(tag, origem)`, ignora tag inválida e troca origem `null` pelo próprio ASC.
 
+{% code title="Packages/com.spellbook/Tests/GAS/EditMode/Examples/GasManualExamples.cs:immunity" %}
 ```csharp
 if (target.TryApplyEffect(stun, caster, out _) == EffectApplicationResult.BlockedByImmunity)
     Debug.Log($"{target.name} é imune a {stun.name}");
 ```
+{% endcode %}
 
 #### Efeitos ativos
 `asc.ActiveEffects` lista as instâncias ativas na ordem de aplicação, sem cópia. Cada `ActiveEffectInstance` expõe `Effect` (o asset), `Source` e `Target` (os ASCs), `TimeRemaining`, `AppliedDuration` (a duração com que foi aplicada ou renovada, já com a redução de recarga), `CurrentStacks` e `IsActive` (falso depois da remoção). O tempo avança só pelo `Tick` do ASC, e as pilhas mudam pela reaplicação.
@@ -218,12 +222,14 @@ Para buscar, passe uma lista sua: o ASC limpa a lista, preenche com as instânci
 - `FindEffects(asset, lista)`: as instâncias de um `GameplayEffect`.
 - `HasEffectWithTag(tag)`: se algum efeito ativo concede a tag ou uma filha dela.
 
+{% code title="Packages/com.spellbook/Tests/GAS/EditMode/Examples/GasManualExamples.cs:find-effects-field,find-effects-call" %}
 ```csharp
 private readonly List<ActiveEffectInstance> _found = new List<ActiveEffectInstance>();
 
 int burns = asc.FindEffectsWithTag(statusBurn, _found);
 for (int i = 0; i < burns; i++) Debug.Log($"{_found[i].Effect.name}: {_found[i].TimeRemaining:0.0} s");
 ```
+{% endcode %}
 
 ### 1.4 Gameplay Abilities (GA)
 As habilidades são compostas **dentro do próprio arquivo da habilidade**, como uma lista de ações.
@@ -234,10 +240,12 @@ Não é preciso criar ScriptableObjects separados para cada ação.
 
 `Values` (`AbilityValues`) é a tabela de valores nomeados da habilidade: cada entrada tem um nome e um [`ScalableFloat`](#valores-por-nivel-scalablefloat). Um `ScalableFloat` em modo `Table` lê a entrada pelo nome, e várias partes da habilidade podem usar o mesmo número (o dano de 50/75/100, por exemplo).
 
+{% code title="Packages/com.spellbook/Tests/GAS/EditMode/Examples/GasManualExamples.cs:ability-values" %}
 ```csharp
 habilidade.Values.Add("Damage", ScalableFloat.FromArray(50, 75, 100));
 habilidade.TryGetValue("Damage", 3, out float dano); // true, 100
 ```
+{% endcode %}
 
 - `Add` acrescenta, `Set` troca ou acrescenta e `Remove` tira uma entrada. Toda mudança sobe a `Version` da tabela; editar no Inspector também.
 - O nome diferencia maiúsculas. `TryGetValue` com um nome que não existe devolve `false` e 0, sem aviso.
@@ -247,12 +255,14 @@ habilidade.TryGetValue("Damage", 3, out float dano); // true, 100
 #### Exemplo: Fireball com `damage` e `cooldown`
 A Fireball tem `MaxLevel = 4` e duas entradas na tabela: `damage = 50 75 100 125` e `cooldown = 8 7 6 5`. A duração do efeito de recarga está em modo `Table` com o nome `cooldown`, e o valor do modificador de dano, em modo `Table` com o nome `damage`. Concedida em nível 3, a recarga aplicada é de 6 s e o dano é 100. Ao subir para o nível 4, a próxima recarga é de 5 s e o próximo dano, 125.
 
+{% code title="Packages/com.spellbook/Tests/GAS/EditMode/Examples/GasManualExamples.cs:fireball" %}
 ```csharp
 fireball.Values.Add("damage", ScalableFloat.FromArray(50, 75, 100, 125));
 fireball.Values.Add("cooldown", ScalableFloat.FromArray(8, 7, 6, 5));
 fireball.CooldownEffect.Duration = ScalableFloat.FromTable("cooldown");
 asc.GiveAbility(fireball, 3); // recarga de 6 s, dano 100
 ```
+{% endcode %}
 
 #### No Inspector
 Todo campo `ScalableFloat` aparece como um grupo com o seletor **Modo** e, abaixo, só os campos do modo escolhido:
@@ -304,6 +314,7 @@ Para consultar as tags do ASC no código, sem alocar, use `asc.HasMatching(query
 #### Condição própria
 Para criar uma condição, herde `Condition<ConditionContext>`, marque a classe com `[Serializable]` e sobrescreva `Evaluate`. A classe precisa ser concreta, não genérica e ter um construtor sem parâmetros: assim ela aparece no seletor ao lado das condições prontas. O `[TypeCategory]` dá a pasta no seletor, a dica (`Summary`) e o resumo de uma linha (`Line`), em que `{campo}` vira o valor do campo serializado.
 
+{% code title="Packages/com.spellbook/Tests/GAS/EditMode/Examples/GasManualExamples.cs:using-system,using-core-conditions,using-core-inspector,using-gas-conditions,using-unityengine,min-level-condition" %}
 ```csharp
 using System;
 using SpellBook.Core.Conditions;
@@ -322,6 +333,7 @@ public sealed class MinLevelCondition : Condition<ConditionContext>
     public override bool Evaluate(in ConditionContext context) => context.Level >= minLevel;
 }
 ```
+{% endcode %}
 
 Em `Evaluate`, só leia o contexto: não mude o ASC, não guarde estado e não aloque, porque a consulta da UI chama a mesma condição a cada quadro. `DefaultFailureKey` é opcional e vale quando a regra deixa o **Failure Key** vazio. Para acusar configuração errada no validador, sobrescreva `Validate(result, propertyPath)` e passe o `propertyPath` nas mensagens.
 
@@ -627,12 +639,14 @@ Com a recarga da carga parada e sem `CooldownEffect` correndo, os três devolvem
 
 Com **Enabled** ligado, a seção **Ativação** do Inspector mostra a prévia das cargas no **Nível de prévia**, como `1 carga a cada 6 s, máximo 4 no nível 3`. A prévia não aplica a redução do atributo. Com **Max Charges** por atributo ou por fórmula, ela mostra o tipo da fonte no lugar do número, porque o valor depende do ASC.
 
+{% code title="Packages/com.spellbook/Tests/GAS/EditMode/Examples/GasManualExamples.cs:dash-charges" %}
 ```csharp
 AbilitySpec spec = asc.FindSpec(dash);
 asc.OnChargesChanged += (s, antes, depois) => Debug.Log($"{s.Ability.name}: {antes} -> {depois}");
 asc.TryActivateAbility(dash, AbilityTarget.None); // 3 -> 2, a recarga começa
 float barra = asc.GetChargeRechargeNormalized(spec);
 ```
+{% endcode %}
 
 #### CooldownReductionPolicy
 A `CooldownReductionPolicy` diz como o valor do `CooldownReductionAttribute` vira duração de recarga. Crie o asset por *Create > GAS > Cooldown Reduction Policy* e escolha-o no campo **Cooldown Reduction Policy** da habilidade. A política só vale com um `CooldownReductionAttribute`; sem ele, a recarga usa a `Duration` do asset e o validador avisa.
@@ -695,12 +709,14 @@ Durações de efeitos, ticks periódicos e recargas contam só o tempo que o ASC
 
 Com `autoTick` desligado, a mesma sequência de `Tick` sempre dá o mesmo estado, o que serve para testes e para simulação.
 
+{% code title="Packages/com.spellbook/Tests/GAS/EditMode/Examples/GasManualExamples.cs:asc-tick,asc-tick-expired" %}
 ```csharp
 asc.SetTimeSource(manualTime); // com autoTick desligado no Inspector
 asc.ApplyEffect(burning);      // efeito de 2 s
 asc.Tick(1.9f);                // ainda ativo
 asc.Tick(0.2f);                // expirou
 ```
+{% endcode %}
 
 **Receita: pausar a gameplay e manter a UI.** Crie um grupo pausável pelo menu *SpellBook > Time > Pausable Time Group*, chame-o de "Gameplay" e coloque-o no `timeSource` dos ASCs dos personagens. Ao chamar `Pause` no grupo, as recargas e as durações desses ASCs param. Um ASC com fonte não escalada e o resto da cena continuam. Ao chamar `Resume`, tudo volta de onde parou. Veja [Grupo pausável](tempo.md#grupo-pausavel).
 
@@ -716,24 +732,37 @@ Um efeito expira quando o tempo restante fica menor ou igual a 0. Em `float`, `2
 
 ## 5. Integração via código (C#)
 
+{% code title="Packages/com.spellbook/Tests/GAS/EditMode/Examples/GasManualExamples.cs:using-gas-core,using-gas-abilities,using-unityengine,player-combat" %}
 ```csharp
 using SpellBook.GAS.Core;
 using SpellBook.GAS.Abilities;
+using UnityEngine;
 
-public class PlayerCombat : MonoBehaviour {
-    public AbilitySystemComponent asc;
-    public GameplayAbility fireball;
+public class PlayerCombat : MonoBehaviour
+{
+    [SerializeField] private AbilitySystemComponent asc;
+    [SerializeField] private GameplayAbility fireball;
 
-    void Start() {
+    private void Start()
+    {
         asc.GiveAbility(fireball);
-        asc.OnAbilityFailed += (ability, falha) => Debug.Log($"{ability.DisplayName}: {falha.ReasonKey ?? falha.Result.ToString()}");
+        asc.OnAbilityFailed += (ability, falha) => Debug.Log($"{ability.DisplayName.Text}: {falha.ReasonKey ?? falha.Result.ToString()}");
     }
 
-    void Update() {
-        if (Input.GetKeyDown(KeyCode.E)) {
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.E))
+        {
             Vector3 targetPos = GetMouseWorldPosition();
             var result = asc.TryActivateAbility(fireball, targetPos);
         }
     }
+
+    private Vector3 GetMouseWorldPosition()
+    {
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        return new Plane(Vector3.up, Vector3.zero).Raycast(ray, out float distance) ? ray.GetPoint(distance) : transform.position;
+    }
 }
 ```
+{% endcode %}
