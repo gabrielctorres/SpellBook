@@ -27,6 +27,11 @@ namespace SpellBook.Core.Tests.Structure
 
         private static readonly string[] ScannedFolders = { "Runtime", "Editor", "Tests" };
 
+        // Fora de Tests/: este arquivo contém o texto do menu.
+        private static readonly string[] ProductFolders = { "Runtime", "Editor" };
+
+        private const string DocumentationMenu = "SpellBook/Documentação/";
+
         [Test]
         public void OldEventFoldersDoNotExist()
         {
@@ -59,6 +64,18 @@ namespace SpellBook.Core.Tests.Structure
                 .SelectMany(folder => PackageFiles.Find(folder, ".cs"))
                 .Where(path => !IsInPoolingModule(path))
                 .Where(path => PackageFiles.ReadText(path).Contains(PoolSingleton))
+                .ToList();
+
+            Assert.That(violations, Is.Empty);
+        }
+
+        /// <summary>As ferramentas de documentação ficam no host do repositório, não no pacote (CA1 de organizacao-dos-asmdefs).</summary>
+        [Test]
+        public void Package_HasNoDocumentationMenu()
+        {
+            List<string> violations = ProductFolders
+                .SelectMany(folder => PackageFiles.Find(folder, ".cs"))
+                .Where(path => PackageFiles.ReadText(path).Contains(DocumentationMenu))
                 .ToList();
 
             Assert.That(violations, Is.Empty);

@@ -10,7 +10,7 @@ namespace SpellBook.Core.Tests.Structure
     /// Cada projeto host tem a própria pasta, então duas Unity abertas em worktrees diferentes
     /// não apagam os arquivos uma da outra (Spec referencia-catalogo-e-api, emenda de 2026-11-02; XR3).
     /// </summary>
-    internal static class TestScratch
+    public static class TestScratch
     {
         private const string TempFolder = "Temp";
         private const string ScratchFolder = "SpellBookTests";
