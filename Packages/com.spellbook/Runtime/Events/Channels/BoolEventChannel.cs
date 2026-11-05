@@ -4,7 +4,7 @@ using UnityEngine;
 namespace SpellBook.Events
 {
     /// <summary>Canal com payload <c>bool</c>.</summary>
-    [CreateAssetMenu(menuName = "SpellBook/Events/Bool Channel")]
+    [CreateAssetMenu(menuName = "SpellBook/Events/Bool Channel", fileName = "New Bool Channel")]
     [HelpURL(DocUrls.Events + "#booleventchannel")]
     public sealed class BoolEventChannel : EventChannel<bool>
     {

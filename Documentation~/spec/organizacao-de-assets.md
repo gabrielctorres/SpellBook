@@ -104,3 +104,21 @@ Antes do OA5, e fora dos tickets, vem o protótipo dos estilos: as famílias hab
 - Critério de pronto: os 5 testes de `\.CreateAssetMenuRulesTests\.` e os de `\.TimeSourceTests\.` verdes, com o `total` conferido no XML.
 - Tamanho: ~30 linhas (20 nos 10 tipos, ~8 na guarda e 2 no `TimeSourceTests`) e 12 arquivos, pela ADR 0042. Exceção: 12 arquivos, +20% sobre o teto de 10; o ticket toca um atributo por tipo, o `TimeSourceTests` fixa o menu do `PausableTimeSource` e muda junto, e dividir deixaria um módulo fora da guarda.
 - Commit: `chore(menu): menus e fileName de Core, Time e Pooling pela ADR 0043`
+
+## OA3 — Events, Teams e Localization pela 0043
+### Detalhe (2026-11-04)
+- CA: CA1 e CA2 para os módulos `SpellBook.Events`, `SpellBook.Teams` e `SpellBook.Localization`. O `GasChannelsTests` (GAS.Bridges) fica para o OA4, junto do módulo dele.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/Events/Channels/{Void,Int,Float,Bool,String,Vector3,GameObject}EventChannel.cs:7`: menu igual, `fileName` `New <Tipo> Channel` (a ADR 0043, item 3, dá `New Int Channel` como exemplo).
+  - `Runtime/Teams/TeamDefinition.cs:9`: menu igual (`Team`, sem o `Definition`), `New Team`.
+  - `Runtime/Teams/TeamRelationMatrix.cs:14`: `SpellBook/Teams/Team Relation Matrix`, `New Team Relation Matrix` (item 1: nome do tipo sem sufixo técnico; o antigo `Relation Matrix` cortava o `Team`, que não é sufixo).
+  - `Runtime/Localization/LocalizationTextProvider.cs:19`: menu igual, `New Localization Text Provider`.
+  - `Tests/Core/EditMode/Structure/CreateAssetMenuRulesTests.cs:24-31`: `CheckedModuleMenus` ganha `SpellBook.Events` (`SpellBook/Events/`), `SpellBook.Teams` (`SpellBook/Teams/`) e `SpellBook.Localization` (`SpellBook/Text/`); `:64-66`: a varredura passa a exigir também `IntEventChannel`, `TeamRelationMatrix` e `LocalizationTextProvider`; teste novo que confere o item 1 contra o nome do tipo: o nome do item, sem espaços, é o nome do tipo sem o prefixo `Gameplay`, com o `EventChannel` final lido como `Channel` (exemplo do item 3) e, opcionalmente, sem o sufixo `Asset` ou `Definition`. Todos os tipos já conferidos no OA1 e no OA2 passam nessa regra.
+  - `Tests/Events/EditMode/ChannelMenuTests.cs:16-34`: a guarda dos canais passa a conferir também o `fileName` de cada um dos sete (0043, "Consequências").
+  - Sem `CHANGELOG.md` e sem manual (mesmo motivo do OA1).
+- Testes red (EditMode):
+  - `SpellBook.Core.Tests.EditMode`, `CreateAssetMenuRulesTests`: com a tabela ampliada, `CheckedModuleFileName_IsNewPlusMenuItemName` falha (os 10 tipos); o novo `CheckedModuleMenuItem_IsTypeNameWithoutTechnicalParts` falha no `TeamRelationMatrix`.
+  - `SpellBook.Events.Tests` (`ChannelMenuTests`): o novo `Menu_ChannelFileName_IsNewPlusItemName` falha nos sete canais.
+- Critério de pronto: os 6 testes de `\.CreateAssetMenuRulesTests\.` e os 2 de `\.ChannelMenuTests\.` verdes, com o `total` conferido no XML.
+- Tamanho: ~85 linhas (20 nos 10 tipos, ~43 na guarda e ~22 no `ChannelMenuTests`) e 12 arquivos, pela ADR 0042. Exceção: 12 arquivos, +20% sobre o teto de 10; o ticket toca um atributo por tipo (7 canais, 2 de Teams, 1 de Localization), e a guarda dos canais muda junto pela 0043; dividir deixaria um módulo fora da guarda.
+- Commit: `chore(menu): menus e fileName de Events, Teams e Localization pela ADR 0043`

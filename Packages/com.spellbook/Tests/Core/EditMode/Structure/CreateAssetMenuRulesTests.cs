@@ -18,8 +18,11 @@ namespace SpellBook.Core.Tests.Structure
         private const string MenuRoot = "SpellBook/";
         private const string FileNamePrefix = "New ";
         private const string GameplayPrefix = "Gameplay";
+        private const string EventChannelSuffix = "EventChannel";
+        private const string ChannelSuffix = "Channel";
+        private static readonly string[] TechnicalSuffixes = { "Asset", "Definition" };
 
-        // Módulos já conferidos pela ADR 0043 (OA1 e OA2): assembly → pastas de menu permitidas (item 2).
+        // Módulos já conferidos pela ADR 0043 (OA1 a OA3): assembly → pastas de menu permitidas (item 2).
         // Cada ticket do épico acrescenta os módulos dele; o OA4 passa a regra para o pacote inteiro.
         private static readonly Dictionary<string, string[]> CheckedModuleMenus = new Dictionary<string, string[]>
         {
@@ -28,6 +31,9 @@ namespace SpellBook.Core.Tests.Structure
             ["SpellBook.Core"] = new[] { "SpellBook/Core/", "SpellBook/Text/", "SpellBook/Spawn/" },
             ["SpellBook.Time"] = new[] { "SpellBook/Time/" },
             ["SpellBook.Pooling"] = new[] { "SpellBook/Pooling/", "SpellBook/Spawn/" },
+            ["SpellBook.Events"] = new[] { "SpellBook/Events/" },
+            ["SpellBook.Teams"] = new[] { "SpellBook/Teams/" },
+            ["SpellBook.Localization"] = new[] { "SpellBook/Text/" },
         };
 
         [Test]
@@ -63,7 +69,8 @@ namespace SpellBook.Core.Tests.Structure
 
             Assert.That(entries.Select(entry => entry.Type.Name), Does.Contain("GameplayAbility")
                 .And.Contain("SimpleAttributeFormula").And.Contain("GameplayTagDefinition")
-                .And.Contain("TransformAnchor").And.Contain("PausableTimeSource").And.Contain("PoolConfiguration"),
+                .And.Contain("TransformAnchor").And.Contain("PausableTimeSource").And.Contain("PoolConfiguration")
+                .And.Contain("IntEventChannel").And.Contain("TeamRelationMatrix").And.Contain("LocalizationTextProvider"),
                 "a varredura não achou os tipos esperados");
 
             IEnumerable<string> violations = entries
@@ -80,6 +87,16 @@ namespace SpellBook.Core.Tests.Structure
                 .Select(entry => $"{entry.Type.FullName}: \"{entry.Menu}\"");
 
             Assert.That(violations, Is.Empty, "o nome do item vem sem o \"Gameplay\" (ADR 0043, item 1)");
+        }
+
+        [Test]
+        public void CheckedModuleMenuItem_IsTypeNameWithoutTechnicalParts()
+        {
+            IEnumerable<string> violations = CheckedModuleEntries()
+                .Where(entry => !AllowedItemNames(entry.Type.Name).Contains(MenuItemName(entry.Menu).Replace(" ", string.Empty)))
+                .Select(entry => $"{entry.Type.FullName}: \"{entry.Menu}\"");
+
+            Assert.That(violations, Is.Empty, "o nome do item é o nome do tipo sem o sufixo técnico (ADR 0043, item 1)");
         }
 
         [Test]
@@ -115,6 +132,26 @@ namespace SpellBook.Core.Tests.Structure
         private static string MenuItemName(string menu)
         {
             return menu.Substring(menu.LastIndexOf('/') + 1);
+        }
+
+        // Nomes aceitos pelo item 1 da 0043: sem o "Gameplay", com o "EventChannel" lido como "Channel"
+        // (exemplo "New Int Channel" do item 3) e, se ajudar a ler, sem o sufixo "Asset" ou "Definition".
+        private static IEnumerable<string> AllowedItemNames(string typeName)
+        {
+            string name = typeName.StartsWith(GameplayPrefix, StringComparison.Ordinal)
+                ? typeName.Substring(GameplayPrefix.Length)
+                : typeName;
+            if (name.EndsWith(EventChannelSuffix, StringComparison.Ordinal))
+            {
+                name = name.Substring(0, name.Length - EventChannelSuffix.Length) + ChannelSuffix;
+            }
+
+            yield return name;
+            foreach (string suffix in TechnicalSuffixes.Where(suffix => name.Length > suffix.Length
+                && name.EndsWith(suffix, StringComparison.Ordinal)))
+            {
+                yield return name.Substring(0, name.Length - suffix.Length);
+            }
         }
 
         private static string AssemblyOf(Type type)

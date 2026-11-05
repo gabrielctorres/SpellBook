@@ -12,6 +12,11 @@ namespace SpellBook.Events.Tests
     public class ChannelMenuTests
     {
         private const string MenuPrefix = "SpellBook/Events/";
+        private static readonly string[] ChannelNames =
+        {
+            "Void Channel", "Int Channel", "Float Channel", "Bool Channel", "String Channel", "Vector3 Channel",
+            "GameObject Channel",
+        };
 
         [Test]
         public void Menu_HasExactlySevenChannels_NoComponent()
@@ -33,12 +38,27 @@ namespace SpellBook.Events.Tests
             Assert.That(actual.Values.Where(payload => typeof(Component).IsAssignableFrom(payload)), Is.Empty);
         }
 
+        [Test]
+        public void Menu_ChannelFileName_IsNewPlusItemName()
+        {
+            Dictionary<string, string> expected = ChannelNames.ToDictionary(name => MenuPrefix + name, name => "New " + name);
+
+            Dictionary<string, string> actual = EventsMenus()
+                .ToDictionary(entry => entry.Menu.menuName, entry => entry.Menu.fileName);
+
+            CollectionAssert.AreEquivalent(expected, actual);
+        }
+
         private static Dictionary<string, Type> EventsMenuPayloads()
+        {
+            return EventsMenus().ToDictionary(entry => entry.Menu.menuName, entry => PayloadOf(entry.Type));
+        }
+
+        private static IEnumerable<(Type Type, CreateAssetMenuAttribute Menu)> EventsMenus()
         {
             return TypeCache.GetTypesWithAttribute<CreateAssetMenuAttribute>()
                 .Select(type => (Type: type, Menu: type.GetCustomAttribute<CreateAssetMenuAttribute>(false)))
-                .Where(entry => entry.Menu != null && entry.Menu.menuName.StartsWith(MenuPrefix, StringComparison.Ordinal))
-                .ToDictionary(entry => entry.Menu.menuName, entry => PayloadOf(entry.Type));
+                .Where(entry => entry.Menu != null && entry.Menu.menuName.StartsWith(MenuPrefix, StringComparison.Ordinal));
         }
 
         private static Type PayloadOf(Type channelType)

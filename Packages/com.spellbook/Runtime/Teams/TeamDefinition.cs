@@ -6,7 +6,7 @@ namespace SpellBook.Teams
 {
     /// <summary>Um time. O próprio asset é o identificador: a matriz e os membros o referenciam.</summary>
     [HelpURL(DocUrls.Teams + "#teamdefinition")]
-    [CreateAssetMenu(fileName = "NewTeam", menuName = "SpellBook/Teams/Team")]
+    [CreateAssetMenu(fileName = "New Team", menuName = "SpellBook/Teams/Team")]
     public sealed class TeamDefinition : ScriptableObject, IValidatable
     {
         [SerializeField] private string displayName;
