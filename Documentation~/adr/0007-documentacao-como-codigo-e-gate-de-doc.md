@@ -181,6 +181,31 @@ Vale para todo ticket que começar depois da aceitação. Um ticket que já est�
 6. **Emenda "manual e referência só no passe de documentação", item 6.** O texto do passe é escrito no espaço de rascunho pelo MCP, por change request (0044, item 13). A geração passa a ser **SpellBook > Documentação > Gerar catálogo e exemplos**, rodada no checkout depois do merge do change request. No lugar do `mkdocs build --strict`, valem as guardas `Documentacao`.
 7. **Emenda "quem revisa o passe de documentação".** O Controlador faz as conferências de texto (molde, siglas, sumário, legendas e humanizer) lendo o change request pelo MCP, antes do merge dele. Na branch do lote, antes do `/commit`, faz o `git diff --check` e as conferências por busca. Ele não roda mais build. O item 3 termina com as guardas verdes, sem o build. O Examinador roda as guardas depois do merge do change request e da geração; o resto do item 2 não muda.
 
+## Emenda (2026-11-05): quem revisa o passe de documentação, em uma lista
+
+**Status da emenda: Aceita, aprovada pelo usuário em 2026-11-05** (issue #325). Junta numa lista a emenda "quem revisa o passe de documentação" (2026-11-03), o item 7 da emenda de 2026-11-04 e o item 13 da [0044](0044-manual-no-gitbook-por-git-sync-sem-referencia-da-api.md). Não muda nenhuma regra. Aceita esta emenda, a regra de quem revisa o passe se lê aqui, e as duas emendas anteriores ficam como histórico.
+
+1. **Controlador, no change request, antes do merge.** Lê as páginas do change request pelo MCP, só para ler, e confere:
+   - o molde do guia: nenhuma seção obrigatória faltando e a ordem das seções;
+   - as siglas: nenhuma em título e nenhuma antes do nome por extenso na mesma página, com a exceção do GAS;
+   - a entrada de cada página nova no `SUMMARY.md`;
+   - os diagramas: só Mermaid, cada um com legenda de uma frase e desenhado na prévia do change request;
+   - nenhuma imagem, captura de tela ou gif;
+   - nenhuma lista de ações, condições ou reações escrita à mão;
+   - o texto novo, lido pelas regras da humanizer (`C:/Users/gabri/.claude/skills/humanizer/SKILL.md`), e a declaração da Fábrica no relatório de que escreveu e revisou o texto por essas regras.
+
+   Um problema volta à Fábrica no mesmo change request, e o Controlador repete a conferência. A Fábrica só junta o change request depois dela.
+2. **Controlador, na branch do lote, antes do `/commit`.** Roda o `git diff --check` no diff do ticket e as conferências por busca da seção 7 do `guia-do-manual.md`. Não roda build, porque não há build (0044, item 12).
+3. **Examinador, no `/revisao`.** Todo ticket do passe passa pelo `/revisao`, mesmo o que é só de texto, depois do merge do change request e da geração. Sob a trava (0005), o Examinador roda as guardas com `-testCategory "Documentacao"` e reprova se uma falhar.
+   - Não registra achado sobre o texto. O texto é do item 1.
+   - Se o ticket tem código, revisa o código pela regra da 0002 e roda também a suíte com `-testCategory "!Documentacao"`.
+   - Se o texto muda depois das guardas verdes, elas rodam de novo antes do `/commit`. A correção de texto pedida por uma guarda é um change request novo do mesmo ticket, e passa pelo item 1.
+4. **Fim.** O ticket só vai ao `/commit` com as duas partes aprovadas para o diff final: a conferência do Controlador (itens 1 e 2) e o APROVADO do Examinador (item 3). O passe termina quando o último ticket fecha com as guardas verdes. O usuário lê o texto no PR da branch do lote.
+
+**Motivo.** A regra estava espalhada: a emenda de 2026-11-03 trazia o `nav` e o `mkdocs build --strict`, e só o item 7 da emenda de 2026-11-04 e a 0044 os tiravam. Quem lia a emenda de 2026-11-03 sozinha seguia uma regra que não vale mais.
+
+**Consequências.** O `AGENTS.md` (seção "Time de desenvolvimento"), os agentes `controlador` e `examinador` e a skill `/revisao` já dizem o mesmo e não mudam.
+
 ## Em aberto
 
 Nada.
