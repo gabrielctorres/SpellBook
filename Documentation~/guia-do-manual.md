@@ -114,7 +114,7 @@ Página nova nasce no molde.
 
 O `SUMMARY.md` da raiz do manual (`manual/SUMMARY.md`) tem como títulos de grupo (`## Grupo`) os sete grupos, nesta ordem: Começar; Sistemas de habilidade; Sistemas de apoio; Editor e ferramentas; Exemplos; Guias; Referência. Grupo sem página fica fora do sumário. O rótulo de cada página é o título `#` dela, e cada página aparece uma vez.
 
-Toda página nova entra no `SUMMARY.md` no mesmo ticket que a cria. Sem isso, a guarda `SummaryListsEveryPageOnce` falha.
+Toda página nova entra no `SUMMARY.md` no mesmo ticket que a cria. No passe, a Fábrica cria a página pelo MCP, e o GitBook escreve a entrada no sumário; ela confere, no mesmo change request, o grupo e o rótulo da entrada. Sem a entrada, a guarda `SummaryListsEveryPageOnce` falha.
 
 | Grupo | Páginas que já existem ou que as Specs aprovadas criam |
 |---|---|
@@ -138,6 +138,7 @@ Quem implementa e quem revisa rodam estas conferências a partir da raiz do repo
 - Imagem: `grep -rnE '!\[|<img' Documentation~/manual` não acha nada.
 - Sigla em título: `grep -rnE '^#{1,6} .*\b[A-Z]{2,}\b' Documentation~/manual` só acha nomes de tipo em código, GAS (pela exceção da parte 3) e nomes de produto (Unity, JSON).
 - Diagrama sem legenda: todo bloco ```` ```mermaid ```` tem uma linha de legenda logo abaixo do fechamento.
+- Diagrama desenhado: o Controlador abre a prévia do change request e confere que cada diagrama aparece desenhado.
 - Guardas: no lugar do build, as guardas `Documentacao` da parte 8 rodam na Unity, sob a trava, com `-testCategory "Documentacao"`. Quem não roda a Unity confere o resultado na `/revisao`.
 
 ## 8. Catálogo e exemplos gerados
@@ -148,7 +149,7 @@ As guardas que comparam o código com o manual ficam na categoria `Documentacao`
 
 No passe de documentação:
 
-1. Rode **SpellBook > Documentação > Gerar catálogo e exemplos** na Unity, sob a trava. Em batchmode, a mesma geração roda com `-executeMethod SpellBook.Core.Editor.Documentation.ReferenceGenerator.GenerateFromCommandLine` e sai com 0 se deu certo ou com 1 se falhou. Um marcador quebrado não para os outros: a geração expande o resto e lista os quebrados no log.
+1. Depois que o commit do change request chegou ao checkout (parte 10), rode **SpellBook > Documentação > Gerar catálogo e exemplos** na Unity, sob a trava. Em batchmode, a mesma geração roda com `-executeMethod SpellBook.Core.Editor.Documentation.ReferenceGenerator.GenerateFromCommandLine` e sai com 0 se deu certo ou com 1 se falhou. Um marcador quebrado não para os outros: a geração expande o resto e lista os quebrados no log.
 2. O catálogo e as páginas que a geração mudou entram no mesmo diff. Sem isso, o `ReferenceUpToDateTests` ou o `ExpandedBlocksMatchSections` falha.
 3. Rode a suíte com `-testCategory "Documentacao"`. Se o ticket tem código, a revisão roda também a suíte com `-testCategory "!Documentacao"`.
 
@@ -206,3 +207,13 @@ Configuração de asset e do Inspector continua em texto. Um bloco que não pode
 No texto em volta de um exemplo, um tipo da Unity aponta para a página mais recente do ScriptReference, sem versão na URL (`https://docs.unity3d.com/ScriptReference/MonoBehaviour.html`). Um tipo do .NET não ganha link escrito à mão.
 
 Mudar um arquivo de exemplos deixa o bloco da página atrás do código até a próxima geração, no passe. O `ExpandedBlocksMatchSections` acusa a diferença.
+
+## 10. Escrita pelo MCP
+
+O texto do manual é escrito no space de rascunho do GitBook, ligado à branch do lote, e não no checkout. Só a Fábrica do ticket escreve, num change request com o número do ticket no título. O space público só recebe da `main`.
+
+No change request, a Fábrica escreve só as páginas do Detalhe. Não toca na página do catálogo nem no corpo de um bloco C#: para um exemplo novo, escreve o marcador da parte 9 e um bloco C# vazio. Sem imagem e sem bloco de desenho do GitBook; diagrama só em Mermaid, com legenda.
+
+Uma página fica em um change request aberto por vez. Se o GitBook acusar conflito no merge, a Fábrica para e devolve ao Controlador. No conflito, vence o repositório para o que é gerado (blocos C# e catálogo) e o change request para o texto.
+
+A ordem é: o Controlador confere o texto no change request; a Fábrica o junta, e o GitBook faz o commit `GITBOOK-<n>` na branch do lote; o `/commit <design doc> <ticket> change-request` traz o commit ao checkout por avanço rápido; a geração (parte 8) preenche os blocos; as guardas rodam. Se uma guarda reprovar o texto, a correção é um change request novo do mesmo ticket.
