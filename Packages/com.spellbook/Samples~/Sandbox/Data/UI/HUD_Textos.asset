@@ -16,4 +16,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 3d6d038a45a530b4c969d2ce94ed7292, type: 2}
   - {fileID: 11400000, guid: e304ffc5279811242aea231ab1f55994, type: 2}
   - {fileID: 11400000, guid: 5c5d33689d63cee479849afb10574c9f, type: 2}
-  cultureName: pt-BR
+  - {fileID: 11400000, guid: f2ec2415906eaa744849f37e8a5405e6, type: 2}
+  cultureName: en

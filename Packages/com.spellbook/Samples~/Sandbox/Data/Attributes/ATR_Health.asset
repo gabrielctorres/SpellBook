@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3438981542feaa34bb48db357a0d9347, type: 3}
-  m_Name: ATR_Vida
+  m_Name: ATR_Health
   m_EditorClassIdentifier: SpellBook.GAS::SpellBook.GAS.Attributes.AttributeDefinition
   Icon: {fileID: 0}
   localizedName:

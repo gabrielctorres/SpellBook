@@ -586,3 +586,23 @@ O SB-T12 e o SB-T13 eram um ticket só na resposta da EN1. Juntos dariam ~12 arq
 **EN1, respondida (usuário, 2026-11-04):** traduzir os nomes e o texto (CA-EN6).
 
 **EN2, respondida (usuário, 2026-11-04):** o `README.md` do Sample também fica em inglês, no SB-T12, e o `CREDITS.md` só troca os nomes. O tamanho do SB-T12 não muda: o `README.md` já estava entre os ~6 arquivos, e texto `.md` não conta linha na 0042.
+
+### SB-T9 — Detalhe (2026-11-04)
+- CA: CA-EN2 (os 7 arquivos de `Data/Abilities`, `Attributes`, `Effects` e `Tags`), CA-EN3 (tag `Status.Burning` e chave `sandbox.ability.fireball`) e CA-EN6 (só a tabela `TXT_Sandbox.en` e a cultura `en` do provedor; placa, Console e `Tooltip` ficam no SB-T12 e no SB-T13).
+- Escopo (caminhos em `Packages/com.spellbook/Samples~/Sandbox/Data/`). A renomeação é feita pela Unity com a pasta como `Samples` (0028), e o `.meta` de cada asset leva o mesmo GUID:
+  - `Abilities/GA_BolaDeFogo.asset` → `GA_Fireball.asset` (`m_Name`, linha 13; `localizedName.key`, linha 16, vira `sandbox.ability.fireball` e o texto padrão, linha 17, vira `Fireball`);
+  - `Attributes/ATR_Vida.asset` → `ATR_Health.asset`;
+  - `Effects/GE_BolaDeFogo_Custo`, `_Dano`, `_Recarga` → `GE_Fireball_Cost`, `_Damage`, `_Cooldown`; `Effects/GE_Queimadura.asset` → `GE_Burn.asset`;
+  - `Tags/TAG_Status_Queimando.asset` → `TAG_Status_Burning.asset` (a tag é a referência ao asset, sem texto à parte; o nome lido é `Status.Burning`);
+  - `UI/TXT_Sandbox.pt-BR.asset:16`: a chave `sandbox.ability.bola_de_fogo` vira `sandbox.ability.fireball`, com o texto `Bola de Fogo`;
+  - `UI/TXT_Sandbox.en.asset` (novo, criado pela Unity): cultura `en`, a linha `sandbox.ability.fireball` → `Fireball`;
+  - `UI/HUD_Textos.asset:13-17`: a tabela `TXT_Sandbox.en` entra em `tables` e `cultureName` vira `en`. O nome `HUD_Texts` é do SB-T11;
+  - `Tests/Repository/EditMode/Structure/SampleStructureTests.cs`: as guardas abaixo, que leem o YAML do `Samples~`. O provedor é achado pelo GUID, para a guarda continuar valendo depois do SB-T11.
+  - A cena, o `HUD_Loadout`, o `BolaDeFogo.prefab` e os efeitos citam esses assets só por GUID, e nenhum script do Sample cita os nomes; nenhum desses arquivos muda. A guarda existente `SampleAssets_ReferenceNoProjectAssets` acusa GUID sem asset ("asset desconhecido"). O `CREDITS.md` (cita `GA_BolaDeFogo`) é do SB-T12, e o `manual/exemplos/sandbox.md` fica para o passe (CA-EN5).
+- Testes red (EditMode, `SpellBook.Repository.Tests.EditMode`, classe `SampleStructureTests`):
+  - `SampleData_AbilitiesAttributesEffectsAndTags_HaveEnglishNamesAndOriginalGuids`: os arquivos dessas quatro pastas são exatamente `GA_Fireball`, `ATR_Health`, `ATR_Mana`, `GE_Fireball_Cost`, `GE_Fireball_Damage`, `GE_Fireball_Cooldown`, `GE_Burn`, `TAG_Slot_1` e `TAG_Status_Burning`, o `m_Name` de cada um é o nome do arquivo e o `.meta` dos renomeados guarda o GUID de antes;
+  - `SandboxAbilityName_UsesFireballKeyInBothTables`: o `GA_Fireball` usa a chave `sandbox.ability.fireball` (texto padrão `Fireball`), a tabela `pt-BR` a traduz como `Bola de Fogo`, a tabela `en` existe com cultura `en` e a traduz como `Fireball`, e a chave antiga não aparece;
+  - `SandboxTextProvider_ReadsEnglishTableWithEnCulture`: o provedor (GUID do `HUD_Textos`) tem `cultureName: en` e lista o GUID da `TXT_Sandbox.en` e o da `TXT_Sandbox.pt-BR`.
+- Critério de pronto: os três testes falham antes da mudança e passam depois, com a pasta como `Samples~`; o resto do `SampleStructureTests` segue verde; sem `Samples/` nem `Samples.meta` na raiz do pacote. Com a pasta renomeada, a Unity importa sem erro, e o `GA_Fireball`, o `HUD_Loadout` e a cena não têm referência `Missing` (conferido pelo `AssetDatabase` no mesmo passo da renomeação).
+- Tamanho: ~110 linhas (só o `.cs` conta; o YAML dos assets não conta linha na 0042) e 11 arquivos: 7 assets renomeados, a tabela `pt-BR`, a tabela `en`, o `HUD_Textos` e o teste. Exceção: +10% nos arquivos (11 de 10). Motivo: a tabela da emenda contou ~10 arquivos sem a guarda, e a guarda é que prova os nomes; dividir separaria a guarda dos assets que ela prova.
+- Commit: `chore(samples): dados do Sandbox em inglês e tabela TXT_Sandbox.en`

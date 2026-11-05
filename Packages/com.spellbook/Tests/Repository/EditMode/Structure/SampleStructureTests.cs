@@ -49,6 +49,27 @@ namespace SpellBook.Core.Tests.Structure
         // Arquivos serializados do Sample que citam outros assets por guid.
         private static readonly string[] SerializedExtensions = { ".asset", ".prefab", ".unity", ".mat" };
 
+        // Nomes em inglês (emenda de 2026-11-04, CA-EN2). O GUID é o de antes da renomeação; nulo onde o nome não mudou.
+        private static readonly string[] DataEnglishFolders = { "Abilities", "Attributes", "Effects", "Tags" };
+
+        private static readonly (string Path, string Guid)[] DataEnglishNames =
+        {
+            ("Abilities/GA_Fireball.asset", "9d277aace03affb48a3e28d68970e162"),
+            ("Attributes/ATR_Health.asset", "9e242287da19ef24897717e50ec580eb"),
+            ("Attributes/ATR_Mana.asset", null),
+            ("Effects/GE_Burn.asset", "b60a31fea48cb244ca3d131b46987b4e"),
+            ("Effects/GE_Fireball_Cooldown.asset", "bb8bfb3f377ca29458a51cbb2bd049ab"),
+            ("Effects/GE_Fireball_Cost.asset", "585a1ac1850adaf43994b6466ccd2ce5"),
+            ("Effects/GE_Fireball_Damage.asset", "ec6971ff71d4ead4eb319c4a99908b15"),
+            ("Tags/TAG_Slot_1.asset", null),
+            ("Tags/TAG_Status_Burning.asset", "d746a42321683ae4dbb40510377c858b"),
+        };
+
+        private const string FireballKey = "sandbox.ability.fireball";
+
+        // GUID do provedor de texto do HUD (HUD_Textos; o nome muda no SB-T11, o GUID não).
+        private const string TextProviderGuid = "c259d8252affd184da1fb1410c77c626";
+
         [Test]
         public void Package_DeclaresSandboxSample()
         {
@@ -240,6 +261,93 @@ namespace SpellBook.Core.Tests.Structure
             }
 
             Assert.That(violations, Is.Empty);
+        }
+
+        [Test]
+        public void SampleData_AbilitiesAttributesEffectsAndTags_HaveEnglishNamesAndOriginalGuids()
+        {
+            string[] expected = DataEnglishNames.Select(n => n.Path).OrderBy(p => p, StringComparer.Ordinal).ToArray();
+            string[] actual = DataEnglishFolders
+                .SelectMany(folder => Directory.GetFiles(Path.Combine(SampleFolder(), "Data", folder), "*.asset"))
+                .Select(file => Relative(file).Substring(SamplePath.Length + "/Data/".Length))
+                .OrderBy(p => p, StringComparer.Ordinal)
+                .ToArray();
+            var violations = new List<string>();
+
+            foreach ((string path, string guid) in DataEnglishNames)
+            {
+                string file = Path.Combine(SampleFolder(), "Data", path);
+                if (!File.Exists(file))
+                {
+                    continue;
+                }
+
+                string name = Path.GetFileNameWithoutExtension(path);
+                if (YamlValue(File.ReadAllText(file), "m_Name") != name)
+                {
+                    violations.Add($"{path}: m_Name diferente de {name}");
+                }
+
+                if (guid != null && ReadGuid(file + ".meta") != guid)
+                {
+                    violations.Add($"{path}.meta: guid diferente de {guid} (renomeie pela Unity)");
+                }
+            }
+
+            Assert.That(actual, Is.EqualTo(expected), "arquivos de Data/Abilities, Attributes, Effects e Tags (CA-EN2)");
+            Assert.That(violations, Is.Empty);
+        }
+
+        [Test]
+        public void SandboxAbilityName_UsesFireballKeyInBothTables()
+        {
+            string ability = ReadData("Abilities/GA_Fireball.asset");
+            string ptBr = ReadData("UI/TXT_Sandbox.pt-BR.asset");
+            string en = ReadData("UI/TXT_Sandbox.en.asset");
+
+            Assert.That(ability, Does.Contain("key: " + FireballKey + "\n    text: Fireball\n"), "chave e texto padrão do GA_Fireball");
+            Assert.That(YamlValue(ptBr, "cultureName"), Is.EqualTo("pt-BR"));
+            Assert.That(ptBr, Does.Contain("- key: " + FireballKey + "\n    text: Bola de Fogo\n"), "linha da tabela pt-BR");
+            Assert.That(YamlValue(en, "m_Name"), Is.EqualTo("TXT_Sandbox.en"));
+            Assert.That(YamlValue(en, "cultureName"), Is.EqualTo("en"));
+            Assert.That(en, Does.Contain("- key: " + FireballKey + "\n    text: Fireball\n"), "linha da tabela en");
+            Assert.That(ability + ptBr + en, Does.Not.Contain("bola_de_fogo"), "a chave antiga ficou");
+        }
+
+        [Test]
+        public void SandboxTextProvider_ReadsEnglishTableWithEnCulture()
+        {
+            string provider = File.ReadAllText(SampleFileByGuid(TextProviderGuid));
+            string enGuid = ReadGuid(Path.Combine(SampleFolder(), "Data", "UI", "TXT_Sandbox.en.asset.meta"));
+            string ptBrGuid = ReadGuid(Path.Combine(SampleFolder(), "Data", "UI", "TXT_Sandbox.pt-BR.asset.meta"));
+
+            Assert.That(YamlValue(provider, "cultureName"), Is.EqualTo("en"), "cultura do provedor (CA-EN6)");
+            Assert.That(provider, Does.Contain("guid: " + enGuid + ","), "o provedor não lista a TXT_Sandbox.en");
+            Assert.That(provider, Does.Contain("guid: " + ptBrGuid + ","), "o provedor não lista mais a TXT_Sandbox.pt-BR");
+        }
+
+        /// <summary>Texto de um arquivo de <c>Data/</c> do Sample; falha com o caminho se ele não existe.</summary>
+        private static string ReadData(string relativePath)
+        {
+            string file = Path.Combine(SampleFolder(), "Data", relativePath);
+            Assert.That(File.Exists(file), Is.True, $"{SamplePath}/Data/{relativePath} não existe");
+            return File.ReadAllText(file).Replace("\r\n", "\n");
+        }
+
+        /// <summary>O arquivo do Sample cujo <c>.meta</c> tem o GUID dado.</summary>
+        private static string SampleFileByGuid(string guid)
+        {
+            string meta = SampleEntries().FirstOrDefault(f =>
+                f.EndsWith(".meta", StringComparison.OrdinalIgnoreCase) && ReadGuid(f) == guid);
+            Assert.That(meta, Is.Not.Null, $"nenhum arquivo do Sample tem o guid {guid}");
+            return meta.Substring(0, meta.Length - ".meta".Length);
+        }
+
+        /// <summary>O valor de um campo de primeiro nível do YAML (<c>  campo: valor</c>), ou nulo.</summary>
+        private static string YamlValue(string yaml, string field)
+        {
+            Match match = Regex.Match(yaml, @"^  " + Regex.Escape(field) + @": ?(.*?)\r?$", RegexOptions.Multiline);
+            return match.Success ? match.Groups[1].Value : null;
         }
 
         /// <summary>Os atributos logo antes da declaração: o trecho desde o último <c>;</c>, <c>{</c> ou <c>}</c>.</summary>

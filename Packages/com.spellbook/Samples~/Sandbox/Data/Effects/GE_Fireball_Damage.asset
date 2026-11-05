@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: db7ce2d1a4c7a144ca09c1ab52810eb4, type: 3}
-  m_Name: GE_BolaDeFogo_Recarga
+  m_Name: GE_Fireball_Damage
   m_EditorClassIdentifier: SpellBook.GAS::SpellBook.GAS.Effects.GameplayEffect
   localizedName:
     key: 
     text: 
   legacyDisplayName: 
   icon: {fileID: 0}
-  DurationPolicy: 2
+  DurationPolicy: 0
   duration:
     mode: 0
-    constant: 1.5
+    constant: 0
     values: []
     curve:
       serializedVersion: 2
@@ -33,7 +33,31 @@ MonoBehaviour:
   legacyDuration: NaN
   defaultLevel: 1
   Period: 0
-  Modifiers: []
+  Modifiers:
+  - Attribute: {fileID: 11400000, guid: 9e242287da19ef24897717e50ec580eb, type: 2}
+    Operation: 0
+    ValueSource:
+      Type: 0
+      Value:
+        mode: 0
+        constant: -20
+        values: []
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        tableName: 
+        fallback: 0
+      legacyConstant: NaN
+      Attribute: {fileID: 0}
+      Formula: {fileID: 0}
+      CallerName: 
+      CallerHasDefault: 0
+      CallerDefault: 0
+      TargetAttributeDefinition: {fileID: 0}
+    Mode: 0
   PeriodicModifiers: []
   isBuff: 0
   isDebuff: 0

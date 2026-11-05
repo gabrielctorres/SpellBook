@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: db7ce2d1a4c7a144ca09c1ab52810eb4, type: 3}
-  m_Name: GE_Queimadura
+  m_Name: GE_Fireball_Cost
   m_EditorClassIdentifier: SpellBook.GAS::SpellBook.GAS.Effects.GameplayEffect
   localizedName:
     key: 
     text: 
   legacyDisplayName: 
   icon: {fileID: 0}
-  DurationPolicy: 2
+  DurationPolicy: 0
   duration:
     mode: 0
-    constant: 4
+    constant: 0
     values: []
     curve:
       serializedVersion: 2
@@ -32,16 +32,15 @@ MonoBehaviour:
     fallback: 0
   legacyDuration: NaN
   defaultLevel: 1
-  Period: 0.5
-  Modifiers: []
-  PeriodicModifiers:
-  - Attribute: {fileID: 11400000, guid: 9e242287da19ef24897717e50ec580eb, type: 2}
+  Period: 0
+  Modifiers:
+  - Attribute: {fileID: 11400000, guid: 5e04370c78b0d7b4e8dc7b2e9bbae061, type: 2}
     Operation: 0
     ValueSource:
       Type: 0
       Value:
         mode: 0
-        constant: -5
+        constant: -20
         values: []
         curve:
           serializedVersion: 2
@@ -59,13 +58,13 @@ MonoBehaviour:
       CallerDefault: 0
       TargetAttributeDefinition: {fileID: 0}
     Mode: 0
+  PeriodicModifiers: []
   isBuff: 0
   isDebuff: 0
   isHidden: 0
   isPurgable: 0
   OnApplied: []
-  OnTick:
-  - rid: 2960844178658164736
+  OnTick: []
   OnRemoved: []
   OnTakeDamage: []
   OnDeath: []
@@ -74,30 +73,13 @@ MonoBehaviour:
   deathAttribute: {fileID: 0}
   damageTags:
     tags: []
-  GrantedTags:
-  - definition: {fileID: 11400000, guid: d746a42321683ae4dbb40510377c858b, type: 2}
+  GrantedTags: []
   ApplicationRequirements: []
   ApplicationImmunityTags: []
-  CanStack: 1
+  CanStack: 0
   MaxStacks: 1
   RefreshDurationOnStack: 1
   stacksMultiplyMagnitude: 1
   references:
     version: 2
-    RefIds:
-    - rid: -2
-      type: {class: , ns: , asm: }
-    - rid: 2960844178658164736
-      type: {class: RaiseEventAction, ns: SpellBook.GAS.Bridges, asm: SpellBook.GAS.Bridges}
-      data:
-        target:
-          rid: -2
-        emission:
-          rid: 2960844178658164737
-        payloadSource: 0
-        attribute: {fileID: 0}
-        modifierIndex: 0
-    - rid: 2960844178658164737
-      type: {class: 'EventEmission`1[[SpellBook.Core.Void, SpellBook.Core]]', ns: SpellBook.Events, asm: SpellBook.Events}
-      data:
-        channel: {fileID: 11400000, guid: 74b910a9c3d0eaf43b27655ddf0ee376, type: 2}
+    RefIds: []
