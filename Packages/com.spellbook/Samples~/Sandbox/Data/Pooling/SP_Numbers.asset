@@ -9,9 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cc444a814433bcf42a718857533936e9, type: 3}
-  m_Name: CH_FalhaDeConjuracao
-  m_EditorClassIdentifier: SpellBook.Events::SpellBook.Events.StringEventChannel
-  description: 
-  logRaises: 0
-  debugPayload: 
+  m_Script: {fileID: 11500000, guid: cbf057418b3a4e645956247e035bff72, type: 3}
+  m_Name: SP_Numbers
+  m_EditorClassIdentifier: SpellBook.Pooling::SpellBook.Pooling.PooledSpawnerAsset
+  initialSize: 8
+  canExpand: 1

@@ -9,8 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cbf057418b3a4e645956247e035bff72, type: 3}
-  m_Name: SP_Projeteis
-  m_EditorClassIdentifier: SpellBook.Pooling::SpellBook.Pooling.PooledSpawnerAsset
-  initialSize: 5
-  canExpand: 1
+  m_Script: {fileID: 11500000, guid: eeeef70acc63f344ab2c3f7c79dffacd, type: 3}
+  m_Name: CH_DamageTaken
+  m_EditorClassIdentifier: SpellBook.Events::SpellBook.Events.FloatEventChannel
+  description: 
+  logRaises: 0
+  debugPayload: 0

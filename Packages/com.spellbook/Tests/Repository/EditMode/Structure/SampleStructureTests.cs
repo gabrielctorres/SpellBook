@@ -65,6 +65,23 @@ namespace SpellBook.Core.Tests.Structure
             ("Tags/TAG_Status_Burning.asset", "d746a42321683ae4dbb40510377c858b"),
         };
 
+        // SB-T10: caminhos a partir da pasta do Sample.
+        private static readonly string[] EventsPoolingAndMaterialsFolders = { "Data/Events", "Data/Pooling", "Materials" };
+
+        private static readonly (string Path, string Guid)[] EventsPoolingAndMaterialsNames =
+        {
+            ("Data/Events/CH_BurnTick.asset", "74b910a9c3d0eaf43b27655ddf0ee376"),
+            ("Data/Events/CH_CastFailed.asset", "030456ce5d1510941b516001475f7988"),
+            ("Data/Events/CH_DamageTaken.asset", "62dea702254525643a50ca6d77aff641"),
+            ("Data/Events/CH_FireballHit.asset", "7ddd831673517bc4bbbfc0af2b8faf03"),
+            ("Data/Pooling/SP_Numbers.asset", "356af8adce836aa4d9a89d9894c41190"),
+            ("Data/Pooling/SP_Projectiles.asset", "dfb5d9ca0f699ca42930bd2360d839c0"),
+            ("Materials/M_Caster.mat", "1195b3e1a6b6749479babc7095979549"),
+            ("Materials/M_Dummy.mat", "de5e197aae90a1048918e6bee8c7b0bf"),
+            ("Materials/M_Fireball.mat", "28b50c120fd8f624baee84ae9357c487"),
+            ("Materials/M_Ground.mat", "d1f983affef7eb646a9ad3b9381a05e4"),
+        };
+
         private const string FireballKey = "sandbox.ability.fireball";
 
         // GUID do provedor de texto do HUD (HUD_Textos; o nome muda no SB-T11, o GUID não).
@@ -266,36 +283,19 @@ namespace SpellBook.Core.Tests.Structure
         [Test]
         public void SampleData_AbilitiesAttributesEffectsAndTags_HaveEnglishNamesAndOriginalGuids()
         {
-            string[] expected = DataEnglishNames.Select(n => n.Path).OrderBy(p => p, StringComparer.Ordinal).ToArray();
-            string[] actual = DataEnglishFolders
-                .SelectMany(folder => Directory.GetFiles(Path.Combine(SampleFolder(), "Data", folder), "*.asset"))
-                .Select(file => Relative(file).Substring(SamplePath.Length + "/Data/".Length))
-                .OrderBy(p => p, StringComparer.Ordinal)
-                .ToArray();
-            var violations = new List<string>();
+            AssertEnglishNames(
+                DataEnglishFolders.Select(folder => "Data/" + folder),
+                DataEnglishNames.Select(n => ("Data/" + n.Path, n.Guid)),
+                "arquivos de Data/Abilities, Attributes, Effects e Tags (CA-EN2)");
+        }
 
-            foreach ((string path, string guid) in DataEnglishNames)
-            {
-                string file = Path.Combine(SampleFolder(), "Data", path);
-                if (!File.Exists(file))
-                {
-                    continue;
-                }
-
-                string name = Path.GetFileNameWithoutExtension(path);
-                if (YamlValue(File.ReadAllText(file), "m_Name") != name)
-                {
-                    violations.Add($"{path}: m_Name diferente de {name}");
-                }
-
-                if (guid != null && ReadGuid(file + ".meta") != guid)
-                {
-                    violations.Add($"{path}.meta: guid diferente de {guid} (renomeie pela Unity)");
-                }
-            }
-
-            Assert.That(actual, Is.EqualTo(expected), "arquivos de Data/Abilities, Attributes, Effects e Tags (CA-EN2)");
-            Assert.That(violations, Is.Empty);
+        [Test]
+        public void SampleData_EventsPoolingAndMaterials_HaveEnglishNamesAndOriginalGuids()
+        {
+            AssertEnglishNames(
+                EventsPoolingAndMaterialsFolders,
+                EventsPoolingAndMaterialsNames,
+                "arquivos de Data/Events, Data/Pooling e Materials (CA-EN2)");
         }
 
         [Test]
@@ -324,6 +324,48 @@ namespace SpellBook.Core.Tests.Structure
             Assert.That(YamlValue(provider, "cultureName"), Is.EqualTo("en"), "cultura do provedor (CA-EN6)");
             Assert.That(provider, Does.Contain("guid: " + enGuid + ","), "o provedor não lista a TXT_Sandbox.en");
             Assert.That(provider, Does.Contain("guid: " + ptBrGuid + ","), "o provedor não lista mais a TXT_Sandbox.pt-BR");
+        }
+
+        /// <summary>
+        /// Os arquivos (sem <c>.meta</c>) das pastas são exatamente os nomes dados, cada <c>m_Name</c> é o nome do
+        /// arquivo e o <c>.meta</c> guarda o GUID de antes da renomeação (nulo onde o nome não mudou). Caminhos a partir
+        /// da pasta do Sample.
+        /// </summary>
+        private static void AssertEnglishNames(
+            IEnumerable<string> folders, IEnumerable<(string Path, string Guid)> names, string message)
+        {
+            (string Path, string Guid)[] entries = names.ToArray();
+            string[] expected = entries.Select(n => n.Path).OrderBy(p => p, StringComparer.Ordinal).ToArray();
+            string[] actual = folders
+                .SelectMany(folder => Directory.GetFiles(Path.Combine(SampleFolder(), folder)))
+                .Where(file => !file.EndsWith(".meta", StringComparison.OrdinalIgnoreCase))
+                .Select(file => Relative(file).Substring(SamplePath.Length + 1))
+                .OrderBy(p => p, StringComparer.Ordinal)
+                .ToArray();
+            var violations = new List<string>();
+
+            foreach ((string path, string guid) in entries)
+            {
+                string file = Path.Combine(SampleFolder(), path);
+                if (!File.Exists(file))
+                {
+                    continue;
+                }
+
+                string name = Path.GetFileNameWithoutExtension(path);
+                if (YamlValue(File.ReadAllText(file), "m_Name") != name)
+                {
+                    violations.Add($"{path}: m_Name diferente de {name}");
+                }
+
+                if (guid != null && ReadGuid(file + ".meta") != guid)
+                {
+                    violations.Add($"{path}.meta: guid diferente de {guid} (renomeie pela Unity)");
+                }
+            }
+
+            Assert.That(actual, Is.EqualTo(expected), message);
+            Assert.That(violations, Is.Empty);
         }
 
         /// <summary>Texto de um arquivo de <c>Data/</c> do Sample; falha com o caminho se ele não existe.</summary>
