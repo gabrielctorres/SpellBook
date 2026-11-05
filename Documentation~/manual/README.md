@@ -1,8 +1,7 @@
 # SpellBook
 
-O SpellBook é um pacote de ferramentas reutilizáveis para a Unity. Ele junta, num só lugar,
-sistemas que aparecem em quase todo jogo: habilidades e efeitos, eventos, tempo de jogo,
-tags e reaproveitamento de objetos.
+O SpellBook é um pacote para Unity com ferramentas para habilidades e efeitos,
+eventos e controle do tempo do jogo. Também traz tags e reaproveitamento de objetos.
 
 Para instalar, veja a página [Instalação](inicio/instalacao.md).
 
@@ -15,8 +14,9 @@ Para instalar, veja a página [Instalação](inicio/instalacao.md).
 
 ## Módulos
 
-Cada módulo é um assembly próprio. Um módulo só depende do Core e dos módulos de que
-realmente precisa.
+Cada módulo tem um assembly `SpellBook.<Módulo>` e outro para o código de Editor,
+`SpellBook.<Módulo>.Editor`. Todos dependem do Core. O módulo de Eventos usa o Tempo,
+e o GAS usa Tags e Tempo.
 
 | Módulo | Para que serve |
 |---|---|
