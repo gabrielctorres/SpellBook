@@ -67,7 +67,7 @@ O validador acusa erro em:
   foi apagada. Num meta-atributo, o escudo igual ao próprio atributo aparece como ciclo. Um
   `GameplayEffect` com meta-atributo em **Modifiers** de efeito com duração ou infinito também é
   erro, porque o meta só muda pela base. A mensagem aponta o campo do processador (veja
-  [Dano, escudo e morte](../modulos/dano-escudo-e-morte.md));
+  [Processamento de dano e cura](../modulos/dano-escudo-e-morte.md));
 - uma habilidade com **Max Level** menor que 1, com nome vazio, inválido ou repetido na tabela
   **Values**, ou com uma entrada da tabela que lê outra (modo `Table`) (veja
   [Níveis e tabela de valores](../modulos/gas.md#niveis-e-tabela-de-valores));

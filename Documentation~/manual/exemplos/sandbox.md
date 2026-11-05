@@ -111,7 +111,7 @@ par entrega a variação negativa e o `DamageTakenRelay`, o valor perdido.
 
 ## O boneco não morre
 
-O boneco de treino não morre, porque o Sample não usa a morte. Ele pode ganhar a morte depois, num ticket próprio: um alvo que chega a Vida 0, mostra o estado e reinicia. As peças para isso já estão no pacote: o `State Tag While Depleted` da Vida e o evento `OnAttributeDepleted`, em [Dano, escudo e morte](../modulos/dano-escudo-e-morte.md#morte-e-outros-limites).
+O boneco de treino não morre, porque o Sample não usa a morte. Ele pode ganhar a morte depois, num ticket próprio: um alvo que chega a Vida 0, mostra o estado e reinicia. As peças para isso já estão no pacote: o `State Tag While Depleted` da Vida e o evento `OnAttributeDepleted`, em [Processamento de dano e cura](../modulos/dano-escudo-e-morte.md#morte-e-outros-limites).
 
 ## Renovação da queimadura
 

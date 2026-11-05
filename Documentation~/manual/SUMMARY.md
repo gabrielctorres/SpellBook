@@ -8,7 +8,7 @@
 ## Sistemas de habilidade
 
 * [GAS](modulos/gas.md)
-* [Dano, escudo e morte](modulos/dano-escudo-e-morte.md)
+* [Processamento de dano e cura](modulos/dano-escudo-e-morte.md)
 
 ## Sistemas de apoio
 
