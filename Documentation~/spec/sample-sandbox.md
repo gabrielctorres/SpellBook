@@ -533,3 +533,56 @@ O T8 toca `Conjurador.prefab` e `Sandbox.unity`, que o SL12 e o SL13 tocam de no
 - **H1:** o `TransformAnchor` entra no Core (T7). A D5 recebe a emenda marcada como aprovada.
 - **H2:** a detecção do HUD é pela `ANC_HUD` (D7). O tique e a falha passam por canal, e o "Console sem HUD" só fica ligado quando a âncora está vazia.
 - **H3:** o "Dano recebido: 5" do Ouvinte de Log (S2) continua a cada tique, também com o HUD. Sai só a linha própria do tique.
+
+## Emenda de 2026-11-04: nomes em inglês (B-043)
+
+Status: **gate de 2026-11-04**, com a EN1 e a EN2 respondidas pelo usuário (abaixo). Pedido do usuário: os objetos do Sandbox passam a ter nome em inglês. Isso vale para os GameObjects da cena e dos prefabs, os arquivos de prefab, asset e material e os nomes que a cena mostra na Hierarchy. Como o Sandbox não tinha lista de melhorias, o pedido entrou no backlog como B-043, e os tickets ficam aqui, perto do resto do Sample.
+
+**Objetivo.** Quem importa o Sandbox lê a cena e os dados com os nomes em inglês do código e do menu do pacote (`Fireball`, `TrainingDummy`, `Caster`), em vez de `BolaDeFogo`, `BonecoDeTreino` e `Conjurador`.
+
+**CA**
+1. **CA-EN1.** Todo GameObject do `Sandbox.unity` e dos quatro prefabs tem nome em inglês (tabela abaixo).
+2. **CA-EN2.** Todo arquivo de `Data/`, `Materials/` e `Prefabs/` tem nome em inglês, com o prefixo da família mantido (`GA_Fireball`, `CH_DamageTaken`). O `.meta` de cada arquivo guarda o mesmo GUID, então nenhuma referência fica `Missing`.
+3. **CA-EN3.** A tag do efeito de queimadura, que leva o nome do asset, vira `Status.Burning`. A chave de texto do nome da habilidade vira `sandbox.ability.fireball`. O cenário S1 a S4 continua igual em Play.
+4. **CA-EN4.** Com a pasta renomeada (0028), o `ProjectValidator` não acusa erro, as guardas do Sample (`SampleStructureTests`) passam, e o `README.md` e o `CREDITS.md` do Sample citam os nomes novos. O `README.md` do Sample fica todo em inglês, como a placa de controles que ele repete (EN2); o `CREDITS.md` só troca os nomes.
+5. **CA-EN5.** A página `manual/exemplos/sandbox.md` e a menção em `manual/modulos/dano-escudo-e-morte.md` ficam registradas como pendência do próximo passe de documentação (0007). Nenhum ticket desta emenda as edita.
+6. **CA-EN6 (EN1, 2026-11-04).** O texto que o jogador e o designer leem na cena também fica em inglês:
+   - a placa de controles;
+   - as mensagens que os scripts do Sample escrevem no Console (`"Fireball cast"`, `"Game paused"`);
+   - os `Tooltip` dos campos dos scripts;
+   - o nome da habilidade na tabela nova `TXT_Sandbox.en`, que o provedor `HUD_Texts` lê com a cultura `en`. A tabela `pt-BR` continua no Sample, para quem quiser trocar a cultura.
+
+   Os números formatados pelos scripts usam a cultura do texto (`0.25`, não `0,25`). Os comentários de código (`///` e `//`) ficam em português, como no resto do pacote.
+
+**Nomes** (proposta; o Detalhe pode ajustar a grafia sem mudar o sentido)
+
+| Hoje | Novo |
+|---|---|
+| `BolaDeFogo` (prefab, material, `GA_`, `GE_*`) | `Fireball` |
+| `GE_BolaDeFogo_Custo` / `_Dano` / `_Recarga` | `GE_Fireball_Cost` / `_Damage` / `_Cooldown` |
+| `GE_Queimadura`, `TAG_Status_Queimando` | `GE_Burn`, `TAG_Status_Burning` |
+| `ATR_Vida` | `ATR_Health` |
+| `CH_BolaDeFogoAcertou`, `CH_DanoRecebido`, `CH_FalhaDeConjuracao`, `CH_QueimaduraTique` | `CH_FireballHit`, `CH_DamageTaken`, `CH_CastFailed`, `CH_BurnTick` |
+| `SP_Numeros`, `SP_Projeteis` | `SP_Numbers`, `SP_Projectiles` |
+| `BonecoDeTreino`, `M_Boneco`, `ANC_Boneco`, GameObject `Boneco` | `TrainingDummy`, `M_Dummy`, `ANC_Dummy`, `Dummy` |
+| `Conjurador`, `M_Conjurador`, `ANC_Jogador`, GameObject `Jogador` | `Caster`, `M_Caster`, `ANC_Player`, `Player` |
+| `HUD_Cura`, `HUD_Dano`, `HUD_Regras`, `HUD_Teclas`, `HUD_Tema`, `HUD_Textos` | `HUD_Heal`, `HUD_Damage`, `HUD_Rules`, `HUD_Keys`, `HUD_Theme`, `HUD_Texts` |
+| `M_Chao`, GameObject `Chão` | `M_Ground`, `Ground` |
+| `Spawn Conjurador`, `Spawn Boneco` | `Caster Spawn`, `Dummy Spawn` |
+| `Console sem HUD`, `Ouvinte de Log`, `Placa de Controles`, `Números` (HUD) | `Console Without HUD`, `Log Listener`, `Controls Sign`, `Numbers` |
+
+**Tamanho (0042, contagem do Sample da seção "Tickets").** Renomear pela Unity muda o `m_Name` dentro do arquivo, então cada asset renomeado conta como arquivo, e não como movimento puro. Por isso a emenda tem cinco tickets. Só o SB-T13 tem linhas de `.cs` (o texto dos scripts, CA-EN6). Todos usam Unity e seguem a 0028. Como mexem em arquivos diferentes, podem andar em qualquer ordem, mas um por vez, por causa da cena.
+
+| Ticket | Objetivo | CA | Depende de | Unity |
+|---|---|---|---|---|
+| SB-T9 | `Data/Abilities`, `Attributes`, `Effects` e `Tags` em inglês; a chave `sandbox.ability.fireball` no `TXT_Sandbox.pt-BR`; a tabela nova `TXT_Sandbox.en` e a cultura `en` no provedor `HUD_Textos`. ~10 arquivos, ~2 linhas | CA-EN2, CA-EN3, CA-EN6 | SB-T8 e as issues abertas do Sandbox (SL12, SL13) | sim |
+| SB-T10 | `Data/Events`, `Data/Pooling` e `Materials` em inglês. ~10 arquivos | CA-EN2 | SB-T9 | sim |
+| SB-T11 | `Data/UI` e os GameObjects do `HUD.prefab` em inglês. ~9 arquivos | CA-EN1, CA-EN2 | SB-T10 | sim |
+| SB-T12 | Prefabs `Fireball`, `TrainingDummy` e `Caster`, os GameObjects da cena, o texto da placa de controles, o `README.md` todo em inglês (EN2) e o `CREDITS.md` com os nomes novos. ~6 arquivos, sem linha contada: o `README.md` é `.md` e conta só nos 10 arquivos (0042) | CA-EN1, CA-EN2, CA-EN4, CA-EN6 | SB-T11 | sim |
+| SB-T13 | Mensagens do Console, `Tooltip` e cultura de formatação dos seis scripts do Sample em inglês. ~40 linhas, 6 arquivos | CA-EN6 | SB-T12 | sim |
+
+O SB-T12 e o SB-T13 eram um ticket só na resposta da EN1. Juntos dariam ~12 arquivos, acima do teto de 10 da 0042, e por isso se dividem em vez de usar a exceção de +30%.
+
+**EN1, respondida (usuário, 2026-11-04):** traduzir os nomes e o texto (CA-EN6).
+
+**EN2, respondida (usuário, 2026-11-04):** o `README.md` do Sample também fica em inglês, no SB-T12, e o `CREDITS.md` só troca os nomes. O tamanho do SB-T12 não muda: o `README.md` já estava entre os ~6 arquivos, e texto `.md` não conta linha na 0042.

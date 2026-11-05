@@ -87,3 +87,4 @@ T = teste automatizado; E = estrutural; S = verificável no host.
 |---|---|---|---|
 | 2026-10-31 | Bloco A do B-019, separado em PRD próprio por decisão do usuário (P1: um PRD por bloco) | Todo o documento | Rascunho |
 | 2026-10-31 | usuário (via Controlador) P5: sem template de Dash | R2, seção 6 | Aplicado |
+| 2026-11-04 | Desenhista: a parte "criar habilidade, tags e efeitos por um menu do Editor" do B-041 foi fundida neste PRD, porque tem o mesmo objetivo de R1 a R6. A parte do Inspector virou o design doc [spec/inspector-de-habilidade.md](../spec/inspector-de-habilidade.md). O menu segue a ADR 0043 (Proposta). O nome padrão do pacote não tem prefixo (gate parcial de 2026-11-04). Os prefixos `GA_` e `GE_` do R1 são regras de nome de cada template, e o projeto pode trocá-los. **Pergunta ao usuário:** entra um template "Em branco" (habilidade, recarga, custo e as duas tags, sem ações) além dos cinco do R2? | R1, R2 | Proposto |

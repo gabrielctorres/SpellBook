@@ -64,6 +64,23 @@ Revista em 2026-11-01 pela G1 do gate: a Unity não entra na Action.
 
 O resto desta ADR não muda.
 
+## Emenda (2026-11-04): GitBook reavaliado (B-042)
+
+**Status da emenda: Recusada** (decisão do usuário, 2026-11-04). A proposta desta emenda era manter o MkDocs. O usuário a recusou e decidiu migrar o manual para o GitBook, tirar a referência da API por inteiro (gate de 2026-11-04, Q5) e deixar os agentes editarem o manual pelo MCP do GitBook (Q3). A decisão nova está na [0044](0044-manual-no-gitbook-por-git-sync-sem-referencia-da-api.md) (Aceita no gate de 2026-11-04), que substitui esta ADR. O status desta ADR muda para "Substituída por 0044" no ticket GB11 de `spec/migracao-gitbook.md`, junto com a migração. O texto abaixo fica só como registro da avaliação e não vale como decisão.
+
+O usuário pediu que o GitBook fosse reavaliado, com o [Gasify](https://feliperoddd.gitbook.io/gasify) como referência. O GitBook não era só um site hospedado: ele sincroniza com o repositório (Git Sync), tem API e CLI para integrações e oferece um servidor MCP. Esta emenda registra a reavaliação contra o que o manual usa hoje. As capacidades do GitBook vêm da documentação pública dele e não foram conferidas nesta sessão, sem acesso à web. Antes do gate, conferir a seção "Capacidades a conferir".
+
+**O que hoje depende do MkDocs** (conferido no repositório em 2026-11-04):
+- **Exemplos de código incluídos de testes.** O `pymdownx.snippets` faz isso, pela 0041, e a guarda `ManualCodeExamplesTests` confere. O GitBook não inclui trecho de arquivo do repositório no Markdown sincronizado, então os exemplos voltariam a ser escritos à mão, e a garantia da 0041 se perderia.
+- **Referência da API no mesmo site** (`/api/`). O HTML do `docfx build` é gerado na Action (0040). O GitBook não hospeda HTML gerado, então a API ficaria num segundo site, no GitHub Pages.
+- **Build estrito.** O `mkdocs build --strict` e a validação do `nav` nos dois sentidos fazem parte do passe de documentação (`AGENTS.md`, 0007). O GitBook não falha o build por link ou página fora do sumário, então essas conferências precisariam de uma ferramenta nova.
+- **Âncoras dos `[HelpURL]`.** O `DocUrls` e as âncoras `{#tipo}` do `attr_list` seguem o formato do MkDocs. A troca pediria migrar todas as URLs e as âncoras.
+- **Sintaxe.** O manual tem 99 blocos de admonition, Mermaid ou inclusão em 11 páginas, todos na sintaxe do MkDocs. O GitBook usa outra sintaxe (`{% hint %}` e blocos próprios).
+
+**Capacidades a conferir no GitBook antes do gate (em aberto em 2026-11-04; a emenda só vai ao gate depois desta conferência na web):** se o Git Sync preserva a pasta `Documentation~/manual/` como única fonte (sem segunda verdade, o motivo da recusa original); se o servidor MCP faz edição e reestruturação ou só leitura do site publicado; qual plano permite repositório público, domínio próprio e mais de um editor; e se o build pode rodar numa Action com falha por link quebrado.
+
+**Proposta (recusada pelo usuário em 2026-11-04):** manter o MkDocs Material, com a troca para o Zensical prevista no item 2. O que o usuário gostou no Gasify (visual, navegação e busca) pode ser trazido por recursos do tema Material, sem plugin novo, num ticket do passe de documentação. A troca para o GitBook só aconteceria se o usuário aceitar perder os exemplos incluídos (0041) e ter a API num segundo site, e pediria uma ADR que substitui esta, com as emendas da 0007, da 0040 e da 0041.
+
 ## Em aberto
 
 - ~~PRD P21: a licença do Odin permite baixá-lo de um local privado no CI de um repositório público? Se não, qual o plano B (por exemplo, runner self-hosted com o Odin instalado)?~~ Resolvida pela decisão I45 (emenda acima, 0026).
