@@ -138,8 +138,8 @@ float volume = MathTools.Map(distance, 0f, 20f, 1f, 0f);
 ```
 {% endcode %}
 
-Na 2.x, `MathTools` ficava aninhada no componente `Math` (`SpellBook.MathTools.Math.MathTools`).
-Esse componente não existe mais na 3.0.
+Nas versões antigas, `MathTools` ficava aninhada no componente `Math` (`SpellBook.MathTools.Math.MathTools`).
+Esse componente não existe mais na 1.0.
 
 ## Regra de dependência
 

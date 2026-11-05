@@ -1,19 +1,17 @@
-# Migração 2.x → 3.0
+# Migração das versões antigas para a 1.0
 
-A 3.0 tem quebras de compatibilidade. Esta página lista o que muda e o que fazer em cada caso.
-A 3.0 ainda está em desenvolvimento, e a lista cresce junto com ela.
-
+A 1.0 tem quebras de compatibilidade. Esta página lista o que muda e o que fazer em cada caso.
 ## URL de instalação
 
 O pacote agora fica na pasta `Packages/com.spellbook` do repositório, e a URL do git passa a
 apontar para ela com `?path=`. A chave `com.spellbook` no `manifest.json` não muda.
 
-| Antes (2.x) | Depois (3.0) |
+| Antes (versões antigas) | Depois (1.0) |
 |---|---|
 | `https://github.com/gabrielctorres/SpellBook.git` | `https://github.com/gabrielctorres/SpellBook.git?path=/Packages/com.spellbook` |
 
-- Acrescente `#<tag>` ao final para fixar uma versão, por exemplo `#v3.0.0-pre.1`.
-- As tags 2.x continuam com a URL antiga, sem `?path=`.
+- Acrescente `#<tag>` ao final para fixar uma versão, por exemplo `#v1.0.0`.
+- As tags das versões antigas continuam com a URL antiga, sem `?path=`.
 - Veja [Instalação](../inicio/instalacao.md).
 
 ## Sem Odin Inspector
@@ -41,7 +39,7 @@ As tags agora são o módulo [Tags](../modulos/tags.md), no assembly `SpellBook.
 namespace saiu do GAS (`SpellBook.GAS.Tags` virou `SpellBook.Tags`) e o assembly saiu do
 `SpellBook.Core`.
 
-| Antes (2.x) | Depois (3.0) |
+| Antes (versões antigas) | Depois (1.0) |
 |---|---|
 | Namespace `SpellBook.GAS.Tags` | Namespace `SpellBook.Tags` |
 | `GameplayTag` e `GameplayTagDefinition` no assembly `SpellBook.Core` | Os mesmos tipos no assembly `SpellBook.Tags` |
@@ -53,21 +51,20 @@ namespace saiu do GAS (`SpellBook.GAS.Tags` virou `SpellBook.Tags`) e o assembly
 ## Recarga da habilidade
 
 O campo **Cooldown Reduction Attribute** da `GameplayAbility` não aceita mais o nome antigo
-`_cooldownReductionAttribute`. Na 2.x, um `[FormerlySerializedAs]` lia esse nome antigo e
-migrava o valor; na 3.0 esse atributo saiu.
+`_cooldownReductionAttribute`. Nas versões antigas, um `[FormerlySerializedAs]` lia esse nome antigo e
+migrava o valor; na 1.0 esse atributo saiu.
 
-- Assets salvos na 2.x já usam o nome novo e não perdem nada.
-- Assets salvos pela última vez na 1.x perdem o valor desse campo. Antes de atualizar, abra o
-  projeto na 2.x e regrave essas habilidades, por exemplo com
+- Assets salvos nas versões antigas já usam o nome novo e não perdem nada.
+- Assets salvos pela última vez nas versões antigas perdem o valor desse campo. Antes de atualizar, abra o
+  projeto nas versões antigas e regrave essas habilidades, por exemplo com
   `AssetDatabase.ForceReserializeAssets()` num script de Editor. Se já atualizou, preencha o
   campo de novo no Inspector.
 
 ## Sistemas de eventos antigos
 
-A 2.x tinha três sistemas de eventos: os `GameEvent` de `Core/Events`, os canais de
+As versões antigas tinham três sistemas de eventos: os `GameEvent` de `Core/Events`, os canais de
 `Core/NewEventSystem` e o `EventManager` de `Systems/Events`. Os três foram removidos, sem
-`[Obsolete]`. O módulo `SpellBook.Events` os substitui e está sendo construído nesta
-pré-release.
+`[Obsolete]`. O módulo `SpellBook.Events` os substitui.
 
 - **Os assets de evento precisam ser recriados.** Um asset de `GameEvent`, `VoidEvent`,
   `IntEvent` etc. perde o script. Crie o canal novo pelo menu `SpellBook/Events/...` e refaça
@@ -77,7 +74,7 @@ pré-release.
 - **Não há evento por string.** Troque o nome do evento por um canal ou por um tipo de evento
   próprio no `EventBus<T>`.
 
-| Antes (2.x) | Depois (3.0) |
+| Antes (versões antigas) | Depois (1.0) |
 |---|---|
 | `SpellBook.Core.Events.GameEvent` (`Raise(Component, object)`) | um canal tipado: `VoidEventChannel`, `IntEventChannel`, `FloatEventChannel` etc. |
 | `SpellBook.Core.Events.GameEventListner` | `EventListener` |
@@ -97,7 +94,7 @@ Os dois mudaram de namespace e continuam no `SpellBook.Core`. Troque o `using` n
 nome da classe não mudou, então os assets de um `RuntimeSet<T>` seu continuam válidos. Veja
 [Conceitos](../inicio/conceitos.md#core).
 
-| Antes (2.x) | Depois (3.0) |
+| Antes (versões antigas) | Depois (1.0) |
 |---|---|
 | `SpellBook.Core.NewEventSystem.Void` | `SpellBook.Core.Void` |
 | `SpellBook.Core.RuntimeSets.RuntimeSet<T>` | `SpellBook.Core.RuntimeSet<T>` |
@@ -108,7 +105,7 @@ O componente `Math` não existe mais. A `MathTools` saiu de dentro dele e é uma
 `SpellBook.Core`. Remova o componente `Math` das cenas e chame os métodos direto. Veja
 [Conceitos](../inicio/conceitos.md#mathtools).
 
-| Antes (2.x) | Depois (3.0) |
+| Antes (versões antigas) | Depois (1.0) |
 |---|---|
 | `SpellBook.MathTools.Math.MathTools` (aninhada no `MonoBehaviour` `Math`) | `SpellBook.Core.MathTools` |
 
@@ -117,7 +114,7 @@ O componente `Math` não existe mais. A `MathTools` saiu de dentro dele e é uma
 O pooling saiu de `Systems/Pooling` e agora é o módulo [Pooling](../modulos/pooling.md), no
 assembly `SpellBook.Pooling`. O namespace e o menu de criação mudaram.
 
-| Antes (2.x) | Depois (3.0) |
+| Antes (versões antigas) | Depois (1.0) |
 |---|---|
 | Namespace `SpellBook.Systems.Pooling` (`PoolManager`, `ComponentPooler`, `PoolConfiguration`, `PoolableObject`, `IPoolable`) | Namespace `SpellBook.Pooling`, com os mesmos nomes de tipo |
 | Menu `PoolingSystem/...` | Menu `SpellBook/Pooling/...` |
@@ -150,7 +147,7 @@ O ASC não lê mais o `Time` da Unity. Durações de efeitos e recargas contam o
 recebe da fonte de tempo. Veja [Tempo do ASC](../modulos/gas.md#id-4.6-tempo-do-asc).
 
 - **Nada muda para quem não mexe nos campos novos.** O `autoTick` vem ligado e o `timeSource`
-  vazio usa o tempo escalado da Unity, como na 2.x.
+  vazio usa o tempo escalado da Unity, como nas versões antigas.
 - **`ActiveEffectInstance.StartTime` foi removido.** Para saber há quanto tempo um efeito está
   ativo, guarde o `TickedTime` do ASC ao aplicar o efeito e compare com o valor atual.
 - **As esperas das ações contam o tempo do ASC.** `WaitAction`, `RepeatAction.Interval` e
@@ -158,7 +155,7 @@ recebe da fonte de tempo. Veja [Tempo do ASC](../modulos/gas.md#id-4.6-tempo-do-
   `WaitForSeconds`. Com os padrões, nada muda. Com `autoTick` desligado e sem `Tick`, ou com o
   grupo pausado, a espera para. Veja [Ações que esperam](../modulos/gas.md#acoes-que-esperam).
 
-| Antes (2.x) | Depois (3.0) |
+| Antes (versões antigas) | Depois (1.0) |
 |---|---|
 | O ASC avançava sozinho por `Time.deltaTime` | `autoTick` (ligado por padrão) + `Tick(deltaTime)` + `timeSource` |
 | `ActiveEffectInstance.StartTime` | removido |
@@ -170,7 +167,7 @@ As ações de spawn não usam mais o `PoolManager` da cena. Elas criam objetos p
 `Spawner`, um `SpawnerAsset`. Vazio usa o spawner padrão, por `Instantiate`. Veja
 [Ações de spawn](../modulos/gas.md#acoes-de-spawn).
 
-- **Uma cena sem `PoolManager` não dá mais erro.** Na 2.x, `SpawnProjectileAction` e
+- **Uma cena sem `PoolManager` não dá mais erro.** Nas versões antigas, `SpawnProjectileAction` e
   `PlayCueAction` lançavam `NullReferenceException` sem ele.
 - **Quem usava o pool perde o pool até configurar um spawner.** Os projéteis e VFX passam a ser
   criados por `Instantiate`. O spawner com pool chega no módulo Pooling.
@@ -182,18 +179,18 @@ As ações de spawn não usam mais o `PoolManager` da cena. Elas criam objetos p
   `ReturnToPool` (saída).
 - **Vida e invulnerabilidade do projétil seguem a fonte de tempo dele.** O `Lifetime` e a
   `InitialInvulnerabilityDuration` viraram contadores no `FixedUpdate`, pelo campo `timeSource`
-  (vazio usa o tempo escalado, como na 2.x). O `protected virtual IEnumerator
+  (vazio usa o tempo escalado, como nas versões antigas). O `protected virtual IEnumerator
   InitialInvulnerability()` saiu, e uma subclasse que o sobrescrevia deixa de compilar: ajuste a
   `InitialInvulnerabilityDuration` ou sobrescreva o `HandleCollision`. Uma subclasse que sobrescreve o
   `FixedUpdate` sem chamar `base.FixedUpdate()` perde a vida e a invulnerabilidade.
 
-| Antes (2.x) | Depois (3.0) |
+| Antes (versões antigas) | Depois (1.0) |
 |---|---|
 | `Projectile.Setup(ComponentPooler, ...)` | `Projectile.Setup(SpawnerAsset, ...)` |
 | `Projectile : IPoolable` (`OnSpawnFromPool`, `OnReturnToPool`) | sem `IPoolable`; o estado reinicia no `OnEnable` |
 | `SpawnProjectileAction` e `PlayCueAction` usavam `PoolManager.Instance` | campo `Spawner` (vazio → `Instantiate`) |
-| `SpawnVFXEffectAction` usava `Instantiate` e `Destroy` | campo `Spawner`; o VFX volta pelo mesmo spawner. **Mudou o fim de vida sem `DestroyOnRemoval`:** na 2.x, `Destroy(vfx, duration + startLifetime)` destruía o VFX mesmo com `Looping` ligado; na 3.0 ele só volta pelo spawner quando a partícula para (`ReleaseWhenParticlesStop`), então uma partícula em loop nunca volta. Desligue o `Looping` ou marque `DestroyOnRemoval`. Veja [Armadilhas do pooling](../modulos/pooling.md#armadilhas). |
-| `Projectile`: vida e invulnerabilidade por corrotina no tempo escalado; `protected virtual IEnumerator InitialInvulnerability()` | contadores no `FixedUpdate` pela fonte de tempo do projétil (vazio → escalado, como na 2.x); o método saiu, e subclasses que o sobrescrevem deixam de compilar: ajuste `InitialInvulnerabilityDuration` ou sobrescreva `HandleCollision` |
+| `SpawnVFXEffectAction` usava `Instantiate` e `Destroy` | campo `Spawner`; o VFX volta pelo mesmo spawner. **Mudou o fim de vida sem `DestroyOnRemoval`:** nas versões antigas, `Destroy(vfx, duration + startLifetime)` destruía o VFX mesmo com `Looping` ligado; na 1.0 ele só volta pelo spawner quando a partícula para (`ReleaseWhenParticlesStop`), então uma partícula em loop nunca volta. Desligue o `Looping` ou marque `DestroyOnRemoval`. Veja [Armadilhas do pooling](../modulos/pooling.md#armadilhas). |
+| `Projectile`: vida e invulnerabilidade por corrotina no tempo escalado; `protected virtual IEnumerator InitialInvulnerability()` | contadores no `FixedUpdate` pela fonte de tempo do projétil (vazio → escalado, como nas versões antigas); o método saiu, e subclasses que o sobrescrevem deixam de compilar: ajuste `InitialInvulnerabilityDuration` ou sobrescreva `HandleCollision` |
 
 ## Valores por nível no GAS
 
@@ -201,10 +198,10 @@ A `Duration` do `GameplayEffect`, o valor constante do modificador e o `Duration
 deixam de ser `float` e passam a ser um [`ScalableFloat`](../modulos/gas.md#valores-por-nivel-scalablefloat), que
 pode variar com o nível.
 
-- **Os assets continuam válidos.** Um efeito 2.x abre com a mesma duração e o mesmo valor, como
+- **Os assets continuam válidos.** Um efeito das versões antigas abre com a mesma duração e o mesmo valor, como
   constante, e uma `WaitAction` gravada numa habilidade abre com a mesma espera. A conversão roda quando o asset é carregado, então nada se perde mesmo sem migrar.
 - **Regrave os assets com o menu.** Enquanto não forem regravados, os assets guardam os campos
-  antigos no YAML, e o pacote vai deixar de ler esses campos antes da 3.0 final.
+  antigos no YAML, e o pacote vai deixar de ler esses campos em uma versão futura.
 
 Passo a passo:
 
@@ -214,6 +211,7 @@ Passo a passo:
    `GameplayAbility` de `Assets/` e dos pacotes embutidos ou locais, regrava e escreve no Console
    quantos efeitos e quantas habilidades regravou. Os pacotes do registro são só leitura e ficam
    de fora.
+   Nota: o nome do menu ainda traz o número antigo.
 4. Confira no diff: `Duration: 4` vira um bloco `duration` com `constant: 4`, e
    `ConstantValue: -20` vira um bloco `Value` com `constant: -20`. Na `WaitAction`,
    `Duration: 1.5` vira um bloco `duration` com `constant: 1.5`. Os números não mudam.
@@ -224,7 +222,7 @@ habilidades regravados.
 
 No código:
 
-| Antes (2.x) | Depois (3.0) |
+| Antes (versões antigas) | Depois (1.0) |
 |---|---|
 | `efeito.Duration = 4f` | `efeito.Duration = ScalableFloat.Constant(4f)` |
 | `float d = efeito.Duration` | `float d = efeito.Duration.Evaluate(1)` |
