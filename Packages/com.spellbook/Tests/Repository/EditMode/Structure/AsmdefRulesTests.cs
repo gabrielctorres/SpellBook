@@ -255,6 +255,17 @@ namespace SpellBook.Core.Tests.Structure
         }
 
         [Test]
+        public void AsmdefRules_CoreEditModeTests_ReferenceOnlyCoreCoreEditorTimeAndTesting()
+        {
+            AsmdefFile tests = PackageFiles.Asmdefs().SingleOrDefault(a => a.Data.name == "SpellBook.Core.Tests.EditMode");
+
+            Assert.That(tests, Is.Not.Null, "não existe asmdef SpellBook.Core.Tests.EditMode");
+            Assert.That(
+                tests.ReferenceNames.Where(r => r.StartsWith("SpellBook.", StringComparison.Ordinal)),
+                Is.EquivalentTo(new[] { "SpellBook.Core", "SpellBook.Core.Editor", "SpellBook.Time", "SpellBook.Testing" }));
+        }
+
+        [Test]
         public void AsmdefRules_ModuleReferences_FollowDependencyMap()
         {
             var violations = new List<string>();

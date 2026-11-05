@@ -4,12 +4,7 @@
     "references": [
         "SpellBook.Core",
         "SpellBook.Core.Editor",
-        "SpellBook.Tags",
         "SpellBook.Time",
-        "SpellBook.Events",
-        "SpellBook.Pooling",
-        "SpellBook.GAS",
-        "SpellBook.GAS.Bridges",
         "SpellBook.Testing",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"

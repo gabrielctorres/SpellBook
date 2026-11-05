@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
-using SpellBook.GAS.Actions;
 using SpellBook.Core.Editor.Inspector;
 using SpellBook.Core.Inspector;
 using UnityEditor;
@@ -45,10 +44,10 @@ namespace SpellBook.Core.Tests.Inspector
         [Test]
         public void Candidates_IncludeDerivedFromAnotherAssembly()
         {
-            IEnumerable<Type> types = TypePickerCatalog.GetCandidates(typeof(GameplayAction)).Select(e => e.Type);
+            IEnumerable<Type> types = TypePickerCatalog.GetCandidates(typeof(IRandomSource)).Select(e => e.Type);
 
-            Assert.That(typeof(PickGameplayAction).Assembly, Is.Not.EqualTo(typeof(GameplayAction).Assembly));
-            Assert.That(types, Does.Contain(typeof(PickGameplayAction)));
+            Assert.That(typeof(PickRandomSource).Assembly, Is.Not.EqualTo(typeof(IRandomSource).Assembly));
+            Assert.That(types, Does.Contain(typeof(PickRandomSource)));
         }
 
         [Test]
@@ -169,8 +168,10 @@ namespace SpellBook.Core.Tests.Inspector
     internal class PickConcreteChild : PickConcreteRoot { }
 
     [Serializable]
-    internal class PickGameplayAction : GameplayAction
+    internal class PickRandomSource : IRandomSource
     {
-        protected override ActionStatus Execute(ActionContext context, ref ActionFrame frame) => ActionStatus.Done;
+        public float Value() => 0f;
+
+        public int Range(int maxExclusive) => 0;
     }
 }

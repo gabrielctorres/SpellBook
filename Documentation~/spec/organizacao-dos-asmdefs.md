@@ -83,7 +83,7 @@ O épico não muda comportamento em jogo. O Sandbox prova que nada quebrou:
   - `Inspector/SummaryFormatterTests.cs`: saem os campos e os marcadores `ScalableFloat` da fixture e o valor esperado é ajustado. O formato do `ScalableFloat` (constante, tabela e por nível) vai para `Tests/GAS/EditMode/ScalableFloatSummaryTests.cs` (novo), que espera `"2,5 %Dano por nível"`.
   - `Inspector/TypePickerCatalogTests.cs:46-52,172`: `Candidates_IncludeDerivedFromAnotherAssembly` usa `IRandomSource` (runtime do Core) no lugar de `GameplayAction`. A fixture passa a ser `PickRandomSource`.
   - `Tests/Core/EditMode/SpellBook.Core.Tests.EditMode.asmdef`: refs só Core, Core.Editor, Time, Testing e os TestRunner.
-  - `AsmdefRulesTests.cs`: teste novo `AsmdefRules_CoreEditModeTests_ReferenceOnlyCoreCoreEditorTimeAndTesting`.
+  - `Tests/Repository/EditMode/Structure/AsmdefRulesTests.cs` (o AS1a o moveu; conferido em 2026-11-04): teste novo `AsmdefRules_CoreEditModeTests_ReferenceOnlyCoreCoreEditorTimeAndTesting`, perto do `AsmdefRules_EveryModuleTestAsmdef_ReferencesTimeAndTesting` (:235).
 - Testes red (EditMode): `AsmdefRules_CoreEditModeTests_ReferenceOnlyCoreCoreEditorTimeAndTesting` (o asmdef de hoje tem 9 referências do SpellBook).
 - Critério de pronto: o red passa; `ShowIfRuleTests`, `SummaryFormatterTests`, `TypePickerCatalogTests`, `ModifierValueSourceShowIfTests` e `ScalableFloatSummaryTests` passam com filtro, com o mesmo número de casos de antes, mais o novo do formato.
 - Tamanho: ~200 linhas e 7 arquivos. Exceção: nenhuma
