@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using NUnit.Framework;
 using SpellBook.Core;
 using SpellBook.Core.Text;
@@ -17,8 +18,9 @@ using Object = UnityEngine.Object;
 namespace SpellBook.GAS.UI.Tests
 {
     /// <summary>
-    /// Fonte da lista de buffs e debuffs (Spec do B-018, BF1a): um ícone por efeito na ordem em que apareceu, pelos eventos
-    /// do ASC e pelo <see cref="EffectAggregate"/>; pilhas, papel, ícone e nome do asset (CA1, CA3, CA4, CA6, CA11 e CA17).
+    /// Fonte da lista de buffs e debuffs (Spec do B-018, BF1): um ícone por efeito na ordem em que apareceu, pelos eventos do
+    /// ASC e pelo <see cref="EffectAggregate"/>; relógio pelo tick só com duração; papel, ícone e nome do asset; o estado
+    /// vem só do ASC (CA1 a CA4, CA6, CA8, CA11, CA17 e CA18).
     /// </summary>
     public class ActiveEffectsSourceTests
     {
@@ -26,6 +28,7 @@ namespace SpellBook.GAS.UI.Tests
         private GasFactory _gas;
         private TimeFactory _time;
         private ManualTimeSource _clock;
+        private UIUpdateDriver _driver;
 
         [SetUp]
         public void SetUp()
@@ -33,6 +36,8 @@ namespace SpellBook.GAS.UI.Tests
             _gas = new GasFactory();
             _time = new TimeFactory();
             _clock = _time.CreateManual();
+            _driver = Track(new GameObject("tela")).AddComponent<UIUpdateDriver>();
+            _driver.SetTimeSource(_clock);
         }
 
         [TearDown]
@@ -80,6 +85,38 @@ namespace SpellBook.GAS.UI.Tests
             asc.SetEffectStacks(stacked, 0);
             Assert.That(list.Count, Is.Zero, "pilhas zeradas removem");
             Assert.That(list.Removes - removes, Is.EqualTo(1), "pilhas zeradas e o OnEffectRemoved removem uma vez só");
+        }
+
+        [Test]
+        public void Fraction_Seconds_ManualTime_PauseStops_InfiniteNoClock()
+        {
+            AbilitySystemComponent asc = Asc();
+            GameplayEffect burn = Effect(EffectDurationPolicy.HasDuration, 10f);
+            GameplayEffect aura = Effect(EffectDurationPolicy.Infinite, 0f);
+            Receiver list = Attach(new ActiveEffectsSource(), asc);
+
+            ActiveEffectInstance timed = asc.ApplyEffect(burn);
+            asc.ApplyEffect(aura);
+            Assert.That(list.Model(0).Fraction, Is.EqualTo(1f).Within(0.001f));
+            Assert.That(Text(list.Model(0).RemainingText), Is.EqualTo("10 s"));
+            Assert.That(_driver.TickingCount, Is.EqualTo(1), "com duração: pede tick");
+
+            asc.Tick(2.5f);
+            _clock.Advance(2.5f);
+            _driver.Tick();
+            Assert.That(list.Model(0).Remaining, Is.EqualTo(7.5f).Within(0.001f), "o tick lê o tempo restante");
+            Assert.That(list.Model(0).Fraction, Is.EqualTo(0.75f).Within(0.001f));
+            Assert.That(Text(list.Model(0).RemainingText), Is.EqualTo("8 s"), "segundos inteiros para cima");
+
+            _driver.Tick();
+            Assert.That(list.Model(0).Remaining, Is.EqualTo(7.5f).Within(0.001f), "relógio parado: o ícone não anda");
+
+            EffectIconModel infinite = list.Model(1);
+            Assert.That(infinite.IsInfinite, Is.True);
+            Assert.That(infinite.RemainingText.IsEmpty && infinite.Fraction == 0f, Is.True, "infinito: sem relógio");
+
+            asc.RemoveEffect(timed);
+            Assert.That(_driver.TickingCount, Is.Zero, "só infinito: solta o tick");
         }
 
         [Test]
@@ -142,12 +179,47 @@ namespace SpellBook.GAS.UI.Tests
 
             asc.ApplyEffect(a);
             asc.Tick(1f);
+            _driver.Tick();
             asc.ApplyEffect(b);
             Assert.That(list.Subjects(), Is.EqualTo(new Object[] { a, b, c }), "tempo, pilhas e renovação não reordenam");
 
             asc.RemoveEffect(second);
             asc.ApplyEffect(b);
             Assert.That(list.Subjects(), Is.EqualTo(new Object[] { a, c, b }), "o efeito que volta entra no fim");
+        }
+
+        [Test]
+        public void SameEffect_TwoSources_WithAndWithoutCanStack_OneIcon_SumStacks_MaxRemaining_InfiniteIfAny_DifferentAssetsNeverMerge()
+        {
+            AbilitySystemComponent target = Asc();
+            AbilitySystemComponent first = Asc();
+            AbilitySystemComponent second = Asc();
+            GameplayEffect stacking = Effect(EffectDurationPolicy.HasDuration, 10f);
+            stacking.CanStack = true;
+            stacking.MaxStacks = 5;
+            GameplayEffect single = Effect(EffectDurationPolicy.HasDuration, 10f);
+            GameplayEffect aura = Effect(EffectDurationPolicy.Infinite, 0f);
+            GameplayEffect sameName = Effect(EffectDurationPolicy.HasDuration, 10f);
+            Receiver list = Attach(new ActiveEffectsSource(), target);
+
+            target.ApplyEffect(stacking, first);
+            target.ApplyEffect(stacking, second);
+            target.ApplyEffect(single, first);
+            target.Tick(4f);
+            _driver.Tick();
+            Assert.That(list.Model(1).Remaining, Is.EqualTo(6f).Within(0.001f), "antes da renovação, a restante já caiu");
+            target.ApplyEffect(single, second);
+            target.ApplyEffect(aura, first);
+            target.ApplyEffect(aura, second);
+            target.ApplyEffect(sameName, first);
+            _driver.Tick();
+
+            Assert.That(list.Subjects(), Is.EqualTo(new Object[] { stacking, single, aura, sameName }),
+                "um ícone por asset; o mesmo nome em outro asset não se funde");
+            Assert.That(list.Model(0).Stacks, Is.EqualTo(2), "com CanStack: a soma das pilhas das duas fontes");
+            Assert.That(list.Model(1).Stacks, Is.EqualTo(1), "sem CanStack: conta 1");
+            Assert.That(list.Model(1).Remaining, Is.EqualTo(10f).Within(0.001f), "a maior restante, renovada pela segunda fonte");
+            Assert.That(list.Model(2).IsInfinite, Is.True, "infinito");
         }
 
         [Test]
@@ -168,6 +240,7 @@ namespace SpellBook.GAS.UI.Tests
 
             Assert.That(list.Subjects(), Is.EqualTo(new Object[] { burn, aura }), "todos os visíveis, na ordem de aplicação");
             Assert.That(list.Model(0).Stacks, Is.EqualTo(3));
+            Assert.That(_driver.TickingCount, Is.EqualTo(1), "abrir com duração pede tick");
             asc.ApplyEffect(Effect(EffectDurationPolicy.Infinite, 0f, hidden: true));
             Assert.That(list.Count, Is.EqualTo(2), "IsHidden nunca aparece");
         }
@@ -198,12 +271,90 @@ namespace SpellBook.GAS.UI.Tests
             Assert.That(list.Model(1).Name, Is.Null.Or.Empty);
         }
 
+        [Test]
+        public void List_MatchesAscAfterRandomOps_NoOwnRegistry()
+        {
+            AbilitySystemComponent asc = Asc();
+            GameplayEffect[] effects =
+            {
+                Effect(EffectDurationPolicy.HasDuration, 3f), Effect(EffectDurationPolicy.HasDuration, 6f),
+                Effect(EffectDurationPolicy.Infinite, 0f), Effect(EffectDurationPolicy.HasDuration, 4f, hidden: true),
+            };
+            effects[0].CanStack = true;
+            effects[0].MaxStacks = 4;
+            var source = new ActiveEffectsSource();
+            Receiver list = Attach(source, asc);
+            var random = new System.Random(268);
+
+            for (int step = 0; step < 300; step++)
+            {
+                IReadOnlyList<ActiveEffectInstance> active = asc.ActiveEffects;
+                switch (random.Next(4))
+                {
+                    case 0: asc.ApplyEffect(effects[random.Next(effects.Length)]); break;
+                    case 1: if (active.Count > 0) asc.RemoveEffect(active[random.Next(active.Count)]); break;
+                    case 2: if (active.Count > 0) asc.SetEffectStacks(active[random.Next(active.Count)], random.Next(4)); break;
+                    default: asc.Tick(1f); _driver.Tick(); break;
+                }
+
+                Assert.That(list.Describe(), Is.EqualTo(Expected(asc)), $"passo {step}");
+            }
+
+            UIListBinding<EffectIconModel> binding = list.Binding;
+            foreach (FieldInfo field in binding.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic))
+            {
+                if (field.GetValue(binding) is List<ActiveEffectInstance> held)
+                {
+                    Assert.That(held, Is.Empty, $"{field.Name} não guarda instâncias entre eventos");
+                }
+            }
+
+            binding.Detach();
+            list.Clear();
+            binding.Attach(asc, new UIBindContext(null));
+            Assert.That(list.Describe(), Is.EqualTo(Expected(asc)), "religar relê o ASC");
+        }
+
+        [Test]
+        public void Preview_BuffStacks_DebuffClock_Permanent()
+        {
+            var items = new List<EffectIconModel>();
+
+            new ActiveEffectsSource().CreatePreview(new UIPreviewContext(1), items);
+
+            Assert.That(items.Count, Is.EqualTo(3));
+            Assert.That(items[0].Role == TextRole.Beneficial && items[0].Stacks == 3 && items[0].ShowStacks, Is.True,
+                "buff com 3 pilhas");
+            Assert.That(items[1].Role, Is.EqualTo(TextRole.Harmful));
+            Assert.That(items[1].Fraction, Is.EqualTo(0.6f).Within(0.001f), "debuff em 60 %");
+            Assert.That(Text(items[1].RemainingText), Is.EqualTo("3 s"));
+            Assert.That(items[2].IsInfinite, Is.True, "permanente");
+        }
+
+        // Uma linha por efeito visível de ActiveEffects (uma instância por asset), com as pilhas somadas
+        private static string[] Expected(AbilitySystemComponent asc)
+        {
+            var lines = new List<string>();
+            var instances = new List<ActiveEffectInstance>();
+            foreach (ActiveEffectInstance instance in asc.ActiveEffects)
+            {
+                if (instance.IsHidden) continue;
+
+                EffectAggregate aggregate = EffectAggregate.Of(asc, instance.Effect, instances);
+                lines.Add(Line(instance.Effect, aggregate.Stacks, aggregate.IsInfinite));
+            }
+
+            return lines.ToArray();
+        }
+
+        private static string Line(Object effect, int stacks, bool infinite) => $"{effect.GetInstanceID()}|{stacks}|{infinite}";
+
         private Receiver Attach(ActiveEffectsSource source, AbilitySystemComponent asc, ITextProvider text = null)
         {
-            var receiver = new Receiver();
-            UIListBinding<EffectIconModel> binding = source.CreateBinding();
-            binding.SetReceiver(receiver);
-            binding.Attach(asc, new UIBindContext(text));
+            var receiver = new Receiver { Binding = source.CreateBinding() };
+            receiver.Binding.SetReceiver(receiver);
+            _driver.Register(receiver.Binding);
+            receiver.Binding.Attach(asc, new UIBindContext(text));
             return receiver;
         }
 
@@ -229,6 +380,8 @@ namespace SpellBook.GAS.UI.Tests
             return asc;
         }
 
+        private static string Text(TextSpan span) => span.IsEmpty ? string.Empty : span.Buffer.ToString(span);
+
         private T Track<T>(T created) where T : Object
         {
             _created.Add(created);
@@ -241,6 +394,7 @@ namespace SpellBook.GAS.UI.Tests
             private readonly List<int> _ids = new List<int>();
             private readonly List<EffectIconModel> _models = new List<EffectIconModel>();
 
+            public UIListBinding<EffectIconModel> Binding;
             public int Adds;
             public int Removes;
 
@@ -278,7 +432,9 @@ namespace SpellBook.GAS.UI.Tests
                 _models.RemoveAt(index);
             }
 
-            public void ClearItems()
+            public void ClearItems() => Clear();
+
+            public void Clear()
             {
                 _ids.Clear();
                 _models.Clear();
@@ -289,6 +445,13 @@ namespace SpellBook.GAS.UI.Tests
                 var subjects = new Object[_models.Count];
                 for (int i = 0; i < subjects.Length; i++) subjects[i] = _models[i].Subject;
                 return subjects;
+            }
+
+            public string[] Describe()
+            {
+                var lines = new string[_models.Count];
+                for (int i = 0; i < lines.Length; i++) lines[i] = Line(_models[i].Subject, _models[i].Stacks, _models[i].IsInfinite);
+                return lines;
             }
         }
 

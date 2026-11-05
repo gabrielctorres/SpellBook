@@ -90,15 +90,15 @@ Comum aos dois:
 - Tamanho: 536 linhas medidas (`UIModels.cs` +61, `ActiveEffectsSource.cs` 169, `ActiveEffectsSourceTests.cs` 304, `DocUrls.cs` +1, `DocUrlsTests.cs` +1) e 5 arquivos. Exceção: até +30% (~7 % acima do teto); motivo: o modelo inteiro do Design 1 entra junto da primeira fonte que o publica, e os seis testes dividem um receptor e uma fábrica de efeitos de ~100 linhas.
 - Commit: `feat(gas-ui): ActiveEffectsSource por evento (#268)`
 
-#### BF1b — Relógio, fusão e prévia da `ActiveEffectsSource` (issue nova)
+#### BF1b — Relógio, fusão e prévia da `ActiveEffectsSource` (#367)
 - CA: CA2, CA8 e CA18 (C2, C8), mais a prévia do C13 na fonte. Depende de: BF1a.
 - Escopo (caminhos relativos a `Packages/com.spellbook/`; o código está em `_guardado-bf1b/completo/`):
   - `Runtime/GAS.UI/ActiveEffectsSource.cs`: o `Group` ganha `TextBuffer Text`, `ShownSeconds` e `Timed`, com os buffers reaproveitados numa lista livre. `Tick` (pedido só com grupo de duração finita, P6, por `RequestTick` a cada evento e no `Attach`) atualiza restante, fração (restante ÷ `Duration` do agregado) e texto ("N s", segundos inteiros para cima, como o tooltip, reescrito só quando o segundo muda) dos grupos com duração; os eventos publicam o mesmo. Prévia (C13): buff com 3 pilhas, debuff em 60 % com 3 s e um permanente, sem ícone e sem nome.
   - `Tests/GAS.UI/PlayMode/ActiveEffectsSourceTests.cs`: o `UIUpdateDriver` com `ManualTimeSource` no `SetUp`, o registro da ligação no driver e os testes abaixo.
 - Testes red (PlayMode, `ActiveEffectsSourceTests`): `Fraction_Seconds_ManualTime_PauseStops_InfiniteNoClock` (CA2); `SameEffect_TwoSources_WithAndWithoutCanStack_OneIcon_SumStacks_MaxRemaining_InfiniteIfAny_DifferentAssetsNeverMerge` (CA8); `List_MatchesAscAfterRandomOps_NoOwnRegistry` (CA18); `Preview_BuffStacks_DebuffClock_Permanent`. O `OpenWithActiveEffects_ShowsAll` volta a conferir que abrir com duração pede tick.
 - Critério de pronto: os testes do BF1b verdes, com as guardas do BF1a.
-- Tamanho: ~260 linhas (fonte +100, testes +160, pela diferença entre a versão guardada e o BF1a) e 2 arquivos.
-- Commit: `feat(gas-ui): relógio, fusão e prévia da lista de efeitos (#<issue nova>)`
+- Tamanho: 298 linhas medidas depois do green (`ActiveEffectsSource.cs` +112 −12, `ActiveEffectsSourceTests.cs` +167 −7) e 2 arquivos. Exceção: nenhuma.
+- Commit: `feat(gas-ui): relógio, fusão e prévia da lista de efeitos (#367)`
 
 ### BF2 — Filtros, fim próximo e respawn
 - Escopo: `ActiveEffectsSource.cs` (`EffectListFilter`, `SetFilter`, `EndingSoon`), `Tests/GAS.UI/PlayMode/ActiveEffectsFilterTests.cs` (novo), `lista-de-efeitos.md`, `CHANGELOG.md`.
