@@ -183,7 +183,7 @@ Base: branch `spike/gitbook`, com os commits `7160b42` (conteúdo), `6d1255a` (`
 - o preço e os limites do plano gratuito.
 
 **Decisões do gate de 2026-11-05** (as mesmas de "Resultado do spike" em `spec/migracao-gitbook.md`):
-1. **Marcador de exemplo.** O marcador do item 8 é o título do bloco de código do GitBook, `{% code title="<caminho>:<marcador>" %}`, que o leitor vê. O item 8 já previa essa troca, e a regra dos exemplos não muda. Antes do código, o GB4 testa se o bloco sobrevive à importação e à escrita pelo MCP, e se o comentário HTML do topo da página do catálogo sobrevive ao sync. Se o bloco não sobreviver, o marcador volta ao gate.
+1. **Marcador de exemplo.** *Formato ajustado pela decisão 10.* O marcador do item 8 é o título do bloco de código do GitBook, `{% code title %}`, que o leitor vê. O item 8 já previa essa troca, e a regra dos exemplos não muda. Antes do código, o GB4 testa se o bloco sobrevive à importação e à escrita pelo MCP, e se o comentário HTML do topo da página do catálogo sobrevive ao sync. Se o bloco não sobreviver, o marcador volta ao gate.
 2. **Instruções injetadas.** Aceitas. O bloco do GitBook fica no `AGENTS.md` e no `CLAUDE.md`, entre `<!-- gitbook-agent-instructions:start -->` e `<!-- gitbook-agent-instructions:end -->`. O texto fica registrado no repositório e é revisado no PR, como qualquer mudança.
 3. **Um space por pasta.** *Substituída pela decisão 8.* O manual segue o formato do GitBook, como no spike. Isso muda três itens da Decisão:
    - **item 3:** o espaço público passa a ser uma seção `Manual` do site, com um space público por pasta do manual, todos ligados à `main`. O rascunho passa a ser um só site, privado e não publicado, com a mesma seção e os mesmos spaces do público, ligados à branch do lote (decisão 7). No começo de cada lote com passe, o usuário religa o rascunho. O resto do item continua;
@@ -200,6 +200,7 @@ Base: branch `spike/gitbook`, com os commits `7160b42` (conteúdo), `6d1255a` (`
    - **item 4:** a configuração é o `gitbook-docs.yaml`, em `Documentation~/manual/`, com um space só, se o schema pedir o arquivo para um site de um space. O GB2 confere isso antes de escrever, e também se o mesmo arquivo serve aos dois sites. A pasta continua `Documentation~/manual/`, e nada fora dela é publicado;
    - **item 5:** vale como escrito. Há um só `SUMMARY.md`, na raiz do manual, e os grupos do guia são títulos de grupo dentro dele. A pasta de uma página não precisa bater com o grupo dela. A primeira condição do item 10 volta a valer como escrita, sem a leitura por space.
 9. **As pastas de hoje (Q9 do design doc).** Substitui a decisão 6. Com um space só (decisão 8), o grupo vem do título de grupo no `SUMMARY.md`. As páginas ficam nas pastas de hoje, e os tickets GB12 e GB13 saem do design doc.
+10. **Título com a lista de seções (opção A, no Detalhe do GB4).** Ajusta a decisão 1 e o item 8. O bloco tem um marcador só, cujo título lista as seções do mesmo arquivo, separadas por vírgula, na ordem em que entram no bloco: `{% code title="<caminho>:<seção>,<seção>,..." %}`. Isso substitui o "um por seção" e o `{% code title="<caminho>:<seção>" %}` do item 8. Um marcador por seção não serviria, porque 27 dos 33 blocos de hoje juntam mais de uma seção num bloco só. A geração junta as seções nessa ordem, cada uma sem o seu recuo comum.
 
 ## Relacionadas
 
