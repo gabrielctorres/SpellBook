@@ -1,0 +1,10 @@
+# AttributeDefinition
+
+`AttributeDefinition` descreve um atributo usado pelo GAS, como vida ou mana. O tipo configura limites e o modo de exibir o valor.
+
+{% hint style="info" %}
+Os limites mínimo e máximo são aplicados ao valor do atributo.
+{% endhint %}
+
+```csharp
+```
