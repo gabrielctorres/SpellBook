@@ -10,6 +10,7 @@ using SpellBook.GAS.Values;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 namespace SpellBook.GAS.Editor
 {
@@ -20,7 +21,8 @@ namespace SpellBook.GAS.Editor
     /// (as abas de ações por evento, com "A cada passo" só em <see cref="AbilityBehavior.Channel"/>), Tags e gatilhos, e
     /// Níveis e prévia (o "nível de prévia", limitado a [1, MaxLevel], a prévia nesse nível de cada valor da tabela, da
     /// recarga sem a redução do atributo e das cargas, e a <see cref="DescriptionPreviewElement"/> no mesmo nível). Um
-    /// campo que o editor não conhece vai para "Outros", no fim de Configuração.
+    /// campo que o editor não conhece vai para "Outros", no fim de Configuração. Em Comportamento, os campos da
+    /// canalização, o <c>reactivatePassive</c> e o autocast só aparecem nos comportamentos que os usam.
     /// </summary>
     [CustomEditor(typeof(GameplayAbility), true)]
     [CanEditMultipleObjects]
@@ -38,6 +40,10 @@ namespace SpellBook.GAS.Editor
         private VisualElement _rules;
         private Label _charges;
         private DescriptionPreviewElement _description;
+        private PropertyField _channelDuration;
+        private PropertyField _channelTickInterval;
+        private PropertyField _reactivatePassive;
+        private PropertyField _autocast;
 
         internal const string ConfigurationTab = "Configuração";
         internal const string ActionsTab = "Ações";
@@ -51,8 +57,13 @@ namespace SpellBook.GAS.Editor
             VisualElement configuration = tabs.Content(ConfigurationTab);
             InspectorTabsView.MoveFields(root, InspectorTabsView.AddGroup(configuration, "Identidade"),
                 nameof(GameplayAbility.Icon), "localizedName", nameof(GameplayAbility.AbilityTag), nameof(GameplayAbility.Description));
-            InspectorTabsView.MoveFields(root, InspectorTabsView.AddGroup(configuration, "Comportamento"),
+            VisualElement behavior = InspectorTabsView.AddGroup(configuration, "Comportamento");
+            InspectorTabsView.MoveFields(root, behavior,
                 "behavior", "commitMode", "channelDuration", "channelTickInterval", "reactivatePassive", "autocast");
+            _channelDuration = behavior.Q<PropertyField>("PropertyField:channelDuration");
+            _channelTickInterval = behavior.Q<PropertyField>("PropertyField:channelTickInterval");
+            _reactivatePassive = behavior.Q<PropertyField>("PropertyField:reactivatePassive");
+            _autocast = behavior.Q<PropertyField>("PropertyField:autocast");
             InspectorTabsView.MoveFields(root, InspectorTabsView.AddGroup(configuration, "Custo e recarga"),
                 nameof(GameplayAbility.CostEffect), nameof(GameplayAbility.CooldownEffect),
                 nameof(GameplayAbility.CooldownReductionAttribute), "cooldownReductionPolicy", "charges");
@@ -93,8 +104,43 @@ namespace SpellBook.GAS.Editor
             root.Add(tabs);
 
             _level.RegisterValueChangedCallback(evt => SetPreviewLevel(evt.newValue));
-            root.TrackSerializedObjectValue(serializedObject, _ => SetPreviewLevel(_level.value));
+            root.TrackSerializedObjectValue(serializedObject, _ =>
+            {
+                RefreshBehaviorFields();
+                SetPreviewLevel(_level.value);
+            });
+            RefreshBehaviorFields();
             SetPreviewLevel(1);
+        }
+
+        /// <summary>
+        /// Mostra só os campos que valem no comportamento (CA3): canalização em <see cref="AbilityBehavior.Channel"/>,
+        /// <c>reactivatePassive</c> em <see cref="AbilityBehavior.Passive"/> e autocast em
+        /// <see cref="AbilityBehavior.Instant"/> e <see cref="AbilityBehavior.Channel"/>. O campo escondido guarda o
+        /// valor. Com vários assets, o campo aparece se algum deles o usa.
+        /// </summary>
+        internal void RefreshBehaviorFields()
+        {
+            bool channel = AnyBehavior(AbilityBehavior.Channel);
+            Show(_channelDuration, channel);
+            Show(_channelTickInterval, channel);
+            Show(_reactivatePassive, AnyBehavior(AbilityBehavior.Passive));
+            Show(_autocast, channel || AnyBehavior(AbilityBehavior.Instant));
+        }
+
+        private bool AnyBehavior(AbilityBehavior behavior)
+        {
+            foreach (Object selected in targets)
+            {
+                if (selected is GameplayAbility ability && ability.Behavior == behavior) return true;
+            }
+
+            return false;
+        }
+
+        private static void Show(VisualElement field, bool visible)
+        {
+            if (field != null) field.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         private bool IsChannel()

@@ -84,3 +84,16 @@ O IH2, o IH3 e o IH4 mexem no `GameplayAbilityEditor`, então não rodam em para
 - Critério de pronto: os nove verdes, mais `ActivationInspectorTests`, `DescriptionPreviewTests`, `LevelValuesDrawerTests`, `ActionInspectorTests` e `ThinkerInspectorTests` verdes no filtro, sem mudar asserção. A suíte completa roda na `/revisao`.
 - Tamanho: 424 linhas medidas (+394 −30) e 5 arquivos, 2 deles novos, pela ADR 0042. Os `.meta` e este Detalhe não contam. Exceção: nenhuma.
 - Commit: `feat(editor): quatro abas do Inspector da habilidade`
+
+## IH2 — Campos da habilidade por comportamento
+### Detalhe (2026-11-05)
+- CA: CA3 e CA8. O aviso de aba de eventos escondida com ações continua onde já está, no `ActionEventsView` da aba Ações. Levá-lo ao grupo Comportamento (DS, seção 7) não está no CA3 e fica como pendência para o Controlador.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Editor/GAS/GameplayAbilityEditor.cs:54-55`: o grupo Comportamento guarda os campos `channelDuration`, `channelTickInterval`, `reactivatePassive` e `autocast` depois de movê-los. Um método `internal` novo, `RefreshBehaviorFields`, mostra ou esconde cada um pelo `style.display`: canalização só em `Channel`, `reactivatePassive` só em `Passive`, autocast só em `Instant` e `Channel`. O valor serializado não muda, e o campo escondido continua no grupo. Com vários assets selecionados, o campo aparece se algum deles usa o comportamento, para que a edição múltipla alcance todos.
+  - `:94-97`: o `TrackSerializedObjectValue` que já existe chama também o `RefreshBehaviorFields`, e o método roda uma vez no fim do `BuildAfterDefault`. A aba "A cada passo" já segue o comportamento pelo `ActionEventsView` (IH1) e não muda.
+  - `:16-24`: o resumo da classe cita a regra.
+  - Sem `[ShowIf]` novo, sem mudança no runtime e sem `CHANGELOG.md` (decisões do épico; nada quebra).
+- Testes red (EditMode, `SpellBook.GAS.Tests.EditMode`, classe `AbilityBehaviorFieldsTests`, em `Tests/GAS/EditMode/AbilityBehaviorFieldsTests.cs`, novo): `BehaviorFields_ShownOnlyForBehavior` (quatro casos: `Instant`, `Passive`, `Toggle`, `Channel`); `BehaviorChange_UpdatesFields_KeepsStoredValues`; `MultiSelection_MixedBehaviors_ShowsFieldsAnyAssetUses`.
+- Critério de pronto: os testes acima verdes, mais `AbilityInspectorTabsTests`, `ActionInspectorTests`, `ActivationInspectorTests`, `DescriptionPreviewTests` e `LevelValuesDrawerTests` verdes no filtro, sem mudar asserção. A suíte completa roda na `/revisao`.
+- Tamanho: 181 linhas medidas (+178 −3) e 2 arquivos (1 novo), pela ADR 0042. Os `.meta` e este Detalhe não contam. Exceção: nenhuma.
+- Commit: `feat(editor): campos da habilidade por comportamento`
