@@ -230,7 +230,7 @@ namespace SpellBook.GAS.UI.Tests
             GameObject list = Track(new GameObject("lista"));
             list.SetActive(false);
             list.transform.SetParent(rig.Driver.transform);
-            IconListBinder binder = list.AddComponent<IconListBinder>();
+            EffectListBinder binder = list.AddComponent<EffectListBinder>();
             binder.SetOwner(owner);
             binder.SetSource(new ActiveEffectsSource());
             using (var serialized = new SerializedObject(binder))
@@ -323,11 +323,6 @@ namespace SpellBook.GAS.UI.Tests
                 for (int i = 0; i < subjects.Length; i++) subjects[i] = _models[i].Subject;
                 return subjects;
             }
-        }
-
-        /// <summary>Binder de lista de teste; o <c>EffectListBinder</c> é do BF3.</summary>
-        public sealed class IconListBinder : UIListBinder<EffectIconModel>
-        {
         }
 
         /// <summary>View de ícone de teste: guarda o último modelo.</summary>
