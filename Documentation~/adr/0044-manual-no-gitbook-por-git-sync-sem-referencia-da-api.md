@@ -148,6 +148,59 @@ Pontos a verificar no spike (GB1). Até lá, não são fato:
 - se a autenticação do MCP feita pelo usuário vale para a sessão da Fábrica num terminal do Orca;
 - o preço e os limites do plano gratuito.
 
+## Emenda (2026-11-05): resultado do spike GB1
+
+**Status da emenda: Aceita** (gate de 2026-11-05; ticket GB1, #356, de `spec/migracao-gitbook.md`). Registra o que o spike mostrou sobre cada ponto de "Em aberto" e as decisões do usuário no gate. A decisão 3, no fim desta emenda, mudava os itens 3, 4 e 5 da Decisão. Mais tarde, no mesmo gate, a decisão 8 a substituiu: um space só para o manual inteiro. Com ela, os itens 3 e 5 voltam a valer quase como estavam, e só o item 4 muda. A decisão 9 substitui a 6: as pastas do manual continuam as de hoje. A decisão 4 muda a leitura dos itens 9 e 10.
+
+Base: branch `spike/gitbook`, com os commits `7160b42` (conteúdo), `6d1255a` (`gitbook-docs.yaml`) e `934c949` (`GITBOOK-1`, gravado pelo GitBook no merge do change request). A organização do GitBook (`Rook Studio`) está no plano gratuito.
+
+**Confirmado:**
+1. **Caminho com til.** O Git Sync aceita. O import funcionou com o diretório `./Documentation~/manual` e `./Documentation~/manual/modulos`. Pelo item 4 e pela Q2, a pasta continua `Documentation~/manual/`, e o `docs/` não entra.
+2. **Arquivo de configuração.** O Git Sync do site exige o `gitbook-docs.yaml` (schema `https://api.gitbook.com/gitbook-docs.yaml`), e não o `.gitbook.yaml`. O arquivo fica em `Documentation~/manual/gitbook-docs.yaml`, e não na raiz do repositório, como o item 4 previa. O spike usou um site com uma seção (`Manual`) e 4 spaces. Cada space tem a sua pasta (`content.directory`) e o seu Git Sync (`installationProjectDirectory`). O `structure.readme` e o `structure.summary` do `.gitbook.yaml` não se aplicam.
+3. **Primeira página.** O GitBook renomeou `modulos/gas.md` para `modulos/README.md`: a primeira página de cada space vira `README.md`. Logo, o nome de arquivo no repositório segue o GitBook, e uma guarda ou um `DocUrls` que cite página por nome precisa contar com isso. O `index.md` da raiz e o conflito ao editar um `README.md` não foram testados.
+4. **Link entre páginas.** Um link escrito pelo MCP como `/pages/<caminho>` foi gravado no sync como link relativo para o `.md` (`efeitos-de-exemplo.md`, `./`). Isso confirma o formato relativo do item 9.
+5. **Sumário.** O GitBook criou um `SUMMARY.md` em cada space (`modulos/SUMMARY.md`, com `# Table of contents` e uma lista), e não um só na raiz do manual, como o item 5 previa.
+6. **Change request pelo MCP.** O fluxo funcionou de ponta a ponta: criar o change request, `update_page`, `insert_page`, link entre páginas e merge. O merge gerou um commit, `GITBOOK-1`, na branch ligada (`spike/gitbook`), e não na `main`. Isso confirma o desenho do item 13: o commit cai na branch do espaço editado.
+7. **Instruções injetadas.** No mesmo commit `GITBOOK-1`, o GitBook escreveu 22 linhas de "GitBook Documentation Editing" no `AGENTS.md` e no `CLAUDE.md` da raiz do repositório, entre `<!-- gitbook-agent-instructions:start -->` e `<!-- gitbook-agent-instructions:end -->`. São arquivos fora da pasta do manual, e o item 4 supunha que nada fora dela seria tocado. Ligar o espaço público à `main` pode levar isso para lá. É um risco às regras dos agentes. O gate aceitou o bloco (decisão 2, abaixo).
+8. **BOM.** A escrita do GitBook tira o BOM dos arquivos. É neutro.
+
+**Não sobrevive:**
+9. **Comentário HTML.** O GitBook apaga o `<!-- snippet: ... -->` na importação e quando o MCP escreve a página. O marcador proposto no item 8 não serve. A alternativa do item 8 (`{% code title %}`) não foi testada. O gate a escolheu, com um teste antes do código do GB4 (decisão 1, abaixo). O cabeçalho em comentário HTML da página do catálogo (0040, item 4) corre o mesmo risco se o GitBook regravar a página.
+
+**Parcial:**
+10. **Mermaid.** O bloco `mermaid` chega ao GitBook. O spike não conferiu o site publicado. Depois dele, o usuário conferiu que o diagrama aparece desenhado (decisão 5, abaixo).
+11. **Títulos.** O título com acento chegou ao GitBook. O slug gerado para ele, para `## AttributeDefinition` e para títulos repetidos, e a existência de âncora própria, não foram medidos.
+
+**Não conferido:**
+- a URL publicada a partir do caminho do arquivo;
+- se o GitBook regrava o Markdown que não mudou (fora o BOM) e se o commit dele passa no `git diff --check`;
+- o nome completo das ferramentas do MCP na sessão da Fábrica e se a permissão do Claude Code limita o `invoke_operation`;
+- o autor do commit do merge e o que o GitBook faz em conflito com um commit novo na branch;
+- o sync da `main` para o GitBook quando um PR entra;
+- o espaço de rascunho privado e não publicado no plano gratuito, e se religá-lo a outra branch preserva o histórico;
+- a trava do espaço público e uma conta só com acesso ao rascunho;
+- a autenticação do MCP na sessão da Fábrica num terminal do Orca;
+- o preço e os limites do plano gratuito.
+
+**Decisões do gate de 2026-11-05** (as mesmas de "Resultado do spike" em `spec/migracao-gitbook.md`):
+1. **Marcador de exemplo.** O marcador do item 8 é o título do bloco de código do GitBook, `{% code title="<caminho>:<marcador>" %}`, que o leitor vê. O item 8 já previa essa troca, e a regra dos exemplos não muda. Antes do código, o GB4 testa se o bloco sobrevive à importação e à escrita pelo MCP, e se o comentário HTML do topo da página do catálogo sobrevive ao sync. Se o bloco não sobreviver, o marcador volta ao gate.
+2. **Instruções injetadas.** Aceitas. O bloco do GitBook fica no `AGENTS.md` e no `CLAUDE.md`, entre `<!-- gitbook-agent-instructions:start -->` e `<!-- gitbook-agent-instructions:end -->`. O texto fica registrado no repositório e é revisado no PR, como qualquer mudança.
+3. **Um space por pasta.** *Substituída pela decisão 8.* O manual segue o formato do GitBook, como no spike. Isso muda três itens da Decisão:
+   - **item 3:** o espaço público passa a ser uma seção `Manual` do site, com um space público por pasta do manual, todos ligados à `main`. O rascunho passa a ser um só site, privado e não publicado, com a mesma seção e os mesmos spaces do público, ligados à branch do lote (decisão 7). No começo de cada lote com passe, o usuário religa o rascunho. O resto do item continua;
+   - **item 4:** a configuração é o `gitbook-docs.yaml`, em `Documentation~/manual/`, com uma entrada por space (`content.directory` e `installationProjectDirectory`). A pasta continua `Documentation~/manual/`, e nada fora dela é publicado;
+   - **item 5:** cada space tem o seu `SUMMARY.md`, na pasta dele, e cada página aparece uma vez, no sumário do space dela. O resto do item vale para cada sumário. A primeira condição do item 10 passa a ser lida por space e falha também com pasta do manual sem space no `gitbook-docs.yaml`.
+
+   Cada pasta é um grupo do guia do manual (decisão 6).
+4. **`README.md` na primeira página.** Aceito. A primeira página de cada space se chama `README.md` no repositório. As guardas do item 10, o `DocUrls` do item 9 e os links seguem esse nome. Com a decisão 8, só a página inicial muda de nome: o `index.md` vira o `README.md` da raiz do manual. O `referencia/` não é mais raiz de space, então o `catalogo.md` mantém o nome, e a página gerada do item 7 não muda de caminho.
+5. **Pontos não conferidos.** O usuário conferiu que o Mermaid aparece desenhado no site publicado. A condição do item 11 está cumprida, e a regra dos diagramas não volta ao gate. O sync da `main` para o GitBook num PR e o plano gratuito da organização ficam para o GB9. Os outros pontos da lista "Não conferido" ficam com os tickets do design doc (GB7, GB9 e GB10).
+6. **Uma pasta por grupo.** *Substituída pela decisão 9.* Pedia que as páginas fossem, por movimento puro, para uma pasta por grupo do guia (GB12 e GB13), para que cada space fosse um grupo.
+7. **Um rascunho só.** *Resolvida pela decisão 8.* O rascunho do item 3 é um site só, e não um por pasta. Como ele fica com o Git Sync, que é por space, é a Q8 do design doc, e o GB9 o confere.
+8. **Um space só (Q8 do design doc, mais tarde no mesmo gate).** Substitui a decisão 3. O manual inteiro é um só space, com raiz em `Documentation~/manual/`. Assim:
+   - **item 3:** o público é uma seção `Manual` com um space público, ligado à `main`. O rascunho é um site privado e não publicado, com um space, ligado à branch do lote. A cada lote com passe, o usuário religa esse space uma vez. O resto do item continua;
+   - **item 4:** a configuração é o `gitbook-docs.yaml`, em `Documentation~/manual/`, com um space só, se o schema pedir o arquivo para um site de um space. O GB2 confere isso antes de escrever, e também se o mesmo arquivo serve aos dois sites. A pasta continua `Documentation~/manual/`, e nada fora dela é publicado;
+   - **item 5:** vale como escrito. Há um só `SUMMARY.md`, na raiz do manual, e os grupos do guia são títulos de grupo dentro dele. A pasta de uma página não precisa bater com o grupo dela. A primeira condição do item 10 volta a valer como escrita, sem a leitura por space.
+9. **As pastas de hoje (Q9 do design doc).** Substitui a decisão 6. Com um space só (decisão 8), o grupo vem do título de grupo no `SUMMARY.md`. As páginas ficam nas pastas de hoje, e os tickets GB12 e GB13 saem do design doc.
+
 ## Relacionadas
 
 - 0001 (pastas), 0002 (fluxo e papéis), 0005 (trava), 0007 (documentação e passe), 0025 (substituída), 0027 (projeto na raiz), 0040 (catálogo e API), 0041 (exemplos e mapa), 0042 (tamanho do ticket).
