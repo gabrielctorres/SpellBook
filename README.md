@@ -15,7 +15,7 @@ Siga os passos abaixo para adicionar o SpellBook - Unity Tools ao seu projeto:
 
 ## 📖 Como usar?
 
-A documentação está em desenvolvimento em [gabrielctorres.github.io/SpellBook](https://gabrielctorres.github.io/SpellBook/).
+A documentação está em desenvolvimento em [rook-studio.gitbook.io/spellbook](https://rook-studio.gitbook.io/spellbook).
 
 ## 📬 Feedback e Contribuição
 

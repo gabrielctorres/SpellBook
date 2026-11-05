@@ -11,7 +11,7 @@ Os agentes do time leem estes arquivos em vez de depender de memória ou de conv
 | PRD | `prd/<slug>.md` | histórico | PRD dos épicos antigos, no papel da parte fixa; a seção 9 recebe o `/ajustar` deles |
 | ADR | `adr/NNNN-titulo.md` (índice em `adr/README.md`) | Desenhista | Decisões que valem para mais de um épico. Uma ADR aceita não é reescrita: ganha emenda datada ou é substituída |
 | DS | `ds/` | Desenhista | Regras do Inspector, da UI e de nomenclatura |
-| Manual público | `manual/` | Fábrica, no passe de documentação | Site MkDocs (GitHub Pages), no estilo TopDown Engine |
+| Manual público | `manual/` | Fábrica, no passe de documentação | Site no GitBook (`https://rook-studio.gitbook.io/spellbook`), publicado pelo Git Sync a partir da `main`, no estilo TopDown Engine |
 | Planos e estudos | `planos/` | Desenhista | Estudos de origem, como o [gas-estudo-e-roadmap.md](planos/gas-estudo-e-roadmap.md) |
 | Decisões | [decisoes.md](decisoes.md) | usuário | Registro temporário de decisões do modo autônomo (usuário ausente), revisado pelo usuário ao voltar |
 | Time | [AGENTS.md](../AGENTS.md) | Controlador | Regras do time, seção "Time de desenvolvimento" |

@@ -16,7 +16,7 @@ Código inclui `.cs`, `.asmdef`, `.json`, `.yml` de CI, `package.json` e scripts
 - Em ticket com Unity, roda a suíte completa em batchmode na raiz do checkout do ticket, sempre sob a trava desse checkout (ADR 0005). No passe, roda as guardas `Documentacao` sob a trava; se o ticket também tiver código, roda ainda a suíte completa usual.
 - Em ticket com código sem Unity (por exemplo, CI), roda o critério verificável sem criar a trava e sem reprovar por "lock ativo". Ticket só de texto não é revisado por `/revisao`.
 - Confere os limites pela ADR 0042: ~500 linhas e 10 arquivos; até +30%, confira se o motivo está no Detalhe; no modo autônomo, também no `decisoes.md`; acima de +30%, reprova para dividir.
-- Não reprova por manual, catálogo ou referência desatualizados fora do passe de documentação (emenda de 2026-11-03 da 0007). No passe, não gera achado sobre o texto; o Controlador faz as buscas da seção 7, confere regras do guia e humanizer, e roda `mkdocs build --strict`.
+- Não reprova por manual, catálogo ou exemplos desatualizados fora do passe de documentação (emenda de 2026-11-03 da 0007). No passe, não gera achado sobre o texto; o Controlador faz as buscas da seção 7 e confere as regras do guia e a humanizer. As guardas `Documentacao` que você roda fazem o papel do build.
 
 ## Editor-lock
 Vale para qualquer ticket do passe de documentação, inclusive só de texto, pois roda as guardas da Unity. Ticket comum sem Unity não cria a trava.

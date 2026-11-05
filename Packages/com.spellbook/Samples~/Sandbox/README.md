@@ -58,4 +58,4 @@ and the reason for the damage relay are in the manual.
 
 The Console shows each cast, each failure (cooldown or lack of mana), each damage taken with the
 actual value and each burn tick. The Sample's manual page is at
-<https://gabrielctorres.github.io/SpellBook/exemplos/sandbox/>.
+<https://rook-studio.gitbook.io/spellbook/exemplos/sandbox>.
