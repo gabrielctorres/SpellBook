@@ -79,6 +79,20 @@ namespace SpellBook.GAS.Bridges.Tests
         }
 
         [Test]
+        public void GasChannels_FileName_IsNewPlusItemName()
+        {
+            Dictionary<string, string> expected = ChannelPayloads.Keys
+                .Select(channel => channel.GetCustomAttribute<CreateAssetMenuAttribute>(false).menuName)
+                .ToDictionary(menu => menu, menu => "New " + menu.Substring(GasMenuPrefix.Length));
+
+            Dictionary<string, string> actual = MenuTypes(GasMenuPrefix)
+                .Select(type => type.GetCustomAttribute<CreateAssetMenuAttribute>(false))
+                .ToDictionary(menu => menu.menuName, menu => menu.fileName);
+
+            CollectionAssert.AreEquivalent(expected, actual);
+        }
+
+        [Test]
         public void AttributeLimitChannel_HasMenuAndHelpUrl()
         {
             Type channel = typeof(AttributeLimitEventChannel);

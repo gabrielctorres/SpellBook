@@ -5,7 +5,7 @@ using UnityEngine;
 namespace SpellBook.GAS.Bridges
 {
     /// <summary>Canal com payload <see cref="AttributeChangedData"/>: mudança de atributo do GAS.</summary>
-    [CreateAssetMenu(menuName = "SpellBook/GAS/Events/Attribute Changed Channel")]
+    [CreateAssetMenu(menuName = "SpellBook/GAS/Events/Attribute Changed Channel", fileName = "New Attribute Changed Channel")]
     [HelpURL(DocUrls.Events + "#canais-do-gas")]
     public sealed class AttributeChangedEventChannel : EventChannel<AttributeChangedData>
     {

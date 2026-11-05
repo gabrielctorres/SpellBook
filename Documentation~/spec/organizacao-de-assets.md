@@ -122,3 +122,21 @@ Antes do OA5, e fora dos tickets, vem o protótipo dos estilos: as famílias hab
 - Critério de pronto: os 6 testes de `\.CreateAssetMenuRulesTests\.` e os 2 de `\.ChannelMenuTests\.` verdes, com o `total` conferido no XML.
 - Tamanho: ~85 linhas (20 nos 10 tipos, ~43 na guarda e ~22 no `ChannelMenuTests`) e 12 arquivos, pela ADR 0042. Exceção: 12 arquivos, +20% sobre o teto de 10; o ticket toca um atributo por tipo (7 canais, 2 de Teams, 1 de Localization), e a guarda dos canais muda junto pela 0043; dividir deixaria um módulo fora da guarda.
 - Commit: `chore(menu): menus e fileName de Events, Teams e Localization pela ADR 0043`
+
+## OA4a — GAS.Bridges e GAS.UI pela 0043
+### Detalhe (2026-11-04)
+- Divisão: o OA4 (~17 arquivos, acima do teto de 13 com os +30%) foi dividido com a aprovação do Controlador. O OA4a fica na issue #348, renomeada. O OA4b, com Cues e UI e a guarda para o pacote inteiro (~9 arquivos, depende do OA4a), vai para uma issue nova. Os nomes novos do OA4b pelo item 1 (`UI Theme`, `Fixed Key Label Provider`) já foram aprovados.
+- CA: CA1 e CA2 para os módulos `SpellBook.GAS.Bridges` e `SpellBook.GAS.UI`. CA3 segue com a lista dos módulos conferidos, e o OA4b a tira.
+- Escopo (caminhos em `Packages/com.spellbook/`):
+  - `Runtime/GAS.Bridges/Channels/{Ability,AttributeChanged,AttributeLimit,Blocked,Effect,TagChanged}EventChannel.cs:8`: o menu fica igual, e o `fileName` passa a `New <Tipo> Channel`.
+  - `Runtime/GAS.UI/AbilityLoadout.cs:18`: `SpellBook/GAS/UI/Ability Loadout` (item 2: o GAS.UI fica em `GAS/UI`), `New Ability Loadout`.
+  - `Runtime/GAS.UI/FloatingTextRules.cs:72`: o menu fica igual, e o `fileName` passa a `New Floating Text Rules`.
+  - `Tests/Core/EditMode/Structure/CreateAssetMenuRulesTests.cs:27-37`: `CheckedModuleMenus` ganha `SpellBook.GAS.Bridges` (`SpellBook/GAS/Events/`) e `SpellBook.GAS.UI` (`SpellBook/GAS/UI/`). `:70-73`: a varredura passa a exigir também `AbilityEventChannel` e `AbilityLoadout`.
+  - `Tests/GAS.Bridges/EditMode/GasChannelsTests.cs`: teste novo que confere o `fileName` dos seis canais (0043, "Consequências").
+  - Sem `CHANGELOG.md` e sem manual (mesmo motivo do OA1). As Specs antigas que citam `SpellBook/UI/Ability Loadout` são histórico e não mudam.
+- Testes red (EditMode):
+  - `SpellBook.Core.Tests.EditMode`, `CreateAssetMenuRulesTests`: com a tabela ampliada, `CheckedModuleMenu_UsesFolderAllowedForItsAssembly` falha no `AbilityLoadout`, e `CheckedModuleFileName_IsNewPlusMenuItemName` falha nos 8 tipos.
+  - `SpellBook.GAS.Bridges.Tests.EditMode`, `GasChannelsTests`: o novo `GasChannels_FileName_IsNewPlusItemName` falha nos seis canais.
+- Critério de pronto: os 6 testes de `\.CreateAssetMenuRulesTests\.` e os de `\.GasChannelsTests\.` verdes, com o `total` conferido no XML.
+- Tamanho: ~36 linhas (16 nos 8 tipos, ~6 na guarda e ~14 no `GasChannelsTests`) e 10 arquivos, pela ADR 0042. Exceção: nenhuma.
+- Commit: `chore(menu): menus e fileName de GAS.Bridges e GAS.UI pela ADR 0043`

@@ -22,8 +22,8 @@ namespace SpellBook.Core.Tests.Structure
         private const string ChannelSuffix = "Channel";
         private static readonly string[] TechnicalSuffixes = { "Asset", "Definition" };
 
-        // Módulos já conferidos pela ADR 0043 (OA1 a OA3): assembly → pastas de menu permitidas (item 2).
-        // Cada ticket do épico acrescenta os módulos dele; o OA4 passa a regra para o pacote inteiro.
+        // Módulos já conferidos pela ADR 0043 (OA1 a OA4a): assembly → pastas de menu permitidas (item 2).
+        // Cada ticket do épico acrescenta os módulos dele; o OA4b passa a regra para o pacote inteiro.
         private static readonly Dictionary<string, string[]> CheckedModuleMenus = new Dictionary<string, string[]>
         {
             ["SpellBook.GAS"] = new[] { "SpellBook/GAS/", "SpellBook/GAS/Attributes/", "SpellBook/GAS/Attributes/Formulas/" },
@@ -34,6 +34,8 @@ namespace SpellBook.Core.Tests.Structure
             ["SpellBook.Events"] = new[] { "SpellBook/Events/" },
             ["SpellBook.Teams"] = new[] { "SpellBook/Teams/" },
             ["SpellBook.Localization"] = new[] { "SpellBook/Text/" },
+            ["SpellBook.GAS.Bridges"] = new[] { "SpellBook/GAS/Events/" },
+            ["SpellBook.GAS.UI"] = new[] { "SpellBook/GAS/UI/" },
         };
 
         [Test]
@@ -70,7 +72,8 @@ namespace SpellBook.Core.Tests.Structure
             Assert.That(entries.Select(entry => entry.Type.Name), Does.Contain("GameplayAbility")
                 .And.Contain("SimpleAttributeFormula").And.Contain("GameplayTagDefinition")
                 .And.Contain("TransformAnchor").And.Contain("PausableTimeSource").And.Contain("PoolConfiguration")
-                .And.Contain("IntEventChannel").And.Contain("TeamRelationMatrix").And.Contain("LocalizationTextProvider"),
+                .And.Contain("IntEventChannel").And.Contain("TeamRelationMatrix").And.Contain("LocalizationTextProvider")
+                .And.Contain("AbilityEventChannel").And.Contain("AbilityLoadout"),
                 "a varredura não achou os tipos esperados");
 
             IEnumerable<string> violations = entries

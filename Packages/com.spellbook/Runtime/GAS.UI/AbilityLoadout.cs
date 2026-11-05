@@ -15,7 +15,7 @@ namespace SpellBook.GAS.UI
     /// asset serve a vários personagens. O slot acha o spec da habilidade pelo <c>FindSpec</c> do ASC (P4). A ordem da
     /// lista é a ordem da barra, também em edição, no Inspector (R12).
     /// </summary>
-    [CreateAssetMenu(menuName = "SpellBook/UI/Ability Loadout", fileName = "AbilityLoadout")]
+    [CreateAssetMenu(menuName = "SpellBook/GAS/UI/Ability Loadout", fileName = "New Ability Loadout")]
     [HelpURL(DocUrls.UiAbilityBar + "#abilityloadout")]
     public sealed class AbilityLoadout : ScriptableObject, IValidatable
     {
