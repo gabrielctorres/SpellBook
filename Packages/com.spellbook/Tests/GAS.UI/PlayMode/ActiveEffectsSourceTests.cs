@@ -347,7 +347,11 @@ namespace SpellBook.GAS.UI.Tests
             return lines.ToArray();
         }
 
+#if UNITY_6000_4_OR_NEWER
+        private static string Line(Object effect, int stacks, bool infinite) => $"{effect.GetEntityId()}|{stacks}|{infinite}";
+#else
         private static string Line(Object effect, int stacks, bool infinite) => $"{effect.GetInstanceID()}|{stacks}|{infinite}";
+#endif
 
         private Receiver Attach(ActiveEffectsSource source, AbilitySystemComponent asc, ITextProvider text = null)
         {

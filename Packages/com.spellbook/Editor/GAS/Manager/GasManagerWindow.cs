@@ -213,7 +213,7 @@ namespace SpellBook.GAS.Editor
                 return;
             }
 
-            if (tree) _tree.SetSelectionByIdWithoutNotify(new[] { _selected.GetInstanceID() });
+            if (tree) _tree.SetSelectionByIdWithoutNotify(new[] { TreeId(_selected) });
             else _list.SetSelectionWithoutNotify(new[] { index });
             if (refreshDetail) Select(_selected);
         }
@@ -230,10 +230,20 @@ namespace SpellBook.GAS.Editor
             var items = new List<TreeViewItemData<GasIndexEntry>>();
             foreach (GasTagNode node in nodes)
             {
-                items.Add(new TreeViewItemData<GasIndexEntry>(node.Entry.Asset.GetInstanceID(), node.Entry, ToTreeItems(node.Children)));
+                items.Add(new TreeViewItemData<GasIndexEntry>(TreeId(node.Entry.Asset), node.Entry, ToTreeItems(node.Children)));
             }
 
             return items;
+        }
+
+        // O TreeView pede id int. Na 6000.4 em diante o instance ID virou EntityId, e o GetInstanceID é obsoleto.
+        private static int TreeId(Object asset)
+        {
+#if UNITY_6000_4_OR_NEWER
+            return asset.GetEntityId().GetHashCode();
+#else
+            return asset.GetInstanceID();
+#endif
         }
 
         private static VisualElement MakeRow()
