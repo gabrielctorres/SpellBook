@@ -142,7 +142,11 @@ namespace SpellBook.Core.Editor
             {
                 enterChildren = property.propertyType != SerializedPropertyType.String;
                 if (property.propertyType == SerializedPropertyType.ObjectReference && property.objectReferenceValue == null
+#if UNITY_6000_4_OR_NEWER
+                    && property.objectReferenceEntityIdValue != EntityId.None)
+#else
                     && property.objectReferenceInstanceIDValue != 0)
+#endif
                 {
                     messages.Add(new ValidationMessage(ValidationSeverity.Error,
                         $"Referência vazia em {property.propertyPath}: o asset foi apagado. Escolha outro ou limpe o campo.",

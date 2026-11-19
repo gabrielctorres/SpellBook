@@ -7,6 +7,11 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/); 
 
 ## [Não lançado]
 
+## [1.0.1] - 2026-11-19
+
+### Corrigido
+- **Compilação na Unity 6000.6:** o pacote volta a compilar na 6000.6, onde `Object.GetInstanceID()` e `SerializedProperty.objectReferenceInstanceIDValue` passaram a dar erro (CS0619). A partir da 6000.4, o validador de projeto, o gerenciador do GAS e os testes usam `GetEntityId()` e `objectReferenceEntityIdValue`. Nas versões anteriores, o código antigo continua. O comportamento não muda.
+
 ## [1.0.0] - 2026-11-05
 
 ### Quebras
